@@ -1,0 +1,79 @@
+{
+  "app": {
+    "title": "LJVIS"
+  },
+  "nav": {
+    "management": "Management",
+    "users": "Users",
+    "administration": "Administration",
+    "userGroups": "User Groups"
+  },
+  "users": {
+    "title": "Users",
+    "addUser": "Add user",
+    "editUser": "Edit user",
+    "search": "Search by name",
+    "status": "Status",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "personalCode": "Personal code",
+    "organisation": "Organisation",
+    "email": "Email",
+    "phone": "Phone",
+    "accessStart": "Access start",
+    "accessEnd": "Access end",
+    "userGroups": "User groups",
+    "save": "Save",
+    "cancel": "Cancel",
+    "statusActive": "Active",
+    "statusDeactivating": "Deactivating",
+    "statusInactive": "Inactive",
+    "detail": "User details",
+    "edit": "Edit",
+    "manageGroups": "Manage groups",
+    "assignGroups": "Assign user groups",
+    "noGroups": "User has no groups",
+    "orgChangeWarning": "Changing the organisation will remove all user groups currently assigned to this user.",
+    "confirm": "Confirm",
+    "validation": {
+      "required": "Required field",
+      "email": "Invalid email format",
+      "phone": "Allowed: +, digits, spaces",
+      "endBeforeStart": "End date must be after start date"
+    }
+  },
+  "userGroups": {
+    "title": "User Groups",
+    "addGroup": "Add user group",
+    "search": "Search by group name",
+    "searchOrg": "Search by organisation",
+    "name": "Group name",
+    "organisations": "Organisations",
+    "permissions": "Permissions",
+    "usersInGroup": "Users in group",
+    "searchUsers": "Search user",
+    "editName": "Edit name",
+    "editOrganisations": "Edit organisations",
+    "editPermissions": "Edit permissions",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete group",
+    "deleteConfirm": "Are you sure you want to delete this user group? All users will be removed from this group.",
+    "noOrganisations": "No organisations added",
+    "noPermissions": "No permissions added",
+    "noUsers": "No users in this group",
+    "validation": {
+      "nameRequired": "Group name is required"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "back": "Back",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "footer": {
+    "copyright": "© LJVIS 2026"
+  }
+}

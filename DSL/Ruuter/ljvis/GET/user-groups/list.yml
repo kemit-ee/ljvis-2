@@ -1,0 +1,34 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List all user groups with organisations"
+  method: get
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    query:
+      - field: search
+        type: string
+        description: "Search by group name"
+      - field: organisationSearch
+        type: string
+        description: "Filter by organisation name"
+
+extractRequestData:
+  assign:
+    search: "${incoming.params.search ?? ''}"
+    organisation_search: "${incoming.params.organisationSearch ?? ''}"
+
+getUserGroups:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/list_user_groups"
+    query:
+      search: ${search}
+      organisation_search: ${organisation_search}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

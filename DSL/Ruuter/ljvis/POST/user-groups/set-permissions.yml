@@ -1,0 +1,52 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Replace all permission links for a user group"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "User group UUID"
+      - field: permissionIds
+        type: array
+        description: "Array of permission UUIDs"
+
+extractRequestData:
+  assign:
+    user_group_id: "${incoming.body.id}"
+    permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
+
+deleteExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/set_permissions_delete"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+  result: deleteRes
+
+checkPermIds:
+  switch:
+    - condition: "${permission_ids == ''}"
+      next: returnSuccess
+  next: insertPerms
+
+insertPerms:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/replace_permissions"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      permission_ids: ${permission_ids}
+  result: insertRes
+
+returnSuccess:
+  return: "ok"
+  next: end

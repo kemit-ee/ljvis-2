@@ -1,0 +1,24 @@
+# PostgreSQL data directory (docker volume)
+data/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# Node (frontend has its own .gitignore, but just in case)
+node_modules/
+
+# Docker
+*.log
+
+# Environment overrides
+.env
+.env.local
+.env.*.local
+
+# Task/test documentation (local only)
+TASK-*.md
+TEST-*.md

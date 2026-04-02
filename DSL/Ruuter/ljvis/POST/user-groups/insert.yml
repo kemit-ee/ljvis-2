@@ -1,0 +1,76 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Create a new user group with optional organisations and permissions"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: name
+        type: string
+      - field: organisationIds
+        type: array
+        description: "Array of organisation UUIDs"
+      - field: permissionIds
+        type: array
+        description: "Array of permission UUIDs"
+
+extractRequestData:
+  assign:
+    name: "${incoming.body.name}"
+    organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
+    permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
+
+createGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group"
+    headers:
+      type: json
+    body:
+      name: ${name}
+  result: groupRes
+
+extractGroupId:
+  assign:
+    group_id: "${groupRes.response.body[0].id}"
+
+checkOrganisations:
+  switch:
+    - condition: "${organisation_ids == ''}"
+      next: checkPermissions
+  next: assignOrganisations
+
+assignOrganisations:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/replace_organisations"
+    headers:
+      type: json
+    body:
+      user_group_id: ${group_id}
+      organisation_ids: ${organisation_ids}
+  result: orgsRes
+
+checkPermissions:
+  switch:
+    - condition: "${permission_ids == ''}"
+      next: returnSuccess
+  next: assignPermissions
+
+assignPermissions:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/replace_permissions"
+    headers:
+      type: json
+    body:
+      user_group_id: ${group_id}
+      permission_ids: ${permission_ids}
+  result: permsRes
+
+returnSuccess:
+  return: ${groupRes.response.body}
+  next: end

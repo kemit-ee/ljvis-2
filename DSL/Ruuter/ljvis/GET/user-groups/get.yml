@@ -1,0 +1,39 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get user group basic info by ID"
+  method: get
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "User group UUID"
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.id}"
+
+getGroup:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group"
+    query:
+      id: ${id}
+  result: groupRes
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user_group"
+    headers:
+      type: json
+    body:
+      groups: ${groupRes.response.body}
+  result: mapped
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

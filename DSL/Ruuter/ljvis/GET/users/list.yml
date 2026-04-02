@@ -1,0 +1,59 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List users with pagination, sorting, and search"
+  method: get
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    query:
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Items per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction"
+      - field: search
+        type: string
+        description: "Search by first or last name"
+      - field: organisationId
+        type: string
+        description: "Filter by organisation (for local admin)"
+
+extractRequestData:
+  assign:
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 15}"
+    sorting: "${incoming.params.sorting ?? 'last_name asc'}"
+    search: "${incoming.params.search ?? ''}"
+    organisation_id: "${incoming.params.organisationId ?? ''}"
+
+getUsers:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/list_users"
+    query:
+      page: ${page}
+      page_size: ${page_size}
+      sorting: ${sorting}
+      search: ${search}
+      organisation_id: ${organisation_id}
+  result: res
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_users_list"
+    headers:
+      type: json
+    body:
+      users: ${res.response.body}
+  result: mapped
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

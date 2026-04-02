@@ -1,0 +1,62 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Update an existing user"
+  method: post
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: firstName
+        type: string
+      - field: lastName
+        type: string
+      - field: personalCode
+        type: string
+      - field: organisationId
+        type: string
+      - field: email
+        type: string
+      - field: phone
+        type: string
+      - field: accessStart
+        type: string
+      - field: accessEnd
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    first_name: "${incoming.body.firstName}"
+    last_name: "${incoming.body.lastName}"
+    personal_code: "${incoming.body.personalCode}"
+    organisation_id: "${incoming.body.organisationId}"
+    email: "${incoming.body.email}"
+    phone: "${incoming.body.phone ?? ''}"
+    access_start: "${incoming.body.accessStart}"
+    access_end: "${incoming.body.accessEnd ?? ''}"
+
+updateUser:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/update_user"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      first_name: ${first_name}
+      last_name: ${last_name}
+      personal_code: ${personal_code}
+      organisation_id: ${organisation_id}
+      email: ${email}
+      phone: ${phone}
+      access_start: ${access_start}
+      access_end: ${access_end}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

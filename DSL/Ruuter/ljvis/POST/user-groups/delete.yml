@@ -1,0 +1,30 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Delete a user group and all its links"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+
+deleteGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/delete_user_group"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

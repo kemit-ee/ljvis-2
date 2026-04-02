@@ -1,0 +1,10 @@
+[
+    {{#each groups}}
+    {
+        "id": "{{this.id}}",
+        "name": "{{this.name}}",
+        "createdAt": "{{this.createdAt}}",
+        "updatedAt": "{{this.updatedAt}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+]

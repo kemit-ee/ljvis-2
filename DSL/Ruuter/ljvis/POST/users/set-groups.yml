@@ -1,0 +1,52 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Replace all group memberships for a user"
+  method: post
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    body:
+      - field: userId
+        type: string
+        description: "User UUID"
+      - field: groupIds
+        type: array
+        description: "Array of user group UUIDs"
+
+extractRequestData:
+  assign:
+    user_id: "${incoming.body.userId}"
+    group_ids: "${(incoming.body.groupIds ?? []).join(',')}"
+
+deleteExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/set_user_groups"
+    headers:
+      type: json
+    body:
+      user_id: ${user_id}
+  result: deleteRes
+
+checkGroupIds:
+  switch:
+    - condition: "${group_ids == ''}"
+      next: returnSuccess
+  next: insertGroups
+
+insertGroups:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/replace_user_groups"
+    headers:
+      type: json
+    body:
+      user_id: ${user_id}
+      group_ids: ${group_ids}
+  result: insertRes
+
+returnSuccess:
+  return: "ok"
+  next: end

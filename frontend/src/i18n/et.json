@@ -1,0 +1,79 @@
+{
+  "app": {
+    "title": "LJVIS"
+  },
+  "nav": {
+    "management": "Haldus",
+    "users": "Kasutajad",
+    "administration": "Administreerimine",
+    "userGroups": "Kasutajagrupid"
+  },
+  "users": {
+    "title": "Kasutajad",
+    "addUser": "Lisa kasutaja",
+    "editUser": "Muuda kasutajat",
+    "search": "Otsi nime järgi",
+    "status": "Staatus",
+    "firstName": "Eesnimi",
+    "lastName": "Perekonnanimi",
+    "personalCode": "Isikukood",
+    "organisation": "Asutus",
+    "email": "E-post",
+    "phone": "Telefon",
+    "accessStart": "Ligipääsu algus",
+    "accessEnd": "Ligipääsu lõpp",
+    "userGroups": "Kasutajagrupid",
+    "save": "Salvesta",
+    "cancel": "Tühista",
+    "statusActive": "Aktiivne",
+    "statusDeactivating": "Deaktiveeritakse",
+    "statusInactive": "Mitteaktiivne",
+    "detail": "Kasutaja andmed",
+    "edit": "Muuda",
+    "manageGroups": "Halda gruppe",
+    "assignGroups": "Määra kasutajagrupid",
+    "noGroups": "Kasutajal pole gruppe",
+    "orgChangeWarning": "Asutuse muutmine eemaldab kõik kasutajagrupid sellelt kasutajalt.",
+    "confirm": "Kinnita",
+    "validation": {
+      "required": "Kohustuslik väli",
+      "email": "Vigane e-posti formaat",
+      "phone": "Lubatud: +, numbrid, tühikud",
+      "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev"
+    }
+  },
+  "userGroups": {
+    "title": "Kasutajagrupid",
+    "addGroup": "Lisa kasutajagrupp",
+    "search": "Otsi grupi nime järgi",
+    "searchOrg": "Otsi asutuse järgi",
+    "name": "Grupi nimi",
+    "organisations": "Asutused",
+    "permissions": "Õigused",
+    "usersInGroup": "Kasutajad grupis",
+    "searchUsers": "Otsi kasutajat",
+    "editName": "Muuda nime",
+    "editOrganisations": "Muuda asutusi",
+    "editPermissions": "Muuda õigusi",
+    "save": "Salvesta",
+    "cancel": "Tühista",
+    "delete": "Kustuta grupp",
+    "deleteConfirm": "Kas olete kindel, et soovite selle kasutajagrupi kustutada? Kõik kasutajad eemaldatakse sellest grupist.",
+    "noOrganisations": "Asutusi pole lisatud",
+    "noPermissions": "Õigusi pole lisatud",
+    "noUsers": "Grupis pole kasutajaid",
+    "validation": {
+      "nameRequired": "Grupi nimi on kohustuslik"
+    }
+  },
+  "common": {
+    "loading": "Laadimine...",
+    "error": "Tekkis viga",
+    "back": "Tagasi",
+    "yes": "Jah",
+    "no": "Ei"
+  },
+  "footer": {
+    "copyright": "© LJVIS 2026"
+  }
+}

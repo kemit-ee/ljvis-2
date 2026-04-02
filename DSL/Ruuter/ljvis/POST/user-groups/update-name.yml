@@ -1,0 +1,34 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Update user group name"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: name
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    name: "${incoming.body.name}"
+
+updateName:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/update_user_group_name"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      name: ${name}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

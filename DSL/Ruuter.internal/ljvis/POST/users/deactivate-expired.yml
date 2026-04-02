@@ -1,0 +1,21 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Deactivate expired users - removes groups and sets status to inactive (called by cron)"
+  method: post
+  accepts: json
+  returns: json
+  namespace: users
+
+deactivateExpired:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/deactivate_expired_users"
+    headers:
+      type: json
+    body: {}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

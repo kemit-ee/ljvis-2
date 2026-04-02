@@ -1,0 +1,52 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Replace all organisation links for a user group"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "User group UUID"
+      - field: organisationIds
+        type: array
+        description: "Array of organisation UUIDs"
+
+extractRequestData:
+  assign:
+    user_group_id: "${incoming.body.id}"
+    organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
+
+deleteExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/set_organisations_delete"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+  result: deleteRes
+
+checkOrgIds:
+  switch:
+    - condition: "${organisation_ids == ''}"
+      next: returnSuccess
+  next: insertOrgs
+
+insertOrgs:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/replace_organisations"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      organisation_ids: ${organisation_ids}
+  result: insertRes
+
+returnSuccess:
+  return: "ok"
+  next: end

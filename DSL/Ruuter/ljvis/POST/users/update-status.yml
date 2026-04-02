@@ -1,0 +1,34 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Update user status"
+  method: post
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: status
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    status: "${incoming.body.status}"
+
+updateStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/update_user_status"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      status: ${status}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
