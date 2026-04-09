@@ -7,6 +7,7 @@ import {
   HeaderSettings,
 } from '@tedi-design-system/react/community';
 import { Row, StretchContent } from '@tedi-design-system/react/tedi';
+import { useAuth } from '../features/auth/AuthContext';
 
 const LANGUAGES = [
   { code: 'et', label: 'Eesti keeles' },
@@ -16,6 +17,7 @@ const LANGUAGES = [
 
 export function useHeaderProps(): HeaderProps<'a'> {
   const { i18n } = useTranslation();
+  const { user, logout } = useAuth();
   const lang = i18n.language;
 
   return {
@@ -41,10 +43,18 @@ export function useHeaderProps(): HeaderProps<'a'> {
           }))}
         />
         <HeaderSettings
-          onActionClick={() => console.log('settings')}
+          onActionClick={logout}
           iconName="account_circle"
         >
-          {() => <></>}
+          {() => (
+            <div style={{ padding: '0.75rem' }}>
+              {user && (
+                <p style={{ margin: 0, fontWeight: 500 }}>
+                  {user.firstname} {user.lastname}
+                </p>
+              )}
+            </div>
+          )}
         </HeaderSettings>
       </React.Fragment>
     ),

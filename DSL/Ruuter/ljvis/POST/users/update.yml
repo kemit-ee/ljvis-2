@@ -27,6 +27,22 @@ declaration:
       - field: accessEnd
         type: string
 
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_edit_admin') >= 0}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_edit_local') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -59,4 +75,9 @@ updateUser:
 
 returnSuccess:
   return: ${res.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
   next: end

@@ -11,6 +11,20 @@ declaration:
       - field: id
         type: string
 
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -27,4 +41,9 @@ deleteGroup:
 
 returnSuccess:
   return: ${res.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
   next: end

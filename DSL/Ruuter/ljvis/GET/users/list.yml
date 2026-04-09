@@ -24,6 +24,31 @@ declaration:
         type: string
         description: "Filter by organisation (for local admin)"
 
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_list_admin') >= 0}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_list_local') >= 0}
+      next: extractRequestDataLocal
+  next: return_forbidden
+
+extractRequestDataLocal:
+  assign:
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 15}"
+    sorting: "${incoming.params.sorting ?? 'last_name asc'}"
+    search: "${incoming.params.search ?? ''}"
+    organisation_id: "${auth_user.organisationid}"
+  next: getUsers
+
 extractRequestData:
   assign:
     page: "${incoming.params.page ?? 1}"
@@ -31,6 +56,7 @@ extractRequestData:
     sorting: "${incoming.params.sorting ?? 'last_name asc'}"
     search: "${incoming.params.search ?? ''}"
     organisation_id: "${incoming.params.organisationId ?? ''}"
+  next: getUsers
 
 getUsers:
   call: http.get
@@ -56,4 +82,9 @@ mapResponse:
 
 returnSuccess:
   return: ${mapped.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
   next: end

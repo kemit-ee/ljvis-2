@@ -3,11 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { Accordion, AccordionItem, AccordionItemContent, AccordionItemHeader, CardContent, Modal, ModalCloser, ModalProvider, ModalTrigger } from '@tedi-design-system/react/community';
 import { Button, Heading, Text, TextField, Checkbox, Search, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useUserGroupDetail } from './hooks';
+import { useAuth } from '../auth/AuthContext';
 
 export function UserGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const canEditGroup = hasPermission('perm_user_group_edit_admin');
 
   const {
     group, orgs, perms, users, loading,
@@ -29,7 +32,7 @@ export function UserGroupDetailPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1rem 0' }}>
         <Heading element="h1">{group.name}</Heading>
-        <ModalProvider>
+        {canEditGroup && <ModalProvider>
           <ModalTrigger>
             <Button color="danger">{t('userGroups.delete')}</Button>
           </ModalTrigger>
@@ -47,7 +50,7 @@ export function UserGroupDetailPage() {
               </div>
             </CardContent>
           </Modal>
-        </ModalProvider>
+        </ModalProvider>}
       </div>
 
       <Accordion>
@@ -66,7 +69,7 @@ export function UserGroupDetailPage() {
             ) : (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text>{group.name}</Text>
-                <Button visualType="secondary" onClick={startEditName}>{t('userGroups.editName')}</Button>
+                {canEditGroup && <Button visualType="secondary" onClick={startEditName}>{t('userGroups.editName')}</Button>}
               </div>
             )}
           </AccordionItemContent>
@@ -112,7 +115,7 @@ export function UserGroupDetailPage() {
                     </ul>
                   )}
                 </div>
-                <Button visualType="secondary" onClick={startEditOrgs}>{t('userGroups.editOrganisations')}</Button>
+                {canEditGroup && <Button visualType="secondary" onClick={startEditOrgs}>{t('userGroups.editOrganisations')}</Button>}
               </div>
             )}
           </AccordionItemContent>
@@ -160,7 +163,7 @@ export function UserGroupDetailPage() {
                     </ul>
                   )}
                 </div>
-                <Button visualType="secondary" onClick={startEditPerms}>{t('userGroups.editPermissions')}</Button>
+                {canEditGroup && <Button visualType="secondary" onClick={startEditPerms}>{t('userGroups.editPermissions')}</Button>}
               </div>
             )}
           </AccordionItemContent>

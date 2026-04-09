@@ -15,6 +15,22 @@ declaration:
         type: string
         description: "Filter by organisation name"
 
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_list_admin') >= 0}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_list_local') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
 extractRequestData:
   assign:
     search: "${incoming.params.search ?? ''}"
@@ -31,4 +47,9 @@ getUserGroups:
 
 returnSuccess:
   return: ${res.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
   next: end

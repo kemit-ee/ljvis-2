@@ -5,11 +5,16 @@ import { Button, Heading, StatusBadge, Text } from '@tedi-design-system/react/te
 import { useUserDetail } from './hooks';
 import { UserFormModal } from './UserFormModal';
 import { AssignGroupsModal } from './AssignGroupsModal';
+import { useAuth } from '../auth/AuthContext';
 
 export function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const { hasAnyPermission } = useAuth();
+  const canEditUser = hasAnyPermission(['perm_user_edit_admin', 'perm_user_edit_local']);
+  const canViewGroupDetail = hasAnyPermission(['perm_user_group_view_admin', 'perm_user_group_view_local']);
 
   const { user, groups, loading, isAccessExpired, refetch } = useUserDetail(id);
 
@@ -31,15 +36,17 @@ export function UserDetailPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1rem 0' }}>
         <Heading element="h1">{t('users.detail')}</Heading>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <UserFormModal user={user} triggerLabel={t('users.edit')} onSaved={refetch} />
-          <AssignGroupsModal
-            userId={user.id}
-            userOrganisationId={user.organisationId}
-            currentGroups={groups}
-            triggerLabel={t('users.manageGroups')}
-            triggerProps={{ visualType: 'secondary', disabled: isAccessExpired }}
-            onSaved={refetch}
-          />
+          {canEditUser && <UserFormModal user={user} triggerLabel={t('users.edit')} onSaved={refetch} />}
+          {canEditUser && (
+            <AssignGroupsModal
+              userId={user.id}
+              userOrganisationId={user.organisationId}
+              currentGroups={groups}
+              triggerLabel={t('users.manageGroups')}
+              triggerProps={{ visualType: 'secondary', disabled: isAccessExpired }}
+              onSaved={refetch}
+            />
+          )}
         </div>
       </div>
 
@@ -69,7 +76,11 @@ export function UserDetailPage() {
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {groups.map((g) => (
               <li key={g.userGroupId} style={{ padding: '0.5rem 0' }}>
-                <Link to={`/user-groups/${g.userGroupId}`}>{g.name}</Link>
+                {canViewGroupDetail ? (
+                  <Link to={`/user-groups/${g.userGroupId}`}>{g.name}</Link>
+                ) : (
+                  <Text>{g.name}</Text>
+                )}
               </li>
             ))}
           </ul>

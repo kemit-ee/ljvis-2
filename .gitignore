@@ -10,6 +10,7 @@ data/
 
 # Node (frontend has its own .gitignore, but just in case)
 node_modules/
+tim-db/
 
 # Docker
 *.log

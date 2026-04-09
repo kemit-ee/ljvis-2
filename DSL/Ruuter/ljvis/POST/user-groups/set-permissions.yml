@@ -15,6 +15,20 @@ declaration:
         type: array
         description: "Array of permission UUIDs"
 
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
 extractRequestData:
   assign:
     user_group_id: "${incoming.body.id}"
@@ -49,4 +63,9 @@ insertPerms:
 
 returnSuccess:
   return: "ok"
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
   next: end

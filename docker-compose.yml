@@ -29,12 +29,13 @@ services:
 
   resql-users:
     container_name: resql-users
-    image: ghcr.io/buerokratt/resql:v1.3.4
+    image: ghcr.io/buerokratt/resql:v1.3.6
+    platform: linux/amd64
     depends_on:
       - database
     environment:
       - server.port=8087
-      - sqlms.datasources.[0].name=users
+      - sqlms.datasources.[0].name=byk
       - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/users_db
       - sqlms.datasources.[0].username=ljvis
       - sqlms.datasources.[0].password=01234
@@ -49,11 +50,12 @@ services:
   resql-ljvis:
     container_name: resql-ljvis
     image: ghcr.io/buerokratt/resql:v1.3.4
+    platform: linux/amd64
     depends_on:
       - database
     environment:
       - server.port=8090
-      - sqlms.datasources.[0].name=ljvis
+      - sqlms.datasources.[0].name=byk
       - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/ljvis_db
       - sqlms.datasources.[0].username=ljvis
       - sqlms.datasources.[0].password=01234
@@ -68,6 +70,7 @@ services:
   ruuter:
     container_name: ruuter
     image: ghcr.io/buerokratt/ruuter:v2.2.1
+    platform: linux/amd64
     environment:
       - application.cors.allowedOrigins=http://localhost:8086,http://localhost:3001,http://localhost:3004,http://localhost:8080
       - application.httpCodesAllowList=200,201,202,400,401,403,500
@@ -91,6 +94,7 @@ services:
   data-mapper:
     container_name: data-mapper
     image: ghcr.io/buerokratt/datamapper:v2.2.9
+    platform: linux/amd64
     environment:
       - PORT=3005
       - CONTENT_FOLDER=/data
@@ -105,6 +109,7 @@ services:
   ruuter-internal:
     container_name: ruuter-internal
     image: ghcr.io/buerokratt/ruuter:v2.2.1
+    platform: linux/amd64
     environment:
       - application.cors.allowedOrigins=http://localhost:8086,http://localhost:8089,http://localhost:3001,http://localhost:3004,http://localhost:8080
       - application.httpCodesAllowList=200,201,202,400,401,403,500
@@ -124,6 +129,52 @@ services:
     cpus: "0.5"
     mem_limit: "512M"
 
+  tim-postgresql:
+    container_name: tim-postgresql
+    image: postgres:14.1
+    environment:
+      - POSTGRES_USER=tim
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=tim
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./tim-db:/var/lib/postgresql/data
+    ports:
+      - 9876:5432
+    networks:
+      - ljvisnetwork
+
+  tim:
+    container_name: tim
+    image: ghcr.io/buerokratt/tim:pre-apha-2.7.1
+    platform: linux/amd64
+    depends_on:
+      - tim-postgresql
+    environment:
+      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-users,resql-ljvis,tim,tim-postgresql,authentication-layer,127.0.0.1,::1
+      - JWT_INTEGRATION_SIGNATURE_KEY_STORE_PASSWORD=defaultpassword
+      # Keycloak OAuth2 (replace URLs with TARA for production)
+      - security.oauth2.client.client-id=ljvis
+      - security.oauth2.client.client-secret=2651c2f9-169e-442e-8552-765526058fd4
+      - security.oauth2.client.scope=openid
+      - security.oauth2.client.registered-redirect-uri=http://localhost:3001/tim/authenticate
+      - security.oauth2.client.user-authorization-uri=https://test-keycloak.dev.wisercat-estonia.ee/auth/realms/master/protocol/openid-connect/auth
+      - security.oauth2.client.access-token-uri=https://test-keycloak.dev.wisercat-estonia.ee/auth/realms/master/protocol/openid-connect/token
+      - security.oauth2.resource.jwk.key-set-uri=https://test-keycloak.dev.wisercat-estonia.ee/auth/realms/master/protocol/openid-connect/certs
+      - frontpage.redirect.url=http://localhost:3001
+      - auth.success.redirect.whitelist=http://localhost:3001
+      - jwt-integration.signature.cookieName=customJwtCookie
+      - jwt-integration.signature.secureCookie=false
+      - server.servlet.session.cookie.same-site=lax
+    ports:
+      - 8085:8085
+    networks:
+      - ljvisnetwork
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    cpus: "0.5"
+    mem_limit: "512M"
+
   frontend:
     container_name: frontend
     build:
@@ -133,6 +184,7 @@ services:
       - 3001:3001
     depends_on:
       - ruuter
+      - authentication-layer
     networks:
       - ljvisnetwork
 

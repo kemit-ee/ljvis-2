@@ -11,6 +11,21 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/ljvis'),
       },
+      '/tim': {
+        target: 'http://localhost:8085',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/tim/, ''),
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes) => {
+            const sc = proxyRes.headers['set-cookie'];
+            if (sc) {
+              proxyRes.headers['set-cookie'] = sc.map((c: string) =>
+                c.replace(/SameSite=None/i, 'SameSite=Lax')
+              );
+            }
+          });
+        },
+      },
     },
   },
 })

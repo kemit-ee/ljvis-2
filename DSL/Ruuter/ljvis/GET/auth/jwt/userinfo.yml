@@ -1,0 +1,36 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Return current user info + permissions from JWT cookie"
+  method: get
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_result
+  next: check_auth
+
+check_auth:
+  switch:
+    - condition: ${auth_result != null && auth_result !== "false" && auth_result !== "no authentication cookie"}
+      next: return_result
+  next: return_unauthorized
+
+return_result:
+  return: ${auth_result}
+  next: end
+
+return_unauthorized:
+  status: 401
+  return: "unauthorized"
+  next: end

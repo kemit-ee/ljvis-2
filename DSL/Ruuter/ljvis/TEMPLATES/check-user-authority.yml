@@ -1,0 +1,79 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Validate JWT cookie via TIM, then look up user + permissions from LJVIS DB"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+
+check_for_body:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: missing_cookie
+  next: get_cookie_info
+
+get_cookie_info:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: res
+  next: check_cookie_info_response
+
+check_cookie_info_response:
+  switch:
+    - condition: ${200 <= res.response.statusCodeValue && res.response.statusCodeValue < 300}
+      next: extract_personal_code
+  next: return_bad_request
+
+extract_personal_code:
+  assign:
+    personal_code: ${res.response.body.personalCode ?? ''}
+  next: check_personal_code
+
+check_personal_code:
+  switch:
+    - condition: ${personal_code != null && personal_code != ''}
+      next: lookup_user_permissions
+  next: return_bad_request
+
+lookup_user_permissions:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/get_user_permissions_by_personal_code"
+    query:
+      personal_code: ${personal_code}
+  result: user_res
+  next: check_user_found
+
+check_user_found:
+  switch:
+    - condition: ${user_res.response.body.length > 0}
+      next: return_auth_result
+  next: return_user_not_found
+
+return_auth_result:
+  return: ${user_res.response.body[0]}
+  next: end
+
+return_user_not_found:
+  status: 403
+  return: "false"
+  next: end
+
+return_bad_request:
+  status: 400
+  return: "false"
+  next: end
+
+missing_cookie:
+  status: 401
+  return: "no authentication cookie"
+  next: end

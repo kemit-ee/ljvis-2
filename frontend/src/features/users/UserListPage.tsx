@@ -7,12 +7,15 @@ import { Heading, Search, StatusBadge } from '@tedi-design-system/react/tedi';
 import type { UserListItem } from './types';
 import { useUserList } from './hooks';
 import { UserFormModal } from './UserFormModal';
+import { useAuth } from '../auth/AuthContext';
 
 const columnHelper = createColumnHelper<UserListItem>();
 
 export function UserListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasAnyPermission } = useAuth();
+  const canAddUser = hasAnyPermission(['perm_user_edit_admin', 'perm_user_edit_local']);
 
   const {
     data,
@@ -80,7 +83,7 @@ export function UserListPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading element="h1">{t('users.title')}</Heading>
-        <UserFormModal triggerLabel={t('users.addUser')} onSaved={refetch} />
+        {canAddUser && <UserFormModal triggerLabel={t('users.addUser')} onSaved={refetch} />}
       </div>
 
       <div style={{ marginBottom: '1rem', maxWidth: '20rem' }}>

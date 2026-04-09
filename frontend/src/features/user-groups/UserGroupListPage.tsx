@@ -7,12 +7,15 @@ import { Heading, Search } from '@tedi-design-system/react/tedi';
 import type { UserGroup } from './types';
 import { useUserGroupList } from './hooks';
 import { UserGroupFormModal } from './UserGroupFormModal';
+import { useAuth } from '../auth/AuthContext';
 
 const columnHelper = createColumnHelper<UserGroup>();
 
 export function UserGroupListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const canAddGroup = hasPermission('perm_user_group_edit_admin');
 
   const {
     data, isLoading,
@@ -45,7 +48,7 @@ export function UserGroupListPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading element="h1">{t('userGroups.title')}</Heading>
-        <UserGroupFormModal triggerLabel={t('userGroups.addGroup')} onSaved={refetch} />
+        {canAddGroup && <UserGroupFormModal triggerLabel={t('userGroups.addGroup')} onSaved={refetch} />}
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>

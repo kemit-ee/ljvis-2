@@ -13,15 +13,6 @@ declaration:
       - field: page_size
         type: number
         description: "Items per page"
-      - field: sorting
-        type: string
-        description: "Sort column and direction"
-      - field: search
-        type: string
-        description: "Search by first or last name"
-      - field: organisation_id
-        type: string
-        description: "Filter by organisation (for local admin)"
   response:
     fields:
       - field: id
@@ -69,23 +60,23 @@ JOIN users.organisation o ON o.id = u.organisation_id
 LEFT JOIN users.user_user_group uug ON uug.user_id = u.id
 LEFT JOIN users.user_group ug ON ug.id = uug.user_group_id
 WHERE
-    (:organisation_id = '' OR u.organisation_id = :organisation_id::UUID)
+    (COALESCE(:organisation_id, '') = '' OR u.organisation_id = COALESCE(:organisation_id, '')::UUID)
     AND (
-        :search = ''
-        OR u.first_name ILIKE '%' || :search || '%'
-        OR u.last_name ILIKE '%' || :search || '%'
+        COALESCE(:search, '') = ''
+        OR u.first_name ILIKE '%' || COALESCE(:search, '') || '%'
+        OR u.last_name ILIKE '%' || COALESCE(:search, '') || '%'
     )
 GROUP BY u.id, o.name
 ORDER BY
     CASE WHEN u.status = 'inactive' THEN 1 ELSE 0 END ASC,
-    CASE WHEN :sorting = 'first_name asc' THEN u.first_name END ASC,
-    CASE WHEN :sorting = 'first_name desc' THEN u.first_name END DESC,
-    CASE WHEN :sorting = 'last_name asc' THEN u.last_name END ASC,
-    CASE WHEN :sorting = 'last_name desc' THEN u.last_name END DESC,
-    CASE WHEN :sorting = 'personal_code asc' THEN u.personal_code END ASC,
-    CASE WHEN :sorting = 'personal_code desc' THEN u.personal_code END DESC,
-    CASE WHEN :sorting = 'organisation_name asc' THEN o.name END ASC,
-    CASE WHEN :sorting = 'organisation_name desc' THEN o.name END DESC,
+    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'first_name asc' THEN u.first_name END ASC,
+    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'first_name desc' THEN u.first_name END DESC,
+    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'last_name asc' THEN u.last_name END ASC,
+    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'last_name desc' THEN u.last_name END DESC,
+    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'personal_code asc' THEN u.personal_code END ASC,
+    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'personal_code desc' THEN u.personal_code END DESC,
+    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'organisation_name asc' THEN o.name END ASC,
+    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'organisation_name desc' THEN o.name END DESC,
     u.last_name ASC
 LIMIT :page_size::INTEGER
 OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
