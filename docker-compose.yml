@@ -16,7 +16,9 @@ services:
 
   liquibase:
     container_name: liquibase
-    image: liquibase/liquibase:4.29-alpine
+    build:
+      context: .
+      dockerfile: docker/liquibase/Dockerfile
     depends_on:
       - database
     volumes:
@@ -29,7 +31,9 @@ services:
 
   resql-users:
     container_name: resql-users
-    image: ghcr.io/buerokratt/resql:v1.3.6
+    build:
+      context: .
+      dockerfile: docker/resql-users/Dockerfile
     platform: linux/amd64
     depends_on:
       - database
@@ -49,7 +53,9 @@ services:
 
   resql-ljvis:
     container_name: resql-ljvis
-    image: ghcr.io/buerokratt/resql:v1.3.4
+    build:
+      context: .
+      dockerfile: docker/resql-ljvis/Dockerfile
     platform: linux/amd64
     depends_on:
       - database
@@ -69,7 +75,9 @@ services:
 
   ruuter:
     container_name: ruuter
-    image: ghcr.io/buerokratt/ruuter:v2.2.1
+    build:
+      context: .
+      dockerfile: docker/ruuter/Dockerfile
     platform: linux/amd64
     environment:
       - application.cors.allowedOrigins=http://localhost:8086,http://localhost:3001,http://localhost:3004,http://localhost:8080
@@ -93,7 +101,9 @@ services:
 
   data-mapper:
     container_name: data-mapper
-    image: ghcr.io/buerokratt/datamapper:v2.2.9
+    build:
+      context: .
+      dockerfile: docker/data-mapper/Dockerfile
     platform: linux/amd64
     environment:
       - PORT=3005
@@ -108,7 +118,9 @@ services:
 
   ruuter-internal:
     container_name: ruuter-internal
-    image: ghcr.io/buerokratt/ruuter:v2.2.1
+    build:
+      context: .
+      dockerfile: docker/ruuter-internal/Dockerfile
     platform: linux/amd64
     environment:
       - application.cors.allowedOrigins=http://localhost:8086,http://localhost:8089,http://localhost:3001,http://localhost:3004,http://localhost:8080
@@ -151,7 +163,7 @@ services:
     depends_on:
       - tim-postgresql
     environment:
-      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-users,resql-ljvis,tim,tim-postgresql,authentication-layer,127.0.0.1,::1
+      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-users,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
       - JWT_INTEGRATION_SIGNATURE_KEY_STORE_PASSWORD=defaultpassword
       # Keycloak OAuth2 (replace URLs with TARA for production)
       - security.oauth2.client.client-id=ljvis
@@ -184,7 +196,6 @@ services:
       - 3001:3001
     depends_on:
       - ruuter
-      - authentication-layer
     networks:
       - ljvisnetwork
 
