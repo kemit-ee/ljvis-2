@@ -2,6 +2,22 @@
   "app": {
     "title": "LJVIS"
   },
+  "auth": {
+    "title": "COMING",
+    "descriptionHeader": "COMING",
+    "descriptionFooter": "COMING",
+    "descriptionItem1": "COMING",
+    "descriptionItem2": "COMING",
+    "descriptionItem3": "COMING",
+    "descriptionItem4": "COMING",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "login": "Enter the system",
+    "citizen": "For the citizen",
+    "official": "For the officail",
+    "citizenInfo": "COMING",
+    "officialInfo": "COMING"
+  },
   "nav": {
     "management": "Management",
     "users": "Users",

@@ -2,6 +2,22 @@
   "app": {
     "title": "LJVIS"
   },
+  "auth": {
+    "title": "Liiklusjärelvalve infosüsteem",
+    "descriptionHeader": "Liiklusjärelvalve infosüsteem on liiklusseaduse alusel loodud andmekogu, mille eesmärgiks on autoveo- ja liiklusjärelevalve käigus kogutud andmete elektrooniline talletamine ja süstematiseerimine, asjaomaste asutuste vahel vahetamine ning nende andmete alusel järelevalve teostamine. Samuti valdkonnaga seotud aruannete ja analüüside koostamine. Liiklusjärelevalve infosüsteemi kantakse nelja liiki andmeid:",
+    "descriptionFooter": "Andmete sisestamist liiklusjärelevalve infosüsteemi korraldavad Politsei- ja Piirivalveamet, Kliimaministeerium, Tööinspektsioon ja Transpordiamet. Isikuandmeid säilitatakse andmekogus kolm aastat, pärast mida need andmed kustutatakse. Muid andmeid, mis ei ole isikuandmed, säilitatakse liiklusjärelevalve infosüsteemis viis aastat, pärast mida need andmed arhiveeritakse.",
+    "descriptionItem1": "teedel järelevalve teostamisel kogutud andmed mootorsõidukite ja haagiste tehnoseisundi, veose paigutamise, kinnitamise ja katmise, massi, teljekoormusse ja mõõtmete, teekasutustasu tasumise, autojuhtide sõidu- ja puhkeaja nõuete täitmise, seaduse või välislepingu alusel veo teostamiseks nõutavate dokumentide ning ohtliku veose autoveo kontrollimise kohta. Samuti kontrollimise käigus tuvastatud süüteo kvalifikatsioon ja karistuse liik, kaasa arvatud autoveoalaste raskete rikkumiste andmed;",
+    "descriptionItem2": "ettevõttes autojuhtide töö-, sõidu- ja puhkeaja nõuete täitmise kontrollimisel kogutud andmed;",
+    "descriptionItem3": "välisriigist Kliimaministeeriumile edastatud andmed Eesti vedaja kontrollimisel avastatud autoveo- või liiklusalase õigusrikkumise ja selle osas kohaldatud karistuste kohta, kaasa arvatud autoveoalaste raskete rikkumiste andmed;",
+    "descriptionItem4": "hea maine nõuetele mittevastavaks tunnistatud veokorraldusõiguse andmed.",
+    "showMore": "Kuva rohkem",
+    "showLess": "Kuva vähem",
+    "login": "Sisene süsteemi",
+    "citizen": "Kodanikule",
+    "official": "Ametnikule",
+    "citizenInfo": "Liiklusjärelvalve infosüsteemi logides on füüsilisel ja juriidilisel isikul võimalik saada temaga seotud andmeid liiklusjärelvalve infosüsteemist. Juriidilise isikuga seotud andmete liiklusjärelvalve infosüsteemis on juurdepääsuõigus ettevõtte juhatuse liikmel, kelle seotust asjaomase ettevõttega kontrollitakse äriregistrist.",
+    "officialInfo": "Liiklusjärelvalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest."
+  },
   "nav": {
     "management": "Haldus",
     "users": "Kasutajad",
