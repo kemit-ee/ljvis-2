@@ -90,6 +90,10 @@
     "no": "Ei"
   },
   "footer": {
-    "copyright": "© LJVIS 2026"
+    "help": "Abi",
+    "title": "Liiklusjärelvalve infosüsteem",
+    "faq": "KKK",
+    "cookies": "Küpsised",
+    "privacy": "Privaatsussätted"
   }
 }

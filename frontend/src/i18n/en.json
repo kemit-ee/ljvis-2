@@ -3,7 +3,7 @@
     "title": "LJVIS"
   },
   "auth": {
-    "title": "COMING",
+    "title": "Traffic Supervision Information System",
     "descriptionHeader": "COMING",
     "descriptionFooter": "COMING",
     "descriptionItem1": "COMING",
@@ -90,6 +90,10 @@
     "no": "No"
   },
   "footer": {
-    "copyright": "© LJVIS 2026"
+    "help": "Help",
+    "title": "Traffic Supervision Information System",
+    "faq": "FAQ",
+    "cookies": "Cookies",
+    "privacy": "Privacy policy"
   }
 }

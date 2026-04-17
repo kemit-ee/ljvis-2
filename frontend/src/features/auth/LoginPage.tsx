@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, Row, Col, Button, Heading, Text } from '@tedi-design-system/react/tedi';
-import { Header } from '@tedi-design-system/react/community';
+import { Header, Footer } from '@tedi-design-system/react/community';
 import { DescriptionList } from './DescriptionList';
+import { useFooterProps } from '../../layout/useFooterProps';
 
 const AUTH_URL = '/tim/oauth2/authorization/tara?callback_url=http://localhost:3001';
 
 export function LoginPage() {
     const { t } = useTranslation();
     const [showFullDescription, setShowFullDescription] = useState(false);
+    const footerProps = useFooterProps();
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -83,7 +85,7 @@ export function LoginPage() {
                         </>
                     )}
                 </div>
-                <div style={{marginBottom: '1rem', paddingLeft: '1.5rem', paddingRight: '1.5rem'}}>
+                <div style={{marginBottom: '3rem', paddingLeft: '1.5rem', paddingRight: '1.5rem'}}>
                     <Row>
                         <Col
                             style={{padding: 0}}>
@@ -162,6 +164,7 @@ export function LoginPage() {
                     </Row>
                 </div>
             </div>
+            <Footer {...footerProps} />
         </div>
     );
 }
