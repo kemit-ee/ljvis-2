@@ -5,8 +5,9 @@ import {
   HeaderContent,
   HeaderLanguage,
   HeaderSettings,
+  HeaderRole
 } from '@tedi-design-system/react/community';
-import { Row, StretchContent } from '@tedi-design-system/react/tedi';
+import { Row, StretchContent, Button } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../features/auth/AuthContext';
 
 const LANGUAGES = [
@@ -22,8 +23,7 @@ export function useHeaderProps(): HeaderProps<'a'> {
 
   return {
     logo: {
-      imageUrl: '/assets/kemit-logo.svg',
-      anchorProps: { href: '/' },
+      imageUrl: '/assets/klim_logo.svg'
     },
     children: (
       <React.Fragment key=".0">
@@ -32,29 +32,17 @@ export function useHeaderProps(): HeaderProps<'a'> {
             <Row alignItems="center" justifyContent="end" gap={3} />
           </StretchContent>
         </HeaderContent>
-        <HeaderLanguage
-          languages={LANGUAGES.map((l) => ({
-            label: l.label,
-            isSelected: lang === l.code || lang.startsWith(l.code),
-            onClick: async ({ onToggle }: { onToggle: (open: boolean) => void }) => {
-              await i18n.changeLanguage(l.code);
-              onToggle(false);
-            },
-          }))}
-        />
-        <HeaderSettings
-          onActionClick={logout}
-          iconName="account_circle"
-        >
-          {() => (
-            <div style={{ padding: '0.75rem' }}>
-              {user && (
-                <p style={{ margin: 0, fontWeight: 500 }}>
-                  {user.firstname} {user.lastname}
-                </p>
-              )}
-            </div>
-          )}
+          <HeaderRole
+              primaryInfo={`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
+          >
+            {() => (
+                  <Button visualType="link"
+                  >
+                    {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
+                  </Button>
+            )}
+          </HeaderRole>
+        <HeaderSettings onActionClick={logout}>
         </HeaderSettings>
       </React.Fragment>
     ),

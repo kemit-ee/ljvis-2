@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, Row, Col, Button, Heading, Text } from '@tedi-design-system/react/tedi';
+import { Header } from '@tedi-design-system/react/community';
 import { DescriptionList } from './DescriptionList';
 
 const AUTH_URL = '/tim/oauth2/authorization/tara?callback_url=http://localhost:3001';
@@ -10,7 +11,12 @@ export function LoginPage() {
     const [showFullDescription, setShowFullDescription] = useState(false);
 
     return (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <Header
+                logo={{
+                    imageUrl: '/assets/klim_logo.svg'
+                }}
+            />
             <style>{`
                 @media (max-width: 62rem) {
                     .login-col-left {
@@ -35,7 +41,7 @@ export function LoginPage() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: '100vh',
+                flex: 1,
             }}>
                 <Heading
                     element="h1">
@@ -156,6 +162,6 @@ export function LoginPage() {
                     </Row>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
