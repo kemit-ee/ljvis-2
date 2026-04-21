@@ -19,6 +19,7 @@
     "officialInfo": "Liiklusjärelvalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest."
   },
   "nav": {
+    "desktop": "Töölaud",
     "management": "Haldus",
     "users": "Kasutajad",
     "administration": "Administreerimine",
