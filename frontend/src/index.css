@@ -2,3 +2,15 @@ body {
   margin: 0;
   font-family: 'Roboto', sans-serif;
 }
+
+main[id="main-content"] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: unset !important;
+}
+
+nav[aria-label="Main navigation"] {
+  width: 100%;
+}

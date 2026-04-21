@@ -1,0 +1,30 @@
+.wrapperDesktop {
+  position: static;
+  transition: width 0.3s ease-in-out;
+}
+
+.wrapperDesktopExpanded {
+  width: 260px;
+}
+
+.wrapperDesktopCollapsed {
+  width: 100px;
+}
+
+.wrapperMobile {
+  position: fixed;
+  top: 112px;
+  left: 0;
+  height: calc(100vh - 112px);
+  z-index: 112;
+  width: 240px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.wrapperMobileHidden {
+  transform: translateX(-100%);
+}
+
+.wrapperMobileVisible {
+  transform: translateX(0);
+}

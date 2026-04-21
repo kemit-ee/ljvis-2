@@ -19,6 +19,7 @@
     "officialInfo": "COMING"
   },
   "nav": {
+    "desktop": "Desktop",
     "management": "Management",
     "users": "Users",
     "administration": "Administration",
