@@ -18,6 +18,9 @@
     "citizenInfo": "COMING",
     "officialInfo": "COMING"
   },
+  "desktop": {
+    "title": "Desktop"
+  },
   "nav": {
     "desktop": "Desktop",
     "management": "Management",
