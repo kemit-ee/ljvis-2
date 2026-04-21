@@ -63,11 +63,11 @@ export function useSideNavProps(): SideNavProps<typeof Link> {
     const classes = [styles.wrapper];
     
     if (isDesktop) {
-      classes.push(styles.wrapperDesktop);
-      classes.push(isCollapsed ? styles.wrapperDesktopCollapsed : styles.wrapperDesktopExpanded);
+      classes.push(styles['wrapper-desktop']);
+      classes.push(isCollapsed ? styles['wrapper-desktop-collapsed'] : styles['wrapper-desktop-expanded']);
     } else {
-      classes.push(styles.wrapperMobile);
-      classes.push(isMobileOpen ? styles.wrapperMobileVisible : styles.wrapperMobileHidden);
+      classes.push(styles['wrapper-mobile']);
+      classes.push(isMobileOpen ? styles['wrapper-mobile-visible'] : styles['wrapper-mobile-hidden']);
     }
     
     return classes.join(' ');

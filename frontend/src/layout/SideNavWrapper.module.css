@@ -1,17 +1,17 @@
-.wrapperDesktop {
+.wrapper-desktop {
   position: static;
   transition: width 0.3s ease-in-out;
 }
 
-.wrapperDesktopExpanded {
+.wrapper-desktop-expanded {
   width: 260px;
 }
 
-.wrapperDesktopCollapsed {
+.wrapper-desktop-collapsed {
   width: 100px;
 }
 
-.wrapperMobile {
+.wrapper-mobile {
   position: fixed;
   top: 112px;
   left: 0;
@@ -21,10 +21,10 @@
   transition: transform 0.3s ease-in-out;
 }
 
-.wrapperMobileHidden {
+.wrapper-mobile-hidden {
   transform: translateX(-100%);
 }
 
-.wrapperMobileVisible {
+.wrapper-mobile-visible {
   transform: translateX(0);
 }
