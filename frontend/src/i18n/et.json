@@ -25,6 +25,9 @@
     "administration": "Administreerimine",
     "userGroups": "Kasutajagrupid"
   },
+  "desktop": {
+    "title": "Töölaud"
+  },
   "users": {
     "title": "Kasutajad",
     "addUser": "Lisa kasutaja",
