@@ -55,11 +55,17 @@
     "noGroups": "У пользователя нет групп",
     "orgChangeWarning": "Смена организации удалит все группы пользователей, назначенные этому пользователю.",
     "confirm": "Подтвердить",
+    "requiredFieldsNote": "COMING",
+    "addTitle": "COMING",
+    "basicInfo": "COMING",
+    "access": "COMING",
+    "datePickerPlaceholder": "COMING",
     "validation": {
       "required": "Обязательное поле",
       "email": "Неверный формат эл. почты",
       "phone": "Допускается: +, цифры, пробелы",
-      "endBeforeStart": "Дата окончания должна быть позже даты начала"
+      "endBeforeStart": "Дата окончания должна быть позже даты начала",
+      "personalCode": "COMING"
     },
     "viewDetails": "COMING"
   },

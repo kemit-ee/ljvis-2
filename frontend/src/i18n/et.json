@@ -40,8 +40,8 @@
     "organisation": "Asutus",
     "email": "E-post",
     "phone": "Telefon",
-    "accessStart": "Ligipääsu algus",
-    "accessEnd": "Ligipääsu lõpp",
+    "accessStart": "Ligipääs alates",
+    "accessEnd": "Ligipääs kuni",
     "userGroups": "Kasutajagrupid",
     "save": "Salvesta",
     "cancel": "Tühista",
@@ -55,11 +55,17 @@
     "noGroups": "Kasutajal pole gruppe",
     "orgChangeWarning": "Asutuse muutmine eemaldab kõik kasutajagrupid sellelt kasutajalt.",
     "confirm": "Kinnita",
+    "requiredFieldsNote": "Tärniga märgitud väljad on kohustuslikud",
+    "addTitle": "Lisa kasutaja",
+    "basicInfo": "Isikuandmed",
+    "access": "Ligipääs",
+    "datePickerPlaceholder": "PP.KK.AAAA",
     "validation": {
       "required": "Kohustuslik väli",
       "email": "Vigane e-posti formaat",
       "phone": "Lubatud: +, numbrid, tühikud",
-      "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev"
+      "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
+      "personalCode": "Isikukood peab olema 11 numbrit"
     },
     "viewDetails": "Vaata"
   },

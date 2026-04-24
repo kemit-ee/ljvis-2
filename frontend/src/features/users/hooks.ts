@@ -153,12 +153,20 @@ export function useUserForm(user: User | undefined, onSaved: () => void) {
   const validationSchema = Yup.object({
     firstName: Yup.string().required(t('users.validation.required')),
     lastName: Yup.string().required(t('users.validation.required')),
-    personalCode: Yup.string().required(t('users.validation.required')),
+    personalCode: Yup.string().required(t('users.validation.required')).length(11, t('users.validation.personalCode')),
     organisationId: Yup.string().required(t('users.validation.required')),
     email: Yup.string().email(t('users.validation.email')).required(t('users.validation.required')),
     phone: Yup.string().matches(/^[+\d\s]*$/, t('users.validation.phone')),
     accessStart: Yup.string().required(t('users.validation.required')),
-    accessEnd: Yup.string(),
+    accessEnd: Yup.string().nullable().test(
+      'is-after-start',
+      t('users.validation.endBeforeStart'),
+      function(value) {
+        const { accessStart } = this.parent;
+        if (!value || value === null || !accessStart) return true;
+        return new Date(value) > new Date(accessStart);
+      }
+    ),
   });
 
   const formik = useFormik({
@@ -175,10 +183,14 @@ export function useUserForm(user: User | undefined, onSaved: () => void) {
     validationSchema,
     onSubmit: async (values) => {
       try {
+        const trimmedValues = {
+          ...values,
+          phone: values.phone.trim(),
+        };
         if (isEdit && user) {
-          await updateUser({ id: user.id, ...values });
+          await updateUser({ id: user.id, ...trimmedValues });
         } else {
-          await insertUser(values);
+          await insertUser(trimmedValues);
         }
         onSaved();
       } catch (e) {
