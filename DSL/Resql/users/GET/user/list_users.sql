@@ -68,15 +68,14 @@ WHERE
     )
 GROUP BY u.id, o.name
 ORDER BY
-    CASE WHEN u.status = 'inactive' THEN 1 ELSE 0 END ASC,
-    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'first_name asc' THEN u.first_name END ASC,
-    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'first_name desc' THEN u.first_name END DESC,
-    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'last_name asc' THEN u.last_name END ASC,
-    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'last_name desc' THEN u.last_name END DESC,
-    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'personal_code asc' THEN u.personal_code END ASC,
-    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'personal_code desc' THEN u.personal_code END DESC,
-    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'organisation_name asc' THEN o.name END ASC,
-    CASE WHEN COALESCE(:sorting, 'last_name asc') = 'organisation_name desc' THEN o.name END DESC,
-    u.last_name ASC
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc' THEN u.status END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'status desc' THEN u.status END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name asc' THEN u.first_name END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name desc' THEN u.first_name END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name asc' THEN u.last_name END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name desc' THEN u.last_name END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc' THEN o.name END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN o.name END DESC,
+    u.first_name ASC
 LIMIT :page_size::INTEGER
 OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);

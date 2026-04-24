@@ -11,6 +11,13 @@ import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
 
 // ---------------------------------------------------------------------------
+// Helper: convert camelCase to snake_case
+// ---------------------------------------------------------------------------
+function toSnakeCase(str: string): string {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+// ---------------------------------------------------------------------------
 // Data hook: paginated user list
 // ---------------------------------------------------------------------------
 export function useUserList() {
@@ -19,22 +26,43 @@ export function useUserList() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 15 });
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const sortStr = sorting.length
-        ? `${sorting[0].id} ${sorting[0].desc ? 'desc' : 'asc'}`
-        : '';
+        ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
+        : 'status asc';
       const result = await listUsers({
         page: String(pagination.pageIndex + 1),
         pageSize: String(pagination.pageSize),
         search,
         sorting: sortStr,
       });
-      setData(result);
+      
+      const expandedData: UserListItem[] = [];
+      result.forEach((user) => {
+        if (user.userGroups) {
+          const groups = user.userGroups.split(',').map(g => g.trim()).filter(g => g);
+          if (groups.length > 0) {
+            groups.forEach((group, index) => {
+              expandedData.push({ 
+                ...user, 
+                userGroups: group,
+                isAdditionalGroupRow: index > 0
+              });
+            });
+          } else {
+            expandedData.push(user);
+          }
+        } else {
+          expandedData.push(user);
+        }
+      });
+      
+      setData(expandedData);
       if (result.length > 0 && result[0].total != null) {
         setTotalRows(result[0].total);
       } else {
