@@ -30,7 +30,7 @@
   },
   "users": {
     "title": "Users",
-    "addUser": "Add user",
+    "addUser": "+ Add user",
     "editUser": "Edit user",
     "search": "Search by name",
     "status": "Status",
@@ -60,7 +60,8 @@
       "email": "Invalid email format",
       "phone": "Allowed: +, digits, spaces",
       "endBeforeStart": "End date must be after start date"
-    }
+    },
+    "viewDetails": "COMING"
   },
   "userGroups": {
     "title": "User Groups",

@@ -32,14 +32,24 @@ export function UserListPage() {
     refetch,
   } = useUserList();
 
+  const handleRowClick = useCallback(
+    (row: UserListItem) => {
+      navigate(`/users/${row.id}`);
+    },
+    [navigate],
+  );
+
   const columns = useMemo(
     () => [
       columnHelper.accessor('status', {
         header: t('users.status'),
-        enableSorting: false,
+        enableSorting: true,
         cell: (info) => {
+          if (info.row.original.isAdditionalGroupRow) {
+            return <div className="additional-group-row-marker"></div>;
+          }
           const s = info.getValue();
-          const color = s === 'active' ? 'success' : s === 'deactivating' ? 'warning' : 'danger';
+          const color = s === 'active' ? 'success' : s === 'deactivating' ? 'warning' : 'neutral';
           const label =
             s === 'active' ? t('users.statusActive') :
             s === 'deactivating' ? t('users.statusDeactivating') :
@@ -50,37 +60,114 @@ export function UserListPage() {
       columnHelper.accessor('firstName', {
         header: t('users.firstName'),
         enableSorting: true,
+        cell: (info) => {
+          if (info.row.original.isAdditionalGroupRow) return null;
+          return (
+            <span style={{ color: info.row.original.status === 'inactive' ? '#6b7280' : 'inherit' }}>
+              {info.getValue()}
+            </span>
+          );
+        },
       }),
       columnHelper.accessor('lastName', {
         header: t('users.lastName'),
         enableSorting: true,
+        cell: (info) => {
+          if (info.row.original.isAdditionalGroupRow) return null;
+          return (
+            <span style={{ color: info.row.original.status === 'inactive' ? '#6b7280' : 'inherit' }}>
+              {info.getValue()}
+            </span>
+          );
+        },
       }),
       columnHelper.accessor('personalCode', {
         header: t('users.personalCode'),
         enableSorting: false,
+        cell: (info) => {
+          if (info.row.original.isAdditionalGroupRow) return null;
+          return (
+            <span style={{ color: info.row.original.status === 'inactive' ? '#6b7280' : 'inherit' }}>
+              {info.getValue()}
+            </span>
+          );
+        },
       }),
       columnHelper.accessor('organisationName', {
         header: t('users.organisation'),
         enableSorting: true,
+        cell: (info) => {
+          if (info.row.original.isAdditionalGroupRow) return null;
+          return (
+            <span style={{ color: info.row.original.status === 'inactive' ? '#6b7280' : 'inherit' }}>
+              {info.getValue()}
+            </span>
+          );
+        },
       }),
       columnHelper.accessor('userGroups', {
         header: t('users.userGroups'),
         enableSorting: false,
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => {
+          const group = info.getValue();
+          if (!group) return <span style={{ color: info.row.original.status === 'inactive' ? '#6b7280' : 'inherit' }}>—</span>;
+          return (
+            <span style={{ color: info.row.original.status === 'inactive' ? '#6b7280' : 'inherit' }}>
+              {group}
+            </span>
+          );
+        },
+      }),
+      columnHelper.display({
+        id: 'viewDetails',
+        header: '',
+        cell: (info) => {
+          if (info.row.original.isAdditionalGroupRow) return null;
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <a
+                href={`/users/${info.row.original.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleRowClick(info.row.original);
+                }}
+                style={{
+                  color: 'primary',
+                  cursor: 'pointer',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+              >
+                {t('users.viewDetails')}
+              </a>
+            </div>
+          );
+        },
       }),
     ],
-    [t],
-  );
-
-  const handleRowClick = useCallback(
-    (row: UserListItem) => {
-      navigate(`/users/${row.id}`);
-    },
-    [navigate],
+    [t, handleRowClick],
   );
 
   return (
     <div>
+      <style>{`
+        #users-table td,
+        #users-table th {
+          border-left: 1px solid #e5e7eb;
+        }
+        #users-table td:first-child,
+        #users-table th:first-child {
+          border-left: none;
+        }
+        #users-table tr:has(.additional-group-row-marker) {
+          border-top: none;
+        }
+        #users-table tr:has(.additional-group-row-marker) td:nth-child(6) {
+          border-top: 1px solid #e5e7eb;
+        }
+      `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading element="h1">{t('users.title')}</Heading>
         {canAddUser && <UserFormModal triggerLabel={t('users.addUser')} onSaved={refetch} />}
@@ -107,7 +194,6 @@ export function UserListPage() {
         onPaginationChange={setPagination}
         sorting={sorting}
         onSortingChange={setSorting}
-        onRowClick={handleRowClick}
         manualPagination
         manualSorting
       />

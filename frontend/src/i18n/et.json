@@ -30,10 +30,10 @@
   },
   "users": {
     "title": "Kasutajad",
-    "addUser": "Lisa kasutaja",
+    "addUser": "+ Lisa kasutaja",
     "editUser": "Muuda kasutajat",
     "search": "Otsi nime järgi",
-    "status": "Staatus",
+    "status": "Olek",
     "firstName": "Eesnimi",
     "lastName": "Perekonnanimi",
     "personalCode": "Isikukood",
@@ -60,7 +60,8 @@
       "email": "Vigane e-posti formaat",
       "phone": "Lubatud: +, numbrid, tühikud",
       "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev"
-    }
+    },
+    "viewDetails": "Vaata"
   },
   "userGroups": {
     "title": "Kasutajagrupid",

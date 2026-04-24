@@ -44,7 +44,7 @@ extractRequestDataLocal:
   assign:
     page: "${incoming.params.page ?? 1}"
     page_size: "${incoming.params.pageSize ?? 15}"
-    sorting: "${incoming.params.sorting ?? 'last_name asc'}"
+    sorting: "${incoming.params.sorting ?? 'status asc'}"
     search: "${incoming.params.search ?? ''}"
     organisation_id: "${auth_user.organisationid}"
   next: getUsers
@@ -52,8 +52,8 @@ extractRequestDataLocal:
 extractRequestData:
   assign:
     page: "${incoming.params.page ?? 1}"
-    page_size: "${incoming.params.pageSize ?? 15}"
-    sorting: "${incoming.params.sorting ?? 'last_name asc'}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'status asc'}"
     search: "${incoming.params.search ?? ''}"
     organisation_id: "${incoming.params.organisationId ?? ''}"
   next: getUsers
