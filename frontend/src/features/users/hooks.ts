@@ -172,7 +172,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
     email: Yup.string().email(t('users.validation.email')).required(t('users.validation.required')),
     phone: Yup.string().matches(/^[+\d\s]*$/, t('users.validation.phone')),
     accessStart: Yup.string().required(t('users.validation.required')),
-    accessEnd: Yup.string().nullable().test(
+    accessEnd: isEdit ? Yup.string().nullable() : Yup.string().nullable().test(
       'is-after-start',
       t('users.validation.endBeforeStart'),
       function(value) {
@@ -205,6 +205,10 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
           phone: values.phone.trim(),
         };
         if (isEdit && user) {
+          const organisationChanged = trimmedValues.organisationId !== user.organisationId;
+          if (organisationChanged && user) {
+              await setUserGroups(user.id, []);
+          }
           await updateUser({ id: user.id, ...trimmedValues });
           onSaved();
         } else {

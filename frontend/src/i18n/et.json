@@ -69,7 +69,9 @@
       "personalCode": "Isikukood peab olema 11 numbrit"
     },
     "viewDetails": "Vaata",
-    "newUserAddedNote": "Uus kasutaja lisatud"
+    "newUserAddedNote": "Uus kasutaja lisatud",
+    "userEditedNote": "Muudatused on salvestatud",
+    "confirmOrganisationChange": "Asutuse muutmisega eemaldatakse kasutajalt kõik kasutajagrupid, mis talle eelnevalt olid määratud."
   },
   "userGroups": {
     "title": "Kasutajagrupid",
@@ -100,7 +102,9 @@
     "error": "Tekkis viga",
     "back": "Tagasi",
     "yes": "Jah",
-    "no": "Ei"
+    "no": "Ei",
+    "confirm": "Kinnitan",
+    "discard": "Loobun"
   },
   "footer": {
     "help": "Abi",

@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, StatusBadge, Text, TextField, Alert, Row, Col, Card, Select, Icon } from '@tedi-design-system/react/tedi';
-import { DatePicker } from '@tedi-design-system/react/community';
+import { CardContent, DatePicker, Modal, ModalCloser, ModalProvider } from '@tedi-design-system/react/community';
 import { useUserDetail, useUserForm } from './hooks';
-import { AssignGroupsModal } from './AssignGroupsModal';
 import { useAuth } from '../auth/AuthContext';
 import { BREAKPOINTS } from '../../constants/constants';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -15,20 +14,31 @@ export function UserDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showNewUserAddedAlert, setShowNewUserAddedAlert] = useState(!!(location.state as { justCreated?: boolean })?.justCreated);
+  const [showUserEditedAlert, setShowUserEditedAlert] = useState(false);
   const [isEditActive, setIsEditActive] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { hasAnyPermission } = useAuth();
   const canEditUser = hasAnyPermission(['perm_user_edit_admin', 'perm_user_edit_local']);
   const canViewGroupDetail = hasAnyPermission(['perm_user_group_view_admin', 'perm_user_group_view_local']);
 
-  const { user, groups, loading, isAccessExpired, refetch } = useUserDetail(id);
+  const { user, groups, loading, refetch } = useUserDetail(id);
 
   const handleEditSaved = () => {
     setIsEditActive(false);
+    setShowUserEditedAlert(true);
     refetch();
   };
 
   const { formik, orgOptions, isLocalAdmin, handleOrgChange } = useUserForm(user ?? undefined, handleEditSaved);
+
+  const handleSaveClick = () => {
+    if (groups.length !== 0 && formik.values.organisationId !== formik.initialValues.organisationId) {
+      setShowConfirmModal(true);
+    } else {
+      formik.submitForm();
+    }
+  };
 
   if (loading) return <Text>{t('common.loading')}</Text>;
   if (!user) return <Text>{t('common.error')}</Text>;
@@ -50,6 +60,18 @@ export function UserDetailPage() {
                 size="small"
             >
                 {t('users.newUserAddedNote')}
+            </Alert>
+          </div>
+        )}
+        {showUserEditedAlert && (
+          <div style={{ marginBottom: '1rem' }}>
+            <Alert
+                icon="check_circle"
+                onClose={() => setShowUserEditedAlert(false)}
+                type="success"
+                size="small"
+            >
+                {t('users.userEditedNote')}
             </Alert>
           </div>
         )}
@@ -91,7 +113,7 @@ export function UserDetailPage() {
                                       >
                                           {t('users.cancel')}
                                       </Button>
-                                      <Button type="submit" size="small">{t('users.save')}</Button>
+                                      <Button type="button" size="small" onClick={handleSaveClick}>{t('users.save')}</Button>
                                   </div>
                               </div>
                               <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 1fr 1fr' : '1fr 1fr' , gap: '1rem' }}>
@@ -187,10 +209,28 @@ export function UserDetailPage() {
                                   >
                                       {t('users.cancel')}
                                   </Button>
-                                  <Button type="submit" size="small">{t('users.save')}</Button>
+                                  <Button type="button" size="small" onClick={handleSaveClick}>{t('users.save')}</Button>
                               </div>
                           </Card.Content>
                       </Card>
+                      {showConfirmModal && (
+                          <ModalProvider defaultOpen
+                                         onToggle={(open) => { if (!open) setShowConfirmModal(false); }}>
+                              <Modal aria-labelledby="confirm-save-title">
+                                  <CardContent>
+                                      <Heading element="h3" id="confirm-save-title">{t('users.confirmOrganisationChange')}</Heading>
+                                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                                          <ModalCloser>
+                                              <Button visualType="secondary" onClick={() => setShowConfirmModal(false)}>{t('common.discard')}</Button>
+                                          </ModalCloser>
+                                          <ModalCloser>
+                                              <Button onClick={() => { setShowConfirmModal(false); formik.submitForm(); }}>{t('common.confirm')}</Button>
+                                          </ModalCloser>
+                                      </div>
+                                  </CardContent>
+                              </Modal>
+                          </ModalProvider>
+                      )}
                       </form>
                   }
                   {!isEditActive &&

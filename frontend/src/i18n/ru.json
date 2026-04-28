@@ -69,7 +69,9 @@
       "personalCode": "COMING"
     },
     "viewDetails": "COMING",
-    "newUserAddedNote": "COMING"
+    "newUserAddedNote": "COMING",
+    "userEditedNote": "COMING",
+    "confirmOrganisationChange": "COMING"
   },
   "userGroups": {
     "title": "Группы пользователей",
@@ -100,7 +102,9 @@
     "error": "Произошла ошибка",
     "back": "Назад",
     "yes": "Да",
-    "no": "Нет"
+    "no": "Нет",
+    "confirm": "Kinnitan",
+    "discard": "Loobun"
   },
   "footer": {
     "help": "COMING",
