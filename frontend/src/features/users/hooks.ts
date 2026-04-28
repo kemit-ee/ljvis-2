@@ -9,6 +9,7 @@ import type { UserGroup } from '../user-groups/types';
 import { listUserGroups } from '../user-groups/api';
 import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
+import { useAuth } from '../auth/AuthContext';
 
 // ---------------------------------------------------------------------------
 // Helper: convert camelCase to snake_case
@@ -138,17 +139,30 @@ export function useUserDetail(id: string | undefined) {
   return { user, groups, loading, isAccessExpired, refetch: fetchData };
 }
 
+const LOCAL_ADMIN_GROUP = 'Local Admin Group';
+const SUPER_ADMIN_GROUP = 'Super Admin Group';
+
 // ---------------------------------------------------------------------------
 // Form hook: create / edit user (Formik + orgs dropdown)
 // ---------------------------------------------------------------------------
 export function useUserForm(user: User | undefined, onSaved: (id?: string) => void) {
   const { t } = useTranslation();
+  const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [isLocalAdmin, setIsLocalAdmin] = useState(false);
   const isEdit = !!user;
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (!authUser) return;
+    getUserGroups(authUser.id).then((groups) => {
+      if (groups.some((g) => g.name === SUPER_ADMIN_GROUP)) return;
+      setIsLocalAdmin(groups.some((g) => g.name === LOCAL_ADMIN_GROUP));
+    }).catch(console.error);
+  }, [authUser]);
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required(t('users.validation.required')),
@@ -169,13 +183,15 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
     ),
   });
 
+  const localAdminOrgId = isLocalAdmin ? (authUser?.organisationid ?? '') : '';
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
       personalCode: user?.personalCode ?? '',
-      organisationId: user?.organisationId ?? '',
+      organisationId: isLocalAdmin ? localAdminOrgId : (user?.organisationId ?? ''),
       email: user?.email ?? '',
       phone: user?.phone ?? '',
       accessStart: user?.accessStart ?? '',
@@ -211,7 +227,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
     }
   };
 
-  return { formik, isEdit, orgOptions, handleOrgChange };
+  return { formik, isEdit, orgOptions, handleOrgChange, isLocalAdmin };
 }
 
 // ---------------------------------------------------------------------------

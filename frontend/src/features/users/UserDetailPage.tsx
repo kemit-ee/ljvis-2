@@ -28,7 +28,7 @@ export function UserDetailPage() {
     refetch();
   };
 
-  const { formik, orgOptions, handleOrgChange } = useUserForm(user ?? undefined, handleEditSaved);
+  const { formik, orgOptions, isLocalAdmin, handleOrgChange } = useUserForm(user ?? undefined, handleEditSaved);
 
   if (loading) return <Text>{t('common.loading')}</Text>;
   if (!user) return <Text>{t('common.error')}</Text>;
@@ -124,7 +124,8 @@ export function UserDetailPage() {
                                       label={t('users.organisation')}
                                       options={orgOptions}
                                       value={orgOptions.find((o) => o.value === formik.values.organisationId) ?? null}
-                                      onChange={handleOrgChange}
+                                      onChange={isLocalAdmin ? undefined : handleOrgChange}
+                                      disabled={isLocalAdmin}
                                       required
                                   />
                                   <TextField

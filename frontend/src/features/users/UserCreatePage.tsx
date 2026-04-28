@@ -12,7 +12,7 @@ export function UserCreatePage() {
     navigate(`/users/${id}`, { state: { justCreated: true } });
   };
 
-  const { formik, orgOptions, handleOrgChange } = useUserForm(undefined, handleSaved);
+  const { formik, orgOptions, handleOrgChange, isLocalAdmin } = useUserForm(undefined, handleSaved);
 
   return (
     <div>
@@ -98,7 +98,8 @@ export function UserCreatePage() {
                       label={t('users.organisation')}
                       options={orgOptions}
                       value={orgOptions.find((o) => o.value === formik.values.organisationId) ?? null}
-                      onChange={handleOrgChange}
+                      onChange={isLocalAdmin ? undefined : handleOrgChange}
+                      disabled={isLocalAdmin}
                       required
                       {...(formik.touched.organisationId && formik.errors.organisationId ? { helper: { text: formik.errors.organisationId, type: 'error' as const } } : {})}
 
