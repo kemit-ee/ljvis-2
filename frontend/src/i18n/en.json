@@ -52,6 +52,7 @@
     "edit": "Edit",
     "manageGroups": "Manage groups",
     "assignGroups": "Assign user groups",
+    "connectGroup": "COMING",
     "noGroups": "User has no groups",
     "orgChangeWarning": "Changing the organisation will remove all user groups currently assigned to this user.",
     "confirm": "Confirm",
@@ -67,7 +68,8 @@
       "endBeforeStart": "End date must be after start date",
       "personalCode": "COMING"
     },
-    "viewDetails": "COMING"
+    "viewDetails": "COMING",
+    "newUserAddedNote": "COMING"
   },
   "userGroups": {
     "title": "User Groups",

@@ -8,8 +8,8 @@ export function UserCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const handleSaved = () => {
-    navigate('/users');
+  const handleSaved = (id?: string) => {
+    navigate(`/users/${id}`, { state: { justCreated: true } });
   };
 
   const { formik, orgOptions, handleOrgChange } = useUserForm(undefined, handleSaved);
@@ -33,7 +33,7 @@ export function UserCreatePage() {
         )}
       </div>
 
-      <div style={{}}>
+      <div>
         <Row style={{margin: 0}}>
           <Col
               style={{padding: 0}}>

@@ -52,7 +52,8 @@
     "edit": "Muuda",
     "manageGroups": "Halda gruppe",
     "assignGroups": "Määra kasutajagrupid",
-    "noGroups": "Kasutajal pole gruppe",
+    "connectGroup": "Seo kasutajagrupp",
+    "noGroups": "Kasutaja ei ole seotud ühegi kasutajagrupiga",
     "orgChangeWarning": "Asutuse muutmine eemaldab kõik kasutajagrupid sellelt kasutajalt.",
     "confirm": "Kinnita",
     "requiredFieldsNote": "Tärniga märgitud väljad on kohustuslikud",
@@ -67,7 +68,8 @@
       "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
       "personalCode": "Isikukood peab olema 11 numbrit"
     },
-    "viewDetails": "Vaata"
+    "viewDetails": "Vaata",
+    "newUserAddedNote": "Uus kasutaja lisatud"
   },
   "userGroups": {
     "title": "Kasutajagrupid",

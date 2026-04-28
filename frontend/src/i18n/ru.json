@@ -52,6 +52,7 @@
     "edit": "Редактировать",
     "manageGroups": "Управление группами",
     "assignGroups": "Назначить группы пользователей",
+    "connectGroup": "COMING",
     "noGroups": "У пользователя нет групп",
     "orgChangeWarning": "Смена организации удалит все группы пользователей, назначенные этому пользователю.",
     "confirm": "Подтвердить",
@@ -67,7 +68,8 @@
       "endBeforeStart": "Дата окончания должна быть позже даты начала",
       "personalCode": "COMING"
     },
-    "viewDetails": "COMING"
+    "viewDetails": "COMING",
+    "newUserAddedNote": "COMING"
   },
   "userGroups": {
     "title": "Группы пользователей",

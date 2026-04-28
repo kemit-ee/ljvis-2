@@ -141,7 +141,7 @@ export function useUserDetail(id: string | undefined) {
 // ---------------------------------------------------------------------------
 // Form hook: create / edit user (Formik + orgs dropdown)
 // ---------------------------------------------------------------------------
-export function useUserForm(user: User | undefined, onSaved: () => void) {
+export function useUserForm(user: User | undefined, onSaved: (id?: string) => void) {
   const { t } = useTranslation();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const isEdit = !!user;
@@ -170,6 +170,7 @@ export function useUserForm(user: User | undefined, onSaved: () => void) {
   });
 
   const formik = useFormik({
+    enableReinitialize: true,
     initialValues: {
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
@@ -189,10 +190,11 @@ export function useUserForm(user: User | undefined, onSaved: () => void) {
         };
         if (isEdit && user) {
           await updateUser({ id: user.id, ...trimmedValues });
+          onSaved();
         } else {
-          await insertUser(trimmedValues);
+          const result = await insertUser(trimmedValues);
+          onSaved(result[0]?.id);
         }
-        onSaved();
       } catch (e) {
         console.error('Save failed', e);
       }
