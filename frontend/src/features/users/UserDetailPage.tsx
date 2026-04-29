@@ -224,7 +224,7 @@ export function UserDetailPage() {
                                               <Button visualType="secondary" onClick={() => setShowConfirmModal(false)}>{t('common.discard')}</Button>
                                           </ModalCloser>
                                           <ModalCloser>
-                                              <Button onClick={() => { setShowConfirmModal(false); formik.submitForm(); }}>{t('common.confirm')}</Button>
+                                              <Button onClick={() => { setShowConfirmModal(false); formik.submitForm(); }}>{t('common.confirmChange')}</Button>
                                           </ModalCloser>
                                       </div>
                                   </CardContent>
@@ -281,7 +281,7 @@ export function UserDetailPage() {
                                       visualType="secondary"
                                       size="small"
                                       onClick={() => navigate('/users')}
-                                      disabled={statusColor === 'neutral'}
+                                      disabled={statusColor === 'neutral' || statusColor === 'warning'}
                                   >
                                       {t('users.connectGroup')}
                                   </Button>}
@@ -298,7 +298,7 @@ export function UserDetailPage() {
                                                           iconLeft="add"
                                                           visualType="primary"
                                                           onClick={() => navigate('/users')}
-                                                          disabled={statusColor === 'neutral'}
+                                                          disabled={statusColor === 'neutral' || statusColor === 'warning'}
                                                       >
                                                           {t('users.connectGroup')}
                                                       </Button>
