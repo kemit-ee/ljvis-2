@@ -19,6 +19,15 @@ function toSnakeCase(str: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: convert DD.MM.YYYY to YYYY-MM-DD
+// ---------------------------------------------------------------------------
+function toIsoDate(value): string {
+  if (!value) return '';
+  if (value?.$isDayjsObject) return value.format('YYYY-MM-DD');
+  return value;
+}
+
+// ---------------------------------------------------------------------------
 // Data hook: paginated user list
 // ---------------------------------------------------------------------------
 export function useUserList() {
@@ -224,6 +233,8 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
         const trimmedValues = {
           ...values,
           phone: values.phone.trim(),
+          accessStart: toIsoDate(values.accessStart),
+          accessEnd: toIsoDate(values.accessEnd),
         };
         if (isEdit && user) {
           const organisationChanged = trimmedValues.organisationId !== user.organisationId;

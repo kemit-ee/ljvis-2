@@ -259,8 +259,8 @@ export function UserDetailPage() {
                                   <Field label={t('users.organisation')}>{user.organisationName ?? '—'}</Field>
                                   <Field label={t('users.email')}>{user.email}</Field>
                                   <Field label={t('users.phone')}>{user.phone || '—'}</Field>
-                                  <Field label={t('users.accessStart')}>{user.accessStart}</Field>
-                                  <Field label={t('users.accessEnd')}>{user.accessEnd || '—'}</Field>
+                                  <Field label={t('users.accessStart')}>{formatDate(user.accessStart)}</Field>
+                                  <Field label={t('users.accessEnd')}>{formatDate(user.accessEnd)}</Field>
                               </div>
                           </Card.Content>
                       </Card>
@@ -330,6 +330,13 @@ export function UserDetailPage() {
 
     </div>
   );
+}
+
+function formatDate(value: string | null | undefined): string {
+  if (!value) return '—';
+  const parts = value.split('-');
+  if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  return value;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
