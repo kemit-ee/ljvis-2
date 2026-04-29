@@ -66,7 +66,8 @@
       "email": "Неверный формат эл. почты",
       "phone": "Допускается: +, цифры, пробелы",
       "endBeforeStart": "Дата окончания должна быть позже даты начала",
-      "personalCode": "COMING"
+      "personalCode": "COMING",
+      "personalCodeConflict": "A user with this personal code already exists"
     },
     "viewDetails": "COMING",
     "newUserAddedNote": "COMING",
@@ -100,6 +101,7 @@
   "common": {
     "loading": "Загрузка...",
     "error": "Произошла ошибка",
+    "forbidden": "У вас нет доступа к этой странице",
     "back": "Назад",
     "yes": "Да",
     "no": "Нет",

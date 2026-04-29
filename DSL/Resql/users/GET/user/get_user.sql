@@ -10,6 +10,9 @@ declaration:
       - field: id
         type: string
         description: "User UUID"
+      - field: organisation_id
+        type: string
+        description: "Optional organisation filter"
   response:
     fields:
       - field: id
@@ -52,4 +55,5 @@ SELECT
 FROM users."user" u
 JOIN users.organisation o ON o.id = u.organisation_id
 WHERE u.id = :id::UUID
+  AND (:organisation_id = '' OR u.organisation_id = :organisation_id::UUID)
 LIMIT 1;

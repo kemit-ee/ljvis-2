@@ -25,12 +25,30 @@ check_permission:
     - condition: ${auth_user.permissions != null && (auth_user.permissions.indexOf('perm_user_view_admin') >= 0 || auth_user.permissions.indexOf('perm_user_edit_admin') >= 0)}
       next: extractRequestData
     - condition: ${auth_user.permissions != null && (auth_user.permissions.indexOf('perm_user_view_local') >= 0 || auth_user.permissions.indexOf('perm_user_edit_local') >= 0)}
-      next: extractRequestData
+      next: extractRequestDataLocal
   next: return_forbidden
+
+extractRequestDataLocal:
+  assign:
+    id: "${incoming.params.id}"
+    organisation_id: "${auth_user.organisationid}"
+  next: getUserLocal
 
 extractRequestData:
   assign:
     id: "${incoming.params.id}"
+    organisation_id: ""
+  next: getUser
+
+getUserLocal:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/get_user"
+    query:
+      id: ${id}
+      organisation_id: ${organisation_id}
+  result: res
+  next: checkUserFound
 
 getUser:
   call: http.get
@@ -38,7 +56,15 @@ getUser:
     url: "[#LJVIS_USERS_RESQL]/user/get_user"
     query:
       id: ${id}
+      organisation_id: ${organisation_id}
   result: res
+  next: mapResponse
+
+checkUserFound:
+  switch:
+    - condition: ${res.response.body.length > 0}
+      next: mapResponse
+  next: return_forbidden
 
 mapResponse:
   call: http.post

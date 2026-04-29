@@ -115,16 +115,22 @@ export function useUserDetail(id: string | undefined) {
   const [user, setUser] = useState<User | null>(null);
   const [groups, setGroups] = useState<UserGroupAssignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [forbidden, setForbidden] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
+    setForbidden(false);
     try {
       const [users, userGroups] = await Promise.all([getUser(id), getUserGroups(id)]);
       setUser(users[0] ?? null);
       setGroups(userGroups);
     } catch (e) {
-      console.error('Failed to load user', e);
+      if (e?.status === 403) {
+        setForbidden(true);
+      } else {
+        console.error('Failed to load user', e);
+      }
     } finally {
       setLoading(false);
     }
@@ -136,7 +142,7 @@ export function useUserDetail(id: string | undefined) {
 
   const isAccessExpired = user?.accessEnd ? new Date(user.accessEnd) < new Date() : false;
 
-  return { user, groups, loading, isAccessExpired, refetch: fetchData };
+  return { user, groups, loading, isAccessExpired, forbidden, refetch: fetchData };
 }
 
 const LOCAL_ADMIN_GROUP = 'Local Admin Group';
@@ -198,7 +204,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       accessEnd: user?.accessEnd ?? '',
     },
     validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setFieldError }) => {
       try {
         const trimmedValues = {
           ...values,
@@ -216,7 +222,11 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
           onSaved(result[0]?.id);
         }
       } catch (e) {
-        console.error('Save failed', e);
+        if (e?.status === 409) {
+          setFieldError('personalCode', t('users.validation.personalCodeConflict'));
+        } else {
+          console.error('Save failed', e);
+        }
       }
     },
   });

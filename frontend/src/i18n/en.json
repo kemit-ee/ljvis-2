@@ -66,7 +66,8 @@
       "email": "Invalid email format",
       "phone": "Allowed: +, digits, spaces",
       "endBeforeStart": "End date must be after start date",
-      "personalCode": "COMING"
+      "personalCode": "COMING",
+      "personalCodeConflict": "A user with this personal code already exists"
     },
     "viewDetails": "COMING",
     "newUserAddedNote": "COMING",
@@ -100,6 +101,7 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
+    "forbidden": "You do not have access to this page",
     "back": "Back",
     "yes": "Yes",
     "no": "No",

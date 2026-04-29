@@ -66,7 +66,8 @@
       "email": "Vigane e-posti formaat",
       "phone": "Lubatud: +, numbrid, tühikud",
       "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
-      "personalCode": "Isikukood peab olema 11 numbrit"
+      "personalCode": "Isikukood peab olema 11 numbrit",
+      "personalCodeConflict": "Sellise isikukoodiga kasutaja on juba olemas"
     },
     "viewDetails": "Vaata",
     "newUserAddedNote": "Uus kasutaja lisatud.",
@@ -100,6 +101,7 @@
   "common": {
     "loading": "Laadimine...",
     "error": "Tekkis viga",
+    "forbidden": "Teil puudub ligipääs sellele lehele",
     "back": "Tagasi",
     "yes": "Jah",
     "no": "Ei",

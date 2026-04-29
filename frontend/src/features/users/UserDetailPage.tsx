@@ -22,7 +22,7 @@ export function UserDetailPage() {
   const canEditUser = hasAnyPermission(['perm_user_edit_admin', 'perm_user_edit_local']);
   const canViewGroupDetail = hasAnyPermission(['perm_user_group_view_admin', 'perm_user_group_view_local']);
 
-  const { user, groups, loading, refetch } = useUserDetail(id);
+  const { user, groups, loading, forbidden, refetch } = useUserDetail(id);
 
   const handleEditSaved = () => {
     setIsEditActive(false);
@@ -41,6 +41,7 @@ export function UserDetailPage() {
   };
 
   if (loading) return <Text>{t('common.loading')}</Text>;
+  if (forbidden) return <Text>{t('common.forbidden')}</Text>;
   if (!user) return <Text>{t('common.error')}</Text>;
 
   const statusColor = user.status === 'active' ? 'success' : user.status === 'deactivating' ? 'warning' : 'neutral';
