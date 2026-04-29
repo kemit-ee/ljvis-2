@@ -4,7 +4,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { User, UserListItem, UserGroupAssignment } from './types';
-import { listUsers, getUser, getUserGroups, insertUser, updateUser, setUserGroups } from './api';
+import { listUsers, getUser, getUserGroups, insertUser, updateUser, setUserGroups, checkPersonalCodeConflict } from './api';
 import type { UserGroup } from '../user-groups/types';
 import { listUserGroups } from '../user-groups/api';
 import type { Organisation } from '../organisations/types';
@@ -173,7 +173,22 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
   const validationSchema = Yup.object({
     firstName: Yup.string().required(t('users.validation.required')),
     lastName: Yup.string().required(t('users.validation.required')),
-    personalCode: Yup.string().required(t('users.validation.required')).length(11, t('users.validation.personalCode')),
+    personalCode: Yup.string().required(t('users.validation.required')).length(11, t('users.validation.personalCode')).test(
+      'unique-personal-code',
+      t('users.validation.personalCodeConflict'),
+      async function(value) {
+        if (!value || value.length !== 11) return true;
+        try {
+          const result = await checkPersonalCodeConflict(value, user?.id ?? '');
+          return result.length === 0;
+        } catch (e) {
+          if (e?.status === 409) {
+            return false;
+          }
+          return true;
+        }
+      }
+    ),
     organisationId: Yup.string().required(t('users.validation.required')),
     email: Yup.string().email(t('users.validation.email')).required(t('users.validation.required')),
     phone: Yup.string().matches(/^[+\d\s]*$/, t('users.validation.phone')),
@@ -204,7 +219,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       accessEnd: user?.accessEnd ?? '',
     },
     validationSchema,
-    onSubmit: async (values, { setFieldError }) => {
+    onSubmit: async (values) => {
       try {
         const trimmedValues = {
           ...values,
@@ -222,11 +237,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
           onSaved(result[0]?.id);
         }
       } catch (e) {
-        if (e?.status === 409) {
-          setFieldError('personalCode', t('users.validation.personalCodeConflict'));
-        } else {
-          console.error('Save failed', e);
-        }
+        console.error('Save failed', e);
       }
     },
   });

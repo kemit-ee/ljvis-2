@@ -138,6 +138,7 @@ export function UserDetailPage() {
                                       id="personalCode"
                                       label={t('users.personalCode')}
                                       value={formik.values.personalCode}
+                                      input={{ maxLength: 11 }}
                                       required
                                       onChange={(v) => formik.setFieldValue('personalCode', v)}
                                       {...(formik.touched.personalCode && formik.errors.personalCode ? { helper: { text: formik.errors.personalCode, type: 'error' as const } } : {})}

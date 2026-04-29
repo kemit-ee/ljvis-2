@@ -54,23 +54,6 @@ extractRequestData:
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
     access_end: "${incoming.body.accessEnd ?? ''}"
-  next: checkPersonalCodeConflict
-
-checkPersonalCodeConflict:
-  call: http.get
-  args:
-    url: "[#LJVIS_USERS_RESQL]/user/check_personal_code_conflict"
-    query:
-      personal_code: ${personal_code}
-      id: ${id}
-  result: conflictRes
-  next: checkConflictResult
-
-checkConflictResult:
-  switch:
-    - condition: ${conflictRes.response.body.length > 0}
-      next: return_conflict
-  next: updateUser
 
 updateUser:
   call: http.post
@@ -92,11 +75,6 @@ updateUser:
 
 returnSuccess:
   return: ${res.response.body}
-  next: end
-
-return_conflict:
-  status: 409
-  return: "personal code already exists"
   next: end
 
 return_forbidden:

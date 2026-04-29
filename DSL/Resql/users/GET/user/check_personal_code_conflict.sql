@@ -10,6 +10,9 @@ declaration:
       - field: personal_code
         type: string
         description: "Personal code to check"
+      - field: id
+        type: string
+        description: "Optional: UUID of the user being updated (excluded from check)"
   response:
     fields:
       - field: id
@@ -18,5 +21,5 @@ declaration:
 SELECT u.id
 FROM users."user" u
 WHERE u.personal_code = :personal_code
-  AND u.id != :id::UUID
+  AND (:id = '' OR u.id != :id::UUID)
 LIMIT 1;
