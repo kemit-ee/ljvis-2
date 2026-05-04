@@ -199,7 +199,17 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       }
     ),
     organisationId: Yup.string().required(t('users.validation.required')),
-    email: Yup.string().email(t('users.validation.email')).required(t('users.validation.required')),
+    email: Yup.string().required(t('users.validation.required')).test(
+      'email-format',
+      t('users.validation.email'),
+      (value) => {
+        if (!value) return true;
+        if (value.indexOf('@') < 1) return false;
+        if (value.indexOf('.', value.indexOf('@')) < (value.indexOf('@') + 2)) return false;
+        return value.lastIndexOf('.') < (value.length - 2);
+
+      }
+    ),
     phone: Yup.string().matches(/^[+\d\s]*$/, t('users.validation.phone')),
     accessStart: Yup.string().required(t('users.validation.required')),
     accessEnd: isEdit ? Yup.string().nullable() : Yup.string().nullable().test(

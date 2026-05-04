@@ -76,42 +76,18 @@ validateRequired:
 
 validatePersonalCodeLength:
   switch:
-    - condition: ${personal_code.length() != 11}
+    - condition: ${personal_code.length != 11}
       next: return_validation_error
   next: validateEmail
 
 validateEmail:
   switch:
-    - condition: ${!email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')}
+    - condition: ${email.indexOf('@') < 1}
       next: return_validation_error
-  next: validatePhone
-
-validatePhone:
-  switch:
-    - condition: ${phone != '' && !phone.matches('^[+\\d\\s]*$')}
+    - condition: ${email.indexOf('.', email.indexOf('@')) < (email.indexOf('@') + 2)}
       next: return_validation_error
-  next: validateDates
-
-validateDates:
-  switch:
-    - condition: ${access_end != '' && access_end <= access_start}
+    - condition: ${email.lastIndexOf('.') >= (email.length - 2)}
       next: return_validation_error
-  next: checkPersonalCodeConflict
-
-checkPersonalCodeConflict:
-  call: http.get
-  args:
-    url: "[#LJVIS_USERS_RESQL]/user/check_personal_code_conflict"
-    query:
-      personal_code: ${personal_code}
-      id: ${id}
-  result: conflictRes
-  next: checkConflictResult
-
-checkConflictResult:
-  switch:
-    - condition: ${conflictRes.response.body.length > 0}
-      next: return_conflict
   next: updateUser
 
 updateUser:
@@ -131,6 +107,7 @@ updateUser:
       access_start: ${access_start}
       access_end: ${access_end}
   result: res
+  next: returnSuccess
 
 returnSuccess:
   return: ${res.response.body}
