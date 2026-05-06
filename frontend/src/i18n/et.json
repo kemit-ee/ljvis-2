@@ -65,11 +65,12 @@
   },
   "userGroups": {
     "title": "Kasutajagrupid",
-    "addGroup": "Lisa kasutajagrupp",
-    "search": "Otsi grupi nime järgi",
+    "addGroup": "+ Lisa kasutajagrupp",
+    "search": "Otsing",
     "searchOrg": "Otsi asutuse järgi",
-    "name": "Grupi nimi",
-    "organisations": "Asutused",
+    "name": "Kasutajagrupp",
+    "organisations": "Asutus",
+    "allOrganisations": "Kõik asutused",
     "permissions": "Õigused",
     "usersInGroup": "Kasutajad grupis",
     "searchUsers": "Otsi kasutajat",
@@ -85,14 +86,16 @@
     "noUsers": "Grupis pole kasutajaid",
     "validation": {
       "nameRequired": "Grupi nimi on kohustuslik"
-    }
+    },
+    "viewDetails": "Vaata"
   },
   "common": {
     "loading": "Laadimine...",
     "error": "Tekkis viga",
     "back": "Tagasi",
     "yes": "Jah",
-    "no": "Ei"
+    "no": "Ei",
+    "tableIsEmpty": "Otsingule vastavaid tulemusi ei leitud."
   },
   "footer": {
     "help": "Abi",

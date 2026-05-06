@@ -14,28 +14,16 @@ const columnHelper = createColumnHelper<UserGroup>();
 export function UserGroupListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, user, permissions } = useAuth();
   const canAddGroup = hasPermission('perm_user_group_edit_admin');
 
   const {
-    data, isLoading,
+    data, totalRows, isLoading,
+    pagination, setPagination,
+    sorting, setSorting,
     searchInput, setSearchInput, handleSearch, clearSearch,
-    orgSearchInput, setOrgSearchInput, handleOrgSearch, clearOrgSearch,
     refetch,
-  } = useUserGroupList();
-
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor('name', {
-        header: t('userGroups.name'),
-      }),
-      columnHelper.accessor('organisations', {
-        header: t('userGroups.organisations'),
-        cell: (info) => info.getValue() || '—',
-      }),
-    ],
-    [t],
-  );
+  } = useUserGroupList(user, permissions);
 
   const handleRowClick = useCallback(
     (row: UserGroup) => {
@@ -44,8 +32,82 @@ export function UserGroupListPage() {
     [navigate],
   );
 
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('name', {
+        header: t('userGroups.name'),
+        cell: (info) => {
+          if (info.row.original.isAdditionalGroupRow) {
+            return <div className="additional-group-row-marker"></div>;
+          }
+          return info.getValue();
+        },
+      }),
+      columnHelper.accessor('organisations', {
+        header: t('userGroups.organisations'),
+        cell: (info) => {
+          if (info.row.original.coversAllOrganisations && !info.row.original.isAdditionalGroupRow) {
+            return t('userGroups.allOrganisations');
+          }
+          return info.getValue() || '—';
+        },
+        enableSorting: false,
+      }),
+      columnHelper.display({
+          id: 'viewDetails',
+          header: '',
+          cell: (info) => {
+              if (info.row.original.isAdditionalGroupRow) return null;
+              return (
+                  <div style={{textAlign: 'center'}}>
+                      <a
+                          href={`/user-groups/${info.row.original.id}`}
+                          onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleRowClick(info.row.original);
+                          }}
+                          style={{
+                              color: 'primary',
+                              cursor: 'pointer',
+                              textDecoration: 'none'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                      >
+                          {t('userGroups.viewDetails')}
+                      </a>
+                  </div>
+              );
+          },
+      })
+    ],
+    [t, handleRowClick],
+  );
+
   return (
     <div>
+      <style>{`
+        #user-groups-table td,
+        #user-groups-table th {
+          border-left: 1px solid #e5e7eb;
+        }
+        #user-groups-table td:first-child,
+        #user-groups-table th:first-child {
+          border-left: none;
+        }
+        #user-groups-table tr:has(.additional-group-row-marker) {
+          border-top: none;
+        }
+        #user-groups-table tr:has(.additional-group-row-marker) td:nth-child(2) {
+          border-top: 1px solid #e5e7eb;
+        }
+        #user-groups-table td:last-child,
+        #user-groups-table th:last-child {
+          width: 5% !important;
+          max-width: 5% !important;
+        }
+      `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading element="h1">{t('userGroups.title')}</Heading>
         {canAddGroup && <UserGroupFormModal triggerLabel={t('userGroups.addGroup')} onSaved={refetch} />}
@@ -57,19 +119,10 @@ export function UserGroupListPage() {
             id="group-search"
             label={t('userGroups.search')}
             value={searchInput}
+            onIconClick={() => handleSearch(searchInput)}
             onChange={setSearchInput}
             onSearch={handleSearch}
             onClear={clearSearch}
-          />
-        </div>
-        <div style={{ maxWidth: '20rem' }}>
-          <Search
-            id="group-org-search"
-            label={t('userGroups.searchOrg')}
-            value={orgSearchInput}
-            onChange={setOrgSearchInput}
-            onSearch={handleOrgSearch}
-            onClear={clearOrgSearch}
           />
         </div>
       </div>
@@ -79,8 +132,16 @@ export function UserGroupListPage() {
         data={data}
         columns={columns}
         isLoading={isLoading}
-        hidePagination
-        onRowClick={handleRowClick}
+        totalRows={totalRows}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        sorting={sorting}
+        onSortingChange={setSorting}
+        manualPagination
+        manualSorting
+        placeholder={{
+            children: t('common.tableIsEmpty')
+        }}
       />
 
     </div>

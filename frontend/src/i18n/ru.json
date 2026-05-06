@@ -65,11 +65,12 @@
   },
   "userGroups": {
     "title": "Группы пользователей",
-    "addGroup": "Добавить группу",
-    "search": "Поиск по имени группы",
+    "addGroup": "+ Добавить группу",
+    "search": "Поиск",
     "searchOrg": "Поиск по организации",
     "name": "Название группы",
     "organisations": "Организации",
+    "allOrganisations": "Все организации",
     "permissions": "Права доступа",
     "usersInGroup": "Пользователи в группе",
     "searchUsers": "Поиск пользователя",
@@ -85,14 +86,16 @@
     "noUsers": "В группе нет пользователей",
     "validation": {
       "nameRequired": "Название группы обязательно"
-    }
+    },
+    "viewDetails": "COMING"
   },
   "common": {
     "loading": "Загрузка...",
     "error": "Произошла ошибка",
     "back": "Назад",
     "yes": "Да",
-    "no": "Нет"
+    "no": "Нет",
+    "tableIsEmpty": "COMING"
   },
   "footer": {
     "help": "COMING",

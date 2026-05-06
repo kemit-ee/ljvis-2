@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { UserGroup, UserGroupOrganisation, UserGroupPermission, UserGroupUser } from './types';
@@ -22,47 +23,141 @@ import { listPermissions } from '../permissions/api';
 // ---------------------------------------------------------------------------
 // Data hook: user group list with search
 // ---------------------------------------------------------------------------
-export function useUserGroupList() {
+function toSnakeCase(str: string): string {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+export function useUserGroupList(user: { organisationname?: string; permissions?: string } | null, permissions: string[]) {
   const [data, setData] = useState<UserGroup[]>([]);
+  const [totalRows, setTotalRows] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [orgSearch, setOrgSearch] = useState('');
-  const [orgSearchInput, setOrgSearchInput] = useState('');
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await listUserGroups({ search, organisationSearch: orgSearch });
-      setData(result);
+      const sortStr = sorting.length
+        ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
+        : 'name asc';
+      const [result, allOrgs] = await Promise.all([
+        listUserGroups({
+          search,
+          page: String(pagination.pageIndex + 1),
+          pageSize: String(pagination.pageSize),
+          sorting: sortStr,
+        }),
+        listOrganisations(),
+      ]);
+
+      const totalOrgs = allOrgs.length;
+
+      // Check if user is admin or local admin
+      const isLocalAdmin = permissions.includes('perm_user_group_list_local') && !permissions.includes('perm_user_group_edit_admin');
+
+      // If search is active, fetch full organisation lists for each group
+      const groupsWithFullOrgs = await Promise.all(
+        result.map(async (group) => {
+          if (search) {
+            const groupOrgs = await getUserGroupOrganisations(group.id);
+            const orgNames = groupOrgs.map((o) => o.name).join(', ');
+            return { ...group, organisations: orgNames };
+          }
+          return group;
+        })
+      );
+
+      // Filter groups for local admin: only show user's organisation groups and covers_all_organisations=true groups
+      let filteredGroups = groupsWithFullOrgs;
+      if (isLocalAdmin && user?.organisationname) {
+        filteredGroups = groupsWithFullOrgs.filter((group) => {
+          const orgs = group.organisations ? group.organisations.split(',').map((o) => o.trim()).filter((o) => o) : [];
+          // Show groups with no organisations, user's organisation, or covers all organisations
+          const hasNoOrgs = orgs.length === 0;
+          const hasUserOrg = orgs.includes(user.organisationname);
+          const coversAll = orgs.length === totalOrgs;
+          return hasNoOrgs || hasUserOrg || coversAll;
+        });
+      }
+
+      const expandedData: UserGroup[] = [];
+      filteredGroups.forEach((group) => {
+        let orgCount = 0;
+        if (group.organisations) {
+          const orgs = group.organisations.split(',').map((o) => o.trim()).filter((o) => o);
+          orgCount = orgs.length;
+          // If search is active, always expand all organisations individually
+          if (search) {
+            orgs.forEach((org, index) => {
+              expandedData.push({
+                ...group,
+                organisations: org,
+                isAdditionalGroupRow: index > 0,
+                coversAllOrganisations: false
+              });
+            });
+          } else if (orgCount === totalOrgs) {
+            expandedData.push({ ...group, organisations: '', coversAllOrganisations: true });
+          } else if (orgs.length > 0) {
+            orgs.forEach((org, index) => {
+              expandedData.push({
+                ...group,
+                organisations: org,
+                isAdditionalGroupRow: index > 0,
+                coversAllOrganisations: false
+              });
+            });
+          } else {
+            expandedData.push({ ...group, coversAllOrganisations: false });
+          }
+        } else {
+          expandedData.push({ ...group, coversAllOrganisations: false });
+        }
+      });
+
+      setData(expandedData);
+      // For local admin use filtered count for totalRows, but not for admin
+      if (isLocalAdmin && user?.organisationname) {
+        setTotalRows(filteredGroups.length);
+      } else if (result.length > 0 && result[0].total != null) {
+        setTotalRows(result[0].total);
+      } else {
+        setTotalRows(result.length);
+      }
     } catch (e) {
       console.error('Failed to load user groups', e);
       setData([]);
     } finally {
       setIsLoading(false);
     }
-  }, [search, orgSearch]);
+  }, [search, pagination, sorting, user, permissions]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const handleSearch = (value: string) => setSearch(value);
-  const clearSearch = () => { setSearchInput(''); setSearch(''); };
-  const handleOrgSearch = (value: string) => setOrgSearch(value);
-  const clearOrgSearch = () => { setOrgSearchInput(''); setOrgSearch(''); };
+  const handleSearch = (value: string) => { 
+    if (value.length >= 3 || value.length === 0) {
+      setSearch(value); 
+      setPagination((p) => ({ ...p, pageIndex: 0 })); 
+    }
+  };
+  const clearSearch = () => { setSearchInput(''); setSearch(''); setPagination((p) => ({ ...p, pageIndex: 0 })); };
 
   return {
     data,
+    totalRows,
     isLoading,
+    pagination,
+    setPagination,
+    sorting,
+    setSorting,
     searchInput,
     setSearchInput,
     handleSearch,
     clearSearch,
-    orgSearchInput,
-    setOrgSearchInput,
-    handleOrgSearch,
-    clearOrgSearch,
     refetch: fetchData,
   };
 }

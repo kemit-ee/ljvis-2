@@ -10,10 +10,16 @@ declaration:
     query:
       - field: search
         type: string
-        description: "Search by group name"
-      - field: organisationSearch
+        description: "Search by group name or organisation name"
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Page size"
+      - field: sorting
         type: string
-        description: "Filter by organisation name"
+        description: "Sorting"
 
 authenticate:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -34,7 +40,9 @@ check_permission:
 extractRequestData:
   assign:
     search: "${incoming.params.search ?? ''}"
-    organisation_search: "${incoming.params.organisationSearch ?? ''}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'name asc'}"
 
 getUserGroups:
   call: http.get
@@ -42,7 +50,9 @@ getUserGroups:
     url: "[#LJVIS_USERS_RESQL]/user_group/list_user_groups"
     query:
       search: ${search}
-      organisation_search: ${organisation_search}
+      page: ${page}
+      page_size: ${page_size}
+      sorting: ${sorting}
   result: res
 
 returnSuccess:
