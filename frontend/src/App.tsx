@@ -3,6 +3,7 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import { AppLayout } from './layout/AppLayout';
 import { DesktopPage } from './features/desktop/DesktopPage';
 import { UserListPage } from './features/users/UserListPage';
+import { UserCreatePage } from './features/users/UserCreatePage';
 import { UserDetailPage } from './features/users/UserDetailPage';
 import { UserGroupListPage } from './features/user-groups/UserGroupListPage';
 import { UserGroupDetailPage } from './features/user-groups/UserGroupDetailPage';
@@ -26,6 +27,7 @@ function AppRoutes() {
         <Route element={<AppLayout />}>
           <Route path="/" element={<DesktopPage />} />
           <Route path="/users" element={<UserListPage />} />
+          <Route path="/users/new" element={<UserCreatePage />} />
           <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/user-groups" element={<UserGroupListPage />} />
           <Route path="/user-groups/:id" element={<UserGroupDetailPage />} />

@@ -32,3 +32,6 @@ export const getUserGroups = (userId: string) =>
 
 export const setUserGroups = (userId: string, groupIds: string[]) =>
   post<string>('/users/set-groups', { userId, groupIds });
+
+export const checkPersonalCodeConflict = (personalCode: string, id: string = '') =>
+  get<{ id: string }[]>('/users/check-personal-code-exists', { personalCode, id });

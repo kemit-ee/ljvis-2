@@ -4,6 +4,14 @@ interface RuuterResponse<T> {
   response: T;
 }
 
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 export async function get<T>(path: string, params?: Record<string, string>): Promise<T> {
   const url = new URL(`${BASE}${path}`, window.location.origin);
   if (params) {
@@ -12,7 +20,7 @@ export async function get<T>(path: string, params?: Record<string, string>): Pro
     });
   }
   const res = await fetch(url.toString(), { credentials: 'include' });
-  if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`GET ${path} failed: ${res.status}`, res.status);
   const json: RuuterResponse<T> = await res.json();
   return json.response;
 }
@@ -24,7 +32,7 @@ export async function post<T>(path: string, body: Record<string, unknown>): Prom
     credentials: 'include',
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`POST ${path} failed: ${res.status}`);
+  if (!res.ok) throw new ApiError(`POST ${path} failed: ${res.status}`, res.status);
   const json: RuuterResponse<T> = await res.json();
   return json.response;
 }

@@ -52,16 +52,27 @@
     "edit": "Редактировать",
     "manageGroups": "Управление группами",
     "assignGroups": "Назначить группы пользователей",
+    "connectGroup": "COMING",
     "noGroups": "У пользователя нет групп",
     "orgChangeWarning": "Смена организации удалит все группы пользователей, назначенные этому пользователю.",
     "confirm": "Подтвердить",
+    "requiredFieldsNote": "COMING",
+    "addTitle": "COMING",
+    "basicInfo": "COMING",
+    "access": "COMING",
+    "datePickerPlaceholder": "COMING",
     "validation": {
       "required": "Обязательное поле",
       "email": "Неверный формат эл. почты",
       "phone": "Допускается: +, цифры, пробелы",
-      "endBeforeStart": "Дата окончания должна быть позже даты начала"
+      "endBeforeStart": "Дата окончания должна быть позже даты начала",
+      "personalCode": "COMING",
+      "personalCodeConflict": "A user with this personal code already exists"
     },
-    "viewDetails": "COMING"
+    "viewDetails": "COMING",
+    "newUserAddedNote": "COMING",
+    "userEditedNote": "COMING",
+    "confirmOrganisationChange": "COMING"
   },
   "userGroups": {
     "title": "Группы пользователей",
@@ -92,10 +103,13 @@
   "common": {
     "loading": "Загрузка...",
     "error": "Произошла ошибка",
+    "forbidden": "У вас нет доступа к этой странице",
     "back": "Назад",
     "yes": "Да",
     "no": "Нет",
-    "tableIsEmpty": "COMING"
+    "tableIsEmpty": "COMING",
+    "confirm": "COMING",
+    "discard": "COMING"
   },
   "footer": {
     "help": "COMING",

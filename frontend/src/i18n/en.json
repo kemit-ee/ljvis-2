@@ -52,16 +52,27 @@
     "edit": "Edit",
     "manageGroups": "Manage groups",
     "assignGroups": "Assign user groups",
+    "connectGroup": "COMING",
     "noGroups": "User has no groups",
     "orgChangeWarning": "Changing the organisation will remove all user groups currently assigned to this user.",
     "confirm": "Confirm",
+    "requiredFieldsNote": "COMING",
+    "addTitle": "COMING",
+    "basicInfo": "COMING",
+    "access": "COMING",
+    "datePickerPlaceholder": "DD.MM.YYYY",
     "validation": {
       "required": "Required field",
       "email": "Invalid email format",
       "phone": "Allowed: +, digits, spaces",
-      "endBeforeStart": "End date must be after start date"
+      "endBeforeStart": "End date must be after start date",
+      "personalCode": "COMING",
+      "personalCodeConflict": "A user with this personal code already exists"
     },
-    "viewDetails": "COMING"
+    "viewDetails": "COMING",
+    "newUserAddedNote": "COMING",
+    "userEditedNote": "COMING",
+    "confirmOrganisationChange": "COMING"
   },
   "userGroups": {
     "title": "User Groups",
@@ -92,10 +103,13 @@
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
+    "forbidden": "You do not have access to this page",
     "back": "Back",
     "yes": "Yes",
     "no": "No",
-    "tableIsEmpty": "COMING"
+    "tableIsEmpty": "COMING",
+    "confirm": "Kinnitan",
+    "discard": "Loobun"
   },
   "footer": {
     "help": "Help",

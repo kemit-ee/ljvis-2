@@ -51,6 +51,55 @@ extractRequestData:
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
     access_end: "${incoming.body.accessEnd ?? ''}"
+  next: validateRequired
+
+validateRequired:
+  switch:
+    - condition: ${first_name == null || first_name == ''}
+      next: return_validation_error
+    - condition: ${last_name == null || last_name == ''}
+      next: return_validation_error
+    - condition: ${personal_code == null || personal_code == ''}
+      next: return_validation_error
+    - condition: ${organisation_id == null || organisation_id == ''}
+      next: return_validation_error
+    - condition: ${email == null || email == ''}
+      next: return_validation_error
+    - condition: ${access_start == null || access_start == ''}
+      next: return_validation_error
+  next: validatePersonalCodeLength
+
+validatePersonalCodeLength:
+  switch:
+    - condition: ${personal_code.length != 11}
+      next: return_validation_error
+  next: validateEmail
+
+validateEmail:
+  switch:
+    - condition: ${email.indexOf('@') < 1}
+      next: return_validation_error
+    - condition: ${email.indexOf('.', email.indexOf('@')) < (email.indexOf('@') + 2)}
+      next: return_validation_error
+    - condition: ${email.lastIndexOf('.') >= (email.length - 2)}
+      next: return_validation_error
+  next: createUser
+
+checkPersonalCodeConflict:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/check_personal_code_conflict"
+    query:
+      personal_code: ${personal_code}
+      id: ""
+  result: conflictRes
+  next: checkConflictResult
+
+checkConflictResult:
+  switch:
+    - condition: ${conflictRes.response.body.length > 0}
+      next: return_conflict
+  next: createUser
 
 createUser:
   call: http.post
@@ -68,9 +117,20 @@ createUser:
       access_start: ${access_start}
       access_end: ${access_end}
   result: res
+  next: returnSuccess
 
 returnSuccess:
   return: ${res.response.body}
+  next: end
+
+return_validation_error:
+  status: 422
+  return: "validation failed"
+  next: end
+
+return_conflict:
+  status: 409
+  return: "personal code already exists"
   next: end
 
 return_forbidden:

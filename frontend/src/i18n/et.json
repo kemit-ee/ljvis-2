@@ -40,8 +40,8 @@
     "organisation": "Asutus",
     "email": "E-post",
     "phone": "Telefon",
-    "accessStart": "Ligipääsu algus",
-    "accessEnd": "Ligipääsu lõpp",
+    "accessStart": "Ligipääs alates",
+    "accessEnd": "Ligipääs kuni",
     "userGroups": "Kasutajagrupid",
     "save": "Salvesta",
     "cancel": "Tühista",
@@ -52,16 +52,27 @@
     "edit": "Muuda",
     "manageGroups": "Halda gruppe",
     "assignGroups": "Määra kasutajagrupid",
-    "noGroups": "Kasutajal pole gruppe",
+    "connectGroup": "Seo kasutajagrupp",
+    "noGroups": "Kasutaja ei ole seotud ühegi kasutajagrupiga",
     "orgChangeWarning": "Asutuse muutmine eemaldab kõik kasutajagrupid sellelt kasutajalt.",
     "confirm": "Kinnita",
+    "requiredFieldsNote": "Tärniga märgitud väljad on kohustuslikud",
+    "addTitle": "Lisa kasutaja",
+    "basicInfo": "Isikuandmed",
+    "access": "Ligipääs",
+    "datePickerPlaceholder": "PP.KK.AAAA",
     "validation": {
       "required": "Kohustuslik väli",
       "email": "Vigane e-posti formaat",
       "phone": "Lubatud: +, numbrid, tühikud",
-      "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev"
+      "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
+      "personalCode": "Isikukood peab olema 11 numbrit",
+      "personalCodeConflict": "Sellise isikukoodiga kasutaja on juba olemas"
     },
-    "viewDetails": "Vaata"
+    "viewDetails": "Vaata",
+    "newUserAddedNote": "Uus kasutaja lisatud.",
+    "userEditedNote": "Muudatused on salvestatud.",
+    "confirmOrganisationChange": "Asutuse muutmine eemaldab kasutajalt kõik kasutajagrupid. Kas soovid jätkata?"
   },
   "userGroups": {
     "title": "Kasutajagrupid",
@@ -92,10 +103,13 @@
   "common": {
     "loading": "Laadimine...",
     "error": "Tekkis viga",
+    "forbidden": "Teil puudub ligipääs sellele lehele",
     "back": "Tagasi",
     "yes": "Jah",
     "no": "Ei",
-    "tableIsEmpty": "Otsingule vastavaid tulemusi ei leitud."
+    "tableIsEmpty": "Otsingule vastavaid tulemusi ei leitud.",
+    "confirmChange": "Jah, muuda",
+    "discard": "Tühista"
   },
   "footer": {
     "help": "Abi",

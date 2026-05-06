@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import { Heading, Search, StatusBadge } from '@tedi-design-system/react/tedi';
+import { Heading, Search, StatusBadge, Button } from '@tedi-design-system/react/tedi';
 import type { UserListItem } from './types';
 import { useUserList } from './hooks';
-import { UserFormModal } from './UserFormModal';
 import { useAuth } from '../auth/AuthContext';
 
 const columnHelper = createColumnHelper<UserListItem>();
@@ -170,7 +169,10 @@ export function UserListPage() {
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading element="h1">{t('users.title')}</Heading>
-        {canAddUser && <UserFormModal triggerLabel={t('users.addUser')} onSaved={refetch} />}
+        {canAddUser && (
+          <Button onClick={() => navigate('/users/new')}>{t('users.addUser')}
+          </Button>
+        )}
       </div>
 
       <div style={{ marginBottom: '1rem', maxWidth: '20rem' }}>

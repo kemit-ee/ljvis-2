@@ -1,0 +1,67 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Check if a personal code is already in use"
+  method: get
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    params:
+      - field: personalCode
+        type: string
+        description: "Personal code to check"
+      - field: id
+        type: string
+        description: "Optional: UUID of the user being updated (excluded from check)"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_edit_admin') >= 0}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_edit_local') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
+extractRequestData:
+  assign:
+    personal_code: "${incoming.params.personalCode}"
+    id: "${incoming.params.id ?? ''}"
+
+checkConflict:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/check_personal_code_conflict"
+    query:
+      personal_code: ${personal_code}
+      id: ${id}
+  result: conflictRes
+  next: checkConflictResult
+
+checkConflictResult:
+  switch:
+    - condition: ${conflictRes.response.body.length > 0}
+      next: return_conflict
+  next: returnSuccess
+
+returnSuccess:
+  return: ${conflictRes.response.body}
+  next: end
+
+return_conflict:
+  status: 409
+  return: "personal code already exists"
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end
