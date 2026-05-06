@@ -1,7 +1,7 @@
 import { get, post } from '../../shared/api/client';
 import type { UserGroup, UserGroupOrganisation, UserGroupPermission, UserGroupUser } from './types';
 
-export const listUserGroups = (params?: { search?: string; organisationSearch?: string }) =>
+export const listUserGroups = (params?: { search?: string; page?: string; pageSize?: string; sorting?: string }) =>
   get<UserGroup[]>('/user-groups/list', params as Record<string, string>);
 
 export const getUserGroup = (id: string) =>

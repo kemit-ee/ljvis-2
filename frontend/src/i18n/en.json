@@ -65,11 +65,12 @@
   },
   "userGroups": {
     "title": "User Groups",
-    "addGroup": "Add user group",
-    "search": "Search by group name",
+    "addGroup": "+ Add user group",
+    "search": "Search",
     "searchOrg": "Search by organisation",
     "name": "Group name",
     "organisations": "Organisations",
+    "allOrganisations": "All organisations",
     "permissions": "Permissions",
     "usersInGroup": "Users in group",
     "searchUsers": "Search user",
@@ -85,14 +86,16 @@
     "noUsers": "No users in this group",
     "validation": {
       "nameRequired": "Group name is required"
-    }
+    },
+    "viewDetails": "COMING"
   },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
     "back": "Back",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "tableIsEmpty": "COMING"
   },
   "footer": {
     "help": "Help",
