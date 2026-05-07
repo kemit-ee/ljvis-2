@@ -29,7 +29,9 @@
     "userGroups": "Группы пользователей"
   },
   "users": {
-    "title": "Пользователи",
+    "titleAdministration": "COMING",
+    "titleAdd": "Добавить пользователя",
+    "data": "COMING",
     "addUser": "+ Добавить пользователя",
     "editUser": "Редактировать пользователя",
     "search": "Поиск по имени",
@@ -86,9 +88,11 @@
     "search": "Поиск",
     "searchOrg": "Поиск по организации",
     "name": "Название группы",
-    "organisations": "Организации",
+    "nameNew": "COMING",
+    "connectedOrganisations": "COMING",
     "allOrganisations": "Все организации",
     "permissions": "Права доступа",
+    "groupPermissions": "COMING",
     "usersInGroup": "Пользователи в группе",
     "searchUsers": "Поиск пользователя",
     "editName": "Изменить название",
