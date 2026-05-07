@@ -65,6 +65,7 @@ describe('UserListPage Component Structure', () => {
             statusActive: 'users.statusActive',
             statusDeactivating: 'users.statusDeactivating',
             statusInactive: 'users.statusInactive',
+            tableIsEmpty: 'common.tableIsEmpty',
         };
 
         expect(translationKeys.title).toBe('users.title');
@@ -77,6 +78,7 @@ describe('UserListPage Component Structure', () => {
         expect(translationKeys.organisation).toBe('users.organisation');
         expect(translationKeys.userGroups).toBe('users.userGroups');
         expect(translationKeys.viewDetails).toBe('users.viewDetails');
+        expect(translationKeys.tableIsEmpty).toBe('common.tableIsEmpty');
     });
 
     it('should have correct table ID', () => {
@@ -289,5 +291,79 @@ describe('UserListPage Navigation Logic', () => {
         handleRowClick({ id: 'abc-123' });
 
         expect(navigations).toEqual(['/users/1', '/users/999', '/users/abc-123']);
+    });
+});
+
+describe('UserListPage Search Logic', () => {
+    it('should allow search when value has 3 or more characters', () => {
+        let searchValue = '';
+        let pageIndex = 0;
+        const setSearch = (val: string) => { searchValue = val; };
+        const setPagination = (fn: (p: any) => any) => { pageIndex = fn({ pageIndex }).pageIndex; };
+
+        const handleSearch = (value: string) => {
+            if (value.length >= 3 || value.length === 0) {
+                setSearch(value);
+                setPagination((p) => ({ ...p, pageIndex: 0 }));
+            }
+        };
+
+        handleSearch('abc');
+        expect(searchValue).toBe('abc');
+        expect(pageIndex).toBe(0);
+    });
+
+    it('should allow search when value is empty', () => {
+        let searchValue = 'test';
+        let pageIndex = 5;
+        const setSearch = (val: string) => { searchValue = val; };
+        const setPagination = (fn: (p: any) => any) => { pageIndex = fn({ pageIndex }).pageIndex; };
+
+        const handleSearch = (value: string) => {
+            if (value.length >= 3 || value.length === 0) {
+                setSearch(value);
+                setPagination((p) => ({ ...p, pageIndex: 0 }));
+            }
+        };
+
+        handleSearch('');
+        expect(searchValue).toBe('');
+        expect(pageIndex).toBe(0);
+    });
+
+    it('should not trigger search when value has 1 or 2 characters', () => {
+        let searchValue = '';
+        let pageIndex = 5;
+        const setSearch = (val: string) => { searchValue = val; };
+        const setPagination = (fn: (p: any) => any) => { pageIndex = fn({ pageIndex }).pageIndex; };
+
+        const handleSearch = (value: string) => {
+            if (value.length >= 3 || value.length === 0) {
+                setSearch(value);
+                setPagination((p) => ({ ...p, pageIndex: 0 }));
+            }
+        };
+
+        handleSearch('ab');
+        expect(searchValue).toBe('');
+        expect(pageIndex).toBe(5);
+    });
+
+    it('should not trigger search when value has 1 character', () => {
+        let searchValue = '';
+        let pageIndex = 5;
+        const setSearch = (val: string) => { searchValue = val; };
+        const setPagination = (fn: (p: any) => any) => { pageIndex = fn({ pageIndex }).pageIndex; };
+
+        const handleSearch = (value: string) => {
+            if (value.length >= 3 || value.length === 0) {
+                setSearch(value);
+                setPagination((p) => ({ ...p, pageIndex: 0 }));
+            }
+        };
+
+        handleSearch('a');
+        expect(searchValue).toBe('');
+        expect(pageIndex).toBe(5);
     });
 });

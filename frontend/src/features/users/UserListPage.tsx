@@ -28,7 +28,6 @@ export function UserListPage() {
     setSearchInput,
     handleSearch,
     clearSearch,
-    refetch,
   } = useUserList();
 
   const handleRowClick = useCallback(
@@ -166,6 +165,11 @@ export function UserListPage() {
         #users-table tr:has(.additional-group-row-marker) td:nth-child(6) {
           border-top: 1px solid #e5e7eb;
         }
+        #users-table td:last-child,
+        #users-table th:last-child {
+          width: 5% !important;
+          max-width: 5% !important;
+        }
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading element="h1">{t('users.title')}</Heading>
@@ -180,6 +184,7 @@ export function UserListPage() {
           id="users-search"
           label={t('users.search')}
           value={searchInput}
+          onIconClick={() => handleSearch(searchInput)}
           onChange={setSearchInput}
           onSearch={handleSearch}
           onClear={clearSearch}
@@ -198,6 +203,9 @@ export function UserListPage() {
         onSortingChange={setSorting}
         manualPagination
         manualSorting
+        placeholder={{
+            children: t('common.tableIsEmpty')
+        }}
       />
 
     </div>
