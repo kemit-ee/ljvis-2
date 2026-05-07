@@ -5,7 +5,6 @@ export const listUsers = (params: {
   page: string;
   pageSize: string;
   search?: string;
-  organisationId?: string;
   sorting?: string;
 }) => get<UserListItem[]>('/users/list', params as Record<string, string>);
 

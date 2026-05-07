@@ -91,8 +91,10 @@ export function useUserList() {
   }, [fetchData]);
 
   const handleSearch = (value: string) => {
-    setSearch(value);
-    setPagination((p) => ({ ...p, pageIndex: 0 }));
+    if (value.length >= 3 || value.length === 0) {
+      setSearch(value);
+      setPagination((p) => ({ ...p, pageIndex: 0 }));
+    }
   };
 
   const clearSearch = () => {
@@ -165,6 +167,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [isLocalAdmin, setIsLocalAdmin] = useState(false);
+  const [allGroups, setAllGroups] = useState<UserGroup[]>([]);
   const isEdit = !!user;
 
   useEffect(() => {
@@ -178,6 +181,11 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       setIsLocalAdmin(groups.some((g) => g.name === LOCAL_ADMIN_GROUP));
     }).catch(console.error);
   }, [authUser]);
+
+  useEffect(() => {
+    const params = user?.organisationName ? { search: user.organisationName } : undefined;
+    listUserGroups(params).then(setAllGroups).catch(console.error);
+  }, [user?.organisationName]);
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required(t('users.validation.required')),
@@ -273,48 +281,56 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
     }
   };
 
-  return { formik, isEdit, orgOptions, handleOrgChange, isLocalAdmin };
+  return {allGroups, formik, isEdit, orgOptions, handleOrgChange, isLocalAdmin };
 }
 
 // ---------------------------------------------------------------------------
-// Form hook: assign user groups
+// Hook: group selection & save for UserDetailPage
 // ---------------------------------------------------------------------------
-export function useAssignGroups(
-  userId: string,
-  currentGroups: UserGroupAssignment[],
+export function useGroupSave(
+  userId: string | undefined,
+  groups: UserGroupAssignment[],
+  allGroups: UserGroup[],
   onSaved: () => void,
 ) {
-  const [allGroups, setAllGroups] = useState<UserGroup[]>([]);
-  const [selected, setSelected] = useState<Set<string>>(new Set(currentGroups.map((g) => g.userGroupId)));
-  const [saving, setSaving] = useState(false);
+  const [allSelectedGroups, setAllSelectedGroups] = useState<UserGroup[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState('');
 
   useEffect(() => {
-    listUserGroups().then(setAllGroups).catch(console.error);
-  }, []);
+    setAllSelectedGroups(groups.map((g) => ({ id: g.userGroupId, name: g.name }))); // eslint-disable-line react-hooks/set-state-in-effect
+  }, [groups]);
 
-  const toggle = (groupId: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(groupId)) {
-        next.delete(groupId);
-      } else {
-        next.add(groupId);
-      }
-      return next;
-    });
-  };
+  const availableGroups = allGroups.filter((g) => !allSelectedGroups.some((s) => s.id === g.id));
 
-  const handleSave = async () => {
-    setSaving(true);
+  const hasGroupChanges = (() => {
+    const originalIds = new Set(groups.map((g) => g.userGroupId));
+    const currentIds = new Set(allSelectedGroups.map((g) => g.id));
+    return originalIds.size !== currentIds.size || [...originalIds].some((id) => !currentIds.has(id));
+  })();
+
+  const handleGroupSave = async () => {
+    if (!userId) return;
     try {
-      await setUserGroups(userId, Array.from(selected));
+      await setUserGroups(userId, allSelectedGroups.map((g) => g.id));
       onSaved();
     } catch (e) {
       console.error('Failed to save groups', e);
-    } finally {
-      setSaving(false);
     }
   };
 
-  return { allGroups, selected, saving, toggle, handleSave };
+  const resetGroups = () => {
+    setAllSelectedGroups(groups.map((g) => ({ id: g.userGroupId, name: g.name })));
+    setSelectedGroupId('');
+  };
+
+  return {
+    allSelectedGroups,
+    setAllSelectedGroups,
+    selectedGroupId,
+    setSelectedGroupId,
+    availableGroups,
+    hasGroupChanges,
+    handleGroupSave,
+    resetGroups,
+  };
 }
