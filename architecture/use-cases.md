@@ -352,23 +352,38 @@ sequenceDiagram
 sequenceDiagram
     actor Inspektor
     participant UI as LJVIS (XTeeController)
-    participant XTee as X-tee
-    participant RR as Rahvastikuregister
-    participant BR as Äriregister
+    participant Tunnel as X-tee turvaserver<br/>test.liiklusvalve.ee/xtee/tunnel
+    participant RR as Rahvastikuregister<br/>GOV/70008440/rr
+    participant BR as Äriregister<br/>GOV/70000310/arireg
 
     Inspektor->>UI: POST /XTee/FindPerson (isikukood)
-    UI->>XTee: Päring rahvastikuregistrisse
-    XTee->>RR: GetPerson(isikukood)
-    RR-->>XTee: Isiku andmed
-    XTee-->>UI: Vastus
+    Note over UI,Tunnel: Klient: ee-test/GOV/70003158/ljvis
+    UI->>Tunnel: SOAP – RR404_isik/v3<br/>(ee-test/GOV/70008440/rr/RR404_isik/v3)
+    Tunnel->>RR: RR404_isik päring
+    RR-->>Tunnel: Isiku põhiandmed (nimi, aadress jms)
+    Tunnel-->>UI: SOAP vastus
     UI-->>Inspektor: Eeltäidetud isiku andmed vormis
 
-    Inspektor->>UI: POST /XTee/FindCompany (reg-kood)
-    UI->>XTee: Päring äriregistrisse (lihtandmed_v1)
-    XTee->>BR: GetRegNumbers(reg-kood)
-    BR-->>XTee: Ettevõtte andmed
-    XTee-->>UI: Vastus
+    Inspektor->>UI: POST /XTee/FindCompany (nimi / reg-kood)
+    UI->>Tunnel: SOAP – arireg/lihtandmed_v1/v1<br/>(ee-test/GOV/70000310/arireg/lihtandmed_v1/v1)
+    Tunnel->>BR: lihtandmed_v1 päring
+    BR-->>Tunnel: Ettevõtte lihtandmed (nimi, reg-kood, aadress)
+    Tunnel-->>UI: SOAP vastus
     UI-->>Inspektor: Eeltäidetud ettevõtte andmed vormis
+
+    opt Ettevõtte detailandmed (reg-koodi järgi)
+        UI->>Tunnel: SOAP – arireg/detailandmed_v1/v1
+        Tunnel->>BR: detailandmed_v1 päring
+        BR-->>Tunnel: Täisandmed koos aadressiga
+        Tunnel-->>UI: SOAP vastus
+    end
+
+    opt Esindusõiguste kontroll (isikukood → ettevõtted)
+        UI->>Tunnel: SOAP – arireg/esindus_v1/v1
+        Tunnel->>BR: esindus_v1 päring
+        BR-->>Tunnel: Seotud ettevõtete loend
+        Tunnel-->>UI: SOAP vastus
+    end
 ```
 
 ### I-20…I-30 · Kontrollivormi loomine ja kinnitamine
@@ -821,40 +836,58 @@ sequenceDiagram
 
 ### X-01…X-06 · X-tee sissetulevad teenused
 
+> LJVIS toimib siin X-tee **teenuseosutajana**.  
+> WSDL: `Ljvis.XTeeService/ljvis.wsdl` · Protokoll: Message Protocol 4.0 (SOAP)  
+> Teenuse identifikaator: `{Instance}/GOV/70003158/ljvis/<teenus>`
+
 ```mermaid
 sequenceDiagram
     actor Välis as Välissüsteem<br/>(X-tee liige)
     participant XTee as X-tee turvaserver
-    participant Dispatcher as ServiceDispatcher<br/>(Ljvis.XTeeService)
+    participant Dispatcher as ServiceDispatcher<br/>Ljvis.XTeeService<br/>GOV/70003158/ljvis
     participant DB as SQL Server
     participant Raven as RavenDB
 
-    Välis->>XTee: SOAP MP4 – IsikuKontroll(isikukood) (X-01)
-    XTee->>Dispatcher: Edastab päringu
-    Dispatcher->>DB: SELECT kontrollivormid isikukoodi järgi
+    Note over Välis,Dispatcher: Kõik päringud: SOAP MP4 + X-tee turvaserver päis (UserId, Service, Client)
+
+    Välis->>XTee: IsikuKontroll(isikukood) (X-01)
+    Note right of Välis: {Instance}/GOV/70003158/ljvis/IsikuKontroll
+    XTee->>Dispatcher: Edastab valideeritud päringu
+    Dispatcher->>DB: SELECT ControlForm + ControlFormValue<br/>WHERE juhi isikukood = päring.isikukood
     DB-->>Dispatcher: Kontrolliandmed
-    Dispatcher-->>XTee: SOAP vastus
+    Dispatcher-->>XTee: IsikuKontrollResponse (XML)
     XTee-->>Välis: Isiku kontrollide loend
 
-    Välis->>XTee: SOAP MP4 – IsikuEttevõteKontrollid(isikukood) (X-02)
+    Välis->>XTee: IsikuEttevõteKontrollid(isikukood) (X-02)
+    Note right of Välis: {Instance}/GOV/70003158/ljvis/IsikuEttevoteKontrollid
     XTee->>Dispatcher: Edastab päringu
-    Dispatcher->>DB: SELECT rikkumised reg-numbri / isikukoodi järgi
-    DB-->>Dispatcher: Rikkumiste loend
-    Dispatcher-->>XTee: SOAP vastus
+    Dispatcher->>DB: SELECT rikkumised ettevõtte reg-numbri<br/>ja isikukoodi järgi
+    DB-->>Dispatcher: Rikkumiste loend (sõiduk, juht, otsus, kuupäev)
+    Dispatcher-->>XTee: IsikuEttevõteKontrollidResponse (XML)
     XTee-->>Välis: Ettevõtte rikkumised
 
-    Välis->>XTee: SOAP MP4 – ErakorralineYlevaatus (X-03)
+    Välis->>XTee: ErakorralineYlevaatus (X-03)
+    Note right of Välis: {Instance}/GOV/70003158/ljvis/ErakorralineYlevaatus
     XTee->>Dispatcher: Edastab päringu
-    Dispatcher->>DB: INSERT ControlForm (erakorraline ülevaatus)
+    Dispatcher->>DB: INSERT ControlForm<br/>(tüüp=erakorraline ülevaatus, stage=Draft)
     DB-->>Dispatcher: Uue vormi ID
-    Dispatcher-->>XTee: Kinnituse SOAP vastus
+    Dispatcher-->>XTee: ErakorralineYlevaatusResponse (vormId)
     XTee-->>Välis: Ülevaatuse registreerimine õnnestus
 
-    Välis->>XTee: SOAP MP4 – RegisterJobInspectionV2 (X-06)
-    XTee->>Dispatcher: Edastab päringu
-    Dispatcher->>Raven: INSERT JobInspectionV2 (stage=Confirmed)
+    Välis->>XTee: ErakorralineYlevaatusTehtud (X-04)
+    Note right of Välis: {Instance}/GOV/70003158/ljvis/ErakorralineYlevaatusTehtud
+    XTee->>Dispatcher: Edastab kinnituspäringu (vormId)
+    Dispatcher->>DB: UPDATE ControlForm stage=Confirmed
+    DB-->>Dispatcher: OK
+    Dispatcher-->>XTee: Kinnituse vastus
+    XTee-->>Välis: Ülevaatus kinnitatud
+
+    Välis->>XTee: RegisterJobInspectionV2 (X-06)
+    Note right of Välis: {Instance}/GOV/70003158/ljvis/RegisterJobInspectionV2
+    XTee->>Dispatcher: Edastab töökontrolli andmed
+    Dispatcher->>Raven: INSERT JobInspectionV2<br/>(stage=Confirmed, InfringementProceedings=[...])
     Raven-->>Dispatcher: InspectionId
-    Dispatcher-->>XTee: SOAP vastus
+    Dispatcher-->>XTee: RegisterJobInspectionV2Response (inspectionId)
     XTee-->>Välis: Töökontroll registreeritud
 ```
 
@@ -877,23 +910,26 @@ sequenceDiagram
 
     Timer->>EtoimikSvc: Run() [igapäevane / igatunniline]
 
+    Note over EtoimikSvc,Etoimik: X-tee klient: ee-test/GOV/70003158/ljvis<br/>Tunnel: test.liiklusvalve.ee/xtee/tunnel
+
     EtoimikSvc->>DB: SELECT ControlForm<br/>stage=Confirmed, UnitedFormPart=true,<br/>QualificationsReceived=false (B-01)
     DB-->>EtoimikSvc: Kinnitatud vormide loend
 
     loop Iga vorm
-        EtoimikSvc->>Etoimik: AnnaIsikuKvalifikatsioonid.v3<br/>(isikukood + menetlusnumbrid)
-        Etoimik-->>EtoimikSvc: XML vastus
+        EtoimikSvc->>Etoimik: SOAP – etoimik/AnnaIsikuKvalifikatsioonid/v5<br/>(ee-test/GOV/70000310/etoimik/AnnaIsikuKvalifikatsioonid/v5)<br/>Keha: isikukood + menetlusnumbrid (CaseNumber / ReferenceNumber)
+        Note right of Etoimik: Lõpetamise paragrahv: § 75
+        Etoimik-->>EtoimikSvc: XML vastus (Alus → Paragrahv, süüdistused)
 
-        EtoimikSvc->>DB: INSERT EtoimikLog (request + response XML)
+        EtoimikSvc->>DB: INSERT EtoimikLog (requestXml, responseXml, success)
 
-        alt Menetlus lõpetatud
-            EtoimikSvc->>DB: INSERT ControlFormValue (ETOIMIK_ENDED)
-        else Süüdistus / kahtlustus
-            EtoimikSvc->>DB: INSERT ControlFormValue (ETOIMIK_VIOLATION)
+        alt Paragrahv § 75 leitud → menetlus lõpetatud
+            EtoimikSvc->>DB: INSERT ControlFormValue<br/>key=CONTROL_VERDICT_VIOLATION_ETOIMIK_ENDED
+        else Süüdistus / kahtlustus leitud
+            EtoimikSvc->>DB: INSERT ControlFormValue<br/>key=CONTROL_VERDICT_VIOLATION_ETOIMIK
         end
 
-        EtoimikSvc->>DB: UPDATE ControlForm<br/>QualificationsReceived=true, stage=Published
-        EtoimikSvc->>DB: INSERT Versions (audit)
+        EtoimikSvc->>DB: UPDATE ControlForm<br/>QualificationsReceived=true, stage=Published, FormVersion++
+        EtoimikSvc->>DB: INSERT Versions (audit, kasutaja="E-toimik service")
         EtoimikSvc->>Mail: SendDidntPassInspectionEmails() (B-04)
         EtoimikSvc->>Mail: SendVehicleWeightMeasuredNotification() (B-05)
     end
@@ -902,9 +938,9 @@ sequenceDiagram
     Raven-->>EtoimikSvc: Töökontrollide loend
 
     loop Iga töökontroll
-        EtoimikSvc->>Etoimik: AnnaIsikuKvalifikatsioonid.v3
+        EtoimikSvc->>Etoimik: SOAP – etoimik/AnnaIsikuKvalifikatsioonid/v5<br/>(ee-test/GOV/70000310/etoimik/AnnaIsikuKvalifikatsioonid/v5)
         Etoimik-->>EtoimikSvc: XML vastus
-        EtoimikSvc->>DB: INSERT EtoimikLog (IsJobInspection=true)
+        EtoimikSvc->>DB: INSERT EtoimikLog (IsJobInspection=true, JobInspection_id)
         EtoimikSvc->>Raven: UPDATE JobInspectionV2<br/>(EtoimikViolation / EtoimikViolationEnded)<br/>stage=Published
     end
 
@@ -913,11 +949,17 @@ sequenceDiagram
     DB-->>MntSvc: Sõidukite reg-numbrid
 
     loop Iga sõiduk
-        MntSvc->>MNT: GetVehicleTechnicalConditionStatusByRegNumber(regNr)
-        MNT-->>MntSvc: Tehnoülevaatuse kuupäev + tulemus
+        MntSvc->>MNT: SOAP – liiklusregister/yvkehtivus/v1<br/>(ee-test/GOV/70001490/liiklusregister/yvkehtivus/v1)<br/>Parameeter: VehicleRegNumber
+        MNT-->>MntSvc: Tehnoülevaatuse kuupäev + tulemus (verdict)
         alt Tulemus positiivne
             MntSvc->>DB: UPDATE ControlFormValue (ülevaatuse kuupäev)
             MntSvc->>DB: INSERT Versions (audit)
         end
+    end
+
+    opt Sõiduki andmete päring (vormi täitmisel)
+        Note over MntSvc,MNT: Kasutatakse ka liiklusregister/paring2/v2
+        MntSvc->>MNT: SOAP – liiklusregister/paring2/v2<br/>(ee-test/GOV/70001490/liiklusregister/paring2/v2)<br/>Parameeter: VehicleRegNumber / VinCode
+        MNT-->>MntSvc: Sõiduki mark, mudel, VIN, kategooria, keretüüp
     end
 ```
