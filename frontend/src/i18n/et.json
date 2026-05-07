@@ -89,7 +89,7 @@
     "searchOrg": "Otsi asutuse järgi",
     "name": "Kasutajagrupp",
     "nameNew": "Kasutajagrupi nimetus",
-    "organisations": "Asutus",
+    "organisations": "Asutused",
     "connectedOrganisations": "Seotud asutused",
     "allOrganisations": "Kõik asutused",
     "permissions": "Õigused",
@@ -107,7 +107,7 @@
     "noPermissions": "Õigusi pole lisatud",
     "noUsers": "Grupis pole kasutajaid",
     "validation": {
-      "nameRequired": "Grupi nimi on kohustuslik"
+      "nameRequired": "Kasutajagrupi nimetus on kohustuslik"
     },
     "viewDetails": "Vaata"
   },

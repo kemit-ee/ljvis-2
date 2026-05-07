@@ -330,7 +330,7 @@ export function useUserGroupDetail(id: string | undefined) {
 // ---------------------------------------------------------------------------
 // Form hook: create user group
 // ---------------------------------------------------------------------------
-export function useUserGroupForm(onSaved: () => void) {
+export function useUserGroupForm(onSaved: (id: string) => void) {
   const { t } = useTranslation();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -365,6 +365,24 @@ export function useUserGroupForm(onSaved: () => void) {
     });
   };
 
+  const toggleAllOrgs = () => {
+    setSelectedOrgs((prev) => {
+      if (prev.size === organisations.length) {
+        return new Set();
+      }
+      return new Set(organisations.map((org) => org.id));
+    });
+  };
+
+  const toggleAllPerms = () => {
+    setSelectedPerms((prev) => {
+      if (prev.size === permissions.length) {
+        return new Set();
+      }
+      return new Set(permissions.map((perm) => perm.id));
+    });
+  };
+
   const handleNameChange = (value: string) => {
     setName(value);
     setNameError('');
@@ -377,12 +395,12 @@ export function useUserGroupForm(onSaved: () => void) {
     }
     setSaving(true);
     try {
-      await insertUserGroup({
+      const result = await insertUserGroup({
         name: name.trim(),
         organisationIds: Array.from(selectedOrgs),
         permissionIds: Array.from(selectedPerms),
       });
-      onSaved();
+      onSaved(result[0].id);
     } catch (e) {
       console.error('Failed to create group', e);
     } finally {
@@ -398,8 +416,10 @@ export function useUserGroupForm(onSaved: () => void) {
     nameError,
     selectedOrgs,
     toggleOrg,
+    toggleAllOrgs,
     selectedPerms,
     togglePerm,
+    toggleAllPerms,
     saving,
     handleSave,
   };
