@@ -36,6 +36,19 @@ extractRequestData:
     name: "${incoming.body.name}"
     organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
     permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
+  next: validateRequired
+
+validateRequired:
+  switch:
+    - condition: ${name == null || name == ''}
+      next: return_validation_error
+  next: validateNameLength
+
+validateNameLength:
+  switch:
+    - condition: ${name.length > 50}
+      next: return_validation_error
+  next: createGroup
 
 createGroup:
   call: http.post
@@ -87,6 +100,11 @@ assignPermissions:
 
 returnSuccess:
   return: ${groupRes.response.body}
+  next: end
+
+return_validation_error:
+  status: 422
+  return: "validation failed"
   next: end
 
 return_forbidden:
