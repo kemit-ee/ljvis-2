@@ -338,6 +338,7 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
   const [selectedOrgs, setSelectedOrgs] = useState<Set<string>>(new Set());
   const [selectedPerms, setSelectedPerms] = useState<Set<string>>(new Set());
   const [nameError, setNameError] = useState('');
+  const [organisationsError, setOrganisationsError] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -350,6 +351,7 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
   }, []);
 
   const toggleOrg = (id: string) => {
+    setOrganisationsError(false);
     setSelectedOrgs((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -366,6 +368,7 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
   };
 
   const toggleAllOrgs = () => {
+    setOrganisationsError(false);
     setSelectedOrgs((prev) => {
       if (prev.size === organisations.length) {
         return new Set();
@@ -389,8 +392,16 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
   };
 
   const handleSave = async () => {
+    let hasError = false;
     if (!name.trim()) {
       setNameError(t('userGroups.validation.nameRequired'));
+      hasError = true;
+    }
+    if (selectedOrgs.size == 0) {
+      setOrganisationsError(true);
+      hasError = true;
+    }
+    if (hasError) {
       return;
     }
     setSaving(true);
@@ -414,6 +425,7 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
     name,
     handleNameChange,
     nameError,
+    organisationsError,
     selectedOrgs,
     toggleOrg,
     toggleAllOrgs,

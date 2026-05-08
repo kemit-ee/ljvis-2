@@ -67,8 +67,10 @@ extractGroupId:
 checkOrganisations:
   switch:
     - condition: "${organisation_ids == ''}"
-      next: checkPermissions
-  next: assignOrganisations
+      next: return_validation_error
+    - condition: "${organisation_ids != ''}"
+      next: assignOrganisations
+  next: checkPermissions
 
 assignOrganisations:
   call: http.post
@@ -80,6 +82,7 @@ assignOrganisations:
       user_group_id: ${group_id}
       organisation_ids: ${organisation_ids}
   result: orgsRes
+  next: checkPermissions
 
 checkPermissions:
   switch:

@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Button, Heading, TextField, Row, Col, Card, Checkbox } from '@tedi-design-system/react/tedi';
+import {Button, Heading, TextField, Row, Col, Card, Checkbox, Alert} from '@tedi-design-system/react/tedi';
 import { useUserGroupForm} from './hooks';
-import {Table} from "@tedi-design-system/react/community";
+import {Table, Modal, ModalCloser, ModalProvider, CardContent} from "@tedi-design-system/react/community";
 import type { Organisation } from '../organisations/types';
 import type { Permission } from '../permissions/types';
 
@@ -14,14 +14,27 @@ const permColumnHelper = createColumnHelper<Permission>();
 export function UserGroupCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleSaved = (id: string) => {
     navigate(`/user-groups/${id}`);
   };
 
+  const hasData = () => {
+    return name.trim() !== '' || selectedOrgs.size > 0 || selectedPerms.size > 0;
+  };
+
+  const handleCancel = () => {
+    if (hasData()) {
+      setShowConfirmModal(true);
+    } else {
+      navigate('/user-groups');
+    }
+  };
+
   const {
     organisations, permissions,
-    name, handleNameChange, nameError,
+    name, handleNameChange, nameError, organisationsError,
     selectedOrgs, toggleOrg, toggleAllOrgs,
     selectedPerms, togglePerm, toggleAllPerms,
     saving, handleSave,
@@ -122,7 +135,7 @@ export function UserGroupCreatePage() {
               <Button
                   type="button"
                   visualType="secondary"
-                  onClick={() => navigate('/user-groups')}
+                  onClick={handleCancel}
               >
                 {t('userGroups.cancel')}
               </Button>
@@ -166,6 +179,16 @@ export function UserGroupCreatePage() {
                 <Heading element="h3" style={{ marginBottom: '1rem' }}>
                   {t('userGroups.connectedOrganisations')}
                 </Heading>
+                {organisationsError && (
+                    <div style={{marginBottom: '1rem'}}>
+                        <Alert
+                            type="danger"
+                            size="small"
+                        >
+                            {t('userGroups.organisationsNotSelected')}
+                        </Alert>
+                    </div>
+                )}
                 <Table
                     id="organisations-table"
                     data={organisations}
@@ -208,7 +231,7 @@ export function UserGroupCreatePage() {
               <Button
                   type="button"
                   visualType="secondary"
-                  onClick={() => navigate('/user-groups')}
+                  onClick={handleCancel}
               >
                 {t('userGroups.cancel')}
               </Button>
@@ -220,6 +243,24 @@ export function UserGroupCreatePage() {
         )}
       </div>
       </form>
+      {showConfirmModal && (
+          <ModalProvider defaultOpen
+                         onToggle={(open) => { if (!open) setShowConfirmModal(false); }}>
+              <Modal aria-labelledby="confirm-cancel-title">
+                  <CardContent>
+                      <Heading element="h3" id="confirm-cancel-title">{t('userGroups.cancelAddGroup')}</Heading>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+                          <ModalCloser>
+                              <Button visualType="secondary" onClick={() => setShowConfirmModal(false)}>{t('common.no')}</Button>
+                          </ModalCloser>
+                          <ModalCloser>
+                              <Button onClick={() => { setShowConfirmModal(false); navigate('/user-groups'); }}>{t('common.yes')}</Button>
+                          </ModalCloser>
+                      </div>
+                  </CardContent>
+              </Modal>
+          </ModalProvider>
+      )}
     </div>
   );
 }
