@@ -54,11 +54,8 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
 
       const totalOrgs = allOrgs.length;
 
-      // Check if user is admin or local admin
-      const isLocalAdmin = permissions.includes('perm_user_group_list_local') && !permissions.includes('perm_user_group_edit_admin');
-
       // If search is active, fetch full organisation lists for each group
-      const groupsWithFullOrgs = await Promise.all(
+      const groupsWithOrgs = await Promise.all(
         result.map(async (group) => {
           if (search) {
             const groupOrgs = await getUserGroupOrganisations(group.id);
@@ -69,21 +66,8 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
         })
       );
 
-      // Filter groups for local admin: only show user's organisation groups and covers_all_organisations=true groups
-      let filteredGroups = groupsWithFullOrgs;
-      if (isLocalAdmin && user?.organisationname) {
-        filteredGroups = groupsWithFullOrgs.filter((group) => {
-          const orgs = group.organisations ? group.organisations.split(',').map((o) => o.trim()).filter((o) => o) : [];
-          // Show groups with no organisations, user's organisation, or covers all organisations
-          const hasNoOrgs = orgs.length === 0;
-          const hasUserOrg = orgs.includes(user.organisationname);
-          const coversAll = orgs.length === totalOrgs;
-          return hasNoOrgs || hasUserOrg || coversAll;
-        });
-      }
-
       const expandedData: UserGroup[] = [];
-      filteredGroups.forEach((group) => {
+      groupsWithOrgs.forEach((group) => {
         let orgCount = 0;
         if (group.organisations) {
           const orgs = group.organisations.split(',').map((o) => o.trim()).filter((o) => o);
@@ -118,10 +102,8 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
       });
 
       setData(expandedData);
-      // For local admin use filtered count for totalRows, but not for admin
-      if (isLocalAdmin && user?.organisationname) {
-        setTotalRows(filteredGroups.length);
-      } else if (result.length > 0 && result[0].total != null) {
+      // Use backend total count if available
+      if (result.length > 0 && result[0].total != null) {
         setTotalRows(result[0].total);
       } else {
         setTotalRows(result.length);
