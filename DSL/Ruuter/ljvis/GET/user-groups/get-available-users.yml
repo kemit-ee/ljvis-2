@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Get list of users belonging to a user group with pagination, sorting, and search"
+  description: "Get list of available users for a user group with pagination, sorting and search"
   method: get
   accepts: json
   returns: json
@@ -52,7 +52,7 @@ extractRequestData:
 getUsers:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group_users"
+    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group_available_users"
     query:
       page: ${page}
       page_size: ${page_size}

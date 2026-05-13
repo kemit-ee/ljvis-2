@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { UserGroup, UserGroupOrganisation, UserGroupPermission, UserGroupUser } from './types';
 import {
@@ -12,8 +11,8 @@ import {
   updateUserGroupName,
   setUserGroupOrganisations,
   setUserGroupPermissions,
-  deleteUserGroup,
-  insertUserGroup,
+  deleteUserGroupUser,
+  insertUserGroup, getUserGroupAvailableUsers, addUserToGroup,
 } from './api';
 import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
@@ -148,9 +147,8 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
 // Data + business logic hook: user group detail page
 // ---------------------------------------------------------------------------
 export function useUserGroupDetail(id: string | undefined) {
-  const navigate = useNavigate();
-
   // --- Data state ---
+  const { t } = useTranslation();
   const [group, setGroup] = useState<UserGroup | null>(null);
   const [orgs, setOrgs] = useState<UserGroupOrganisation[]>([]);
   const [perms, setPerms] = useState<UserGroupPermission[]>([]);
@@ -158,6 +156,12 @@ export function useUserGroupDetail(id: string | undefined) {
   const [userSearch, setUserSearch] = useState('');
   const [userSearchInput, setUserSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [totalRows, setTotalRows] = useState(0);
+  const [nameError, setNameError] = useState('');
+  const [organisationsError, setOrganisationsError] = useState(false);
+
 
   // --- Edit states ---
   const [editingName, setEditingName] = useState(false);
@@ -175,22 +179,32 @@ export function useUserGroupDetail(id: string | undefined) {
     if (!id) return;
     setLoading(true);
     try {
+      const sortStr = sorting.length
+        ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
+        : '';
       const [g, o, p, u] = await Promise.all([
         getUserGroup(id),
         getUserGroupOrganisations(id),
         getUserGroupPermissions(id),
-        getUserGroupUsers(id, userSearch),
+        getUserGroupUsers({
+          userGroupId: id,
+          search: userSearch,
+          page: String(pagination.pageIndex + 1),
+          pageSize: String(pagination.pageSize),
+          sorting: sortStr,
+        }),
       ]);
       setGroup(g[0] ?? null);
       setOrgs(o);
       setPerms(p);
       setUsers(u);
+      setTotalRows(u.length);
     } catch (e) {
       console.error('Failed to load group', e);
     } finally {
       setLoading(false);
     }
-  }, [id, userSearch]);
+  }, [id, userSearch, pagination, sorting]);
 
   useEffect(() => {
     fetchData();
@@ -200,10 +214,14 @@ export function useUserGroupDetail(id: string | undefined) {
   const startEditName = () => {
     setEditName(group?.name ?? '');
     setEditingName(true);
+    setNameError(false);
   };
 
   const saveName = async () => {
-    if (!id || !editName.trim()) return;
+    if (!id || !editName.trim()) {
+      setNameError(t('userGroups.validation.nameRequired'));
+      return;
+    }
     await updateUserGroupName(id, editName.trim());
     setEditingName(false);
     fetchData();
@@ -217,9 +235,11 @@ export function useUserGroupDetail(id: string | undefined) {
     setAllOrgs(all);
     setSelectedOrgIds(new Set(orgs.map((o) => o.organisationId)));
     setEditingOrgs(true);
+    setOrganisationsError(false);
   };
 
   const toggleOrg = (orgId: string) => {
+    setOrganisationsError(false);
     setSelectedOrgIds((prev) => {
       const next = new Set(prev);
       if (next.has(orgId)) next.delete(orgId); else next.add(orgId);
@@ -227,8 +247,22 @@ export function useUserGroupDetail(id: string | undefined) {
     });
   };
 
+  const toggleAllOrgs = () => {
+    setOrganisationsError(false);
+    setSelectedOrgIds((prev) => {
+      if (prev.size === allOrgs.length) {
+        return new Set();
+      }
+      return new Set(allOrgs.map((org) => org.id));
+    });
+  };
+
   const saveOrgs = async () => {
     if (!id) return;
+    if (selectedOrgIds.size == 0) {
+      setOrganisationsError(true);
+      return;
+    }
     await setUserGroupOrganisations(id, Array.from(selectedOrgIds));
     setEditingOrgs(false);
     fetchData();
@@ -252,6 +286,15 @@ export function useUserGroupDetail(id: string | undefined) {
     });
   };
 
+  const toggleAllPerms = () => {
+    setSelectedPermIds((prev) => {
+      if (prev.size === allPerms.length) {
+        return new Set();
+      }
+      return new Set(allPerms.map((perm) => perm.id));
+    });
+  };
+
   const savePerms = async () => {
     if (!id) return;
     await setUserGroupPermissions(id, Array.from(selectedPermIds));
@@ -261,11 +304,29 @@ export function useUserGroupDetail(id: string | undefined) {
 
   const cancelEditPerms = () => setEditingPerms(false);
 
+  const handleUserSearch = (value: string) => {
+    if (value.length >= 3 || value.length === 0) {
+      setUserSearch(value);
+      setPagination((p) => ({ ...p, pageIndex: 0 }));
+    }
+  };
+
+  const clearUserSearch = () => {
+    setUserSearchInput('');
+    setUserSearch('');
+    setPagination((p) => ({...p, pageIndex: 0}));
+  };
+
   // --- Delete ---
-  const handleDelete = async () => {
-    if (!id) return;
-    await deleteUserGroup(id);
-    navigate('/user-groups');
+  const handleDeleteUser = async (userId: string) => {
+    if (!id || !userId) return;
+    try {
+      const result = await deleteUserGroupUser(id, userId);
+      console.log("Vastus: ", result);
+      fetchData();
+    } catch (e) {
+      console.error('Failed to delete user from group', e);
+    }
   };
 
   return {
@@ -277,8 +338,15 @@ export function useUserGroupDetail(id: string | undefined) {
     loading,
     userSearchInput,
     setUserSearchInput,
-    handleUserSearch: (value: string) => setUserSearch(value),
-    clearUserSearch: () => { setUserSearchInput(''); setUserSearch(''); },
+    handleUserSearch,
+    clearUserSearch,
+    // table props
+    isLoading: loading,
+    totalRows,
+    pagination,
+    setPagination,
+    sorting,
+    setSorting,
     // name edit
     editingName,
     editName,
@@ -292,6 +360,7 @@ export function useUserGroupDetail(id: string | undefined) {
     selectedOrgIds,
     startEditOrgs,
     toggleOrg,
+    toggleAllOrgs,
     saveOrgs,
     cancelEditOrgs,
     // perms edit
@@ -300,12 +369,115 @@ export function useUserGroupDetail(id: string | undefined) {
     selectedPermIds,
     startEditPerms,
     togglePerm,
+    toggleAllPerms,
     savePerms,
     cancelEditPerms,
     // delete
     showDeleteConfirm,
     setShowDeleteConfirm,
-    handleDelete,
+    handleDeleteUser,
+    nameError,
+    organisationsError
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Data hook: user group add user page
+// ---------------------------------------------------------------------------
+export function useUserGroupAddUser(id: string | undefined) {
+  // --- Data state ---
+  const [group, setGroup] = useState<UserGroup | null>(null);
+  const [availableUsers, setAvailableUsers] = useState<UserGroupUser[]>([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [userSearchInput, setUserSearchInput] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [totalRows, setTotalRows] = useState(0);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+
+  // --- Data fetching ---
+  const fetchData = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const sortStr = sorting.length
+        ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
+        : '';
+      const [g, u] = await Promise.all([
+        getUserGroup(id),
+        getUserGroupAvailableUsers({
+          userGroupId: id,
+          search: userSearch,
+          page: String(pagination.pageIndex + 1),
+          pageSize: String(pagination.pageSize),
+          sorting: sortStr,
+        }),
+      ]);
+      setGroup(g[0] ?? null);
+      setAvailableUsers(u);
+      setTotalRows(u.length);
+    } catch (e) {
+      console.error('Failed to load group', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [id, userSearch, pagination, sorting]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleUserSearch = (value: string) => {
+    if (value.length >= 3 || value.length === 0) {
+      setUserSearch(value);
+      setPagination((p) => ({ ...p, pageIndex: 0 }));
+    }
+  };
+
+  const clearUserSearch = () => {
+    setUserSearchInput('');
+    setUserSearch('');
+    setPagination((p) => ({...p, pageIndex: 0}));
+  };
+
+  const toggleUser = (userId: string) => {
+    setSelectedUserIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const saveUsers = async () => {
+    if (!id || selectedUserIds.size === 0) return;
+    await addUserToGroup(id, Array.from(selectedUserIds));
+    setSelectedUserIds(new Set());
+  };
+
+  return {
+    // data
+    group,
+    availableUsers,
+    loading,
+    userSearchInput,
+    setUserSearchInput,
+    handleUserSearch,
+    clearUserSearch,
+    selectedUserIds,
+    toggleUser,
+    saveUsers,
+    // table props
+    isLoading: loading,
+    totalRows,
+    pagination,
+    setPagination,
+    sorting,
+    setSorting,
   };
 }
 

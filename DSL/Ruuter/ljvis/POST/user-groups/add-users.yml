@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Delete a user group and all its links"
+  description: "Add new users to user group"
   method: post
   accepts: json
   returns: json
@@ -10,6 +10,10 @@ declaration:
     body:
       - field: id
         type: string
+        description: "User group UUID"
+      - field: userIds
+        type: array
+        description: "Array of user UUIDs"
 
 authenticate:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -27,20 +31,28 @@ check_permission:
 
 extractRequestData:
   assign:
-    id: "${incoming.body.id}"
+    user_group_id: "${incoming.body.id}"
+    user_ids: "${(incoming.body.userIds ?? []).join(',')}"
 
-deleteGroup:
+checkUserIds:
+  switch:
+    - condition: "${user_ids == ''}"
+      next: returnSuccess
+  next: addUsers
+
+addUsers:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/delete_user_group"
+    url: "[#LJVIS_USERS_RESQL]/user_group/add_user_group_users"
     headers:
       type: json
     body:
-      id: ${id}
-  result: res
+      user_group_id: ${user_group_id}
+      user_ids: ${user_ids}
+  result: addRes
 
 returnSuccess:
-  return: ${res.response.body}
+  return: "ok"
   next: end
 
 return_forbidden:

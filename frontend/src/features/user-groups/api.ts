@@ -13,8 +13,11 @@ export const getUserGroupOrganisations = (id: string) =>
 export const getUserGroupPermissions = (id: string) =>
   get<UserGroupPermission[]>('/user-groups/get-permissions', { id });
 
-export const getUserGroupUsers = (id: string, search?: string) =>
-  get<UserGroupUser[]>('/user-groups/get-users', { id, search: search ?? '' });
+export const getUserGroupUsers = (params?: {userGroupId: string, page?: string; pageSize?: string; sorting?: string, search?: string }) =>
+  get<UserGroupUser[]>('/user-groups/get-users', params as Record<string, string>);
+
+export const getUserGroupAvailableUsers = (params?: {userGroupId: string, page?: string; pageSize?: string; sorting?: string, search?: string }) =>
+    get<UserGroupUser[]>('/user-groups/get-available-users', params as Record<string, string>);
 
 export const insertUserGroup = (data: { name: string; organisationIds?: string[]; permissionIds?: string[] }) =>
   post<UserGroup[]>('/user-groups/insert', data);
@@ -28,5 +31,8 @@ export const setUserGroupOrganisations = (id: string, organisationIds: string[])
 export const setUserGroupPermissions = (id: string, permissionIds: string[]) =>
   post<string>('/user-groups/set-permissions', { id, permissionIds });
 
-export const deleteUserGroup = (id: string) =>
-  post<{ id: string }[]>('/user-groups/delete', { id });
+export const deleteUserGroupUser = (id: string, userId: string) =>
+  post<{ id: string }[]>('/user-groups/delete-user', { id, userId });
+
+export const addUserToGroup = (id: string, userIds: string[]) =>
+  post<string>('/user-groups/add-users', { id, userIds });

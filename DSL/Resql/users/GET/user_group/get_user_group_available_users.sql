@@ -50,12 +50,13 @@ FROM users."user" u
          LEFT JOIN users.user_user_group uug ON uug.user_id = u.id
          LEFT JOIN users.user_group ug ON ug.id = uug.user_group_id
 WHERE
-    (COALESCE(:user_group_id, '') = '' OR uug.user_group_id = COALESCE(:user_group_id, '')::UUID)
+    (uug.user_group_id IS NULL OR uug.user_group_id != COALESCE(:user_group_id, '')::UUID)
   AND (
     COALESCE(:search, '') = ''
         OR u.first_name ILIKE '%' || COALESCE(:search, '') || '%'
         OR u.last_name ILIKE '%' || COALESCE(:search, '') || '%'
     )
+  AND u.status = 'active'
 GROUP BY u.id, o.name
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc' THEN u.status END ASC,

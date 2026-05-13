@@ -7,6 +7,7 @@ import { UserCreatePage } from './features/users/UserCreatePage';
 import { UserDetailPage } from './features/users/UserDetailPage';
 import { UserGroupListPage } from './features/user-groups/UserGroupListPage';
 import { UserGroupCreatePage } from './features/user-groups/UserGroupCreatePage';
+import { UserGroupAddUserPage } from './features/user-groups/UserGroupAddUserPage';
 import { UserGroupDetailPage } from './features/user-groups/UserGroupDetailPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
@@ -32,6 +33,7 @@ function AppRoutes() {
           <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/user-groups" element={<UserGroupListPage />} />
           <Route path="/user-groups/new" element={<UserGroupCreatePage />} />
+          <Route path="/user-groups/:id/add-user" element={<UserGroupAddUserPage />} />
           <Route path="/user-groups/:id" element={<UserGroupDetailPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
