@@ -19,6 +19,12 @@ declaration:
       - field: sorting
         type: string
         description: "Sort column and direction"
+      - field: user_organisation_id
+        type: string
+        description: "User's organisation ID (for local admin filtering)"
+      - field: is_local_admin
+        type: string
+        description: "Whether the user is a local admin (true/false)"
   response:
     fields:
       - field: id
@@ -49,6 +55,13 @@ FROM (
             COALESCE(:search, '') = ''
             OR ug.name ILIKE '%' || COALESCE(:search, '') || '%'
             OR o.name ILIKE '%' || COALESCE(:search, '') || '%'
+        )
+      AND (
+        COALESCE(:is_local_admin, 'false') != 'true'
+            OR EXISTS (
+                SELECT 1 FROM users.user_group_organisation ugo3
+                WHERE ugo3.user_group_id = ug.id AND ugo3.organisation_id = :user_organisation_id::UUID
+            )
         )
     GROUP BY ug.id, ug.name
 ) sub

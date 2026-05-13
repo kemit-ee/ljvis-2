@@ -81,14 +81,20 @@
     "confirmOrganisationChange": "Asutuse muutmine eemaldab kasutajalt kõik kasutajagrupid. Kas soovid jätkata?"
   },
   "userGroups": {
-    "title": "Kasutajagrupid",
+    "titleAdministration": "Kasutajagruppide haldus",
+    "titleAdd": "Lisa kasutajagrupp",
+    "data": "Kasutajagrupi andmed",
     "addGroup": "+ Lisa kasutajagrupp",
     "search": "Otsing",
     "searchOrg": "Otsi asutuse järgi",
     "name": "Kasutajagrupp",
-    "organisations": "Asutus",
+    "nameNew": "Kasutajagrupi nimetus",
+    "organisations": "Asutused",
+    "connectedOrganisations": "Seotud asutused",
+    "organisationsNotSelected": "Valige vähemalt üks asutus.",
     "allOrganisations": "Kõik asutused",
     "permissions": "Õigused",
+    "groupPermissions": "Kasutajagrupi õigused",
     "usersInGroup": "Kasutajad grupis",
     "searchUsers": "Otsi kasutajat",
     "editName": "Muuda nime",
@@ -96,13 +102,14 @@
     "editPermissions": "Muuda õigusi",
     "save": "Salvesta",
     "cancel": "Tühista",
+    "cancelAddGroup": "Kas katkestada? Sisestatud andmeid ei salvestata.",
     "delete": "Kustuta grupp",
     "deleteConfirm": "Kas olete kindel, et soovite selle kasutajagrupi kustutada? Kõik kasutajad eemaldatakse sellest grupist.",
     "noOrganisations": "Asutusi pole lisatud",
     "noPermissions": "Õigusi pole lisatud",
     "noUsers": "Grupis pole kasutajaid",
     "validation": {
-      "nameRequired": "Grupi nimi on kohustuslik"
+      "nameRequired": "Kasutajagrupi nimetus on kohustuslik"
     },
     "viewDetails": "Vaata"
   },

@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import { Heading, Search } from '@tedi-design-system/react/tedi';
+import {Button, Heading, Search} from '@tedi-design-system/react/tedi';
 import type { UserGroup } from './types';
 import { useUserGroupList } from './hooks';
-import { UserGroupFormModal } from './UserGroupFormModal';
 import { useAuth } from '../auth/AuthContext';
 
 const columnHelper = createColumnHelper<UserGroup>();
@@ -21,8 +20,7 @@ export function UserGroupListPage() {
     data, totalRows, isLoading,
     pagination, setPagination,
     sorting, setSorting,
-    searchInput, setSearchInput, handleSearch, clearSearch,
-    refetch,
+    searchInput, setSearchInput, handleSearch, clearSearch
   } = useUserGroupList(user, permissions);
 
   const handleRowClick = useCallback(
@@ -109,8 +107,11 @@ export function UserGroupListPage() {
         }
       `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <Heading element="h1">{t('userGroups.title')}</Heading>
-        {canAddGroup && <UserGroupFormModal triggerLabel={t('userGroups.addGroup')} onSaved={refetch} />}
+        <Heading element="h1">{t('userGroups.titleAdministration')}</Heading>
+        {canAddGroup && (
+            <Button onClick={() => navigate('/user-groups/new')}>{t('userGroups.addGroup')}
+            </Button>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>

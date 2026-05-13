@@ -54,11 +54,8 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
 
       const totalOrgs = allOrgs.length;
 
-      // Check if user is admin or local admin
-      const isLocalAdmin = permissions.includes('perm_user_group_list_local') && !permissions.includes('perm_user_group_edit_admin');
-
       // If search is active, fetch full organisation lists for each group
-      const groupsWithFullOrgs = await Promise.all(
+      const groupsWithOrgs = await Promise.all(
         result.map(async (group) => {
           if (search) {
             const groupOrgs = await getUserGroupOrganisations(group.id);
@@ -69,21 +66,8 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
         })
       );
 
-      // Filter groups for local admin: only show user's organisation groups and covers_all_organisations=true groups
-      let filteredGroups = groupsWithFullOrgs;
-      if (isLocalAdmin && user?.organisationname) {
-        filteredGroups = groupsWithFullOrgs.filter((group) => {
-          const orgs = group.organisations ? group.organisations.split(',').map((o) => o.trim()).filter((o) => o) : [];
-          // Show groups with no organisations, user's organisation, or covers all organisations
-          const hasNoOrgs = orgs.length === 0;
-          const hasUserOrg = orgs.includes(user.organisationname);
-          const coversAll = orgs.length === totalOrgs;
-          return hasNoOrgs || hasUserOrg || coversAll;
-        });
-      }
-
       const expandedData: UserGroup[] = [];
-      filteredGroups.forEach((group) => {
+      groupsWithOrgs.forEach((group) => {
         let orgCount = 0;
         if (group.organisations) {
           const orgs = group.organisations.split(',').map((o) => o.trim()).filter((o) => o);
@@ -118,10 +102,8 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
       });
 
       setData(expandedData);
-      // For local admin use filtered count for totalRows, but not for admin
-      if (isLocalAdmin && user?.organisationname) {
-        setTotalRows(filteredGroups.length);
-      } else if (result.length > 0 && result[0].total != null) {
+      // Use backend total count if available
+      if (result.length > 0 && result[0].total != null) {
         setTotalRows(result[0].total);
       } else {
         setTotalRows(result.length);
@@ -330,7 +312,7 @@ export function useUserGroupDetail(id: string | undefined) {
 // ---------------------------------------------------------------------------
 // Form hook: create user group
 // ---------------------------------------------------------------------------
-export function useUserGroupForm(onSaved: () => void) {
+export function useUserGroupForm(onSaved: (id: string) => void) {
   const { t } = useTranslation();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
@@ -338,6 +320,7 @@ export function useUserGroupForm(onSaved: () => void) {
   const [selectedOrgs, setSelectedOrgs] = useState<Set<string>>(new Set());
   const [selectedPerms, setSelectedPerms] = useState<Set<string>>(new Set());
   const [nameError, setNameError] = useState('');
+  const [organisationsError, setOrganisationsError] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -350,6 +333,7 @@ export function useUserGroupForm(onSaved: () => void) {
   }, []);
 
   const toggleOrg = (id: string) => {
+    setOrganisationsError(false);
     setSelectedOrgs((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -365,24 +349,51 @@ export function useUserGroupForm(onSaved: () => void) {
     });
   };
 
+  const toggleAllOrgs = () => {
+    setOrganisationsError(false);
+    setSelectedOrgs((prev) => {
+      if (prev.size === organisations.length) {
+        return new Set();
+      }
+      return new Set(organisations.map((org) => org.id));
+    });
+  };
+
+  const toggleAllPerms = () => {
+    setSelectedPerms((prev) => {
+      if (prev.size === permissions.length) {
+        return new Set();
+      }
+      return new Set(permissions.map((perm) => perm.id));
+    });
+  };
+
   const handleNameChange = (value: string) => {
     setName(value);
     setNameError('');
   };
 
   const handleSave = async () => {
+    let hasError = false;
     if (!name.trim()) {
       setNameError(t('userGroups.validation.nameRequired'));
+      hasError = true;
+    }
+    if (selectedOrgs.size == 0) {
+      setOrganisationsError(true);
+      hasError = true;
+    }
+    if (hasError) {
       return;
     }
     setSaving(true);
     try {
-      await insertUserGroup({
+      const result = await insertUserGroup({
         name: name.trim(),
         organisationIds: Array.from(selectedOrgs),
         permissionIds: Array.from(selectedPerms),
       });
-      onSaved();
+      onSaved(result[0].id);
     } catch (e) {
       console.error('Failed to create group', e);
     } finally {
@@ -396,10 +407,13 @@ export function useUserGroupForm(onSaved: () => void) {
     name,
     handleNameChange,
     nameError,
+    organisationsError,
     selectedOrgs,
     toggleOrg,
+    toggleAllOrgs,
     selectedPerms,
     togglePerm,
+    toggleAllPerms,
     saving,
     handleSave,
   };

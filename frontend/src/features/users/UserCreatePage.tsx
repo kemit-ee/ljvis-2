@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, TextField, Select, Row, Col, Card, Text } from '@tedi-design-system/react/tedi';
+import { Button, Heading, TextField, Select, Row, Col, Card } from '@tedi-design-system/react/tedi';
 import { DatePicker } from '@tedi-design-system/react/community';
 import { useUserForm } from './hooks';
 
