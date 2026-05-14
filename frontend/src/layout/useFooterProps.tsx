@@ -1,5 +1,6 @@
 import type { FooterProps } from '@tedi-design-system/react/community';
 import { Anchor } from '@tedi-design-system/react/community';
+import { Text } from '@tedi-design-system/react/tedi';
 import { useTranslation } from 'react-i18next';
 
 export function useFooterProps(): FooterProps {
@@ -12,8 +13,9 @@ export function useFooterProps(): FooterProps {
     categories: [
       {
         elements: [
-          <Anchor color="inverted" href="mailto:help@kemit.ee">help@kemit.ee</Anchor>,
-          <Anchor color="inverted" href="tel:+3726265000">+372 626 5000</Anchor>,
+          <Text modifiers="bold h6">{t('footer.department')}</Text>,
+          <Anchor color="inverted" href="mailto:ljvis@kliimaministeerium.ee">ljvis@kliimaministeerium.ee</Anchor>,
+          <Anchor color="inverted" href="tel:+3726262802">+372 626 2802 (E-N 8.30-16.00, R 8.30-15.30) </Anchor>,
         ],
         heading: t('footer.help', 'Abi'),
         icon: 'info'
