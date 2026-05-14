@@ -52,17 +52,6 @@ export function UserBasicInfoEditCard({
                 <span style={{ color: 'rgb(172 50 50)', fontStyle: 'normal' }}>*</span> <span style={{ fontStyle: 'italic' }}>{t('users.requiredFieldsNote')}</span>
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <Button
-                type="button"
-                size="small"
-                visualType="link"
-                onClick={onCancel}
-              >
-                {t('users.cancel')}
-              </Button>
-              <Button type="button" size="small" onClick={handleSaveClick}>{t('users.save')}</Button>
-            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 1fr 1fr' : '1fr 1fr' , gap: '1rem' }}>
             <TextField
