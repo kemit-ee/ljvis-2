@@ -68,26 +68,6 @@ export function UserGroupsCard({
                 }
               </Tooltip>
           }
-          {canEditUser && (isGroupEditActive || groups.length > 0) && !showGroupsNotCreatedAlert &&
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <Button
-                type="button"
-                size="small"
-                visualType="link"
-                disabled={!hasGroupChanges}
-                onClick={() => { resetGroups(); setIsGroupEditActive(false); }}
-              >
-                {t('users.cancel')}
-              </Button>
-              <Button
-                type="button"
-                size="small"
-                disabled={!hasGroupChanges}
-                onClick={handleGroupSave}
-              >
-                {t('users.save')}
-              </Button>
-            </div>}
         </div>
         <div style={{ display: 'grid', gap: '1rem' }}>
           <div>
@@ -216,7 +196,7 @@ export function UserGroupsCard({
                     </li>
                   ))}
                 </ul>
-                {!showGroupsNotCreatedAlert && (
+                {canEditUser && (isGroupEditActive || groups.length > 0) && !showGroupsNotCreatedAlert && (
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: isDesktop ? '' : '1rem' }}>
                       <Button
                           type="button"
