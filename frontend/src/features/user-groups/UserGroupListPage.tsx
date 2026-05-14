@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import {Button, Heading, Search} from '@tedi-design-system/react/tedi';
+import {Button, Card, Heading, Search} from '@tedi-design-system/react/tedi';
 import type { UserGroup } from './types';
 import { useUserGroupList } from './hooks';
 import { useAuth } from '../auth/AuthContext';
@@ -106,45 +106,47 @@ export function UserGroupListPage() {
           max-width: 5% !important;
         }
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <Heading element="h1">{t('userGroups.titleAdministration')}</Heading>
-        {canAddGroup && (
-            <Button onClick={() => navigate('/user-groups/new')}>{t('userGroups.addGroup')}
-            </Button>
-        )}
-      </div>
-
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-        <div style={{ maxWidth: '20rem' }}>
-          <Search
-            id="group-search"
-            label={t('userGroups.search')}
-            value={searchInput}
-            onIconClick={() => handleSearch(searchInput)}
-            onChange={setSearchInput}
-            onSearch={handleSearch}
-            onClear={clearSearch}
-          />
-        </div>
-      </div>
-
-      <Table
-        id="user-groups-table"
-        data={data}
-        columns={columns}
-        isLoading={isLoading}
-        totalRows={totalRows}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        sorting={sorting}
-        onSortingChange={setSorting}
-        manualPagination
-        manualSorting
-        placeholder={{
-            children: t('common.tableIsEmpty')
-        }}
-      />
-
+        <Card style={{marginTop: '0.5rem'}}>
+            <Card.Content>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <Heading element="h1">{t('userGroups.titleAdministration')}</Heading>
+                    {canAddGroup && (
+                        <Button onClick={() => navigate('/user-groups/new')}>{t('userGroups.addGroup')}
+                        </Button>
+                    )}
+                </div>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
+                    <div style={{marginBottom: '1rem', maxWidth: '25rem'}}>
+                        <Search
+                            id="group-search"
+                            label=" "
+                            value={searchInput}
+                            onIconClick={() => handleSearch(searchInput)}
+                            onChange={setSearchInput}
+                            onSearch={handleSearch}
+                            onClear={clearSearch}
+                            placeholder={t('common.search')}
+                        />
+                    </div>
+                </div>
+                <Table
+                    id="user-groups-table"
+                    data={data}
+                    columns={columns}
+                    isLoading={isLoading}
+                    totalRows={totalRows}
+                    pagination={pagination}
+                    onPaginationChange={setPagination}
+                    sorting={sorting}
+                    onSortingChange={setSorting}
+                    manualPagination
+                    manualSorting
+                    placeholder={{
+                        children: t('common.tableIsEmpty')
+                    }}
+                />
+            </Card.Content>
+        </Card>
     </div>
   );
 }
