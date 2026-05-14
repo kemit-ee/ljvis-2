@@ -13,6 +13,9 @@ declaration:
       - field: page_size
         type: number
         description: "Items per page"
+      - field: organisation_ids
+        type: string
+        description: "Comma-separated organisation ids"
   response:
     fields:
       - field: id
@@ -50,7 +53,15 @@ FROM users."user" u
          LEFT JOIN users.user_user_group uug ON uug.user_id = u.id
          LEFT JOIN users.user_group ug ON ug.id = uug.user_group_id
 WHERE
-    (uug.user_group_id IS NULL OR uug.user_group_id != COALESCE(:user_group_id, '')::UUID)
+    NOT EXISTS (
+        SELECT 1 FROM users.user_user_group uug2
+        WHERE uug2.user_id = u.id
+        AND uug2.user_group_id = COALESCE(:user_group_id, '')::UUID
+    )
+  AND (
+    COALESCE(:organisation_ids, '') = ''
+        OR u.organisation_id = ANY(STRING_TO_ARRAY(COALESCE(:organisation_ids, ''), ',')::UUID[])
+    )
   AND (
     COALESCE(:search, '') = ''
         OR u.first_name ILIKE '%' || COALESCE(:search, '') || '%'

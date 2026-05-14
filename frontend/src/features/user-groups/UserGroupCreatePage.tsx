@@ -17,7 +17,7 @@ export function UserGroupCreatePage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleSaved = (id: string) => {
-    navigate(`/user-groups/${id}`);
+    navigate(`/user-groups/${id}`, { state: { justCreated: true } });
   };
 
   const hasData = () => {
@@ -223,24 +223,6 @@ export function UserGroupCreatePage() {
             </Card>
           </Col>
         </Row>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', justifyContent: 'flex-end' }}>
-        {(
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Button
-                  type="button"
-                  visualType="secondary"
-                  onClick={handleCancel}
-              >
-                {t('userGroups.cancel')}
-              </Button>
-              <Button onClick={handleSave} disabled={saving}
-              >
-                {t('userGroups.save')}
-              </Button>
-            </div>
-        )}
       </div>
       </form>
       {showConfirmModal && (

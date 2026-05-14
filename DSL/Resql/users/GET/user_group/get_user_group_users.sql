@@ -13,6 +13,9 @@ declaration:
       - field: page_size
         type: number
         description: "Items per page"
+      - field: is_local_admin
+        type: string
+        description: "Whether the user is a local admin (true/false)"
   response:
     fields:
       - field: id
@@ -49,8 +52,13 @@ FROM users."user" u
          JOIN users.organisation o ON o.id = u.organisation_id
          LEFT JOIN users.user_user_group uug ON uug.user_id = u.id
          LEFT JOIN users.user_group ug ON ug.id = uug.user_group_id
+         LEFT JOIN users.user_group_organisation ugo ON ugo.organisation_id = u.organisation_id
 WHERE
     (COALESCE(:user_group_id, '') = '' OR uug.user_group_id = COALESCE(:user_group_id, '')::UUID)
+  AND (
+    COALESCE(:is_local_admin, 'false') != 'true'
+            OR ugo.organisation_id = :user_organisation_id::UUID
+    )
   AND (
     COALESCE(:search, '') = ''
         OR u.first_name ILIKE '%' || COALESCE(:search, '') || '%'

@@ -161,6 +161,7 @@ export function useUserGroupDetail(id: string | undefined) {
   const [totalRows, setTotalRows] = useState(0);
   const [nameError, setNameError] = useState('');
   const [organisationsError, setOrganisationsError] = useState(false);
+  const [forbidden, setForbidden] = useState(false);
 
 
   // --- Edit states ---
@@ -200,11 +201,15 @@ export function useUserGroupDetail(id: string | undefined) {
       setUsers(u);
       setTotalRows(u.length);
     } catch (e) {
-      console.error('Failed to load group', e);
+      if (e?.status === 403) {
+        setForbidden(true);
+      } else {
+        console.error('Failed to load group', e);
+      }
     } finally {
       setLoading(false);
     }
-  }, [id, userSearch, pagination, sorting]);
+  }, [id, userSearch, pagination, sorting, forbidden]);
 
   useEffect(() => {
     fetchData();
@@ -377,7 +382,8 @@ export function useUserGroupDetail(id: string | undefined) {
     setShowDeleteConfirm,
     handleDeleteUser,
     nameError,
-    organisationsError
+    organisationsError,
+    forbidden
   };
 }
 
@@ -404,16 +410,19 @@ export function useUserGroupAddUser(id: string | undefined) {
       const sortStr = sorting.length
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
-      const [g, u] = await Promise.all([
+      const [g, orgs] = await Promise.all([
         getUserGroup(id),
-        getUserGroupAvailableUsers({
-          userGroupId: id,
-          search: userSearch,
-          page: String(pagination.pageIndex + 1),
-          pageSize: String(pagination.pageSize),
-          sorting: sortStr,
-        }),
+        getUserGroupOrganisations(id),
       ]);
+      const organisationIds = orgs.map(o => o.organisationId).join(',');
+      const u = await getUserGroupAvailableUsers({
+        userGroupId: id,
+        organisationIds : organisationIds,
+        search: userSearch,
+        page: String(pagination.pageIndex + 1),
+        pageSize: String(pagination.pageSize),
+        sorting: sortStr,
+      });
       setGroup(g[0] ?? null);
       setAvailableUsers(u);
       setTotalRows(u.length);

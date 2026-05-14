@@ -23,6 +23,9 @@ declaration:
       - field: userGroupId
         type: string
         description: "Filter by user group"
+      - field: organisationIds
+        type: string
+        description: "Filter by organisations"
 
 authenticate:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -47,6 +50,7 @@ extractRequestData:
     sorting: "${incoming.params.sorting ?? 'status asc'}"
     search: "${incoming.params.search ?? ''}"
     user_group_id: "${incoming.params.userGroupId}"
+    organisation_ids: "${incoming.params.organisationIds ?? ''}"
   next: getUsers
 
 getUsers:
@@ -59,6 +63,8 @@ getUsers:
       sorting: ${sorting}
       search: ${search}
       user_group_id: ${user_group_id}
+      organisation_ids: ${organisation_ids}
+
   result: res
 
 mapResponse:

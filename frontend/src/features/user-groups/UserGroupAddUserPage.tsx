@@ -35,7 +35,7 @@ export function UserGroupAddUserPage() {
 
   const handleSave = () => {
     saveUsers();
-    navigate(`/user-groups/${id}`, { state: { justCreated: true } });
+    navigate(`/user-groups/${id}`, { state: { justCreatedUser: true } });
   };
 
 

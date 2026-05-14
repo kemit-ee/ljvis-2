@@ -44,8 +44,12 @@ export function UserGroupDetailPage() {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const canEditGroup = hasPermission('perm_user_group_edit_admin');
+  const canViewUsers = hasPermission('perm_user_group_view_admin') || hasPermission('perm_user_group_view_local');
   const location = useLocation();
-  const [showNewUserAddedAlert, setShowNewUserAddedAlert] = useState(!!(location.state as { justCreated?: boolean })?.justCreated);
+  const justCreated = (location.state as { justCreated?: boolean })?.justCreated;
+  const justCreatedUser = (location.state as { justCreatedUser?: boolean })?.justCreatedUser;
+  const [showNewUserAddedAlert, setShowNewUserAddedAlert] = useState(!!justCreatedUser);
+  const defaultOpenItems = justCreated ? ['block-name', 'block-orgs', 'block-perms'] : [];
 
   const {
     group, orgs, perms, users, loading,
@@ -54,7 +58,8 @@ export function UserGroupDetailPage() {
     editingOrgs, allOrgs, selectedOrgIds, startEditOrgs, toggleOrg, toggleAllOrgs, saveOrgs, cancelEditOrgs,
     editingPerms, allPerms, selectedPermIds, startEditPerms, togglePerm, toggleAllPerms, savePerms, cancelEditPerms,
     handleDeleteUser,
-    isLoading, totalRows, pagination, setPagination, sorting, setSorting, nameError, organisationsError
+    isLoading, totalRows, pagination, setPagination, sorting, setSorting, nameError, organisationsError,
+    forbidden
   } = useUserGroupDetail(id);
 
   const handleRowClick = useCallback(
@@ -231,24 +236,26 @@ export function UserGroupDetailPage() {
                       </Tooltip.Content>
                     </Tooltip>
                     )}
-                  <Tooltip>
+                    {canViewUsers && (<Tooltip>
                       <Tooltip.Trigger>
                           <Icon name="visibility" color="brand" size={24} style={{ cursor: 'pointer' }} onClick={() => handleRowClick(info.row.original)}/>
                       </Tooltip.Trigger>
                       <Tooltip.Content>
                           {t('common.look')}
                       </Tooltip.Content>
-                  </Tooltip>
+                    </Tooltip>
+                    )}
                 </div>
             );
           },
         }),
       ],
-      [t, handleRowClick, handleDeleteUser, canEditGroup],
+      [t, handleRowClick, handleDeleteUser, canEditGroup, canViewUsers],
   );
 
   if (loading) return <Text>{t('common.loading')}</Text>;
-  if (!group) return <Text>{t('common.error')}</Text>;
+    if (forbidden) return <Text>{t('common.forbidden')}</Text>;
+    if (!group) return <Text>{t('common.error')}</Text>;
 
   return (
     <ModalProvider>
@@ -304,7 +311,7 @@ export function UserGroupDetailPage() {
         <Heading element="h1">{group.name}</Heading>
       </div>
 
-      <Accordion>
+      <Accordion defaultOpenItem={defaultOpenItems}>
         {/* Block 1 – Name */}
         <AccordionItem id="block-name">
           <AccordionItemHeader
@@ -376,8 +383,6 @@ export function UserGroupDetailPage() {
 
       <Card style={{marginTop: '0.5rem'}}>
           <Card.Content>
-
-
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <Heading modifiers="h3" color="secondary" style={{marginBottom: '1rem'}}>
                       {t('userGroups.users')}
@@ -387,7 +392,6 @@ export function UserGroupDetailPage() {
                       </Button>
                   )}
               </div>
-
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
                   <div style={{marginBottom: '1rem', maxWidth: '25rem'}}>
                       <Search
@@ -402,7 +406,6 @@ export function UserGroupDetailPage() {
                       />
                   </div>
               </div>
-
               <Table
                   id="users-table"
                   data={users}

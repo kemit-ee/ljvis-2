@@ -107,7 +107,7 @@ export function UserGroupPermsEditor({
                     type="info"
                     size="small"
                 >
-                    {t('userGroups.noOrganisations')}
+                    {t('userGroups.noPermissions')}
                 </Alert>
             ) : (
                 <ul className="org-list" style={{listStyle: 'none', padding: 0}}>

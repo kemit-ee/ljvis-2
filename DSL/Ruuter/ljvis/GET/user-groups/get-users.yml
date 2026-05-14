@@ -47,6 +47,8 @@ extractRequestData:
     sorting: "${incoming.params.sorting ?? 'status asc'}"
     search: "${incoming.params.search ?? ''}"
     user_group_id: "${incoming.params.userGroupId}"
+    is_local_admin: "${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_list_local') >= 0 && auth_user.permissions.indexOf('perm_user_group_list_admin') < 0}"
+    user_organisation_id: "${auth_user.organisationid ?? ''}"
   next: getUsers
 
 getUsers:
@@ -59,6 +61,8 @@ getUsers:
       sorting: ${sorting}
       search: ${search}
       user_group_id: ${user_group_id}
+      is_local_admin: ${is_local_admin}
+      user_organisation_id: ${user_organisation_id}
   result: res
 
 mapResponse:

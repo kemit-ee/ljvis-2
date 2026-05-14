@@ -16,7 +16,7 @@ export const getUserGroupPermissions = (id: string) =>
 export const getUserGroupUsers = (params?: {userGroupId: string, page?: string; pageSize?: string; sorting?: string, search?: string }) =>
   get<UserGroupUser[]>('/user-groups/get-users', params as Record<string, string>);
 
-export const getUserGroupAvailableUsers = (params?: {userGroupId: string, page?: string; pageSize?: string; sorting?: string, search?: string }) =>
+export const getUserGroupAvailableUsers = (params?: {userGroupId: string, organisationIds: string, page?: string; pageSize?: string; sorting?: string, search?: string }) =>
     get<UserGroupUser[]>('/user-groups/get-available-users', params as Record<string, string>);
 
 export const insertUserGroup = (data: { name: string; organisationIds?: string[]; permissionIds?: string[] }) =>
