@@ -48,21 +48,6 @@ export function UserGroupOrgsEditor({
                     <Heading element="h5" color="secondary">
                         {t('userGroups.organisationsDescription')}
                     </Heading>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <Button
-                            type="button"
-                            size="small"
-                            visualType="link"
-                            onClick={onCancel}
-                        >
-                            {t('userGroups.cancel')}
-                        </Button>
-                        <Button onClick={onSave}
-                                size="small"
-                        >
-                            {t('userGroups.save')}
-                        </Button>
-                    </div>
                 </div>
                 {organisationsError && (
                     <div style={{marginBottom: '1rem'}}>
@@ -83,6 +68,21 @@ export function UserGroupOrgsEditor({
                     }}
                     hidePagination={true}
                 />
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                    <Button
+                        type="button"
+                        size="small"
+                        visualType="link"
+                        onClick={onCancel}
+                    >
+                        {t('userGroups.cancel')}
+                    </Button>
+                    <Button onClick={onSave}
+                            size="small"
+                    >
+                        {t('userGroups.save')}
+                    </Button>
+                </div>
             </div>
         );
     }

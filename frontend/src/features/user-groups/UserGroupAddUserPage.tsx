@@ -151,21 +151,6 @@ export function UserGroupAddUserPage() {
                   <Heading element="h5" color="secondary">
                       {t('userGroups.addUsersTitle')}
                   </Heading>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                      <Button
-                          type="button"
-                          size="small"
-                          visualType="link"
-                          onClick={handleCancel}
-                      >
-                          {t('userGroups.cancel')}
-                      </Button>
-                      <Button onClick={handleSave}
-                              size="small"
-                      >
-                          {t('userGroups.save')}
-                      </Button>
-                  </div>
               </div>
 
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
@@ -199,6 +184,21 @@ export function UserGroupAddUserPage() {
                       children: t('common.tableIsEmpty')
                   }}
               />
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                  <Button
+                      type="button"
+                      size="small"
+                      visualType="link"
+                      onClick={handleCancel}
+                  >
+                      {t('userGroups.cancel')}
+                  </Button>
+                  <Button onClick={handleSave}
+                          size="small"
+                  >
+                      {t('userGroups.save')}
+                  </Button>
+              </div>
           </Card.Content>
       </Card>
 
