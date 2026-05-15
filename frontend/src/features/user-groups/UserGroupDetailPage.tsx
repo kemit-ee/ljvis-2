@@ -25,7 +25,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { useUserGroupDetail } from './hooks';
 import { useAuth } from '../auth/AuthContext';
-import {useCallback, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import type {UserListItem} from "../users/types.ts";
 import {createColumnHelper} from "@tanstack/react-table";
 import type {Organisation} from "../organisations/types.ts";
@@ -50,6 +50,15 @@ export function UserGroupDetailPage() {
   const justCreatedUser = (location.state as { justCreatedUser?: boolean })?.justCreatedUser;
   const [showNewUserAddedAlert, setShowNewUserAddedAlert] = useState(!!justCreatedUser);
   const defaultOpenItems = justCreated ? ['block-name', 'block-orgs', 'block-perms'] : [];
+
+  useEffect(() => {
+    if (showNewUserAddedAlert) {
+      const timer = setTimeout(() => {
+        setShowNewUserAddedAlert(false);
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNewUserAddedAlert]);
 
   const {
     group, orgs, perms, users, loading,
@@ -268,7 +277,7 @@ export function UserGroupDetailPage() {
                     type="success"
                     size="small"
                 >
-                    {t('users.newUserAddedNote')}
+                    {t('userGroups.newUserAddedNote')}
                 </Alert>
             </div>
         )}
