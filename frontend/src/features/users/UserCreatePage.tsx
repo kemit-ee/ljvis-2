@@ -19,18 +19,6 @@ export function UserCreatePage() {
       <form onSubmit={formik.handleSubmit}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading element="h1">{t('users.addTitle')}</Heading>
-        { (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Button
-                  type="button"
-                  visualType="secondary"
-                  onClick={() => navigate('/users')}
-              >
-                {t('users.cancel')}
-              </Button>
-              <Button type="submit">{t('users.save')}</Button>
-            </div>
-        )}
       </div>
 
       <div>
@@ -42,9 +30,6 @@ export function UserCreatePage() {
                 <Heading element="h3" style={{ marginBottom: '1rem' }}>
                   {t('users.basicInfo')}
                 </Heading>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
-                  <span style={{ color: 'rgb(172 50 50)', fontStyle: 'normal' }}>*</span> <span style={{ fontStyle: 'italic' }}>{t('users.requiredFieldsNote')}</span>
-                </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <TextField
                       id="firstName"
@@ -89,9 +74,6 @@ export function UserCreatePage() {
                 <Heading element="h3" style={{ marginBottom: '1rem' }}>
                   {t('users.organisation')}
                 </Heading>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
-                  <span style={{ color: 'rgb(172 50 50)' }}>*</span> <span style={{ fontStyle: 'italic' }}>{t('users.requiredFieldsNote')}</span>
-                </p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'start' }}>
                   <Select
                       id="organisationId"
@@ -149,10 +131,6 @@ export function UserCreatePage() {
                 <Heading element="h3" style={{ marginBottom: '1rem' }}>
                   {t('users.access')}
                 </Heading>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
-                  <span style={{ color: 'rgb(172 50 50)' }}>*</span> <span style={{ fontStyle: 'italic' }}>{t('users.requiredFieldsNote')}</span>
-                </p>
-
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <DatePicker
                       id="accessStart"

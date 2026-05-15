@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, StatusBadge, Text, TextField, Alert, Row, Col, Card, Select, Icon } from '@tedi-design-system/react/tedi';
@@ -21,6 +21,33 @@ export function UserDetailPage() {
   const { hasAnyPermission } = useAuth();
   const canEditUser = hasAnyPermission(['perm_user_edit_admin', 'perm_user_edit_local']);
   const canViewGroupDetail = hasAnyPermission(['perm_user_group_view_admin', 'perm_user_group_view_local']);
+
+    useEffect(() => {
+        if (showNewUserAddedAlert) {
+            const timer = setTimeout(() => {
+                setShowNewUserAddedAlert(false);
+            }, 8000);
+            return () => clearTimeout(timer);
+        }
+    }, [showNewUserAddedAlert]);
+
+    useEffect(() => {
+        if (showUserEditedAlert) {
+            const timer = setTimeout(() => {
+                setShowUserEditedAlert(false);
+            }, 8000);
+            return () => clearTimeout(timer);
+        }
+    }, [showUserEditedAlert]);
+
+    useEffect(() => {
+        if (showUserGroupEditedAlert) {
+            const timer = setTimeout(() => {
+                setShowUserGroupEditedAlert(false);
+            }, 8000);
+            return () => clearTimeout(timer);
+        }
+    }, [showUserGroupEditedAlert]);
 
   const { user, groups, loading, forbidden, refetch } = useUserDetail(id);
 
