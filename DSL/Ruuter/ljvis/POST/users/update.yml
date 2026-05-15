@@ -18,6 +18,10 @@ declaration:
         type: string
       - field: organisationId
         type: string
+      - field: structuralUnitId
+        type: string
+      - field: jobTitleName
+        type: string
       - field: email
         type: string
       - field: phone
@@ -50,6 +54,8 @@ extractRequestData:
     last_name: "${incoming.body.lastName}"
     personal_code: "${incoming.body.personalCode}"
     organisation_id: "${incoming.body.organisationId}"
+    structural_unit_id: "${incoming.body.structuralUnitId}"
+    job_title_name: "${incoming.body.jobTitleName}"
     email: "${incoming.body.email}"
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
@@ -67,6 +73,10 @@ validateRequired:
     - condition: ${personal_code == null || personal_code == ''}
       next: return_validation_error
     - condition: ${organisation_id == null || organisation_id == ''}
+      next: return_validation_error
+    - condition: ${structural_unit_id == null || structural_unit_id == ''}
+      next: return_validation_error
+    - condition: ${job_title_name == null || job_title_name == ''}
       next: return_validation_error
     - condition: ${email == null || email == ''}
       next: return_validation_error
@@ -102,6 +112,8 @@ updateUser:
       last_name: ${last_name}
       personal_code: ${personal_code}
       organisation_id: ${organisation_id}
+      structural_unit_id: ${structural_unit_id}
+      job_title_name: ${job_title_name}
       email: ${email}
       phone: ${phone}
       access_start: ${access_start}
