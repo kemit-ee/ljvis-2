@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import {Button, Heading, TextField, Row, Col, Card, Checkbox, Alert} from '@tedi-design-system/react/tedi';
-import { useUserGroupForm} from './hooks';
+import { useUserGroupForm } from './hooks';
 import {Table, Modal, ModalCloser, ModalProvider, CardContent} from "@tedi-design-system/react/community";
 import type { Organisation } from '../organisations/types';
 import type { Permission } from '../permissions/types';
@@ -209,7 +209,7 @@ export function UserGroupCreatePage() {
           </Col>
         </Row>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', justifyContent: 'flex-end' }}>
           {(
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <Button
