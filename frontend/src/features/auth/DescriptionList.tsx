@@ -7,22 +7,22 @@ export function DescriptionList() {
     return (
         <List style="styled" color="brand">
             <List.Item>
-                <Text modifiers="medium" color="secondary">
+                <Text color="secondary">
                     {t('auth.descriptionItem1', 'Liiklusjärelvalve infosüsteemi sisu 1')}
                 </Text>
             </List.Item>
             <List.Item>
-                <Text modifiers="medium" color="secondary">
+                <Text color="secondary">
                     {t('auth.descriptionItem2', 'Liiklusjärelvalve infosüsteemi sisu 2')}
                 </Text>
             </List.Item>
             <List.Item>
-                <Text modifiers="medium" color="secondary">
+                <Text color="secondary">
                     {t('auth.descriptionItem3', 'Liiklusjärelvalve infosüsteemi sisu 3')}
                 </Text>
             </List.Item>
             <List.Item>
-                <Text modifiers="medium" color="secondary">
+                <Text color="secondary">
                     {t('auth.descriptionItem4', 'Liiklusjärelvalve infosüsteemi sisu 4')}
                 </Text>
             </List.Item>

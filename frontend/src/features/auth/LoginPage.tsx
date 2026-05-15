@@ -42,7 +42,7 @@ export function LoginPage() {
                     {t('auth.title', 'Liiklusjärelvalve infosüsteem"')}
                 </Heading>
                 <div className="login-description" style={{maxWidth: '42rem', textAlign: 'left', marginTop: '1rem'}}>
-                    <Text modifiers="medium" color="secondary">
+                    <Text color="secondary">
                         {t('auth.descriptionHeader', 'Liiklusjärelvalve infosüsteemi päis')}{' '}
                         {!showFullDescription && (
                             <a
@@ -61,7 +61,7 @@ export function LoginPage() {
                     {showFullDescription && (
                         <>
                             <DescriptionList/>
-                            <Text modifiers="medium" color="secondary">
+                            <Text color="secondary">
                                 {t('auth.descriptionFooter', 'Liiklusjärelvalve infosüsteemi jalus')}{' '}
                                 <a
                                     href="#"
