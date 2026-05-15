@@ -49,6 +49,8 @@ export function UserGroupCreatePage() {
             id="org-select-all"
             label=" "
             size='large'
+            value=" "
+            name="allOrganisations"
             checked={organisations.length > 0 && selectedOrgs.size === organisations.length}
             onChange={() => toggleAllOrgs()}
           />
@@ -82,6 +84,8 @@ export function UserGroupCreatePage() {
               id="perm-select-all"
               label=" "
               size='large'
+              value=" "
+              name="allPermissions"
               checked={permissions.length > 0 && selectedPerms.size === permissions.length}
               onChange={() => toggleAllPerms()}
             />
