@@ -9,7 +9,9 @@ import {
     Heading,
     Text,
     Search,
-    Card, Checkbox,
+    Card,
+    Checkbox,
+    Separator
 } from '@tedi-design-system/react/tedi';
 import { useUserGroupAddUser } from './hooks';
 import { useMemo} from "react";
@@ -148,11 +150,9 @@ export function UserGroupAddUserPage() {
                   alignItems: 'center',
                   marginBottom: '1rem'
               }}>
-                  <Heading element="h5" color="secondary">
-                      {t('userGroups.addUsersTitle')}
-                  </Heading>
+                  <Heading modifiers="h3" color="secondary">{t('userGroups.addUsersTitle')}</Heading>
               </div>
-
+              <Separator spacing={1} isStretched={true} />
               <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
                   <div style={{marginBottom: '1rem', maxWidth: '25rem'}}>
                       <Search
