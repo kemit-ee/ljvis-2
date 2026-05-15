@@ -48,9 +48,6 @@ export function UserBasicInfoEditCard({
               <Heading element="h3">
                 {t('users.basicInfo')}
               </Heading>
-              <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                <span style={{ color: 'rgb(172 50 50)', fontStyle: 'normal' }}>*</span> <span style={{ fontStyle: 'italic' }}>{t('users.requiredFieldsNote')}</span>
-              </p>
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 1fr 1fr' : '1fr 1fr' , gap: '1rem' }}>
