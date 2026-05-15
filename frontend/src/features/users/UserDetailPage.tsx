@@ -62,7 +62,13 @@ export function UserDetailPage() {
     refetch();
   };
 
-  const {allGroups, formik, orgOptions, isLocalAdmin, handleOrgChange } = useUserForm(user ?? undefined, handleEditSaved);
+  const {allGroups, formik, orgOptions, isLocalAdmin, handleOrgChange, handleStructuralUnitChange } = useUserForm(user ?? undefined, handleEditSaved);
+
+  const structuralUnits = [
+    { value: '1', label: 'Üksus 1' },
+    { value: '2', label: 'Üksus 2' },
+    { value: '3', label: 'Üksus 3' },
+  ];
 
   const onGroupSaved = () => {
     setIsGroupEditActive(false);
@@ -159,8 +165,10 @@ export function UserDetailPage() {
                           formik={formik}
                           isDesktop={isDesktop}
                           orgOptions={orgOptions}
+                          structuralUnits={structuralUnits}
                           isLocalAdmin={isLocalAdmin}
                           handleOrgChange={handleOrgChange}
+                          handleStructuralUnitChange={handleStructuralUnitChange}
                           handleSaveClick={handleSaveClick}
                           onCancel={() => { formik.resetForm(); setIsEditActive(false); }}
                           showConfirmModal={showConfirmModal}

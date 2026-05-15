@@ -50,10 +50,14 @@ export function UserBasicInfoCard({ user, canEditUser, isDesktop, onEdit }: User
           <Field label={t('users.lastName')}>{user.lastName}</Field>
           <Field label={t('users.personalCode')}>{user.personalCode}</Field>
           <Field label={t('users.organisation')}>{user.organisationName ?? '—'}</Field>
+          <Field label={t('users.structuralUnit')}>{user.structuralUnitName ?? '—'}</Field>
+          <Field label={t('users.jobTitle')}>{user.jobTitleName ?? '—'}</Field>
           <Field label={t('users.email')}>{user.email}</Field>
           <Field label={t('users.phone')}>{user.phone || '—'}</Field>
-          <Field label={t('users.accessStart')}>{formatDate(user.accessStart)}</Field>
-          <Field label={t('users.accessEnd')}>{formatDate(user.accessEnd)}</Field>
+          <div style={{ gridColumn: 'span 2', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <Field label={t('users.accessStart')}>{formatDate(user.accessStart)}</Field>
+            <Field label={t('users.accessEnd')}>{formatDate(user.accessEnd)}</Field>
+          </div>
         </div>
       </Card.Content>
     </Card>

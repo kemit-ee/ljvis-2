@@ -207,6 +207,8 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       }
     ),
     organisationId: Yup.string().required(t('users.validation.required')),
+    structuralUnitId: Yup.string().required(t('users.validation.required')),
+    jobTitleName: Yup.string().required(t('users.validation.required')),
     email: Yup.string().required(t('users.validation.required')).test(
       'email-format',
       t('users.validation.email'),
@@ -240,6 +242,8 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       lastName: user?.lastName ?? '',
       personalCode: user?.personalCode ?? '',
       organisationId: isLocalAdmin ? localAdminOrgId : (user?.organisationId ?? ''),
+      structuralUnitId: user?.structuralUnitId ?? '',
+      jobTitleName: user?.jobTitleName ?? '',
       email: user?.email ?? '',
       phone: user?.phone ?? '',
       accessStart: user?.accessStart ?? '',
@@ -281,7 +285,15 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
     }
   };
 
-  return {allGroups, formik, isEdit, orgOptions, handleOrgChange, isLocalAdmin };
+  const handleStructuralUnitChange = (val: { value: string; label: string | React.ReactNode } | readonly { value: string; label: string | React.ReactNode }[] | null) => {
+    if (val && !Array.isArray(val) && 'value' in val) {
+      formik.setFieldValue('structuralUnitId', (val as { value: string }).value);
+    } else {
+      formik.setFieldValue('structuralUnitId', '');
+    }
+  };
+
+  return {allGroups, formik, isEdit, orgOptions, handleOrgChange, handleStructuralUnitChange, isLocalAdmin };
 }
 
 // ---------------------------------------------------------------------------

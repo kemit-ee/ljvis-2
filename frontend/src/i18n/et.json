@@ -38,6 +38,8 @@
     "lastName": "Perekonnanimi",
     "personalCode": "Isikukood",
     "organisation": "Asutus",
+    "structuralUnit": "Struktuuriüksus",
+    "jobTitle": "Ametinimetus",
     "email": "E-post",
     "phone": "Telefon",
     "accessStart": "Ligipääs alates",

@@ -8,6 +8,8 @@ interface UserEditFormValues {
   lastName: string;
   personalCode: string;
   organisationId: string;
+  structuralUnitId: string;
+  jobTitleName: string;
   email: string;
   phone: string;
   accessStart: string;
@@ -18,8 +20,10 @@ interface UserBasicInfoEditCardProps {
   formik: FormikProps<UserEditFormValues>;
   isDesktop: boolean;
   orgOptions: { label: string; value: string }[];
+  structuralUnits: { label: string; value: string }[];
   isLocalAdmin: boolean;
   handleOrgChange: (val: { value: string; label: string | React.ReactNode } | readonly { value: string; label: string | React.ReactNode }[] | null) => void;
+  handleStructuralUnitChange: (val: { value: string; label: string | React.ReactNode } | readonly { value: string; label: string | React.ReactNode }[] | null) => void;
   handleSaveClick: () => void;
   onCancel: () => void;
   showConfirmModal: boolean;
@@ -30,8 +34,10 @@ export function UserBasicInfoEditCard({
   formik,
   isDesktop,
   orgOptions,
+  structuralUnits,
   isLocalAdmin,
   handleOrgChange,
+  handleStructuralUnitChange,
   handleSaveClick,
   onCancel,
   showConfirmModal,
@@ -85,6 +91,25 @@ export function UserBasicInfoEditCard({
               disabled={isLocalAdmin}
               required
             />
+            <Select
+                id="structuralUnitId"
+                label={t('users.structuralUnit')}
+                options={structuralUnits}
+                value={structuralUnits.find((o) => o.value === formik.values.structuralUnitId) ?? null}
+                onChange={isLocalAdmin ? undefined : handleStructuralUnitChange}
+                disabled={isLocalAdmin}
+                required
+                {...(formik.touched.structuralUnitId && formik.errors.structuralUnitId ? { helper: { text: formik.errors.structuralUnitId, type: 'error' as const } } : {})}
+            />
+            <TextField
+                id="jobTitleName"
+                label={t('users.jobTitle')}
+                value={formik.values.jobTitleName}
+                input={{ maxLength: 100 }}
+                required
+                onChange={(v) => formik.setFieldValue('jobTitleName', v)}
+                {...(formik.touched.jobTitleName && formik.errors.jobTitleName ? { helper: { text: formik.errors.jobTitleName, type: 'error' as const } } : {})}
+            />
             <TextField
               id="email"
               label={t('users.email')}
@@ -115,6 +140,7 @@ export function UserBasicInfoEditCard({
                 />
               </div>
             </div>
+            {isDesktop && <div />}
             <DatePicker
               id="accessStart"
               label={t('users.accessStart')}
