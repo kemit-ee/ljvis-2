@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import { Heading, Search, StatusBadge, Button } from '@tedi-design-system/react/tedi';
+import { Heading, Search, StatusBadge, Button, Card } from '@tedi-design-system/react/tedi';
 import type { UserListItem } from './types';
 import { useUserList } from './hooks';
 import { useAuth } from '../auth/AuthContext';
@@ -171,43 +171,45 @@ export function UserListPage() {
           max-width: 5% !important;
         }
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <Heading element="h1">{t('users.title')}</Heading>
-        {canAddUser && (
-          <Button onClick={() => navigate('/users/new')}>{t('users.addUser')}
-          </Button>
-        )}
-      </div>
-
-      <div style={{ marginBottom: '1rem', maxWidth: '20rem' }}>
-        <Search
-          id="users-search"
-          label={t('users.search')}
-          value={searchInput}
-          onIconClick={() => handleSearch(searchInput)}
-          onChange={setSearchInput}
-          onSearch={handleSearch}
-          onClear={clearSearch}
-        />
-      </div>
-
-      <Table
-        id="users-table"
-        data={data}
-        columns={columns}
-        isLoading={isLoading}
-        totalRows={totalRows}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        sorting={sorting}
-        onSortingChange={setSorting}
-        manualPagination
-        manualSorting
-        placeholder={{
-            children: t('common.tableIsEmpty')
-        }}
-      />
-
+        <Card style={{marginTop: '0.5rem'}}>
+            <Card.Content>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <Heading element="h1">{t('users.title')}</Heading>
+                    {canAddUser && (
+                        <Button onClick={() => navigate('/users/new')}>{t('users.addUser')}
+                        </Button>
+                    )}
+                </div>
+                <div style={{ marginBottom: '1rem', maxWidth: '25rem' }}>
+                    <Search
+                        id="users-search"
+                        label=" "
+                        value={searchInput}
+                        onIconClick={() => handleSearch(searchInput)}
+                        onChange={setSearchInput}
+                        onSearch={handleSearch}
+                        onClear={clearSearch}
+                        placeholder={t('common.search')}
+                    />
+                </div>
+                <Table
+                    id="users-table"
+                    data={data}
+                    columns={columns}
+                    isLoading={isLoading}
+                    totalRows={totalRows}
+                    pagination={pagination}
+                    onPaginationChange={setPagination}
+                    sorting={sorting}
+                    onSortingChange={setSorting}
+                    manualPagination
+                    manualSorting
+                    placeholder={{
+                        children: t('common.tableIsEmpty')
+                    }}
+                />
+            </Card.Content>
+        </Card>
     </div>
   );
 }
