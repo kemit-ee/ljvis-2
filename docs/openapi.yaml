@@ -25,11 +25,11 @@ info:
     email: tbd@example.ee
 
 servers:
-  - url: https://api.dev.ljvis.kemit.ee
+  - url: https://dev.liiklusvalve.ee/api
     description: Development
-  - url: https://api.staging.ljvis.kemit.ee
+  - url: https://staging.liiklusvalve.ee/api
     description: Staging
-  - url: https://api.ljvis.kemit.ee
+  - url: https://liiklusvalve.ee/api
     description: Production
 
 security:
