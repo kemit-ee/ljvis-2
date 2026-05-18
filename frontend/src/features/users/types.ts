@@ -5,6 +5,9 @@ export interface User {
   personalCode: string;
   organisationId: string;
   organisationName?: string;
+  structuralUnitId: string | null;
+  structuralUnitName?: string;
+  jobTitleName?: string;
   email: string;
   phone?: string;
   accessStart: string;

@@ -13,13 +13,13 @@ export const getUser = (id: string) =>
 
 export const insertUser = (data: {
   firstName: string; lastName: string; personalCode: string;
-  organisationId: string; email: string; phone: string;
+  organisationId: string; structuralUnitId: string; jobTitleName: string; email: string; phone: string;
   accessStart: string; accessEnd: string;
 }) => post<User[]>('/users/insert', data);
 
 export const updateUser = (data: {
   id: string; firstName: string; lastName: string; personalCode: string;
-  organisationId: string; email: string; phone: string;
+  organisationId: string; structuralUnitId: string; jobTitleName: string; email: string; phone: string;
   accessStart: string; accessEnd: string;
 }) => post<User[]>('/users/update', data);
 

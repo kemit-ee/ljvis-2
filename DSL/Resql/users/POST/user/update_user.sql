@@ -18,6 +18,10 @@ declaration:
         type: string
       - field: organisation_id
         type: string
+      - field: structural_unit_id
+        type: string
+      - field: job_title_name
+        type: string
       - field: email
         type: string
       - field: phone

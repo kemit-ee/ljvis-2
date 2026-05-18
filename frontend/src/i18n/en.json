@@ -38,6 +38,8 @@
     "lastName": "Last name",
     "personalCode": "Personal code",
     "organisation": "Organisation",
+    "structuralUnit": "COMING",
+    "jobTitle": "COMING",
     "email": "Email",
     "phone": "Phone",
     "accessStart": "Access start",

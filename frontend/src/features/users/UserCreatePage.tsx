@@ -3,16 +3,25 @@ import { useTranslation } from 'react-i18next';
 import { Button, Heading, TextField, Select, Row, Col, Card } from '@tedi-design-system/react/tedi';
 import { DatePicker } from '@tedi-design-system/react/community';
 import { useUserForm } from './hooks';
+import {useMediaQuery} from "../../hooks/useMediaQuery";
+import {BREAKPOINTS} from "../../constants/constants";
 
 export function UserCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const handleSaved = (id?: string) => {
     navigate(`/users/${id}`, { state: { justCreated: true } });
   };
 
-  const { formik, orgOptions, handleOrgChange, isLocalAdmin } = useUserForm(undefined, handleSaved);
+  const structuralUnits = [
+    { value: '1', label: 'Üksus 1' },
+    { value: '2', label: 'Üksus 2' },
+    { value: '3', label: 'Üksus 3' },
+  ];
+
+  const { formik, orgOptions, handleOrgChange, handleStructuralUnitChange, isLocalAdmin } = useUserForm(undefined, handleSaved);
 
   return (
     <div>
@@ -30,7 +39,7 @@ export function UserCreatePage() {
                 <Heading element="h3" style={{ marginBottom: '1rem' }}>
                   {t('users.basicInfo')}
                 </Heading>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', ...(isDesktop ? {width: '80%'} : {width: '100%'}) }}>
                   <TextField
                       id="firstName"
                       label={t('users.firstName')}
@@ -74,7 +83,7 @@ export function UserCreatePage() {
                 <Heading element="h3" style={{ marginBottom: '1rem' }}>
                   {t('users.organisation')}
                 </Heading>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'start' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'start', ...(isDesktop ? {width: '80%'} : {width: '100%'}) }}>
                   <Select
                       id="organisationId"
                       label={t('users.organisation')}
@@ -84,7 +93,27 @@ export function UserCreatePage() {
                       disabled={isLocalAdmin}
                       required
                       {...(formik.touched.organisationId && formik.errors.organisationId ? { helper: { text: formik.errors.organisationId, type: 'error' as const } } : {})}
-
+                  />
+                  <div>
+                    <Select
+                        id="structuralUnitId"
+                        label={t('users.structuralUnit')}
+                        options={structuralUnits}
+                        value={structuralUnits.find((o) => o.value === formik.values.structuralUnitId) ?? null}
+                        onChange={isLocalAdmin ? undefined : handleStructuralUnitChange}
+                        disabled={isLocalAdmin}
+                        required
+                        {...(formik.touched.structuralUnitId && formik.errors.structuralUnitId ? { helper: { text: formik.errors.structuralUnitId, type: 'error' as const } } : {})}
+                    />
+                  </div>
+                  <TextField
+                      id="jobTitleName"
+                      label={t('users.jobTitle')}
+                      value={formik.values.jobTitleName}
+                      input={{ maxLength: 100 }}
+                      onChange={(v) => formik.setFieldValue('jobTitleName', v)}
+                      required
+                      {...(formik.touched.jobTitleName && formik.errors.jobTitleName ? { helper: { text: formik.errors.jobTitleName, type: 'error' as const } } : {})}
                   />
                   <div></div>
                   <TextField
@@ -131,24 +160,36 @@ export function UserCreatePage() {
                 <Heading element="h3" style={{ marginBottom: '1rem' }}>
                   {t('users.access')}
                 </Heading>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <DatePicker
-                      id="accessStart"
-                      label={t('users.accessStart')}
-                      value={formik.values.accessStart}
-                      onChange={(v) => formik.setFieldValue('accessStart', v)}
-                      placeholder={t('users.datePickerPlaceholder')}
-                      required
-                      {...(formik.touched.accessStart && formik.errors.accessStart ? { helper: { text: formik.errors.accessStart, type: 'error' as const } } : {})}
-                  />
-                  <DatePicker
-                      id="accessEnd"
-                      label={t('users.accessEnd')}
-                      value={formik.values.accessEnd}
-                      onChange={(v) => formik.setFieldValue('accessEnd', v)}
-                      placeholder={t('users.datePickerPlaceholder')}
-                      {...(formik.touched.accessEnd && formik.errors.accessEnd ? { helper: { text: formik.errors.accessEnd, type: 'error' as const } } : {})}
-                  />
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', ...(isDesktop ? {width: '80%'} : {width: '100%'})}}>
+                  <div style={isDesktop ? {display: 'flex', alignItems: 'flex-start', gap: '1rem'} : {display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+                    <DatePicker
+                        id="accessStart"
+                        label={t('users.accessStart')}
+                        value={formik.values.accessStart}
+                        onChange={(v) => formik.setFieldValue('accessStart', v)}
+                        placeholder={t('users.datePickerPlaceholder')}
+                        required
+                        {...(formik.touched.accessStart && formik.errors.accessStart ? {
+                          helper: {
+                            text: formik.errors.accessStart,
+                            type: 'error' as const
+                          }
+                        } : {})}
+                    />
+                    <DatePicker
+                        id="accessEnd"
+                        label={t('users.accessEnd')}
+                        value={formik.values.accessEnd}
+                        onChange={(v) => formik.setFieldValue('accessEnd', v)}
+                        placeholder={t('users.datePickerPlaceholder')}
+                        {...(formik.touched.accessEnd && formik.errors.accessEnd ? {
+                          helper: {
+                            text: formik.errors.accessEnd,
+                            type: 'error' as const
+                          }
+                        } : {})}
+                    />
+                  </div>
                 </div>
               </Card.Content>
             </Card>
