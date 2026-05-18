@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Heading, TextField, Select, Row, Col, Card, Text } from '@tedi-design-system/react/tedi';
 import { DatePicker } from '@tedi-design-system/react/community';
 import { useUserForm } from './hooks';
+import { PhoneField } from './PhoneField';
 
 export function UserCreatePage() {
   const { t } = useTranslation();
@@ -114,28 +115,11 @@ export function UserCreatePage() {
                       input={{ maxLength: 320 }}
                       {...(formik.touched.email && formik.errors.email ? { helper: { text: formik.errors.email, type: 'error' as const } } : {})}
                   />
-                  <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                    <div style={{ width: '3.5rem' }}>
-                      <TextField
-                          id="phone-prefix"
-                          value="+372"
-                          label={t('users.phone')}
-                          disabled
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <TextField
-                          id="phone"
-                          value={formik.values.phone}
-                          onChange={(v) => {
-                            const numericValue = v.replace(/[^\d\s]/g, '').replace(/\s+/g, ' ');
-                            formik.setFieldValue('phone', numericValue);
-                          }}
-                          input={{ maxLength: 50 }}
-                          {...(formik.touched.phone && formik.errors.phone ? { helper: { text: formik.errors.phone, type: 'error' as const } } : {})}
-                      />
-                    </div>
-                  </div>
+                  <PhoneField
+                      value={formik.values.phone}
+                      onChange={(v) => formik.setFieldValue('phone', v)}
+                      {...(formik.touched.phone && formik.errors.phone ? { helper: { text: formik.errors.phone, type: 'error' as const } } : {})}
+                  />
                 </div>
               </Card.Content>
             </Card>
