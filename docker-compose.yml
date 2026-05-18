@@ -141,6 +141,21 @@ services:
     cpus: "0.5"
     mem_limit: "512M"
 
+  # ─── LOCAL DEV / CI ONLY — never deployed to production (Helm charts) ───────
+  tara-mock:
+    container_name: tara-mock
+    build:
+      context: .
+      dockerfile: docker/tara-mock/Dockerfile
+    volumes:
+      - tara-mock-vault:/service/vault
+      - ./docker/tara-mock/identities.json:/service/identities.json:ro
+    networks:
+      - ljvisnetwork
+    ports:
+      - 8888:8080
+  # ─────────────────────────────────────────────────────────────────────────────
+
   tim-postgresql:
     container_name: tim-postgresql
     image: postgres:14.1
@@ -162,28 +177,39 @@ services:
     platform: linux/amd64
     depends_on:
       - tim-postgresql
+      - tara-mock
+    # Imports TARA-Mock CA into JVM cacerts before starting TIM.
+    # user-authorization-uri → browser redirect (localhost:8888, port-mapped).
+    # access-token-uri / key-set-uri → direct Docker DNS (tara-mock:8080).
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until [ -f /tara-mock-vault/rootCA.pem ]; do sleep 1; done
+        CACERTS=$$(find /opt/java /usr/lib/jvm -name cacerts -path '*/security/cacerts' 2>/dev/null | head -1)
+        keytool -import -trustcacerts -noprompt -alias tara-mock-ca \
+          -file /tara-mock-vault/rootCA.pem -keystore "$$CACERTS" -storepass changeit
+        exec ./generate-keystore.sh
     environment:
       - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-users,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
       - JWT_INTEGRATION_SIGNATURE_KEY_STORE_PASSWORD=defaultpassword
-      # Keycloak OAuth2 (replace URLs with TARA for production)
       - security.oauth2.client.client-id=ljvis
-      - security.oauth2.client.client-secret=2651c2f9-169e-442e-8552-765526058fd4
+      - security.oauth2.client.client-secret=ljvis-secret
       - security.oauth2.client.scope=openid
       - security.oauth2.client.registered-redirect-uri=http://localhost:3001/tim/authenticate
-      - security.oauth2.client.user-authorization-uri=https://test-keycloak.dev.wisercat-estonia.ee/auth/realms/master/protocol/openid-connect/auth
-      - security.oauth2.client.access-token-uri=https://test-keycloak.dev.wisercat-estonia.ee/auth/realms/master/protocol/openid-connect/token
-      - security.oauth2.resource.jwk.key-set-uri=https://test-keycloak.dev.wisercat-estonia.ee/auth/realms/master/protocol/openid-connect/certs
+      - security.oauth2.client.user-authorization-uri=https://localhost:8888/oidc/authorize
+      - security.oauth2.client.access-token-uri=https://tara-mock:8080/oidc/token
+      - security.oauth2.resource.jwk.key-set-uri=https://tara-mock:8080/oidc/jwks
       - frontpage.redirect.url=http://localhost:3001
       - auth.success.redirect.whitelist=http://localhost:3001
       - jwt-integration.signature.cookieName=customJwtCookie
       - jwt-integration.signature.secureCookie=false
       - server.servlet.session.cookie.same-site=lax
+    volumes:
+      - tara-mock-vault:/tara-mock-vault:ro
     ports:
       - 8085:8085
     networks:
       - ljvisnetwork
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     cpus: "0.5"
     mem_limit: "512M"
 
@@ -198,6 +224,9 @@ services:
       - ruuter
     networks:
       - ljvisnetwork
+
+volumes:
+  tara-mock-vault:
 
 networks:
   ljvisnetwork:
