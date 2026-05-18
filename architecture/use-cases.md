@@ -9,7 +9,7 @@
 | **ERRU RR kasutaja** | Saadab rikkumisteated ERRU-sse |
 | **ERRU Mainepäringu kasutaja** | Kontrollib vedaja head mainet |
 | **ERRU Tegevusloa kontrolli kasutaja** | Kontrollib ühenduse tegevusluba |
-| **ERRU Tehnokontrolli kasutaja** | Haldab teekontrolli teateid |
+| **ERRU Tehnokontrolli teadete kasutaja** | Haldab teekontrolli teateid |
 | **Statistikakasutaja** | Vaatab ja ekspordib statistikat |
 | **Kohaliku asutuse administraator** | Haldab oma asutuse kasutajaid |
 | **Süsteemiadministraator** | Täielik süsteemihaldus |
@@ -27,7 +27,7 @@
 | K-01 | Sisselogimine TARA kaudu | Autendib end ID-kaardi või Mobiil-ID abil |
 | K-02 | Keele vahetamine | Vahetab rakenduse kuvakeelt |
 | K-03 | Väljalogmine | Lõpetab seansi |
-| K-04 | Oma kontrollide vaatamine | Näeb enda kohta tehtud kontrollivormide kokkuvõtet |
+| K-04 | Oma andmete kokkuvõtte vaatamine | Näeb ülevaadet oma seotud ettevõtetest ja rikkumistest (`/PublicRequests`) |
 | K-05 | Oma seotud ettevõtete vaatamine | Näeb, milliste ettevõtetega on seotud |
 | K-06 | Oma rikkumiste vaatamine | Näeb enda rikkumiste ajalugu |
 
@@ -52,72 +52,83 @@
 | I-09 | Ettevõtte rikkumised isiku järgi | `SearchCompanyViolationsByPerson` |
 | I-10 | Eri-ülevaatusele saadetud sõidukid | `SearchSentToSpecialInspectionVehicles` |
 | I-11 | Välisvedajate rikkumised | `ForeignCarriersViolationsSearch` |
-| I-12 | Isiku andmete vaatamine | Autenditud kasutaja |
-| I-13 | Ettevõtte andmete vaatamine | Autenditud kasutaja |
-| I-14 | Sõiduki andmete vaatamine | Autenditud kasutaja |
-| I-15 | Armatuurlaua vaatamine | Autenditud kasutaja |
-| I-16 | Viimaste tehingute vaatamine | Autenditud kasutaja |
+| I-12 | Vormiandmete põhine otsing | `FormWideSearchList` |
+| I-13 | Kontrollivormide statistika | `ControlFormStatistics` |
+| I-14 | Hea maine nõudele mittevastavate veokorraldajate otsing | Autenditud kasutaja |
+| I-15 | Isiku andmete vaatamine | Autenditud kasutaja |
+| I-16 | Ettevõtte andmete vaatamine | Autenditud kasutaja |
+| I-17 | Sõiduki andmete vaatamine | Autenditud kasutaja |
+| I-18 | Armatuurlaua vaatamine | Autenditud kasutaja |
+| I-19 | Viimaste tehingute vaatamine | Autenditud kasutaja |
+
+> **NB:** `SearchController` ja `StatisticsController` ei kasuta serveripoolset `[LjvisAuthenticate]` atribuuti otsingutegevuste jaoks. Ligipääsu kontroll toimub menüünähtavuse kaudu.
 
 ### 2b. X-tee päringud (reaalajas andmeotsing)
 
 | # | Kasutuslugu | Kirjeldus |
 |---|-------------|-----------|
-| I-17 | Isiku otsimine X-tee kaudu | Pärib rahvastikuregistrist või muust allikast |
-| I-18 | Ettevõtte otsimine X-tee kaudu | Pärib äriregistrist |
-| I-19 | Riikide lühikoodide laadimine | Abiväärtused vormi täitmiseks |
+| I-20 | Isiku otsimine X-tee kaudu | Pärib rahvastikuregistrist või muust allikast |
+| I-21 | Ettevõtte otsimine X-tee kaudu | Pärib äriregistrist |
+| I-22 | Sõiduki andmete pärimine X-tee kaudu | Pärib Liiklusregistrist (`FindSoiduk`) |
+| I-23 | Riikide lühikoodide laadimine | Abiväärtused vormi täitmiseks |
 
 ### 2c. Kontrollivormid – maanteekontroll
 
 | # | Kasutuslugu | Vajalik roll |
 |---|-------------|--------------|
-| I-20 | Teeäärse kontrollikaardi loomine | `RoadControlCard` |
-| I-21 | Teeäärse kontrollikaardi (2012) loomine | `RoadControlCard2012` |
-| I-22 | Ohtliku veo vormi loomine | `DangerousDelivery` |
-| I-23 | Ohtliku veo vormi (2012) loomine | `DangerousDelivery2012` |
-| I-24 | Välismaalase rikkumise vormi loomine | `ForeignViolate` |
-| I-25 | Veovahendi tehnoülevaatuse vormi loomine | `Roadworthiness` |
-| I-26 | Tehnoülevaatuse vormi (2012) loomine | `Roadworthiness2012` |
-| I-27 | Kütusevõtuki vormi loomine | `FuelSample` |
-| I-28 | Transpordi peatamise vormi loomine | `TransportInterruption` |
-| I-29 | Vormi salvestamine mustandina | Sama roll kui loomine |
-| I-30 | Vormi kinnitamine | Sama roll kui loomine |
-| I-31 | Vormi redigeerimine (enda loodud) | `EditOwnData` |
-| I-32 | Vormi kustutamine (enda loodud) | `DeleteOwnData` |
-| I-33 | Vormi redigeerimine (oma asutus) | `EditOwnEstablishmentData` |
-| I-34 | Vormi kustutamine (oma asutus) | `DeleteOwnEstablishmentData` |
-| I-35 | Vormi suunamine teisele kasutajale | `AllowControlFormRedirecting` |
-| I-36 | Haldusmenetluse sektsiooni uuendamine | `AllowUpdateControlFormAdministrativeProcedureSection` |
-| I-37 | Dokumendikontrolli vormi loomine/vaatamine | Forms area |
-| I-38 | Kiirusmõõtja vormi loomine | Forms area |
+| I-24 | Teeäärse kontrollikaardi loomine | `RoadControlCard` |
+| I-25 | Teeäärse kontrollikaardi (2012) loomine | `RoadControlCard2012` |
+| I-26 | Teeäärse kontrollikaardi (2015) loomine | `RoadControlCard2015` |
+| I-27 | Ohtliku veo vormi loomine | `DangerousDelivery` |
+| I-28 | Ohtliku veo vormi (2012) loomine | `DangerousDelivery2012` |
+| I-29 | Ohtliku veo vormi (2015) loomine | `DangerousDelivery2015` |
+| I-30 | Välismaalase rikkumise vormi loomine | `ForeignViolate` |
+| I-31 | Veovahendi tehnoülevaatuse vormi loomine | `Roadworthiness` |
+| I-32 | Tehnoülevaatuse vormi (2012) loomine | `Roadworthiness2012` |
+| I-33 | Tehnoülevaatuse vormi (2015) loomine | `Roadworthiness2015` |
+| I-34 | Kütusevõtuki vormi loomine | `FuelSample` |
+| I-35 | Transpordi peatamise vormi loomine | `TransportInterruption` |
+| I-36 | Vormi salvestamine mustandina | Sama roll kui loomine |
+| I-37 | Vormi kinnitamine (`Confirm`) | Sama roll kui loomine |
+| I-38 | Vormi avalikustamine (`Disclose`) | Sama roll kui loomine |
+| I-39 | Vormide hulgi-avalikustamine (`Avalikusta`) | Sama roll kui loomine |
+| I-40 | Vormi redigeerimine (enda loodud) | `EditOwnData` |
+| I-41 | Vormi kustutamine | `AdministrateLocalAccountManager` |
+| I-42 | Vormi redigeerimine (oma asutus) | `EditOwnEstablishmentData` |
+| I-43 | Vormi suunamine teisele kasutajale | `AllowControlFormRedirecting` |
+| I-44 | Haldusmenetluse sektsiooni uuendamine | `AllowUpdateControlFormAdministrativeProcedureSection` |
+| I-45 | Dokumendikontrolli vormi loomine/vaatamine | Forms area |
+
+> **NB:** Vormi kustutamine (I-41) nõuab koodis `[LjvisAuthenticate(AdministrateLocalAccountManager)]`, mitte vormitüübirolli. Redigeerimine (I-40, I-42) kontrollitakse serveripoolselt vormitüübi rolli kaudu (`Authorization.IsInRole(formTypeName)`).
 
 ### 2d. Töökontroll (JobInspection)
 
 | # | Kasutuslugu | Vajalik roll |
 |---|-------------|--------------|
-| I-39 | Töökontrolli vormi loomine | `JobInspection` |
-| I-40 | Töökontrolli vormi redigeerimine | `JobInspection` |
-| I-41 | Töökontrollide otsimine ja filtreerimine | `JobInspection` |
-| I-42 | Töökontrolli menetluse andmete vaatamine | `JobInspection` |
+| I-46 | Töökontrolli vormi loomine | `JobInspection` |
+| I-47 | Töökontrolli vormi redigeerimine | `JobInspection` |
+| I-48 | Töökontrollide otsimine ja filtreerimine | `JobInspection` |
+| I-49 | Töökontrolli menetluse andmete vaatamine | `JobInspection` |
 
 ### 2e. Hea maine kontroll (Good Repute)
 
 | # | Kasutuslugu | Vajalik roll |
 |---|-------------|--------------|
-| I-43 | Hea maine kontrolli vormi loomine | `GoodRepute` |
+| I-50 | Hea maine kontrolli vormi loomine | `GoodRepute` |
 
 ### 2f. Riskihinnang
 
 | # | Kasutuslugu | Kirjeldus |
 |---|-------------|-----------|
-| I-44 | Riskihinnangu vaatamine | Autenditud kasutaja |
-| I-45 | Riskihinnangu eksportimine Excelisse | Autenditud kasutaja |
+| I-51 | Riskihinnangu vaatamine | Autenditud kasutaja |
+| I-52 | Riskihinnangu eksportimine Excelisse | Autenditud kasutaja |
 
 ### 2g. Arhiiv
 
 | # | Kasutuslugu | Kirjeldus |
 |---|-------------|-----------|
-| I-46 | Arhiivi sirvamine ja otsimine | Autenditud kasutaja |
-| I-47 | Arhiivianalüüsi loomine | Autenditud kasutaja |
+| I-53 | Arhiivi sirvamine ja otsimine | Autenditud kasutaja |
+| I-54 | Arhiivianalüüsi loomine | Autenditud kasutaja |
 
 ---
 
@@ -128,7 +139,7 @@
 | # | Kasutuslugu | Kirjeldus |
 |---|-------------|-----------|
 | E1-01 | Rikkumisteadete loendi vaatamine | Kõik sissetulevad/väljaminevad teated |
-| E1-02 | Rikkumisteadete otsimine | Filtreerimine kuupäeva, ettevõtte jms järgi |
+| E1-02 | Rikkumisteadete otsimine | Filtreerimine kuupäeva, ettevõtte jms järgi (osa `Index` filtreerimisest) |
 | E1-03 | MS→ERRU rikkumisteate loomine | Saadab rikkumisteate ERRU-sse |
 | E1-04 | Rikkumisteate esitamine | Kinnitab ja saadab teate |
 | E1-05 | Olemasoleva rikkumisteate laadimine | Vaatab/muudab eelnevalt loodud teadet |
@@ -160,7 +171,7 @@
 
 ---
 
-## 6. ERRU Teknokontrolli kasutaja (RoadSideInspection)
+## 6. ERRU Tehnokontrolli teadete kasutaja (RoadSideInspection)
 
 > Grupp `ROLE_GROUP_ERRU_RSI`. Haldab teekontrolli teateid ERRU-ga.
 
@@ -179,15 +190,19 @@
 
 | # | Kasutuslugu | Kirjeldus |
 |---|-------------|-----------|
-| S-01 | Statistikaraporti vaatamine | Koondaruanne kontrollivormidest |
-| S-02 | Statistika eksportimine Excelisse | Laadib alla tabeli |
-| S-03 | CVS-i andmete vaatamine | Avab CVS-andmefaili |
+| S-01 | Statistikaraporti vaatamine | Koondaruanne kontrollivormidest (`StatisticsController`) |
+| S-02 | Statistika eksportimine Excelisse | Laadib alla tabeli (`DashboardController` / `DownloadStatistics`) |
+| S-03 | CVS-andmete aruande vaatamine | Avab CVS-aruande vaate (`ReportController.Cvs`) |
+
+> **NB:** `StatisticsController` ei kasuta serveripoolset `[LjvisAuthenticate]` atribuuti. Ligipääsu kontroll toimub `DashboardController.HasAccessToStatisticFiles()` ja menüünähtavuse kaudu.
 
 ---
 
 ## 8. Kohaliku asutuse administraator
 
-> Roll `AdministrateOwnEstablishmentUsers`. Haldab kasutajaid ainult oma asutuses.
+> Roll `AdministrateLocalAccountManager`. Haldab kasutajaid ainult oma asutuses.
+>
+> NB: Koodis kasutab `UserController.Index` atribuuti `[LjvisAuthenticate(AdministrateAllUsers, AdministrateLocalAccountManager)]` — kohalik admin siseneb `AdministrateLocalAccountManager` kaudu, mis filtreerib automaatselt oma asutuse kasutajate järgi.
 
 | # | Kasutuslugu | Kirjeldus |
 |---|-------------|-----------|
@@ -205,8 +220,8 @@
 | # | Kasutuslugu | Kirjeldus |
 |---|-------------|-----------|
 | SA-01 | Kõikide kasutajate haldamine | Kasutajate loend kõigist asutustest |
-| SA-02 | Kasutaja loomine/muutmine/kustutamine | Täielik kasutajahaldus |
-| SA-03 | Rollide ja rolligruppide vaatamine | Näeb kogu õiguste maatriksit |
+| SA-02 | Kasutaja loomine/muutmine/deaktiveerimine | Täielik kasutajahaldus (kustutamist ei ole – kasutaja deaktiveeritakse kehtivusaja kaudu) |
+| SA-03 | Rollide ja rolligruppide vaatamine | Näeb kogu õiguste maatriksit (nõuab `Ametikoht == "ADMIN"`, mitte rolli) |
 | SA-04 | Rolli lisamine rolligruppi | Muudab rolligrupi õigusi |
 | SA-05 | Rolli eemaldamine rolligrupist | Kitsendab rolligrupi õigusi |
 | SA-06 | Uue rolligrupi loomine | Loob uue õiguste komplekti |
@@ -214,7 +229,7 @@
 | SA-08 | Klassifikaatorite vaatamine | Näeb süsteemi viiteväärtusi |
 | SA-09 | Klassifikaatorite muutmine | Muudab/lisab viiteväärtusi |
 | SA-10 | Klassifikaatorite järjestamine | Muudab kuvajärjekorda |
-| SA-11 | Tootmislogiisse sisenemine | `AdministrateProductionLog` |
+| SA-11 | Tootmislogisse sisenemine | `AdministrateProductionLog` – `ElmahController` / `EtoimikController` |
 | SA-12 | DB sünkroonimispäringu käivitamine | `AllowQueries` – otsepäring andmebaasile |
 | SA-13 | Sünkroonimise lähtestamine | Lähtestab sync-oleku |
 | SA-14 | Raportite loend | Näeb kõiki süsteemiraporteid |
@@ -230,9 +245,9 @@
 
 | # | Kasutuslugu | X-tee teenus |
 |---|-------------|--------------|
-| X-01 | Isiku kontrollide pärimine | `IsikuKontroll` |
-| X-02 | Ettevõtte ja isiku rikkumiste pärimine | `IsikuEttevõteKontrollid` |
-| X-03 | Erakorralise ülevaatuse algatamine | `ErakorralineYlevaatus` |
+| X-01 | Isiku kontrollide pärimine | `IsikuKontroll` (koodis `[Obsolete]`) |
+| X-02 | Ettevõtte ja isiku rikkumiste pärimine | `IsikuEttevoteKontrollid` (SOAP-is ilma diakriitikuta) |
+| X-03 | Erakorralise ülevaatuse algatamine | `ErakorralineYlevaatus` (koodis `[Obsolete]`) |
 | X-04 | Erakorralise ülevaatuse kinnitamine | `ErakorralineYlevaatusTehtud` |
 | X-05 | Töökontrolli registreerimine (v1) | `RegisterJobInspection` |
 | X-06 | Töökontrolli registreerimine (v2) | `RegisterJobInspectionV2` |
@@ -241,7 +256,7 @@
 
 ## 11. BgService (automatiseeritud taustaprotsessid)
 
-> Ei ole inimkasutaja. Käivitub ajalise plaani alusel.
+> Ei ole inimkasutaja. Käivitub ajalise plaani alusel. Sagedus on konfigureeritav `BgService` tasemel (`ActionManager.cs` / `Service1.cs`).
 
 | # | Kasutuslugu | Kirjeldus | Sagedus |
 |---|-------------|-----------|---------|
@@ -303,6 +318,9 @@ sequenceDiagram
 
     Note over Kodanik,DB: Kasutaja on juba sisse logitud (TARA sessioon)
 
+    Kodanik->>UI: GET /PublicRequests (K-04)
+    UI-->>Kodanik: Kokkuvõtteleht (ettevõtted + rikkumised)
+
     Kodanik->>UI: GET /PublicRequests/UserCompanies (K-05)
     UI->>DB: SELECT ettevõtted isikukoodi järgi
     DB-->>UI: Ettevõtete loend
@@ -318,7 +336,7 @@ sequenceDiagram
 
 ## I – Inspektor
 
-### I-01…I-16 · Otsing ja andmete vaatamine
+### I-01…I-19 · Otsing ja andmete vaatamine
 
 ```mermaid
 sequenceDiagram
@@ -346,7 +364,7 @@ sequenceDiagram
     UI-->>Inspektor: Sõiduki otsingutulemused
 ```
 
-### I-17…I-18 · Reaalajas X-tee päringud vormi täitmisel
+### I-20…I-23 · Reaalajas X-tee päringud vormi täitmisel
 
 ```mermaid
 sequenceDiagram
@@ -384,9 +402,14 @@ sequenceDiagram
         BR-->>Tunnel: Seotud ettevõtete loend
         Tunnel-->>UI: SOAP vastus
     end
+
+    Inspektor->>UI: POST /XTee/FindSoiduk (reg-number) (I-22)
+    UI->>Tunnel: SOAP – liiklusregister/paring2/v2
+    Tunnel-->>UI: Sõiduki mark, mudel, VIN, kategooria
+    UI-->>Inspektor: Eeltäidetud sõiduki andmed vormis
 ```
 
-### I-20…I-30 · Kontrollivormi loomine ja kinnitamine
+### I-24…I-39 · Kontrollivormi loomine, kinnitamine ja avalikustamine
 
 ```mermaid
 sequenceDiagram
@@ -410,13 +433,17 @@ sequenceDiagram
     DB-->>UI: ControlForm.Id
     UI-->>Inspektor: Salvestatud (mustandrežiim)
 
-    Inspektor->>UI: POST /Forms/Form/Confirm
+    Inspektor->>UI: POST /Forms/Form/Confirm (I-37)
     UI->>DB: UPDATE ControlForm<br/>stage=Confirmed<br/>UnitedFormPart=true<br/>QualificationsReceived=false
     UI->>Versions: INSERT (muutus, kasutaja, aeg)
     UI-->>Inspektor: Vorm kinnitatud – ootab E-toimiku vastust
+
+    Inspektor->>UI: GET /Forms/Form/Disclose (I-38)
+    UI->>DB: UPDATE ControlForm stage=Published
+    UI-->>Inspektor: Vorm avalikustatud
 ```
 
-### I-31…I-35 · Vormi redigeerimine ja suunamine
+### I-40…I-43 · Vormi redigeerimine, kustutamine ja suunamine
 
 ```mermaid
 sequenceDiagram
@@ -427,7 +454,7 @@ sequenceDiagram
     participant Versions as Versions tabel
 
     Inspektor->>UI: GET /Forms/Form/Update/{id}
-    UI->>Auth: EditOwnData / EditOwnEstablishmentData
+    UI->>Auth: IsInRole(formTypeName)
     Auth-->>UI: Lubatud
     UI->>DB: SELECT ControlForm + ControlFormValue
     DB-->>UI: Olemasolev vorm
@@ -439,7 +466,15 @@ sequenceDiagram
     UI->>Versions: INSERT (vana seis, kasutaja, aeg)
     UI-->>Inspektor: Muudatused salvestatud
 
-    opt Vormi suunamine teisele kasutajale (I-35)
+    opt Vormi kustutamine (I-41)
+        Inspektor->>UI: POST /Forms/Form/Delete
+        UI->>Auth: AdministrateLocalAccountManager
+        Auth-->>UI: Lubatud
+        UI->>DB: DELETE ControlForm
+        UI-->>Inspektor: Vorm kustutatud
+    end
+
+    opt Vormi suunamine teisele kasutajale (I-43)
         Inspektor->>UI: POST /Forms/Form/Redirect (sihtKasutaja)
         UI->>Auth: AllowControlFormRedirecting
         Auth-->>UI: Lubatud
@@ -448,7 +483,7 @@ sequenceDiagram
     end
 ```
 
-### I-39…I-42 · Töökontrolli haldamine
+### I-46…I-49 · Töökontrolli haldamine
 
 ```mermaid
 sequenceDiagram
@@ -477,7 +512,7 @@ sequenceDiagram
     UI-->>Inspektor: Otsingutulemused
 ```
 
-### I-44…I-47 · Riskihinnang ja arhiiv
+### I-51…I-54 · Riskihinnang ja arhiiv
 
 ```mermaid
 sequenceDiagram
@@ -490,19 +525,19 @@ sequenceDiagram
     DB-->>UI: Koondandmed
     UI-->>Inspektor: Riskihinnangu vaade
 
-    opt Eksport (I-45)
+    opt Eksport (I-52)
         Inspektor->>UI: POST /RiskAssessment/Export
         UI->>DB: SELECT täisandmed
         DB-->>UI: Andmekogum
         UI-->>Inspektor: Excel-fail (allalaadimine)
     end
 
-    Inspektor->>UI: GET /Archive (I-46)
+    Inspektor->>UI: GET /Archive (I-53)
     UI->>DB: SELECT arhiveeritud analüüsid
     DB-->>UI: Arhiivi loend
     UI-->>Inspektor: Arhiivi vaade
 
-    opt Uue analüüsi loomine (I-47)
+    opt Uue analüüsi loomine (I-54)
         Inspektor->>UI: POST /Archive/Create (parameetrid)
         UI->>DB: INSERT ArchiveAnalysis
         UI-->>Inspektor: Analüüs loodud
@@ -579,6 +614,7 @@ sequenceDiagram
     UI->>ERRU: HTTP POST CheckGoodRepute päring (ERRU105 XML)
     ERRU-->>UI: Töötlemise kinnitus (async)
     UI->>UI: Thread.Sleep (ERRU vastuse viivitus)
+    Note right of UI: Teadlik tehniline võlg:<br/>blokeeriv ooteaeg (ErruHelper.ERRU_MESSENGER_RESPONSE_DELAY)
     UI->>DB: SELECT InfringementMessage (workflowId järgi)
     UI->>DB: UPDATE CheckGoodReputeMessage (UserId = praegune kasutaja)
     UI-->>Kasutaja: Redirect → mainepäringute loend
@@ -634,7 +670,7 @@ sequenceDiagram
 
 ---
 
-## E4 – ERRU Teknokontrolli kasutaja (RoadSideInspection)
+## E4 – ERRU Tehnokontrolli teadete kasutaja (RoadSideInspection)
 
 ### E4-01…E4-04 · Teekontrolli teadete haldamine
 
@@ -683,13 +719,14 @@ sequenceDiagram
     participant SSRS as SSRS raportiserverMNT
 
     Kasutaja->>UI: GET /Statistics/StatisticsReport (S-01)
-    UI->>Auth: Kontrollib ControlFormStatistics rolli
+    Note right of Auth: NB: StatisticsController-l puudub<br/>serveripoolne [LjvisAuthenticate].<br/>Ligipääsu kontroll menüü kaudu.
+    UI->>Auth: HasAccessToStatisticFiles()
     Auth-->>UI: Lubatud
     UI->>DB: SELECT kontrollivormide koondandmed<br/>(periood, asutus, vormitüüp)
     DB-->>UI: Statistilised andmed
     UI-->>Kasutaja: Statistikaraport
 
-    Kasutaja->>UI: POST /Statistics/StatisticsReport (eksport) (S-02)
+    Kasutaja->>UI: GET /Dashboard → DownloadStatistics (S-02)
     UI->>DB: SELECT täisandmed
     DB-->>UI: Andmekogum
     UI-->>Kasutaja: Excel-fail (allalaadimine)
@@ -715,11 +752,11 @@ sequenceDiagram
 sequenceDiagram
     actor Admin as Kohaliku asutuse admin
     participant UI as LJVIS (UserController)
-    participant Auth as LjvisAuthenticate<br/>(AdministrateOwnEstablishmentUsers)
+    participant Auth as LjvisAuthenticate<br/>(AdministrateAllUsers,<br/>AdministrateLocalAccountManager)
     participant DB as SQL Server
 
     Admin->>UI: GET /Users/User/Index (A1-01)
-    UI->>Auth: Kontrollib AdministrateOwnEstablishmentUsers
+    UI->>Auth: Kontrollib AdministrateLocalAccountManager
     Auth-->>UI: Lubatud (ainult oma asutus)
     UI->>DB: SELECT kasutajad WHERE asutus = praeguneAsutus
     DB-->>UI: Kasutajate loend
@@ -758,6 +795,7 @@ sequenceDiagram
     UI-->>SA: Kõikide kasutajate nimekiri
 
     SA->>UI: GET /Role/RoleGroupMatrix (SA-03)
+    Note right of SA: Nõuab Ametikoht=="ADMIN",<br/>mitte AdministrateAllUsers rolli
     UI->>DB: SELECT RoleGroup[], Role[], RoleGroup_Role[]
     DB-->>UI: Õiguste maatriks
     UI-->>SA: Rollide ja rolligruppide maatriks
@@ -881,6 +919,14 @@ sequenceDiagram
     DB-->>Dispatcher: OK
     Dispatcher-->>XTee: Kinnituse vastus
     XTee-->>Välis: Ülevaatus kinnitatud
+
+    Välis->>XTee: RegisterJobInspection (X-05)
+    Note right of Välis: {Instance}/GOV/70003158/ljvis/RegisterJobInspection
+    XTee->>Dispatcher: Edastab töökontrolli andmed (v1)
+    Dispatcher->>Raven: INSERT JobInspection (v1)
+    Raven-->>Dispatcher: InspectionId
+    Dispatcher-->>XTee: RegisterJobInspectionResponse
+    XTee-->>Välis: Töökontroll registreeritud (v1)
 
     Välis->>XTee: RegisterJobInspectionV2 (X-06)
     Note right of Välis: {Instance}/GOV/70003158/ljvis/RegisterJobInspectionV2
