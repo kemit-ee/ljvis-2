@@ -33,11 +33,10 @@ SELECT
     u.last_name,
     u.personal_code,
     u.organisation_id,
-    o.name AS organisation_name,
+    (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) AS organisation_name,
     u.email,
     u.status
 FROM users."user" u
-JOIN users.organisation o ON o.id = u.organisation_id
 WHERE u.personal_code = :personal_code
   AND u.status = 'active'
 LIMIT 1;
