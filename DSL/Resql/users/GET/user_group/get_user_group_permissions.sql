@@ -20,10 +20,9 @@ declaration:
         type: string
 */
 SELECT
-    p.id AS permission_id,
-    p.code,
-    p.description
+    ugp.permission_id,
+    (SELECT p.code FROM users.permission p WHERE p.id = ugp.permission_id) AS code,
+    (SELECT p.description FROM users.permission p WHERE p.id = ugp.permission_id) AS description
 FROM users.user_group_permission ugp
-JOIN users.permission p ON p.id = ugp.permission_id
 WHERE ugp.user_group_id = :user_group_id::UUID
-ORDER BY p.code;
+ORDER BY code;

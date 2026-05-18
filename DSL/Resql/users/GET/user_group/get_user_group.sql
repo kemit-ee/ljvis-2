@@ -30,7 +30,10 @@ SELECT
     ug.created_at,
     ug.updated_at
 FROM users.user_group ug
-LEFT JOIN users.user_group_organisation ugo ON ugo.user_group_id = ug.id
 WHERE ug.id = :id::UUID
-  AND (COALESCE(:organisation_id, '') = '' OR ugo.organisation_id = COALESCE(:organisation_id, '')::UUID)
+  AND (COALESCE(:organisation_id, '') = '' OR EXISTS (
+      SELECT 1 FROM users.user_group_organisation ugo
+      WHERE ugo.user_group_id = ug.id
+        AND ugo.organisation_id = COALESCE(:organisation_id, '')::UUID
+  ))
 LIMIT 1;
