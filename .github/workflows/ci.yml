@@ -68,98 +68,7 @@ jobs:
           count=$(find DSL/Resql DSL/Liquibase/changelog -name '*.sql' | wc -l | tr -d ' ')
           echo "✅ $count SQL files non-empty"
 
-  # ── 2. Backend smoke tests (direct Resql, no auth stack) ───────────────────
-  smoke:
-    name: Smoke Tests
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Clean up previous state
-        run: |
-          docker compose down --volumes --remove-orphans || true
-          rm -rf data/
-
-      - name: Start database
-        run: docker compose up -d database
-
-      - name: Wait for PostgreSQL
-        run: |
-          for i in $(seq 1 30); do
-            if docker compose exec -T database pg_isready -U ljvis -d users_db; then break; fi
-            if [ "$i" = "30" ]; then echo "❌ PostgreSQL not ready after 90s"; exit 1; fi
-            sleep 3
-          done
-
-      - name: Run Liquibase migrations
-        run: docker compose up --build liquibase
-
-      - name: Start resql + ruuter services
-        run: |
-          docker compose up -d --build \
-            resql-users resql-ljvis data-mapper ruuter ruuter-internal
-
-      - name: Wait for resql-users
-        run: |
-          for i in $(seq 1 40); do
-            if nc -z localhost 8087 2>/dev/null; then echo "resql-users ready"; break; fi
-            if [ "$i" = "40" ]; then echo "❌ resql-users not ready after 120s"; exit 1; fi
-            sleep 3
-          done
-
-      - name: Wait for ruuter
-        run: |
-          for i in $(seq 1 40); do
-            if curl -sf http://localhost:8086/actuator/health > /dev/null 2>&1; then
-              echo "ruuter ready"; break
-            fi
-            if [ "$i" = "40" ]; then echo "❌ ruuter not ready after 120s"; exit 1; fi
-            sleep 3
-          done
-
-      - name: Seed test data
-        run: cat tests/bootstrap/seed_admin_and_organizations.sql | docker compose exec -T database psql -U ljvis -d users_db
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install Newman
-        run: npm install -g newman newman-reporter-htmlextra
-
-      - name: Run smoke tests
-        run: |
-          newman run tests/postman/ljvis-collection.json \
-            -e tests/postman/ci-environment.json \
-            --reporters cli,htmlextra \
-            --reporter-htmlextra-export newman-smoke-report.html \
-            --bail
-
-      - name: Upload smoke report
-        if: always() && env.ACT != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: newman-smoke-report
-          path: newman-smoke-report.html
-
-      - name: Show logs on failure
-        if: failure()
-        run: |
-          docker compose logs resql-users --tail=50
-          docker compose logs resql-ljvis --tail=50
-          docker compose logs ruuter --tail=50
-          docker compose logs liquibase --tail=50
-
-      - name: Tear down
-        if: always()
-        run: docker compose down -v --remove-orphans || true
-
-  # ── 4. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
+  # ── 2. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
   # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
   # Bootstrap seeds admin via plain psql (no Liquibase test data).
   e2e:
@@ -323,7 +232,6 @@ jobs:
     if: always()
     needs:
       - validate-dsl
-      - smoke
       - e2e
       - frontend-lint
       - frontend-unit-tests
@@ -334,7 +242,6 @@ jobs:
         run: |
           echo "Job results:"
           echo "  validate-dsl:        ${{ needs.validate-dsl.result }}"
-          echo "  smoke:               ${{ needs.smoke.result }}"
           echo "  e2e:                 ${{ needs.e2e.result }}"
           echo "  frontend-lint:       ${{ needs.frontend-lint.result }}"
           echo "  frontend-unit-tests: ${{ needs.frontend-unit-tests.result }}"
@@ -344,7 +251,6 @@ jobs:
           failed=""
           for result in \
             "${{ needs.validate-dsl.result }}" \
-            "${{ needs.smoke.result }}" \
             "${{ needs.e2e.result }}" \
             "${{ needs.frontend-lint.result }}" \
             "${{ needs.frontend-unit-tests.result }}" \

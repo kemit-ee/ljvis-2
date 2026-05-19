@@ -11,6 +11,12 @@ services:
     volumes:
       - ./data:/var/lib/postgresql/data
       - ./DSL/Liquibase/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ljvis -d users_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     networks:
       - ljvisnetwork
 
@@ -20,7 +26,8 @@ services:
       context: .
       dockerfile: docker/liquibase/Dockerfile
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     volumes:
       - ./DSL/Liquibase/liquibase.properties:/liquibase/liquibase.properties
       - ./DSL/Liquibase/changelog:/liquibase/changelog
