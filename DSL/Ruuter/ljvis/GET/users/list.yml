@@ -43,7 +43,7 @@ check_permission:
 extractRequestDataLocal:
   assign:
     page: "${incoming.params.page ?? 1}"
-    page_size: "${incoming.params.pageSize ?? 15}"
+    page_size: "${incoming.params.pageSize ?? 20}"
     sorting: "${incoming.params.sorting ?? 'status asc'}"
     search: "${incoming.params.search ?? ''}"
     organisation_id: "${auth_user.organisationid}"

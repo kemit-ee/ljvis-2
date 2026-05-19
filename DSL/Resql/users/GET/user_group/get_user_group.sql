@@ -10,6 +10,9 @@ declaration:
       - field: id
         type: string
         description: "User group UUID"
+      - field: organisation_id
+        type: string
+        description: "Optional organisation filter"
   response:
     fields:
       - field: id
@@ -22,10 +25,15 @@ declaration:
         type: string
 */
 SELECT
-    id,
-    name,
-    created_at,
-    updated_at
-FROM users.user_group
-WHERE id = :id::UUID
+    ug.id,
+    ug.name,
+    ug.created_at,
+    ug.updated_at
+FROM users.user_group ug
+WHERE ug.id = :id::UUID
+  AND (COALESCE(:organisation_id, '') = '' OR EXISTS (
+      SELECT 1 FROM users.user_group_organisation ugo
+      WHERE ugo.user_group_id = ug.id
+        AND ugo.organisation_id = COALESCE(:organisation_id, '')::UUID
+  ))
 LIMIT 1;

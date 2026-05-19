@@ -1,0 +1,53 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Delete a user from a user group"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: userId
+        type: string
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    user_id: "${incoming.body.userId}"
+
+deleteUser:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/delete_user_group_user"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      user_id: ${user_id}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end

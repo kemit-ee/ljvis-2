@@ -18,9 +18,8 @@ declaration:
         type: string
 */
 SELECT
-    o.id AS organisation_id,
-    o.name
+    ugo.organisation_id,
+    (SELECT o.name FROM users.organisation o WHERE o.id = ugo.organisation_id) AS name
 FROM users.user_group_organisation ugo
-JOIN users.organisation o ON o.id = ugo.organisation_id
 WHERE ugo.user_group_id = :user_group_id::UUID
-ORDER BY o.name;
+ORDER BY name;

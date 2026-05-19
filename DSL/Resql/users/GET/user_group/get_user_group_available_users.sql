@@ -13,9 +13,9 @@ declaration:
       - field: page_size
         type: number
         description: "Items per page"
-      - field: is_local_admin
+      - field: organisation_ids
         type: string
-        description: "Whether the user is a local admin (true/false)"
+        description: "Comma-separated organisation ids"
   response:
     fields:
       - field: id
@@ -57,24 +57,21 @@ SELECT
     (COUNT(*) OVER ())::INTEGER AS total
 FROM users."user" u
 WHERE
-    (COALESCE(:user_group_id, '') = '' OR EXISTS (
-        SELECT 1 FROM users.user_user_group uug
-        WHERE uug.user_id = u.id
-          AND uug.user_group_id = COALESCE(:user_group_id, '')::UUID
-    ))
+    NOT EXISTS (
+        SELECT 1 FROM users.user_user_group uug2
+        WHERE uug2.user_id = u.id
+        AND uug2.user_group_id = COALESCE(:user_group_id, '')::UUID
+    )
   AND (
-    COALESCE(:is_local_admin, 'false') != 'true'
-        OR EXISTS (
-            SELECT 1 FROM users.user_group_organisation ugo
-            WHERE ugo.organisation_id = u.organisation_id
-              AND ugo.organisation_id = :user_organisation_id::UUID
-        )
+    COALESCE(:organisation_ids, '') = ''
+        OR u.organisation_id = ANY(STRING_TO_ARRAY(COALESCE(:organisation_ids, ''), ',')::UUID[])
     )
   AND (
     COALESCE(:search, '') = ''
         OR u.first_name ILIKE '%' || COALESCE(:search, '') || '%'
         OR u.last_name ILIKE '%' || COALESCE(:search, '') || '%'
     )
+  AND u.status = 'active'
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc' THEN u.status END ASC,
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status desc' THEN u.status END DESC,

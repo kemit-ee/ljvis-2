@@ -46,15 +46,26 @@ FROM (
     SELECT
         ug.id,
         ug.name,
-        COALESCE(STRING_AGG(DISTINCT o.name, ', '), '') AS organisations
+        COALESCE(
+            (SELECT STRING_AGG(DISTINCT o.name, ', ')
+             FROM users.user_group_organisation ugo,
+                  users.organisation o
+             WHERE ugo.user_group_id = ug.id
+               AND o.id = ugo.organisation_id),
+            ''
+        ) AS organisations
     FROM users.user_group ug
-    LEFT JOIN users.user_group_organisation ugo ON ugo.user_group_id = ug.id
-    LEFT JOIN users.organisation o ON o.id = ugo.organisation_id
     WHERE
         (
             COALESCE(:search, '') = ''
             OR ug.name ILIKE '%' || COALESCE(:search, '') || '%'
-            OR o.name ILIKE '%' || COALESCE(:search, '') || '%'
+            OR EXISTS (
+                SELECT 1 FROM users.user_group_organisation ugo2,
+                              users.organisation o
+                WHERE ugo2.user_group_id = ug.id
+                  AND o.id = ugo2.organisation_id
+                  AND o.name ILIKE '%' || COALESCE(:search, '') || '%'
+            )
         )
       AND (
         COALESCE(:is_local_admin, 'false') != 'true'
@@ -63,7 +74,6 @@ FROM (
                 WHERE ugo3.user_group_id = ug.id AND ugo3.organisation_id = :user_organisation_id::UUID
             )
         )
-    GROUP BY ug.id, ug.name
 ) sub
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'name asc') = 'name asc' THEN name END ASC,

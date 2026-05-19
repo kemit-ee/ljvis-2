@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import {Button, Heading, TextField, Row, Col, Card, Checkbox, Alert} from '@tedi-design-system/react/tedi';
-import { useUserGroupForm} from './hooks';
+import { useUserGroupForm } from './hooks';
 import {Table, Modal, ModalCloser, ModalProvider, CardContent} from "@tedi-design-system/react/community";
 import type { Organisation } from '../organisations/types';
 import type { Permission } from '../permissions/types';
@@ -17,7 +17,7 @@ export function UserGroupCreatePage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleSaved = (id: string) => {
-    navigate(`/user-groups/${id}`);
+    navigate(`/user-groups/${id}`, { state: { justCreated: true } });
   };
 
   const hasData = () => {
@@ -49,6 +49,8 @@ export function UserGroupCreatePage() {
             id="org-select-all"
             label=" "
             size='large'
+            value=" "
+            name="allOrganisations"
             checked={organisations.length > 0 && selectedOrgs.size === organisations.length}
             onChange={() => toggleAllOrgs()}
           />
@@ -82,6 +84,8 @@ export function UserGroupCreatePage() {
               id="perm-select-all"
               label=" "
               size='large'
+              value=" "
+              name="allPermissions"
               checked={permissions.length > 0 && selectedPerms.size === permissions.length}
               onChange={() => toggleAllPerms()}
             />
@@ -130,21 +134,6 @@ export function UserGroupCreatePage() {
       <form>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <Heading element="h1">{t('userGroups.titleAdd')}</Heading>
-        { (
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Button
-                  type="button"
-                  visualType="secondary"
-                  onClick={handleCancel}
-              >
-                {t('userGroups.cancel')}
-              </Button>
-              <Button onClick={handleSave} disabled={saving}
-              >
-                {t('userGroups.save')}
-              </Button>
-            </div>
-        )}
       </div>
 
       <div>
@@ -224,23 +213,22 @@ export function UserGroupCreatePage() {
           </Col>
         </Row>
       </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', justifyContent: 'flex-end' }}>
-        {(
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Button
-                  type="button"
-                  visualType="secondary"
-                  onClick={handleCancel}
-              >
-                {t('userGroups.cancel')}
-              </Button>
-              <Button onClick={handleSave} disabled={saving}
-              >
-                {t('userGroups.save')}
-              </Button>
-            </div>
-        )}
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', justifyContent: 'flex-end' }}>
+          {(
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <Button
+                      type="button"
+                      visualType="secondary"
+                      onClick={handleCancel}
+                  >
+                      {t('userGroups.cancel')}
+                  </Button>
+                  <Button onClick={handleSave} disabled={saving}
+                  >
+                      {t('userGroups.save')}
+                  </Button>
+              </div>
+          )}
       </div>
       </form>
       {showConfirmModal && (

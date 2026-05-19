@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Get list of users belonging to a user group with pagination, sorting, and search"
+  description: "Get list of available users for a user group with pagination, sorting and search"
   method: get
   accepts: json
   returns: json
@@ -23,6 +23,9 @@ declaration:
       - field: userGroupId
         type: string
         description: "Filter by user group"
+      - field: organisationIds
+        type: string
+        description: "Filter by organisations"
 
 authenticate:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -47,22 +50,21 @@ extractRequestData:
     sorting: "${incoming.params.sorting ?? 'status asc'}"
     search: "${incoming.params.search ?? ''}"
     user_group_id: "${incoming.params.userGroupId}"
-    is_local_admin: "${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_list_local') >= 0 && auth_user.permissions.indexOf('perm_user_group_list_admin') < 0}"
-    user_organisation_id: "${auth_user.organisationid ?? ''}"
+    organisation_ids: "${incoming.params.organisationIds ?? ''}"
   next: getUsers
 
 getUsers:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group_users"
+    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group_available_users"
     query:
       page: ${page}
       page_size: ${page_size}
       sorting: ${sorting}
       search: ${search}
       user_group_id: ${user_group_id}
-      is_local_admin: ${is_local_admin}
-      user_organisation_id: ${user_organisation_id}
+      organisation_ids: ${organisation_ids}
+
   result: res
 
 mapResponse:
