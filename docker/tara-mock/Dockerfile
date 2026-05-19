@@ -25,6 +25,9 @@ COPY docker/tara-mock/v3.ext         /genkeys/v3.ext
 COPY docker/tara-mock/entrypoint.sh  /entrypoint.sh
 RUN chmod +x /entrypoint.sh /service/tara-mock-server
 
+# Windows alternative command if upper command fails
+#RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh /service/tara-mock-server
+
 # /service/vault is always a Docker named volume (shared with TIM for CA cert)
 # /service/identities.json is mounted from docker/tara-mock/identities.json at runtime
 VOLUME ["/service/vault"]
