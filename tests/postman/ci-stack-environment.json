@@ -1,0 +1,59 @@
+{
+  "id": "ljvis-ci-stack-env",
+  "name": "LJVIS — CI Stack (ports 9xxx)",
+  "values": [
+    {
+      "key": "api_url",
+      "value": "http://localhost:9086",
+      "enabled": true,
+      "description": "Ruuter — CI stack (port 9086, isolated from dev stack on 8086)"
+    },
+    {
+      "key": "resql_users_url",
+      "value": "http://localhost:9087/users",
+      "enabled": true
+    },
+    {
+      "key": "resql_ljvis_url",
+      "value": "http://localhost:9090/ljvis",
+      "enabled": true
+    },
+    {
+      "key": "tim_url",
+      "value": "http://localhost:9085",
+      "enabled": true
+    },
+    {
+      "key": "pc_admin",
+      "value": "38001085718",
+      "enabled": true,
+      "description": "Super Admin personal code — seeded by tests/bootstrap/seed-admin.sql"
+    },
+    {
+      "key": "pc_org_admin",
+      "value": "48004115799",
+      "enabled": true
+    },
+    {
+      "key": "pc_user",
+      "value": "39001011234",
+      "enabled": true
+    },
+    {
+      "key": "cookie_admin",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "baseline_org_count",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "created_org_id",
+      "value": "",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

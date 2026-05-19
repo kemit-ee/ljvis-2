@@ -1,0 +1,85 @@
+{
+  "id": "ljvis-ci-env",
+  "name": "LJVIS — CI",
+  "values": [
+    {
+      "key": "resql_users_url",
+      "value": "http://localhost:8087/users",
+      "enabled": true,
+      "description": "Direct resql-users endpoint (no auth). Used in smoke tests."
+    },
+    {
+      "key": "resql_ljvis_url",
+      "value": "http://localhost:8090/ljvis",
+      "enabled": true,
+      "description": "Direct resql-ljvis endpoint (no auth)."
+    },
+    {
+      "key": "api_url",
+      "value": "http://localhost:8086",
+      "enabled": true,
+      "description": "Ruuter base URL (auth-protected endpoints require JWT cookie)."
+    },
+    {
+      "key": "tim_url",
+      "value": "http://localhost:8085",
+      "enabled": true,
+      "description": "TIM base URL (internal — used in dev-login Ruuter endpoint)."
+    },
+    {
+      "key": "pc_admin",
+      "value": "38001085718",
+      "enabled": true,
+      "description": "Super Admin personal code (perm_*_admin, Politsei- ja Piirivalveamet)"
+    },
+    {
+      "key": "pc_org_admin",
+      "value": "48004115799",
+      "enabled": true,
+      "description": "Org Admin personal code (perm_*_local, Justiitsministeerium)"
+    },
+    {
+      "key": "pc_user",
+      "value": "39001011234",
+      "enabled": true,
+      "description": "Regular user personal code (no management permissions)"
+    },
+    {
+      "key": "org_id_justice",
+      "value": "a0000000-0000-4000-8000-000000000001",
+      "enabled": true,
+      "description": "Justiitsministeerium organisation ID"
+    },
+    {
+      "key": "org_id_police",
+      "value": "a0000000-0000-4000-8000-000000000002",
+      "enabled": true,
+      "description": "Politsei- ja Piirivalveamet organisation ID"
+    },
+    {
+      "key": "cookie_admin",
+      "value": "",
+      "enabled": true,
+      "description": "Set by Login Setup — Super Admin JWT cookie"
+    },
+    {
+      "key": "cookie_org_admin",
+      "value": "",
+      "enabled": true,
+      "description": "Set by Login Setup — Org Admin JWT cookie"
+    },
+    {
+      "key": "cookie_user",
+      "value": "",
+      "enabled": true,
+      "description": "Set by Login Setup — Regular user JWT cookie"
+    },
+    {
+      "key": "test_user_code",
+      "value": "",
+      "enabled": true,
+      "description": "Generated unique personal code for insert tests"
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
