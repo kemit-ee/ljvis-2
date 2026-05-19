@@ -1,4 +1,4 @@
-# LJVIS – Andmevoogude sequence diagrammid
+# LJVIS1 – Andmevoogude sequence diagrammid
 
 ## 1. Kasutaja autentimine (TARA)
 
