@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { LabelProvider } from '@tedi-design-system/react/tedi';
 import type { ReactNode } from 'react';
 
-type TediLocale = 'et' | 'en' | 'ru';
+export type TediLocale = 'et' | 'en';
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation();

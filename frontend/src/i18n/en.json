@@ -136,7 +136,8 @@
     "look": "View",
     "close": "Close",
     "search": "Search",
-    "remove": "Remove"
+    "remove": "Remove",
+    "space": " "
   },
   "footer": {
     "help": "Help",
@@ -144,6 +145,7 @@
     "title": "Traffic Supervision Information System",
     "faq": "FAQ",
     "cookies": "Cookies",
-    "privacy": "Privacy policy"
+    "privacy": "Privacy policy",
+    "logoAlt": "COMING"
   }
 }

@@ -1,14 +1,21 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { SideNavProps, SideNavItem } from '@tedi-design-system/react/tedi';
 import { SideNav } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../features/auth/AuthContext';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { BREAKPOINTS, PERMISSIONS } from '../constants/constants';
 import styles from './SideNavWrapper.module.css';
 
-export function useSideNavProps(): SideNavProps<typeof Link> {
+interface UseSideNavPropsResult {
+  sideNav: React.ReactNode;
+  toggleButton: React.ReactNode;
+  isMobileOpen: boolean;
+  isDesktop: boolean;
+  closeSideNav: () => void;
+}
+
+export function useSideNavProps(): UseSideNavPropsResult {
   const { pathname } = useLocation();
   const { t } = useTranslation();
   const { hasAnyPermission } = useAuth();
@@ -22,8 +29,8 @@ export function useSideNavProps(): SideNavProps<typeof Link> {
     }
   }, [pathname]);
 
-  const navItems: SideNavItem<typeof Link>[] = React.useMemo(() => {
-    const items: SideNavItem<typeof Link>[] = [];
+  const navItems = React.useMemo(() => {
+    const items: Parameters<typeof SideNav>[0]['navItems'] = [];
 
     const adminSubItems = [];
 

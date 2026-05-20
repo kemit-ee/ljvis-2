@@ -1,0 +1,16 @@
+:global(#users-table) td,
+:global(#users-table) th {
+  border-left: 1px solid #e5e7eb;
+}
+
+:global(#users-table) td:first-child,
+:global(#users-table) th:first-child {
+  border-left: none;
+  width: 1% !important;
+}
+
+:global(#users-table) td:last-child,
+:global(#users-table) th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}

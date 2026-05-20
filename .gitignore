@@ -20,6 +20,8 @@ tim-db/
 .env.local
 .env.*.local
 
+.ai
+
 # Task/test documentation (local only)
 TASK-*.md
 TEST-*.md

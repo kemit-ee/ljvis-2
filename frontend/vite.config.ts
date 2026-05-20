@@ -1,8 +1,15 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import checker from 'vite-plugin-checker';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    checker({
+      typescript: { tsconfigPath: './tsconfig.app.json' },
+      overlay: false,
+    }),
+  ],
   server: {
     port: 3001,
     proxy: {
@@ -20,7 +27,7 @@ export default defineConfig({
             const sc = proxyRes.headers['set-cookie'];
             if (sc) {
               proxyRes.headers['set-cookie'] = sc.map((c: string) =>
-                c.replace(/SameSite=None/i, 'SameSite=Lax')
+                c.replace(/SameSite=None/i, 'SameSite=Lax'),
               );
             }
           });
@@ -28,4 +35,4 @@ export default defineConfig({
       },
     },
   },
-})
+});

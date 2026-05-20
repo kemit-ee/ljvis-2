@@ -137,7 +137,8 @@
     "look": "Vaata",
     "close": "Sulge",
     "search": "Otsi",
-    "remove": "Eemalda"
+    "remove": "Eemalda",
+    "space": " "
   },
   "footer": {
     "help": "Abi",
@@ -145,6 +146,7 @@
     "title": "Liiklusjärelvalve infosüsteem",
     "faq": "KKK",
     "cookies": "Küpsised",
-    "privacy": "Privaatsussätted"
+    "privacy": "Privaatsussätted",
+    "logoAlt": "Euroopa Sotsiaalfond"
   }
 }

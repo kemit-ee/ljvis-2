@@ -1,0 +1,39 @@
+:global(#users-table) td,
+:global(#users-table) th {
+  border-left: 1px solid #e5e7eb;
+}
+
+:global(#users-table) td:first-child,
+:global(#users-table) th:first-child {
+  border-left: none;
+}
+
+:global(#users-table) td:last-child,
+:global(#users-table) th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}
+
+:global(#organisations-table) td:first-child,
+:global(#organisations-table) th:first-child,
+:global(#permissions-table) td:first-child,
+:global(#permissons-table) th:first-child {
+  width: 1% !important;
+}
+
+:global(#organisations-table) td:nth-child(2),
+:global(#organisations-table) th:nth-child(2),
+:global(#permissions-table) td:nth-child(2),
+:global(#permissions-table) th:nth-child(2) {
+  padding-left: 0 !important;
+}
+
+:global(#permissions-table) th:nth-child(2) {
+  justify-items: start !important;
+}
+
+.action-cell {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
