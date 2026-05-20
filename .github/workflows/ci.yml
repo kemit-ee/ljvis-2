@@ -79,6 +79,9 @@ jobs:
     name: Security Scan (Trivy)
     runs-on: ubuntu-22.04
     continue-on-error: true
+#    permissions:
+#      security-events: write
+#      contents: read
 
     steps:
       - name: Checkout
@@ -97,8 +100,21 @@ jobs:
           trivy fs frontend/ \
             --scanners vuln \
             --severity CRITICAL,HIGH \
+#            --format sarif \
+#            --output trivy-frontend.sarif \
             --format table \
             --exit-code 0
+          # When repo is public, replace --format table with:
+          #   --format sarif --output trivy-frontend.sarif
+          # and uncomment the upload step below
+
+      # Upload SARIF — re-enable when repo is made public (requires GitHub Advanced Security)
+      # - name: Upload SARIF to GitHub Security
+      #   if: always() && env.ACT != 'true'
+      #   uses: github/codeql-action/upload-sarif@v4
+      #   with:
+      #     sarif_file: trivy-frontend.sarif
+      #     category: trivy-frontend
 
       # Helm chart misconfigurations — re-enable when helm charts branch is merged
       # - name: Trivy — Helm chart misconfigurations
