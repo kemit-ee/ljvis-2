@@ -6,6 +6,7 @@ name: CI
 # add `if: false` to that job — the quality gate treats skipped as passing.
 
 on:
+  workflow_dispatch:  # allows manual trigger from GitHub Actions UI
   push:
     branches: [main, dev]
     paths:
@@ -14,6 +15,7 @@ on:
       - 'constants.ini'
       - 'tests/**'
       - 'frontend/**'
+      - '.github/workflows/**'
       # - 'charts/**'  # re-enable when helm charts branch is merged
   pull_request:
     branches: [main, dev]
