@@ -87,35 +87,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
       - name: Trivy — secret detection (whole repo)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: '.'
-          scanners: secret
-          format: table
-          exit-code: '1'
+        run: trivy fs . --scanners secret --format table --exit-code 1
 
       - name: Trivy — frontend dependency CVEs
         if: always()
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: frontend/
-          scanners: vuln
-          severity: CRITICAL,HIGH
-          format: sarif
-          output: trivy-frontend.sarif
-          exit-code: '0'
+        run: |
+          trivy fs frontend/ \
+            --scanners vuln \
+            --severity CRITICAL,HIGH \
+            --format sarif \
+            --output trivy-frontend.sarif \
+            --exit-code 0
 
-      # - name: Trivy — Helm chart misconfigurations  # re-enable when helm charts branch is merged
-      #   if: always() && hashFiles('charts/Chart.yaml') != ''
-      #   uses: aquasecurity/trivy-action@0.28.0
-      #   with:
-      #     scan-type: config
-      #     scan-ref: charts/
-      #     format: table
-      #     exit-code: '0'
+      # Helm chart misconfigurations — re-enable when helm charts branch is merged
+      # - name: Trivy — Helm chart misconfigurations
+      #   if: always()
+      #   run: trivy config charts/ --format table --exit-code 0
 
       - name: Upload SARIF to GitHub Security
         if: always() && env.ACT != 'true'
