@@ -1,0 +1,17 @@
+:global(#organisations-table) td:first-child,
+:global(#organisations-table) th:first-child,
+:global(#permissions-table) td:first-child,
+:global(#permissons-table) th:first-child {
+  width: 1% !important;
+}
+
+:global(#organisations-table) td:nth-child(2),
+:global(#organisations-table) th:nth-child(2),
+:global(#permissions-table) td:nth-child(2),
+:global(#permissions-table) th:nth-child(2) {
+  padding-left: 0 !important;
+}
+
+:global(#permissions-table) th:nth-child(2) {
+  justify-items: start !important;
+}

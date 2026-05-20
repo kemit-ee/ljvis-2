@@ -6,73 +6,83 @@ import {
   HeaderContent,
   HeaderLanguage,
   HeaderSettings,
-  HeaderRole
+  HeaderRole,
 } from '@tedi-design-system/react/community';
 import { Row, StretchContent, Button } from '@tedi-design-system/react/tedi';
-import { useAuth } from '../features/auth/AuthContext';
-import {BREAKPOINTS} from "../constants/constants";
+import { useAuth } from '../features/auth/useAuth';
+import type { TediLocale } from '../AppProviders';
+import { BREAKPOINTS } from '../constants/constants';
+import './useHeaderProps.css';
 
-const LANGUAGES = [
-  { code: 'et', label: 'Eesti keeles' },
-  { code: 'en', label: 'In English' },
-  { code: 'ru', label: 'На русском' },
-] as const;
+const LANGUAGES: { code: TediLocale; label: string }[] = [
+  { code: 'et', label: 'ET' },
+  { code: 'en', label: 'EN' },
+];
 
 export function useHeaderProps(): HeaderProps<'a'> {
-  const { i18n } = useTranslation();
   const { user, logout } = useAuth();
-  const lang = i18n.language;
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language?.slice(0, 2);
 
   return {
     logo: {
-      imageUrl: '/assets/klim_logo.svg'
+      imageUrl: '/assets/klim_logo.svg',
     },
     children: (
-      <React.Fragment key=".0">
-        <HeaderContent>
-          <StretchContent direction="horizontal">
-            <Row alignItems="center" justifyContent="end" gap={3} />
-          </StretchContent>
-        </HeaderContent>
-        {isDesktop && (
-            <HeaderRole
-                primaryInfo={`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
-            >
-              {() => (
-                  <Button visualType="link"
-                  >
-                    {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
-                  </Button>
-              )}
-            </HeaderRole>
-        )}
-        <HeaderSettings
-            onActionClick={logout}
-            iconName="account_circle"
-        >
-          {!isDesktop ? () => (
-              <div>
-                {user && (
-                    <div style={{borderBottom: '4px solid #005aa3'}}>
-                      <HeaderRole
-                          primaryInfo={`${user.firstname} ${user.lastname}`}
-                          renderModal={true}
-                          label=''
-                      >
-                        {() => (
-                            <Button visualType="link"
-                            >
-                              {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
-                            </Button>
-                        )}
-                      </HeaderRole>
-                    </div>
+        <React.Fragment key=".0">
+          <HeaderContent>
+            <StretchContent direction="horizontal">
+              <Row alignItems="center" justifyContent="end" gap={3}>
+                <HeaderLanguage
+                    languages={LANGUAGES.map(({ code, label }) => ({
+                      label,
+                      isSelected: currentLang === code,
+                      'aria-label': label,
+                      onClick: ({ onToggle }) => {
+                        i18n.changeLanguage(code);
+                        onToggle(false);
+                      },
+                    }))}
+                />
+              </Row>
+            </StretchContent>
+          </HeaderContent>
+          {isDesktop && (
+              <HeaderRole
+                  primaryInfo={`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
+              >
+                {() => (
+                    <Button visualType="link">
+                      {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
+                    </Button>
                 )}
-              </div>
-          ) : undefined}
-        </HeaderSettings>
-      </React.Fragment>
+              </HeaderRole>
+          )}
+          <HeaderSettings onActionClick={logout} iconName="account_circle">
+            {!isDesktop
+                ? () => (
+                    <div>
+                      {user && (
+                          <div className="header-role-border">
+                            <HeaderRole
+                                primaryInfo={`${user.firstname} ${user.lastname}`}
+                                renderModal={true}
+                                label=""
+                            >
+                              {() => (
+                                  <Button visualType="link">
+                                    {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
+                                  </Button>
+                              )}
+                            </HeaderRole>
+                          </div>
+                      )}
+                    </div>
+                )
+                : undefined}
+          </HeaderSettings>
+        </React.Fragment>
     ),
     skipLinks: {
       links: [{ children: 'Skip to content', href: '#main-content' }],

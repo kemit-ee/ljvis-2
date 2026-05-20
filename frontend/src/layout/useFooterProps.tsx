@@ -8,12 +8,13 @@ export function useFooterProps(): FooterProps {
 
   return {
     logo: {
-      src: '/assets/sf_logo_vertikaalne.svg'
+      src: '/assets/sf_logo_vertikaalne.svg',
+      alt: t('footer.logoAlt', 'Euroopa Sotsiaalfond')
     },
     categories: [
       {
         elements: [
-          <Text modifiers="bold h6">{t('footer.department')}</Text>,
+          <Text modifiers={['bold', 'h6']}>{t('footer.department')}</Text>,
           <Anchor color="inverted" href="mailto:ljvis@kliimaministeerium.ee">ljvis@kliimaministeerium.ee</Anchor>,
           <Anchor color="inverted" href="tel:+3726262802">+372 626 2802 (E-N 8.30-16.00, R 8.30-15.30) </Anchor>,
         ],

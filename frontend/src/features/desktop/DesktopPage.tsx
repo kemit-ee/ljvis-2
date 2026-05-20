@@ -7,7 +7,7 @@ export function DesktopPage() {
 
   return (
     <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div className="card-main">
             <Heading element="h1">{t('desktop.title')}</Heading>
         </div>
     </div>

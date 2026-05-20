@@ -27,4 +27,5 @@ export interface UserGroupUser {
   personalCode: string;
   organisationName: string;
   status: string;
+  isAdditionalGroupRow?: boolean;
 }

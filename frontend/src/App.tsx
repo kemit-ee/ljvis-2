@@ -2,14 +2,14 @@ import { Suspense } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { AppLayout } from './layout/AppLayout';
 import { DesktopPage } from './features/desktop/DesktopPage';
-import { UserListPage } from './features/users/UserListPage';
-import { UserCreatePage } from './features/users/UserCreatePage';
-import { UserDetailPage } from './features/users/UserDetailPage';
-import { UserGroupListPage } from './features/user-groups/UserGroupListPage';
-import { UserGroupCreatePage } from './features/user-groups/UserGroupCreatePage';
-import { UserGroupAddUserPage } from './features/user-groups/UserGroupAddUserPage';
-import { UserGroupDetailPage } from './features/user-groups/UserGroupDetailPage';
-import { LoginPage } from './features/auth/LoginPage';
+import { UserListPage } from './features/users/pages/UserListPage/UserListPage';
+import { UserCreatePage } from './features/users/pages/UserCreatePage/UserCreatePage';
+import { UserDetailPage } from './features/users/pages/UserDetailPage/UserDetailPage';
+import { UserGroupListPage } from './features/user-groups/pages/UserGroupListPage/UserGroupListPage';
+import { UserGroupCreatePage } from './features/user-groups/pages/UserGroupCreatePage/UserGroupCreatePage';
+import { UserGroupAddUserPage } from './features/user-groups/pages/UserGroupAddUserPage/UserGroupAddUserPage';
+import { UserGroupDetailPage } from './features/user-groups/pages/UserGroupDetailPage/UserGroupDetailPage';
+import { LoginPage } from './features/auth/LoginPage/LoginPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 
 function AppRoutes() {

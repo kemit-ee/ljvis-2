@@ -20,6 +20,13 @@ import type { Permission } from '../permissions/types';
 import { listPermissions } from '../permissions/api';
 
 // ---------------------------------------------------------------------------
+// Helper: check if error has a specific HTTP status
+// ---------------------------------------------------------------------------
+function hasStatus(e: unknown, status: number): boolean {
+  return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === status;
+}
+
+// ---------------------------------------------------------------------------
 // Data hook: user group list with search
 // ---------------------------------------------------------------------------
 function toSnakeCase(str: string): string {
@@ -201,7 +208,7 @@ export function useUserGroupDetail(id: string | undefined) {
       setUsers(u);
       setTotalRows(u.length);
     } catch (e) {
-      if (e?.status === 403) {
+      if (hasStatus(e, 403)) {
         setForbidden(true);
       } else {
         console.error('Failed to load group', e);
@@ -219,7 +226,7 @@ export function useUserGroupDetail(id: string | undefined) {
   const startEditName = () => {
     setEditName(group?.name ?? '');
     setEditingName(true);
-    setNameError(false);
+    setNameError('');
   };
 
   const saveName = async () => {

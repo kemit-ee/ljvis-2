@@ -12,6 +12,13 @@ import { listOrganisations } from '../organisations/api';
 import { useAuth } from '../auth/AuthContext';
 
 // ---------------------------------------------------------------------------
+// Helper: check if error has a specific HTTP status
+// ---------------------------------------------------------------------------
+function hasStatus(e: unknown, status: number): boolean {
+  return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === status;
+}
+
+// ---------------------------------------------------------------------------
 // Helper: convert camelCase to snake_case
 // ---------------------------------------------------------------------------
 function toSnakeCase(str: string): string {
@@ -21,10 +28,18 @@ function toSnakeCase(str: string): string {
 // ---------------------------------------------------------------------------
 // Helper: convert DD.MM.YYYY to YYYY-MM-DD
 // ---------------------------------------------------------------------------
-function toIsoDate(value): string {
+function toIsoDate(value: unknown): string {
   if (!value) return '';
-  if (value?.$isDayjsObject) return value.format('YYYY-MM-DD');
-  return value;
+  if (
+      typeof value === 'object' &&
+      value !== null &&
+      '$isDayjsObject' in value
+  ) {
+    return (value as unknown as { format: (fmt: string) => string }).format(
+        'YYYY-MM-DD',
+    );
+  }
+  return String(value);
 }
 
 // ---------------------------------------------------------------------------
@@ -137,7 +152,7 @@ export function useUserDetail(id: string | undefined) {
       setUser(users[0] ?? null);
       setGroups(userGroups);
     } catch (e) {
-      if (e?.status === 403) {
+      if (hasStatus(e, 403)) {
         setForbidden(true);
       } else {
         console.error('Failed to load user', e);
@@ -199,7 +214,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
           const result = await checkPersonalCodeConflict(value, user?.id ?? '');
           return result.length === 0;
         } catch (e) {
-          if (e?.status === 409) {
+          if (hasStatus(e, 409)) {
             return false;
           }
           return true;
