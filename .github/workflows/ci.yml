@@ -79,9 +79,6 @@ jobs:
     name: Security Scan (Trivy)
     runs-on: ubuntu-22.04
     continue-on-error: true
-    permissions:
-      security-events: write
-      contents: read
 
     steps:
       - name: Checkout
@@ -100,21 +97,13 @@ jobs:
           trivy fs frontend/ \
             --scanners vuln \
             --severity CRITICAL,HIGH \
-            --format sarif \
-            --output trivy-frontend.sarif \
+            --format table \
             --exit-code 0
 
       # Helm chart misconfigurations — re-enable when helm charts branch is merged
       # - name: Trivy — Helm chart misconfigurations
       #   if: always()
       #   run: trivy config charts/ --format table --exit-code 0
-
-      - name: Upload SARIF to GitHub Security
-        if: always() && env.ACT != 'true'
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-frontend.sarif
-          category: trivy-frontend
 
   # ── 3. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
   # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
