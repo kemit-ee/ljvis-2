@@ -100,8 +100,6 @@ jobs:
           trivy fs frontend/ \
             --scanners vuln \
             --severity CRITICAL,HIGH \
-#            --format sarif \
-#            --output trivy-frontend.sarif \
             --format table \
             --exit-code 0
           # When repo is public, replace --format table with:
