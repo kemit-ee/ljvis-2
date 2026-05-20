@@ -14,6 +14,7 @@ on:
       - 'constants.ini'
       - 'tests/**'
       - 'frontend/**'
+      # - 'charts/**'  # re-enable when helm charts branch is merged
   pull_request:
     branches: [main, dev]
     paths:
@@ -22,6 +23,7 @@ on:
       - 'constants.ini'
       - 'tests/**'
       - 'frontend/**'
+      # - 'charts/**'  # re-enable when helm charts branch is merged
 
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -68,7 +70,59 @@ jobs:
           count=$(find DSL/Resql DSL/Liquibase/changelog -name '*.sql' | wc -l | tr -d ' ')
           echo "✅ $count SQL files non-empty"
 
-  # ── 2. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
+  # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
+  # Runs in parallel with DSL validation — no stack needed.
+  # continue-on-error: true — establish baseline first, then tighten.
+  security-scan:
+    name: Security Scan (Trivy)
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Trivy — secret detection (whole repo)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: '.'
+          scanners: secret
+          format: table
+          exit-code: '1'
+
+      - name: Trivy — frontend dependency CVEs
+        if: always()
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: frontend/
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          format: sarif
+          output: trivy-frontend.sarif
+          exit-code: '0'
+
+      # - name: Trivy — Helm chart misconfigurations  # re-enable when helm charts branch is merged
+      #   if: always() && hashFiles('charts/Chart.yaml') != ''
+      #   uses: aquasecurity/trivy-action@0.28.0
+      #   with:
+      #     scan-type: config
+      #     scan-ref: charts/
+      #     format: table
+      #     exit-code: '0'
+
+      - name: Upload SARIF to GitHub Security
+        if: always() && env.ACT != 'true'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-frontend.sarif
+          category: trivy-frontend
+
+  # ── 3. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
   # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
   # Bootstrap seeds admin via plain psql (no Liquibase test data).
   e2e:
@@ -127,6 +181,26 @@ jobs:
           name: newman-e2e-report
           path: newman-e2e-report.html
 
+      - name: ZAP — baseline scan (stack already running)
+        run: |
+          mkdir -p zap-reports
+          docker run --rm \
+            --network host \
+            -v "$(pwd)/zap-reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+              -t http://localhost:9086 \
+              -r zap-report.html \
+              -J zap-report.json \
+              -I || true
+
+      - name: Upload ZAP report
+        if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap-reports/
+
       - name: Show logs on failure
         if: failure()
         run: |
@@ -163,6 +237,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: npm audit
+        run: npm audit --audit-level=high || true
 
       - name: Lint
         run: npm run lint
@@ -232,6 +309,7 @@ jobs:
     if: always()
     needs:
       - validate-dsl
+      - security-scan
       - e2e
       - frontend-lint
       - frontend-unit-tests
@@ -242,6 +320,7 @@ jobs:
         run: |
           echo "Job results:"
           echo "  validate-dsl:        ${{ needs.validate-dsl.result }}"
+          echo "  security-scan:       ${{ needs.security-scan.result }}"
           echo "  e2e:                 ${{ needs.e2e.result }}"
           echo "  frontend-lint:       ${{ needs.frontend-lint.result }}"
           echo "  frontend-unit-tests: ${{ needs.frontend-unit-tests.result }}"
@@ -251,6 +330,7 @@ jobs:
           failed=""
           for result in \
             "${{ needs.validate-dsl.result }}" \
+            "${{ needs.security-scan.result }}" \
             "${{ needs.e2e.result }}" \
             "${{ needs.frontend-lint.result }}" \
             "${{ needs.frontend-unit-tests.result }}" \
