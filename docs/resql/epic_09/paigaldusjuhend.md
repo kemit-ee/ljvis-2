@@ -8,20 +8,20 @@ generated: 2026-05-21
 
 ## Ülevaade
 
-Selle EPICu failid loodi otse `Resql/DSL/dev/` ja `Ruuter/DSL/dev/` alla branchis `feature/epic_09_dsl`.
+Selle EPICu failid loodi otse `DSL/Resql/` ja `DSL/Ruuter/` alla branchis `feature/epic_09_dsl`.
 
 ## SQL failid (RESQL)
 
-- Asukoht: `Resql/DSL/dev/POST/iam/classifier/*.sql`
-- Asukoht: `Resql/DSL/dev/POST/iam/classifier_value/*.sql`
+- Asukoht: `DSL/Resql/iam/POST/classifier/*.sql`
+- Asukoht: `DSL/Resql/iam/POST/classifier_value/*.sql`
 
 ## Ruuter failid
 
-- Asukoht: `Ruuter/DSL/dev/POST/iam/classifier/*.yml`
-- Asukoht: `Ruuter/DSL/dev/POST/iam/classifier_value/*.yml`
+- Asukoht: `DSL/Ruuter/POST/iam/classifier/*.yml`
+- Asukoht: `DSL/Ruuter/POST/iam/classifier_value/*.yml`
 - Guardid:
-  - `Ruuter/DSL/dev/POST/iam/classifier/.guard`
-  - `Ruuter/DSL/dev/POST/iam/classifier_value/.guard`
+  - `DSL/Ruuter/POST/iam/classifier/.guard`
+  - `DSL/Ruuter/POST/iam/classifier_value/.guard`
 
 ## Kontrolljärjekord
 

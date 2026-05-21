@@ -1,0 +1,53 @@
+# update.yml — uuendab klassifikaatori väärtuse kehtivusperioodi (append-only)
+
+checkJwt:
+  call: http.post
+  args:
+    url: "[#TIM_URL]/jwt/verify"
+    body:
+      jwt: ${incoming.headers.Authorization}
+  result: jwt
+  next: checkPermission
+
+checkPermission:
+  switch:
+    - condition: "${jwt.response.body.permissions.includes('classifier_value.edit')}"
+      next: validate
+  next: forbidden
+
+validate:
+  switch:
+    - condition: ${!incoming.body || !incoming.body.classifierValueId}
+      next: bad_request
+    - condition: ${!incoming.body.validFrom}
+      next: bad_request
+    - condition: ${!incoming.body.createdBy}
+      next: bad_request
+  next: call_db
+
+call_db:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/dev/iam/classifier_value/update"
+    body:
+      classifierValueId: ${incoming.body.classifierValueId}
+      validFrom: ${incoming.body.validFrom}
+      validUntil: ${incoming.body.validUntil}
+      createdBy: ${incoming.body.createdBy}
+  result: db_response
+  next: respond
+
+respond:
+  wrapper: false
+  return: ${db_response.response.body}
+  next: end
+
+bad_request:
+  status: 400
+  return: "Missing required field(s)"
+  next: end
+
+forbidden:
+  status: 403
+  return: "Access denied"
+  next: end

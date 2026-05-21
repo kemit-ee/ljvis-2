@@ -1,0 +1,26 @@
+# .guard — ligipääsukontroll klassifikaatori väärtuste endpointidele
+
+checkJwt:
+  call: http.post
+  args:
+    url: "[#TIM_URL]/jwt/verify"
+    body:
+      jwt: ${incoming.headers.Authorization}
+  result: jwt
+  next: checkPermission
+
+checkPermission:
+  switch:
+    - condition: "${jwt.response.body.permissions.includes('classifier.read')}"
+      next: proceed
+    - condition: "${jwt.response.body.permissions.includes('classifier_value.edit')}"
+      next: proceed
+  next: forbidden
+
+forbidden:
+  return: "Access denied"
+  status: 403
+  next: end
+
+proceed:
+  next: end

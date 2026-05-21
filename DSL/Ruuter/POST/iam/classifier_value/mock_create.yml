@@ -1,0 +1,13 @@
+# mock_create.yml — väärtuse lisamise mock
+
+call_mock:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/dev/iam/classifier_value/mock_create"
+  result: mock_response
+  next: respond
+
+respond:
+  wrapper: false
+  return: ${mock_response.response.body}
+  next: end
