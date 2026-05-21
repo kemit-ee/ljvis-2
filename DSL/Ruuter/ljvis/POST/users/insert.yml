@@ -78,7 +78,7 @@ checkUser:
   switch:
     - condition: ${field_error != 'valid'}
       next: propagate_error
-  next: createUser
+  next: checkPersonalCodeConflict
 
 checkPersonalCodeConflict:
   call: http.get

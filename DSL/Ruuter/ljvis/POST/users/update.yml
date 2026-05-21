@@ -127,11 +127,6 @@ propagate_error:
   return: ${field_error}
   next: end
 
-return_conflict:
-  status: 409
-  return: "personal code already exists"
-  next: end
-
 return_forbidden:
   status: 403
   return: "insufficient permissions"

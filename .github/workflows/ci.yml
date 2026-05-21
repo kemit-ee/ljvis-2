@@ -61,6 +61,75 @@ jobs:
           print(f'✅  {len(list(glob.glob("DSL/Ruuter/**/*.yml", recursive=True)))} YAML files valid')
           EOF
 
+      - name: Check for unreachable DSL steps
+        run: |
+          pip3 install pyyaml -q
+          python3 - <<'EOF'
+          import yaml, glob, sys
+
+          def collect_next_refs(obj):
+              refs = set()
+              if isinstance(obj, dict):
+                  for k, v in obj.items():
+                      if k == 'next' and isinstance(v, str):
+                          refs.add(v)
+                      else:
+                          refs.update(collect_next_refs(v))
+              elif isinstance(obj, list):
+                  for item in obj:
+                      refs.update(collect_next_refs(item))
+              return refs
+
+          def has_next_key(obj):
+              if isinstance(obj, dict):
+                  if 'next' in obj:
+                      return True
+                  return any(has_next_key(v) for v in obj.values())
+              elif isinstance(obj, list):
+                  return any(has_next_key(item) for item in obj)
+              return False
+
+          errors = []
+          for path in sorted(glob.glob('DSL/Ruuter/**/*.yml', recursive=True)):
+              with open(path) as fh:
+                  data = yaml.safe_load(fh)
+              if not isinstance(data, dict):
+                  continue
+              steps = {k: v for k, v in data.items() if k != 'declaration'}
+              if not steps:
+                  continue
+              step_names = list(steps.keys())
+              entry = step_names[0]
+              adjacency = {}
+              for i, name in enumerate(step_names):
+                  refs = collect_next_refs(steps[name]) - {'end'}
+                  if not has_next_key(steps[name]) and i + 1 < len(step_names):
+                      refs = {step_names[i + 1]}
+                  adjacency[name] = refs
+              visited, queue = set(), [entry]
+              while queue:
+                  cur = queue.pop()
+                  if cur in visited:
+                      continue
+                  visited.add(cur)
+                  queue.extend(ref for ref in adjacency.get(cur, set()) if ref in steps and ref not in visited)
+              dead = [s for s in steps if s not in visited]
+              if dead:
+                  errors.append(f'{path}: unreachable steps: {dead}')
+              all_refs = set()
+              for body in steps.values():
+                  all_refs.update(collect_next_refs(body) - {'end'})
+              dangling = [r for r in all_refs if r not in steps]
+              if dangling:
+                  errors.append(f'{path}: dangling next references: {dangling}')
+          if errors:
+              for e in errors:
+                  print(f'❌  {e}')
+              sys.exit(1)
+          total = len(list(glob.glob('DSL/Ruuter/**/*.yml', recursive=True)))
+          print(f'✅  {total} DSL files — no unreachable steps')
+          EOF
+
       - name: Check SQL files are non-empty
         run: |
           empty=$(find DSL/Resql DSL/Liquibase/changelog -name '*.sql' -empty 2>/dev/null)
