@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import {
-    Button,
-    Heading,
-    Alert,
-    Card,
-    Icon
+  Button,
+  Heading,
+  Alert,
+  Card,
+  Icon,
 } from '@tedi-design-system/react/tedi';
 import { Table } from '@tedi-design-system/react/community';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -12,109 +12,100 @@ import type { Permission } from '../../permissions/types';
 import type { UserGroupPermission } from '../types';
 
 interface UserGroupPermsEditorProps {
-    editingPerms: boolean;
-    allPerms: Permission[];
-    permColumns: ColumnDef<Permission, any>[];
-    perms: UserGroupPermission[];
-    canEdit: boolean;
-    onStartEdit: () => void;
-    onSave: () => void;
-    onCancel: () => void;
+  editingPerms: boolean;
+  allPerms: Permission[];
+  permColumns: ColumnDef<Permission, string>[];
+  perms: UserGroupPermission[];
+  canEdit: boolean;
+  onStartEdit: () => void;
+  onSave: () => void;
+  onCancel: () => void;
 }
 
 export function UserGroupPermsEditor({
-    editingPerms,
-    allPerms,
-    permColumns,
-    perms,
-    canEdit,
-    onStartEdit,
-    onSave,
-    onCancel,
+  editingPerms,
+  allPerms,
+  permColumns,
+  perms,
+  canEdit,
+  onStartEdit,
+  onSave,
+  onCancel,
 }: UserGroupPermsEditorProps) {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
-    if (editingPerms) {
-        return (
-            <div>
-                <div className="card-main">
-                    <Heading element="h5" color="secondary">
-                        {t('userGroups.permissionsDescription')}
-                    </Heading>
-                </div>
-                <Table
-                    id="permissions-table"
-                    data={allPerms}
-                    columns={permColumns}
-                    placeholder={{
-                        children: t('common.tableIsEmpty')
-                    }}
-                    hidePagination={true}
-                />
-                <div className="form-actions">
-                    <Button
-                        type="button"
-                        size="small"
-                        visualType="link"
-                        onClick={onCancel}
-                    >
-                        {t('userGroups.cancel')}
-                    </Button>
-                    <Button onClick={onSave}
-                            size="small"
-                    >
-                        {t('userGroups.save')}
-                    </Button>
-                </div>
-            </div>
-        );
-    }
-
+  if (editingPerms) {
     return (
-        <div>
-            <div className="card-main">
-                <Heading element="h5" color="secondary">
-                    {t('userGroups.permissionsDescription')}
-                </Heading>
-                {canEdit &&
-                    <Button
-                        iconLeft="edit"
-                        visualType="secondary"
-                        size="small"
-                        onClick={onStartEdit}
-                    >
-                        {t('userGroups.edit')}
-                    </Button>}
-            </div>
-
-            {perms.length === 0 ? (
-                <Alert
-                    type="info"
-                    size="small"
-                >
-                    {t('userGroups.noPermissions')}
-                </Alert>
-            ) : (
-                <ul className="org-perm-list">
-                    {perms.map((p) => (
-                        <li key={p.permissionId}>
-                            <Card>
-                                <Card.Content
-                                    padding={1}
-                                    background='brand-quaternary'
-                                >
-                                    <div className="org-perm-list-card-content">
-                                        <Icon name="check" color="secondary" size={24}/>
-                                        <p>
-                                            {p.description}
-                                        </p>
-                                    </div>
-                                </Card.Content>
-                            </Card>
-                        </li>
-                    ))}
-                </ul>
-            )}
+      <div>
+        <div className="card-main">
+          <Heading element="h5" color="secondary">
+            {t('userGroups.permissionsDescription')}
+          </Heading>
         </div>
+        <Table
+          id="permissions-table"
+          data={allPerms}
+          columns={permColumns}
+          placeholder={{
+            children: t('common.tableIsEmpty'),
+          }}
+          hidePagination={true}
+        />
+        <div className="form-actions">
+          <Button
+            type="button"
+            size="small"
+            visualType="link"
+            onClick={onCancel}
+          >
+            {t('userGroups.cancel')}
+          </Button>
+          <Button onClick={onSave} size="small">
+            {t('userGroups.save')}
+          </Button>
+        </div>
+      </div>
     );
+  }
+
+  return (
+    <div>
+      <div className="card-main">
+        <Heading element="h5" color="secondary">
+          {t('userGroups.permissionsDescription')}
+        </Heading>
+        {canEdit && (
+          <Button
+            iconLeft="edit"
+            visualType="secondary"
+            size="small"
+            onClick={onStartEdit}
+          >
+            {t('userGroups.edit')}
+          </Button>
+        )}
+      </div>
+
+      {perms.length === 0 ? (
+        <Alert type="info" size="small">
+          {t('userGroups.noPermissions')}
+        </Alert>
+      ) : (
+        <ul className="org-perm-list">
+          {perms.map((p) => (
+            <li key={p.permissionId}>
+              <Card>
+                <Card.Content padding={1} background="brand-quaternary">
+                  <div className="org-perm-list-card-content">
+                    <Icon name="check" color="secondary" size={24} />
+                    <p>{p.description}</p>
+                  </div>
+                </Card.Content>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }

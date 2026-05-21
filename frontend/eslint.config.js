@@ -34,6 +34,7 @@ export default defineConfig([
       },
     },
     rules: {
+      'react-hooks/set-state-in-effect': 'warn',
       'react-refresh/only-export-components': [
         'warn',
         {
