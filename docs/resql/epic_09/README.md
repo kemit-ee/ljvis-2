@@ -20,20 +20,20 @@ Kõik endpointid on POST all `iam/classifier` ja `iam/classifier_value` puus, li
 ## 2. Loodud failid
 
 ### RESQL
-- `DSL/Resql/iam/POST/classifier/list.sql`
-- `DSL/Resql/iam/POST/classifier/get.sql`
-- `DSL/Resql/iam/POST/classifier/update.sql`
-- `DSL/Resql/iam/POST/classifier/mock_list.sql`
-- `DSL/Resql/iam/POST/classifier/mock_get.sql`
-- `DSL/Resql/iam/POST/classifier/mock_update.sql`
-- `DSL/Resql/iam/POST/classifier_value/list.sql`
-- `DSL/Resql/iam/POST/classifier_value/check_code_exists.sql`
-- `DSL/Resql/iam/POST/classifier_value/create.sql`
-- `DSL/Resql/iam/POST/classifier_value/update.sql`
-- `DSL/Resql/iam/POST/classifier_value/mock_list.sql`
-- `DSL/Resql/iam/POST/classifier_value/mock_check_code_exists.sql`
-- `DSL/Resql/iam/POST/classifier_value/mock_create.sql`
-- `DSL/Resql/iam/POST/classifier_value/mock_update.sql`
+- `DSL/Resql/POST/iam/classifier/list.sql`
+- `DSL/Resql/POST/iam/classifier/get.sql`
+- `DSL/Resql/POST/iam/classifier/update.sql`
+- `DSL/Resql/POST/iam/classifier/mock_list.sql`
+- `DSL/Resql/POST/iam/classifier/mock_get.sql`
+- `DSL/Resql/POST/iam/classifier/mock_update.sql`
+- `DSL/Resql/POST/iam/classifier_value/list.sql`
+- `DSL/Resql/POST/iam/classifier_value/check_code_exists.sql`
+- `DSL/Resql/POST/iam/classifier_value/create.sql`
+- `DSL/Resql/POST/iam/classifier_value/update.sql`
+- `DSL/Resql/POST/iam/classifier_value/mock_list.sql`
+- `DSL/Resql/POST/iam/classifier_value/mock_check_code_exists.sql`
+- `DSL/Resql/POST/iam/classifier_value/mock_create.sql`
+- `DSL/Resql/POST/iam/classifier_value/mock_update.sql`
 
 ### Ruuter
 - `DSL/Ruuter/POST/iam/classifier/.guard`

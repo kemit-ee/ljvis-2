@@ -12,8 +12,8 @@ Selle EPICu failid loodi otse `DSL/Resql/` ja `DSL/Ruuter/` alla branchis `featu
 
 ## SQL failid (RESQL)
 
-- Asukoht: `DSL/Resql/iam/POST/classifier/*.sql`
-- Asukoht: `DSL/Resql/iam/POST/classifier_value/*.sql`
+- Asukoht: `DSL/Resql/POST/iam/classifier/*.sql`
+- Asukoht: `DSL/Resql/POST/iam/classifier_value/*.sql`
 
 ## Ruuter failid
 
