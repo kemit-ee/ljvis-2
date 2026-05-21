@@ -72,7 +72,12 @@
       "phone": "Lubatud: +, numbrid, tühikud",
       "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
       "personalCode": "Isikukood peab olema 11 numbrit",
-      "personalCodeConflict": "Sellise isikukoodiga kasutaja on juba olemas"
+      "personalCodeConflict": "Sellise isikukoodiga kasutaja on juba olemas",
+      "api": {
+        "required": "Kohustuslik väli",
+        "invalid_estonian_personal_code": "Vigane Eesti isikukood (isikukood)",
+        "invalid_email_format": "Vigane e-posti formaat"
+      }
     },
     "viewDetails": "Vaata",
     "newUserAddedNote": "Uus kasutaja lisatud.",

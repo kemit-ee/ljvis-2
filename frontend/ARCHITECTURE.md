@@ -192,6 +192,52 @@ export function useEntityActions(id) { ... }
 - Avoid duplicate `id` attributes.
 - Use buttons for actions instead of `<a href="#">`.
 
+## API Error Handling
+
+### Structured validation errors from Ruuter
+
+When the backend returns a `422` with a `VALIDATION_ERROR` body, the error propagates through `ApiError.body`:
+
+```ts
+// shared/api/client.ts — ApiError carries the parsed response body
+throw new ApiError(`POST ${path} failed: 422`, 422, json?.response);
+```
+
+### Applying errors to Formik — zero manual `if` checks
+
+Use `applyValidationError` from `shared/api/errors.ts` inside any Formik `onSubmit`:
+
+```ts
+import { applyValidationError } from '../../shared/api/errors';
+
+onSubmit: async (values, { setFieldError }) => {
+  try {
+    await saveToApi(values);
+  } catch (e) {
+    if (!applyValidationError(e, setFieldError, (code) => t(`feature.validation.api.${code}`))) {
+      console.error('Unexpected error', e);
+    }
+  }
+}
+```
+
+`applyValidationError` returns `true` if it handled the error (mapped `field` → Formik error message), `false` otherwise.
+
+### Adding a new backend error code
+
+1. Add the `code` to the Ruuter template's `assign` block (see `DSL/ARCHITECTURE.md`).
+2. Add translation keys in `i18n/et.json` and `i18n/en.json` under `feature.validation.api.<code>`.
+3. No frontend code changes needed — the mapping is automatic.
+
+### Structured error shape
+
+```json
+{ "type": "VALIDATION_ERROR", "field": "personalCode", "code": "invalid_estonian_personal_code" }
+```
+
+- **`field`** — must match the Formik field name exactly (camelCase)
+- **`code`** — stable snake_case key used for i18n lookup
+
 ## Current Features
 
 | Feature       | Folder                    | Description                                                      |

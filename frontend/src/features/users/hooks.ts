@@ -10,6 +10,7 @@ import { listUserGroups } from '../user-groups/api';
 import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
 import { useAuth } from '../auth/AuthContext';
+import { applyValidationError } from '../../shared/api/errors';
 
 // ---------------------------------------------------------------------------
 // Helper: check if error has a specific HTTP status
@@ -265,7 +266,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       accessEnd: user?.accessEnd ?? '',
     },
     validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setFieldError }) => {
       try {
         const trimmedValues = {
           ...values,
@@ -285,7 +286,9 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
           onSaved(result[0]?.id);
         }
       } catch (e) {
-        console.error('Save failed', e);
+        if (!applyValidationError(e, setFieldError, (code) => t(`users.validation.api.${code}`))) {
+          console.error('Save failed', e);
+        }
       }
     },
   });

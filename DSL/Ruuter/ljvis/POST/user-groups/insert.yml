@@ -106,8 +106,16 @@ returnSuccess:
   next: end
 
 return_validation_error:
+  assign:
+    form_error:
+      type: VALIDATION_ERROR
+      field: ~
+      code: validation_failed
+  next: emit_validation_error
+
+emit_validation_error:
   status: 422
-  return: "validation failed"
+  return: ${form_error}
   next: end
 
 return_forbidden:
