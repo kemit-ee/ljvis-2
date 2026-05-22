@@ -15,7 +15,7 @@ export function UserListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const canAddUser = hasAnyPermission(['perm_user_edit_admin', 'perm_user_edit_local']);
+  const canAddUser = hasAnyPermission(['user.edit.admin', 'user.edit.local']);
 
   const {
     data,
