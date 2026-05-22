@@ -44,8 +44,8 @@ export function UserGroupDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
-  const canEditGroup = hasPermission('perm_user_group_edit_admin');
-  const canViewUsers = hasPermission('perm_user_group_view_admin') || hasPermission('perm_user_group_view_local');
+  const canEditGroup = hasPermission('user_group.update');
+  const canViewUsers = hasPermission('user_group.list_users.admin') || hasPermission('user_group.list_users.local');
   const location = useLocation();
   const justCreated = (location.state as { justCreated?: boolean })?.justCreated;
   const justCreatedUser = (location.state as { justCreatedUser?: boolean })?.justCreatedUser;
@@ -212,10 +212,10 @@ export function UserGroupDetailPage() {
                     return <div className="additional-group-row-marker"></div>;
                 }
                 const s = info.getValue();
-                const color = s === 'active' ? 'success' : s === 'deactivating' ? 'warning' : 'neutral';
+                const color = s === 'active' ? 'success' : s === 'pending_deactivation' ? 'warning' : 'neutral';
                 const label =
                     s === 'active' ? t('users.statusActive') :
-                        s === 'deactivating' ? t('users.statusDeactivating') :
+                        s === 'pending_deactivation' ? t('users.statusDeactivating') :
                             t('users.statusInactive');
                 return <StatusBadge variant="filled-bordered" color={color}>{label}</StatusBadge>;
             },

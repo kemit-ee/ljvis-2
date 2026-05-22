@@ -23,28 +23,45 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.remove_user') >= 0}
       next: extractRequestData
   next: return_forbidden
 
 extractRequestData:
   assign:
-    id: "${incoming.body.id}"
-    user_id: "${incoming.body.userId}"
+    user_group_id: "${incoming.body.id}"
+    user_ids: "${incoming.body.userId}"
+    created_by: "${auth_user.personalcode}"
+  next: deleteUser
 
 deleteUser:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/delete_user_group_user"
+    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_users"
     headers:
       type: json
     body:
-      id: ${id}
-      user_id: ${user_id}
+      user_group_id: ${user_group_id}
+      user_ids: ${user_ids}
+      status: "removed"
+      created_by: ${created_by}
   result: res
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    headers:
+      type: json
+    body:
+      user_account_ids: ${user_ids}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
 
 returnSuccess:
-  return: ${res.response.body}
+  return: "ok"
   next: end
 
 return_forbidden:

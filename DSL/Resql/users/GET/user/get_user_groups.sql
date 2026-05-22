@@ -9,7 +9,7 @@ declaration:
     query:
       - field: user_id
         type: string
-        description: "User UUID"
+        description: "User ID"
   response:
     fields:
       - field: user_group_id
@@ -18,8 +18,9 @@ declaration:
         type: string
 */
 SELECT
-    uug.user_group_id,
-    (SELECT ug.name FROM users.user_group ug WHERE ug.id = uug.user_group_id) AS name
-FROM users.user_user_group uug
-WHERE uug.user_id = :user_id::UUID
+    uaug.user_group_id,
+    (SELECT ns.name FROM ljvis2.user_group_name_state ns WHERE ns.user_group_id = uaug.user_group_id ORDER BY ns.created_at DESC LIMIT 1) AS name
+FROM ljvis2.user_account_user_group uaug
+WHERE uaug.user_account_id = :user_id::BIGINT
+  AND (SELECT uaugs.status FROM ljvis2.user_account_user_group_state uaugs WHERE uaugs.user_account_user_group_id = uaug.id ORDER BY uaugs.created_at DESC LIMIT 1) = 'active'
 ORDER BY name;

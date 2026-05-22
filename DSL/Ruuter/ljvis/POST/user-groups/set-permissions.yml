@@ -10,10 +10,13 @@ declaration:
     body:
       - field: id
         type: string
-        description: "User group UUID"
-      - field: permissionIds
+        description: "User group ID"
+      - field: addedPermissionIds
         type: array
-        description: "Array of permission UUIDs"
+        description: "Array of added permission IDs"
+      - field: removedPermissionIds
+        type: array
+        description: "Array of removed permission IDs"
 
 authenticate:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -25,41 +28,69 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.indexOf('user_group.create') >= 0 || auth_user.permissions.indexOf('user_group.update') >= 0)}
       next: extractRequestData
   next: return_forbidden
 
 extractRequestData:
   assign:
     user_group_id: "${incoming.body.id}"
-    permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
+    added_permission_ids: "${(incoming.body.addedPermissionIds ?? []).join(',')}"
+    removed_permission_ids: "${(incoming.body.removedPermissionIds ?? []).join(',')}"
+    created_by: "${auth_user.personalcode}"
+  next: checkRemovedPerms
 
-deleteExisting:
+checkRemovedPerms:
+  switch:
+    - condition: "${removed_permission_ids == ''}"
+      next: checkAddedPerms
+  next: removePerms
+
+removePerms:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/set_permissions_delete"
+    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_permissions"
     headers:
       type: json
     body:
       user_group_id: ${user_group_id}
-  result: deleteRes
+      permission_ids: ${removed_permission_ids}
+      status: "removed"
+      created_by: ${created_by}
+  result: removeRes
+  next: checkAddedPerms
 
-checkPermIds:
+checkAddedPerms:
   switch:
-    - condition: "${permission_ids == ''}"
-      next: returnSuccess
+    - condition: "${added_permission_ids == ''}"
+      next: rebuildLatest
   next: insertPerms
 
 insertPerms:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/replace_permissions"
+    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_permissions"
     headers:
       type: json
     body:
       user_group_id: ${user_group_id}
-      permission_ids: ${permission_ids}
+      permission_ids: ${added_permission_ids}
+      status: "active"
+      created_by: ${created_by}
   result: insertRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
 
 returnSuccess:
   return: "ok"

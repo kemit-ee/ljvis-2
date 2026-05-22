@@ -9,7 +9,7 @@ declaration:
     query:
       - field: user_group_id
         type: string
-        description: "User group UUID"
+        description: "User group ID"
   response:
     fields:
       - field: permission_id
@@ -21,8 +21,9 @@ declaration:
 */
 SELECT
     ugp.permission_id,
-    (SELECT p.code FROM users.permission p WHERE p.id = ugp.permission_id) AS code,
-    (SELECT p.description FROM users.permission p WHERE p.id = ugp.permission_id) AS description
-FROM users.user_group_permission ugp
-WHERE ugp.user_group_id = :user_group_id::UUID
+    (SELECT p.code FROM ljvis2.permission p WHERE p.id = ugp.permission_id) AS code,
+    (SELECT p.description FROM ljvis2.permission p WHERE p.id = ugp.permission_id) AS description
+FROM ljvis2.user_group_permission ugp
+WHERE ugp.user_group_id = :user_group_id::BIGINT
+  AND (SELECT ugps.status FROM ljvis2.user_group_permission_state ugps WHERE ugps.user_group_permission_id = ugp.id ORDER BY ugps.created_at DESC LIMIT 1) = 'active'
 ORDER BY code;

@@ -38,49 +38,42 @@ declaration:
         type: number
 */
 SELECT
-    u.id,
-    u.first_name,
-    u.last_name,
-    u.personal_code,
-    (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) AS organisation_name,
-    u.status,
-    COALESCE(
-        (SELECT STRING_AGG(DISTINCT ug.name, ', ')
-         FROM users.user_user_group uug,
-              users.user_group ug
-         WHERE uug.user_id = u.id
-           AND ug.id = uug.user_group_id),
-        ''
-    ) AS user_groups,
+    ua.id,
+    (SELECT d.first_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) AS first_name,
+    (SELECT d.last_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) AS last_name,
+    ua.personal_code,
+    (SELECT o.name FROM ljvis2.organisation o WHERE o.id = (SELECT d.organisation_id FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1)) AS organisation_name,
+    (SELECT s.status FROM ljvis2.user_account_state s WHERE s.user_account_id = ua.id ORDER BY s.created_at DESC LIMIT 1) AS status,
     :page AS page,
     CEIL(COUNT(*) OVER () / :page_size::DECIMAL) AS total_pages,
     (COUNT(*) OVER ())::INTEGER AS total
-FROM users."user" u
+FROM ljvis2.user_account ua
 WHERE
     NOT EXISTS (
-        SELECT 1 FROM users.user_user_group uug2
-        WHERE uug2.user_id = u.id
-        AND uug2.user_group_id = COALESCE(:user_group_id, '')::UUID
+        SELECT 1 FROM ljvis2.user_account_user_group uaug
+        WHERE uaug.user_account_id = ua.id
+          AND uaug.user_group_id = COALESCE(:user_group_id, '')::BIGINT
+          AND (SELECT uaugs.status FROM ljvis2.user_account_user_group_state uaugs WHERE uaugs.user_account_user_group_id = uaug.id ORDER BY uaugs.created_at DESC LIMIT 1) = 'active'
     )
   AND (
     COALESCE(:organisation_ids, '') = ''
-        OR u.organisation_id = ANY(STRING_TO_ARRAY(COALESCE(:organisation_ids, ''), ',')::UUID[])
+        OR (SELECT d.organisation_id FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) = ANY(STRING_TO_ARRAY(COALESCE(:organisation_ids, ''), ',')::BIGINT[])
     )
   AND (
     COALESCE(:search, '') = ''
-        OR u.first_name ILIKE '%' || COALESCE(:search, '') || '%'
-        OR u.last_name ILIKE '%' || COALESCE(:search, '') || '%'
+        OR (SELECT d.first_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) ILIKE '%' || COALESCE(:search, '') || '%'
+        OR (SELECT d.last_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) ILIKE '%' || COALESCE(:search, '') || '%'
     )
-  AND u.status = 'active'
+  AND (SELECT s.status FROM ljvis2.user_account_state s WHERE s.user_account_id = ua.id ORDER BY s.created_at DESC LIMIT 1) = 'active'
 ORDER BY
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc' THEN u.status END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'status desc' THEN u.status END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name asc' THEN u.first_name END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name desc' THEN u.first_name END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name asc' THEN u.last_name END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name desc' THEN u.last_name END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc' THEN (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) END DESC,
-    u.first_name ASC
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc' THEN (SELECT s.status FROM ljvis2.user_account_state s WHERE s.user_account_id = ua.id ORDER BY s.created_at DESC LIMIT 1) END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'status desc' THEN (SELECT s.status FROM ljvis2.user_account_state s WHERE s.user_account_id = ua.id ORDER BY s.created_at DESC LIMIT 1) END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name asc' THEN (SELECT d.first_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name desc' THEN (SELECT d.first_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name asc' THEN (SELECT d.last_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name desc' THEN (SELECT d.last_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc' THEN (SELECT o.name FROM ljvis2.organisation o WHERE o.id = (SELECT d.organisation_id FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1)) END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN (SELECT o.name FROM ljvis2.organisation o WHERE o.id = (SELECT d.organisation_id FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1)) END DESC,
+    (SELECT d.first_name FROM ljvis2.user_account_data_state d WHERE d.user_account_id = ua.id ORDER BY d.created_at DESC LIMIT 1) ASC
 LIMIT :page_size::INTEGER
 OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);

@@ -19,9 +19,12 @@ export function UserCreatePage() {
   };
 
   const structuralUnits = [
-    { value: '1', label: 'Üksus 1' },
-    { value: '2', label: 'Üksus 2' },
-    { value: '3', label: 'Üksus 3' },
+    { value: 'LÕUNA PREFEKTUUR', label: 'LÕUNA PREFEKTUUR' },
+    { value: 'IDA PREFEKTUUR', label: 'IDA PREFEKTUUR' },
+    { value: 'LÄÄNE PREFEKTUUR', label: 'LÄÄNE PREFEKTUUR' },
+    { value: 'PÕHJA PREFEKTUUR', label: 'PÕHJA PREFEKTUUR' },
+    { value: 'KLIM', label: 'KLIM' },
+    { value: 'TRAM', label: 'TRAM' },
   ];
 
   const { formik, orgOptions, handleOrgChange, handleStructuralUnitChange, isLocalAdmin } = useUserForm(undefined, handleSaved);
@@ -102,11 +105,11 @@ export function UserCreatePage() {
                         id="structuralUnitId"
                         label={t('users.structuralUnit')}
                         options={structuralUnits}
-                        value={structuralUnits.find((o) => o.value === formik.values.structuralUnitId) ?? null}
+                        value={structuralUnits.find((o) => o.value === formik.values.structuralUnitName) ?? null}
                         onChange={isLocalAdmin ? undefined : handleStructuralUnitChange}
                         disabled={isLocalAdmin}
                         required
-                        {...(formik.touched.structuralUnitId && formik.errors.structuralUnitId ? { helper: { text: formik.errors.structuralUnitId, type: 'error' as const } } : {})}
+                        {...(formik.touched.structuralUnitName && formik.errors.structuralUnitName ? { helper: { text: formik.errors.structuralUnitName, type: 'error' as const } } : {})}
                     />
                   </div>
                   <TextField

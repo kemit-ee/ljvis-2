@@ -15,7 +15,7 @@ export function UserGroupListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission, user, permissions } = useAuth();
-  const canAddGroup = hasPermission('perm_user_group_edit_admin');
+  const canAddGroup = hasPermission('user_group.create');
 
   const {
     data, totalRows, isLoading,

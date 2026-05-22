@@ -40,45 +40,58 @@ declaration:
       - field: total
         type: number
 */
+WITH latest AS (
+    SELECT DISTINCT ON (user_account_id)
+        user_account_id,
+        personal_code,
+        first_name,
+        last_name,
+        email,
+        organisation_id,
+        organisation_name,
+        access_start,
+        access_end,
+        status,
+        user_groups
+    FROM ljvis2.user_account_latest
+    ORDER BY user_account_id, created_at DESC
+)
 SELECT
-    u.id,
-    u.first_name,
-    u.last_name,
-    u.personal_code,
-    u.organisation_id,
-    (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) AS organisation_name,
-    u.email,
-    u.status,
-    u.access_start,
-    u.access_end,
+    l.user_account_id AS id,
+    l.first_name,
+    l.last_name,
+    l.personal_code,
+    l.organisation_id,
+    l.organisation_name,
+    l.email,
+    l.status,
+    l.access_start,
+    l.access_end,
     COALESCE(
-        (SELECT STRING_AGG(DISTINCT ug.name, ', ')
-         FROM users.user_user_group uug,
-              users.user_group ug
-         WHERE uug.user_id = u.id
-           AND ug.id = uug.user_group_id),
+        (SELECT STRING_AGG(elem->>'name', ', ')
+         FROM JSONB_ARRAY_ELEMENTS(l.user_groups) AS elem),
         ''
     ) AS user_groups,
     :page AS page,
     CEIL(COUNT(*) OVER () / :page_size::DECIMAL) AS total_pages,
     (COUNT(*) OVER ())::INTEGER AS total
-FROM users."user" u
+FROM latest l
 WHERE
-    (COALESCE(:organisation_id, '') = '' OR u.organisation_id = COALESCE(:organisation_id, '')::UUID)
+    (COALESCE(:organisation_id, '') = '' OR l.organisation_id = COALESCE(:organisation_id, '')::BIGINT)
     AND (
         COALESCE(:search, '') = ''
-        OR u.first_name ILIKE '%' || COALESCE(:search, '') || '%'
-        OR u.last_name ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.first_name ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.last_name  ILIKE '%' || COALESCE(:search, '') || '%'
     )
 ORDER BY
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc' THEN u.status END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'status desc' THEN u.status END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name asc' THEN u.first_name END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name desc' THEN u.first_name END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name asc' THEN u.last_name END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name desc' THEN u.last_name END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc' THEN (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) END DESC,
-    u.first_name ASC
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc'            THEN l.status           END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'status desc'           THEN l.status           END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name asc'        THEN l.first_name       END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name desc'       THEN l.first_name       END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name asc'         THEN l.last_name        END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name desc'        THEN l.last_name        END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc'  THEN l.organisation_name END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN l.organisation_name END DESC,
+    l.first_name ASC
 LIMIT :page_size::INTEGER
 OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);

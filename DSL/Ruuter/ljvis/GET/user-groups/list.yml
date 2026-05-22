@@ -31,11 +31,20 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_list_admin') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.list.admin') >= 0}
       next: extractRequestData
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_list_local') >= 0}
-      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.list.local') >= 0}
+      next: extractRequestDataLocal
   next: return_forbidden
+
+extractRequestDataLocal:
+  assign:
+    search: "${incoming.params.search ?? ''}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'name asc'}"
+    organisation_id: "${auth_user.organisationid}"
+  next: getUserGroups
 
 extractRequestData:
   assign:
@@ -43,8 +52,8 @@ extractRequestData:
     page: "${incoming.params.page ?? 1}"
     page_size: "${incoming.params.pageSize ?? 20}"
     sorting: "${incoming.params.sorting ?? 'name asc'}"
-    is_local_admin: "${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_list_local') >= 0 && auth_user.permissions.indexOf('perm_user_group_list_admin') < 0}"
-    user_organisation_id: "${auth_user.organisationid ?? ''}"
+    organisation_id: ""
+  next: getUserGroups
 
 getUserGroups:
   call: http.get
@@ -55,8 +64,7 @@ getUserGroups:
       page: ${page}
       page_size: ${page_size}
       sorting: ${sorting}
-      user_organisation_id: ${user_organisation_id}
-      is_local_admin: ${is_local_admin}
+      organisation_id: ${organisation_id}
   result: res
 
 returnSuccess:

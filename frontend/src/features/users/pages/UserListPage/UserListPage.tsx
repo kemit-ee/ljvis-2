@@ -48,10 +48,10 @@ export function UserListPage() {
             return <div className="additional-group-row-marker"></div>;
           }
           const s = info.getValue();
-          const color = s === 'active' ? 'success' : s === 'deactivating' ? 'warning' : 'neutral';
+          const color = s === 'active' ? 'success' : s === 'pending_deactivation' ? 'warning' : 'neutral';
           const label =
             s === 'active' ? t('users.statusActive') :
-            s === 'deactivating' ? t('users.statusDeactivating') :
+            s === 'pending_deactivation' ? t('users.statusDeactivating') :
             t('users.statusInactive');
           return <StatusBadge variant="filled-bordered" color={color}>{label}</StatusBadge>;
         },

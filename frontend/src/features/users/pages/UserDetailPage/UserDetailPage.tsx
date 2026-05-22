@@ -24,8 +24,8 @@ export function UserDetailPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { hasAnyPermission } = useAuth();
-  const canEditUser = hasAnyPermission(['perm_user_edit_admin', 'perm_user_edit_local']);
-  const canViewGroupDetail = hasAnyPermission(['perm_user_group_view_admin', 'perm_user_group_view_local']);
+  const canEditUser = hasAnyPermission(['user.edit.admin', 'user.edit.local']);
+  const canViewGroupDetail = hasAnyPermission(['user_group.read.admin', 'user_group.read.local']);
 
     useEffect(() => {
         if (showNewUserAddedAlert) {
@@ -63,12 +63,15 @@ export function UserDetailPage() {
     refetch();
   };
 
-  const {allGroups, formik, orgOptions, isLocalAdmin, handleOrgChange, handleStructuralUnitChange } = useUserForm(user ?? undefined, handleEditSaved);
+  const {allGroups, formik, orgOptions, isLocalAdmin, handleOrgChange, handleStructuralUnitChange } = useUserForm(user ?? undefined, handleEditSaved, groups);
 
   const structuralUnits = [
-    { value: '1', label: 'Üksus 1' },
-    { value: '2', label: 'Üksus 2' },
-    { value: '3', label: 'Üksus 3' },
+      { value: 'LÕUNA PREFEKTUUR', label: 'LÕUNA PREFEKTUUR' },
+      { value: 'IDA PREFEKTUUR', label: 'IDA PREFEKTUUR' },
+      { value: 'LÄÄNE PREFEKTUUR', label: 'LÄÄNE PREFEKTUUR' },
+      { value: 'PÕHJA PREFEKTUUR', label: 'PÕHJA PREFEKTUUR' },
+      { value: 'KLIM', label: 'KLIM' },
+      { value: 'TRAM', label: 'TRAM' },
   ];
 
   const onGroupSaved = () => {
@@ -101,10 +104,10 @@ export function UserDetailPage() {
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
   if (!user) return <Text>{t('common.error')}</Text>;
 
-  const statusColor = user.status === 'active' ? 'success' : user.status === 'deactivating' ? 'warning' : 'neutral';
+  const statusColor = user.status === 'active' ? 'success' : user.status === 'pending_deactivation' ? 'warning' : 'neutral';
   const statusLabel =
     user.status === 'active' ? t('users.statusActive') :
-    user.status === 'deactivating' ? t('users.statusDeactivating') :
+    user.status === 'pending_deactivation' ? t('users.statusDeactivating') :
     t('users.statusInactive');
 
   return (

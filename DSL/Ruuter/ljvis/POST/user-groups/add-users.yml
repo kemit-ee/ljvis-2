@@ -25,7 +25,7 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.add_user') >= 0}
       next: extractRequestData
   next: return_forbidden
 
@@ -33,6 +33,8 @@ extractRequestData:
   assign:
     user_group_id: "${incoming.body.id}"
     user_ids: "${(incoming.body.userIds ?? []).join(',')}"
+    created_by: "${auth_user.personalcode}"
+  next: checkUserIds
 
 checkUserIds:
   switch:
@@ -43,13 +45,28 @@ checkUserIds:
 addUsers:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/add_user_group_users"
+    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_users"
     headers:
       type: json
     body:
       user_group_id: ${user_group_id}
       user_ids: ${user_ids}
+      status: "active"
+      created_by: ${created_by}
   result: addRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    headers:
+      type: json
+    body:
+      user_account_ids: ${user_ids}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
 
 returnSuccess:
   return: "ok"

@@ -10,10 +10,13 @@ declaration:
     body:
       - field: userId
         type: string
-        description: "User UUID"
-      - field: groupIds
+        description: "User ID"
+      - field: addedGroupIds
         type: array
-        description: "Array of user group UUIDs"
+        description: "Array of added user group IDs"
+      - field: removedGroupIds
+        type: array
+        description: "Array of removed user group IDs"
 
 authenticate:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -25,43 +28,71 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_edit_admin') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user.edit.admin') >= 0}
       next: extractRequestData
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_edit_local') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user.edit.local') >= 0}
       next: extractRequestData
   next: return_forbidden
 
 extractRequestData:
   assign:
-    user_id: "${incoming.body.userId}"
-    group_ids: "${(incoming.body.groupIds ?? []).join(',')}"
+    user_account_id: "${incoming.body.userId}"
+    added_group_ids: "${(incoming.body.addedGroupIds ?? []).join(',')}"
+    removed_group_ids: "${(incoming.body.removedGroupIds ?? []).join(',')}"
+    created_by: "${auth_user.personalcode}"
+  next: checkRemovedGroups
 
-deleteExisting:
+checkRemovedGroups:
+  switch:
+    - condition: "${removed_group_ids == ''}"
+      next: checkAddedGroups
+  next: removeGroups
+
+removeGroups:
   call: http.post
   args:
     url: "[#LJVIS_USERS_RESQL]/user/set_user_groups"
     headers:
       type: json
     body:
-      user_id: ${user_id}
-  result: deleteRes
+      user_account_id: ${user_account_id}
+      group_ids: ${removed_group_ids}
+      status: "removed"
+      created_by: ${created_by}
+  result: removeRes
+  next: checkAddedGroups
 
-checkGroupIds:
+checkAddedGroups:
   switch:
-    - condition: "${group_ids == ''}"
-      next: returnSuccess
+    - condition: "${added_group_ids == ''}"
+      next: rebuildLatest
   next: insertGroups
 
 insertGroups:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/replace_user_groups"
+    url: "[#LJVIS_USERS_RESQL]/user/set_user_groups"
     headers:
       type: json
     body:
-      user_id: ${user_id}
-      group_ids: ${group_ids}
+      user_account_id: ${user_account_id}
+      group_ids: ${added_group_ids}
+      status: "active"
+      created_by: ${created_by}
   result: insertRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    headers:
+      type: json
+    body:
+      user_account_ids: ${user_account_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
 
 returnSuccess:
   return: "ok"

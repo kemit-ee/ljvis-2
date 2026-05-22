@@ -32,26 +32,43 @@ declaration:
         type: string
         description: "Comma-separated list of permission codes"
 */
+WITH latest_user AS (
+    SELECT DISTINCT ON (user_account_id)
+        user_account_id AS id,
+        personal_code,
+        first_name,
+        last_name,
+        organisation_id,
+        organisation_name,
+        email,
+        status,
+        user_groups
+    FROM ljvis2.user_account_latest
+    ORDER BY user_account_id, created_at DESC
+)
 SELECT
     u.id,
     u.first_name AS firstname,
     u.last_name AS lastname,
     u.personal_code AS personalcode,
     u.organisation_id AS organisationid,
-    (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) AS organisationname,
+    u.organisation_name AS organisationname,
     u.email,
     u.status,
     COALESCE(
-        (SELECT STRING_AGG(DISTINCT
-            (SELECT p.code FROM users.permission p WHERE p.id = ugp.permission_id),
-            ',')
-         FROM users.user_user_group uug,
-              users.user_group_permission ugp
-         WHERE uug.user_id = u.id
-           AND ugp.user_group_id = uug.user_group_id),
+        (SELECT STRING_AGG(DISTINCT perm->>'code', ',')
+         FROM JSONB_ARRAY_ELEMENTS(u.user_groups) AS grp
+         JOIN LATERAL (
+             SELECT DISTINCT ON (ugl.user_group_id)
+                 ugl.permissions
+             FROM ljvis2.user_group_latest ugl
+             WHERE ugl.user_group_id = (grp->>'id')::BIGINT
+             ORDER BY ugl.user_group_id, ugl.created_at DESC
+         ) AS gl ON true
+         CROSS JOIN JSONB_ARRAY_ELEMENTS(gl.permissions) AS perm),
         ''
     ) AS permissions
-FROM users."user" u
+FROM latest_user u
 WHERE u.personal_code = :personal_code
   AND u.status IN ('active', 'deactivating')
 LIMIT 1;

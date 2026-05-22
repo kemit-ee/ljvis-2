@@ -23,14 +23,15 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.update') >= 0}
       next: extractRequestData
   next: return_forbidden
 
 extractRequestData:
   assign:
-    id: "${incoming.body.id}"
+    user_group_id: "${incoming.body.id}"
     name: "${incoming.body.name}"
+    created_by: "${auth_user.personalcode}"
 
 updateName:
   call: http.post
@@ -39,9 +40,23 @@ updateName:
     headers:
       type: json
     body:
-      id: ${id}
+      user_group_id: ${user_group_id}
       name: ${name}
+      created_by: ${created_by}
   result: res
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
 
 returnSuccess:
   return: ${res.response.body}

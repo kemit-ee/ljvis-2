@@ -8,15 +8,13 @@ declaration:
   namespace: user_group
   allowlist:
     body:
-      - field: name
+      - field: created_by
         type: string
   response:
     fields:
       - field: id
-        type: string
-      - field: name
-        type: string
+        type: number
 */
-INSERT INTO users.user_group (name)
-VALUES (:name)
-RETURNING id, name, created_at;
+INSERT INTO ljvis2.user_group (created_by)
+VALUES (:created_by)
+RETURNING id;

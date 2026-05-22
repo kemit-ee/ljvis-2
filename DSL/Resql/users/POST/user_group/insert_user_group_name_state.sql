@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update user group name"
+  description: "Insert a user group name state entry"
   method: post
   accepts: json
   returns: json

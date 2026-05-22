@@ -12,7 +12,7 @@ export interface User {
   phone?: string;
   accessStart: string;
   accessEnd: string | null;
-  status: 'active' | 'deactivating' | 'inactive';
+  status: 'active' | 'pending_deactivation' | 'inactive';
   createdAt?: string;
   updatedAt?: string;
   userGroups?: string;
