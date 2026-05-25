@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import {Button, Card, Heading, Search} from '@tedi-design-system/react/tedi';
+import {Button, Card, Heading, Search, Text} from '@tedi-design-system/react/tedi';
 import type { UserGroup } from '../../types';
 import { useUserGroupList } from '../../hooks';
 import { useAuth } from '../../../auth/AuthContext';
@@ -14,8 +14,10 @@ const columnHelper = createColumnHelper<UserGroup>();
 export function UserGroupListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { hasPermission, user, permissions } = useAuth();
+  const { hasPermission, hasAnyPermission, user, permissions } = useAuth();
+  const forbidden = !hasAnyPermission(['user_group.list.admin', 'user_group.list.local']);
   const canAddGroup = hasPermission('user_group.create');
+  const canViewUserGroup = hasAnyPermission(['user_group.read.admin', 'user_group.read.local']);
 
   const {
     data, totalRows, isLoading,
@@ -56,7 +58,7 @@ export function UserGroupListPage() {
           id: 'viewDetails',
           header: '',
           cell: (info) => {
-              if (info.row.original.isAdditionalGroupRow) return null;
+              if (info.row.original.isAdditionalGroupRow || !canViewUserGroup) return null;
               return (
                   <div className="cell-center">
                       <a
@@ -75,8 +77,10 @@ export function UserGroupListPage() {
           },
       })
     ],
-    [t, handleRowClick],
+    [t, handleRowClick, canViewUserGroup],
   );
+
+  if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
   return (
     <div>

@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import {Button, Heading, TextField, Row, Col, Card, Checkbox, Alert} from '@tedi-design-system/react/tedi';
+import {Button, Heading, TextField, Row, Col, Card, Checkbox, Alert, Text} from '@tedi-design-system/react/tedi';
 import { useUserGroupForm } from '../../hooks';
 import {Table, Modal, ModalCloser, ModalProvider, CardContent} from "@tedi-design-system/react/community";
 import type { Organisation } from '../../../organisations/types';
 import type { Permission } from '../../../permissions/types';
 import './UserGroupCreatePage.module.css';
+import {useAuth} from "../../../auth/AuthContext.tsx";
 
 const orgColumnHelper = createColumnHelper<Organisation>();
 const permColumnHelper = createColumnHelper<Permission>();
@@ -16,6 +17,8 @@ export function UserGroupCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const { hasPermission } = useAuth();
+  const forbidden = !hasPermission('user_group.create');
 
   const handleSaved = (id: string) => {
     navigate(`/user-groups/${id}`, { state: { justCreated: true } });
@@ -115,6 +118,8 @@ export function UserGroupCreatePage() {
       ],
       [t, selectedPerms, togglePerm, permissions, toggleAllPerms],
   );
+
+  if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
   return (
     <div>

@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, TextField, Select, Row, Col, Card } from '@tedi-design-system/react/tedi';
+import { Button, Heading, TextField, Select, Row, Col, Card, Text } from '@tedi-design-system/react/tedi';
 import { DatePicker } from '@tedi-design-system/react/community';
 import { useUserForm } from '../../hooks';
+import { useAuth } from '../../../auth/AuthContext';
 import {useMediaQuery} from "../../../../hooks/useMediaQuery";
 import {BREAKPOINTS} from "../../../../constants/constants";
 import { PhoneField } from '../../components/PhoneField/PhoneField';
@@ -12,6 +13,8 @@ import styles from './UserCreatePage.module.css';
 export function UserCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasAnyPermission } = useAuth();
+  const forbidden = !hasAnyPermission(['user.edit.admin', 'user.edit.local']);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const handleSaved = (id?: string) => {
@@ -28,6 +31,8 @@ export function UserCreatePage() {
   ];
 
   const { formik, orgOptions, handleOrgChange, handleStructuralUnitChange, isLocalAdmin } = useUserForm(undefined, handleSaved);
+
+  if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
   return (
     <div>

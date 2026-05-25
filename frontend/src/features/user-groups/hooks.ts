@@ -473,6 +473,7 @@ export function useUserGroupAddUser(id: string | undefined) {
     if (!id || selectedUserIds.size === 0) return;
     await addUserToGroup(id, Array.from(selectedUserIds));
     setSelectedUserIds(new Set());
+    fetchData();
   };
 
   return {

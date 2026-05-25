@@ -18,6 +18,7 @@ import { useMemo} from "react";
 import type {UserGroupUser} from "../../types.ts";
 import {createColumnHelper} from "@tanstack/react-table";
 import './UserGroupAddUserPage.module.css';
+import { useAuth } from '../../../auth/AuthContext';
 
 const columnHelper = createColumnHelper<UserGroupUser>();
 
@@ -25,6 +26,8 @@ export function UserGroupAddUserPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const forbidden = !hasPermission('user_group.add_user');
 
   const {
     group, availableUsers, loading,
@@ -115,6 +118,7 @@ export function UserGroupAddUserPage() {
   );
 
   if (loading) return <Text>{t('common.loading')}</Text>;
+  if (forbidden) return <Text>{t('common.forbidden')}</Text>;
   if (!group) return <Text>{t('common.error')}</Text>;
 
   return (

@@ -43,9 +43,11 @@ export function UserGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasAnyPermission } = useAuth();
   const canEditGroup = hasPermission('user_group.update');
-  const canViewUsers = hasPermission('user_group.list_users.admin') || hasPermission('user_group.list_users.local');
+  const canAddUser = hasPermission('user_group.add_user');
+  const canRemoveUser = hasPermission('user_group.remove_user');
+  const canViewUser = hasAnyPermission(['user.read.admin', 'user.read.local']);
   const location = useLocation();
   const justCreated = (location.state as { justCreated?: boolean })?.justCreated;
   const justCreatedUser = (location.state as { justCreatedUser?: boolean })?.justCreatedUser;
@@ -146,7 +148,7 @@ export function UserGroupDetailPage() {
                 ),
             }),
             permColumnHelper.accessor('description', {
-                header: t('userGroups.organisations'),
+                header: t('userGroups.permissions'),
                 cell: (info) => `${info.row.original.description}`,
                 enableSorting: false,
             }),
@@ -227,7 +229,7 @@ export function UserGroupDetailPage() {
             if (info.row.original.isAdditionalGroupRow) return null;
             return (
                 <div className={styles['action-cell']}>
-                    {canEditGroup && ( <Tooltip>
+                    {canRemoveUser && ( <Tooltip>
                       <Tooltip.Trigger>
                           <ModalTrigger>
                               <Icon name="delete" color="danger" size={24} className='cursor-pointer'/>
@@ -254,7 +256,7 @@ export function UserGroupDetailPage() {
                       </Tooltip.Content>
                     </Tooltip>
                     )}
-                    {canViewUsers && (<Tooltip>
+                    {canViewUser && (<Tooltip>
                       <Tooltip.Trigger>
                           <div className='cursor-pointer' onClick={() => handleRowClick(info.row.original)}><Icon name="visibility" color="brand" size={24}/></div>
                       </Tooltip.Trigger>
@@ -268,7 +270,7 @@ export function UserGroupDetailPage() {
           },
         }),
       ],
-      [t, handleRowClick, handleDeleteUser, canEditGroup, canViewUsers],
+      [t, handleRowClick, handleDeleteUser, canEditGroup, canViewUser],
   );
 
   if (loading) return <Text>{t('common.loading')}</Text>;
@@ -374,7 +376,7 @@ export function UserGroupDetailPage() {
                   <Heading modifiers="h3" color="secondary" className="mb-1">
                       {t('userGroups.users')}
                   </Heading>
-                  {canEditGroup && (
+                  {canAddUser && (
                       <Button onClick={() => navigate(`/user-groups/${id}/add-user`)}>{t('userGroups.addUser')}
                       </Button>
                   )}

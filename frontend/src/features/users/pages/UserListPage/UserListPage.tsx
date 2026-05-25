@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import { Heading, Search, StatusBadge, Button, Card } from '@tedi-design-system/react/tedi';
+import { Heading, Search, StatusBadge, Button, Card, Text } from '@tedi-design-system/react/tedi';
 import type { UserListItem } from '../../types';
 import { useUserList } from '../../hooks';
 import { useAuth } from '../../../auth/AuthContext';
@@ -15,7 +15,9 @@ export function UserListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
+  const forbidden = !hasAnyPermission(['user.list.admin', 'user.list.local']);
   const canAddUser = hasAnyPermission(['user.edit.admin', 'user.edit.local']);
+  const canViewUser = hasAnyPermission(['user.read.admin', 'user.read.local']);
 
   const {
     data,
@@ -28,7 +30,7 @@ export function UserListPage() {
     searchInput,
     setSearchInput,
     handleSearch,
-    clearSearch,
+    clearSearch
   } = useUserList();
 
   const handleRowClick = useCallback(
@@ -121,7 +123,7 @@ export function UserListPage() {
         id: 'viewDetails',
         header: '',
         cell: (info) => {
-          if (info.row.original.isAdditionalGroupRow) return null;
+          if (info.row.original.isAdditionalGroupRow || !canViewUser) return null;
           return (
             <div className="cell-center">
               <a
@@ -140,8 +142,10 @@ export function UserListPage() {
         },
       }),
     ],
-    [t, handleRowClick],
+    [t, handleRowClick, canViewUser],
   );
+
+  if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
   return (
     <div>
