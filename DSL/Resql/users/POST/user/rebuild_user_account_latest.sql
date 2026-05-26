@@ -8,9 +8,8 @@ declaration:
   namespace: user
   allowlist:
     body:
-      - field: user_account_ids
-        type: string
-        description: "Comma-separated user account IDs"
+      - field: user_account_id
+        type: number
       - field: created_by
         type: string
   response:
@@ -60,5 +59,5 @@ SELECT
     ),
     :created_by
 FROM ljvis2.user_account ua
-WHERE ua.id = ANY(SELECT unnest(string_to_array(:user_account_ids, ','))::BIGINT)
+WHERE ua.id = :user_account_id::BIGINT
 RETURNING id;

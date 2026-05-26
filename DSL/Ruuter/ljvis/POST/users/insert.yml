@@ -165,7 +165,7 @@ rebuildLatest:
     headers:
       type: json
     body:
-      user_account_ids: ${userRes.response.body[0].id}
+      user_account_id: ${userRes.response.body[0].id}
       created_by: ${created_by}
   result: latestRes
   next: returnSuccess
