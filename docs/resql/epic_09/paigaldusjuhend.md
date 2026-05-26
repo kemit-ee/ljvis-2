@@ -17,11 +17,11 @@ Selle EPICu failid loodi otse `DSL/Resql/` ja `DSL/Ruuter/` alla branchis `featu
 
 ## Ruuter failid
 
-- Asukoht: `DSL/Ruuter/POST/iam/classifier/*.yml`
-- Asukoht: `DSL/Ruuter/POST/iam/classifier_value/*.yml`
+- Asukoht: `DSL/Ruuter/api/POST/v1/admin/classifiers/*.yml`
+- Asukoht: `DSL/Ruuter/api/POST/v1/admin/classifier-values/*.yml`
 - Guardid:
-  - `DSL/Ruuter/POST/iam/classifier/.guard`
-  - `DSL/Ruuter/POST/iam/classifier_value/.guard`
+  - `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard`
+  - `DSL/Ruuter/api/POST/v1/admin/classifier-values/.guard`
 
 ## Kontrolljärjekord
 

@@ -787,6 +787,8 @@ sequenceDiagram
 <!-- EPIC_04 BEGIN -->
 # LJVIS – EPIC 04 Klassifikaatorite haldamine kasutuslood
 
+> **Ruuteri ruutingumärkus:** EPIC 04 haldusendpointid (`/api/v1/admin/...`) kaardistuvad DSL failipuus asukohta `DSL/Ruuter/api/POST/v1/admin/...`.
+
 ## Kasutajagrupid
 
 | Kasutajagrupp | Rollikood | Ulatus epikus |

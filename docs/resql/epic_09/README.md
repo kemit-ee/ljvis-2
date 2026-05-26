@@ -15,7 +15,7 @@ mode: create
 Loodi EPIC 09 classifier halduse jaoks RESQL ja Ruuter failid järgmistele endpointidele: `classifiers/list`, `classifiers/get`, `classifiers/update`, `classifier-values/list`, `classifier-values/check-code-exists`, `classifier-values/create`, `classifier-values/update`.
 Read-päringud kasutavad `classifier_latest` ja `classifier_value_latest` snapshot-tabeleid.
 Write-päringud järgivad append-only mustrit: ainult `INSERT` tabelitesse `classifier_name_state` ja `classifier_value_validity_state` ning seejärel snapshoti uuendav `INSERT` latest tabelisse.
-Kõik endpointid on POST all `iam/classifier` ja `iam/classifier_value` puus, lisatud ka mock variandid.
+Ruuteri endpointid asuvad versioneeritud puus `api/v1/admin`, lisatud ka mock variandid.
 
 ## 2. Loodud failid
 
@@ -36,22 +36,22 @@ Kõik endpointid on POST all `iam/classifier` ja `iam/classifier_value` puus, li
 - `DSL/Resql/POST/iam/classifier_value/mock_update.sql`
 
 ### Ruuter
-- `DSL/Ruuter/POST/iam/classifier/.guard`
-- `DSL/Ruuter/POST/iam/classifier/list.yml`
-- `DSL/Ruuter/POST/iam/classifier/get.yml`
-- `DSL/Ruuter/POST/iam/classifier/update.yml`
-- `DSL/Ruuter/POST/iam/classifier/mock_list.yml`
-- `DSL/Ruuter/POST/iam/classifier/mock_get.yml`
-- `DSL/Ruuter/POST/iam/classifier/mock_update.yml`
-- `DSL/Ruuter/POST/iam/classifier_value/.guard`
-- `DSL/Ruuter/POST/iam/classifier_value/list.yml`
-- `DSL/Ruuter/POST/iam/classifier_value/check_code_exists.yml`
-- `DSL/Ruuter/POST/iam/classifier_value/create.yml`
-- `DSL/Ruuter/POST/iam/classifier_value/update.yml`
-- `DSL/Ruuter/POST/iam/classifier_value/mock_list.yml`
-- `DSL/Ruuter/POST/iam/classifier_value/mock_check_code_exists.yml`
-- `DSL/Ruuter/POST/iam/classifier_value/mock_create.yml`
-- `DSL/Ruuter/POST/iam/classifier_value/mock_update.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard`
+- `DSL/Ruuter/api/POST/v1/admin/classifiers/list.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifiers/get.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifiers/update.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_list.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_get.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_update.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/.guard`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/list.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/check_code_exists.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/create.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/update.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_list.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_check_code_exists.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_create.yml`
+- `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_update.yml`
 
 ## 3. Arhitektuuri vastavus
 
