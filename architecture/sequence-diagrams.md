@@ -75,7 +75,7 @@ sequenceDiagram
     participant DB as SQL Server<br/>(ControlForm, ControlFormValue, EtoimikLog)
     participant Versions as Versions tabel
     participant Etoimik as E-toimik (X-tee v6)
-    participant Mail as Meiliteenус
+    participant Mail as Meiliteenus
 
     Timer->>EtoimikSvc: Run()
 
@@ -143,7 +143,7 @@ sequenceDiagram
     participant Timer as BgService taimer
     participant MntSvc as MntSyncService
     participant DB as SQL Server<br/>(ControlForm, ControlFormValue, Versions)
-    participant MNT as Maanteeamet / Liiklusregister<br/>(X-tee paring2)
+    participant MNT as Maanteeamet / Liiklusregister<br/>(X-tee päring2)
 
     Timer->>MntSvc: Run()
 

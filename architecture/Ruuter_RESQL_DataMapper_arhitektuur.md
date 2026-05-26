@@ -1,7 +1,5 @@
 # Ruuter, RESQL ja DataMapper – arhitektuurne kontekst LJVIS projektis
 
-> **Allikas:** LJVIS2 arhitektide töötuba, 11.09.2025 (Rainer Türner – KeMIT arhitekt; Rain Elving – arenduspartneri esindaja)
->
 > **Eesmärk:** Dokument kirjeldab kolme Buerokratt-perekonna põhikomponendi – **Ruuter**, **RESQL** ja **DataMapper** – rolli, tööpõhimõtteid ning piiranguid LJVIS süsteemis. Mõeldud kasutamiseks arendajatele viitedokumendina ja LLM-kontekstina koodi genereerimisel.
 
 ---
@@ -15,6 +13,21 @@
 | **Üks fail = üks funktsioon = üks endpoint** | Iga ärifunktsioon, andmebaasipäring ja transformatsioon on eraldi fail, mis tekitab eraldi REST endpoint'i. Mitte kunagi ei panustata mitut erinevat loogikat ühte faili. |
 | **Äriloogika DSL-failides, mitte rakenduskoodis** | Kogu äriloogika, otsustusloogika, andmetransformatsioonid ja marsruutimine on deklaratiivsetes DSL-failides (YAML, SQL, JSON mallid). Traditsioonilise koodi kirjutamine on minimaalne. |
 | **Taaskasutus endpoint'ide kaudu** | Kui endpoint on loodud (nt "kas kasutaja eksisteerib?"), kasutatakse sama endpoint'i igal pool süsteemis, kus seda loogikat vaja läheb. Dubleerimine on keelatud. |
+
+### 1.1 Üldine komponentide joonis
+
+```mermaid
+flowchart LR
+  FE[Front-end] -->|HTTP API| R[Ruuter]
+  R -->|REST: andmepäringud| Q[RESQL]
+  Q -->|SQL| DB[(Andmebaas)]
+  R -->|REST: transformatsioon| DM[DataMapper]
+  R -->|REST: välisteenus| XT[X-tee]
+  Q --> R
+  DM --> R
+  XT --> R
+  R --> FE
+```
 
 ---
 
@@ -66,15 +79,17 @@ RESQL on **REST-põhine andmebaasipäringute teenus**. Ta võtab vastu REST pär
 
 ### 3.2 Tööpõhimõte
 
-- SQL päringud asuvad **DSQL kataloogis**, organiseerituna alamkaustadesse:
+- SQL päringud asuvad **DSL kataloogis**, organiseerituna loogilise puu järgi:
   ```
-  DSQL/
-    <projekt>/
-      get/
-        <moodul>/<entiteet>/<operatsioon>.sql
-      post/
-        <moodul>/<entiteet>/<operatsioon>.sql
+  DSL/
+    <project>/
+      <method>/
+        v1/<module>/<entity>/<operation>.sql
   ```
+- `<method>` loogikas on `get|post`; teostuses kasutatakse vastavaid meetodikaustu (`GET`/`POST`) platvormi kokkuleppe järgi.
+- Näide (klassifikaatorite list):
+  - Ruuteri sisekutse: `[#LOCAL_RESQL]/dev/v1/iam/classifier/list`
+  - RESQL SQL fail: `DSL/Resql/dev/POST/v1/iam/classifier/list.sql`
 - **Üks fail = üks SQL päring.** Mitut SQL lauset ühes failis ei tohi olla (nt `INSERT INTO ... ; SELECT ...` – keelatud).
 - Muutujad SQL-failides on tähistatud **kooloniga**: `:variableName` (nt `:userId`, `:note`).
 - RESQL võtab päringuid vastu **REST formaadis** (JSON sisend) ja tagastab tulemused **JSON formaadis**.
@@ -157,19 +172,19 @@ DataMapper on **andmete transformatsiooni ja ümberstuktureerimise teenus**. Ta 
 
 ## 5. Komponentide koostoime – tüüpiline päringuvoog
 
-```
-┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
-│ Front-end│────▶│  Ruuter  │────▶│  RESQL   │────▶│    DB    │
-│          │◀────│(autoris.)│◀────│          │◀────│          │
-└──────────┘     │          │     └──────────┘     └──────────┘
-                 │          │     ┌──────────┐
-                 │          │────▶│DataMapper│
-                 │          │◀────│          │
-                 │          │     └──────────┘
-                 │          │     ┌──────────┐
-                 │          │────▶│  X-tee   │
-                 │          │◀────│          │
-                 └──────────┘     └──────────┘
+```mermaid
+flowchart LR
+  FE[Front-end] -->|1. Päring| R[Ruuter]
+  R -->|2. Autoriseerimine (.guard/JWT)| R
+  R -->|3a. Andmepäring| Q[RESQL]
+  Q -->|SQL| DB[(DB)]
+  DB --> Q
+  Q -->|4. Vastus| R
+  R -->|3b. Vajadusel transformatsioon| DM[DataMapper]
+  DM -->|5. Transformeeritud vastus| R
+  R -->|3c. Vajadusel välisteenus| XT[X-tee]
+  XT -->|4. Vastus| R
+  R -->|6. Lõppvastus| FE
 ```
 
 **Tüüpiline voog:**
