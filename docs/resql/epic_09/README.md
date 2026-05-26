@@ -15,25 +15,26 @@ mode: create
 Loodi EPIC 09 classifier halduse jaoks RESQL ja Ruuter failid järgmistele endpointidele: `classifiers/list`, `classifiers/get`, `classifiers/update`, `classifier-values/list`, `classifier-values/check-code-exists`, `classifier-values/create`, `classifier-values/update`.
 Read-päringud kasutavad `classifier_latest` ja `classifier_value_latest` snapshot-tabeleid.
 Write-päringud järgivad append-only mustrit: ainult `INSERT` tabelitesse `classifier_name_state` ja `classifier_value_validity_state` ning seejärel snapshoti uuendav `INSERT` latest tabelisse.
+RESQL sisemine leping on versioneeritud kujul `/dev/v1/iam/...`.
 Ruuteri endpointid asuvad versioneeritud puus `api/v1/admin`, lisatud ka mock variandid.
 
 ## 2. Loodud failid
 
 ### RESQL
-- `DSL/Resql/POST/iam/classifier/list.sql`
-- `DSL/Resql/POST/iam/classifier/get.sql`
-- `DSL/Resql/POST/iam/classifier/update.sql`
-- `DSL/Resql/POST/iam/classifier/mock_list.sql`
-- `DSL/Resql/POST/iam/classifier/mock_get.sql`
-- `DSL/Resql/POST/iam/classifier/mock_update.sql`
-- `DSL/Resql/POST/iam/classifier_value/list.sql`
-- `DSL/Resql/POST/iam/classifier_value/check_code_exists.sql`
-- `DSL/Resql/POST/iam/classifier_value/create.sql`
-- `DSL/Resql/POST/iam/classifier_value/update.sql`
-- `DSL/Resql/POST/iam/classifier_value/mock_list.sql`
-- `DSL/Resql/POST/iam/classifier_value/mock_check_code_exists.sql`
-- `DSL/Resql/POST/iam/classifier_value/mock_create.sql`
-- `DSL/Resql/POST/iam/classifier_value/mock_update.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier/list.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier/get.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier/update.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier/mock_list.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier/mock_get.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier/mock_update.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier_value/list.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier_value/check_code_exists.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier_value/create.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier_value/update.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier_value/mock_list.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier_value/mock_check_code_exists.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier_value/mock_create.sql`
+- `DSL/Resql/dev/POST/v1/iam/classifier_value/mock_update.sql`
 
 ### Ruuter
 - `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard`

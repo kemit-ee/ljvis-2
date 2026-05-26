@@ -32,7 +32,7 @@ validate:
 call_db:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/dev/iam/classifier_value/create"
+    url: "[#LOCAL_RESQL]/dev/v1/iam/classifier_value/create"
     body:
       classifierId: ${incoming.body.classifierId}
       code: ${incoming.body.code}

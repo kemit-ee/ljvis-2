@@ -18,7 +18,7 @@ checkPermission:
 call_db:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/dev/iam/classifier/list"
+    url: "[#LOCAL_RESQL]/dev/v1/iam/classifier/list"
     body:
       searchTerm: ${incoming.body.searchTerm}
       sortField: ${incoming.body.sortField}

@@ -24,7 +24,7 @@ validate:
 call_db:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/dev/iam/classifier_value/list"
+    url: "[#LOCAL_RESQL]/dev/v1/iam/classifier_value/list"
     body:
       classifierId: ${incoming.body.classifierId}
       activeOnly: ${incoming.body.activeOnly}

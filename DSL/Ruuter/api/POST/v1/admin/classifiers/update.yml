@@ -28,7 +28,7 @@ validate:
 call_db:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/dev/iam/classifier/update"
+    url: "[#LOCAL_RESQL]/dev/v1/iam/classifier/update"
     body:
       classifierId: ${incoming.body.classifierId}
       name: ${incoming.body.name}

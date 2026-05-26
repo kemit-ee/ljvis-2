@@ -3,7 +3,7 @@
 call_mock:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/dev/iam/classifier_value/mock_check_code_exists"
+    url: "[#LOCAL_RESQL]/dev/v1/iam/classifier_value/mock_check_code_exists"
   result: mock_response
   next: respond
 
