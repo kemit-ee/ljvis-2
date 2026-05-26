@@ -60,44 +60,41 @@ extractRequestData:
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
     access_end: "${incoming.body.accessEnd ?? ''}"
-  next: validateRequired
+  next: validateId
 
-validateRequired:
+validateId:
   switch:
     - condition: ${id == null || id == ''}
-      next: return_validation_error
-    - condition: ${first_name == null || first_name == ''}
-      next: return_validation_error
-    - condition: ${last_name == null || last_name == ''}
-      next: return_validation_error
-    - condition: ${personal_code == null || personal_code == ''}
-      next: return_validation_error
-    - condition: ${organisation_id == null || organisation_id == ''}
-      next: return_validation_error
-    - condition: ${structural_unit_id == null || structural_unit_id == ''}
-      next: return_validation_error
-    - condition: ${job_title_name == null || job_title_name == ''}
-      next: return_validation_error
-    - condition: ${email == null || email == ''}
-      next: return_validation_error
-    - condition: ${access_start == null || access_start == ''}
-      next: return_validation_error
-  next: validatePersonalCodeLength
+      next: return_invalid_id
+  next: validateUser
 
-validatePersonalCodeLength:
-  switch:
-    - condition: ${personal_code.length != 11}
-      next: return_validation_error
-  next: validateEmail
+return_invalid_id:
+  assign:
+    field_error:
+      type: VALIDATION_ERROR
+      field: id
+      code: required
+  next: propagate_error
 
-validateEmail:
+validateUser:
+  template: "[#LJVIS_PROJECT_LAYER]/user/validate-user-fields"
+  requestType: templates
+  body:
+    first_name: ${first_name}
+    last_name: ${last_name}
+    personal_code: ${personal_code}
+    organisation_id: ${organisation_id}
+    structural_unit_id: ${structural_unit_id}
+    job_title_name: ${job_title_name}
+    email: ${email}
+    access_start: ${access_start}
+  result: field_error
+  next: checkUser
+
+checkUser:
   switch:
-    - condition: ${email.indexOf('@') < 1}
-      next: return_validation_error
-    - condition: ${email.indexOf('.', email.indexOf('@')) < (email.indexOf('@') + 2)}
-      next: return_validation_error
-    - condition: ${email.lastIndexOf('.') >= (email.length - 2)}
-      next: return_validation_error
+    - condition: ${field_error != 'valid'}
+      next: propagate_error
   next: updateUser
 
 updateUser:
@@ -125,14 +122,9 @@ returnSuccess:
   return: ${res.response.body}
   next: end
 
-return_validation_error:
+propagate_error:
   status: 422
-  return: "validation failed"
-  next: end
-
-return_conflict:
-  status: 409
-  return: "personal code already exists"
+  return: ${field_error}
   next: end
 
 return_forbidden:

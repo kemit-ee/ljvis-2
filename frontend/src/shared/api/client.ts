@@ -6,9 +6,11 @@ interface RuuterResponse<T> {
 
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  body: unknown;
+  constructor(message: string, status: number, body?: unknown) {
     super(message);
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -20,9 +22,9 @@ export async function get<T>(path: string, params?: Record<string, string>): Pro
     });
   }
   const res = await fetch(url.toString(), { credentials: 'include' });
-  if (!res.ok) throw new ApiError(`GET ${path} failed: ${res.status}`, res.status);
-  const json: RuuterResponse<T> = await res.json();
-  return json.response;
+  const json = await res.json().catch(() => null) as RuuterResponse<T> | null;
+  if (!res.ok) throw new ApiError(`GET ${path} failed: ${res.status}`, res.status, json?.response);
+  return json!.response;
 }
 
 export async function post<T>(path: string, body: Record<string, unknown>): Promise<T> {
@@ -32,7 +34,7 @@ export async function post<T>(path: string, body: Record<string, unknown>): Prom
     credentials: 'include',
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new ApiError(`POST ${path} failed: ${res.status}`, res.status);
-  const json: RuuterResponse<T> = await res.json();
-  return json.response;
+  const json = await res.json().catch(() => null) as RuuterResponse<T> | null;
+  if (!res.ok) throw new ApiError(`POST ${path} failed: ${res.status}`, res.status, json?.response);
+  return json!.response;
 }
