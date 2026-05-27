@@ -1,0 +1,9 @@
+write_validity_state:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier_value/mock_update
+  args:
+    classifierValueId: "${incoming.body.classifierValueId}"
+    validFrom:         "${incoming.body.validFrom}"
+    validUntil:        "${incoming.body.validUntil}"
+    createdBy:         "${incoming.body.createdBy}"
+  result: db_response
+return: "${db_response.response.body}"

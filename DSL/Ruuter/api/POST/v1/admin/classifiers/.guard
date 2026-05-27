@@ -1,0 +1,29 @@
+jwt:
+  call: http://ruuter-private/auth/jwt/validate
+  args:
+    token: "${incoming.headers.Authorization}"
+  result: jwt
+switch:
+  - condition: "${jwt.response.body != null && jwt.response.body.sub != null}"
+    next: check_permission
+  - condition: "true"
+    next: unauthorized
+check_permission:
+  switch:
+    - condition: >-
+        ${jwt.response.body.authorities != null && (
+          jwt.response.body.authorities.includes('classifier.list') ||
+          jwt.response.body.authorities.includes('classifier.read') ||
+          jwt.response.body.authorities.includes('classifier.edit')
+        )}
+      next: authorized
+    - condition: "true"
+      next: forbidden
+authorized:
+  return: proceed
+unauthorized:
+  status: 401
+  return: ${common_error_messages.unauthorized}
+forbidden:
+  status: 403
+  return: ${common_error_messages.forbidden}

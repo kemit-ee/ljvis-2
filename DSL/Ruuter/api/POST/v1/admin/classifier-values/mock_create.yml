@@ -1,0 +1,9 @@
+create_value:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier_value/mock_create
+  args:
+    classifierId: "${incoming.body.classifierId}"
+    code:         "${incoming.body.code}"
+    name:         "${incoming.body.name}"
+    createdBy:    "${incoming.body.createdBy}"
+  result: db_response
+return: "${db_response.response.body}"
