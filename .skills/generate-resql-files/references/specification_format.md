@@ -124,7 +124,7 @@ DSL/Resql/
         v1/
           <operatsioon>.sql
           mock_<operatsioon>.sql
-    state_updater/               ← *_latest snapshot rebuild (ei versiooni kihti)
+    state_updater/               ← *_latest snapshot rebuild (ei versioneeri)
       <entiteet>/
         build.sql
         mock_build.sql
@@ -422,6 +422,8 @@ Liquibase faile luuakse ainult siis, kui epic muudab andmebaasi skeemi.
 - kui tabel on juba olemas, tuleb puuduvad väljad lisada eraldi kontrolliga (`ADD COLUMN IF NOT EXISTS` või samaväärne guarded loogika)
 - see reegel on kohustuslik, et migration ei kukuks läbi olukorras, kus tabel on olemas, kuid osa välju on veel puudu
 - indeksid tuleb lisada loogiliselt nende väljade järgi, mille järgi päringud filtreerivad, järjestavad või otsivad latest-kirjeid
+- iga uus või muudetud tabel peab saama ingliskeelse `COMMENT ON TABLE` kirjelduse
+- iga uus või muudetud veerg peab saama ingliskeelse `COMMENT ON COLUMN` kirjelduse
 
 **Rollback SQL (`-rollback.sql`):**
 - peab olema sama muudatuse sümmeetriline tagasipööre
@@ -555,6 +557,9 @@ Iga `.guard` faili kohta lisatakse päringute nimekirja sektsiooni alamjaotis:
 ```
 
 Kui moodulil on mitu erinevat ligipääsutaset (nt üks kaustale, teine alamkaustale), dokumenteeritakse mõlemad eraldi.
+Kui sama kaust sisaldab nii read kui write endpoint'e ja üks `.guard` oleks liiga lai, peab write endpoint sisaldama lisaks endpointi-tasemel permission check'i enne esimest RESQL write sammu. `edit` / `update` / `create` vood peavad nõudma vastavat write-õigust isegi siis, kui kaustapõhine `.guard` lubab laiemat ligipääsu.
+
+Code-põhiste write voogude puhul tuleb enne DB write sammu teha eksplitsiitne olemasolu/unikaalsuse kontroll (nt `check_code_exists`) ja konflikti korral tagastada funktsionaalne `409`.
 
 ---
 

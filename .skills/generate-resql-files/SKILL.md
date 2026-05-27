@@ -71,6 +71,7 @@ These rules come from project architecture constraints and database rules:
 | **Liquibase triplet is mandatory** | Every schema change must create forward SQL, symmetric rollback SQL, and XML changeset files |
 | **Indexes are mandatory for state/read performance** | New or changed `_state`/`_status` and `*_latest` tables must get indexes based on real lookup and rebuild patterns |
 | **Liquibase forward SQL must be guarded** | Table creation and column additions must check whether the object already exists so reruns add missing pieces instead of failing |
+| **Liquibase schema comments are mandatory** | Every new or changed table and every new or changed column in Liquibase forward SQL must have English `COMMENT ON TABLE` and `COMMENT ON COLUMN` statements |
 
 ## When to Use
 
@@ -243,6 +244,7 @@ The skill also reads:
    - `YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql`
    - `YYYYMMDDXXXX-selgitus-millega-tegu.xml`
    - The XML must reference both SQL files via `<sqlFile path="changelog/..." />` and `<rollback><sqlFile ... /></rollback>`
+   - Add English `COMMENT ON TABLE` and `COMMENT ON COLUMN` statements for every new or changed table and column in the forward SQL
    - Add indexes for new/changed `_state`/`_status` and `*_latest` tables according to real `WHERE`, `ORDER BY`, latest lookup, and snapshot rebuild patterns
    - Guard DDL so reruns are safe: create tables with existence checks first, then add missing columns with `ADD COLUMN IF NOT EXISTS` or equivalent guarded logic
    - This rule is mandatory because the table may already exist while some required columns are still missing; the migration must still add the missing fields
@@ -263,10 +265,17 @@ The skill also reads:
    - GET is allowed only for parameter-less list queries and must not pass any input to RESQL
    - Ruuter must contain the business flow, including validation, verify-after-write, failure path, and compensating rollback decisions.
    - If a write flow updates `_state`, the Ruuter flow must explicitly show: read latest state → copy/modify → write new state → verify returned state → call `state_updater` build → verify snapshot.
+   - If an operation is `edit`, `update`, `create`, or any other write path that changes business data, the authorization layer must explicitly require the matching `*.edit` / `*.create` / write permission. If the folder-level `.guard` is intentionally broader than one endpoint, add an endpoint-level permission gate before the first write step.
+   - Before every write that creates or mutates a code-bearing entity, call an existence/uniqueness precheck (for example `check_code_exists`) before the DB write and return a functional conflict if the code is already in use.
    - Success response is allowed only after the expected result is verified.
    - On success, return only the verified DB result (`db_response.response.body` or `verify_response.response.body`) and end the flow.
 
 7. **Write `.guard` files** under `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/.guard`.
+
+7.1 **Guard strictness for write endpoints is mandatory**:
+   - Read/list endpoints may share a broader folder-level `.guard` when the permission model allows it.
+   - `edit` / `update` / `create` endpoints must still explicitly enforce the corresponding write permission.
+   - If one folder contains both read and write endpoints and a single `.guard` cannot safely express both, keep the folder-level `.guard` as the broad baseline and add an endpoint-level permission check inside the write flow before any RESQL write call.
 
 8. **Write `docs/<epic_kataloog>/paigaldusjuhend.md`** per specification format (deployment guide).
 

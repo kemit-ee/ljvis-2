@@ -87,7 +87,7 @@ docs/resql/epic_09/
 |------|---------|
 | **Failitee** | `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard` |
 | **Rakendub** | Kõigile `classifiers/` kausta endpointidele |
-| **Nõutud permission** | `classifier.list` OR `classifier.read` OR `classifier.edit` |
+| **Nõutud permission** | Baastase: `classifier.list` OR `classifier.read` OR `classifier.edit`; `update` endpoint teeb lisaks range `classifier.edit` kontrolli |
 | **Anonüümne lubatud** | Ei |
 
 ### 3.2 `POST /v1/admin/classifiers/list`
@@ -129,7 +129,7 @@ docs/resql/epic_09/
 | **Seotud tabelid** | `classifier_name_state` |
 | **Versioon** | v1 |
 
-**Ruuter voog:** check_exists → write_name_state → rebuild_snapshot → verify_snapshot → respond
+**Ruuter voog:** require_edit_permission → check_exists → write_name_state → rebuild_snapshot → verify_snapshot → respond
 
 ### 3.5 `.guard` — classifier-values
 
@@ -137,7 +137,7 @@ docs/resql/epic_09/
 |------|---------|
 | **Failitee** | `DSL/Ruuter/api/POST/v1/admin/classifier-values/.guard` |
 | **Rakendub** | Kõigile `classifier-values/` kausta endpointidele |
-| **Nõutud permission** | `classifier.read` OR `classifier_value.edit` |
+| **Nõutud permission** | Baastase: `classifier.read` OR `classifier_value.edit`; write/check endpointid teevad lisaks range `classifier_value.edit` kontrolli |
 | **Anonüümne lubatud** | Ei |
 
 ### 3.6 `POST /v1/admin/classifier-values/list`
@@ -179,7 +179,7 @@ docs/resql/epic_09/
 | **Seotud tabelid** | `classifier_value` |
 | **Versioon** | v1 |
 
-**Ruuter voog:** create_value → create_validity_state → rebuild_snapshot → respond
+**Ruuter voog:** require_edit_permission → check_code_exists → create_value → create_validity_state → rebuild_snapshot → respond
 
 ### 3.9 `POST /v1/admin/classifier-values/update`
 
@@ -194,7 +194,7 @@ docs/resql/epic_09/
 | **Seotud tabelid** | `classifier_value_validity_state` |
 | **Versioon** | v1 |
 
-**Ruuter voog:** check_exists → write_validity_state → rebuild_snapshot → respond
+**Ruuter voog:** require_edit_permission → check_exists → write_validity_state → rebuild_snapshot → respond
 
 ## 4. Arhitektuuri vastavus
 
