@@ -1,5 +1,5 @@
 get_user:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user/get
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user/v1/get
   args:
     userId: "${incoming.body.userId}"
   result: db_response

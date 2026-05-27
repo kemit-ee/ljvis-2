@@ -1,4 +1,4 @@
 get_list:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/permission/list
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/permission/v1/list
   result: db_response
 return: "${db_response.response.body}"

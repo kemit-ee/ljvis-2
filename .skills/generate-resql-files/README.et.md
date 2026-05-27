@@ -22,7 +22,7 @@ See skill aitab LJVIS projektis genereerida ja uuendada DSL-artefakte:
 
 - Üks fail = üks operatsioon.
 - RESQL teed peavad olema versioneeritud (`v1`).
-- Ruuteri sisekutsed RESQL-i peavad kasutama kuju `[#LOCAL_RESQL]/ljvis2/v1/...`.
+- Ruuteri sisekutsed RESQL-i peavad kasutama kuju `[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/...`.
 - RESQL SQL failid peavad paiknema kujul `DSL/Resql/<MEETOD>/<moodul>/<entiteet>/v1/...`.
 - GET on lubatud ainult parameetrita listidele.
 - Enne commit'i tee sanity-check teevastavusele.
@@ -51,9 +51,9 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
       operation=$(echo "$rel" | cut -d'/' -f4)
       test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
-      version="$segment2"
-      module=$(echo "$rel" | cut -d'/' -f3)
-      entity=$(echo "$rel" | cut -d'/' -f4)
+      module=$(echo "$rel" | cut -d'/' -f2)
+      entity=$(echo "$rel" | cut -d'/' -f3)
+      version=$(echo "$rel" | cut -d'/' -f4)
       operation=$(echo "$rel" | cut -d'/' -f5)
       test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
@@ -61,7 +61,7 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
 done
 ```
 
-Kui väljundis on `MISSING:`, paranda teed enne merge'i.
+Kui väljundis on `MISSING:`, paranda teed enne merge'i. Runtime-s lisandub sama päringu ette projektikaust `/DSL/ljvis2/`.
 
 ## Jagamine sõbrale
 

@@ -13,6 +13,7 @@ mode: create
 ## 1. Ülevaade
 
 Loodud 24 SQL faili ja 16 Ruuter DSL faili klassifikaatorite haldamiseks. Kasutatavad tabelid: `classifier_latest`, `classifier_value_latest` (lugemine), `classifier_name_state`, `classifier_value`, `classifier_value_validity_state` (kirjutamine), `classifier_latest`, `classifier_value_latest` (snapshot rebuild). Kõik päringud kasutavad HTTP POST meetodit. Uue klassifikaatori loomine ja kustutamine on väljaspool scope'i.
+Ruuteri sisemine leping kasutab kuju `/ljvis2/iam/<entiteet>/v1/<operatsioon>`; source failid paiknevad kujul `DSL/Resql/<MEETOD>/iam/<entiteet>/v1/*.sql` ja runtime laeb need projekti all kujul `/DSL/ljvis2/<MEETOD>/iam/<entiteet>/v1/*.sql`.
 
 ## 2. Kaustastruktuur
 

@@ -1,5 +1,5 @@
 change_org:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user/change_organisation
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user/v1/change_organisation
   args:
     userId:         "${incoming.body.userId}"
     organisationId: "${incoming.body.organisationId}"

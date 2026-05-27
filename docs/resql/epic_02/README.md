@@ -23,8 +23,8 @@ Loodi EPIC 02 kasutajate ja kasutajagruppide halduse jaoks RESQL ja Ruuter faili
 
 Read-päringud kasutavad `user_account_latest` ja `user_group_latest` snapshot-tabeleid.
 Write-päringud järgivad append-only mustrit (ainult `INSERT`) ning kasutavad `state_updater` moodulit snapshot rebuild'iks.
-RESQL sisemine leping: `/ljvis2/v1/iam/...` ja `/ljvis2/state_updater/...`.
-SQL failid paiknevad füüsiliselt kujul `DSL/Resql/<MEETOD>/iam/<entiteet>/v1/*.sql` ja `DSL/Resql/POST/state_updater/<entiteet>/*.sql`.
+RESQL sisemine leping: `/ljvis2/iam/.../v1/...` ja `/ljvis2/state_updater/...`.
+Source repo SQL failid paiknevad kujul `DSL/Resql/<MEETOD>/iam/<entiteet>/v1/*.sql` ja `DSL/Resql/POST/state_updater/<entiteet>/*.sql`; RESQL runtime laeb need projekti all kujul `/DSL/ljvis2/<MEETOD>/iam/<entiteet>/v1/*.sql`.
 
 ## 2. Loodud failid
 

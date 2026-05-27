@@ -1,5 +1,5 @@
 create_user:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user/mock_create
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user/v1/mock_create
   args:
     personalCode:   "${incoming.body.personalCode}"
     firstName:      "${incoming.body.firstName}"

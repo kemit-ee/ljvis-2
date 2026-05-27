@@ -1,5 +1,5 @@
 check_code:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user/check_personal_code_exists
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user/v1/check_personal_code_exists
   args:
     personalCode: "${incoming.body.personalCode}"
   result: db_response

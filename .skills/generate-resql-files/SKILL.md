@@ -231,7 +231,7 @@ The skill also reads:
 6. **Write Ruuter DSL routing files** under `DSL/Ruuter/`:
    - `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/<operatsioon>.yml`
    - `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/mock_<operatsioon>.yml`
-   - RESQL call path inside Ruuter must use `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>`
+   - RESQL call path inside Ruuter must use `[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/<operatsioon>`
    - GET is allowed only for parameter-less list queries and must not pass any input to RESQL
    - Ruuter must contain the business flow, including validation, verify-after-write, failure path, and compensating rollback decisions.
    - If a write flow updates `_state`, the Ruuter flow must explicitly show: read latest state → copy/modify → write new state → verify returned state → call `state_updater` build → verify snapshot.
@@ -278,9 +278,9 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
       operation=$(echo "$rel" | cut -d'/' -f4)
       test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
-      version="$segment2"
-      module=$(echo "$rel" | cut -d'/' -f3)
-      entity=$(echo "$rel" | cut -d'/' -f4)
+      module=$(echo "$rel" | cut -d'/' -f2)
+      entity=$(echo "$rel" | cut -d'/' -f3)
+      version=$(echo "$rel" | cut -d'/' -f4)
       operation=$(echo "$rel" | cut -d'/' -f5)
       test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
@@ -289,7 +289,7 @@ done
 ```
 
 **URL kujud:**
-- Tavalised RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → fail `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- Tavalised RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/<operatsioon>` → source fail `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql` ja runtime fail `/DSL/ljvis2/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
 - `state_updater` endpointid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta)
 
 If any `MISSING:` entry appears, fix paths before proceeding.
@@ -332,7 +332,7 @@ validate:
 call_db:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>"
+    url: "[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/<operatsioon>"
     body:
       <param>: ${incoming.body.<param>}
   result: db_response
@@ -357,7 +357,7 @@ bad_request:
 call_mock:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>"
+    url: "[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/mock_<operatsioon>"
   result: mock_response
   next: respond
 

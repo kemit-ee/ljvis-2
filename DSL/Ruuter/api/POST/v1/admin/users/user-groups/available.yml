@@ -1,5 +1,5 @@
 get_available:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group_membership/available
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/available
   args:
     userId:         "${incoming.body.userId}"
     organisationId: "${incoming.body.organisationId}"

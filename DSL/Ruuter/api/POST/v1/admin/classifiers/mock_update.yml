@@ -1,5 +1,5 @@
 write_name_state:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier/mock_update
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/mock_update
   args:
     classifierId: "${incoming.body.classifierId}"
     name:         "${incoming.body.name}"

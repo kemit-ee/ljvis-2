@@ -1,5 +1,5 @@
 get_users:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group/list_users
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/list_users
   args:
     userGroupId: "${incoming.body.userGroupId}"
     page:        "${incoming.body.page}"

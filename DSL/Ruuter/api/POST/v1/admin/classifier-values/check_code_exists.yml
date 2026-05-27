@@ -1,5 +1,5 @@
 check_code:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier_value/check_code_exists
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/check_code_exists
   args:
     classifierId: "${incoming.body.classifierId}"
     code:         "${incoming.body.code}"

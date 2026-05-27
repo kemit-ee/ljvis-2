@@ -79,17 +79,18 @@ RESQL on **REST-põhine andmebaasipäringute teenus**. Ta võtab vastu REST pär
 
 ### 3.2 Tööpõhimõte
 
-- SQL päringud asuvad **DSL kataloogis**, organiseerituna loogilise puu järgi:
+- SQL päringud asuvad **source repos** kujul `DSL/Resql/<METHOD>/<module>/<entity>/v1/<operation>.sql`, kuid RESQL runtime laeb need projekti- ja meetodipõhiselt kaustapuust:
   ```
-  DSL/
+  /DSL/
     <project>/
-      <method>/
-        v1/<module>/<entity>/<operation>.sql
+      <METHOD>/
+        <module>/<entity>/v1/<operation>.sql
   ```
 - `<method>` loogikas on `get|post`; teostuses kasutatakse vastavaid meetodikaustu (`GET`/`POST`) platvormi kokkuleppe järgi.
 - Näide (klassifikaatorite list):
-  - Ruuteri sisekutse: `[#LOCAL_RESQL]/dev/v1/iam/classifier/list`
-  - RESQL SQL fail: `DSL/Resql/dev/POST/v1/iam/classifier/list.sql`
+  - Source repo fail: `DSL/Resql/POST/iam/classifier/v1/list.sql`
+  - Ruuteri sisekutse: `[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/list`
+  - RESQL runtime otsib SQL faili: `/DSL/ljvis2/POST/iam/classifier/v1/list.sql`
 - **Üks fail = üks SQL päring.** Mitut SQL lauset ühes failis ei tohi olla (nt `INSERT INTO ... ; SELECT ...` – keelatud).
 - Muutujad SQL-failides on tähistatud **kooloniga**: `:variableName` (nt `:userId`, `:note`).
 - RESQL võtab päringuid vastu **REST formaadis** (JSON sisend) ja tagastab tulemused **JSON formaadis**.

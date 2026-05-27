@@ -1,5 +1,5 @@
 add_user:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group/add_user
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/add_user
   args:
     userGroupId: "${incoming.body.userGroupId}"
     userId:      "${incoming.body.userId}"

@@ -4,7 +4,7 @@ save_groups:
     collection: "${incoming.body.actions}"
     steps:
       do_save:
-        call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group_membership/save
+        call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/save
         args:
           userId:      "${incoming.body.userId}"
           userGroupId: "${groupAction.userGroupId}"

@@ -1,5 +1,5 @@
 get_list:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier/list
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/list
   args:
     page:     "${incoming.body.page}"
     pageSize: "${incoming.body.pageSize}"
