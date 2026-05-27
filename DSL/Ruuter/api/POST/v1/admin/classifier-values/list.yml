@@ -1,5 +1,5 @@
 get_list:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier_value/list
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/list
   args:
     classifierId: "${incoming.body.classifierId}"
     page:         "${incoming.body.page}"

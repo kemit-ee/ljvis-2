@@ -13,6 +13,7 @@ mode: create
 ## 1. Ülevaade
 
 Loodud 24 SQL faili ja 16 Ruuter DSL faili klassifikaatorite haldamiseks. Kasutatavad tabelid: `classifier_latest`, `classifier_value_latest` (lugemine), `classifier_name_state`, `classifier_value`, `classifier_value_validity_state` (kirjutamine), `classifier_latest`, `classifier_value_latest` (snapshot rebuild). Kõik päringud kasutavad HTTP POST meetodit. Uue klassifikaatori loomine ja kustutamine on väljaspool scope'i.
+Ruuteri sisemine leping kasutab kuju `/ljvis2/iam/<entiteet>/v1/<operatsioon>`; source failid paiknevad kujul `DSL/Resql/<MEETOD>/iam/<entiteet>/v1/*.sql` ja runtime laeb need projekti all kujul `/DSL/ljvis2/<MEETOD>/iam/<entiteet>/v1/*.sql`.
 
 ## 2. Kaustastruktuur
 
@@ -86,7 +87,7 @@ docs/resql/epic_09/
 |------|---------|
 | **Failitee** | `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard` |
 | **Rakendub** | Kõigile `classifiers/` kausta endpointidele |
-| **Nõutud permission** | `classifier.list` OR `classifier.read` OR `classifier.edit` |
+| **Nõutud permission** | Baastase: `classifier.list` OR `classifier.read` OR `classifier.edit`; `update` endpoint teeb lisaks range `classifier.edit` kontrolli |
 | **Anonüümne lubatud** | Ei |
 
 ### 3.2 `POST /v1/admin/classifiers/list`
@@ -128,7 +129,7 @@ docs/resql/epic_09/
 | **Seotud tabelid** | `classifier_name_state` |
 | **Versioon** | v1 |
 
-**Ruuter voog:** check_exists → write_name_state → rebuild_snapshot → verify_snapshot → respond
+**Ruuter voog:** require_edit_permission → check_exists → write_name_state → rebuild_snapshot → verify_snapshot → respond
 
 ### 3.5 `.guard` — classifier-values
 
@@ -136,7 +137,7 @@ docs/resql/epic_09/
 |------|---------|
 | **Failitee** | `DSL/Ruuter/api/POST/v1/admin/classifier-values/.guard` |
 | **Rakendub** | Kõigile `classifier-values/` kausta endpointidele |
-| **Nõutud permission** | `classifier.read` OR `classifier_value.edit` |
+| **Nõutud permission** | Baastase: `classifier.read` OR `classifier_value.edit`; write/check endpointid teevad lisaks range `classifier_value.edit` kontrolli |
 | **Anonüümne lubatud** | Ei |
 
 ### 3.6 `POST /v1/admin/classifier-values/list`
@@ -178,7 +179,7 @@ docs/resql/epic_09/
 | **Seotud tabelid** | `classifier_value` |
 | **Versioon** | v1 |
 
-**Ruuter voog:** create_value → create_validity_state → rebuild_snapshot → respond
+**Ruuter voog:** require_edit_permission → check_code_exists → create_value → create_validity_state → rebuild_snapshot → respond
 
 ### 3.9 `POST /v1/admin/classifier-values/update`
 
@@ -193,7 +194,7 @@ docs/resql/epic_09/
 | **Seotud tabelid** | `classifier_value_validity_state` |
 | **Versioon** | v1 |
 
-**Ruuter voog:** check_exists → write_validity_state → rebuild_snapshot → respond
+**Ruuter voog:** require_edit_permission → check_exists → write_validity_state → rebuild_snapshot → respond
 
 ## 4. Arhitektuuri vastavus
 

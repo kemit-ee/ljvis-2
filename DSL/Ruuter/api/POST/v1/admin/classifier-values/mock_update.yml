@@ -1,5 +1,5 @@
 write_validity_state:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier_value/mock_update
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/mock_update
   args:
     classifierValueId: "${incoming.body.classifierValueId}"
     validFrom:         "${incoming.body.validFrom}"

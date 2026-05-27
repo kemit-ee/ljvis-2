@@ -1,0 +1,8 @@
+get_users:
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_list_users
+  args:
+    userGroupId: "${incoming.body.userGroupId}"
+    page:        "${incoming.body.page}"
+    pageSize:    "${incoming.body.pageSize}"
+  result: db_response
+return: "${db_response.response.body}"

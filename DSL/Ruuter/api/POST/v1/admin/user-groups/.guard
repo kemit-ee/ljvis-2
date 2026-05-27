@@ -1,0 +1,37 @@
+jwt:
+  call: http://ruuter-private/auth/jwt/validate
+  args:
+    token: "${incoming.headers.Authorization}"
+  result: jwt
+switch:
+  - condition: "${jwt.response.body != null && jwt.response.body.sub != null}"
+    next: check_permission
+  - condition: "true"
+    next: unauthorized
+check_permission:
+  switch:
+    - condition: >-
+        ${jwt.response.body.authorities != null && (
+          jwt.response.body.authorities.includes('user_group.list.admin') ||
+          jwt.response.body.authorities.includes('user_group.list.local') ||
+          jwt.response.body.authorities.includes('user_group.read.admin') ||
+          jwt.response.body.authorities.includes('user_group.read.local') ||
+          jwt.response.body.authorities.includes('user_group.create') ||
+          jwt.response.body.authorities.includes('user_group.update') ||
+          jwt.response.body.authorities.includes('user_group.list_users.admin') ||
+          jwt.response.body.authorities.includes('user_group.list_users.local') ||
+          jwt.response.body.authorities.includes('user_group.search_eligible_users') ||
+          jwt.response.body.authorities.includes('user_group.add_user') ||
+          jwt.response.body.authorities.includes('user_group.remove_user')
+        )}
+      next: authorized
+    - condition: "true"
+      next: forbidden
+authorized:
+  return: proceed
+unauthorized:
+  status: 401
+  return: ${common_error_messages.unauthorized}
+forbidden:
+  status: 403
+  return: ${common_error_messages.forbidden}

@@ -30,6 +30,12 @@ DSL/Ruuter/
       .guard
       <operatsioon>.yml
       mock_<operatsioon>.yml
+
+DSL/Liquibase/
+  changelog/
+    YYYYMMDDXXXX-selgitus-millega-tegu.sql
+    YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql
+    YYYYMMDDXXXX-selgitus-millega-tegu.xml
 ```
 
 Dokumentatsioon:
@@ -61,6 +67,11 @@ These rules come from project architecture constraints and database rules:
 | **Verify-after-write is mandatory** | Success response is forbidden before the written row/state is re-read and verified |
 | **Compensating rollback must be defined** | If later steps fail, Ruuter must trigger a compensating flow via RESQL |
 | **Partial success must be handled** | Main record exists but `_state` is missing/invalid must be explicitly recovered or rolled back |
+| **Liquibase on schema changes only** | If the epic creates or alters DB schema, generate Liquibase files under `DSL/Liquibase/changelog/`; pure DSL/RESQL/Ruuter changes do not require them |
+| **Liquibase triplet is mandatory** | Every schema change must create forward SQL, symmetric rollback SQL, and XML changeset files |
+| **Indexes are mandatory for state/read performance** | New or changed `_state`/`_status` and `*_latest` tables must get indexes based on real lookup and rebuild patterns |
+| **Liquibase forward SQL must be guarded** | Table creation and column additions must check whether the object already exists so reruns add missing pieces instead of failing |
+| **Liquibase schema comments are mandatory** | Every new or changed table and every new or changed column in Liquibase forward SQL must have English `COMMENT ON TABLE` and `COMMENT ON COLUMN` statements |
 
 ## When to Use
 
@@ -107,6 +118,7 @@ The skill also reads:
 9. Read `planning/docs/permissions-matrix.md`; if missing, read `docs/permissions-matrix.md`.
 10. Read `planning/docs/errors.json`; if missing, read `docs/errors.json`.
 11. Read existing files in `DSL/Resql/` and `DSL/Ruuter/` **only to understand naming/versioning conventions** — do NOT use existing folder layout to derive target paths for new files. Target paths come exclusively from the epic blueprint (Step 0.5) and the fixed folder schema defined in Step 5.
+12. Detect whether the epic requires DB schema changes. If yes, plan Liquibase artifacts under `DSL/Liquibase/changelog/` and identify required indexes for `_state`/`_status` and `*_latest` tables before file generation.
 
 ### Step 0.5: Create Epic DSL Blueprint (mandatory)
 
@@ -116,6 +128,8 @@ The skill also reads:
    - exact file list to be created or updated,
    - one-line purpose for every file,
    - detailed Ruuter control flow,
+   - Liquibase file list for all schema changes (when applicable),
+   - index plan for `_state`/`_status` and `*_latest` tables based on query patterns,
    - permission matrix based access table,
    - failure-handling and state-management flow for the epic,
    - checklist for SQL, Ruuter, guard and docs,
@@ -192,16 +206,21 @@ The skill also reads:
      POST/state_updater/<entiteet>/build.sql       ← *_latest snapshot rebuild (ei versiooni)
      POST/state_updater/<entiteet>/mock_build.sql
    DSL/Ruuter/
-     api/
-       POST/v1/admin/<entiteet>/
-         .guard
-         <operatsioon>.yml
-         mock_<operatsioon>.yml
-       GET/v1/admin/<entiteet>/
-         .guard
-         <operatsioon>.yml
-         mock_<operatsioon>.yml
-   docs/<epic_kataloog>/
+    api/
+      POST/v1/admin/<entiteet>/
+        .guard
+        <operatsioon>.yml
+        mock_<operatsioon>.yml
+      GET/v1/admin/<entiteet>/
+        .guard
+        <operatsioon>.yml
+        mock_<operatsioon>.yml
+  DSL/Liquibase/
+    changelog/
+      YYYYMMDDXXXX-selgitus-millega-tegu.sql
+      YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql
+      YYYYMMDDXXXX-selgitus-millega-tegu.xml
+  docs/<epic_kataloog>/
      README.md
      paigaldusjuhend.md
    ```
@@ -220,6 +239,17 @@ The skill also reads:
    - For INSERTs: end with SELECT of the inserted row
    - For state changes: INSERT into `_state` table, then SELECT current state
 
+3.1 **If schema changes are required, write Liquibase triplets** under `DSL/Liquibase/changelog/`:
+   - `YYYYMMDDXXXX-selgitus-millega-tegu.sql`
+   - `YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql`
+   - `YYYYMMDDXXXX-selgitus-millega-tegu.xml`
+   - The XML must reference both SQL files via `<sqlFile path="changelog/..." />` and `<rollback><sqlFile ... /></rollback>`
+   - Add English `COMMENT ON TABLE` and `COMMENT ON COLUMN` statements for every new or changed table and column in the forward SQL
+   - Add indexes for new/changed `_state`/`_status` and `*_latest` tables according to real `WHERE`, `ORDER BY`, latest lookup, and snapshot rebuild patterns
+   - Guard DDL so reruns are safe: create tables with existence checks first, then add missing columns with `ADD COLUMN IF NOT EXISTS` or equivalent guarded logic
+   - This rule is mandatory because the table may already exist while some required columns are still missing; the migration must still add the missing fields
+   - If Liquibase files are listed in the blueprint, the skill must create them — listing without generation is forbidden
+
 4. **Write each mock SQL file** (`mock_` prefix):
    - Returns hardcoded realistic Estonian test data
    - Same output structure (same column aliases) as production query
@@ -235,10 +265,17 @@ The skill also reads:
    - GET is allowed only for parameter-less list queries and must not pass any input to RESQL
    - Ruuter must contain the business flow, including validation, verify-after-write, failure path, and compensating rollback decisions.
    - If a write flow updates `_state`, the Ruuter flow must explicitly show: read latest state → copy/modify → write new state → verify returned state → call `state_updater` build → verify snapshot.
+   - If an operation is `edit`, `update`, `create`, or any other write path that changes business data, the authorization layer must explicitly require the matching `*.edit` / `*.create` / write permission. If the folder-level `.guard` is intentionally broader than one endpoint, add an endpoint-level permission gate before the first write step.
+   - Before every write that creates or mutates a code-bearing entity, call an existence/uniqueness precheck (for example `check_code_exists`) before the DB write and return a functional conflict if the code is already in use.
    - Success response is allowed only after the expected result is verified.
    - On success, return only the verified DB result (`db_response.response.body` or `verify_response.response.body`) and end the flow.
 
 7. **Write `.guard` files** under `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/.guard`.
+
+7.1 **Guard strictness for write endpoints is mandatory**:
+   - Read/list endpoints may share a broader folder-level `.guard` when the permission model allows it.
+   - `edit` / `update` / `create` endpoints must still explicitly enforce the corresponding write permission.
+   - If one folder contains both read and write endpoints and a single `.guard` cannot safely express both, keep the folder-level `.guard` as the broad baseline and add an endpoint-level permission check inside the write flow before any RESQL write call.
 
 8. **Write `docs/<epic_kataloog>/paigaldusjuhend.md`** per specification format (deployment guide).
 
@@ -254,6 +291,7 @@ The skill also reads:
 4. For each change:
    - If a new operation is needed → create new SQL + mock SQL + Ruuter YML + mock YML + guard (if new module), add to docs
    - If a query must change due to schema change → create versioned SQL file (e.g., `get_by_id_v2.sql`) and corresponding versioned Ruuter YML (`get_by_id_v2.yml`), keep old files, add changelog entry
+   - If schema changes are required → create matching Liquibase triplets and required indexes for affected `_state`/`_status` and `*_latest` tables, and add them to docs
    - If permissions changed → update affected `.guard` files, add changelog entry to docs
    - If an operation is removed → mark as deprecated in docs (do NOT delete any files)
 5. Update the documentation file: increment version, add changelog entry.
@@ -272,36 +310,106 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
     segment2=$(echo "$rel" | cut -d'/' -f2)
-    module=$(echo "$rel" | cut -d'/' -f3)
-    entity=$(echo "$rel" | cut -d'/' -f4)
-    operation=$(echo "$rel" | cut -d'/' -f5)
     test "$project" = "ljvis2" || echo "MISSING_PROJECT: $f -> $url"
     if [ "$segment2" = "state_updater" ]; then
-      test -f "DSL/Resql/${method}/state_updater/${module}/${operation}.sql" || echo "MISSING: $f -> $url"
+      entity=$(echo "$rel" | cut -d'/' -f3)
+      operation=$(echo "$rel" | cut -d'/' -f4)
+      test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
-      test -f "DSL/Resql/${method}/${segment2}/${module}/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
+      version="$segment2"
+      module=$(echo "$rel" | cut -d'/' -f3)
+      entity=$(echo "$rel" | cut -d'/' -f4)
+      operation=$(echo "$rel" | cut -d'/' -f5)
+      test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
   done
 done
 ```
 
-**`state_updater` URL kuju:** `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta).
+**URL kujud:**
+- Tavalised RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → fail `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- `state_updater` endpointid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta)
 
 If any `MISSING:` entry appears, fix paths before proceeding.
 
 ### Step 7: Commit, Push, and Issue Update
 
-1. Commit created/updated files on `feature/epic_NN_dsl` with a clear message.
-2. Commit message must include dedicated DSL task issue reference (e.g. `Refs #123`).
-3. Push branch to remote.
-4. Create or update PR **towards `dev` branch** and include `Resolves #<dsl_task_issue_number>` in PR description.
-5. Do not close the epic issue from commit or PR metadata.
-6. Do not write DSL file delivery info to epic issue body or unrelated tickets.
-7. Add a comment only to the dedicated DSL task issue with exact format:
-   - `Commit: <commit_url_or_sha>`
-   - `Created files: <number>`
-   - `Updated files: <number>`
-8. If applicable, include PR link in that same dedicated DSL task comment.
+#### 7a. Create issues BEFORE generating files
+
+**Epic-level DSL issue** (one per epic):
+- Title: `DSL files for "<epic name>" (Epic NN)`
+- Body:
+  ```
+  > Parent epic: #<epic_issue_number>
+
+  Create DSL files for "<epic name>" (Epic NN) and its subtasks.
+  ```
+- Note: GitHub sub-issues REST API returns 404 — use `> Parent epic:` body pattern instead.
+
+**Per-subtask DSL issues** (one per epic subtask, e.g. Task 01…Task NN):
+- Title: `DSL: Task NN – <task title>`
+- Body:
+  ```
+  > Parent issue: #<task_issue_number>
+
+  DSL files for "<task title>".
+
+  ## Files
+  - [ ] `DSL/Resql/POST/iam/<entity>/v1/<operation>.sql`
+  - [ ] `DSL/Resql/POST/iam/<entity>/v1/mock_<operation>.sql`
+  - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/<operation>.yml`
+  - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/mock_<operation>.yml`
+  ```
+- `> Parent issue: #<task_issue>` makes the DSL issue visible under the task issue in GitHub.
+- List only the files relevant to that specific task.
+- Save all created issue numbers for use in commit messages and PR body.
+
+#### 7b. Generate and commit files per subtask
+
+For each subtask, commit its files separately:
+```
+git commit -m "DSL: Task NN – <task title>
+
+Refs #<subtask_dsl_issue_number>"
+```
+- Use `Refs #XX` (not `Resolves`) — links commit to DSL issue timeline without closing it.
+- The issue is closed via PR merge only.
+
+#### 7c. Push and create PR
+
+1. Push to `github` remote: `git push github feature/epic_NN_dsl`. Two remotes exist: `origin` = GitLab (do NOT push there), `github` = GitHub.
+2. Check branches: `git ls-remote github 'refs/heads/*'`. If `feature/dsl` missing, create it: `git push github dev:refs/heads/feature/dsl`.
+3. Create PR `feature/epic_NN_dsl → feature/dsl` with body listing ALL `Resolves` lines:
+   ```
+   Loodud RESQL SQL, mock SQL, Ruuter YML, mock YML ja .guard failid Epic NN jaoks.
+
+   Resolves #XX  (DSL: Task 01 – <title>)
+   Resolves #XX  (DSL: Task 02 – <title>)
+   ...
+   Resolves #XX  (DSL files for "<epic name>" – kogu epic)
+   ```
+4. Do NOT add `Resolves` for the epic issue itself — it must stay open.
+
+#### 7d. Update epic-level DSL issue comment
+
+Add a comment to the **epic-level DSL issue** with:
+- `Commit: <github_commit_url>`
+- `Created files: <number>`
+- `Updated files: <number>`
+- `PR: <github_pr_url>`
+
+#### 7e. Update epic issue body
+
+Append to the end of the **epic issue body** (do not modify existing content):
+```markdown
+## DSL
+
+- [ ] #<epic_dsl_issue> [DSL files for "<epic name>" (Epic NN)](<issue_url>) — [PR #XX](<pr_url>) open
+  - [ ] #XX DSL: Task 01 – <title>
+  - [ ] #XX DSL: Task 02 – <title>
+  - [ ] ...
+```
+- Use `- [x]` and update status to `merged` after PR is merged.
 
 ---
 

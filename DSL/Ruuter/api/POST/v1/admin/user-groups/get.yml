@@ -1,0 +1,16 @@
+get_group:
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/get
+  args:
+    userGroupId: "${incoming.body.userGroupId}"
+  result: db_response
+check_found:
+  switch:
+    - condition: "${db_response.response.body == null || db_response.response.body.length == 0}"
+      next: not_found
+    - condition: "true"
+      next: return_result
+not_found:
+  status: 404
+  return: "${common_error_messages.not_found}"
+return_result:
+  return: "${db_response.response.body[0]}"
