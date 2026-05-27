@@ -68,7 +68,7 @@ extractRequestData:
 
 validateId:
   switch:
-    - condition: ${id == null || id == ''}
+    - condition: ${user_account_id == null || user_account_id == ''}
       next: return_invalid_id
   next: validateUser
 
