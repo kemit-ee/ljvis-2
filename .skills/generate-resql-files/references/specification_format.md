@@ -422,6 +422,8 @@ Liquibase faile luuakse ainult siis, kui epic muudab andmebaasi skeemi.
 - kui tabel on juba olemas, tuleb puuduvad väljad lisada eraldi kontrolliga (`ADD COLUMN IF NOT EXISTS` või samaväärne guarded loogika)
 - see reegel on kohustuslik, et migration ei kukuks läbi olukorras, kus tabel on olemas, kuid osa välju on veel puudu
 - indeksid tuleb lisada loogiliselt nende väljade järgi, mille järgi päringud filtreerivad, järjestavad või otsivad latest-kirjeid
+- iga uus või muudetud tabel peab saama ingliskeelse `COMMENT ON TABLE` kirjelduse
+- iga uus või muudetud veerg peab saama ingliskeelse `COMMENT ON COLUMN` kirjelduse
 
 **Rollback SQL (`-rollback.sql`):**
 - peab olema sama muudatuse sümmeetriline tagasipööre

@@ -71,6 +71,7 @@ These rules come from project architecture constraints and database rules:
 | **Liquibase triplet is mandatory** | Every schema change must create forward SQL, symmetric rollback SQL, and XML changeset files |
 | **Indexes are mandatory for state/read performance** | New or changed `_state`/`_status` and `*_latest` tables must get indexes based on real lookup and rebuild patterns |
 | **Liquibase forward SQL must be guarded** | Table creation and column additions must check whether the object already exists so reruns add missing pieces instead of failing |
+| **Liquibase schema comments are mandatory** | Every new or changed table and every new or changed column in Liquibase forward SQL must have English `COMMENT ON TABLE` and `COMMENT ON COLUMN` statements |
 
 ## When to Use
 
@@ -243,6 +244,7 @@ The skill also reads:
    - `YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql`
    - `YYYYMMDDXXXX-selgitus-millega-tegu.xml`
    - The XML must reference both SQL files via `<sqlFile path="changelog/..." />` and `<rollback><sqlFile ... /></rollback>`
+   - Add English `COMMENT ON TABLE` and `COMMENT ON COLUMN` statements for every new or changed table and column in the forward SQL
    - Add indexes for new/changed `_state`/`_status` and `*_latest` tables according to real `WHERE`, `ORDER BY`, latest lookup, and snapshot rebuild patterns
    - Guard DDL so reruns are safe: create tables with existence checks first, then add missing columns with `ADD COLUMN IF NOT EXISTS` or equivalent guarded logic
    - This rule is mandatory because the table may already exist while some required columns are still missing; the migration must still add the missing fields
