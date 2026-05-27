@@ -22,7 +22,9 @@ See skill aitab LJVIS projektis genereerida ja uuendada DSL-artefakte:
 
 - Üks fail = üks operatsioon.
 - RESQL teed peavad olema versioneeritud (`v1`).
-- Ruuteri sisekutsed RESQL-i peavad viitama olemasolevatele SQL-failidele.
+- Ruuteri sisekutsed RESQL-i peavad kasutama kuju `[#LOCAL_RESQL]/ljvis2/v1/...`.
+- RESQL SQL failid peavad paiknema kujul `DSL/Resql/<MEETOD>/<moodul>/<entiteet>/v1/...`.
+- GET on lubatud ainult parameetrita listidele.
 - Enne commit'i tee sanity-check teevastavusele.
 
 ## Soovituslik töövoog
@@ -36,12 +38,17 @@ See skill aitab LJVIS projektis genereerida ja uuendada DSL-artefakte:
 ## Sanity-check näidis
 
 ```bash
-for f in $(find DSL/Ruuter/api/POST/v1/admin -name '*.yml'); do
+for f in $(find DSL/Ruuter/api -name '*.yml'); do
+  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/api/([^/]+)/.*|\1|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
-    query=$(echo "$rel" | cut -d'/' -f2-)
-    test -f "DSL/Resql/${project}/POST/${query}.sql" || echo "MISSING: $f -> $url"
+    version=$(echo "$rel" | cut -d'/' -f2)
+    module=$(echo "$rel" | cut -d'/' -f3)
+    entity=$(echo "$rel" | cut -d'/' -f4)
+    operation=$(echo "$rel" | cut -d'/' -f5)
+    test "$project" = "ljvis2" || echo "MISSING_PROJECT: $f -> $url"
+    test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
   done
 done
 ```

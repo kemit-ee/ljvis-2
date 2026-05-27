@@ -22,7 +22,9 @@ This skill helps generate and update DSL artifacts in the LJVIS project:
 
 - One file = one operation.
 - RESQL paths must be versioned (`v1`).
-- Ruuter internal RESQL calls must map to existing SQL files.
+- Ruuter internal RESQL calls must use the form `[#LOCAL_RESQL]/ljvis2/v1/...`.
+- RESQL SQL files must live under `DSL/Resql/<METHOD>/<module>/<entity>/v1/...`.
+- GET is allowed only for parameter-less list queries.
 - Run a sanity check before commit.
 
 ## Recommended workflow
@@ -36,12 +38,17 @@ This skill helps generate and update DSL artifacts in the LJVIS project:
 ## Sanity check example
 
 ```bash
-for f in $(find DSL/Ruuter/api/POST/v1/admin -name '*.yml'); do
+for f in $(find DSL/Ruuter/api -name '*.yml'); do
+  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/api/([^/]+)/.*|\1|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
-    query=$(echo "$rel" | cut -d'/' -f2-)
-    test -f "DSL/Resql/${project}/POST/${query}.sql" || echo "MISSING: $f -> $url"
+    version=$(echo "$rel" | cut -d'/' -f2)
+    module=$(echo "$rel" | cut -d'/' -f3)
+    entity=$(echo "$rel" | cut -d'/' -f4)
+    operation=$(echo "$rel" | cut -d'/' -f5)
+    test "$project" = "ljvis2" || echo "MISSING_PROJECT: $f -> $url"
+    test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
   done
 done
 ```
