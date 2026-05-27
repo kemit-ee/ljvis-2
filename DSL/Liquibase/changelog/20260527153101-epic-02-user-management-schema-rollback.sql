@@ -1,4 +1,6 @@
 -- EPIC 02 guarded rollback
+-- Removes indexes before dropping tables so dependencies unwind in a predictable order.
+-- All drops are guarded to keep rollback safe when objects are already missing.
 DROP INDEX IF EXISTS idx_ugl_organisations_gin;
 DROP INDEX IF EXISTS idx_ugl_name_lower;
 DROP INDEX IF EXISTS idx_ugl_user_group_id_created_at;

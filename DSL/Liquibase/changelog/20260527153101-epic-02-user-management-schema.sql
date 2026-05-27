@@ -1,4 +1,6 @@
 -- EPIC 02 guarded schema migration
+-- Creates the user management schema with guarded DDL so the migration can be rerun safely.
+-- Base entities are created first, followed by append-only state tables and latest snapshot tables.
 CREATE TABLE IF NOT EXISTS organisation (
     id BIGSERIAL NOT NULL,
     name VARCHAR(500) NOT NULL,

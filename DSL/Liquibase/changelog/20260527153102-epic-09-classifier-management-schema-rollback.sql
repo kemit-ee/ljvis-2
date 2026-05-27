@@ -1,4 +1,6 @@
 -- EPIC 09 guarded rollback
+-- Removes indexes before dropping tables so dependencies unwind in a predictable order.
+-- All drops are guarded to keep rollback safe when objects are already missing.
 DROP INDEX IF EXISTS idx_cvl_is_valid;
 DROP INDEX IF EXISTS idx_cvl_code;
 DROP INDEX IF EXISTS idx_cvl_classifier_code;

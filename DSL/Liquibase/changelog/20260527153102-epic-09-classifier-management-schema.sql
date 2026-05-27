@@ -1,4 +1,6 @@
 -- EPIC 09 guarded schema migration
+-- Creates the classifier management schema with guarded DDL so the migration can be rerun safely.
+-- Base entities are created first, followed by append-only state tables and latest snapshot tables.
 CREATE TABLE IF NOT EXISTS classifier (
     id BIGSERIAL NOT NULL,
     code VARCHAR(50) NOT NULL,

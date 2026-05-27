@@ -4,8 +4,10 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
     <changeSet id="20260527153102" author="ljvis">
+        <!-- Apply the guarded forward schema migration for EPIC 09 classifier management. -->
         <sqlFile path="changelog/20260527153102-epic-09-classifier-management-schema.sql" />
         <rollback>
+            <!-- Execute the symmetric guarded rollback for this change set. -->
             <sqlFile path="changelog/20260527153102-epic-09-classifier-management-schema-rollback.sql" />
         </rollback>
     </changeSet>
