@@ -34,9 +34,9 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && (auth_user.permissions.indexOf('perm_user_group_view_admin') >= 0 || auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0)}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.read.admin') >= 0}
       next: extractRequestData
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_view_local') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.read.local') >= 0}
       next: extractRequestData
   next: return_forbidden
 
@@ -47,7 +47,7 @@ extractRequestData:
     sorting: "${incoming.params.sorting ?? 'status asc'}"
     search: "${incoming.params.search ?? ''}"
     user_group_id: "${incoming.params.userGroupId}"
-    is_local_admin: "${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_list_local') >= 0 && auth_user.permissions.indexOf('perm_user_group_list_admin') < 0}"
+    is_local_admin: "${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.read.local') >= 0 && auth_user.permissions.indexOf('user_group.read.admin') < 0}"
     user_organisation_id: "${auth_user.organisationid ?? ''}"
   next: getUsers
 

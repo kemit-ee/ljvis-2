@@ -34,9 +34,9 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_list_admin') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user.list.admin') >= 0}
       next: extractRequestData
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_list_local') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user.list.local') >= 0}
       next: extractRequestDataLocal
   next: return_forbidden
 

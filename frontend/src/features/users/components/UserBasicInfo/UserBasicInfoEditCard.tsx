@@ -11,7 +11,7 @@ interface UserEditFormValues {
   lastName: string;
   personalCode: string;
   organisationId: string;
-  structuralUnitId: string;
+  structuralUnitName: string;
   jobTitleName: string;
   email: string;
   phone: string;
@@ -82,6 +82,7 @@ export function UserBasicInfoEditCard({
               value={formik.values.personalCode}
               input={{ maxLength: 11 }}
               required
+              disabled
               onChange={(v) => formik.setFieldValue('personalCode', v)}
               {...(formik.touched.personalCode && formik.errors.personalCode ? { helper: { text: formik.errors.personalCode, type: 'error' as const } } : {})}
             />
@@ -98,11 +99,11 @@ export function UserBasicInfoEditCard({
                 id="structuralUnitId"
                 label={t('users.structuralUnit')}
                 options={structuralUnits}
-                value={structuralUnits.find((o) => o.value === formik.values.structuralUnitId) ?? null}
+                value={structuralUnits.find((o) => o.value === formik.values.structuralUnitName) ?? null}
                 onChange={isLocalAdmin ? undefined : handleStructuralUnitChange}
                 disabled={isLocalAdmin}
                 required
-                {...(formik.touched.structuralUnitId && formik.errors.structuralUnitId ? { helper: { text: formik.errors.structuralUnitId, type: 'error' as const } } : {})}
+                {...(formik.touched.structuralUnitName && formik.errors.structuralUnitName ? { helper: { text: formik.errors.structuralUnitName, type: 'error' as const } } : {})}
             />
             <TextField
                 id="jobTitleName"

@@ -8,20 +8,17 @@ declaration:
   namespace: user_group
   allowlist:
     body:
-      - field: id
-        type: string
+      - field: user_group_id
+        type: number
       - field: name
+        type: string
+      - field: created_by
         type: string
   response:
     fields:
-      - field: id
-        type: string
-      - field: name
-        type: string
+      - field: user_group_id
+        type: number
 */
-UPDATE users.user_group
-SET
-    name = :name,
-    updated_at = CURRENT_TIMESTAMP
-WHERE id = :id::UUID
-RETURNING id, name, updated_at;
+INSERT INTO ljvis2.user_group_name_state (user_group_id, name, created_by)
+VALUES (:user_group_id::BIGINT, :name, :created_by)
+RETURNING user_group_id;

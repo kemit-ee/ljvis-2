@@ -43,9 +43,11 @@ export function UserGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
-  const canEditGroup = hasPermission('perm_user_group_edit_admin');
-  const canViewUsers = hasPermission('perm_user_group_view_admin') || hasPermission('perm_user_group_view_local');
+  const { hasPermission, hasAnyPermission } = useAuth();
+  const canEditGroup = hasPermission('user_group.update');
+  const canAddUser = hasPermission('user_group.add_user');
+  const canRemoveUser = hasPermission('user_group.remove_user');
+  const canViewUser = hasAnyPermission(['user.read.admin', 'user.read.local']);
   const location = useLocation();
   const justCreated = (location.state as { justCreated?: boolean })?.justCreated;
   const justCreatedUser = (location.state as { justCreatedUser?: boolean })?.justCreatedUser;
@@ -146,7 +148,7 @@ export function UserGroupDetailPage() {
                 ),
             }),
             permColumnHelper.accessor('description', {
-                header: t('userGroups.organisations'),
+                header: t('userGroups.permissions'),
                 cell: (info) => `${info.row.original.description}`,
                 enableSorting: false,
             }),
@@ -257,10 +259,10 @@ export function UserGroupDetailPage() {
                     return <div className="additional-group-row-marker"></div>;
                 }
                 const s = info.getValue();
-                const color = s === 'active' ? 'success' : s === 'deactivating' ? 'warning' : 'neutral';
+                const color = s === 'active' ? 'success' : s === 'pending_deactivation' ? 'warning' : 'neutral';
                 const label =
                     s === 'active' ? t('users.statusActive') :
-                        s === 'deactivating' ? t('users.statusDeactivating') :
+                        s === 'pending_deactivation' ? t('users.statusDeactivating') :
                             t('users.statusInactive');
                 return <StatusBadge variant="filled-bordered" color={color}>{label}</StatusBadge>;
             },
@@ -271,36 +273,49 @@ export function UserGroupDetailPage() {
           cell: (info) => {
             if (info.row.original.isAdditionalGroupRow) return null;
             return (
-                <div>
-                    {canEditGroup && (
-                        <>
-                            <ModalTrigger>
-                                <a className="table-link danger-text">{t('common.remove')}</a>
-                            </ModalTrigger>
-                            <Modal aria-labelledby="delete-confirm-title">
-                                <CardContent>
-                                    <Heading element="h2" id="delete-confirm-title">{t('userGroups.deleteUser')}</Heading>
-                                    <div className="mt-1"><Text>{t('userGroups.deleteUserConfirm')}</Text></div>
-                                    <div className="modal-actions">
-                                        <ModalCloser>
-                                            <Button visualType="secondary">{t('common.no')}</Button>
-                                        </ModalCloser>
-                                        <ModalCloser>
-                                            <Button color="danger" onClick={() => handleDeleteUser(info.row.original.id)}>
-                                                {t('common.yes')}
-                                            </Button>
-                                        </ModalCloser>
-                                    </div>
-                                </CardContent>
-                            </Modal>
-                        </>
+                <div className={styles['action-cell']}>
+                    {canRemoveUser && ( <Tooltip>
+                      <Tooltip.Trigger>
+                          <ModalTrigger>
+                              <Icon name="delete" color="danger" size={24} className='cursor-pointer'/>
+                          </ModalTrigger>
+                          <Modal aria-labelledby="delete-confirm-title">
+                              <CardContent>
+                                  <Heading element="h2" id="delete-confirm-title">{t('userGroups.deleteUser')}</Heading>
+                                  <div className="mt-1"><Text>{t('userGroups.deleteUserConfirm')}</Text></div>
+                                  <div className="modal-actions">
+                                      <ModalCloser>
+                                          <Button visualType="secondary">{t('common.no')}</Button>
+                                      </ModalCloser>
+                                      <ModalCloser>
+                                          <Button color="danger" onClick={() => handleDeleteUser(info.row.original.id)}>
+                                              {t('common.yes')}
+                                          </Button>
+                                      </ModalCloser>
+                                  </div>
+                              </CardContent>
+                          </Modal>
+                      </Tooltip.Trigger>
+                      <Tooltip.Content>
+                          {t('common.remove')}
+                      </Tooltip.Content>
+                    </Tooltip>
+                    )}
+                    {canViewUser && (<Tooltip>
+                      <Tooltip.Trigger>
+                          <div className='cursor-pointer' onClick={() => handleRowClick(info.row.original)}><Icon name="visibility" color="brand" size={24}/></div>
+                      </Tooltip.Trigger>
+                      <Tooltip.Content>
+                          {t('common.look')}
+                      </Tooltip.Content>
+                    </Tooltip>
                     )}
                 </div>
             );
           },
         }),
       ],
-      [t, handleRowClick, handleDeleteUser, canEditGroup, canViewUsers],
+      [t, handleRowClick, handleDeleteUser, canEditGroup, canViewUser],
   );
 
   if (loading) return <Text>{t('common.loading')}</Text>;
@@ -406,7 +421,7 @@ export function UserGroupDetailPage() {
                   <Heading modifiers="h3" color="secondary" className="mb-1">
                       {t('userGroups.users')}
                   </Heading>
-                  {canEditGroup && (
+                  {canAddUser && (
                       <Button onClick={() => navigate(`/user-groups/${id}/add-user`)}>{t('userGroups.addUser')}
                       </Button>
                   )}

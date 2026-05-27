@@ -15,5 +15,5 @@ declaration:
 SELECT
     id,
     name
-FROM users.organisation
+FROM ljvis2.organisation
 ORDER BY name;

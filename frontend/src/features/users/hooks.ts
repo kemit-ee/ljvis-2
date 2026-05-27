@@ -44,6 +44,18 @@ function toIsoDate(value: unknown): string {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: derive user status from accessEnd
+// ---------------------------------------------------------------------------
+function createStatus(accessEnd: string): string {
+  const endStr = toIsoDate(accessEnd);
+  if (!endStr) return 'active';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const end = new Date(endStr);
+  return end <= today ? 'pending_deactivation' : 'active';
+}
+
+// ---------------------------------------------------------------------------
 // Data hook: paginated user list
 // ---------------------------------------------------------------------------
 export function useUserList() {
@@ -178,7 +190,7 @@ const SUPER_ADMIN_GROUP = 'Super Admin Group';
 // ---------------------------------------------------------------------------
 // Form hook: create / edit user (Formik + orgs dropdown)
 // ---------------------------------------------------------------------------
-export function useUserForm(user: User | undefined, onSaved: (id?: string) => void) {
+export function useUserForm(user: User | undefined, onSaved: (id?: string) => void, groups: UserGroupAssignment[] = []) {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
@@ -200,7 +212,8 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
 
   useEffect(() => {
     const params = user?.organisationName ? { search: user.organisationName } : undefined;
-    listUserGroups(params).then(setAllGroups).catch(console.error);
+    if (!params) return;
+    listUserGroups(params).then((groups) => setAllGroups(groups.map((g) => ({ ...g, id: String(g.id) })))).catch(console.error);
   }, [user?.organisationName]);
 
   const validationSchema = Yup.object({
@@ -223,7 +236,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       }
     ),
     organisationId: Yup.string().required(t('users.validation.required')),
-    structuralUnitId: Yup.string().required(t('users.validation.required')),
+    structuralUnitName: Yup.string().required(t('users.validation.required')),
     jobTitleName: Yup.string().required(t('users.validation.required')),
     email: Yup.string().required(t('users.validation.required')).test(
       'email-format',
@@ -258,7 +271,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
       lastName: user?.lastName ?? '',
       personalCode: user?.personalCode ?? '',
       organisationId: isLocalAdmin ? localAdminOrgId : (user?.organisationId ?? ''),
-      structuralUnitId: user?.structuralUnitId ?? '',
+      structuralUnitName: user?.structuralUnitName ?? '',
       jobTitleName: user?.jobTitleName ?? '',
       email: user?.email ?? '',
       phone: user?.phone ?? '',
@@ -273,13 +286,20 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
           phone: values.phone.trim(),
           accessStart: toIsoDate(values.accessStart),
           accessEnd: toIsoDate(values.accessEnd),
+          status: createStatus(values.accessEnd),
         };
         if (isEdit && user) {
           const organisationChanged = trimmedValues.organisationId !== user.organisationId;
           if (organisationChanged && user) {
-              await setUserGroups(user.id, []);
+              await setUserGroups(user.id, [], groups.map((g) => g.userGroupId));
           }
           await updateUser({ id: user.id, ...trimmedValues });
+          if (organisationChanged) {
+            const newOrg = orgOptions.find((o) => o.value === trimmedValues.organisationId);
+            if (newOrg) {
+              listUserGroups({ search: newOrg.label }).then((groups) => setAllGroups(groups.map((g) => ({ ...g, id: String(g.id) })))).catch(console.error);
+            }
+          }
           onSaved();
         } else {
           const result = await insertUser(trimmedValues);
@@ -293,7 +313,7 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
     },
   });
 
-  const orgOptions = organisations.map((o) => ({ label: o.name, value: o.id }));
+  const orgOptions = organisations.map((o) => ({ label: o.name, value: String(o.id) }));
 
   const handleOrgChange = (val: { value: string; label: string | React.ReactNode } | readonly { value: string; label: string | React.ReactNode }[] | null) => {
     if (val && !Array.isArray(val) && 'value' in val) {
@@ -305,9 +325,9 @@ export function useUserForm(user: User | undefined, onSaved: (id?: string) => vo
 
   const handleStructuralUnitChange = (val: { value: string; label: string | React.ReactNode } | readonly { value: string; label: string | React.ReactNode }[] | null) => {
     if (val && !Array.isArray(val) && 'value' in val) {
-      formik.setFieldValue('structuralUnitId', (val as { value: string }).value);
+      formik.setFieldValue('structuralUnitName', (val as { value: string }).value);
     } else {
-      formik.setFieldValue('structuralUnitId', '');
+      formik.setFieldValue('structuralUnitName', '');
     }
   };
 
@@ -338,10 +358,20 @@ export function useGroupSave(
     return originalIds.size !== currentIds.size || [...originalIds].some((id) => !currentIds.has(id));
   })();
 
+  const getRemovedGroups = (): UserGroup[] => {
+    if (groups.length === 0) return [];
+    const currentIds = new Set(allSelectedGroups.map((g) => g.id));
+    return groups
+      .filter((g) => !currentIds.has(g.userGroupId))
+      .map((g) => ({ id: g.userGroupId, name: g.name }));
+  };
+
   const handleGroupSave = async () => {
     if (!userId) return;
     try {
-      await setUserGroups(userId, allSelectedGroups.map((g) => g.id));
+      const originalIds = new Set(groups.map((g) => g.userGroupId));
+      const addedGroupIds = allSelectedGroups.filter((g) => !originalIds.has(g.id)).map((g) => g.id);
+      await setUserGroups(userId, addedGroupIds, getRemovedGroups().map((g) => g.id));
       onSaved();
     } catch (e) {
       console.error('Failed to save groups', e);

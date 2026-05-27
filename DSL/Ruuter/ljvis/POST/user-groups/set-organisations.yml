@@ -10,10 +10,13 @@ declaration:
     body:
       - field: id
         type: string
-        description: "User group UUID"
-      - field: organisationIds
+        description: "User group ID"
+      - field: addedOrganisationIds
         type: array
-        description: "Array of organisation UUIDs"
+        description: "Array of added organisation IDs"
+      - field: removedOrganisationIds
+        type: array
+        description: "Array of removed organisation IDs"
 
 authenticate:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -25,44 +28,77 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_group_edit_admin') >= 0}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.indexOf('user_group.create') >= 0 || auth_user.permissions.indexOf('user_group.update') >= 0)}
       next: extractRequestData
   next: return_forbidden
 
 extractRequestData:
   assign:
     user_group_id: "${incoming.body.id}"
-    organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
+    added_organisation_ids: "${(incoming.body.addedOrganisationIds ?? []).join(',')}"
+    removed_organisation_ids: "${(incoming.body.removedOrganisationIds ?? []).join(',')}"
+    created_by: "${auth_user.personalcode}"
+  next: checkRemovedOrgs
 
-deleteExisting:
+checkRemovedOrgs:
+  switch:
+    - condition: "${removed_organisation_ids == ''}"
+      next: checkAddedOrgs
+  next: removeOrgs
+
+removeOrgs:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/set_organisations_delete"
+    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_organisations"
     headers:
       type: json
     body:
       user_group_id: ${user_group_id}
-  result: deleteRes
+      organisation_ids: ${removed_organisation_ids}
+      status: "removed"
+      created_by: ${created_by}
+  result: removeRes
+  next: checkAddedOrgs
 
-checkOrgIds:
+checkAddedOrgs:
   switch:
-    - condition: "${organisation_ids == ''}"
-      next: returnSuccess
+    - condition: "${added_organisation_ids == ''}"
+      next: rebuildLatest
   next: insertOrgs
 
 insertOrgs:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/replace_organisations"
+    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_organisations"
     headers:
       type: json
     body:
       user_group_id: ${user_group_id}
-      organisation_ids: ${organisation_ids}
+      organisation_ids: ${added_organisation_ids}
+      status: "active"
+      created_by: ${created_by}
   result: insertRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
 
 returnSuccess:
   return: "ok"
+  next: end
+
+return_validation_error:
+  status: 422
+  return: "validation failed"
   next: end
 
 return_forbidden:

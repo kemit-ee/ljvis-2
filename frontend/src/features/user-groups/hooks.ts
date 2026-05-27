@@ -33,7 +33,7 @@ function toSnakeCase(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
-export function useUserGroupList(user: { organisationname?: string; permissions?: string } | null, permissions: string[]) {
+export function useUserGroupList(user: { organisationName?: string; permissions?: string } | null, permissions: string[]) {
   const [data, setData] = useState<UserGroup[]>([]);
   const [totalRows, setTotalRows] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,17 +48,12 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
       const sortStr = sorting.length
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : 'name asc';
-      const [result, allOrgs] = await Promise.all([
-        listUserGroups({
-          search,
-          page: String(pagination.pageIndex + 1),
-          pageSize: String(pagination.pageSize),
-          sorting: sortStr,
-        }),
-        listOrganisations(),
-      ]);
-
-      const totalOrgs = allOrgs.length;
+      const result = await listUserGroups({
+        search,
+        page: String(pagination.pageIndex + 1),
+        pageSize: String(pagination.pageSize),
+        sorting: sortStr,
+      });
 
       // If search is active, fetch full organisation lists for each group
       const groupsWithOrgs = await Promise.all(
@@ -74,36 +69,31 @@ export function useUserGroupList(user: { organisationname?: string; permissions?
 
       const expandedData: UserGroup[] = [];
       groupsWithOrgs.forEach((group) => {
-        let orgCount = 0;
-        if (group.organisations) {
+        if (group.coversAllOrganisations) {
+          expandedData.push({ ...group, organisations: '' });
+        } else if (group.organisations) {
           const orgs = group.organisations.split(',').map((o) => o.trim()).filter((o) => o);
-          orgCount = orgs.length;
-          // If search is active, always expand all organisations individually
           if (search) {
             orgs.forEach((org, index) => {
               expandedData.push({
                 ...group,
                 organisations: org,
                 isAdditionalGroupRow: index > 0,
-                coversAllOrganisations: false
               });
             });
-          } else if (orgCount === totalOrgs) {
-            expandedData.push({ ...group, organisations: '', coversAllOrganisations: true });
           } else if (orgs.length > 0) {
             orgs.forEach((org, index) => {
               expandedData.push({
                 ...group,
                 organisations: org,
                 isAdditionalGroupRow: index > 0,
-                coversAllOrganisations: false
               });
             });
           } else {
-            expandedData.push({ ...group, coversAllOrganisations: false });
+            expandedData.push({ ...group });
           }
         } else {
-          expandedData.push({ ...group, coversAllOrganisations: false });
+          expandedData.push({ ...group });
         }
       });
 
@@ -177,9 +167,11 @@ export function useUserGroupDetail(id: string | undefined) {
   const [editingOrgs, setEditingOrgs] = useState(false);
   const [allOrgs, setAllOrgs] = useState<Organisation[]>([]);
   const [selectedOrgIds, setSelectedOrgIds] = useState<Set<string>>(new Set());
+  const [originalOrgIds, setOriginalOrgIds] = useState<Set<string>>(new Set());
   const [editingPerms, setEditingPerms] = useState(false);
   const [allPerms, setAllPerms] = useState<Permission[]>([]);
   const [selectedPermIds, setSelectedPermIds] = useState<Set<string>>(new Set());
+  const [originalPermIds, setOriginalPermIds] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // --- Data fetching ---
@@ -244,8 +236,10 @@ export function useUserGroupDetail(id: string | undefined) {
   // --- Orgs edit ---
   const startEditOrgs = async () => {
     const all = await listOrganisations();
-    setAllOrgs(all);
-    setSelectedOrgIds(new Set(orgs.map((o) => o.organisationId)));
+    setAllOrgs(all.map((o) => ({ ...o, id: String(o.id) })));
+    const currentIds = new Set(orgs.map((o) => String(o.organisationId)));
+    setSelectedOrgIds(currentIds);
+    setOriginalOrgIds(currentIds);
     setEditingOrgs(true);
     setOrganisationsError(false);
   };
@@ -275,7 +269,9 @@ export function useUserGroupDetail(id: string | undefined) {
       setOrganisationsError(true);
       return;
     }
-    await setUserGroupOrganisations(id, Array.from(selectedOrgIds));
+    const removedOrgIds = Array.from(originalOrgIds).filter((oid) => !selectedOrgIds.has(oid));
+    const addedOrgIds = Array.from(selectedOrgIds).filter((oid) => !originalOrgIds.has(oid));
+    await setUserGroupOrganisations(id, addedOrgIds, removedOrgIds);
     setEditingOrgs(false);
     fetchData();
   };
@@ -285,8 +281,10 @@ export function useUserGroupDetail(id: string | undefined) {
   // --- Perms edit ---
   const startEditPerms = async () => {
     const all = await listPermissions();
-    setAllPerms(all);
-    setSelectedPermIds(new Set(perms.map((p) => p.permissionId)));
+    setAllPerms(all.map((p) => ({ ...p, id: String(p.id) })));
+    const currentIds = new Set(perms.map((p) => String(p.permissionId)));
+    setSelectedPermIds(currentIds);
+    setOriginalPermIds(currentIds);
     setEditingPerms(true);
   };
 
@@ -309,7 +307,9 @@ export function useUserGroupDetail(id: string | undefined) {
 
   const savePerms = async () => {
     if (!id) return;
-    await setUserGroupPermissions(id, Array.from(selectedPermIds));
+    const removedPermissionIds = Array.from(originalPermIds).filter((pid) => !selectedPermIds.has(pid));
+    const addedPermissionIds = Array.from(selectedPermIds).filter((pid) => !originalPermIds.has(pid));
+    await setUserGroupPermissions(id, addedPermissionIds, removedPermissionIds);
     setEditingPerms(false);
     fetchData();
   };
@@ -473,6 +473,7 @@ export function useUserGroupAddUser(id: string | undefined) {
     if (!id || selectedUserIds.size === 0) return;
     await addUserToGroup(id, Array.from(selectedUserIds));
     setSelectedUserIds(new Set());
+    fetchData();
   };
 
   return {
@@ -514,8 +515,8 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
   useEffect(() => {
     Promise.all([listOrganisations(), listPermissions()])
       .then(([orgs, perms]) => {
-        setOrganisations(orgs);
-        setPermissions(perms);
+        setOrganisations(orgs.map((o) => ({ ...o, id: String(o.id) })));
+        setPermissions(perms.map((p) => ({ ...p, id: String(p.id) })));
       })
       .catch(console.error);
   }, []);

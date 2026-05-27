@@ -12,14 +12,19 @@ declaration:
         description: "Personal code to check"
       - field: id
         type: string
-        description: "Optional: UUID of the user being updated (excluded from check)"
+        description: "Optional: ID of the user being updated (excluded from check)"
   response:
     fields:
       - field: id
         type: string
 */
-SELECT u.id
-FROM users."user" u
-WHERE u.personal_code = :personal_code
-  AND (:id = '' OR u.id != :id::UUID)
+SELECT ual.user_account_id AS id
+FROM ljvis2.user_account_latest ual
+WHERE ual.personal_code = :personal_code
+  AND (COALESCE(:id, '') = '' OR ual.user_account_id != :id::BIGINT)
+  AND ual.id = (
+      SELECT id FROM ljvis2.user_account_latest ual2
+      WHERE ual2.user_account_id = ual.user_account_id
+      ORDER BY ual2.created_at DESC LIMIT 1
+  )
 LIMIT 1;

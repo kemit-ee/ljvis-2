@@ -16,7 +16,7 @@ declaration:
         type: string
       - field: organisationId
         type: string
-      - field: structuralUnitId
+      - field: structuralUnitName
         type: string
       - field: jobTitleName
         type: string
@@ -39,9 +39,9 @@ authenticate:
 
 check_permission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_edit_admin') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user.edit.admin') >= 0}
       next: extractRequestData
-    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('perm_user_edit_local') >= 0}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user.edit.local') >= 0}
       next: extractRequestData
   next: return_forbidden
 
@@ -51,12 +51,13 @@ extractRequestData:
     last_name: "${incoming.body.lastName}"
     personal_code: "${incoming.body.personalCode}"
     organisation_id: "${incoming.body.organisationId}"
-    structural_unit_id: "${incoming.body.structuralUnitId}"
-    job_title_name: "${incoming.body.jobTitleName}"
+    structural_unit: "${incoming.body.structuralUnitName}"
+    job_title: "${incoming.body.jobTitleName}"
     email: "${incoming.body.email}"
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
     access_end: "${incoming.body.accessEnd ?? ''}"
+    created_by: "${auth_user.personalcode}"
   next: validateUser
 
 validateUser:
@@ -67,8 +68,8 @@ validateUser:
     last_name: ${last_name}
     personal_code: ${personal_code}
     organisation_id: ${organisation_id}
-    structural_unit_id: ${structural_unit_id}
-    job_title_name: ${job_title_name}
+    structural_unit_id: ${structural_unit}
+    job_title_name: ${job_title}
     email: ${email}
     access_start: ${access_start}
   result: field_error
@@ -99,25 +100,63 @@ checkConflictResult:
 createUser:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/insert_user"
+    url: "[#LJVIS_USERS_RESQL]/user/insert_user_account"
     headers:
       type: json
     body:
+      personal_code: ${personal_code}
+      created_by: ${created_by}
+  result: userRes
+  next: createUserDataState
+
+createUserDataState:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/insert_user_account_data_state"
+    headers:
+      type: json
+    body:
+      user_account_id: ${userRes.response.body[0].id}
       first_name: ${first_name}
       last_name: ${last_name}
-      personal_code: ${personal_code}
       organisation_id: ${organisation_id}
-      structural_unit_id: ${structural_unit_id}
-      job_title_name: ${job_title_name}
       email: ${email}
       phone: ${phone}
+      structural_unit: ${structural_unit}
+      job_title: ${job_title}
       access_start: ${access_start}
       access_end: ${access_end}
-  result: res
+      created_by: ${created_by}
+  result: dataStateRes
+  next: createUserState
+
+createUserState:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/insert_user_account_state"
+    headers:
+      type: json
+    body:
+      user_account_id: ${userRes.response.body[0].id}
+      status: "active"
+      created_by: ${created_by}
+  result: stateRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    headers:
+      type: json
+    body:
+      user_account_id: ${userRes.response.body[0].id}
+      created_by: ${created_by}
+  result: latestRes
   next: returnSuccess
 
 returnSuccess:
-  return: ${res.response.body}
+  return: ${userRes.response.body}
   next: end
 
 propagate_error:

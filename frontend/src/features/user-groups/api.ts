@@ -25,11 +25,11 @@ export const insertUserGroup = (data: { name: string; organisationIds?: string[]
 export const updateUserGroupName = (id: string, name: string) =>
   post<UserGroup[]>('/user-groups/update-name', { id, name });
 
-export const setUserGroupOrganisations = (id: string, organisationIds: string[]) =>
-  post<string>('/user-groups/set-organisations', { id, organisationIds });
+export const setUserGroupOrganisations = (id: string, addedOrganisationIds: string[], removedOrganisationIds: string[]) =>
+  post<string>('/user-groups/set-organisations', { id, addedOrganisationIds, removedOrganisationIds });
 
-export const setUserGroupPermissions = (id: string, permissionIds: string[]) =>
-  post<string>('/user-groups/set-permissions', { id, permissionIds });
+export const setUserGroupPermissions = (id: string, addedPermissionIds: string[], removedPermissionIds: string[]) =>
+  post<string>('/user-groups/set-permissions', { id, addedPermissionIds, removedPermissionIds });
 
 export const deleteUserGroupUser = (id: string, userId: string) =>
   post<{ id: string }[]>('/user-groups/delete-user', { id, userId });
