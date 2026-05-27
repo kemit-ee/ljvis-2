@@ -17,6 +17,7 @@ This skill helps generate and update DSL artifacts in the LJVIS project:
 1. Copy `.skills/generate-resql-files/` into your project root under `.skills/`.
 2. Ensure required input files exist (for example `docs/data_model.md`, `planning/docs/permissions-matrix.md` or fallback `docs/permissions-matrix.md`).
 3. Confirm your project follows the same DSL conventions (Ruuter + RESQL path logic, issue/PR rules).
+4. Verify the runtime services use project folder `/DSL/ljvis2/` for RESQL and `/DSL/api/` for Ruuter.
 
 ## Core rules
 

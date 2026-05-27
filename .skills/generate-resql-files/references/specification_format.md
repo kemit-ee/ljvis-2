@@ -409,7 +409,7 @@ RETURNING
 
 ## 5. Paigaldusjuhend (`paigaldusjuhend.md`)
 
-Iga epicu dokumentatsioonikausta `docs/<epic_kataloog>/` luuakse `paigaldusjuhend.md`, mis selgitab täpselt, millised failid loodi otse `DSL/Resql/` ja `DSL/Ruuter/` alla.
+Iga epicu dokumentatsioonikausta `docs/<epic_kataloog>/` luuakse `paigaldusjuhend.md`, mis selgitab täpselt nii source repo failiteed kui ka runtime sihtkataloogid RESQL-i ja Ruuteri jaoks.
 
 ```markdown
 ---
@@ -422,38 +422,40 @@ generated: YYYY-MM-DD
 
 ## Ülevaade
 
-Kõik selle EPICu RESQL ja Ruuter DSL failid luuakse otse vastavatesse süsteemikataloogidesse `DSL/Resql/` ja `DSL/Ruuter/`.
+Selles repos hoitakse RESQL source faile `DSL/Resql/` all ja Ruuteri source faile `DSL/Ruuter/` all. RESQL runtime eeldab projekti `ljvis2` all kausta `/DSL/ljvis2/<METHOD>/...` ja Ruuter runtime eeldab projekti `api` all kausta `/DSL/api/<METHOD>/...`.
 
 ## SQL failid (RESQL)
 
 | Allikas | Sihtkoht |
 |---------|----------|
-| `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` |
-| `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` |
+| `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` | `/DSL/ljvis2/POST/<moodul>/<entiteet>/v1/<fail>.sql` |
+| `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` | `/DSL/ljvis2/GET/<moodul>/<entiteet>/v1/<fail>.sql` |
 
-**Märkus:** `mock_` prefiksiga failid kopeeritakse samasse kataloogi.
+**Märkus:** enne kopeerimist peab RESQL runtime all olemas olema projektikaust `/DSL/ljvis2/` koos `POST/` ja `GET/` alamkaustadega. `mock_` prefiksiga failid kopeeritakse samasse kataloogi.
 
 ## Ruuter DSL failid
 
 | Allikas | Sihtkoht |
 |---------|----------|
-| `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` |
-| `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` |
+| `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` | `/DSL/api/POST/v1/admin/<entiteet>/<fail>.yml` |
+| `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` | `/DSL/api/GET/v1/admin/<entiteet>/<fail>.yml` |
 
 ## Guard failid
 
 | Allikas | Sihtkoht |
 |---------|----------|
-| `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` |
-| `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` |
+| `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` | `/DSL/api/POST/v1/admin/<entiteet>/.guard` |
+| `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` | `/DSL/api/GET/v1/admin/<entiteet>/.guard` |
 
 ## Paigaldamise järjekord
 
-1. Kopeeri SQL failid `DSL/Resql/` alla
-2. Käivita `docker compose restart resql` (RESQL laeb failid automaatselt)
-3. Kopeeri Ruuter YML ja `.guard` failid `DSL/Ruuter/` alla
-4. Ruuter rakendab muudatused automaatselt (restart ei ole vajalik)
-5. Kontrolli logidest, et uued endpointid on saadaval
+1. Veendu, et RESQL runtime all eksisteerib projektikaust `/DSL/ljvis2/` koos `POST/` ja `GET/` alamkaustadega.
+2. Kopeeri source SQL failid `DSL/Resql/` alt RESQL runtime alla kujul `/DSL/ljvis2/<METHOD>/...`.
+3. Käivita `docker compose restart resql` (RESQL laeb failid automaatselt).
+4. Veendu, et Ruuter runtime all eksisteerib projektikaust `/DSL/api/` koos `POST/` ja `GET/` alamkaustadega.
+5. Kopeeri source Ruuter YML ja `.guard` failid `DSL/Ruuter/api/` alt runtime alla kujul `/DSL/api/<METHOD>/...`.
+6. Ruuter rakendab muudatused automaatselt (restart ei ole vajalik, kui reload on lubatud).
+7. Kontrolli logidest, et uued endpointid on saadaval.
 
 ## Viited
 
