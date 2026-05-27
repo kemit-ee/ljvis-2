@@ -17,6 +17,7 @@ See skill aitab LJVIS projektis genereerida ja uuendada DSL-artefakte:
 1. Kopeeri kaust `.skills/generate-resql-files/` projekti juurkausta (`.skills/` alla).
 2. Kontrolli, et olemas on vajalikud sisendmaterjalid (nt `docs/data_model.md`, `planning/docs/permissions-matrix.md` või fallback `docs/permissions-matrix.md`).
 3. Veendu, et projekti DSL kokkulepped on samad (Ruuter + RESQL path-loogika, issue/PR reeglid).
+4. Kontrolli runtime teenustes, et RESQL kasutab projektikausta `/DSL/ljvis2/` ja Ruuter projektikausta `/DSL/api/`.
 
 ## Peamised reeglid
 

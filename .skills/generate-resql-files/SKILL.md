@@ -240,7 +240,7 @@ The skill also reads:
 
 7. **Write `.guard` files** under `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/.guard`.
 
-8. **Write `docs/<epic_kataloog>/paigaldusjuhend.md`** per specification format (deployment guide).
+8. **Write `docs/<epic_kataloog>/paigaldusjuhend.md`** per specification format (deployment guide). The guide must explicitly describe RESQL project folder `/DSL/ljvis2/` and Ruuter project folder `/DSL/api/`, including required subfolders and source→runtime copy paths.
 
 9. **Write documentation file** `docs/<epic_kataloog>/README.md` per specification format. The file must include a link to `paigaldusjuhend.md` at the top.
 

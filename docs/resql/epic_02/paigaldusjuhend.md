@@ -16,6 +16,7 @@ version: 1.0
 ## 2. Failistruktuur
 
 ```
+Source repo:
 DSL/Resql/POST/iam/user/v1/            ← kasutaja RESQL päringud
 DSL/Resql/POST/iam/user_group_membership/v1/  ← liikmelisuse RESQL päringud
 DSL/Resql/POST/iam/user_group/v1/      ← kasutajagrupi RESQL päringud
@@ -27,6 +28,19 @@ DSL/Ruuter/api/POST/v1/admin/users/    ← kasutajate Ruuter vood
 DSL/Ruuter/api/POST/v1/admin/user-groups/  ← kasutajagruppide Ruuter vood
 DSL/Ruuter/api/POST/v1/admin/organisations/  ← asutuste Ruuter vood
 DSL/Ruuter/api/GET/v1/admin/permissions/    ← õiguste Ruuter vood
+
+Runtime:
+/DSL/ljvis2/POST/iam/user/v1/
+/DSL/ljvis2/POST/iam/user_group_membership/v1/
+/DSL/ljvis2/POST/iam/user_group/v1/
+/DSL/ljvis2/POST/iam/organisation/v1/
+/DSL/ljvis2/GET/iam/permission/v1/
+/DSL/ljvis2/POST/state_updater/user_account_latest/
+/DSL/ljvis2/POST/state_updater/user_group_latest/
+/DSL/api/POST/v1/admin/users/
+/DSL/api/POST/v1/admin/user-groups/
+/DSL/api/POST/v1/admin/organisations/
+/DSL/api/GET/v1/admin/permissions/
 ```
 
 ## 3. Kontroll pärast paigaldust

@@ -8,7 +8,7 @@ generated: 2026-05-27
 
 ## Ülevaade
 
-Selles repos hoitakse RESQL source faile kaustas `DSL/Resql/` ja Ruuteri faile kaustas `DSL/Ruuter/`. RESQL runtime laadib samad SQL failid projekti all kujul `/DSL/ljvis2/<METHOD>/...`.
+Selles repos hoitakse RESQL source faile kaustas `DSL/Resql/` ja Ruuteri faile kaustas `DSL/Ruuter/`. RESQL runtime laadib SQL failid projekti all kujul `/DSL/ljvis2/<METHOD>/...` ning Ruuter laeb DSL failid projekti all kujul `/DSL/api/<METHOD>/...`.
 
 ## SQL failid (RESQL)
 
@@ -67,9 +67,10 @@ Selles repos hoitakse RESQL source faile kaustas `DSL/Resql/` ja Ruuteri faile k
 1. Hoia source SQL failid selles repos kaustas `DSL/Resql/`.
 2. Paigalda need RESQL runtime alla kujul `/DSL/ljvis2/<METHOD>/...` (projekti `ljvis2` alla).
 3. Käivita `docker compose restart resql` (RESQL laeb failid automaatselt).
-4. Kopeeri Ruuter YML ja `.guard` failid `DSL/Ruuter/` alla.
-5. Ruuter rakendab muudatused automaatselt (restart ei ole vajalik).
-6. Kontrolli logidest, et uued endpointid on saadaval.
+4. Veendu, et Ruuter runtime all eksisteerib projektikaust `/DSL/api/` koos `POST/` ja `GET/` alamkaustadega.
+5. Kopeeri source Ruuter YML ja `.guard` failid `DSL/Ruuter/api/` alt runtime alla kujul `/DSL/api/<METHOD>/...`.
+6. Ruuter rakendab muudatused automaatselt (restart ei ole vajalik).
+7. Kontrolli logidest, et uued endpointid on saadaval.
 
 ## Viited
 
