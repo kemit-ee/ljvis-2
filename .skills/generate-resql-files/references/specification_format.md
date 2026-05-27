@@ -18,8 +18,9 @@ Before writing any SQL/YML files, the skill must:
    - verify-after-write is mandatory for write flows,
    - partial-success handling must be explicit,
    - rollback/recovery paths must be planned.
-7. Show preflight summary (`canContinue`, missing items, proposed changes) and proceed automatically if `canContinue: yes`.
-8. If model gaps exist (`canContinue: no`), prepare model updates and PR flow towards `feature/planning`, report to user, and stop — do not generate files until gaps are resolved.
+7. Detect whether schema changes are required. If yes, include Liquibase triplets and index planning for `_state`/`_status` and `*_latest` tables in the blueprint before generation.
+8. Show preflight summary (`canContinue`, missing items, proposed changes) and proceed automatically if `canContinue: yes`.
+9. If model gaps exist (`canContinue: no`), prepare model updates and PR flow towards `feature/planning`, report to user, and stop — do not generate files until gaps are resolved.
 
 ## Branching Rule (mandatory)
 
@@ -33,7 +34,7 @@ Generating DSL artifacts on any other branch is forbidden.
 1. The exact file list in `docs/imp/epic_XX_dsl_plan.md` (the authoritative blueprint), AND
 2. The fixed folder schema in SKILL.md Step 5.
 
-**Existing files in `DSL/Resql/` and `DSL/Ruuter/` are read ONLY to understand naming/versioning conventions — never to infer or derive target paths for new files.**
+**Existing files in `DSL/Resql/` and `DSL/Ruuter/` are read ONLY to understand naming/versioning conventions — never to infer or derive target paths for new files. If schema changes are required, Liquibase files under `DSL/Liquibase/changelog/` must also come from the blueprint, not from folder exploration.**
 
 Violating this rule causes files to land in wrong directories. Before writing any file, confirm its path matches the blueprint. If the path is absent from the blueprint, add it first.
 
@@ -147,6 +148,11 @@ DSL/Ruuter/
           .guard
           <operatsioon>.yml      ← ainult parameetrita listid
           mock_<operatsioon>.yml
+DSL/Liquibase/
+  changelog/
+    YYYYMMDDXXXX-selgitus-millega-tegu.sql
+    YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql
+    YYYYMMDDXXXX-selgitus-millega-tegu.xml
 docs/<epic_kataloog>/
   README.md
   paigaldusjuhend.md
@@ -159,7 +165,7 @@ docs/
 
 `state_updater` SQL-id on sisemised RESQL endpointid — neil ei ole Ruuter YML-faile ega `.guard` faile. Ruuter vood kutsuvad neid otse `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` kaudu.
 
-`docs/imp/epic_XX_dsl_plan.md` peab sisaldama kogu vajalikku infot, et teine LLM agent suudaks sama epicu DSL artefaktid reprodutseerida.
+`docs/imp/epic_XX_dsl_plan.md` peab sisaldama kogu vajalikku infot, et teine LLM agent suudaks sama epicu DSL artefaktid reprodutseerida. Kui skeemimuudatus on vajalik, peab blueprint sisaldama ka Liquibase tripletite faililoendit ja indeksite põhjendusi.
 
 ### Section 3: Päringute nimekiri
 
@@ -199,7 +205,7 @@ SELECT
 # <operatsioon>.yml — <lühikirjeldus>
 validate: ...
 call_db:
-  url: "[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/<operatsioon>"
+  url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>"
   ...
 ```
 
@@ -207,7 +213,7 @@ call_db:
 ```yaml
 # mock_<operatsioon>.yml — kutsub mock RESQL endpointi
 call_mock:
-  url: "[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/mock_<operatsioon>"
+  url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>"
   ...
 ```
 ```
@@ -231,6 +237,9 @@ Kontrollnimekiri iga reegli kohta:
 | Rollback / recovery voog on kirjeldatud | ✅ / ⚠️ / ❌ | |
 | Partial success on kaetud | ✅ / ⚠️ / ❌ | |
 | Latest state reegel on määratud | ✅ / ⚠️ / ❌ | |
+| Liquibase triplet loodud skeemimuudatusele | ✅ / ⚠️ / ❌ | |
+| `_state` / `_status` indeksid on põhjendatud | ✅ / ⚠️ / ❌ | |
+| `*_latest` indeksid on põhjendatud | ✅ / ⚠️ / ❌ | |
 
 Soovituslik sanity-check käsk enne commit'i:
 
@@ -247,9 +256,9 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
       operation=$(echo "$rel" | cut -d'/' -f4)
       test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
-      module=$(echo "$rel" | cut -d'/' -f2)
-      entity=$(echo "$rel" | cut -d'/' -f3)
-      version=$(echo "$rel" | cut -d'/' -f4)
+      version="$segment2"
+      module=$(echo "$rel" | cut -d'/' -f3)
+      entity=$(echo "$rel" | cut -d'/' -f4)
       operation=$(echo "$rel" | cut -d'/' -f5)
       test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
@@ -258,10 +267,12 @@ done
 ```
 
 **URL kujud:**
-- Tavalised: `[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/<operatsioon>` → source fail `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql` ja runtime fail `/DSL/ljvis2/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- Tavalised: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
 - `state_updater`: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` kihita)
 
 Kui väljundis on `MISSING:`, tuleb failitee joondada enne merge'i.
+
+Kui skeemimuudatus on vajalik, tuleb lisaks kontrollida, et Liquibase tripletid on reaalselt loodud ja et indeksid katavad `_state`/`_status` ning `*_latest` tabelite peamised lookup-mustrid.
 
 Lisaks tuleb kontrollida, et `docs/imp/epic_XX_dsl_plan.md` kirjeldab:
 - täpset faililoendit,
@@ -391,6 +402,49 @@ RETURNING
 [#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build
 ```
 
+
+---
+
+## 3.6 Liquibase File Format
+
+Liquibase faile luuakse ainult siis, kui epic muudab andmebaasi skeemi.
+
+**Asukoht:** `DSL/Liquibase/changelog/`
+
+**Ühe muudatuse failikomplekt:**
+- `YYYYMMDDXXXX-selgitus-millega-tegu.sql`
+- `YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql`
+- `YYYYMMDDXXXX-selgitus-millega-tegu.xml`
+
+**Forward SQL (`.sql`):**
+- sisaldab tegelikku `CREATE TABLE`, `ALTER TABLE`, `CREATE INDEX` või muud skeemimuutust
+- indeksid tuleb lisada loogiliselt nende väljade järgi, mille järgi päringud filtreerivad, järjestavad või otsivad latest-kirjeid
+
+**Rollback SQL (`-rollback.sql`):**
+- peab olema sama muudatuse sümmeetriline tagasipööre
+- failinimi peab kordama sama kirjeldust ja lõppema `-rollback.sql`
+
+**XML changeset (`.xml`):**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet id="20260330100001" author="ljvis">
+        <sqlFile path="changelog/20260330100001-seed-data.sql" />
+        <rollback>
+            <sqlFile path="changelog/20260330100001-seed-data-rollback.sql" />
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
+```
+
+**Indeksite reegel:**
+- `_state` / `_status` tabelitel tuleb indeksid valida vähemalt `WHERE`, `ORDER BY`, latest lookup ja rebuild mustrite järgi
+- `*_latest` tabelitel tuleb indeksid valida kiire lugemise ja filtrite järgi
+- dokumentatsioon peab selgitama, miks konkreetne indeks loodi
+
 ---
 
 ## 4. Naming Conventions
@@ -404,12 +458,16 @@ RETURNING
 | Version suffix | `_v2`, `_v3` jne | `create_v2`, `get_by_id_v3` |
 | SQL muutujad | `:camelCase` | `:extId`, `:personalCode` |
 | SQL aliased | `"camelCase"` | `AS "displayName"`, `AS "createdAt"` |
+| Liquibase change ID | `YYYYMMDDXXXX` | `20260330100001` |
+| Liquibase forward SQL | `YYYYMMDDXXXX-kirjeldus.sql` | `20260330100001-create-user-state.sql` |
+| Liquibase rollback SQL | `YYYYMMDDXXXX-kirjeldus-rollback.sql` | `20260330100001-create-user-state-rollback.sql` |
+| Liquibase XML | `YYYYMMDDXXXX-kirjeldus.xml` | `20260330100001-create-user-state.xml` |
 
 ---
 
 ## 5. Paigaldusjuhend (`paigaldusjuhend.md`)
 
-Iga epicu dokumentatsioonikausta `docs/<epic_kataloog>/` luuakse `paigaldusjuhend.md`, mis selgitab täpselt nii source repo failiteed kui ka runtime sihtkataloogid RESQL-i ja Ruuteri jaoks.
+Iga epicu dokumentatsioonikausta `docs/<epic_kataloog>/` luuakse `paigaldusjuhend.md`, mis selgitab täpselt, millised failid loodi otse `DSL/Resql/` ja `DSL/Ruuter/` alla.
 
 ```markdown
 ---
@@ -422,40 +480,47 @@ generated: YYYY-MM-DD
 
 ## Ülevaade
 
-Selles repos hoitakse RESQL source faile `DSL/Resql/` all ja Ruuteri source faile `DSL/Ruuter/` all. RESQL runtime eeldab projekti `ljvis2` all kausta `/DSL/ljvis2/<METHOD>/...` ja Ruuter runtime eeldab projekti `api` all kausta `/DSL/api/<METHOD>/...`.
+Kõik selle EPICu RESQL, Ruuter ja vajadusel Liquibase failid luuakse vastavatesse süsteemikataloogidesse `DSL/Resql/`, `DSL/Ruuter/` ja skeemimuudatuste korral `DSL/Liquibase/changelog/`.
 
 ## SQL failid (RESQL)
 
 | Allikas | Sihtkoht |
 |---------|----------|
-| `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` | `/DSL/ljvis2/POST/<moodul>/<entiteet>/v1/<fail>.sql` |
-| `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` | `/DSL/ljvis2/GET/<moodul>/<entiteet>/v1/<fail>.sql` |
+| `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` |
+| `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` |
 
-**Märkus:** enne kopeerimist peab RESQL runtime all olemas olema projektikaust `/DSL/ljvis2/` koos `POST/` ja `GET/` alamkaustadega. `mock_` prefiksiga failid kopeeritakse samasse kataloogi.
+**Märkus:** `mock_` prefiksiga failid kopeeritakse samasse kataloogi.
 
 ## Ruuter DSL failid
 
 | Allikas | Sihtkoht |
 |---------|----------|
-| `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` | `/DSL/api/POST/v1/admin/<entiteet>/<fail>.yml` |
-| `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` | `/DSL/api/GET/v1/admin/<entiteet>/<fail>.yml` |
+| `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` |
+| `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` |
 
 ## Guard failid
 
 | Allikas | Sihtkoht |
 |---------|----------|
-| `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` | `/DSL/api/POST/v1/admin/<entiteet>/.guard` |
-| `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` | `/DSL/api/GET/v1/admin/<entiteet>/.guard` |
+| `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` |
+| `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` |
+
+## Liquibase failid
+
+| Allikas | Sihtkoht |
+|---------|----------|
+| `DSL/Liquibase/changelog/YYYYMMDDXXXX-selgitus-millega-tegu.sql` | `DSL/Liquibase/changelog/YYYYMMDDXXXX-selgitus-millega-tegu.sql` |
+| `DSL/Liquibase/changelog/YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql` | `DSL/Liquibase/changelog/YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql` |
+| `DSL/Liquibase/changelog/YYYYMMDDXXXX-selgitus-millega-tegu.xml` | `DSL/Liquibase/changelog/YYYYMMDDXXXX-selgitus-millega-tegu.xml` |
 
 ## Paigaldamise järjekord
 
-1. Veendu, et RESQL runtime all eksisteerib projektikaust `/DSL/ljvis2/` koos `POST/` ja `GET/` alamkaustadega.
-2. Kopeeri source SQL failid `DSL/Resql/` alt RESQL runtime alla kujul `/DSL/ljvis2/<METHOD>/...`.
+1. Kui skeemimuudatus on vajalik, kopeeri Liquibase failid `DSL/Liquibase/changelog/` alla ja rakenda migrationid.
+2. Kopeeri SQL failid `DSL/Resql/` alla.
 3. Käivita `docker compose restart resql` (RESQL laeb failid automaatselt).
-4. Veendu, et Ruuter runtime all eksisteerib projektikaust `/DSL/api/` koos `POST/` ja `GET/` alamkaustadega.
-5. Kopeeri source Ruuter YML ja `.guard` failid `DSL/Ruuter/api/` alt runtime alla kujul `/DSL/api/<METHOD>/...`.
-6. Ruuter rakendab muudatused automaatselt (restart ei ole vajalik, kui reload on lubatud).
-7. Kontrolli logidest, et uued endpointid on saadaval.
+4. Kopeeri Ruuter YML ja `.guard` failid `DSL/Ruuter/` alla.
+5. Ruuter rakendab muudatused automaatselt (restart ei ole vajalik).
+6. Kontrolli logidest, et uued endpointid on saadaval.
 
 ## Viited
 

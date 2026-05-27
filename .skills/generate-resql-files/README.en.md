@@ -17,16 +17,17 @@ This skill helps generate and update DSL artifacts in the LJVIS project:
 1. Copy `.skills/generate-resql-files/` into your project root under `.skills/`.
 2. Ensure required input files exist (for example `docs/data_model.md`, `planning/docs/permissions-matrix.md` or fallback `docs/permissions-matrix.md`).
 3. Confirm your project follows the same DSL conventions (Ruuter + RESQL path logic, issue/PR rules).
-4. Verify the runtime services use project folder `/DSL/ljvis2/` for RESQL and `/DSL/api/` for Ruuter.
 
 ## Core rules
 
 - One file = one operation.
 - RESQL paths must be versioned (`v1`).
-- Ruuter internal RESQL calls must use the form `[#LOCAL_RESQL]/ljvis2/<module>/<entity>/v1/...`.
+- Ruuter internal RESQL calls must use the form `[#LOCAL_RESQL]/ljvis2/v1/...`.
 - RESQL SQL files must live under `DSL/Resql/<METHOD>/<module>/<entity>/v1/...`.
 - GET is allowed only for parameter-less list queries.
 - Run a sanity check before commit.
+- If the epic changes DB schema, also create a Liquibase triplet under `DSL/Liquibase/changelog/`: `YYYYMMDDXXXX-description.sql`, `YYYYMMDDXXXX-description-rollback.sql`, and `YYYYMMDDXXXX-description.xml`.
+- New or changed `_state` / `_status` and `*_latest` tables must get indexes based on actual `WHERE`, `ORDER BY`, latest lookup, and rebuild patterns.
 
 ## Recommended workflow
 
@@ -44,24 +45,17 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
-    segment2=$(echo "$rel" | cut -d'/' -f2)
+    version=$(echo "$rel" | cut -d'/' -f2)
+    module=$(echo "$rel" | cut -d'/' -f3)
+    entity=$(echo "$rel" | cut -d'/' -f4)
+    operation=$(echo "$rel" | cut -d'/' -f5)
     test "$project" = "ljvis2" || echo "MISSING_PROJECT: $f -> $url"
-    if [ "$segment2" = "state_updater" ]; then
-      entity=$(echo "$rel" | cut -d'/' -f3)
-      operation=$(echo "$rel" | cut -d'/' -f4)
-      test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
-    else
-      module=$(echo "$rel" | cut -d'/' -f2)
-      entity=$(echo "$rel" | cut -d'/' -f3)
-      version=$(echo "$rel" | cut -d'/' -f4)
-      operation=$(echo "$rel" | cut -d'/' -f5)
-      test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
-    fi
+    test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
   done
 done
 ```
 
-If output contains `MISSING:`, fix paths before merge. At runtime the same query is loaded under `/DSL/ljvis2/`.
+If output contains `MISSING:`, fix paths before merge.
 
 ## Sharing with teammates
 
