@@ -1,5 +1,5 @@
 get_classifier:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier/get
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/get
   args:
     classifierId: "${incoming.body.classifierId}"
   result: db_response

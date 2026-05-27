@@ -1,5 +1,5 @@
 check_exists:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier/get_latest_name_state
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/get_latest_name_state
   args:
     classifierId: "${incoming.body.classifierId}"
   result: exists_response
@@ -9,7 +9,7 @@ switch:
   - condition: "true"
     next: write_name_state
 write_name_state:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier/update
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/update
   args:
     classifierId: "${incoming.body.classifierId}"
     name:         "${incoming.body.name}"
@@ -33,7 +33,7 @@ switch:
   - condition: "true"
     next: verify_snapshot
 verify_snapshot:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier/get
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/get
   args:
     classifierId: "${incoming.body.classifierId}"
   result: verify_response

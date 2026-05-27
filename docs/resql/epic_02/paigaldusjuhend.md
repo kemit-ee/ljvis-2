@@ -40,14 +40,17 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
     segment2=$(echo "$rel" | cut -d'/' -f2)
-    module=$(echo "$rel" | cut -d'/' -f3)
-    entity=$(echo "$rel" | cut -d'/' -f4)
-    operation=$(echo "$rel" | cut -d'/' -f5)
     test "$project" = "ljvis2" || echo "MISSING_PROJECT: $f -> $url"
     if [ "$segment2" = "state_updater" ]; then
-      test -f "DSL/Resql/${method}/state_updater/${module}/${operation}.sql" || echo "MISSING: $f -> $url"
+      entity=$(echo "$rel" | cut -d'/' -f3)
+      operation=$(echo "$rel" | cut -d'/' -f4)
+      test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
-      test -f "DSL/Resql/${method}/${segment2}/${module}/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
+      module=$(echo "$rel" | cut -d'/' -f2)
+      entity=$(echo "$rel" | cut -d'/' -f3)
+      version=$(echo "$rel" | cut -d'/' -f4)
+      operation=$(echo "$rel" | cut -d'/' -f5)
+      test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
   done
 done

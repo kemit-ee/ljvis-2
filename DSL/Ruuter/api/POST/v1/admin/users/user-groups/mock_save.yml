@@ -1,5 +1,5 @@
 save_groups:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group_membership/mock_save
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/mock_save
   args:
     userId:      "${incoming.body.userId}"
     userGroupId: "${incoming.body.userGroupId}"

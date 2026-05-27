@@ -199,7 +199,7 @@ SELECT
 # <operatsioon>.yml — <lühikirjeldus>
 validate: ...
 call_db:
-  url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>"
+  url: "[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/<operatsioon>"
   ...
 ```
 
@@ -207,7 +207,7 @@ call_db:
 ```yaml
 # mock_<operatsioon>.yml — kutsub mock RESQL endpointi
 call_mock:
-  url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>"
+  url: "[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/mock_<operatsioon>"
   ...
 ```
 ```
@@ -247,9 +247,9 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
       operation=$(echo "$rel" | cut -d'/' -f4)
       test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
-      version="$segment2"
-      module=$(echo "$rel" | cut -d'/' -f3)
-      entity=$(echo "$rel" | cut -d'/' -f4)
+      module=$(echo "$rel" | cut -d'/' -f2)
+      entity=$(echo "$rel" | cut -d'/' -f3)
+      version=$(echo "$rel" | cut -d'/' -f4)
       operation=$(echo "$rel" | cut -d'/' -f5)
       test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
@@ -258,7 +258,7 @@ done
 ```
 
 **URL kujud:**
-- Tavalised: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- Tavalised: `[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/<operatsioon>` → source fail `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql` ja runtime fail `/DSL/ljvis2/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
 - `state_updater`: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` kihita)
 
 Kui väljundis on `MISSING:`, tuleb failitee joondada enne merge'i.

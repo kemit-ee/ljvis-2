@@ -1,5 +1,5 @@
 create_value:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier_value/create
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/create
   args:
     classifierId: "${incoming.body.classifierId}"
     code:         "${incoming.body.code}"
@@ -12,7 +12,7 @@ switch:
   - condition: "true"
     next: create_validity_state
 create_validity_state:
-  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/classifier_value/create_validity_state
+  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/create_validity_state
   args:
     classifierValueId: "${create_response.response.body[0].id}"
     validFrom:         "${incoming.body.validFrom}"
