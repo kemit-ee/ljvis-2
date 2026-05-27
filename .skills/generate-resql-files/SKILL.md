@@ -70,6 +70,7 @@ These rules come from project architecture constraints and database rules:
 | **Liquibase on schema changes only** | If the epic creates or alters DB schema, generate Liquibase files under `DSL/Liquibase/changelog/`; pure DSL/RESQL/Ruuter changes do not require them |
 | **Liquibase triplet is mandatory** | Every schema change must create forward SQL, symmetric rollback SQL, and XML changeset files |
 | **Indexes are mandatory for state/read performance** | New or changed `_state`/`_status` and `*_latest` tables must get indexes based on real lookup and rebuild patterns |
+| **Liquibase forward SQL must be guarded** | Table creation and column additions must check whether the object already exists so reruns add missing pieces instead of failing |
 
 ## When to Use
 
@@ -243,6 +244,8 @@ The skill also reads:
    - `YYYYMMDDXXXX-selgitus-millega-tegu.xml`
    - The XML must reference both SQL files via `<sqlFile path="changelog/..." />` and `<rollback><sqlFile ... /></rollback>`
    - Add indexes for new/changed `_state`/`_status` and `*_latest` tables according to real `WHERE`, `ORDER BY`, latest lookup, and snapshot rebuild patterns
+   - Guard DDL so reruns are safe: create tables with existence checks first, then add missing columns with `ADD COLUMN IF NOT EXISTS` or equivalent guarded logic
+   - This rule is mandatory because the table may already exist while some required columns are still missing; the migration must still add the missing fields
    - If Liquibase files are listed in the blueprint, the skill must create them — listing without generation is forbidden
 
 4. **Write each mock SQL file** (`mock_` prefix):

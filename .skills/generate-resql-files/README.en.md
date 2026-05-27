@@ -27,6 +27,7 @@ This skill helps generate and update DSL artifacts in the LJVIS project:
 - GET is allowed only for parameter-less list queries.
 - Run a sanity check before commit.
 - If the epic changes DB schema, also create a Liquibase triplet under `DSL/Liquibase/changelog/`: `YYYYMMDDXXXX-description.sql`, `YYYYMMDDXXXX-description-rollback.sql`, and `YYYYMMDDXXXX-description.xml`.
+- Forward Liquibase SQL must be guarded: create the table with an existence check first, then add missing columns with `IF NOT EXISTS` logic so partially existing schema can still be completed safely.
 - New or changed `_state` / `_status` and `*_latest` tables must get indexes based on actual `WHERE`, `ORDER BY`, latest lookup, and rebuild patterns.
 
 ## Recommended workflow

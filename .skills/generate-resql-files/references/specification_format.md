@@ -418,11 +418,15 @@ Liquibase faile luuakse ainult siis, kui epic muudab andmebaasi skeemi.
 
 **Forward SQL (`.sql`):**
 - sisaldab tegelikku `CREATE TABLE`, `ALTER TABLE`, `CREATE INDEX` või muud skeemimuutust
+- tabeli loomine peab olema kaitstud olemasolu kontrolliga (`CREATE TABLE IF NOT EXISTS` või samaväärne guarded loogika)
+- kui tabel on juba olemas, tuleb puuduvad väljad lisada eraldi kontrolliga (`ADD COLUMN IF NOT EXISTS` või samaväärne guarded loogika)
+- see reegel on kohustuslik, et migration ei kukuks läbi olukorras, kus tabel on olemas, kuid osa välju on veel puudu
 - indeksid tuleb lisada loogiliselt nende väljade järgi, mille järgi päringud filtreerivad, järjestavad või otsivad latest-kirjeid
 
 **Rollback SQL (`-rollback.sql`):**
 - peab olema sama muudatuse sümmeetriline tagasipööre
 - failinimi peab kordama sama kirjeldust ja lõppema `-rollback.sql`
+- rollback peab samuti arvestama, et objekt võib juba puududa; kasuta guarded eemaldamist (`DROP ... IF EXISTS`) või samaväärset turvalist loogikat
 
 **XML changeset (`.xml`):**
 ```xml
@@ -443,6 +447,7 @@ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
 **Indeksite reegel:**
 - `_state` / `_status` tabelitel tuleb indeksid valida vähemalt `WHERE`, `ORDER BY`, latest lookup ja rebuild mustrite järgi
 - `*_latest` tabelitel tuleb indeksid valida kiire lugemise ja filtrite järgi
+- indeksite loomine peab samuti olema guarded (`CREATE INDEX IF NOT EXISTS` või samaväärne lähenemine)
 - dokumentatsioon peab selgitama, miks konkreetne indeks loodi
 
 ---
