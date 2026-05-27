@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "List users with pagination, sorting, and optional search"
+  description: "Available list of users with pagination, sorting, and optional search for adding into group"
   method: get
   namespace: user_group
   returns: json

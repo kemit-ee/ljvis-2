@@ -21,14 +21,19 @@ declaration:
         type: string
 */
 SELECT
-    ug.id,
-    (SELECT ns.name FROM ljvis2.user_group_name_state ns WHERE ns.user_group_id = ug.id ORDER BY ns.created_at DESC LIMIT 1) AS name
-FROM ljvis2.user_group ug
-WHERE ug.id = :id::BIGINT
+    ugl.user_group_id AS id,
+    ugl.name
+FROM ljvis2.user_group_latest ugl
+WHERE ugl.user_group_id = :id::BIGINT
   AND (COALESCE(:organisation_id, '') = '' OR EXISTS (
-      SELECT 1 FROM ljvis2.user_group_organisation ugo
-      WHERE ugo.user_group_id = ug.id
-        AND ugo.organisation_id = COALESCE(:organisation_id, '')::BIGINT
-        AND (SELECT uogos.status FROM ljvis2.user_group_organisation_state uogos WHERE uogos.user_group_organisation_id = ugo.id ORDER BY uogos.created_at DESC LIMIT 1) = 'active'
+    SELECT 1 FROM jsonb_array_elements(ugl.organisations) AS org 
+    WHERE org->>'id' = :organisation_id
   ))
+  AND ugl.id = (
+    SELECT MAX(id) FROM ljvis2.user_group_latest WHERE user_group_id = :id::BIGINT
+      AND (COALESCE(:organisation_id, '') = '' OR EXISTS (
+        SELECT 1 FROM jsonb_array_elements(organisations) AS org 
+        WHERE org->>'id' = :organisation_id
+      ))
+  )
 LIMIT 1;

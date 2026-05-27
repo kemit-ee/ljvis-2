@@ -18,9 +18,10 @@ declaration:
         type: string
 */
 SELECT
-    uaug.user_group_id,
-    (SELECT ns.name FROM ljvis2.user_group_name_state ns WHERE ns.user_group_id = uaug.user_group_id ORDER BY ns.created_at DESC LIMIT 1) AS name
-FROM ljvis2.user_account_user_group uaug
-WHERE uaug.user_account_id = :user_id::BIGINT
-  AND (SELECT uaugs.status FROM ljvis2.user_account_user_group_state uaugs WHERE uaugs.user_account_user_group_id = uaug.id ORDER BY uaugs.created_at DESC LIMIT 1) = 'active'
-ORDER BY name;
+    jsonb_array_elements(ual.user_groups)->>'id' AS user_group_id,
+    jsonb_array_elements(ual.user_groups)->>'name' AS name
+FROM ljvis2.user_account_latest ual
+WHERE ual.user_account_id = :user_id::BIGINT
+  AND ual.id = (
+    SELECT MAX(id) FROM ljvis2.user_account_latest WHERE user_account_id = :user_id::BIGINT
+  );

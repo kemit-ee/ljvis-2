@@ -36,7 +36,7 @@ rebuildLatest:
     headers:
       type: json
     body:
-      user_account_ids: "${res.response.body.map(r => r.id).join(',')}"
+      user_account_id: "${res.response.body.map(r => r.id).join(',')}"
       created_by: ${created_by}
   result: latestRes
   next: returnSuccess
