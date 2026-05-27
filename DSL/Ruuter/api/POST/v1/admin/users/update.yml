@@ -1,0 +1,41 @@
+update_user:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user/update
+  args:
+    userId:         "${incoming.body.userId}"
+    firstName:      "${incoming.body.firstName}"
+    lastName:       "${incoming.body.lastName}"
+    organisationId: "${incoming.body.organisationId}"
+    structuralUnit: "${incoming.body.structuralUnit}"
+    jobTitle:       "${incoming.body.jobTitle}"
+    email:          "${incoming.body.email}"
+    phone:          "${incoming.body.phone}"
+    accessStart:    "${incoming.body.accessStart}"
+    accessEnd:      "${incoming.body.accessEnd}"
+    createdBy:      "${incoming.headers['X-Authorization-Sub']}"
+  result: update_response
+verify_update:
+  switch:
+    - condition: "${update_response.response.body == null || update_response.response.body.length == 0}"
+      next: update_failed
+    - condition: "true"
+      next: build_snapshot
+update_failed:
+  status: 500
+  return: "${common_error_messages.internal_error}"
+build_snapshot:
+  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/build
+  args:
+    userId:    "${incoming.body.userId}"
+    createdBy: "${incoming.headers['X-Authorization-Sub']}"
+  result: snapshot_response
+verify_snapshot:
+  switch:
+    - condition: "${snapshot_response.response.body == null || snapshot_response.response.body.length == 0}"
+      next: snapshot_failed
+    - condition: "true"
+      next: return_result
+snapshot_failed:
+  status: 500
+  return: "${common_error_messages.internal_error}"
+return_result:
+  return: "${snapshot_response.response.body[0]}"

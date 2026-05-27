@@ -1,0 +1,14 @@
+add_user:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group/mock_add_user
+  args:
+    userGroupId: "${incoming.body.userGroupId}"
+    userId:      "${incoming.body.userId}"
+    createdBy:   "mock_user"
+  result: add_response
+build_snapshot:
+  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/mock_build
+  args:
+    userId:    "${incoming.body.userId}"
+    createdBy: "mock_user"
+  result: snapshot_response
+return: "${snapshot_response.response.body[0]}"

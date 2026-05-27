@@ -1,0 +1,6 @@
+check_code:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user/mock_check_personal_code_exists
+  args:
+    personalCode: "${incoming.body.personalCode}"
+  result: db_response
+return: "${db_response.response.body[0]}"

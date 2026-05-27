@@ -1,0 +1,39 @@
+save_groups:
+  forEach:
+    variable: groupAction
+    collection: "${incoming.body.actions}"
+    steps:
+      do_save:
+        call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group_membership/save
+        args:
+          userId:      "${incoming.body.userId}"
+          userGroupId: "${groupAction.userGroupId}"
+          action:      "${groupAction.action}"
+          createdBy:   "${incoming.headers['X-Authorization-Sub']}"
+        result: save_response
+      verify_save:
+        switch:
+          - condition: "${save_response.response.body == null || save_response.response.body.length == 0}"
+            next: save_failed
+          - condition: "true"
+            next: continue
+      save_failed:
+        status: 500
+        return: "${common_error_messages.internal_error}"
+build_snapshot:
+  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/build
+  args:
+    userId:    "${incoming.body.userId}"
+    createdBy: "${incoming.headers['X-Authorization-Sub']}"
+  result: snapshot_response
+verify_snapshot:
+  switch:
+    - condition: "${snapshot_response.response.body == null || snapshot_response.response.body.length == 0}"
+      next: snapshot_failed
+    - condition: "true"
+      next: return_result
+snapshot_failed:
+  status: 500
+  return: "${common_error_messages.internal_error}"
+return_result:
+  return: "${snapshot_response.response.body[0]}"
