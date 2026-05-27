@@ -31,9 +31,3 @@
 :global(#permissions-table) th:nth-child(2) {
   justify-items: start !important;
 }
-
-.action-cell {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: center;
-}

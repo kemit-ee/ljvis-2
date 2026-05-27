@@ -90,6 +90,10 @@ nav[aria-label="Main navigation"] {
   color: #6b7280;
 }
 
+.danger-text {
+  color: var(--button-main-danger-neutral-text-default);
+}
+
 .mt-1 {
   margin-top: 1rem;
 }

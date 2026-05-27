@@ -21,7 +21,7 @@ import {
     StatusBadge,
     Card,
     Icon,
-    Tooltip, Alert
+    Alert
 } from '@tedi-design-system/react/tedi';
 import { useUserGroupDetail } from '../../hooks';
 import { useAuth } from '../../../auth/AuthContext';
@@ -161,9 +161,24 @@ export function UserGroupDetailPage() {
           enableSorting: true,
           cell: (info) => {
             if (info.row.original.isAdditionalGroupRow) return null;
+            const value = info.getValue();
             return (
                 <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>
-              {info.getValue()}
+                    {canViewUsers ? (
+                            <a
+                                href={`/users/${info.row.original.id}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleRowClick(info.row.original);
+                                }}
+                                className="table-link"
+                            >
+                                {value}
+                            </a>
+                    ) : (
+                        value
+                    )}
             </span>
             );
           },
@@ -173,9 +188,24 @@ export function UserGroupDetailPage() {
           enableSorting: true,
           cell: (info) => {
             if (info.row.original.isAdditionalGroupRow) return null;
+            const value = info.getValue();
             return (
                 <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>
-              {info.getValue()}
+                    {canViewUsers ? (
+                            <a
+                                href={`/users/${info.row.original.id}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleRowClick(info.row.original);
+                                }}
+                                className="table-link"
+                            >
+                                {value}
+                            </a>
+                    ) : (
+                        value
+                    )}
             </span>
             );
           },
@@ -185,9 +215,24 @@ export function UserGroupDetailPage() {
           enableSorting: false,
           cell: (info) => {
             if (info.row.original.isAdditionalGroupRow) return null;
+            const value = info.getValue();
             return (
                 <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>
-              {info.getValue()}
+                    {canViewUsers ? (
+                            <a
+                                href={`/users/${info.row.original.id}`}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleRowClick(info.row.original);
+                                }}
+                                className="table-link"
+                            >
+                                {value}
+                            </a>
+                    ) : (
+                        value
+                    )}
             </span>
             );
           },
@@ -226,42 +271,29 @@ export function UserGroupDetailPage() {
           cell: (info) => {
             if (info.row.original.isAdditionalGroupRow) return null;
             return (
-                <div className={styles['action-cell']}>
-                    {canEditGroup && ( <Tooltip>
-                      <Tooltip.Trigger>
-                          <ModalTrigger>
-                              <Icon name="delete" color="danger" size={24} className='cursor-pointer'/>
-                          </ModalTrigger>
-                          <Modal aria-labelledby="delete-confirm-title">
-                              <CardContent>
-                                  <Heading element="h2" id="delete-confirm-title">{t('userGroups.deleteUser')}</Heading>
-                                  <div className="mt-1"><Text>{t('userGroups.deleteUserConfirm')}</Text></div>
-                                  <div className="modal-actions">
-                                      <ModalCloser>
-                                          <Button visualType="secondary">{t('common.no')}</Button>
-                                      </ModalCloser>
-                                      <ModalCloser>
-                                          <Button color="danger" onClick={() => handleDeleteUser(info.row.original.id)}>
-                                              {t('common.yes')}
-                                          </Button>
-                                      </ModalCloser>
-                                  </div>
-                              </CardContent>
-                          </Modal>
-                      </Tooltip.Trigger>
-                      <Tooltip.Content>
-                          {t('common.remove')}
-                      </Tooltip.Content>
-                    </Tooltip>
-                    )}
-                    {canViewUsers && (<Tooltip>
-                      <Tooltip.Trigger>
-                          <div className='cursor-pointer' onClick={() => handleRowClick(info.row.original)}><Icon name="visibility" color="brand" size={24}/></div>
-                      </Tooltip.Trigger>
-                      <Tooltip.Content>
-                          {t('common.look')}
-                      </Tooltip.Content>
-                    </Tooltip>
+                <div>
+                    {canEditGroup && (
+                        <>
+                            <ModalTrigger>
+                                <a className="table-link danger-text">{t('common.remove')}</a>
+                            </ModalTrigger>
+                            <Modal aria-labelledby="delete-confirm-title">
+                                <CardContent>
+                                    <Heading element="h2" id="delete-confirm-title">{t('userGroups.deleteUser')}</Heading>
+                                    <div className="mt-1"><Text>{t('userGroups.deleteUserConfirm')}</Text></div>
+                                    <div className="modal-actions">
+                                        <ModalCloser>
+                                            <Button visualType="secondary">{t('common.no')}</Button>
+                                        </ModalCloser>
+                                        <ModalCloser>
+                                            <Button color="danger" onClick={() => handleDeleteUser(info.row.original.id)}>
+                                                {t('common.yes')}
+                                            </Button>
+                                        </ModalCloser>
+                                    </div>
+                                </CardContent>
+                            </Modal>
+                        </>
                     )}
                 </div>
             );
