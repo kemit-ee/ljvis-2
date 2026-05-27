@@ -17,10 +17,11 @@ export function UserGroupCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const { hasPermission } = useAuth();
+  const { hasPermission, refetchUser } = useAuth();
   const forbidden = !hasPermission('user_group.create');
 
-  const handleSaved = (id: string) => {
+  const handleSaved = async (id: string) => {
+    await refetchUser();
     navigate(`/user-groups/${id}`, { state: { justCreated: true } });
   };
 

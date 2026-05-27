@@ -22,8 +22,9 @@
     "desktop": "Töölaud",
     "management": "Haldus",
     "users": "Kasutajad",
-    "administration": "Administreerimine",
-    "userGroups": "Kasutajagrupid"
+    "administration": "Haldus",
+    "userGroups": "Kasutajagrupid",
+    "classifiers": "Klassifikaatorid"
   },
   "desktop": {
     "title": "Töölaud"
@@ -128,6 +129,13 @@
       "nameRequired": "Kasutajagrupi nimetus on kohustuslik"
     },
     "viewDetails": "Vaata"
+  },
+  "classifiers": {
+    "title": "Klassifikaatorid",
+    "viewDetails": "Vaata",
+    "name": "Nimetus",
+    "code": "Kood",
+    "description": "Selgitus"
   },
   "common": {
     "loading": "Laadimine...",

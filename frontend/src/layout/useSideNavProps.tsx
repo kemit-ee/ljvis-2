@@ -18,7 +18,7 @@ interface UseSideNavPropsResult {
 export function useSideNavProps(): UseSideNavPropsResult {
   const { pathname } = useLocation();
   const { t } = useTranslation();
-  const { hasAnyPermission } = useAuth();
+  const { hasPermission, hasAnyPermission } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -54,6 +54,14 @@ export function useSideNavProps(): UseSideNavPropsResult {
         children: t('nav.userGroups'),
         to: '/user-groups',
         isActive: pathname.startsWith('/user-groups')
+      });
+    }
+
+    if (hasPermission(PERMISSIONS.CLASSIFIER_LIST)) {
+      adminSubItems.push({
+        children: t('nav.classifiers'),
+        to: '/classifiers',
+        isActive: pathname.startsWith('/classifiers')
       });
     }
 

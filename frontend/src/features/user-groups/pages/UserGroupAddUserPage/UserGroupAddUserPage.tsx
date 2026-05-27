@@ -26,7 +26,7 @@ export function UserGroupAddUserPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { hasPermission } = useAuth();
+  const { hasPermission, refetchUser } = useAuth();
   const forbidden = !hasPermission('user_group.add_user');
 
   const {
@@ -39,8 +39,9 @@ export function UserGroupAddUserPage() {
     navigate(`/user-groups/${id}`);
   };
 
-  const handleSave = () => {
-    saveUsers();
+  const handleSave = async () => {
+    await saveUsers();
+    await refetchUser();
     navigate(`/user-groups/${id}`, { state: { justCreatedUser: true } });
   };
 

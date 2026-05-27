@@ -26,7 +26,8 @@
     "management": "Management",
     "users": "Users",
     "administration": "Administration",
-    "userGroups": "User Groups"
+    "userGroups": "User Groups",
+    "classifiers": "Klassifikaatorid"
   },
   "users": {
     "title": "Users",
@@ -127,6 +128,13 @@
       "nameRequired": "Group name is required"
     },
     "viewDetails": "COMING"
+  },
+  "classifiers": {
+    "title": "Classifiers",
+    "viewDetails": "Vaata",
+    "name": "Nimetus",
+    "code": "Kood",
+    "description": "Selgitus"
   },
   "common": {
     "loading": "Loading...",
