@@ -1,0 +1,4 @@
+get_options:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/organisation/mock_list
+  result: db_response
+return: "${db_response.response.body}"

@@ -1,0 +1,33 @@
+add_user:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group/add_user
+  args:
+    userGroupId: "${incoming.body.userGroupId}"
+    userId:      "${incoming.body.userId}"
+    createdBy:   "${incoming.headers['X-Authorization-Sub']}"
+  result: add_response
+verify_add:
+  switch:
+    - condition: "${add_response.response.body == null || add_response.response.body.length == 0}"
+      next: add_failed
+    - condition: "true"
+      next: build_snapshot
+add_failed:
+  status: 500
+  return: "${common_error_messages.internal_error}"
+build_snapshot:
+  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/build
+  args:
+    userId:    "${incoming.body.userId}"
+    createdBy: "${incoming.headers['X-Authorization-Sub']}"
+  result: snapshot_response
+verify_snapshot:
+  switch:
+    - condition: "${snapshot_response.response.body == null || snapshot_response.response.body.length == 0}"
+      next: snapshot_failed
+    - condition: "true"
+      next: return_result
+snapshot_failed:
+  status: 500
+  return: "${common_error_messages.internal_error}"
+return_result:
+  return: "${snapshot_response.response.body[0]}"

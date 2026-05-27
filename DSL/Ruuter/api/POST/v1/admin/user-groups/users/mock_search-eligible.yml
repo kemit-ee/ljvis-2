@@ -1,0 +1,8 @@
+search_users:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user_group/mock_search_eligible_users
+  args:
+    userGroupId:     "${incoming.body.userGroupId}"
+    query:           "${incoming.body.query}"
+    organisationIds: "${incoming.body.organisationIds}"
+  result: db_response
+return: "${db_response.response.body}"

@@ -1,0 +1,22 @@
+change_org:
+  call: http://[#LOCAL_RESQL]/ljvis2/v1/iam/user/mock_change_organisation
+  args:
+    userId:         "${incoming.body.userId}"
+    organisationId: "${incoming.body.organisationId}"
+    firstName:      "${incoming.body.firstName}"
+    lastName:       "${incoming.body.lastName}"
+    structuralUnit: "${incoming.body.structuralUnit}"
+    jobTitle:       "${incoming.body.jobTitle}"
+    email:          "${incoming.body.email}"
+    phone:          "${incoming.body.phone}"
+    accessStart:    "${incoming.body.accessStart}"
+    accessEnd:      "${incoming.body.accessEnd}"
+    createdBy:      "mock_user"
+  result: change_response
+build_snapshot:
+  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/mock_build
+  args:
+    userId:    "${incoming.body.userId}"
+    createdBy: "mock_user"
+  result: snapshot_response
+return: "${snapshot_response.response.body[0]}"

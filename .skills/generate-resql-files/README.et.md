@@ -26,6 +26,7 @@ See skill aitab LJVIS projektis genereerida ja uuendada DSL-artefakte:
 - RESQL SQL failid peavad paiknema kujul `DSL/Resql/<MEETOD>/<moodul>/<entiteet>/v1/...`.
 - GET on lubatud ainult parameetrita listidele.
 - Enne commit'i tee sanity-check teevastavusele.
+- `*_latest` snapshot rebuild SQL-id koonduvad `state_updater` moodulisse (`DSL/Resql/POST/state_updater/<entiteet>/build.sql`) — ilma versioonikihita. Ruuter kutsub neid `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` kaudu. Neil ei ole Ruuter YML-e ega `.guard` faile.
 
 ## Soovituslik töövoog
 
@@ -43,12 +44,19 @@ for f in $(find DSL/Ruuter/api -name '*.yml'); do
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
-    version=$(echo "$rel" | cut -d'/' -f2)
-    module=$(echo "$rel" | cut -d'/' -f3)
-    entity=$(echo "$rel" | cut -d'/' -f4)
-    operation=$(echo "$rel" | cut -d'/' -f5)
+    segment2=$(echo "$rel" | cut -d'/' -f2)
     test "$project" = "ljvis2" || echo "MISSING_PROJECT: $f -> $url"
-    test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
+    if [ "$segment2" = "state_updater" ]; then
+      entity=$(echo "$rel" | cut -d'/' -f3)
+      operation=$(echo "$rel" | cut -d'/' -f4)
+      test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
+    else
+      version="$segment2"
+      module=$(echo "$rel" | cut -d'/' -f3)
+      entity=$(echo "$rel" | cut -d'/' -f4)
+      operation=$(echo "$rel" | cut -d'/' -f5)
+      test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
+    fi
   done
 done
 ```
