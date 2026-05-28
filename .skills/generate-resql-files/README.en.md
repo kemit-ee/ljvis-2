@@ -41,8 +41,8 @@ This skill helps generate and update DSL artifacts in the LJVIS project:
 ## Sanity check example
 
 ```bash
-for f in $(find DSL/Ruuter/api -name '*.yml'); do
-  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/api/([^/]+)/.*|\1|')
+for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
+  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/(api|mockapi)/([^/]+)/.*|\2|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)

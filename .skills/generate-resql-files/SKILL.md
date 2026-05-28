@@ -25,10 +25,15 @@ DSL/Ruuter/
     POST/v1/admin/<entiteet>/
       .guard
       <operatsioon>.yml
-      mock_<operatsioon>.yml
     GET/v1/admin/<entiteet>/
       .guard
       <operatsioon>.yml
+  mockapi/
+    POST/v1/admin/<entiteet>/
+      .guard
+      mock_<operatsioon>.yml
+    GET/v1/admin/<entiteet>/
+      .guard
       mock_<operatsioon>.yml
 
 DSL/Liquibase/
@@ -181,7 +186,7 @@ The skill also reads:
 
 ### Step 4: Determine Mode
 
-1. Check if epic-relevant files already exist in `DSL/Resql/*/iam/classifier/v1/*` and `DSL/Ruuter/api/*/v1/admin/classifiers*`.
+1. Check if epic-relevant files already exist in `DSL/Resql/*/iam/classifier/v1/*`, `DSL/Ruuter/api/*/v1/admin/classifiers*`, or `DSL/Ruuter/mockapi/*/v1/admin/classifiers*`.
 2. If not → **Create mode** (Step 5). Proceed automatically.
 3. If yes → **Update mode** (Step 6) by default. Proceed automatically.
    - Exception: if the user explicitly requests regeneration from scratch in their message, use **Create mode** (Step 5) instead, respecting versioning and never deleting existing files.
@@ -206,14 +211,19 @@ The skill also reads:
      POST/state_updater/<entiteet>/build.sql       ← *_latest snapshot rebuild (ei versiooni)
      POST/state_updater/<entiteet>/mock_build.sql
    DSL/Ruuter/
-    api/
+     api/
       POST/v1/admin/<entiteet>/
         .guard
         <operatsioon>.yml
-        mock_<operatsioon>.yml
       GET/v1/admin/<entiteet>/
         .guard
         <operatsioon>.yml
+     mockapi/
+      POST/v1/admin/<entiteet>/
+        .guard
+        mock_<operatsioon>.yml
+      GET/v1/admin/<entiteet>/
+        .guard
         mock_<operatsioon>.yml
   DSL/Liquibase/
     changelog/
@@ -260,7 +270,7 @@ The skill also reads:
 
 6. **Write Ruuter DSL routing files** under `DSL/Ruuter/`:
    - `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/<operatsioon>.yml`
-   - `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/mock_<operatsioon>.yml`
+   - `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/mock_<operatsioon>.yml`
    - RESQL call path inside Ruuter must use `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>`
    - GET is allowed only for parameter-less list queries and must not pass any input to RESQL
    - Ruuter must contain the business flow, including validation, verify-after-write, failure path, and compensating rollback decisions.
@@ -270,12 +280,21 @@ The skill also reads:
    - Success response is allowed only after the expected result is verified.
    - On success, return only the verified DB result (`db_response.response.body` or `verify_response.response.body`) and end the flow.
 
-7. **Write `.guard` files** under `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/.guard`.
+7. **Write production `.guard` files** under `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/.guard`.
 
 7.1 **Guard strictness for write endpoints is mandatory**:
    - Read/list endpoints may share a broader folder-level `.guard` when the permission model allows it.
    - `edit` / `update` / `create` endpoints must still explicitly enforce the corresponding write permission.
    - If one folder contains both read and write endpoints and a single `.guard` cannot safely express both, keep the folder-level `.guard` as the broad baseline and add an endpoint-level permission check inside the write flow before any RESQL write call.
+
+7.2 **Write mock `.guard` files** under `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/.guard`.
+   - Mock `.guard` files must allow every request without authentication or permission checks.
+   - Mock `.guard` file body must be exactly:
+
+```yaml
+authorized:
+  return: proceed
+```
 
 8. **Write `docs/<epic_kataloog>/paigaldusjuhend.md`** per specification format (deployment guide).
 
@@ -289,10 +308,10 @@ The skill also reads:
 2. Compare with current `docs/data_model.md` — identify new/changed/removed tables or columns.
 3. Compare with `planning/docs/permissions-matrix.md` (fallback `docs/permissions-matrix.md`) — identify new/changed permissions.
 4. For each change:
-   - If a new operation is needed → create new SQL + mock SQL + Ruuter YML + mock YML + guard (if new module), add to docs
+   - If a new operation is needed → create new SQL + mock SQL + production Ruuter YML + mock Ruuter YML + production guard (if new module) + mock allow-all guard (if new module), add to docs
    - If a query must change due to schema change → create versioned SQL file (e.g., `get_by_id_v2.sql`) and corresponding versioned Ruuter YML (`get_by_id_v2.yml`), keep old files, add changelog entry
    - If schema changes are required → create matching Liquibase triplets and required indexes for affected `_state`/`_status` and `*_latest` tables, and add them to docs
-   - If permissions changed → update affected `.guard` files, add changelog entry to docs
+   - If permissions changed → update affected production `.guard` files, keep mock `.guard` files allow-all, add changelog entry to docs
    - If an operation is removed → mark as deprecated in docs (do NOT delete any files)
 5. Update the documentation file: increment version, add changelog entry.
 6. Report: what changed, which files created/updated.
@@ -304,8 +323,8 @@ Before commit, verify that every RESQL URL referenced from EPIC Ruuter files map
 Run a check equivalent to:
 
 ```bash
-for f in $(find DSL/Ruuter/api -name '*.yml'); do
-  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/api/([^/]+)/.*|\1|')
+for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
+  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/(api|mockapi)/([^/]+)/.*|\2|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
@@ -358,7 +377,9 @@ If any `MISSING:` entry appears, fix paths before proceeding.
   - [ ] `DSL/Resql/POST/iam/<entity>/v1/<operation>.sql`
   - [ ] `DSL/Resql/POST/iam/<entity>/v1/mock_<operation>.sql`
   - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/<operation>.yml`
-  - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/mock_<operation>.yml`
+  - [ ] `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/mock_<operation>.yml`
+  - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/.guard`
+  - [ ] `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/.guard`
   ```
 - `> Parent issue: #<task_issue>` makes the DSL issue visible under the task issue in GitHub.
 - List only the files relevant to that specific task.
@@ -421,6 +442,10 @@ Ruuter DSL files (`<operatsioon>.yml`) orchestrate the business flow: they valid
 - Maps directly to public API path `/api/v1/admin/<entiteet>/<operatsioon>`
 - One file = one operation (no combined logic)
 
+**Mock location:** `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/mock_<operatsioon>.yml`
+- Maps directly to public mock path `/mockapi/v1/admin/<entiteet>/mock_<operatsioon>`
+- Mock routes stay physically separate from production routes
+
 **Production routing file structure:**
 
 ```yaml
@@ -465,7 +490,7 @@ bad_request:
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /api/v1/admin/<entiteet>/mock_<operatsioon>"
+  description: "API route for POST /mockapi/v1/admin/<entiteet>/mock_<operatsioon>"
   method: post
   accepts: json
   returns: json
@@ -525,11 +550,12 @@ return_result:
 - Retry/timeouts must be considered; define idempotency handling where duplicate execution is possible
 - **Iteration over arrays must be done in RESQL, not Ruuter** — Ruuter does not support `forEach`; send the entire array to RESQL for processing
 - Every `DSL/Ruuter/api` YAML file must start with a `declaration` step to avoid startup warnings and to keep OpenAPI generation populated
+- Every `DSL/Ruuter/mockapi` YAML file must start with a `declaration` step as well
 - Use named steps for all flow blocks; never put raw `switch:` or `return:` at YAML root level without a step name
 - `switch` conditions must be valid DSL expressions such as `condition: ${...}` or `condition: true` with no trailing stray quotes
 
 **Mandatory validation step before finishing a task:**
-- Scan generated/edited `DSL/Ruuter/api/**/*.yml` files and verify that:
+- Scan generated/edited `DSL/Ruuter/api/**/*.yml` and `DSL/Ruuter/mockapi/**/*.yml` files and verify that:
   - every file starts with a `declaration` step
   - no file contains root-level `switch:` without a step name before it
   - no file contains a blank `return:` line followed by another `return:` line
@@ -546,12 +572,12 @@ return_result:
 
 `.guard` files are Ruuter DSL YAML files that enforce access control **before** any endpoint in the same folder (and subfolders) executes.
 
-**Location:** `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/.guard`
+**Production location:** `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/.guard`
 - One `.guard` file per module folder
 - A `.guard` applies to all endpoints within that folder and its subfolders
 - If different subfolders need different rules, place `.guard` in the subfolder
 
-**Guard file structure:**
+**Production guard file structure:**
 
 ```yaml
 # .guard — Access control for <moodul> endpoints
@@ -582,12 +608,21 @@ proceed:
   next: end
 ```
 
+**Mock location:** `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/.guard`
+
+**Mock guard file structure:**
+
+```yaml
+authorized:
+  return: proceed
+```
+
 **Guard rules:**
 - JWT is always validated via TIM before any logic runs
 - Permission check uses `permissions[]` array from JWT payload
 - Role check uses `roles[]` array from JWT payload (for role-based rules)
 - For scope enforcement (kontohaldur → only own institution): add `institution_id` check
-- `anonüümne` endpoints (no auth required) must NOT have a `.guard` file
+- Mock `.guard` files must stay allow-all and must not validate JWT or permissions
 - Never hardcode user IDs or institution IDs in guard files — always from JWT
 
 **Scope enforcement pattern (kontohaldur):**

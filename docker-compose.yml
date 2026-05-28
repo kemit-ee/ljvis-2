@@ -97,7 +97,9 @@ services:
       - server.port=8086
       - application.externalAuthAllowed=
     volumes:
-      - ./DSL/Ruuter:/DSL
+      - ./DSL/Ruuter/api:/DSL/api
+      - ./DSL/Ruuter/mockapi:/DSL/mockapi
+      - ./DSL/Ruuter/ljvis:/DSL/ljvis
       - ./constants.ini:/app/constants.ini
     ports:
       - 8086:8086

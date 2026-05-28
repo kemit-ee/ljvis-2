@@ -1,0 +1,33 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /mockapi/v1/admin/users/user-groups/mock_save"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+save_groups:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/mock_save"
+    headers:
+      type: json
+    body:
+      userId:      "${incoming.body.userId}"
+      userGroupId: "${incoming.body.userGroupId}"
+      action:      "${incoming.body.action}"
+      createdBy:   "mock_user"
+  result: save_response
+build_snapshot:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/mock_build"
+    headers:
+      type: json
+    body:
+      userId:    "${incoming.body.userId}"
+      createdBy: "mock_user"
+  result: snapshot_response
+respond_result:
+  return: "${snapshot_response.response.body[0]}"

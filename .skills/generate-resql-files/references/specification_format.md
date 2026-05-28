@@ -51,7 +51,7 @@ Issue update rule after delivery:
   - Example: `DSL files for "Klassifikaatorite haldamine" (Epic 09)`.
 - The dedicated task issue body must be exactly: `Create DSL files accordig to "Epic name (link)" and its subtasks.`
 - Commit messages must include that dedicated DSL task reference (e.g. `Refs #123`).
-- PR target branch is `dev`. PR description must include `Resolves #<dsl_task_issue_number>` so DSL task closes on PR merge.
+- PR target branch is `feature/dsl`. PR description must include `Resolves #<dsl_task_issue_number>` so DSL task closes on PR merge.
 - Epic issue must remain open; do not add close keywords for epic.
 - Do not write DSL file delivery info to epic issue body or unrelated tickets.
 - Add comment only on the dedicated DSL task issue with format:
@@ -244,8 +244,8 @@ Kontrollnimekiri iga reegli kohta:
 Soovituslik sanity-check käsk enne commit'i:
 
 ```bash
-for f in $(find DSL/Ruuter/api -name '*.yml'); do
-  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/api/([^/]+)/.*|\1|')
+for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
+  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/(api|mockapi)/([^/]+)/.*|\2|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
@@ -504,6 +504,8 @@ Kõik selle EPICu RESQL, Ruuter ja vajadusel Liquibase failid luuakse vastavates
 |---------|----------|
 | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` |
 | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/mock_<fail>.yml` | `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/mock_<fail>.yml` |
+| `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/mock_<fail>.yml` | `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/mock_<fail>.yml` |
 
 ## Guard failid
 
@@ -511,6 +513,8 @@ Kõik selle EPICu RESQL, Ruuter ja vajadusel Liquibase failid luuakse vastavates
 |---------|----------|
 | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` |
 | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/.guard` |
+| `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/.guard` |
 
 ## Liquibase failid
 
@@ -558,6 +562,8 @@ Iga `.guard` faili kohta lisatakse päringute nimekirja sektsiooni alamjaotis:
 
 Kui moodulil on mitu erinevat ligipääsutaset (nt üks kaustale, teine alamkaustale), dokumenteeritakse mõlemad eraldi.
 Kui sama kaust sisaldab nii read kui write endpoint'e ja üks `.guard` oleks liiga lai, peab write endpoint sisaldama lisaks endpointi-tasemel permission check'i enne esimest RESQL write sammu. `edit` / `update` / `create` vood peavad nõudma vastavat write-õigust isegi siis, kui kaustapõhine `.guard` lubab laiemat ligipääsu.
+
+Mock endpointide puhul dokumenteeritakse eraldi `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/.guard`, mille puhul `Nõutud permission` on `—`, `Scope enforcement` on `Ei` ja `Anonüümne lubatud` on `Jah`.
 
 Code-põhiste write voogude puhul tuleb enne DB write sammu teha eksplitsiitne olemasolu/unikaalsuse kontroll (nt `check_code_exists`) ja konflikti korral tagastada funktsionaalne `409`.
 

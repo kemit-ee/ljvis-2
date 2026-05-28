@@ -28,6 +28,8 @@ DSL/Ruuter/api/POST/v1/admin/users/    ← kasutajate Ruuter vood
 DSL/Ruuter/api/POST/v1/admin/user-groups/  ← kasutajagruppide Ruuter vood
 DSL/Ruuter/api/POST/v1/admin/organisations/  ← asutuste Ruuter vood
 DSL/Ruuter/api/GET/v1/admin/permissions/    ← õiguste Ruuter vood
+DSL/Ruuter/mockapi/POST/v1/admin/          ← mock Ruuter vood
+DSL/Ruuter/mockapi/GET/v1/admin/           ← mock GET Ruuter vood
 
 Runtime:
 /DSL/ljvis2/POST/iam/user/v1/
@@ -41,6 +43,8 @@ Runtime:
 /DSL/api/POST/v1/admin/user-groups/
 /DSL/api/POST/v1/admin/organisations/
 /DSL/api/GET/v1/admin/permissions/
+/DSL/mockapi/POST/v1/admin/
+/DSL/mockapi/GET/v1/admin/
 ```
 
 ## 3. Kontroll pärast paigaldust
@@ -48,8 +52,8 @@ Runtime:
 Kontrolli, et Ruuteri ja RESQL vahelised teevastavused on korrektsed:
 
 ```bash
-for f in $(find DSL/Ruuter/api -name '*.yml'); do
-  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/api/([^/]+)/.*|\1|')
+for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
+  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/(api|mockapi)/([^/]+)/.*|\2|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
@@ -74,7 +78,7 @@ Kui väljundis on `MISSING:`, paranda teed enne lõplikku paigaldust.
 
 ## 4. Mock endpointide kasutamine
 
-Mock YML-id asuvad `DSL/Ruuter/api/POST/v1/admin/*/mock_*.yml`. Need kutsuvad `mock_*.sql` RESQL faile ja tagastavad hardcoded testandmeid. Sobivad arendus- ja integratsioonitestimiseks enne andmebaasi seadistamist.
+Mock YML-id asuvad `DSL/Ruuter/mockapi/POST/v1/admin/*/mock_*.yml` ja `DSL/Ruuter/mockapi/GET/v1/admin/*/mock_*.yml`. Need kutsuvad `mock_*.sql` RESQL faile ja tagastavad hardcoded testandmeid. Mock puu `.guard` failid on tingimusteta lubavad. Sobivad arendus- ja integratsioonitestimiseks enne andmebaasi seadistamist.
 
 ## 5. Muudatuste logi
 

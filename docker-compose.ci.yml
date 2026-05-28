@@ -157,7 +157,9 @@ services:
       timeout: 5s
       retries: 15
     volumes:
-      - ./DSL/Ruuter:/DSL
+      - ./DSL/Ruuter/api:/DSL/api
+      - ./DSL/Ruuter/mockapi:/DSL/mockapi
+      - ./DSL/Ruuter/ljvis:/DSL/ljvis
       - ./tests/dsl:/DSL/ljvis/POST/auth/dev:ro
       - ./constants.ini:/app/constants.ini
     networks:

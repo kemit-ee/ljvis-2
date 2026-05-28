@@ -59,20 +59,27 @@ DSL/Ruuter/
         classifiers/
           .guard
           list.yml
-          mock_list.yml
           get.yml
-          mock_get.yml
           update.yml
-          mock_update.yml
         classifier-values/
           .guard
           list.yml
-          mock_list.yml
           check_code_exists.yml
-          mock_check_code_exists.yml
           create.yml
-          mock_create.yml
           update.yml
+  mockapi/
+    POST/
+      v1/admin/
+        classifiers/
+          .guard
+          mock_list.yml
+          mock_get.yml
+          mock_update.yml
+        classifier-values/
+          .guard
+          mock_list.yml
+          mock_check_code_exists.yml
+          mock_create.yml
           mock_update.yml
 docs/resql/epic_09/
   README.md
@@ -89,6 +96,8 @@ docs/resql/epic_09/
 | **Rakendub** | Kõigile `classifiers/` kausta endpointidele |
 | **Nõutud permission** | Baastase: `classifier.list` OR `classifier.read` OR `classifier.edit`; `update` endpoint teeb lisaks range `classifier.edit` kontrolli |
 | **Anonüümne lubatud** | Ei |
+
+Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/` ning nende `.guard` fail on tingimusteta lubav.
 
 ### 3.2 `POST /v1/admin/classifiers/list`
 
@@ -139,6 +148,8 @@ docs/resql/epic_09/
 | **Rakendub** | Kõigile `classifier-values/` kausta endpointidele |
 | **Nõutud permission** | Baastase: `classifier.read` OR `classifier_value.edit`; write/check endpointid teevad lisaks range `classifier_value.edit` kontrolli |
 | **Anonüümne lubatud** | Ei |
+
+Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/` ning nende `.guard` fail on tingimusteta lubav.
 
 ### 3.6 `POST /v1/admin/classifier-values/list`
 
