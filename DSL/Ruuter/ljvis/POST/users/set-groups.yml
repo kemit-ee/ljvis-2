@@ -1,0 +1,104 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Replace all group memberships for a user"
+  method: post
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    body:
+      - field: userId
+        type: string
+        description: "User ID"
+      - field: addedGroupIds
+        type: array
+        description: "Array of added user group IDs"
+      - field: removedGroupIds
+        type: array
+        description: "Array of removed user group IDs"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user.edit.admin') >= 0}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user.edit.local') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
+extractRequestData:
+  assign:
+    user_account_id: "${incoming.body.userId}"
+    added_group_ids: "${(incoming.body.addedGroupIds ?? []).join(',')}"
+    removed_group_ids: "${(incoming.body.removedGroupIds ?? []).join(',')}"
+    created_by: "${auth_user.personalcode}"
+  next: checkRemovedGroups
+
+checkRemovedGroups:
+  switch:
+    - condition: "${removed_group_ids == ''}"
+      next: checkAddedGroups
+  next: removeGroups
+
+removeGroups:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/set_user_groups"
+    headers:
+      type: json
+    body:
+      user_account_id: ${user_account_id}
+      group_ids: ${removed_group_ids}
+      status: "removed"
+      created_by: ${created_by}
+  result: removeRes
+  next: checkAddedGroups
+
+checkAddedGroups:
+  switch:
+    - condition: "${added_group_ids == ''}"
+      next: rebuildLatest
+  next: insertGroups
+
+insertGroups:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/set_user_groups"
+    headers:
+      type: json
+    body:
+      user_account_id: ${user_account_id}
+      group_ids: ${added_group_ids}
+      status: "active"
+      created_by: ${created_by}
+  result: insertRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    headers:
+      type: json
+    body:
+      user_account_id: ${user_account_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
+
+returnSuccess:
+  return: "ok"
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end

@@ -1,0 +1,18 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List all organisations"
+  method: get
+  accepts: json
+  returns: json
+  namespace: organisations
+
+getOrganisations:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/organisation/list_organisations"
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

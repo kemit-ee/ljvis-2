@@ -1,0 +1,180 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Create a new user group with optional organisations and permissions"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: name
+        type: string
+      - field: organisationIds
+        type: array
+        description: "Array of organisation UUIDs"
+      - field: permissionIds
+        type: array
+        description: "Array of permission UUIDs"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.create') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
+extractRequestData:
+  assign:
+    name: "${incoming.body.name}"
+    organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
+    permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
+    created_by: "${auth_user.personalcode}"
+  next: validateRequired
+
+validateRequired:
+  switch:
+    - condition: ${name == null || name == ''}
+      next: return_validation_error
+  next: validateNameLength
+
+validateNameLength:
+  switch:
+    - condition: ${name.length > 50}
+      next: return_validation_error
+  next: createGroup
+
+createGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group"
+    headers:
+      type: json
+    body:
+      created_by: ${created_by}
+  result: groupRes
+
+extractGroupId:
+  assign:
+    user_group_id: "${groupRes.response.body[0].id}"
+  next: createGroupNameState
+
+createGroupNameState:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_name_state"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      name: ${name}
+      created_by: ${created_by}
+  result: nameStateRes
+  next: checkOrganisations
+
+checkOrganisations:
+  switch:
+    - condition: "${organisation_ids == ''}"
+      next: return_validation_error
+    - condition: "${organisation_ids != ''}"
+      next: assignOrganisations
+  next: checkPermissions
+
+assignOrganisations:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_organisation"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      organisation_ids: ${organisation_ids}
+      created_by: ${created_by}
+  result: orgsRes
+  next: assignOrganisationState
+
+assignOrganisationState:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_organisation_state"
+    headers:
+      type: json
+    body:
+      user_group_organisation_ids: "${orgsRes.response.body.map(r => r.id).join(',')}"
+      status: "active"
+      created_by: ${created_by}
+  result: orgStateRes
+  next: checkPermissions
+
+checkPermissions:
+  switch:
+    - condition: "${permission_ids == ''}"
+      next: rebuildLatest
+  next: assignPermissions
+
+assignPermissions:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_permission"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      permission_ids: ${permission_ids}
+      created_by: ${created_by}
+  result: permsRes
+  next: assignPermissionState
+
+assignPermissionState:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_permission_state"
+    headers:
+      type: json
+    body:
+      user_group_permission_ids: "${permsRes.response.body.map(r => r.id).join(',')}"
+      status: "active"
+      created_by: ${created_by}
+  result: permStateRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
+
+returnSuccess:
+  return: ${groupRes.response.body}
+  next: end
+
+return_validation_error:
+  assign:
+    form_error:
+      type: VALIDATION_ERROR
+      field: ~
+      code: validation_failed
+  next: emit_validation_error
+
+emit_validation_error:
+  status: 422
+  return: ${form_error}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end

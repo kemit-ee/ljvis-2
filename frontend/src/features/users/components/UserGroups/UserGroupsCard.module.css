@@ -1,0 +1,62 @@
+.user-group-card-text {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.groups-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.select-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1rem;
+}
+
+.select-wrapper {
+  width: 40%;
+}
+
+.group-list {
+  list-style: none;
+  padding: 0;
+}
+
+.group-list li {
+  padding: 0.5rem 0;
+}
+
+.group-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.group-card-content {
+  display: flex;
+  gap: 1rem;
+}
+
+.group-card-actions {
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.form-actions-mobile {
+  margin-top: 1rem;
+}

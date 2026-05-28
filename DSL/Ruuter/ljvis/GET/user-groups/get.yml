@@ -1,0 +1,86 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get user group basic info by ID"
+  method: get
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "User group UUID"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.read.admin') >= 0}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.read.local') >= 0}
+      next: extractRequestDataLocal
+  next: return_forbidden
+
+extractRequestDataLocal:
+  assign:
+    id: "${incoming.params.id}"
+    organisation_id: "${auth_user.organisationid}"
+  next: getGroupLocal
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.id}"
+    organisation_id: ""
+  next: getGroup
+
+getGroupLocal:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group"
+    query:
+      id: ${id}
+      organisation_id: ${organisation_id}
+  result: groupRes
+  next: checkGroupFound
+
+getGroup:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group"
+    query:
+      id: ${id}
+      organisation_id: ${organisation_id}
+  result: groupRes
+  next: mapResponse
+
+checkGroupFound:
+  switch:
+    - condition: ${groupRes.response.body.length > 0}
+      next: mapResponse
+  next: return_forbidden
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user_group"
+    headers:
+      type: json
+    body:
+      groups: ${groupRes.response.body}
+  result: mapped
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end

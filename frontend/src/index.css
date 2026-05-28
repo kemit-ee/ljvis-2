@@ -1,0 +1,161 @@
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+}
+
+main[id="main-content"] {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  max-width: unset !important;
+}
+
+nav[aria-label="Main navigation"] {
+  width: 100%;
+}
+
+.h-100 {
+    height: 100%;
+}
+
+.margin-05 {
+  margin: 0.5rem;
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
+}
+
+.mt-05 {
+  margin-top: 0.5rem;
+}
+
+.mt-025 {
+  margin-top: 0.25rem;
+}
+
+.card-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem
+}
+
+.login-page-card {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.field-name {
+  border-left: solid;
+  padding-left: 1rem;
+  border-color: var(--tedi-blue-300);
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.page-actions-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cell-center {
+  text-align: center;
+}
+
+.table-link {
+  color: primary;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.table-link:hover {
+  text-decoration: underline;
+}
+
+.inactive-text {
+  color: #6b7280;
+}
+
+.danger-text {
+  color: var(--button-main-danger-neutral-text-default);
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.m-0 {
+  margin: 0;
+}
+
+.p-0 {
+  padding: 0;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.search-wrapper {
+  margin-bottom: 1rem;
+  max-width: 25rem;
+}
+
+.grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.org-perm-list {
+  list-style: none;
+  padding: 0;
+}
+
+.org-perm-list li {
+  padding: 0.5rem 0;
+}
+
+.org-perm-list li:last-child {
+  padding-bottom: 0 !important;
+}
+
+.org-perm-list-card-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}

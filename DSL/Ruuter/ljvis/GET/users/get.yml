@@ -1,0 +1,86 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get a single user by ID"
+  method: get
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "User UUID"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.indexOf('user.read.admin') >= 0 || auth_user.permissions.indexOf('user.edit.admin') >= 0)}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.indexOf('user.read.local') >= 0 || auth_user.permissions.indexOf('user.edit.local') >= 0)}
+      next: extractRequestDataLocal
+  next: return_forbidden
+
+extractRequestDataLocal:
+  assign:
+    id: "${incoming.params.id}"
+    organisation_id: "${auth_user.organisationid}"
+  next: getUserLocal
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.id}"
+    organisation_id: ""
+  next: getUser
+
+getUserLocal:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/get_user"
+    query:
+      id: ${id}
+      organisation_id: ${organisation_id}
+  result: res
+  next: checkUserFound
+
+getUser:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user/get_user"
+    query:
+      id: ${id}
+      organisation_id: ${organisation_id}
+  result: res
+  next: mapResponse
+
+checkUserFound:
+  switch:
+    - condition: ${res.response.body.length > 0}
+      next: mapResponse
+  next: return_forbidden
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user"
+    headers:
+      type: json
+    body:
+      users: ${res.response.body}
+  result: mapped
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end

@@ -1,0 +1,77 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List all user groups with organisations"
+  method: get
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    query:
+      - field: search
+        type: string
+        description: "Search by group name or organisation name"
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Page size"
+      - field: sorting
+        type: string
+        description: "Sorting"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.list.admin') >= 0}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.list.local') >= 0}
+      next: extractRequestDataLocal
+  next: return_forbidden
+
+extractRequestDataLocal:
+  assign:
+    search: "${incoming.params.search ?? ''}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'name asc'}"
+    organisation_id: "${auth_user.organisationid}"
+  next: getUserGroups
+
+extractRequestData:
+  assign:
+    search: "${incoming.params.search ?? ''}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'name asc'}"
+    organisation_id: ""
+  next: getUserGroups
+
+getUserGroups:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/list_user_groups"
+    query:
+      search: ${search}
+      page: ${page}
+      page_size: ${page_size}
+      sorting: ${sorting}
+      organisation_id: ${organisation_id}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end

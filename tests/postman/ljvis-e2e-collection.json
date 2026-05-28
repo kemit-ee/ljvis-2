@@ -1,0 +1,103 @@
+{
+  "info": {
+    "name": "LJVIS — E2E Functional Tests",
+    "_postman_id": "ljvis-e2e-v2",
+    "description": "Functional tests against the full stack. Admin and organisations seeded by seed_admin_and_organizations.sql.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login — Super Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "auth",
+                "dev",
+                "dev-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+                  "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+                  "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Organisations",
+      "item": [
+        {
+          "name": "GET /organisations/list — verify seeded orgs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{cookie_admin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{api_url}}/ljvis/organisations/list",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "organisations",
+                "list"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const orgs = body.response !== undefined ? body.response : body;",
+                  "pm.test('Response is an array', () => pm.expect(orgs).to.be.an('array'));",
+                  "const names = orgs.map(o => o.name);",
+                  "pm.test('CI Bootstrap Organisation is present', () => pm.expect(names).to.include('CI Bootstrap Organisation'));",
+                  "pm.test('Justiitsministeerium is present', () => pm.expect(names).to.include('Justiitsministeerium'));",
+                  "pm.test('Politsei- ja Piirivalveamet is present', () => pm.expect(names).to.include('Politsei- ja Piirivalveamet'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

@@ -1,0 +1,53 @@
+import { Suspense } from 'react';
+import { Route, Routes, Navigate } from 'react-router-dom';
+import { AppLayout } from './layout/AppLayout';
+import { DesktopPage } from './features/desktop/DesktopPage';
+import { UserListPage } from './features/users/pages/UserListPage/UserListPage';
+import { UserCreatePage } from './features/users/pages/UserCreatePage/UserCreatePage';
+import { UserDetailPage } from './features/users/pages/UserDetailPage/UserDetailPage';
+import { UserGroupListPage } from './features/user-groups/pages/UserGroupListPage/UserGroupListPage';
+import { UserGroupCreatePage } from './features/user-groups/pages/UserGroupCreatePage/UserGroupCreatePage';
+import { UserGroupAddUserPage } from './features/user-groups/pages/UserGroupAddUserPage/UserGroupAddUserPage';
+import { UserGroupDetailPage } from './features/user-groups/pages/UserGroupDetailPage/UserGroupDetailPage';
+import { LoginPage } from './features/auth/LoginPage/LoginPage';
+import { AuthProvider, useAuth } from './features/auth/AuthContext';
+
+function AppRoutes() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<DesktopPage />} />
+          <Route path="/users" element={<UserListPage />} />
+          <Route path="/users/new" element={<UserCreatePage />} />
+          <Route path="/users/:id" element={<UserDetailPage />} />
+          <Route path="/user-groups" element={<UserGroupListPage />} />
+          <Route path="/user-groups/new" element={<UserGroupCreatePage />} />
+          <Route path="/user-groups/:id/add-user" element={<UserGroupAddUserPage />} />
+          <Route path="/user-groups/:id" element={<UserGroupDetailPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </Suspense>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
+}
+
+export default App;

@@ -1,0 +1,9 @@
+[
+    {{#each permissions}}
+    {
+        "permissionId": "{{this.permissionId}}",
+        "code": "{{this.code}}",
+        "description": "{{this.description}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+]

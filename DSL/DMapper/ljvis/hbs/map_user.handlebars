@@ -1,0 +1,19 @@
+[
+    {{#each users}}
+    {
+        "id": "{{this.id}}",
+        "firstName": "{{this.firstName}}",
+        "lastName": "{{this.lastName}}",
+        "personalCode": "{{this.personalCode}}",
+        "organisationId": "{{this.organisationId}}",
+        "organisationName": "{{this.organisationName}}",
+        "email": "{{this.email}}",
+        "phone": "{{this.phone}}",
+        "structuralUnitName": "{{this.structuralUnit}}",
+        "jobTitleName": "{{this.jobTitle}}",
+        "accessStart": "{{this.accessStart}}",
+        "accessEnd": "{{this.accessEnd}}",
+        "status": "{{this.status}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+]

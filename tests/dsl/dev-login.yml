@@ -1,0 +1,55 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "TEST ONLY — Generate a TIM-signed JWT by personalCode. Mounted via docker-compose only; NOT baked into the Docker image; NOT deployed to production Helm."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: personalCode
+        type: string
+        description: "Estonian personal code of the test user"
+
+validate_input:
+  switch:
+    - condition: ${incoming.body == null || incoming.body.personalCode == null || incoming.body.personalCode == ''}
+      next: missing_personal_code
+  next: generate_jwt
+
+generate_jwt:
+  call: http.post
+  args:
+    url: "[#LJVIS_TIM]/jwt/custom-jwt-generate"
+    headers:
+      type: json
+    body:
+      content:
+        personalCode: ${incoming.body.personalCode}
+        authenticatedAs: ${incoming.body.personalCode}
+        authMethod: "mID"
+      expirationInMinutes: 120
+      JWTName: "customJwtCookie"
+  result: jwt_result
+  next: check_result
+
+check_result:
+  switch:
+    - condition: ${200 <= jwt_result.response.statusCodeValue && jwt_result.response.statusCodeValue < 300}
+      next: return_token
+  next: jwt_error
+
+return_token:
+  return: ${jwt_result.response.body.token}
+  next: end
+
+jwt_error:
+  status: 500
+  return: "JWT generation failed — verify SECURITY_ALLOWLIST_JWT includes ruuter IP"
+  next: end
+
+missing_personal_code:
+  status: 400
+  return: "personalCode is required"
+  next: end

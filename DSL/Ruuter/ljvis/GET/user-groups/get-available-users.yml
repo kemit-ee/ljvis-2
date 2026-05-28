@@ -1,0 +1,87 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get list of available users for a user group with pagination, sorting and search"
+  method: get
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    query:
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Items per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction"
+      - field: search
+        type: string
+        description: "Search by first or last name"
+      - field: userGroupId
+        type: string
+        description: "Filter by user group"
+      - field: organisationIds
+        type: string
+        description: "Filter by organisations"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.indexOf('user_group.read.admin') >= 0 || auth_user.permissions.indexOf('user_group.search_eligible_users') >= 0)}
+      next: extractRequestData
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.read.local') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
+extractRequestData:
+  assign:
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'status asc'}"
+    search: "${incoming.params.search ?? ''}"
+    user_group_id: "${incoming.params.userGroupId}"
+    organisation_ids: "${incoming.params.organisationIds ?? ''}"
+  next: getUsers
+
+getUsers:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group_available_users"
+    query:
+      page: ${page}
+      page_size: ${page_size}
+      sorting: ${sorting}
+      search: ${search}
+      user_group_id: ${user_group_id}
+      organisation_ids: ${organisation_ids}
+
+  result: res
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user_group_users"
+    headers:
+      type: json
+    body:
+      users: ${res.response.body}
+  result: mapped
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end

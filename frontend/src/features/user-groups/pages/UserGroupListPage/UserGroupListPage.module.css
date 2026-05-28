@@ -1,0 +1,23 @@
+:global(#user-groups-table) td,
+:global(#user-groups-table) th {
+  border-left: 1px solid #e5e7eb;
+}
+
+:global(#user-groups-table) td:first-child,
+:global(#user-groups-table) th:first-child {
+  border-left: none;
+}
+
+:global(#user-groups-table) tr:has(:global(.additional-group-row-marker)) {
+  border-top: none;
+}
+
+:global(#user-groups-table) tr:has(:global(.additional-group-row-marker)) td:nth-child(2) {
+  border-top: 1px solid #e5e7eb;
+}
+
+:global(#user-groups-table) td:last-child,
+:global(#user-groups-table) th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}

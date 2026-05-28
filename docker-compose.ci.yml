@@ -1,0 +1,276 @@
+# Isolated CI / local functional-test stack.
+#
+# Completely separate from docker-compose.yml — different network, named volumes,
+# and host ports (9xxx) so it never conflicts with a running dev environment.
+#
+# Usage:
+#   Start:   docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --build
+#   Test:    newman run tests/postman/ljvis-e2e-collection.json \
+#              -e tests/postman/ci-stack-environment.json
+#   Cleanup: docker compose -f docker-compose.ci.yml -p ljvis-ci down -v
+
+services:
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  database:
+    image: postgres:14.1
+    environment:
+      - POSTGRES_USER=ljvis
+      - POSTGRES_PASSWORD=01234
+      - POSTGRES_DB=postgres
+    volumes:
+      - ci-db-data:/var/lib/postgresql/data
+      - ./DSL/Liquibase/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ljvis -d users_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - ljvis-ci
+    ports:
+      - "5433:5432"
+
+  # ── Schema migrations (production Liquibase — schema + permissions only) ──
+  liquibase:
+    build:
+      context: .
+      dockerfile: docker/liquibase/Dockerfile
+    restart: "no"
+    command: --defaultsFile=/liquibase/liquibase.properties update
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - ljvis-ci
+
+  # ── Test data bootstrap (plain psql — NOT Liquibase) ──────────────────────
+  # Runs once after migrations, seeds the minimum data required for e2e tests:
+  # one organisation, one super-admin user group, and one admin user.
+  bootstrap:
+    image: postgres:14.1
+    restart: "no"
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+    environment:
+      - PGPASSWORD=01234
+    volumes:
+      - ./tests/bootstrap/seed_admin_and_organizations.sql:/seed.sql:ro
+    command: ["psql", "-h", "database", "-U", "ljvis", "-d", "users_db", "-f", "/seed.sql"]
+    networks:
+      - ljvis-ci
+
+  # ── Application services ──────────────────────────────────────────────────
+  resql-users:
+    build:
+      context: .
+      dockerfile: docker/resql-users/Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    environment:
+      - server.port=8087
+      - sqlms.datasources.[0].name=byk
+      - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/users_db
+      - sqlms.datasources.[0].username=ljvis
+      - sqlms.datasources.[0].password=01234
+      - logging.level.org.springframework.boot=INFO
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8087"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    volumes:
+      - ./DSL/Resql:/DSL
+    networks:
+      - ljvis-ci
+    ports:
+      - "9087:8087"
+
+  resql-ljvis:
+    build:
+      context: .
+      dockerfile: docker/resql-ljvis/Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    environment:
+      - server.port=8090
+      - sqlms.datasources.[0].name=byk
+      - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/ljvis_db
+      - sqlms.datasources.[0].username=ljvis
+      - sqlms.datasources.[0].password=01234
+      - logging.level.org.springframework.boot=INFO
+    volumes:
+      - ./DSL/Resql:/DSL
+    networks:
+      - ljvis-ci
+    ports:
+      - "9090:8090"
+
+  data-mapper:
+    build:
+      context: .
+      dockerfile: docker/data-mapper/Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - bootstrap
+    environment:
+      - PORT=3005
+      - CONTENT_FOLDER=/data
+    volumes:
+      - ./DSL:/data
+      - ./DSL/DMapper/ljvis/hbs:/workspace/app/views/ljvis
+    networks:
+      - ljvis-ci
+    ports:
+      - "9005:3005"
+
+  ruuter:
+    build:
+      context: .
+      dockerfile: docker/ruuter/Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      resql-users:
+        condition: service_healthy
+    environment:
+      - application.cors.allowedOrigins=http://localhost:9086,http://localhost:3001
+      - application.httpCodesAllowList=200,201,202,400,401,403,422,500
+      - application.internalRequests.allowedIPs=127.0.0.1
+      - application.logging.displayRequestContent=true
+      - application.logging.displayResponseContent=true
+      - application.logging.printStackTrace=true
+      - application.internalRequests.disabled=true
+      - server.port=8086
+      - application.externalAuthAllowed=
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    volumes:
+      - ./DSL/Ruuter:/DSL
+      - ./tests/dsl:/DSL/ljvis/POST/auth/dev:ro
+      - ./constants.ini:/app/constants.ini
+    networks:
+      - ljvis-ci
+    ports:
+      - "9086:8086"
+    cpus: "0.5"
+    mem_limit: "512M"
+
+  ruuter-internal:
+    build:
+      context: .
+      dockerfile: docker/ruuter-internal/Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - bootstrap
+    environment:
+      - application.cors.allowedOrigins=http://localhost:9086,http://localhost:9089
+      - application.httpCodesAllowList=200,201,202,400,401,403,422,500
+      - application.internalRequests.allowedIPs=127.0.0.1
+      - application.logging.displayRequestContent=true
+      - application.logging.displayResponseContent=true
+      - application.logging.printStackTrace=true
+      - application.internalRequests.disabled=true
+      - server.port=8089
+    volumes:
+      - ./DSL/Ruuter.internal:/DSL
+      - ./constants.ini:/app/constants.ini
+    networks:
+      - ljvis-ci
+    ports:
+      - "9089:8089"
+    cpus: "0.5"
+    mem_limit: "512M"
+
+  # ── Auth stack (TARA-Mock + TIM) ──────────────────────────────────────────
+  tara-mock:
+    build:
+      context: .
+      dockerfile: docker/tara-mock/Dockerfile
+    volumes:
+      - ci-tara-vault:/service/vault
+      - ./docker/tara-mock/identities.json:/service/identities.json:ro
+    networks:
+      - ljvis-ci
+    ports:
+      - "9888:8080"
+
+  tim-postgresql:
+    image: postgres:14.1
+    environment:
+      - POSTGRES_USER=tim
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=tim
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ci-tim-db:/var/lib/postgresql/data
+    networks:
+      - ljvis-ci
+
+  tim:
+    image: ghcr.io/buerokratt/tim:pre-apha-2.7.1
+    platform: linux/amd64
+    restart: unless-stopped
+    depends_on:
+      - tim-postgresql
+      - tara-mock
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until [ -f /tara-mock-vault/rootCA.pem ]; do sleep 1; done
+        CACERTS=$$(find /opt/java /usr/lib/jvm -name cacerts -path '*/security/cacerts' 2>/dev/null | head -1)
+        keytool -import -trustcacerts -noprompt -alias tara-mock-ca \
+          -file /tara-mock-vault/rootCA.pem -keystore "$$CACERTS" -storepass changeit
+        exec ./generate-keystore.sh
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://tim-postgresql:5432/tim
+      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-users,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
+      - JWT_INTEGRATION_SIGNATURE_KEY_STORE_PASSWORD=defaultpassword
+      - security.oauth2.client.client-id=ljvis
+      - security.oauth2.client.client-secret=ljvis-secret
+      - security.oauth2.client.scope=openid
+      - security.oauth2.client.registered-redirect-uri=http://localhost:3001/tim/authenticate
+      - security.oauth2.client.user-authorization-uri=https://localhost:9888/oidc/authorize
+      - security.oauth2.client.access-token-uri=https://tara-mock:8080/oidc/token
+      - security.oauth2.resource.jwk.key-set-uri=https://tara-mock:8080/oidc/jwks
+      - frontpage.redirect.url=http://localhost:3001
+      - auth.success.redirect.whitelist=http://localhost:3001
+      - jwt-integration.signature.cookieName=customJwtCookie
+      - jwt-integration.signature.secureCookie=false
+      - server.servlet.session.cookie.same-site=lax
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - ci-tara-vault:/tara-mock-vault:ro
+    networks:
+      - ljvis-ci
+    ports:
+      - "9085:8085"
+    cpus: "0.5"
+    mem_limit: "512M"
+
+volumes:
+  ci-db-data:
+  ci-tara-vault:
+  ci-tim-db:
+
+networks:
+  ljvis-ci:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400

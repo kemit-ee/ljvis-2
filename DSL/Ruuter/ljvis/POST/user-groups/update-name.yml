@@ -1,0 +1,68 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Update user group name"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: name
+        type: string
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('user_group.update') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
+extractRequestData:
+  assign:
+    user_group_id: "${incoming.body.id}"
+    name: "${incoming.body.name}"
+    created_by: "${auth_user.personalcode}"
+
+updateName:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/update_user_group_name"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      name: ${name}
+      created_by: ${created_by}
+  result: res
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end
