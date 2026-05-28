@@ -1,8 +1,22 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/user-groups/users/list"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 get_users:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/list_users
+  call: http.post
   args:
-    userGroupId: "${incoming.body.userGroupId}"
-    page:        "${incoming.body.page}"
-    pageSize:    "${incoming.body.pageSize}"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/list_users"
+    headers:
+      type: json
+    body:
+      userGroupId: "${incoming.body.userGroupId}"
+      page:        "${incoming.body.page}"
+      pageSize:    "${incoming.body.pageSize}"
   result: db_response
-return: "${db_response.response.body}"
+respond_result:
+  return: "${db_response.response.body}"

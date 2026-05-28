@@ -1,13 +1,31 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/user-groups/users/search-eligible"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 get_group_orgs:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/get
+  call: http.post
   args:
-    userGroupId: "${incoming.body.userGroupId}"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/get"
+    headers:
+      type: json
+    body:
+      userGroupId: "${incoming.body.userGroupId}"
   result: group_response
 search_users:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/search_eligible_users
+  call: http.post
   args:
-    userGroupId:     "${incoming.body.userGroupId}"
-    query:           "${incoming.body.query}"
-    organisationIds: "${group_response.response.body[0].organisations}"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/search_eligible_users"
+    headers:
+      type: json
+    body:
+      userGroupId:     "${incoming.body.userGroupId}"
+      query:           "${incoming.body.query}"
+      organisationIds: "${group_response.response.body[0].organisations}"
   result: db_response
-return: "${db_response.response.body}"
+respond_result:
+  return: "${db_response.response.body}"

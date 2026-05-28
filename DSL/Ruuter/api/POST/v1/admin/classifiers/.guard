@@ -1,13 +1,18 @@
 jwt:
-  call: http://ruuter-private/auth/jwt/validate
+  call: http.post
   args:
-    token: "${incoming.headers.Authorization}"
+    url: "http://ruuter-private/auth/jwt/validate"
+    headers:
+      type: json
+    body:
+      token: "${incoming.headers.Authorization}"
   result: jwt
-switch:
-  - condition: "${jwt.response.body != null && jwt.response.body.sub != null}"
-    next: check_permission
-  - condition: "true"
-    next: unauthorized
+authenticated:
+  switch:
+    - condition: ${jwt.response.body != null && jwt.response.body.sub != null}
+      next: check_permission
+    - condition: true
+      next: unauthorized
 check_permission:
   switch:
     - condition: >-
@@ -17,7 +22,7 @@ check_permission:
           jwt.response.body.authorities.includes('classifier.edit')
         )}
       next: authorized
-    - condition: "true"
+    - condition: true
       next: forbidden
 authorized:
   return: proceed

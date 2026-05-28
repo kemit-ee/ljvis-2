@@ -1,38 +1,55 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/users/change-organisation"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 change_org:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user/v1/change_organisation
+  call: http.post
   args:
-    userId:         "${incoming.body.userId}"
-    organisationId: "${incoming.body.organisationId}"
-    firstName:      "${incoming.body.firstName}"
-    lastName:       "${incoming.body.lastName}"
-    structuralUnit: "${incoming.body.structuralUnit}"
-    jobTitle:       "${incoming.body.jobTitle}"
-    email:          "${incoming.body.email}"
-    phone:          "${incoming.body.phone}"
-    accessStart:    "${incoming.body.accessStart}"
-    accessEnd:      "${incoming.body.accessEnd}"
-    createdBy:      "${incoming.headers['X-Authorization-Sub']}"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user/v1/change_organisation"
+    headers:
+      type: json
+    body:
+      userId:         "${incoming.body.userId}"
+      organisationId: "${incoming.body.organisationId}"
+      firstName:      "${incoming.body.firstName}"
+      lastName:       "${incoming.body.lastName}"
+      structuralUnit: "${incoming.body.structuralUnit}"
+      jobTitle:       "${incoming.body.jobTitle}"
+      email:          "${incoming.body.email}"
+      phone:          "${incoming.body.phone}"
+      accessStart:    "${incoming.body.accessStart}"
+      accessEnd:      "${incoming.body.accessEnd}"
+      createdBy:      "${incoming.headers['X-Authorization-Sub']}"
   result: change_response
 verify_change:
   switch:
-    - condition: "${change_response.response.body == null || change_response.response.body.length == 0}"
+    - condition: ${change_response.response.body == null || change_response.response.body.length == 0}
       next: change_failed
-    - condition: "true"
+    - condition: true
       next: build_snapshot
 change_failed:
   status: 500
   return: "${common_error_messages.internal_error}"
 build_snapshot:
-  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/build
+  call: http.post
   args:
-    userId:    "${incoming.body.userId}"
-    createdBy: "${incoming.headers['X-Authorization-Sub']}"
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/build"
+    headers:
+      type: json
+    body:
+      userId:    "${incoming.body.userId}"
+      createdBy: "${incoming.headers['X-Authorization-Sub']}"
   result: snapshot_response
 verify_snapshot:
   switch:
-    - condition: "${snapshot_response.response.body == null || snapshot_response.response.body.length == 0}"
+    - condition: ${snapshot_response.response.body == null || snapshot_response.response.body.length == 0}
       next: snapshot_failed
-    - condition: "true"
+    - condition: true
       next: return_result
 snapshot_failed:
   status: 500

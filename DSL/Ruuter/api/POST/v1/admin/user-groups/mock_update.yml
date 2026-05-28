@@ -1,14 +1,32 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/user-groups/mock_update"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 update_group:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_update
+  call: http.post
   args:
-    userGroupId: "${incoming.body.userGroupId}"
-    name:        "${incoming.body.name}"
-    createdBy:   "mock_user"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_update"
+    headers:
+      type: json
+    body:
+      userGroupId: "${incoming.body.userGroupId}"
+      name:        "${incoming.body.name}"
+      createdBy:   "mock_user"
   result: update_response
 build_snapshot:
-  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_group_latest/mock_build
+  call: http.post
   args:
-    userGroupId: "${incoming.body.userGroupId}"
-    createdBy:   "mock_user"
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/user_group_latest/mock_build"
+    headers:
+      type: json
+    body:
+      userGroupId: "${incoming.body.userGroupId}"
+      createdBy:   "mock_user"
   result: snapshot_response
-return: "${snapshot_response.response.body[0]}"
+respond_result:
+  return: "${snapshot_response.response.body[0]}"

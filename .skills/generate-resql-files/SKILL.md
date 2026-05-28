@@ -424,50 +424,87 @@ Ruuter DSL files (`<operatsioon>.yml`) orchestrate the business flow: they valid
 **Production routing file structure:**
 
 ```yaml
-# <operatsioon>.yml — <lühikirjeldus>
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/<entiteet>/<operatsioon>"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
 
 validate:
   switch:
     - condition: ${!incoming.body || !incoming.body.<requiredField>}
       next: bad_request
-  next: call_db
+    - condition: true
+      next: call_db
 
 call_db:
   call: http.post
   args:
     url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>"
+    headers:
+      type: json
     body:
       <param>: ${incoming.body.<param>}
   result: db_response
-  next: respond
+  next: return_result
 
-respond:
-  wrapper: false
+return_result:
   return: ${db_response.response.body}
-  next: end
 
 bad_request:
   status: 400
   return: "Missing required field(s)"
-  next: end
 ```
 
 **Mock routing file structure** (`mock_<operatsioon>.yml`):
 
 ```yaml
-# mock_<operatsioon>.yml — mock: calls mock RESQL endpoint
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/<entiteet>/mock_<operatsioon>"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
 
 call_mock:
   call: http.post
   args:
     url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>"
+    headers:
+      type: json
   result: mock_response
-  next: respond
+  next: return_result
 
-respond:
-  wrapper: false
+return_result:
   return: ${mock_response.response.body}
-  next: end
+```
+
+**GET endpoint structure** (for parameter-less list queries only):
+
+```yaml
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for GET /api/v1/admin/<entiteet>/<operatsioon>"
+  method: get
+  accepts: json
+  returns: json
+  namespace: admin
+
+call_db:
+  call: http.get
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>"
+  result: db_response
+  next: return_result
+
+return_result:
+  return: ${db_response.response.body}
 ```
 
 **Ruuter DSL rules:**
@@ -486,6 +523,20 @@ respond:
 - If main write succeeds but `_state` write, verification, or snapshot rebuild fails, Ruuter must run a compensating rollback or recovery flow
 - Partial success must lead to explicit recovery/error flow, never silent success
 - Retry/timeouts must be considered; define idempotency handling where duplicate execution is possible
+- **Iteration over arrays must be done in RESQL, not Ruuter** — Ruuter does not support `forEach`; send the entire array to RESQL for processing
+- Every `DSL/Ruuter/api` YAML file must start with a `declaration` step to avoid startup warnings and to keep OpenAPI generation populated
+- Use named steps for all flow blocks; never put raw `switch:` or `return:` at YAML root level without a step name
+- `switch` conditions must be valid DSL expressions such as `condition: ${...}` or `condition: true` with no trailing stray quotes
+
+**Mandatory validation step before finishing a task:**
+- Scan generated/edited `DSL/Ruuter/api/**/*.yml` files and verify that:
+  - every file starts with a `declaration` step
+  - no file contains root-level `switch:` without a step name before it
+  - no file contains a blank `return:` line followed by another `return:` line
+  - no `condition:` line ends with an accidental trailing `"`
+  - no file uses `forEach`
+  - POST routes use `call: http.post` + `args.url` + `headers.type: json`
+  - GET routes use `call: http.get` + `args.url`
 
 **Versioning:** same as RESQL — `<operatsioon>_v2.yml` when logic changes, keep old file
 
@@ -518,7 +569,7 @@ checkJwt:
 
 checkPermission:
   switch:
-    - condition: "${jwt.response.body.permissions.includes('<required_permission>')}"
+    - condition: ${jwt.response.body.permissions.includes('<required_permission>')}
       next: proceed
   next: forbidden
 
@@ -543,9 +594,9 @@ proceed:
 ```yaml
 checkScope:
   switch:
-    - condition: "${jwt.response.body.roles.includes('admin')}"
+    - condition: ${jwt.response.body.roles.includes('admin')}
       next: proceed
-    - condition: "${jwt.response.body.institution_id == incoming.body.institutionId}"
+    - condition: ${jwt.response.body.institution_id == incoming.body.institutionId}
       next: proceed
   next: forbidden
 ```

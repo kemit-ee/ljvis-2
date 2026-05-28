@@ -1,6 +1,20 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/users/check-personal-code-exists"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 check_code:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user/v1/check_personal_code_exists
+  call: http.post
   args:
-    personalCode: "${incoming.body.personalCode}"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user/v1/check_personal_code_exists"
+    headers:
+      type: json
+    body:
+      personalCode: "${incoming.body.personalCode}"
   result: db_response
-return: "${db_response.response.body[0]}"
+respond_result:
+  return: "${db_response.response.body[0]}"

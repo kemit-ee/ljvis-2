@@ -1,22 +1,40 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/users/mock_update"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 update_user:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user/v1/mock_update
+  call: http.post
   args:
-    userId:         "${incoming.body.userId}"
-    firstName:      "${incoming.body.firstName}"
-    lastName:       "${incoming.body.lastName}"
-    organisationId: "${incoming.body.organisationId}"
-    structuralUnit: "${incoming.body.structuralUnit}"
-    jobTitle:       "${incoming.body.jobTitle}"
-    email:          "${incoming.body.email}"
-    phone:          "${incoming.body.phone}"
-    accessStart:    "${incoming.body.accessStart}"
-    accessEnd:      "${incoming.body.accessEnd}"
-    createdBy:      "mock_user"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user/v1/mock_update"
+    headers:
+      type: json
+    body:
+      userId:         "${incoming.body.userId}"
+      firstName:      "${incoming.body.firstName}"
+      lastName:       "${incoming.body.lastName}"
+      organisationId: "${incoming.body.organisationId}"
+      structuralUnit: "${incoming.body.structuralUnit}"
+      jobTitle:       "${incoming.body.jobTitle}"
+      email:          "${incoming.body.email}"
+      phone:          "${incoming.body.phone}"
+      accessStart:    "${incoming.body.accessStart}"
+      accessEnd:      "${incoming.body.accessEnd}"
+      createdBy:      "mock_user"
   result: update_response
 build_snapshot:
-  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/mock_build
+  call: http.post
   args:
-    userId:    "${incoming.body.userId}"
-    createdBy: "mock_user"
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/mock_build"
+    headers:
+      type: json
+    body:
+      userId:    "${incoming.body.userId}"
+      createdBy: "mock_user"
   result: snapshot_response
-return: "${snapshot_response.response.body[0]}"
+respond_result:
+  return: "${snapshot_response.response.body[0]}"

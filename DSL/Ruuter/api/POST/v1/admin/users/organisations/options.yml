@@ -1,4 +1,18 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/users/organisations/options"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 get_options:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/organisation/v1/list
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/organisation/v1/list"
+    headers:
+      type: json
   result: db_response
-return: "${db_response.response.body}"
+respond_result:
+  return: "${db_response.response.body}"

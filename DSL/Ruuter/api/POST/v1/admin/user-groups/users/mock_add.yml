@@ -1,14 +1,32 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/user-groups/users/mock_add"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 add_user:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_add_user
+  call: http.post
   args:
-    userGroupId: "${incoming.body.userGroupId}"
-    userId:      "${incoming.body.userId}"
-    createdBy:   "mock_user"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_add_user"
+    headers:
+      type: json
+    body:
+      userGroupId: "${incoming.body.userGroupId}"
+      userId:      "${incoming.body.userId}"
+      createdBy:   "mock_user"
   result: add_response
 build_snapshot:
-  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/mock_build
+  call: http.post
   args:
-    userId:    "${incoming.body.userId}"
-    createdBy: "mock_user"
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/mock_build"
+    headers:
+      type: json
+    body:
+      userId:    "${incoming.body.userId}"
+      createdBy: "mock_user"
   result: snapshot_response
-return: "${snapshot_response.response.body[0]}"
+respond_result:
+  return: "${snapshot_response.response.body[0]}"

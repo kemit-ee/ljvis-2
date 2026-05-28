@@ -1,6 +1,20 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/users/user-groups/mock_get"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 get_groups:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/mock_get
+  call: http.post
   args:
-    userId: "${incoming.body.userId}"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/mock_get"
+    headers:
+      type: json
+    body:
+      userId: "${incoming.body.userId}"
   result: db_response
-return: "${db_response.response.body[0]}"
+respond_result:
+  return: "${db_response.response.body[0]}"

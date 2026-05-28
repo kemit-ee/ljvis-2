@@ -1,48 +1,69 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/classifier-values/update"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
 require_edit_permission:
   switch:
-    - condition: "${incoming.headers['X-Authorization-Roles'] != null && incoming.headers['X-Authorization-Roles'].includes('classifier_value.edit')}"
+    - condition: ${incoming.headers['X-Authorization-Roles'] != null && incoming.headers['X-Authorization-Roles'].includes('classifier_value.edit')}
       next: check_exists
-    - condition: "true"
+    - condition: true
       next: forbidden
 check_exists:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/get_latest_validity_state
+  call: http.post
   args:
-    classifierValueId: "${incoming.body.classifierValueId}"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/get_latest_validity_state"
+    headers:
+      type: json
+    body:
+      classifierValueId: "${incoming.body.classifierValueId}"
   result: exists_response
 ensure_exists:
   switch:
-    - condition: "${exists_response.response.body == null || exists_response.response.body.length == 0}"
+    - condition: ${exists_response.response.body == null || exists_response.response.body.length == 0}
       next: not_found
-    - condition: "true"
+    - condition: true
       next: write_validity_state
 write_validity_state:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/update
+  call: http.post
   args:
-    classifierValueId: "${incoming.body.classifierValueId}"
-    validFrom:         "${incoming.body.validFrom}"
-    validUntil:        "${incoming.body.validUntil}"
-    createdBy:         "${incoming.body.createdBy}"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/update"
+    headers:
+      type: json
+    body:
+      classifierValueId: "${incoming.body.classifierValueId}"
+      validFrom:         "${incoming.body.validFrom}"
+      validUntil:        "${incoming.body.validUntil}"
+      createdBy:         "${incoming.body.createdBy}"
   result: write_response
 ensure_write_succeeded:
   switch:
-    - condition: "${write_response.response.body == null || write_response.response.body.length == 0}"
+    - condition: ${write_response.response.body == null || write_response.response.body.length == 0}
       next: write_failed
-    - condition: "true"
+    - condition: true
       next: rebuild_snapshot
 rebuild_snapshot:
-  call: http://[#LOCAL_RESQL]/ljvis2/state_updater/classifier_value_latest/build
+  call: http.post
   args:
-    classifierValueId: "${incoming.body.classifierValueId}"
-    createdBy:         "${incoming.body.createdBy}"
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/classifier_value_latest/build"
+    headers:
+      type: json
+    body:
+      classifierValueId: "${incoming.body.classifierValueId}"
+      createdBy:         "${incoming.body.createdBy}"
   result: snapshot_response
 ensure_snapshot_succeeded:
   switch:
-    - condition: "${snapshot_response.response.body == null || snapshot_response.response.body.length == 0}"
+    - condition: ${snapshot_response.response.body == null || snapshot_response.response.body.length == 0}
       next: snapshot_failed
-    - condition: "true"
+    - condition: true
       next: respond
-respond:
-  return: "${snapshot_response.response.body}"
+respond_result:
+    return: "${snapshot_response.response.body}"
 forbidden:
   status: 403
   return: ${common_error_messages.forbidden}
