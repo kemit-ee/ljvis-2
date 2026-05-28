@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { PaginationState } from '@tanstack/react-table';
 
 export function toSnakeCase(str: string): string {
