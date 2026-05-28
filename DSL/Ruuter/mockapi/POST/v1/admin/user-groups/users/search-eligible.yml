@@ -1,0 +1,22 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /mockapi/v1/admin/user-groups/users/search-eligible"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+search_users:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_search_eligible_users"
+    headers:
+      type: json
+    body:
+      userGroupId:     "${incoming.body.userGroupId}"
+      query:           "${incoming.body.query}"
+      organisationIds: "${incoming.body.organisationIds}"
+  result: db_response
+respond_result:
+  return: "${db_response.response.body}"

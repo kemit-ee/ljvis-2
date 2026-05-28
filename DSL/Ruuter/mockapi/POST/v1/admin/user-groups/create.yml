@@ -1,0 +1,31 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /mockapi/v1/admin/user-groups/create"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+create_group:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_create"
+    headers:
+      type: json
+    body:
+      name:      "${incoming.body.name}"
+      createdBy: "mock_user"
+  result: create_response
+build_snapshot:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/user_group_latest/mock_build"
+    headers:
+      type: json
+    body:
+      userGroupId: "${create_response.response.body[0].userGroupId}"
+      createdBy:   "mock_user"
+  result: snapshot_response
+respond_result:
+  return: "${snapshot_response.response.body[0]}"

@@ -1,0 +1,18 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /mockapi/v1/admin/organisations/list"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+get_list:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/organisation/v1/mock_list"
+    headers:
+      type: json
+  result: db_response
+respond_result:
+  return: "${db_response.response.body}"

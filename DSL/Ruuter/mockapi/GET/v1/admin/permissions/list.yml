@@ -1,0 +1,16 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for GET /mockapi/v1/admin/permissions/list"
+  method: get
+  accepts: json
+  returns: json
+  namespace: admin
+
+get_list:
+  call: http.get
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/permission/v1/mock_list"
+  result: db_response
+respond_result:
+  return: "${db_response.response.body}"

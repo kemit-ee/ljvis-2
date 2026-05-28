@@ -23,7 +23,8 @@ This skill helps generate and update DSL artifacts in the LJVIS project:
 - One file = one operation.
 - RESQL paths must be versioned (`v1`).
 - Ruuter internal RESQL calls must use the form `[#LOCAL_RESQL]/ljvis2/v1/...`.
-- RESQL SQL files must live under `DSL/Resql/<METHOD>/<module>/<entity>/v1/...`.
+- RESQL SQL files must live under `DSL/Resql/ljvis2/<METHOD>/<module>/<entity>/v1/...`.
+- `DSL/Ruuter/mockapi/**/*.yml` must call only mock RESQL targets: `mock_<operation>` or `mock_build`.
 - GET is allowed only for parameter-less list queries.
 - Run a sanity check before commit.
 - If the epic changes DB schema, also create a Liquibase triplet under `DSL/Liquibase/changelog/`: `YYYYMMDDXXXX-description.sql`, `YYYYMMDDXXXX-description-rollback.sql`, and `YYYYMMDDXXXX-description.xml`.
@@ -41,22 +42,42 @@ This skill helps generate and update DSL artifacts in the LJVIS project:
 ## Sanity check example
 
 ```bash
-for f in $(find DSL/Ruuter/api -name '*.yml'); do
-  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/api/([^/]+)/.*|\1|')
+for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
+  kind=$(echo "$f" | sed -E 's|^DSL/Ruuter/([^/]+)/.*|\1|')
+  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/(api|mockapi)/([^/]+)/.*|\2|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
-    version=$(echo "$rel" | cut -d'/' -f2)
-    module=$(echo "$rel" | cut -d'/' -f3)
-    entity=$(echo "$rel" | cut -d'/' -f4)
-    operation=$(echo "$rel" | cut -d'/' -f5)
     test "$project" = "ljvis2" || echo "MISSING_PROJECT: $f -> $url"
-    test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
+    segment2=$(echo "$rel" | cut -d'/' -f2)
+    if [ "$segment2" = "state_updater" ]; then
+      entity=$(echo "$rel" | cut -d'/' -f3)
+      operation=$(echo "$rel" | cut -d'/' -f4)
+      if [ "$kind" = "mockapi" ] && [ "$operation" != "mock_build" ]; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
+      if [ "$kind" = "api" ] && [ "$operation" = "mock_build" ]; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
+      test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
+    else
+      version="$segment2"
+      module=$(echo "$rel" | cut -d'/' -f3)
+      entity=$(echo "$rel" | cut -d'/' -f4)
+      operation=$(echo "$rel" | cut -d'/' -f5)
+      if [ "$kind" = "mockapi" ] && ! echo "$operation" | grep -q '^mock_'; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
+      if [ "$kind" = "api" ] && echo "$operation" | grep -q '^mock_'; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
+      test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
+    fi
   done
 done
 ```
 
-If output contains `MISSING:`, fix paths before merge.
+If output contains `MISSING:` or `WRONG_TARGET:`, fix paths before merge.
 
 ## Sharing with teammates
 

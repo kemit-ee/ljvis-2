@@ -1,0 +1,21 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /mockapi/v1/admin/classifier-values/check_code_exists"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+check_code:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/mock_check_code_exists"
+    headers:
+      type: json
+    body:
+      classifierId: "${incoming.body.classifierId}"
+      code:         "${incoming.body.code}"
+  result: db_response
+respond_result:
+    return: "${db_response.response.body}"
