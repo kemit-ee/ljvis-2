@@ -41,7 +41,7 @@ export function UserGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { hasPermission, hasAnyPermission } = useAuth();
+  const { hasPermission, hasAnyPermission, refetchUser } = useAuth();
   const canEditGroup = hasPermission('user_group.update');
   const canAddUser = hasPermission('user_group.add_user');
   const canRemoveUser = hasPermission('user_group.remove_user');
@@ -65,12 +65,27 @@ export function UserGroupDetailPage() {
     group, orgs, perms, users, loading,
     userSearchInput, setUserSearchInput, handleUserSearch, clearUserSearch,
     editingName, editName, setEditName, startEditName, saveName, cancelEditName,
-    editingOrgs, allOrgs, selectedOrgIds, startEditOrgs, toggleOrg, toggleAllOrgs, saveOrgs, cancelEditOrgs,
-    editingPerms, allPerms, selectedPermIds, startEditPerms, togglePerm, toggleAllPerms, savePerms, cancelEditPerms,
-    handleDeleteUser,
+    editingOrgs, allOrgs, selectedOrgIds, startEditOrgs, toggleOrg, toggleAllOrgs, saveOrgs: saveOrgsHook, cancelEditOrgs,
+    editingPerms, allPerms, selectedPermIds, startEditPerms, togglePerm, toggleAllPerms, savePerms: savePermsHook, cancelEditPerms,
+    handleDeleteUser: handleDeleteUserHook,
     isLoading, totalRows, pagination, setPagination, sorting, setSorting, nameError, organisationsError,
     forbidden
   } = useUserGroupDetail(id);
+
+  const savePerms = async () => {
+    await savePermsHook();
+    await refetchUser();
+  };
+
+  const saveOrgs = async () => {
+    await saveOrgsHook();
+    await refetchUser();
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    await handleDeleteUserHook(userId);
+    await refetchUser();
+  };
 
   const handleRowClick = useCallback(
       (row: UserGroupUser) => {

@@ -1,0 +1,15 @@
+:global(#classifiers-table) td,
+:global(#classifiers-table) th {
+  border-left: 1px solid #e5e7eb;
+}
+
+:global(#classifiers-table) td:first-child,
+:global(#classifiers-table) th:first-child {
+  border-left: none;
+}
+
+:global(#classifiers-table) td:last-child,
+:global(#classifiers-table) th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}

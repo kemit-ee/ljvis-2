@@ -1,0 +1,64 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List all classifiers with organisations"
+  method: get
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    query:
+      - field: search
+        type: string
+        description: "Search by classifier code or name"
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Page size"
+      - field: sorting
+        type: string
+        description: "Sorting"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('classifier.list') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
+extractRequestData:
+  assign:
+    search: "${incoming.params.search ?? ''}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'name asc'}"
+  next: getUserGroups
+
+getUserGroups:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/classifier/list_classifiers"
+    query:
+      search: ${search}
+      page: ${page}
+      page_size: ${page_size}
+      sorting: ${sorting}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end
