@@ -271,7 +271,9 @@ The skill also reads:
 6. **Write Ruuter DSL routing files** under `DSL/Ruuter/`:
    - `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/<operatsioon>.yml`
    - `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/<operatsioon>.yml`
-   - RESQL call path inside Ruuter must use `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>`
+   - Production `api` files must call production RESQL paths: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>`
+   - Mock `mockapi` files must call only mock RESQL paths: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>`
+   - If a flow calls `state_updater`, production routes must call `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` and mock routes must call `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/mock_build`
    - GET is allowed only for parameter-less list queries and must not pass any input to RESQL
    - Ruuter must contain the business flow, including validation, verify-after-write, failure path, and compensating rollback decisions.
    - If a write flow updates `_state`, the Ruuter flow must explicitly show: read latest state → copy/modify → write new state → verify returned state → call `state_updater` build → verify snapshot.
@@ -324,6 +326,7 @@ Run a check equivalent to:
 
 ```bash
 for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
+  kind=$(echo "$f" | sed -E 's|^DSL/Ruuter/([^/]+)/.*|\1|')
   method=$(echo "$f" | sed -E 's|^DSL/Ruuter/(api|mockapi)/([^/]+)/.*|\2|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
@@ -333,12 +336,24 @@ for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
     if [ "$segment2" = "state_updater" ]; then
       entity=$(echo "$rel" | cut -d'/' -f3)
       operation=$(echo "$rel" | cut -d'/' -f4)
+      if [ "$kind" = "mockapi" ] && [ "$operation" != "mock_build" ]; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
+      if [ "$kind" = "api" ] && [ "$operation" = "mock_build" ]; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
       test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
       version="$segment2"
       module=$(echo "$rel" | cut -d'/' -f3)
       entity=$(echo "$rel" | cut -d'/' -f4)
       operation=$(echo "$rel" | cut -d'/' -f5)
+      if [ "$kind" = "mockapi" ] && ! echo "$operation" | grep -q '^mock_'; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
+      if [ "$kind" = "api" ] && echo "$operation" | grep -q '^mock_'; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
       test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
   done
@@ -346,10 +361,12 @@ done
 ```
 
 **URL kujud:**
-- Tavalised RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → fail `DSL/Resql/ljvis2/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
-- `state_updater` endpointid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta)
+- Production RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → fail `DSL/Resql/ljvis2/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- Mockapi RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>` → fail `DSL/Resql/ljvis2/<meetod>/<moodul>/<entiteet>/v1/mock_<operatsioon>.sql`
+- Production `state_updater` endpointid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta)
+- Mockapi `state_updater` endpointid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/mock_build` → fail `DSL/Resql/ljvis2/POST/state_updater/<entiteet>/mock_build.sql` (ilma `v<N>/` tasemeta)
 
-If any `MISSING:` entry appears, fix paths before proceeding.
+If any `MISSING:` or `WRONG_TARGET:` entry appears, fix paths before proceeding.
 
 ### Step 7: Commit, Push, and Issue Update
 
@@ -445,6 +462,7 @@ Ruuter DSL files (`<operatsioon>.yml`) orchestrate the business flow: they valid
 **Mock location:** `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/<operatsioon>.yml`
 - Maps directly to public mock path `/mockapi/v1/admin/<entiteet>/<operatsioon>`
 - Mock routes stay physically separate from production routes
+- Mock routes must call only mock RESQL endpoints; production RESQL operations are forbidden in `mockapi`
 
 **Production routing file structure:**
 
@@ -542,9 +560,11 @@ return_result:
 - GET is allowed only for parameter-less list queries
 - GET routes must not send `body`, query params, or path params to RESQL
 - Mock YML calls mock RESQL endpoint — no hardcoded data in the YML itself
+- `DSL/Ruuter/mockapi/**/*.yml` must always call `mock_<operatsioon>` or `mock_build`, never the production operation name
 - Never duplicate RESQL logic in Ruuter — Ruuter only orchestrates
 - All business logic, failure handling, rollback decisions, and state transition control must live in Ruuter
 - For `_state` updates, Ruuter must read the latest state, copy the full record, modify required fields, write the new state, verify the returned state, then call `state_updater/<entiteet>/build` and verify the snapshot before success
+- Mock write flows must call `state_updater/<entiteet>/mock_build` when a snapshot rebuild step is needed
 - If main write succeeds but `_state` write, verification, or snapshot rebuild fails, Ruuter must run a compensating rollback or recovery flow
 - Partial success must lead to explicit recovery/error flow, never silent success
 - Retry/timeouts must be considered; define idempotency handling where duplicate execution is possible

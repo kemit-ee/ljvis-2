@@ -1,7 +1,8 @@
+-- liquibase formatted sql
+-- changeset ljvis:20260527153102 ignore:true
 -- EPIC 09 guarded schema migration
 -- Creates the classifier management schema with guarded DDL so the migration can be rerun safely.
 -- Base entities are created first, followed by append-only state tables and latest snapshot tables.
-SET search_path TO ljvis2;
 CREATE TABLE IF NOT EXISTS classifier (
     id BIGSERIAL NOT NULL,
     code VARCHAR(50) NOT NULL,
@@ -138,5 +139,3 @@ CREATE INDEX IF NOT EXISTS idx_cvl_classifier_id ON classifier_value_latest (cla
 CREATE INDEX IF NOT EXISTS idx_cvl_classifier_code ON classifier_value_latest (classifier_code);
 CREATE INDEX IF NOT EXISTS idx_cvl_code ON classifier_value_latest (code);
 CREATE INDEX IF NOT EXISTS idx_cvl_is_valid ON classifier_value_latest (is_valid);
-
-RESET search_path;

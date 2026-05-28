@@ -24,6 +24,7 @@ See skill aitab LJVIS projektis genereerida ja uuendada DSL-artefakte:
 - RESQL teed peavad olema versioneeritud (`v1`).
 - Ruuteri sisekutsed RESQL-i peavad kasutama kuju `[#LOCAL_RESQL]/ljvis2/v1/...`.
 - RESQL SQL failid peavad paiknema kujul `DSL/Resql/ljvis2/<MEETOD>/<moodul>/<entiteet>/v1/...`.
+- `DSL/Ruuter/mockapi/**/*.yml` peab kutsuma ainult mock RESQL targeteid: `mock_<operatsioon>` või `mock_build`.
 - GET on lubatud ainult parameetrita listidele.
 - Enne commit'i tee sanity-check teevastavusele.
 - `*_latest` snapshot rebuild SQL-id koonduvad `state_updater` moodulisse (`DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql`) — ilma versioonikihita. Ruuter kutsub neid `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` kaudu. Neil ei ole Ruuter YML-e ega `.guard` faile.
@@ -43,6 +44,7 @@ See skill aitab LJVIS projektis genereerida ja uuendada DSL-artefakte:
 
 ```bash
 for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
+  kind=$(echo "$f" | sed -E 's|^DSL/Ruuter/([^/]+)/.*|\1|')
   method=$(echo "$f" | sed -E 's|^DSL/Ruuter/(api|mockapi)/([^/]+)/.*|\2|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
@@ -52,19 +54,31 @@ for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
     if [ "$segment2" = "state_updater" ]; then
       entity=$(echo "$rel" | cut -d'/' -f3)
       operation=$(echo "$rel" | cut -d'/' -f4)
+      if [ "$kind" = "mockapi" ] && [ "$operation" != "mock_build" ]; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
+      if [ "$kind" = "api" ] && [ "$operation" = "mock_build" ]; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
       test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
       version="$segment2"
       module=$(echo "$rel" | cut -d'/' -f3)
       entity=$(echo "$rel" | cut -d'/' -f4)
       operation=$(echo "$rel" | cut -d'/' -f5)
+      if [ "$kind" = "mockapi" ] && ! echo "$operation" | grep -q '^mock_'; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
+      if [ "$kind" = "api" ] && echo "$operation" | grep -q '^mock_'; then
+        echo "WRONG_TARGET: $f -> $url"
+      fi
       test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
   done
 done
 ```
 
-Kui väljundis on `MISSING:`, paranda teed enne merge'i.
+Kui väljundis on `MISSING:` või `WRONG_TARGET:`, paranda teed enne merge'i.
 
 ## Jagamine sõbrale
 

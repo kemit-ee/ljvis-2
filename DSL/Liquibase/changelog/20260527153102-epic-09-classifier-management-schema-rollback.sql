@@ -1,7 +1,8 @@
+-- liquibase formatted sql
+-- changeset ljvis:20260527153102-rollback ignore:true
 -- EPIC 09 guarded rollback
 -- Removes indexes before dropping tables so dependencies unwind in a predictable order.
 -- All drops are guarded to keep rollback safe when objects are already missing.
-SET search_path TO ljvis2;
 DROP INDEX IF EXISTS idx_cvl_is_valid;
 DROP INDEX IF EXISTS idx_cvl_code;
 DROP INDEX IF EXISTS idx_cvl_classifier_code;
@@ -26,4 +27,3 @@ DROP TABLE IF EXISTS classifier_value_validity_state CASCADE;
 DROP TABLE IF EXISTS classifier_value CASCADE;
 DROP TABLE IF EXISTS classifier_name_state CASCADE;
 DROP TABLE IF EXISTS classifier CASCADE;
-RESET search_path;

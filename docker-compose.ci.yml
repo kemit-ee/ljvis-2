@@ -90,7 +90,7 @@ services:
       timeout: 5s
       retries: 15
     volumes:
-      - ./DSL/Resql:/DSL
+      - ./DSL/Resql/ljvis2:/DSL/ljvis2
     networks:
       - ljvis-ci
     ports:

@@ -1,7 +1,8 @@
+-- liquibase formatted sql
+-- changeset ljvis:20260527153101 ignore:true
 -- EPIC 02 guarded schema migration
 -- Creates the user management schema with guarded DDL so the migration can be rerun safely.
 -- Base entities are created first, followed by append-only state tables and latest snapshot tables.
-SET search_path TO ljvis2;
 CREATE TABLE IF NOT EXISTS organisation (
     id BIGSERIAL NOT NULL,
     name VARCHAR(500) NOT NULL,
@@ -309,5 +310,3 @@ CREATE INDEX IF NOT EXISTS idx_ual_user_groups_gin ON user_account_latest USING 
 CREATE INDEX IF NOT EXISTS idx_ugl_user_group_id_created_at ON user_group_latest (user_group_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_ugl_name_lower ON user_group_latest (LOWER(name));
 CREATE INDEX IF NOT EXISTS idx_ugl_organisations_gin ON user_group_latest USING GIN (organisations);
-
-RESET search_path;
