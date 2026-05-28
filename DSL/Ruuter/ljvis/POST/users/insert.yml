@@ -84,7 +84,7 @@ checkUser:
 checkPersonalCodeConflict:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/check_personal_code_conflict"
+    url: "[#LJVIS_RESQL]/user/check_personal_code_conflict"
     query:
       personal_code: ${personal_code}
       id: ""
@@ -100,7 +100,7 @@ checkConflictResult:
 createUser:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/insert_user_account"
+    url: "[#LJVIS_RESQL]/user/insert_user_account"
     headers:
       type: json
     body:
@@ -112,7 +112,7 @@ createUser:
 createUserDataState:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/insert_user_account_data_state"
+    url: "[#LJVIS_RESQL]/user/insert_user_account_data_state"
     headers:
       type: json
     body:
@@ -133,7 +133,7 @@ createUserDataState:
 createUserState:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/insert_user_account_state"
+    url: "[#LJVIS_RESQL]/user/insert_user_account_state"
     headers:
       type: json
     body:
@@ -146,7 +146,7 @@ createUserState:
 rebuildLatest:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    url: "[#LJVIS_RESQL]/user/rebuild_user_account_latest"
     headers:
       type: json
     body:

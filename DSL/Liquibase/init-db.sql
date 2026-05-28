@@ -1,5 +1,4 @@
--- Creates both databases in the same PostgreSQL instance
+-- Creates the application database in the PostgreSQL instance
 -- This script runs on container first start only
 
-CREATE DATABASE users_db;
 CREATE DATABASE ljvis_db;

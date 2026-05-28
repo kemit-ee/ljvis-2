@@ -49,7 +49,7 @@ checkRemovedOrgs:
 removeOrgs:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_organisations"
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
     headers:
       type: json
     body:
@@ -69,7 +69,7 @@ checkAddedOrgs:
 insertOrgs:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_organisations"
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
     headers:
       type: json
     body:
@@ -83,7 +83,7 @@ insertOrgs:
 rebuildLatest:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    url: "[#LJVIS_RESQL]/user_group/rebuild_user_group_latest"
     headers:
       type: json
     body:

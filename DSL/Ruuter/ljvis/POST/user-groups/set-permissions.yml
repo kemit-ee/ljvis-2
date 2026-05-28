@@ -49,7 +49,7 @@ checkRemovedPerms:
 removePerms:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_permissions"
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_permissions"
     headers:
       type: json
     body:
@@ -69,7 +69,7 @@ checkAddedPerms:
 insertPerms:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_permissions"
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_permissions"
     headers:
       type: json
     body:
@@ -83,7 +83,7 @@ insertPerms:
 rebuildLatest:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    url: "[#LJVIS_RESQL]/user_group/rebuild_user_group_latest"
     headers:
       type: json
     body:

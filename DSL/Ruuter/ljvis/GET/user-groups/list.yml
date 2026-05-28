@@ -58,7 +58,7 @@ extractRequestData:
 getUserGroups:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/list_user_groups"
+    url: "[#LJVIS_RESQL]/user_group/list_user_groups"
     query:
       search: ${search}
       page: ${page}

@@ -3,11 +3,17 @@
 # Completely separate from docker-compose.yml — different network, named volumes,
 # and host ports (9xxx) so it never conflicts with a running dev environment.
 #
-# Usage:
+# Usage (CI):
 #   Start:   docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --build
 #   Test:    newman run tests/postman/ljvis-e2e-collection.json \
 #              -e tests/postman/ci-stack-environment.json
 #   Cleanup: docker compose -f docker-compose.ci.yml -p ljvis-ci down -v
+#
+# Usage (local clean test run — does not touch docker-compose.yml data):
+#   Start:   docker compose -f docker-compose.ci.yml -p ljvis-local up -d --build
+#   Test:    newman run tests/postman/ljvis-e2e-collection.json \
+#              -e tests/postman/ci-stack-environment.json
+#   Cleanup: docker compose -f docker-compose.ci.yml -p ljvis-local down -v
 
 services:
 
@@ -22,7 +28,7 @@ services:
       - ci-db-data:/var/lib/postgresql/data
       - ./DSL/Liquibase/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ljvis -d users_db"]
+      test: ["CMD-SHELL", "pg_isready -U ljvis -d ljvis_db"]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -57,39 +63,11 @@ services:
       - PGPASSWORD=01234
     volumes:
       - ./tests/bootstrap/seed_admin_and_organizations.sql:/seed.sql:ro
-    command: ["psql", "-h", "database", "-U", "ljvis", "-d", "users_db", "-f", "/seed.sql"]
+    command: ["psql", "-h", "database", "-U", "ljvis", "-d", "ljvis_db", "-f", "/seed.sql"]
     networks:
       - ljvis-ci
 
   # ── Application services ──────────────────────────────────────────────────
-  resql-users:
-    build:
-      context: .
-      dockerfile: docker/resql-users/Dockerfile
-    platform: linux/amd64
-    restart: unless-stopped
-    depends_on:
-      bootstrap:
-        condition: service_completed_successfully
-    environment:
-      - server.port=8087
-      - sqlms.datasources.[0].name=byk
-      - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/users_db
-      - sqlms.datasources.[0].username=ljvis
-      - sqlms.datasources.[0].password=01234
-      - logging.level.org.springframework.boot=INFO
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 8087"]
-      interval: 10s
-      timeout: 5s
-      retries: 15
-    volumes:
-      - ./DSL/Resql:/DSL
-    networks:
-      - ljvis-ci
-    ports:
-      - "9087:8087"
-
   resql-ljvis:
     build:
       context: .
@@ -106,12 +84,17 @@ services:
       - sqlms.datasources.[0].username=ljvis
       - sqlms.datasources.[0].password=01234
       - logging.level.org.springframework.boot=INFO
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8090"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
     volumes:
       - ./DSL/Resql:/DSL
     networks:
       - ljvis-ci
     ports:
-      - "9090:8090"
+      - "9087:8090"
 
   data-mapper:
     build:
@@ -139,7 +122,7 @@ services:
     platform: linux/amd64
     restart: unless-stopped
     depends_on:
-      resql-users:
+      resql-ljvis:
         condition: service_healthy
     environment:
       - application.cors.allowedOrigins=http://localhost:9086,http://localhost:3001
@@ -236,7 +219,7 @@ services:
         exec ./generate-keystore.sh
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://tim-postgresql:5432/tim
-      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-users,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
+      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
       - JWT_INTEGRATION_SIGNATURE_KEY_STORE_PASSWORD=defaultpassword
       - security.oauth2.client.client-id=ljvis
       - security.oauth2.client.client-secret=ljvis-secret

@@ -47,7 +47,7 @@ check_personal_code:
 lookup_user_permissions:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/get_user_permissions_by_personal_code"
+    url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
     query:
       personal_code: ${personal_code}
   result: user_res

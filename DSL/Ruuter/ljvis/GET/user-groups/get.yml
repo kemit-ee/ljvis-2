@@ -43,7 +43,7 @@ extractRequestData:
 getGroupLocal:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group"
+    url: "[#LJVIS_RESQL]/user_group/get_user_group"
     query:
       id: ${id}
       organisation_id: ${organisation_id}
@@ -53,7 +53,7 @@ getGroupLocal:
 getGroup:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group"
+    url: "[#LJVIS_RESQL]/user_group/get_user_group"
     query:
       id: ${id}
       organisation_id: ${organisation_id}

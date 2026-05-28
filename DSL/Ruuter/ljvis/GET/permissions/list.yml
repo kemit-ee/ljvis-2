@@ -10,7 +10,7 @@ declaration:
 getPermissions:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/permission/list_permissions"
+    url: "[#LJVIS_RESQL]/permission/list_permissions"
   result: res
 
 returnSuccess:

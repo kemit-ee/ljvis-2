@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Test seed data for permission testing
--- Run manually: PGPASSWORD=01234 psql -h localhost -p 54321 -U ljvis -d users_db -f DSL/Liquibase/test/seed-test-users.sql
+-- Run manually: PGPASSWORD=01234 psql -h localhost -p 54321 -U ljvis -d ljvis_db -f DSL/Liquibase/test/seed-test-users.sql
 -- ============================================================================
 
 

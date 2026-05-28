@@ -35,7 +35,7 @@ extractRequestData:
 getPermissions:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/get_user_group_permissions"
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
     query:
       user_group_id: ${user_group_id}
   result: res

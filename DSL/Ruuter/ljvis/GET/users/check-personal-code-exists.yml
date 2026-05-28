@@ -39,7 +39,7 @@ extractRequestData:
 checkConflict:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/check_personal_code_conflict"
+    url: "[#LJVIS_RESQL]/user/check_personal_code_conflict"
     query:
       personal_code: ${personal_code}
       id: ${id}
