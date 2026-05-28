@@ -2,9 +2,7 @@
     {{#each groups}}
     {
         "id": "{{this.id}}",
-        "name": "{{this.name}}",
-        "createdAt": "{{this.createdAt}}",
-        "updatedAt": "{{this.updatedAt}}"
+        "name": "{{this.name}}"
     }{{#unless @last}},{{/unless}}
     {{/each}}
 ]
