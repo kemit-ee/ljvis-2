@@ -1,24 +1,23 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/users/user-groups/mock_save"
+  description: "API route for POST /mockapi/v1/admin/user-groups/users/remove"
   method: post
   accepts: json
   returns: json
   namespace: admin
 
-save_groups:
+remove_user:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/mock_save"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_remove_user"
     headers:
       type: json
     body:
-      userId:      "${incoming.body.userId}"
       userGroupId: "${incoming.body.userGroupId}"
-      action:      "${incoming.body.action}"
+      userId:      "${incoming.body.userId}"
       createdBy:   "mock_user"
-  result: save_response
+  result: remove_response
 build_snapshot:
   call: http.post
   args:

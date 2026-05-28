@@ -28,8 +28,8 @@ DSL/Ruuter/api/POST/v1/admin/users/    ← kasutajate Ruuter vood
 DSL/Ruuter/api/POST/v1/admin/user-groups/  ← kasutajagruppide Ruuter vood
 DSL/Ruuter/api/POST/v1/admin/organisations/  ← asutuste Ruuter vood
 DSL/Ruuter/api/GET/v1/admin/permissions/    ← õiguste Ruuter vood
-DSL/Ruuter/mockapi/POST/v1/admin/          ← mock Ruuter vood
-DSL/Ruuter/mockapi/GET/v1/admin/           ← mock GET Ruuter vood
+DSL/Ruuter/mockapi/POST/v1/admin/     ← mock Ruuter vood
+DSL/Ruuter/mockapi/GET/v1/admin/      ← mock GET Ruuter vood
 
 Runtime:
 /DSL/ljvis2/POST/iam/user/v1/
@@ -43,8 +43,8 @@ Runtime:
 /DSL/api/POST/v1/admin/user-groups/
 /DSL/api/POST/v1/admin/organisations/
 /DSL/api/GET/v1/admin/permissions/
-/DSL/mockapi/POST/v1/admin/
-/DSL/mockapi/GET/v1/admin/
+/DSL/mockapi/v1/admin/
+/DSL/mockapi/v1/admin/
 ```
 
 ## 3. Kontroll pärast paigaldust
@@ -78,7 +78,7 @@ Kui väljundis on `MISSING:`, paranda teed enne lõplikku paigaldust.
 
 ## 4. Mock endpointide kasutamine
 
-Mock YML-id asuvad `DSL/Ruuter/mockapi/POST/v1/admin/*/mock_*.yml` ja `DSL/Ruuter/mockapi/GET/v1/admin/*/mock_*.yml`. Need kutsuvad `mock_*.sql` RESQL faile ja tagastavad hardcoded testandmeid. Mock puu `.guard` failid on tingimusteta lubavad. Sobivad arendus- ja integratsioonitestimiseks enne andmebaasi seadistamist.
+Mock YML-id asuvad `DSL/Ruuter/mockapi/POST/v1/admin/**/*.yml` ja `DSL/Ruuter/mockapi/GET/v1/admin/**/*.yml`. Failinimed peegeldavad production `api` puud 1:1, kuid kutsuvad jätkuvalt `mock_*.sql` RESQL faile ja tagastavad hardcoded testandmeid. Mock puu `.guard` failid on tingimusteta lubavad. Sobivad arendus- ja integratsioonitestimiseks enne andmebaasi seadistamist.
 
 ## 5. Muudatuste logi
 

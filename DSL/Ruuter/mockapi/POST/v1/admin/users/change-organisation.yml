@@ -1,23 +1,23 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/users/mock_create"
+  description: "API route for POST /mockapi/v1/admin/users/change-organisation"
   method: post
   accepts: json
   returns: json
   namespace: admin
 
-create_user:
+change_org:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/ljvis2/iam/user/v1/mock_create"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user/v1/mock_change_organisation"
     headers:
       type: json
     body:
-      personalCode:   "${incoming.body.personalCode}"
+      userId:         "${incoming.body.userId}"
+      organisationId: "${incoming.body.organisationId}"
       firstName:      "${incoming.body.firstName}"
       lastName:       "${incoming.body.lastName}"
-      organisationId: "${incoming.body.organisationId}"
       structuralUnit: "${incoming.body.structuralUnit}"
       jobTitle:       "${incoming.body.jobTitle}"
       email:          "${incoming.body.email}"
@@ -25,7 +25,7 @@ create_user:
       accessStart:    "${incoming.body.accessStart}"
       accessEnd:      "${incoming.body.accessEnd}"
       createdBy:      "mock_user"
-  result: create_response
+  result: change_response
 build_snapshot:
   call: http.post
   args:
@@ -33,7 +33,7 @@ build_snapshot:
     headers:
       type: json
     body:
-      userId:    "${create_response.response.body[0].userId}"
+      userId:    "${incoming.body.userId}"
       createdBy: "mock_user"
   result: snapshot_response
 respond_result:

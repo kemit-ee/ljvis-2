@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/user-groups/users/mock_list"
+  description: "API route for POST /mockapi/v1/admin/user-groups/users/list"
   method: post
   accepts: json
   returns: json

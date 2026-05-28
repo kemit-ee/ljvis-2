@@ -55,14 +55,14 @@ Selles repos hoitakse RESQL source faile kaustas `DSL/Resql/` ja Ruuteri faile k
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/create.yml` |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/update.yml` |
 | `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/.guard` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/mock_list.yml` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/mock_get.yml` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/mock_update.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/list.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/get.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/update.yml` |
 | `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/.guard` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/mock_list.yml` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/mock_check_code_exists.yml` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/mock_create.yml` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/mock_update.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/list.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/check_code_exists.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/create.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/update.yml` |
 
 ## Paigaldamise järjekord
 

@@ -136,30 +136,30 @@ Epic 02 katab kasutajate ja kasutajagruppide haldamise admin-liideses. Kasutajal
 | `DSL/Ruuter/api/POST/v1/admin/users/.guard` | Guard | user.list.admin/local, user.read.admin/local, user.edit.admin/local |
 | `DSL/Ruuter/mockapi/POST/v1/admin/users/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/POST/v1/admin/users/list.yml` | Ruuter DSL | Kasutajate nimekiri voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/list.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/get.yml` | Ruuter DSL | Detailvaade voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_get.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/get.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/check-personal-code-exists.yml` | Ruuter DSL | Koodikontroll voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_check-personal-code-exists.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/check-personal-code-exists.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/create.yml` | Ruuter DSL | Loomine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_create.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/create.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/update.yml` | Ruuter DSL | Muutmine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_update.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/update.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/change-organisation.yml` | Ruuter DSL | Asutuse muutmine voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_change-organisation.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/change-organisation.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/organisations/options.yml` | Ruuter DSL | Asutuste valikud voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/organisations/mock_options.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/organisations/options.yml` | Ruuter DSL | Mock |
 
 ### Ruuter DSL failid — user-groups/users (8 faili, alamkaust)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
 | `DSL/Ruuter/api/POST/v1/admin/users/user-groups/get.yml` | Ruuter DSL | Kasutaja grupid voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/mock_get.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/get.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/user-groups/available.yml` | Ruuter DSL | Saadaolevad grupid voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/mock_available.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/available.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/user-groups/save.yml` | Ruuter DSL | Bulk-salvestus voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/mock_save.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/save.yml` | Ruuter DSL | Mock |
 
 ### Ruuter DSL failid — user-groups (14 faili + 2 guardi)
 
@@ -168,21 +168,21 @@ Epic 02 katab kasutajate ja kasutajagruppide haldamise admin-liideses. Kasutajal
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/.guard` | Guard | user_group.list.admin/local, user_group.read.admin/local, user_group.create, user_group.update jt |
 | `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/list.yml` | Ruuter DSL | Kasutajagruppide nimekiri voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/mock_list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/list.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/get.yml` | Ruuter DSL | Detailvaade voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/mock_get.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/get.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/create.yml` | Ruuter DSL | Loomine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/mock_create.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/create.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/update.yml` | Ruuter DSL | Muutmine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/mock_update.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/update.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/users/list.yml` | Ruuter DSL | Liikmete nimekiri voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/mock_list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/list.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/users/search-eligible.yml` | Ruuter DSL | Sobivate kasutajate otsing voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/mock_search-eligible.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/search-eligible.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/users/add.yml` | Ruuter DSL | Liikme lisamine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/mock_add.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/add.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/users/remove.yml` | Ruuter DSL | Liikme eemaldamine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/mock_remove.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/remove.yml` | Ruuter DSL | Mock |
 
 ### Ruuter DSL failid — organisations (2 faili + 2 guardi)
 
@@ -191,7 +191,7 @@ Epic 02 katab kasutajate ja kasutajagruppide haldamise admin-liideses. Kasutajal
 | `DSL/Ruuter/api/POST/v1/admin/organisations/.guard` | Guard | organisation.list |
 | `DSL/Ruuter/mockapi/POST/v1/admin/organisations/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/POST/v1/admin/organisations/list.yml` | Ruuter DSL | Asutuste kataloog voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/organisations/mock_list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/POST/v1/admin/organisations/list.yml` | Ruuter DSL | Mock |
 
 ### Ruuter DSL failid — permissions (2 faili + 2 guardi, GET)
 
@@ -200,7 +200,7 @@ Epic 02 katab kasutajate ja kasutajagruppide haldamise admin-liideses. Kasutajal
 | `DSL/Ruuter/api/GET/v1/admin/permissions/.guard` | Guard | permission.list |
 | `DSL/Ruuter/mockapi/GET/v1/admin/permissions/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/GET/v1/admin/permissions/list.yml` | Ruuter DSL | Õiguste kataloog voog (parameetrita GET) |
-| `DSL/Ruuter/mockapi/GET/v1/admin/permissions/mock_list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/mockapi/GET/v1/admin/permissions/list.yml` | Ruuter DSL | Mock |
 
 ### Dokumentatsioon (2 faili)
 

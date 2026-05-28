@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/classifiers/mock_get"
+  description: "API route for POST /mockapi/v1/admin/classifiers/get"
   method: post
   accepts: json
   returns: json

@@ -1,22 +1,23 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/user-groups/mock_create"
+  description: "API route for POST /mockapi/v1/admin/user-groups/update"
   method: post
   accepts: json
   returns: json
   namespace: admin
 
-create_group:
+update_group:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_create"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_update"
     headers:
       type: json
     body:
-      name:      "${incoming.body.name}"
-      createdBy: "mock_user"
-  result: create_response
+      userGroupId: "${incoming.body.userGroupId}"
+      name:        "${incoming.body.name}"
+      createdBy:   "mock_user"
+  result: update_response
 build_snapshot:
   call: http.post
   args:
@@ -24,7 +25,7 @@ build_snapshot:
     headers:
       type: json
     body:
-      userGroupId: "${create_response.response.body[0].userGroupId}"
+      userGroupId: "${incoming.body.userGroupId}"
       createdBy:   "mock_user"
   result: snapshot_response
 respond_result:

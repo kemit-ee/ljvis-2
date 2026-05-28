@@ -1,20 +1,22 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/users/user-groups/mock_available"
+  description: "API route for POST /mockapi/v1/admin/user-groups/list"
   method: post
   accepts: json
   returns: json
   namespace: admin
 
-get_available:
+get_list:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/mock_available"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_list"
     headers:
       type: json
     body:
-      userId:         "${incoming.body.userId}"
+      page:           "${incoming.body.page}"
+      pageSize:       "${incoming.body.pageSize}"
+      search:         "${incoming.body.search}"
       organisationId: "${incoming.body.organisationId}"
   result: db_response
 respond_result:

@@ -48,7 +48,7 @@ Kirjelda 3–7 lausega:
 | `DSL/Resql/POST/<module>/<entity>/v1/<operation>.sql` | SQL | Production query |
 | `DSL/Resql/POST/<module>/<entity>/v1/mock_<operation>.sql` | SQL | Mock query |
 | `DSL/Ruuter/api/POST/v1/admin/<entity>/<operation>.yml` | Ruuter DSL | Production route |
-| `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/mock_<operation>.yml` | Ruuter DSL | Mock route |
+| `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/<operation>.yml` | Ruuter DSL | Mock route |
 | `DSL/Ruuter/api/POST/v1/admin/<entity>/.guard` | Guard | Ligipääsureegel |
 | `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/.guard` | Guard | Tingimusteta lubav mock guard |
 | `docs/<epic_folder>/README.md` | Documentation | Epicu tehniline kokkuvõte |

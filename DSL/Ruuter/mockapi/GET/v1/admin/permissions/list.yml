@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for GET /mockapi/v1/admin/permissions/mock_list"
+  description: "API route for GET /mockapi/v1/admin/permissions/list"
   method: get
   accepts: json
   returns: json

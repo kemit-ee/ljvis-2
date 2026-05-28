@@ -31,10 +31,10 @@ DSL/Ruuter/
   mockapi/
     POST/v1/admin/<entiteet>/
       .guard
-      mock_<operatsioon>.yml
+      <operatsioon>.yml
     GET/v1/admin/<entiteet>/
       .guard
-      mock_<operatsioon>.yml
+      <operatsioon>.yml
 
 DSL/Liquibase/
   changelog/
@@ -221,10 +221,10 @@ The skill also reads:
      mockapi/
       POST/v1/admin/<entiteet>/
         .guard
-        mock_<operatsioon>.yml
+        <operatsioon>.yml
       GET/v1/admin/<entiteet>/
         .guard
-        mock_<operatsioon>.yml
+        <operatsioon>.yml
   DSL/Liquibase/
     changelog/
       YYYYMMDDXXXX-selgitus-millega-tegu.sql
@@ -270,7 +270,7 @@ The skill also reads:
 
 6. **Write Ruuter DSL routing files** under `DSL/Ruuter/`:
    - `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/<operatsioon>.yml`
-   - `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/mock_<operatsioon>.yml`
+   - `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/<operatsioon>.yml`
    - RESQL call path inside Ruuter must use `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>`
    - GET is allowed only for parameter-less list queries and must not pass any input to RESQL
    - Ruuter must contain the business flow, including validation, verify-after-write, failure path, and compensating rollback decisions.
@@ -377,7 +377,7 @@ If any `MISSING:` entry appears, fix paths before proceeding.
   - [ ] `DSL/Resql/POST/iam/<entity>/v1/<operation>.sql`
   - [ ] `DSL/Resql/POST/iam/<entity>/v1/mock_<operation>.sql`
   - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/<operation>.yml`
-  - [ ] `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/mock_<operation>.yml`
+  - [ ] `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/<operation>.yml`
   - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/.guard`
   - [ ] `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/.guard`
   ```
@@ -442,8 +442,8 @@ Ruuter DSL files (`<operatsioon>.yml`) orchestrate the business flow: they valid
 - Maps directly to public API path `/api/v1/admin/<entiteet>/<operatsioon>`
 - One file = one operation (no combined logic)
 
-**Mock location:** `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/mock_<operatsioon>.yml`
-- Maps directly to public mock path `/mockapi/v1/admin/<entiteet>/mock_<operatsioon>`
+**Mock location:** `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/<operatsioon>.yml`
+- Maps directly to public mock path `/mockapi/v1/admin/<entiteet>/<operatsioon>`
 - Mock routes stay physically separate from production routes
 
 **Production routing file structure:**
@@ -484,13 +484,13 @@ bad_request:
   return: "Missing required field(s)"
 ```
 
-**Mock routing file structure** (`mock_<operatsioon>.yml`):
+**Mock routing file structure** (`<operatsioon>.yml` in `mockapi`):
 
 ```yaml
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/<entiteet>/mock_<operatsioon>"
+  description: "API route for POST /mockapi/v1/admin/<entiteet>/<operatsioon>"
   method: post
   accepts: json
   returns: json

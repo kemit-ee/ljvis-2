@@ -1,22 +1,22 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/classifiers/mock_update"
+  description: "API route for POST /mockapi/v1/admin/classifier-values/create"
   method: post
   accepts: json
   returns: json
   namespace: admin
 
-write_name_state:
+create_value:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/mock_update"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/mock_create"
     headers:
       type: json
     body:
       classifierId: "${incoming.body.classifierId}"
+      code:         "${incoming.body.code}"
       name:         "${incoming.body.name}"
-      description:  "${incoming.body.description}"
       createdBy:    "${incoming.body.createdBy}"
   result: db_response
 respond_result:

@@ -1,16 +1,16 @@
 declaration:
   call: declare
   version: 0.1
-  description: "API route for POST /mockapi/v1/admin/users/user-groups/mock_get"
+  description: "API route for POST /mockapi/v1/admin/users/get"
   method: post
   accepts: json
   returns: json
   namespace: admin
 
-get_groups:
+get_user:
   call: http.post
   args:
-    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/mock_get"
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user/v1/mock_get"
     headers:
       type: json
     body:

@@ -86,57 +86,57 @@ Source repo SQL failid paiknevad kujul `DSL/Resql/<MEETOD>/iam/<entiteet>/v1/*.s
 - `DSL/Ruuter/api/POST/v1/admin/users/.guard`
 - `DSL/Ruuter/api/POST/v1/admin/users/list.yml`
 - `DSL/Ruuter/mockapi/POST/v1/admin/users/.guard`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_list.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/list.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/get.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_get.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/get.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/check-personal-code-exists.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_check-personal-code-exists.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/check-personal-code-exists.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/create.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_create.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/create.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/update.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_update.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/update.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/change-organisation.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/mock_change-organisation.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/change-organisation.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/organisations/options.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/organisations/mock_options.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/organisations/options.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/user-groups/get.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/mock_get.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/get.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/user-groups/available.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/mock_available.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/available.yml`
 - `DSL/Ruuter/api/POST/v1/admin/users/user-groups/save.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/mock_save.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/save.yml`
 
 ### Ruuter — user-groups
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/.guard`
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/list.yml`
 - `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/.guard`
-- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/mock_list.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/list.yml`
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/get.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/mock_get.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/get.yml`
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/create.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/mock_create.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/create.yml`
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/update.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/mock_update.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/update.yml`
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/users/list.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/mock_list.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/list.yml`
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/users/search-eligible.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/mock_search-eligible.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/search-eligible.yml`
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/users/add.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/mock_add.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/add.yml`
 - `DSL/Ruuter/api/POST/v1/admin/user-groups/users/remove.yml`
-- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/mock_remove.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/remove.yml`
 
 ### Ruuter — organisations
 - `DSL/Ruuter/api/POST/v1/admin/organisations/.guard`
 - `DSL/Ruuter/api/POST/v1/admin/organisations/list.yml`
 - `DSL/Ruuter/mockapi/POST/v1/admin/organisations/.guard`
-- `DSL/Ruuter/mockapi/POST/v1/admin/organisations/mock_list.yml`
+- `DSL/Ruuter/mockapi/POST/v1/admin/organisations/list.yml`
 
 ### Ruuter — permissions (GET)
 - `DSL/Ruuter/api/GET/v1/admin/permissions/.guard`
 - `DSL/Ruuter/api/GET/v1/admin/permissions/list.yml`
 - `DSL/Ruuter/mockapi/GET/v1/admin/permissions/.guard`
-- `DSL/Ruuter/mockapi/GET/v1/admin/permissions/mock_list.yml`
+- `DSL/Ruuter/mockapi/GET/v1/admin/permissions/list.yml`
 
 ## 3. Arhitektuuri vastavus
 

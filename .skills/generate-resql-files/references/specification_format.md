@@ -141,13 +141,22 @@ DSL/Ruuter/
         <entiteet>/
           .guard                 ← ligipääsukontroll endpointi kaustale
           <operatsioon>.yml
-          mock_<operatsioon>.yml
     GET/
       v1/admin/
         <entiteet>/
           .guard
           <operatsioon>.yml      ← ainult parameetrita listid
-          mock_<operatsioon>.yml
+  mockapi/
+    POST/
+      v1/admin/
+        <entiteet>/
+          .guard                 ← tingimusteta lubav mock guard
+          <operatsioon>.yml      ← mockapi puus sama failinimi
+    GET/
+      v1/admin/
+        <entiteet>/
+          .guard                 ← tingimusteta lubav mock guard
+          <operatsioon>.yml      ← mockapi puus sama failinimi
 DSL/Liquibase/
   changelog/
     YYYYMMDDXXXX-selgitus-millega-tegu.sql
@@ -211,11 +220,10 @@ call_db:
 
 **Ruuter DSL (mock):**
 ```yaml
-# mock_<operatsioon>.yml — kutsub mock RESQL endpointi
+# <operatsioon>.yml mockapi puus — kutsub mock RESQL endpointi
 call_mock:
   url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>"
   ...
-```
 ```
 
 ### Section 4: Arhitektuuri vastavus
@@ -504,8 +512,8 @@ Kõik selle EPICu RESQL, Ruuter ja vajadusel Liquibase failid luuakse vastavates
 |---------|----------|
 | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` |
 | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/mock_<fail>.yml` | `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/mock_<fail>.yml` |
-| `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/mock_<fail>.yml` | `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/mock_<fail>.yml` |
+| `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/<fail>.yml` |
+| `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/<fail>.yml` |
 
 ## Guard failid
 
