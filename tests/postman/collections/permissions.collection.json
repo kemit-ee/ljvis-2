@@ -1,0 +1,45 @@
+{
+  "info": {
+    "name": "LJVIS — Permissions",
+    "_postman_id": "ljvis-permissions-v1",
+    "description": "Functional tests for /permissions endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_admin}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "GET /permissions/list — list all permissions",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/permissions/list", "host": ["{{api_url}}"], "path": ["ljvis", "permissions", "list"]}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const perms = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Response is an array', () => pm.expect(perms).to.be.an('array'));",
+        "pm.test('At least one permission returned', () => pm.expect(perms.length).to.be.above(0));",
+        "pm.test('Permission has id and code', () => { pm.expect(perms[0]).to.have.property('id'); pm.expect(perms[0]).to.have.property('code'); });",
+        "const updatePerm = perms.find(p => p.code === 'user_group.update');",
+        "pm.test('user_group.update permission exists', () => pm.expect(updatePerm).to.not.be.undefined);"
+      ]}}]
+    }
+  ],
+  "variable": []
+}

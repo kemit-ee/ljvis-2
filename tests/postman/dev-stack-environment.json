@@ -1,56 +1,43 @@
 {
-  "id": "ljvis-ci-stack-env",
-  "name": "LJVIS — CI Stack (ports 9xxx)",
+  "id": "ljvis-dev-stack-env",
+  "name": "LJVIS — DEV Stack (docker-compose.yml)",
   "values": [
     {
       "key": "api_url",
-      "value": "http://localhost:9086",
+      "value": "http://localhost:8086",
       "enabled": true,
-      "description": "Ruuter — CI stack (port 9086, isolated from dev stack on 8086)"
+      "description": "Ruuter — DEV stack (docker-compose.yml default port)"
     },
     {
       "key": "resql_users_url",
-      "value": "http://localhost:9087/users",
-      "enabled": true
-    },
-    {
-      "key": "resql_ljvis_url",
-      "value": "http://localhost:9090/ljvis",
+      "value": "http://localhost:8087/users",
       "enabled": true
     },
     {
       "key": "tim_url",
-      "value": "http://localhost:9085",
+      "value": "http://localhost:8085",
       "enabled": true
     },
     {
       "key": "pc_admin",
       "value": "38001085718",
       "enabled": true,
-      "description": "Super Admin personal code — seeded by tests/bootstrap/seed-admin.sql"
+      "description": "Super Admin personal code"
     },
     {
       "key": "pc_org_admin",
       "value": "48004115799",
-      "enabled": true
+      "enabled": true,
+      "description": "Local Admin (Justiitsministeerium)"
     },
     {
       "key": "pc_user",
       "value": "39001011234",
-      "enabled": true
+      "enabled": true,
+      "description": "Regular user with no permissions (Mari Tamm)"
     },
     {
       "key": "cookie_admin",
-      "value": "",
-      "enabled": true
-    },
-    {
-      "key": "baseline_org_count",
-      "value": "",
-      "enabled": true
-    },
-    {
-      "key": "created_org_id",
       "value": "",
       "enabled": true
     },
@@ -61,6 +48,16 @@
     },
     {
       "key": "cookie_noperm",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "baseline_org_count",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "created_org_id",
       "value": "",
       "enabled": true
     },
@@ -101,20 +98,17 @@
     {
       "key": "local_admin_group_id",
       "value": "",
-      "enabled": true,
-      "description": "ID of Local Admin Group — populated during local-admin scenario in Users tests"
+      "enabled": true
     },
     {
       "key": "created_local_admin_id",
       "value": "",
-      "enabled": true,
-      "description": "ID of local-admin CI user (48001011234) created during scenario"
+      "enabled": true
     },
     {
       "key": "cookie_local_ci",
       "value": "",
-      "enabled": true,
-      "description": "JWT cookie for local-admin CI user (48001011234)"
+      "enabled": true
     },
     {
       "key": "local_list_count_before",
@@ -124,8 +118,7 @@
     {
       "key": "created_local_user2_id",
       "value": "",
-      "enabled": true,
-      "description": "ID of user (48001021234) inserted by local admin during scenario"
+      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment"
