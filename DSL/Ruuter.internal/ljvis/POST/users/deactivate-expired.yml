@@ -15,7 +15,7 @@ extractRequestData:
 deactivateExpired:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/deactivate_expired_users"
+    url: "[#LJVIS_RESQL]/user/deactivate_expired_users"
     headers:
       type: json
     body:
@@ -32,7 +32,7 @@ checkDeactivated:
 rebuildLatest:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    url: "[#LJVIS_RESQL]/user/rebuild_user_account_latest"
     headers:
       type: json
     body:

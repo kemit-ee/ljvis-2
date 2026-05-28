@@ -45,7 +45,7 @@ checkUserIds:
 addUsers:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/set_user_group_users"
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_users"
     headers:
       type: json
     body:
@@ -59,7 +59,7 @@ addUsers:
 rebuildLatest:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    url: "[#LJVIS_RESQL]/user/rebuild_user_account_latest"
     headers:
       type: json
     body:

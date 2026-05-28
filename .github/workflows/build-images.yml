@@ -38,12 +38,6 @@ jobs:
           echo "IMAGE_BASE=$IMAGE_BASE" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
 
-      - name: Build and push resql-users
-        run: |
-          docker build -f docker/resql-users/Dockerfile \
-            -t $IMAGE_BASE/resql-users:$TAG -t $IMAGE_BASE/resql-users:latest .
-          docker push $IMAGE_BASE/resql-users --all-tags
-
       - name: Build and push resql-ljvis
         run: |
           docker build -f docker/resql-ljvis/Dockerfile \
@@ -85,7 +79,6 @@ jobs:
           echo "✅ All images pushed with tag: $TAG"
           echo ""
           echo "Images:"
-          echo "  $IMAGE_BASE/resql-users:$TAG"
           echo "  $IMAGE_BASE/resql-ljvis:$TAG"
           echo "  $IMAGE_BASE/ruuter:$TAG"
           echo "  $IMAGE_BASE/ruuter-internal:$TAG"

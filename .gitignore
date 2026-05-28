@@ -25,3 +25,5 @@ tim-db/
 # Task/test documentation (local only)
 TASK-*.md
 TEST-*.md
+
+tests/postman/reports/*

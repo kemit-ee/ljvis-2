@@ -5,14 +5,14 @@ services:
     environment:
       - POSTGRES_USER=ljvis
       - POSTGRES_PASSWORD=01234
-      - POSTGRES_DB=users_db
+      - POSTGRES_DB=ljvis_db
     ports:
       - 54321:5432
     volumes:
       - ./data:/var/lib/postgresql/data
       - ./DSL/Liquibase/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ljvis -d users_db"]
+      test: ["CMD-SHELL", "pg_isready -U ljvis -d ljvis_db"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -33,28 +33,6 @@ services:
       - ./DSL/Liquibase/changelog:/liquibase/changelog
       - ./DSL/Liquibase/changelog.yaml:/liquibase/changelog.yaml
     command: --defaultsFile=/liquibase/liquibase.properties update
-    networks:
-      - ljvisnetwork
-
-  resql-users:
-    container_name: resql-users
-    build:
-      context: .
-      dockerfile: docker/resql-users/Dockerfile
-    platform: linux/amd64
-    depends_on:
-      - database
-    environment:
-      - server.port=8087
-      - sqlms.datasources.[0].name=byk
-      - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/users_db
-      - sqlms.datasources.[0].username=ljvis
-      - sqlms.datasources.[0].password=01234
-      - logging.level.org.springframework.boot=INFO
-    ports:
-      - 8087:8087
-    volumes:
-      - ./DSL/Resql:/DSL
     networks:
       - ljvisnetwork
 
@@ -199,7 +177,7 @@ services:
           -file /tara-mock-vault/rootCA.pem -keystore "$$CACERTS" -storepass changeit
         exec ./generate-keystore.sh
     environment:
-      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-users,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
+      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
       - JWT_INTEGRATION_SIGNATURE_KEY_STORE_PASSWORD=defaultpassword
       - security.oauth2.client.client-id=ljvis
       - security.oauth2.client.client-secret=ljvis-secret

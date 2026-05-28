@@ -36,7 +36,7 @@ extractRequestData:
 updateName:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/update_user_group_name"
+    url: "[#LJVIS_RESQL]/user_group/update_user_group_name"
     headers:
       type: json
     body:
@@ -49,7 +49,7 @@ updateName:
 rebuildLatest:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    url: "[#LJVIS_RESQL]/user_group/rebuild_user_group_latest"
     headers:
       type: json
     body:

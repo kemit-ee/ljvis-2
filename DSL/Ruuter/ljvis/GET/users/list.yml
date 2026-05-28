@@ -61,7 +61,7 @@ extractRequestData:
 getUsers:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/list_users"
+    url: "[#LJVIS_RESQL]/user/list_users"
     query:
       page: ${page}
       page_size: ${page_size}

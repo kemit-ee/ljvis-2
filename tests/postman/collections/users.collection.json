@@ -1,0 +1,469 @@
+{
+  "info": {
+    "name": "LJVIS — Users",
+    "_postman_id": "ljvis-users-v1",
+    "description": "Functional tests for /users endpoints. Self-contained: authenticates and resolves seed IDs internally.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_admin}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — Local Admin",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_org_admin}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_local', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_user}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Setup] Save org ID",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/organisations/list", "host": ["{{api_url}}"], "path": ["ljvis", "organisations", "list"]}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const orgs = Array.isArray(body) ? body : (body.response || []);",
+        "const org = orgs.find(o => o.name === 'Justiitsministeerium');",
+        "pm.test('Justiitsministeerium org found', () => pm.expect(org).to.not.be.undefined);",
+        "if (org) pm.environment.set('seeded_org_bootstrap_id', String(org.id));"
+      ]}}]
+    },
+    {
+      "name": "[Setup] Save seeded group ID",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/user-groups/list?page=1&pageSize=20",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "user-groups", "list"],
+          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const groups = Array.isArray(body) ? body : (body.response || []);",
+        "const g = groups.find(g => g.name === 'Super Admin Group');",
+        "if (g) pm.environment.set('seeded_group_admin_id', String(g.id));"
+      ]}}]
+    },
+    {
+      "name": "GET /users/list — admin sees all users",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "list"],
+          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const users = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Response is array', () => pm.expect(users).to.be.an('array'));",
+        "pm.test('At least 1 seeded user visible', () => pm.expect(users.length).to.be.at.least(1));",
+        "pm.test('User has required fields', () => {",
+        "  pm.expect(users[0]).to.have.property('id');",
+        "  pm.expect(users[0]).to.have.property('firstName');",
+        "  pm.expect(users[0]).to.have.property('lastName');",
+        "  pm.expect(users[0]).to.have.property('personalCode');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "GET /users/list — no permission → 403",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "list"],
+          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 for user without permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "GET /users/list — search filter returns matching users",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20&search=Admin",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "list"],
+          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}, {"key": "search", "value": "Admin"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Search results returned', () => pm.expect(arr).to.be.an('array'));",
+        "pm.test('All results match search term', () => {",
+        "  arr.forEach(u => {",
+        "    const name = (u.firstName + ' ' + u.lastName).toLowerCase();",
+        "    pm.expect(name).to.include('admin');",
+        "  });",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "GET /users/check-personal-code-exists — existing code → 409",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/check-personal-code-exists?personalCode=38001085718",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "check-personal-code-exists"],
+          "query": [{"key": "personalCode", "value": "38001085718"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 409 for existing personal code', () => pm.response.to.have.status(409));"
+      ]}}]
+    },
+    {
+      "name": "GET /users/check-personal-code-exists — unknown code → 200 empty",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/check-personal-code-exists?personalCode=99999999999",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "check-personal-code-exists"],
+          "query": [{"key": "personalCode", "value": "99999999999"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200 for unused personal code', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Result is empty array (code is available)', () => pm.expect(arr.length).to.equal(0));"
+      ]}}]
+    },
+    {
+      "name": "POST /users/insert — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"firstName\":\"Test\",\"lastName\":\"User\",\"personalCode\":\"50001018888\",\"organisationId\":\"1\",\"structuralUnitName\":\"Unit\",\"jobTitleName\":\"Title\",\"email\":\"test@ci.test\",\"accessStart\":\"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 for user without edit permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /users/insert — missing required field → 422",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"firstName\":\"\",\"lastName\":\"User\",\"personalCode\":\"51001011234\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Unit A\",\"jobTitleName\":\"Title\",\"email\":\"test@ci.test\",\"accessStart\":\"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422 when firstName is missing', () => pm.response.to.have.status(422));"
+      ]}}]
+    },
+    {
+      "name": "POST /users/insert — success",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"firstName\":\"Test\",\"lastName\":\"User CI\",\"personalCode\":\"51001011234\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Unit A\",\"jobTitleName\":\"Test Job\",\"email\":\"test.user@ci.test\",\"accessStart\":\"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Response contains user id', () => pm.expect(arr[0]).to.have.property('id'));",
+        "pm.environment.set('created_user_id', String(arr[0].id));"
+      ]}}]
+    },
+    {
+      "name": "POST /users/insert — duplicate personal code → 409",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"firstName\":\"Test\",\"lastName\":\"User CI\",\"personalCode\":\"51001011234\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Unit A\",\"jobTitleName\":\"Test Job\",\"email\":\"test.user2@ci.test\",\"accessStart\":\"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 409 for duplicate personal code', () => pm.response.to.have.status(409));"
+      ]}}]
+    },
+    {
+      "name": "GET /users/get — admin gets created user",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/get?id={{created_user_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "get"],
+          "query": [{"key": "id", "value": "{{created_user_id}}"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const users = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('User returned', () => pm.expect(users.length).to.be.above(0));",
+        "pm.test('Correct user returned', () => pm.expect(users[0].personalCode).to.equal('51001011234'));",
+        "pm.test('User has required fields', () => {",
+        "  pm.expect(users[0]).to.have.property('firstName');",
+        "  pm.expect(users[0]).to.have.property('email');",
+        "  pm.expect(users[0]).to.have.property('status');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "GET /users/get-groups — empty for new user",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/get-groups?userId={{created_user_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "get-groups"],
+          "query": [{"key": "userId", "value": "{{created_user_id}}"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const groups = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('New user has no groups', () => pm.expect(groups.length).to.equal(0));"
+      ]}}]
+    },
+    {
+      "name": "POST /users/update — update job title",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/update", "host": ["{{api_url}}"], "path": ["ljvis", "users", "update"]},
+        "body": {"mode": "raw", "raw": "{\"id\":\"{{created_user_id}}\",\"firstName\":\"Test\",\"lastName\":\"User CI\",\"personalCode\":\"51001011234\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Unit A\",\"jobTitleName\":\"Updated Job\",\"email\":\"test.user@ci.test\",\"accessStart\":\"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "POST /users/set-groups — assign user to seeded group",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/set-groups", "host": ["{{api_url}}"], "path": ["ljvis", "users", "set-groups"]},
+        "body": {"mode": "raw", "raw": "{\"userId\":\"{{created_user_id}}\",\"addedGroupIds\":[\"{{seeded_group_admin_id}}\"],\"removedGroupIds\":[]}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "GET /users/get-groups — verify group assignment",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/get-groups?userId={{created_user_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "get-groups"],
+          "query": [{"key": "userId", "value": "{{created_user_id}}"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('User now belongs to one group', () => pm.expect(arr.length).to.be.above(0));",
+        "pm.test('Group has userGroupId field', () => pm.expect(arr[0]).to.have.property('userGroupId'));"
+      ]}}]
+    },
+
+    {
+      "name": "[Setup] Save Local Admin Group ID",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/user-groups/list?page=1&pageSize=20",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "user-groups", "list"],
+          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const groups = Array.isArray(body) ? body : (body.response || []);",
+        "const g = groups.find(g => g.name === 'Local Admin Group');",
+        "pm.test('Local Admin Group found', () => pm.expect(g).to.not.be.undefined);",
+        "if (g) pm.environment.set('local_admin_group_id', String(g.id));"
+      ]}}]
+    },
+    {
+      "name": "[Scenario] Admin creates local-admin CI user (48001011236)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"firstName\":\"Local\",\"lastName\":\"Admin CI\",\"personalCode\":\"48001011236\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Test Unit\",\"jobTitleName\":\"Test Job\",\"email\":\"local.admin.ci@test.ee\",\"accessStart\":\"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Response contains user id', () => pm.expect(arr[0]).to.have.property('id'));",
+        "pm.environment.set('created_local_admin_id', String(arr[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[Scenario] Admin assigns local-admin CI user to Local Admin Group",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/set-groups", "host": ["{{api_url}}"], "path": ["ljvis", "users", "set-groups"]},
+        "body": {"mode": "raw", "raw": "{\"userId\":\"{{created_local_admin_id}}\",\"addedGroupIds\":[\"{{local_admin_group_id}}\"],\"removedGroupIds\":[]}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — Local Admin CI (48001011236)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"48001011236\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_local_ci', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "GET /users/list — local admin sees only JUM users",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_local_ci}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "list"],
+          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Response is array', () => pm.expect(arr).to.be.an('array'));",
+        "pm.test('Local admin sees only JUM users', () => {",
+        "  arr.forEach(u => pm.expect(u.organisationName).to.equal('Justiitsministeerium'));",
+        "});",
+        "pm.environment.set('local_list_count_before', String(arr.length));"
+      ]}}]
+    },
+    {
+      "name": "POST /users/insert — local admin inserts user in own org (48001021232)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_local_ci}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"firstName\":\"New\",\"lastName\":\"User CI\",\"personalCode\":\"48001021232\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Test Unit\",\"jobTitleName\":\"Test Job\",\"email\":\"new.user.ci@test.ee\",\"accessStart\":\"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Response contains user id', () => pm.expect(arr[0]).to.have.property('id'));",
+        "pm.environment.set('created_local_user2_id', String(arr[0].id));"
+      ]}}]
+    },
+    {
+      "name": "GET /users/list — local admin sees newly inserted user",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_local_ci}}"}],
+        "url": {
+          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "users", "list"],
+          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
+        }
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Response is array', () => pm.expect(arr).to.be.an('array'));",
+        "pm.test('Newly inserted user visible to local admin', () => {",
+        "  const found = arr.find(u => u.personalCode === '48001021232');",
+        "  pm.expect(found).to.not.be.undefined;",
+        "});",
+        "pm.test('List grew by one', () => {",
+        "  const before = parseInt(pm.environment.get('local_list_count_before') || '0');",
+        "  pm.expect(arr.length).to.equal(before + 1);",
+        "});"
+      ]}}]
+    }
+  ],
+  "variable": []
+}

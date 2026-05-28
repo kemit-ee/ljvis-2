@@ -10,7 +10,7 @@ declaration:
 getOrganisations:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/organisation/list_organisations"
+    url: "[#LJVIS_RESQL]/organisation/list_organisations"
   result: res
 
 returnSuccess:

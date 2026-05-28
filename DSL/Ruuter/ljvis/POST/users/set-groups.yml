@@ -51,7 +51,7 @@ checkRemovedGroups:
 removeGroups:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/set_user_groups"
+    url: "[#LJVIS_RESQL]/user/set_user_groups"
     headers:
       type: json
     body:
@@ -71,7 +71,7 @@ checkAddedGroups:
 insertGroups:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/set_user_groups"
+    url: "[#LJVIS_RESQL]/user/set_user_groups"
     headers:
       type: json
     body:
@@ -85,7 +85,7 @@ insertGroups:
 rebuildLatest:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user/rebuild_user_account_latest"
+    url: "[#LJVIS_RESQL]/user/rebuild_user_account_latest"
     headers:
       type: json
     body:

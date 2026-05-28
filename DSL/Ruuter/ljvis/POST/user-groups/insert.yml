@@ -54,7 +54,7 @@ validateNameLength:
 createGroup:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group"
+    url: "[#LJVIS_RESQL]/user_group/insert_user_group"
     headers:
       type: json
     body:
@@ -69,7 +69,7 @@ extractGroupId:
 createGroupNameState:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_name_state"
+    url: "[#LJVIS_RESQL]/user_group/insert_user_group_name_state"
     headers:
       type: json
     body:
@@ -90,7 +90,7 @@ checkOrganisations:
 assignOrganisations:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_organisation"
+    url: "[#LJVIS_RESQL]/user_group/insert_user_group_organisation"
     headers:
       type: json
     body:
@@ -103,7 +103,7 @@ assignOrganisations:
 assignOrganisationState:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_organisation_state"
+    url: "[#LJVIS_RESQL]/user_group/insert_user_group_organisation_state"
     headers:
       type: json
     body:
@@ -122,7 +122,7 @@ checkPermissions:
 assignPermissions:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_permission"
+    url: "[#LJVIS_RESQL]/user_group/insert_user_group_permission"
     headers:
       type: json
     body:
@@ -135,7 +135,7 @@ assignPermissions:
 assignPermissionState:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/insert_user_group_permission_state"
+    url: "[#LJVIS_RESQL]/user_group/insert_user_group_permission_state"
     headers:
       type: json
     body:
@@ -148,7 +148,7 @@ assignPermissionState:
 rebuildLatest:
   call: http.post
   args:
-    url: "[#LJVIS_USERS_RESQL]/user_group/rebuild_user_group_latest"
+    url: "[#LJVIS_RESQL]/user_group/rebuild_user_group_latest"
     headers:
       type: json
     body:
