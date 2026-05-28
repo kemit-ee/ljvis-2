@@ -13,7 +13,7 @@ mode: create
 ## 1. Ülevaade
 
 Loodud 24 SQL faili ja 16 Ruuter DSL faili klassifikaatorite haldamiseks. Kasutatavad tabelid: `classifier_latest`, `classifier_value_latest` (lugemine), `classifier_name_state`, `classifier_value`, `classifier_value_validity_state` (kirjutamine), `classifier_latest`, `classifier_value_latest` (snapshot rebuild). Kõik päringud kasutavad HTTP POST meetodit. Uue klassifikaatori loomine ja kustutamine on väljaspool scope'i.
-Ruuteri sisemine leping kasutab kuju `/ljvis2/iam/<entiteet>/v1/<operatsioon>`; source failid paiknevad kujul `DSL/Resql/<MEETOD>/iam/<entiteet>/v1/*.sql` ja runtime laeb need projekti all kujul `/DSL/ljvis2/<MEETOD>/iam/<entiteet>/v1/*.sql`.
+Ruuteri sisemine leping kasutab kuju `/ljvis2/iam/<entiteet>/v1/<operatsioon>`; source failid paiknevad kujul `DSL/Resql/ljvis2/<MEETOD>/iam/<entiteet>/v1/*.sql` ja runtime laeb need projekti all kujul `/DSL/ljvis2/<MEETOD>/iam/<entiteet>/v1/*.sql`.
 
 ## 2. Kaustastruktuur
 
@@ -103,8 +103,8 @@ Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifie
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/POST/iam/classifier/v1/list.sql` |
-| **Mock failitee** | `DSL/Resql/POST/iam/classifier/v1/mock_list.sql` |
+| **Failitee** | `DSL/Resql/ljvis2/POST/iam/classifier/v1/list.sql` |
+| **Mock failitee** | `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_list.sql` |
 | **HTTP meetod** | POST |
 | **Kirjeldus** | Klassifikaatorite pagineeritud nimekiri otsingu ja sortimisega |
 | **Sisendparameetrid** | `:page` (INTEGER), `:pageSize` (INTEGER), `:search` (VARCHAR, optional) |
@@ -116,8 +116,8 @@ Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifie
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/POST/iam/classifier/v1/get.sql` |
-| **Mock failitee** | `DSL/Resql/POST/iam/classifier/v1/mock_get.sql` |
+| **Failitee** | `DSL/Resql/ljvis2/POST/iam/classifier/v1/get.sql` |
+| **Mock failitee** | `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_get.sql` |
 | **HTTP meetod** | POST |
 | **Kirjeldus** | Klassifikaatori detailvaade snapshot põhjal |
 | **Sisendparameetrid** | `:classifierId` (BIGINT) |
@@ -129,8 +129,8 @@ Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifie
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/POST/iam/classifier/v1/update.sql` |
-| **Mock failitee** | `DSL/Resql/POST/iam/classifier/v1/mock_update.sql` |
+| **Failitee** | `DSL/Resql/ljvis2/POST/iam/classifier/v1/update.sql` |
+| **Mock failitee** | `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_update.sql` |
 | **HTTP meetod** | POST |
 | **Kirjeldus** | INSERT classifier_name_state — nimi/kirjeldus muutus |
 | **Sisendparameetrid** | `:classifierId` (BIGINT), `:name` (VARCHAR), `:description` (VARCHAR, optional), `:createdBy` (BIGINT) |
@@ -155,8 +155,8 @@ Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifie
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/POST/iam/classifier_value/v1/list.sql` |
-| **Mock failitee** | `DSL/Resql/POST/iam/classifier_value/v1/mock_list.sql` |
+| **Failitee** | `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/list.sql` |
+| **Mock failitee** | `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_list.sql` |
 | **HTTP meetod** | POST |
 | **Kirjeldus** | Klassifikaatori väärtuste pagineeritud nimekiri |
 | **Sisendparameetrid** | `:classifierId` (BIGINT), `:page` (INTEGER), `:pageSize` (INTEGER) |
@@ -168,8 +168,8 @@ Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifie
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/POST/iam/classifier_value/v1/check_code_exists.sql` |
-| **Mock failitee** | `DSL/Resql/POST/iam/classifier_value/v1/mock_check_code_exists.sql` |
+| **Failitee** | `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/check_code_exists.sql` |
+| **Mock failitee** | `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_check_code_exists.sql` |
 | **HTTP meetod** | POST |
 | **Kirjeldus** | Väärtuse koodi unikaalsuse eelkontroll |
 | **Sisendparameetrid** | `:classifierId` (BIGINT), `:code` (VARCHAR) |
@@ -181,8 +181,8 @@ Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifie
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/POST/iam/classifier_value/v1/create.sql` |
-| **Mock failitee** | `DSL/Resql/POST/iam/classifier_value/v1/mock_create.sql` |
+| **Failitee** | `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/create.sql` |
+| **Mock failitee** | `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_create.sql` |
 | **HTTP meetod** | POST |
 | **Kirjeldus** | INSERT classifier_value (kood + nimi) |
 | **Sisendparameetrid** | `:classifierId` (BIGINT), `:code` (VARCHAR), `:name` (VARCHAR), `:createdBy` (BIGINT) |
@@ -196,8 +196,8 @@ Mock vasted paiknevad eraldi kaustas `DSL/Ruuter/mockapi/POST/v1/admin/classifie
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/POST/iam/classifier_value/v1/update.sql` |
-| **Mock failitee** | `DSL/Resql/POST/iam/classifier_value/v1/mock_update.sql` |
+| **Failitee** | `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/update.sql` |
+| **Mock failitee** | `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_update.sql` |
 | **HTTP meetod** | POST |
 | **Kirjeldus** | INSERT classifier_value_validity_state — kehtivusperiood muutus |
 | **Sisendparameetrid** | `:classifierValueId` (BIGINT), `:validFrom` (DATE), `:validUntil` (DATE, optional), `:createdBy` (BIGINT) |

@@ -14,30 +14,30 @@ Selles repos hoitakse RESQL source faile kaustas `DSL/Resql/` ja Ruuteri faile k
 
 | Sihtkoht |
 |----------|
-| `DSL/Resql/POST/iam/classifier/v1/list.sql` |
-| `DSL/Resql/POST/iam/classifier/v1/mock_list.sql` |
-| `DSL/Resql/POST/iam/classifier/v1/get.sql` |
-| `DSL/Resql/POST/iam/classifier/v1/mock_get.sql` |
-| `DSL/Resql/POST/iam/classifier/v1/update.sql` |
-| `DSL/Resql/POST/iam/classifier/v1/mock_update.sql` |
-| `DSL/Resql/POST/iam/classifier/v1/get_latest_name_state.sql` |
-| `DSL/Resql/POST/iam/classifier/v1/mock_get_latest_name_state.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/list.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/mock_list.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/check_code_exists.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/mock_check_code_exists.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/create.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/mock_create.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/create_validity_state.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/mock_create_validity_state.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/update.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/mock_update.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/get_latest_validity_state.sql` |
-| `DSL/Resql/POST/iam/classifier_value/v1/mock_get_latest_validity_state.sql` |
-| `DSL/Resql/POST/state_updater/classifier_latest/build.sql` |
-| `DSL/Resql/POST/state_updater/classifier_latest/mock_build.sql` |
-| `DSL/Resql/POST/state_updater/classifier_value_latest/build.sql` |
-| `DSL/Resql/POST/state_updater/classifier_value_latest/mock_build.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier/v1/list.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_list.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier/v1/get.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_get.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier/v1/update.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_update.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier/v1/get_latest_name_state.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_get_latest_name_state.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/list.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_list.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/check_code_exists.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_check_code_exists.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/create.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_create.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/create_validity_state.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_create_validity_state.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/update.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_update.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/get_latest_validity_state.sql` |
+| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_get_latest_validity_state.sql` |
+| `DSL/Resql/ljvis2/POST/state_updater/classifier_latest/build.sql` |
+| `DSL/Resql/ljvis2/POST/state_updater/classifier_latest/mock_build.sql` |
+| `DSL/Resql/ljvis2/POST/state_updater/classifier_value_latest/build.sql` |
+| `DSL/Resql/ljvis2/POST/state_updater/classifier_value_latest/mock_build.sql` |
 
 **Märkus:** `mock_` prefiksiga failid kopeeritakse samasse kataloogi.
 

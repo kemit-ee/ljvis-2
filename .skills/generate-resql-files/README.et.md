@@ -23,10 +23,10 @@ See skill aitab LJVIS projektis genereerida ja uuendada DSL-artefakte:
 - Üks fail = üks operatsioon.
 - RESQL teed peavad olema versioneeritud (`v1`).
 - Ruuteri sisekutsed RESQL-i peavad kasutama kuju `[#LOCAL_RESQL]/ljvis2/v1/...`.
-- RESQL SQL failid peavad paiknema kujul `DSL/Resql/<MEETOD>/<moodul>/<entiteet>/v1/...`.
+- RESQL SQL failid peavad paiknema kujul `DSL/Resql/ljvis2/<MEETOD>/<moodul>/<entiteet>/v1/...`.
 - GET on lubatud ainult parameetrita listidele.
 - Enne commit'i tee sanity-check teevastavusele.
-- `*_latest` snapshot rebuild SQL-id koonduvad `state_updater` moodulisse (`DSL/Resql/POST/state_updater/<entiteet>/build.sql`) — ilma versioonikihita. Ruuter kutsub neid `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` kaudu. Neil ei ole Ruuter YML-e ega `.guard` faile.
+- `*_latest` snapshot rebuild SQL-id koonduvad `state_updater` moodulisse (`DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql`) — ilma versioonikihita. Ruuter kutsub neid `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` kaudu. Neil ei ole Ruuter YML-e ega `.guard` faile.
 - Kui epic muudab skeemi, tuleb lisaks luua Liquibase triplet `DSL/Liquibase/changelog/` alla: `YYYYMMDDXXXX-selgitus-millega-tegu.sql`, `YYYYMMDDXXXX-selgitus-millega-tegu-rollback.sql`, `YYYYMMDDXXXX-selgitus-millega-tegu.xml`.
 - Forward Liquibase SQL peab olema kaitstud: esmalt tabel olemasolu kontrolliga, seejärel puuduvad väljad `IF NOT EXISTS` loogikaga, et osaliselt olemasolev skeem saaks täieneda ilma katkestuseta.
 - Uute või muudetud `_state` / `_status` ja `*_latest` tabelite jaoks tuleb lisada indeksid vastavalt päringute `WHERE`, `ORDER BY`, latest lookup ja rebuild mustritele.

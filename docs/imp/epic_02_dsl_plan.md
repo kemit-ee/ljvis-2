@@ -61,73 +61,73 @@ Epic 02 katab kasutajate ja kasutajagruppide haldamise admin-liideses. Kasutajal
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/POST/iam/user/v1/list.sql` | SQL | Kasutajate pagineeritud nimekiri `user_account_latest`-ist |
-| `DSL/Resql/POST/iam/user/v1/mock_list.sql` | SQL | Mock nimekiri |
-| `DSL/Resql/POST/iam/user/v1/get.sql` | SQL | Kasutaja detailvaade `user_account_latest`-ist |
-| `DSL/Resql/POST/iam/user/v1/mock_get.sql` | SQL | Mock detailvaade |
-| `DSL/Resql/POST/iam/user/v1/check_personal_code_exists.sql` | SQL | Isikukoodi unikaalsuse kontroll |
-| `DSL/Resql/POST/iam/user/v1/mock_check_personal_code_exists.sql` | SQL | Mock koodikontroll |
-| `DSL/Resql/POST/iam/user/v1/create.sql` | SQL | INSERT user_account + user_account_data_state + user_account_state |
-| `DSL/Resql/POST/iam/user/v1/mock_create.sql` | SQL | Mock create kinnitusrida |
-| `DSL/Resql/POST/iam/user/v1/update.sql` | SQL | INSERT user_account_data_state (andmete muutus) |
-| `DSL/Resql/POST/iam/user/v1/mock_update.sql` | SQL | Mock update kinnitusrida |
-| `DSL/Resql/POST/iam/user/v1/change_organisation.sql` | SQL | INSERT user_account_data_state (asutus muutub) + remove active group memberships |
-| `DSL/Resql/POST/iam/user/v1/mock_change_organisation.sql` | SQL | Mock change-org kinnitusrida |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/list.sql` | SQL | Kasutajate pagineeritud nimekiri `user_account_latest`-ist |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_list.sql` | SQL | Mock nimekiri |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/get.sql` | SQL | Kasutaja detailvaade `user_account_latest`-ist |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_get.sql` | SQL | Mock detailvaade |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/check_personal_code_exists.sql` | SQL | Isikukoodi unikaalsuse kontroll |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_check_personal_code_exists.sql` | SQL | Mock koodikontroll |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/create.sql` | SQL | INSERT user_account + user_account_data_state + user_account_state |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_create.sql` | SQL | Mock create kinnitusrida |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/update.sql` | SQL | INSERT user_account_data_state (andmete muutus) |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_update.sql` | SQL | Mock update kinnitusrida |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/change_organisation.sql` | SQL | INSERT user_account_data_state (asutus muutub) + remove active group memberships |
+| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_change_organisation.sql` | SQL | Mock change-org kinnitusrida |
 
 ### RESQL SQL failid (iam/user_group_membership — 6 faili)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/POST/iam/user_group_membership/v1/get.sql` | SQL | Kasutaja aktiivsed grupid `user_account_latest.user_groups`-ist |
-| `DSL/Resql/POST/iam/user_group_membership/v1/mock_get.sql` | SQL | Mock |
-| `DSL/Resql/POST/iam/user_group_membership/v1/available.sql` | SQL | Kasutaja asutusega seotud saadaolevad grupid `user_group_latest`-ist |
-| `DSL/Resql/POST/iam/user_group_membership/v1/mock_available.sql` | SQL | Mock |
-| `DSL/Resql/POST/iam/user_group_membership/v1/save.sql` | SQL | INSERT user_account_user_group + state (added) + INSERT removed state |
-| `DSL/Resql/POST/iam/user_group_membership/v1/mock_save.sql` | SQL | Mock |
+| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/get.sql` | SQL | Kasutaja aktiivsed grupid `user_account_latest.user_groups`-ist |
+| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/mock_get.sql` | SQL | Mock |
+| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/available.sql` | SQL | Kasutaja asutusega seotud saadaolevad grupid `user_group_latest`-ist |
+| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/mock_available.sql` | SQL | Mock |
+| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/save.sql` | SQL | INSERT user_account_user_group + state (added) + INSERT removed state |
+| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/mock_save.sql` | SQL | Mock |
 
 ### RESQL SQL failid (iam/user_group — 16 faili)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/POST/iam/user_group/v1/list.sql` | SQL | Kasutajagruppide pagineeritud nimekiri `user_group_latest`-ist |
-| `DSL/Resql/POST/iam/user_group/v1/mock_list.sql` | SQL | Mock nimekiri |
-| `DSL/Resql/POST/iam/user_group/v1/get.sql` | SQL | Kasutajagrupi detailvaade `user_group_latest`-ist |
-| `DSL/Resql/POST/iam/user_group/v1/mock_get.sql` | SQL | Mock detailvaade |
-| `DSL/Resql/POST/iam/user_group/v1/create.sql` | SQL | INSERT user_group + name_state + org_links + org_states + perm_links + perm_states |
-| `DSL/Resql/POST/iam/user_group/v1/mock_create.sql` | SQL | Mock create |
-| `DSL/Resql/POST/iam/user_group/v1/update.sql` | SQL | INSERT user_group_name_state / org/perm sync (lisamine + eemaldamine) |
-| `DSL/Resql/POST/iam/user_group/v1/mock_update.sql` | SQL | Mock update |
-| `DSL/Resql/POST/iam/user_group/v1/list_users.sql` | SQL | Grupi liikmete pagineeritud nimekiri `user_account_latest`-ist |
-| `DSL/Resql/POST/iam/user_group/v1/mock_list_users.sql` | SQL | Mock liikmete nimekiri |
-| `DSL/Resql/POST/iam/user_group/v1/search_eligible_users.sql` | SQL | Gruppi sobivad kasutajad `user_account_latest`-ist |
-| `DSL/Resql/POST/iam/user_group/v1/mock_search_eligible_users.sql` | SQL | Mock otsing |
-| `DSL/Resql/POST/iam/user_group/v1/add_user.sql` | SQL | INSERT user_account_user_group + active state |
-| `DSL/Resql/POST/iam/user_group/v1/mock_add_user.sql` | SQL | Mock lisamine |
-| `DSL/Resql/POST/iam/user_group/v1/remove_user.sql` | SQL | INSERT removed state for user_account_user_group_state |
-| `DSL/Resql/POST/iam/user_group/v1/mock_remove_user.sql` | SQL | Mock eemaldamine |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/list.sql` | SQL | Kasutajagruppide pagineeritud nimekiri `user_group_latest`-ist |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_list.sql` | SQL | Mock nimekiri |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/get.sql` | SQL | Kasutajagrupi detailvaade `user_group_latest`-ist |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_get.sql` | SQL | Mock detailvaade |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/create.sql` | SQL | INSERT user_group + name_state + org_links + org_states + perm_links + perm_states |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_create.sql` | SQL | Mock create |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/update.sql` | SQL | INSERT user_group_name_state / org/perm sync (lisamine + eemaldamine) |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_update.sql` | SQL | Mock update |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/list_users.sql` | SQL | Grupi liikmete pagineeritud nimekiri `user_account_latest`-ist |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_list_users.sql` | SQL | Mock liikmete nimekiri |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/search_eligible_users.sql` | SQL | Gruppi sobivad kasutajad `user_account_latest`-ist |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_search_eligible_users.sql` | SQL | Mock otsing |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/add_user.sql` | SQL | INSERT user_account_user_group + active state |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_add_user.sql` | SQL | Mock lisamine |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/remove_user.sql` | SQL | INSERT removed state for user_account_user_group_state |
+| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_remove_user.sql` | SQL | Mock eemaldamine |
 
 ### RESQL SQL failid (iam/organisation — 2 faili)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/POST/iam/organisation/v1/list.sql` | SQL | Asutuste nimekiri kasutajagrupi vormi jaoks |
-| `DSL/Resql/POST/iam/organisation/v1/mock_list.sql` | SQL | Mock asutuste nimekiri |
+| `DSL/Resql/ljvis2/POST/iam/organisation/v1/list.sql` | SQL | Asutuste nimekiri kasutajagrupi vormi jaoks |
+| `DSL/Resql/ljvis2/POST/iam/organisation/v1/mock_list.sql` | SQL | Mock asutuste nimekiri |
 
 ### RESQL SQL failid (iam/permission — 2 faili, GET)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/GET/iam/permission/v1/list.sql` | SQL | Õiguste kataloog (parameetrita) |
-| `DSL/Resql/GET/iam/permission/v1/mock_list.sql` | SQL | Mock õiguste kataloog |
+| `DSL/Resql/ljvis2/GET/iam/permission/v1/list.sql` | SQL | Õiguste kataloog (parameetrita) |
+| `DSL/Resql/ljvis2/GET/iam/permission/v1/mock_list.sql` | SQL | Mock õiguste kataloog |
 
 ### state_updater SQL failid (4 faili)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/POST/state_updater/user_account_latest/build.sql` | SQL | INSERT user_account_latest snapshot |
-| `DSL/Resql/POST/state_updater/user_account_latest/mock_build.sql` | SQL | Mock snapshot |
-| `DSL/Resql/POST/state_updater/user_group_latest/build.sql` | SQL | INSERT user_group_latest snapshot |
-| `DSL/Resql/POST/state_updater/user_group_latest/mock_build.sql` | SQL | Mock snapshot |
+| `DSL/Resql/ljvis2/POST/state_updater/user_account_latest/build.sql` | SQL | INSERT user_account_latest snapshot |
+| `DSL/Resql/ljvis2/POST/state_updater/user_account_latest/mock_build.sql` | SQL | Mock snapshot |
+| `DSL/Resql/ljvis2/POST/state_updater/user_group_latest/build.sql` | SQL | INSERT user_group_latest snapshot |
+| `DSL/Resql/ljvis2/POST/state_updater/user_group_latest/mock_build.sql` | SQL | Mock snapshot |
 
 ### Ruuter DSL failid — users (14 faili + 2 guardi)
 

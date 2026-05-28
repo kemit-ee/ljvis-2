@@ -185,8 +185,8 @@ Iga päringu kohta eraldi alamjaotis:
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/POST/<moodul>/<entiteet>/v1/<operatsioon>.sql` |
-| **Mock failitee** | `DSL/Resql/POST/<moodul>/<entiteet>/v1/mock_<operatsioon>.sql` |
+| **Failitee** | `DSL/Resql/ljvis2/POST/<moodul>/<entiteet>/v1/<operatsioon>.sql` |
+| **Mock failitee** | `DSL/Resql/ljvis2/POST/<moodul>/<entiteet>/v1/mock_<operatsioon>.sql` |
 | **HTTP meetod** | POST / GET |
 | **Kirjeldus** | Mida päring teeb (1 lause) |
 | **Sisendparameetrid** | `:param1` (tüüp), `:param2` (tüüp) — või *puuduvad* |
@@ -275,8 +275,8 @@ done
 ```
 
 **URL kujud:**
-- Tavalised: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
-- `state_updater`: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` kihita)
+- Tavalised: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → `DSL/Resql/ljvis2/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- `state_updater`: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → `DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` kihita)
 
 Kui väljundis on `MISSING:`, tuleb failitee joondada enne merge'i.
 
@@ -501,8 +501,8 @@ Kõik selle EPICu RESQL, Ruuter ja vajadusel Liquibase failid luuakse vastavates
 
 | Allikas | Sihtkoht |
 |---------|----------|
-| `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` |
-| `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` |
+| `DSL/Resql/ljvis2/POST/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/ljvis2/POST/<moodul>/<entiteet>/v1/<fail>.sql` |
+| `DSL/Resql/ljvis2/GET/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/ljvis2/GET/<moodul>/<entiteet>/v1/<fail>.sql` |
 
 **Märkus:** `mock_` prefiksiga failid kopeeritakse samasse kataloogi.
 

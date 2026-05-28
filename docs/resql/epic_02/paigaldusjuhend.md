@@ -17,13 +17,13 @@ version: 1.0
 
 ```
 Source repo:
-DSL/Resql/POST/iam/user/v1/            ← kasutaja RESQL päringud
-DSL/Resql/POST/iam/user_group_membership/v1/  ← liikmelisuse RESQL päringud
-DSL/Resql/POST/iam/user_group/v1/      ← kasutajagrupi RESQL päringud
-DSL/Resql/POST/iam/organisation/v1/    ← asutuste kataloog
-DSL/Resql/GET/iam/permission/v1/       ← õiguste kataloog
-DSL/Resql/POST/state_updater/user_account_latest/   ← snapshot rebuild
-DSL/Resql/POST/state_updater/user_group_latest/     ← snapshot rebuild
+DSL/Resql/ljvis2/POST/iam/user/v1/            ← kasutaja RESQL päringud
+DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/  ← liikmelisuse RESQL päringud
+DSL/Resql/ljvis2/POST/iam/user_group/v1/      ← kasutajagrupi RESQL päringud
+DSL/Resql/ljvis2/POST/iam/organisation/v1/    ← asutuste kataloog
+DSL/Resql/ljvis2/GET/iam/permission/v1/       ← õiguste kataloog
+DSL/Resql/ljvis2/POST/state_updater/user_account_latest/   ← snapshot rebuild
+DSL/Resql/ljvis2/POST/state_updater/user_group_latest/     ← snapshot rebuild
 DSL/Ruuter/api/POST/v1/admin/users/    ← kasutajate Ruuter vood
 DSL/Ruuter/api/POST/v1/admin/user-groups/  ← kasutajagruppide Ruuter vood
 DSL/Ruuter/api/POST/v1/admin/organisations/  ← asutuste Ruuter vood

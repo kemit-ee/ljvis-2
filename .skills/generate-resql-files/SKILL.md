@@ -346,8 +346,8 @@ done
 ```
 
 **URL kujud:**
-- Tavalised RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → fail `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
-- `state_updater` endpointid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta)
+- Tavalised RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → fail `DSL/Resql/ljvis2/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- `state_updater` endpointid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta)
 
 If any `MISSING:` entry appears, fix paths before proceeding.
 
@@ -374,8 +374,8 @@ If any `MISSING:` entry appears, fix paths before proceeding.
   DSL files for "<task title>".
 
   ## Files
-  - [ ] `DSL/Resql/POST/iam/<entity>/v1/<operation>.sql`
-  - [ ] `DSL/Resql/POST/iam/<entity>/v1/mock_<operation>.sql`
+  - [ ] `DSL/Resql/ljvis2/POST/iam/<entity>/v1/<operation>.sql`
+  - [ ] `DSL/Resql/ljvis2/POST/iam/<entity>/v1/mock_<operation>.sql`
   - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/<operation>.yml`
   - [ ] `DSL/Ruuter/mockapi/POST/v1/admin/<entity>/<operation>.yml`
   - [ ] `DSL/Ruuter/api/POST/v1/admin/<entity>/.guard`
@@ -644,8 +644,8 @@ The `state_updater` module holds all `*_latest` snapshot rebuild SQL files. Thes
 
 **Location:**
 ```
-DSL/Resql/POST/state_updater/<entiteet>/build.sql
-DSL/Resql/POST/state_updater/<entiteet>/mock_build.sql
+DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql
+DSL/Resql/ljvis2/POST/state_updater/<entiteet>/mock_build.sql
 ```
 
 **RESQL URL (called from other Ruuter flows):**
@@ -697,5 +697,5 @@ DSL/Resql/POST/state_updater/<entiteet>/mock_build.sql
 > 8. Verify Ruuter YML passes only needed fields to RESQL (not full body)
 > 9. Verify `.guard` permission codes match exactly those in `planning/docs/permissions-matrix.md` (fallback `docs/permissions-matrix.md`)
 > 10. Verify scope enforcement is present for `kontohaldur` role endpoints
-> 11. For every write operation that changes a `*_latest` snapshot table: create `DSL/Resql/POST/state_updater/<entiteet>/build.sql` + `mock_build.sql`; verify Ruuter flow calls `state_updater` build and verifies the snapshot before success
+> 11. For every write operation that changes a `*_latest` snapshot table: create `DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql` + `mock_build.sql`; verify Ruuter flow calls `state_updater` build and verifies the snapshot before success
 > 12. After commit+push, update related GitHub issue(s) to confirm code has been created for the ticket
