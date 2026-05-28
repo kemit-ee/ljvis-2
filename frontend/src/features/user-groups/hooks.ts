@@ -18,19 +18,13 @@ import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
 import type { Permission } from '../permissions/types';
 import { listPermissions } from '../permissions/api';
+import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 
 // ---------------------------------------------------------------------------
 // Helper: check if error has a specific HTTP status
 // ---------------------------------------------------------------------------
 function hasStatus(e: unknown, status: number): boolean {
   return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === status;
-}
-
-// ---------------------------------------------------------------------------
-// Data hook: user group list with search
-// ---------------------------------------------------------------------------
-function toSnakeCase(str: string): string {
-  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 
 export function useUserGroupList(user: { organisationName?: string; permissions?: string } | null, permissions: string[]) {
@@ -116,12 +110,7 @@ export function useUserGroupList(user: { organisationName?: string; permissions?
     fetchData();
   }, [fetchData]);
 
-  const handleSearch = (value: string) => { 
-    if (value.length >= 3 || value.length === 0) {
-      setSearch(value); 
-      setPagination((p) => ({ ...p, pageIndex: 0 })); 
-    }
-  };
+  const handleSearch = useSearchHandler(setSearch, setPagination);
   const clearSearch = () => { setSearchInput(''); setSearch(''); setPagination((p) => ({ ...p, pageIndex: 0 })); };
 
   return {

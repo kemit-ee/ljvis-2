@@ -2,13 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { Classifier } from './types.ts';
 import { listClassifiers } from './api.ts';
-
-// ---------------------------------------------------------------------------
-// Helper: convert to snake case
-// ---------------------------------------------------------------------------
-function toSnakeCase(str: string): string {
-  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-}
+import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 
 // ---------------------------------------------------------------------------
 // Data hook: classifier list with search
@@ -54,12 +48,7 @@ export function useClassifierList() {
     fetchData();
   }, [fetchData]);
 
-  const handleSearch = (value: string) => {
-    if (value.length >= 3 || value.length === 0) {
-      setSearch(value);
-      setPagination((p) => ({ ...p, pageIndex: 0 }));
-    }
-  };
+  const handleSearch = useSearchHandler(setSearch, setPagination);
   const clearSearch = () => { setSearchInput(''); setSearch(''); setPagination((p) => ({ ...p, pageIndex: 0 })); };
 
   return {
