@@ -1,0 +1,100 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/classifier-values/create"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+require_edit_permission:
+  switch:
+    - condition: ${incoming.headers['X-Authorization-Roles'] != null && incoming.headers['X-Authorization-Roles'].includes('classifier_value.edit')}
+      next: check_code_exists
+    - condition: true
+      next: forbidden
+check_code_exists:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/check_code_exists"
+    headers:
+      type: json
+    body:
+      classifierId: "${incoming.body.classifierId}"
+      code:         "${incoming.body.code}"
+  result: code_exists_response
+ensure_code_available:
+  switch:
+    - condition: ${code_exists_response.response.body != null && code_exists_response.response.body.length > 0 && code_exists_response.response.body[0].exists}
+      next: conflict
+    - condition: true
+      next: create_value
+create_value:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/create"
+    headers:
+      type: json
+    body:
+      classifierId: "${incoming.body.classifierId}"
+      code:         "${incoming.body.code}"
+      name:         "${incoming.body.name}"
+      createdBy:    "${incoming.body.createdBy}"
+  result: create_response
+ensure_create_succeeded:
+  switch:
+    - condition: ${create_response.response.body == null || create_response.response.body.length == 0}
+      next: create_failed
+    - condition: true
+      next: create_validity_state
+create_validity_state:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/create_validity_state"
+    headers:
+      type: json
+    body:
+      classifierValueId: "${create_response.response.body[0].id}"
+      validFrom:         "${incoming.body.validFrom}"
+      validUntil:        "${incoming.body.validUntil}"
+      createdBy:         "${incoming.body.createdBy}"
+  result: validity_response
+ensure_validity_succeeded:
+  switch:
+    - condition: ${validity_response.response.body == null || validity_response.response.body.length == 0}
+      next: partial_success_failed
+    - condition: true
+      next: rebuild_snapshot
+rebuild_snapshot:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/classifier_value_latest/build"
+    headers:
+      type: json
+    body:
+      classifierValueId: "${create_response.response.body[0].id}"
+      createdBy:         "${incoming.body.createdBy}"
+  result: snapshot_response
+ensure_snapshot_succeeded:
+  switch:
+    - condition: ${snapshot_response.response.body == null || snapshot_response.response.body.length == 0}
+      next: snapshot_failed
+    - condition: true
+      next: respond
+respond_result:
+    return: "${snapshot_response.response.body}"
+forbidden:
+  status: 403
+  return: ${common_error_messages.forbidden}
+conflict:
+  status: 409
+  return: "Sellise koodiga väärtus on klassifikaatoris juba olemas."
+create_failed:
+  status: 500
+  return: ${common_error_messages.internal_server_error}
+partial_success_failed:
+  status: 500
+  return: ${common_error_messages.internal_server_error}
+snapshot_failed:
+  status: 500
+  return: ${common_error_messages.internal_server_error}

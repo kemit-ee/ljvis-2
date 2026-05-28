@@ -1,0 +1,32 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/user-groups/users/mock_remove"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+remove_user:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_remove_user"
+    headers:
+      type: json
+    body:
+      userGroupId: "${incoming.body.userGroupId}"
+      userId:      "${incoming.body.userId}"
+      createdBy:   "mock_user"
+  result: remove_response
+build_snapshot:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/state_updater/user_account_latest/mock_build"
+    headers:
+      type: json
+    body:
+      userId:    "${incoming.body.userId}"
+      createdBy: "mock_user"
+  result: snapshot_response
+respond_result:
+  return: "${snapshot_response.response.body[0]}"

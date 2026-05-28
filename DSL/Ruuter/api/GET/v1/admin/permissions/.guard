@@ -1,0 +1,31 @@
+jwt:
+  call: http.post
+  args:
+    url: "http://ruuter-private/auth/jwt/validate"
+    headers:
+      type: json
+    body:
+      token: "${incoming.headers.Authorization}"
+  result: jwt
+authenticated:
+  switch:
+    - condition: ${jwt.response.body != null && jwt.response.body.sub != null}
+      next: check_permission
+    - condition: true
+      next: unauthorized
+check_permission:
+  switch:
+    - condition: >-
+        ${jwt.response.body.authorities != null &&
+          jwt.response.body.authorities.includes('permission.list')}
+      next: authorized
+    - condition: true
+      next: forbidden
+authorized:
+  return: proceed
+unauthorized:
+  status: 401
+  return: ${common_error_messages.unauthorized}
+forbidden:
+  status: 403
+  return: ${common_error_messages.forbidden}

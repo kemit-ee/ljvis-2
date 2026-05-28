@@ -1,0 +1,20 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/users/mock_get"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+get_user:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user/v1/mock_get"
+    headers:
+      type: json
+    body:
+      userId: "${incoming.body.userId}"
+  result: db_response
+respond_result:
+  return: "${db_response.response.body[0]}"

@@ -1,0 +1,23 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/users/mock_list"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+get_list:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user/v1/mock_list"
+    headers:
+      type: json
+    body:
+      page:           "${incoming.body.page}"
+      pageSize:       "${incoming.body.pageSize}"
+      search:         "${incoming.body.search}"
+      organisationId: "${incoming.body.organisationId}"
+  result: db_response
+respond_result:
+  return: "${db_response.response.body}"

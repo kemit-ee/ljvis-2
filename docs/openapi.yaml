@@ -1,0 +1,2690 @@
+# Generated 2026-05-14 by .skills/generate-openapi-spec
+# Epics: 02 (tasks 01, 02, 03, 04, 05, 06), 04 (tasks 01, 02, 03, 04 + consumer read §2.3)
+# Run: EPIC 02 tasks 01, 02 — ADD 7  UPDATE 0  SKIP 0
+# Run: EPIC 04 tasks 01, 02, 03, 04 — ADD 7  UPDATE 0  SKIP 0
+# Run: EPIC 04 consumer §2.3 — ADD 3  UPDATE 0  SKIP 0
+# Cumulative: 30 operations
+
+openapi: 3.0.3
+
+info:
+  title: LJVIS 2 API
+  version: 0.1.2
+  description: |
+    API contract for the LJVIS 2 application. Generated from task
+    specifications. Every endpoint is authorised via JWT bearer tokens
+    issued by TIM after TARA authentication. Error responses follow
+    RFC 7807 Problem Details. Pagination follows the project pagination
+    object convention with totalCount, page, pageSize
+    (see `application_general_rules.md` §3.2 R2). Endpoints that
+    deliberately return an unpaginated `{ data: [...] }` response are
+    §3.1 exceptions (small immutable catalogues); the exception is
+    documented endpoint-by-endpoint in the response schema description.
+  contact:
+    name: TBD
+    email: tbd@example.ee
+
+servers:
+  - url: https://dev.liiklusvalve.ee/api
+    description: Development
+  - url: https://staging.liiklusvalve.ee/api
+    description: Staging
+  - url: https://liiklusvalve.ee/api
+    description: Production
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: classifier-values
+    description: Classifier value management — list, add, check existence, and end validity.
+  - name: classifiers
+    description: Classifier catalogue management — list, detail view, and header editing.
+  - name: organisations
+    description: Organisation catalogue lookups used by user and user-group flows.
+  - name: permissions
+    description: Permission catalogue lookups used by user-group flows.
+  - name: user-group-assignments
+    description: Assign or remove user groups on a user (Task 03).
+  - name: classifiers-consumer
+    description: Consumer read surface for classifier values — used by downstream epics (dropdowns, code validation).
+  - name: user-groups
+    description: User group management — list, create, view, update, and member binding.
+  - name: users
+    description: User account management — list, create, view, and update.
+
+paths:
+
+  # ── EPIC 04: Classifiers ──────────────────────────────────────────
+
+  /api/v1/admin/classifier-values/check-code-exists:
+    post:
+      tags: [classifier-values]
+      operationId: postAdminClassifierValuesCheckCodeExists
+      summary: Check whether a value code exists in a classifier.
+      description: |
+        Returns a boolean indicating whether the given code already exists
+        within the specified classifier. Used before value creation for
+        uniqueness validation. Requires classifier_value.edit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminClassifierValuesCheckCodeExistsRequest'
+      responses:
+        '200':
+          description: Existence check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminClassifierValuesCheckCodeExistsResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/classifier-values/create:
+    post:
+      tags: [classifier-values]
+      operationId: postAdminClassifierValuesCreate
+      summary: Add a new value to a classifier.
+      description: |
+        Creates a classifier value with code, name, and initial validity
+        period. Code must be unique within the classifier (pre-INSERT
+        check). Requires classifier_value.edit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminClassifierValuesCreateRequest'
+      responses:
+        '201':
+          description: Classifier value created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifierValueDetail'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Conflict — value code already exists in this classifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/classifier-values/update:
+    post:
+      tags: [classifier-values]
+      operationId: postAdminClassifierValuesUpdate
+      summary: Update a classifier value's validity period.
+      description: |
+        Inserts a new validity state row with the provided validFrom and
+        optional validUntil. Supports ending (set validUntil to a chosen date),
+        extending (push validUntil into the future), and re-opening an ended
+        value (clear validUntil or set it to a future date). Code and name are
+        immutable. Requires classifier_value.edit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminClassifierValuesUpdateRequest'
+      responses:
+        '200':
+          description: Value validity updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifierValueDetail'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/classifier-values/list:
+    post:
+      tags: [classifier-values]
+      operationId: postAdminClassifierValuesList
+      summary: List classifier values with pagination.
+      description: |
+        Paginated value list for a given classifier. The activeOnly flag
+        controls whether ended values are included. Sortable by code, name,
+        validFrom, validUntil. Requires classifier.read.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminClassifierValuesListRequest'
+      responses:
+        '200':
+          description: Classifier value page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminClassifierValuesListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/classifiers/get:
+    post:
+      tags: [classifiers]
+      operationId: postAdminClassifiersGet
+      summary: Get a single classifier header.
+      description: |
+        Returns one classifier header with id, code, current name, and
+        current description from the latest snapshot. Accepts classifierId
+        or code (exactly one must be provided). Requires classifier.read.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminClassifiersGetRequest'
+      responses:
+        '200':
+          description: Classifier header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifierHeader'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/classifiers/list:
+    post:
+      tags: [classifiers]
+      operationId: postAdminClassifiersList
+      summary: List classifiers with search and pagination.
+      description: |
+        Paginated classifier list with search across code and name. Default
+        sort by name in Estonian alphabetical order, case-insensitive.
+        Requires classifier.list.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminClassifiersListRequest'
+      responses:
+        '200':
+          description: Classifier page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminClassifiersListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/classifiers/update:
+    post:
+      tags: [classifiers]
+      operationId: postAdminClassifiersUpdate
+      summary: Update classifier name and description.
+      description: |
+        Inserts a new name/description state row for the classifier and
+        rebuilds the latest snapshot. Rejects any request that carries a
+        modified code (immutable). Requires classifier.edit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminClassifiersUpdateRequest'
+      responses:
+        '200':
+          description: Updated classifier header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifierHeader'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── EPIC 04: Classifier consumer read surface (§2.3) ─────────────
+
+  /api/v1/classifiers/values/current:
+    post:
+      tags: [classifiers-consumer]
+      operationId: postClassifiersValuesCurrent
+      summary: Get currently-valid values for a classifier.
+      description: |
+        Returns the set of currently-valid values for a given classifier
+        code. "Currently valid" ≡ isValid = true in classifier_value_latest
+        (valid_from ≤ today AND (valid_until IS NULL OR valid_until > today)).
+        Used by every downstream epic that renders a classifier-backed dropdown.
+        Permission code: proposed (see epic_integration_points.md §7 gap 1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsumerValuesCurrentRequest'
+      responses:
+        '200':
+          description: Currently-valid values for the requested classifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerValuesCurrentResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/classifiers/values/resolve:
+    post:
+      tags: [classifiers-consumer]
+      operationId: postClassifiersValuesResolve
+      summary: Validate a classifier code + value code tuple.
+      description: |
+        Validates that a given classifierCode + valueCode tuple refers to a
+        value that exists (currently valid or historically) within that
+        classifier. Used by write paths in consuming epics to verify incoming
+        codes. Separated from values/current because historical business
+        records may legitimately reference ended values (NFR-DATA-14).
+        Permission code: proposed (see epic_integration_points.md §7 gap 1).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsumerValuesResolveRequest'
+      responses:
+        '200':
+          description: Resolution result with optional value metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerValuesResolveResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/classifiers/catalogue:
+    get:
+      tags: [classifiers-consumer]
+      operationId: getClassifiersCatalogue
+      summary: List all classifier codes with their current name.
+      description: |
+        Parameterless list of all classifier codes in the catalogue plus
+        their current name. Intended for tooling / admin shells only; not
+        for per-request dropdown population. Parameterless → GET allowed.
+        Permission code: proposed (see epic_integration_points.md §7 gap 1).
+      responses:
+        '200':
+          description: Full classifier catalogue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerCatalogueResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── EPIC 02: Users / User Groups ──────────────────────────────────
+
+  /api/v1/admin/organisations/list:
+    post:
+      tags: [organisations]
+      operationId: postAdminOrganisationsList
+      summary: List all organisations.
+      description: |
+        Returns the full organisation catalogue, sorted by name in Estonian
+        alphabetical order, case-insensitive. Used to populate organisation
+        pickers in user and user-group create / edit flows. Requires
+        organisation.list.
+        Exception to `application_general_rules.md` §3.2 R2 per §3.1:
+        returns the whole small immutable catalogue in a single response
+        without a `pagination` object; the UI renders a checkbox list,
+        not a TEDI `Pagination` component.
+      responses:
+        '200':
+          description: Organisation catalogue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrganisationsListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/permissions/list:
+    get:
+      tags: [permissions]
+      operationId: getAdminPermissionsList
+      summary: List all permissions.
+      description: |
+        Returns the immutable permission catalogue (codes + descriptions)
+        used to populate the permission picker in user-group create and
+        edit flows. The user-group detail view-mode does NOT call this
+        endpoint — it renders permissions from the user-groups/get response.
+        Requires permission.list (admin-only).
+        Exception to `application_general_rules.md` §3.2 R2 per §3.1:
+        returns the whole immutable catalogue in a single response
+        without a `pagination` object; the UI renders a checkbox list,
+        not a TEDI `Pagination` component.
+      responses:
+        '200':
+          description: Permission catalogue.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPermissionsListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/user-groups/create:
+    post:
+      tags: [user-groups]
+      operationId: postAdminUserGroupsCreate
+      summary: Create a new user group.
+      description: |
+        Creates a user group atomically together with its organisation
+        links and permission links. The response includes a server-computed
+        coversAllOrganisations flag derived at read time from the active
+        user_group_organisation rows; the value is not stored on user_group.
+        Requires user_group.create (admin-only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsCreateRequest'
+      responses:
+        '201':
+          description: User group created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsCreateResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: Validation error (empty name, no organisations selected, unknown id, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/user-groups/get:
+    post:
+      tags: [user-groups]
+      operationId: postAdminUserGroupsGet
+      summary: Get user group detail.
+      description: |
+        Returns a single user group with its active organisations, active
+        permissions, and current member count. Local account managers see
+        only groups linked to their own organisation. Requires
+        user_group.read.admin OR user_group.read.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsGetRequest'
+      responses:
+        '200':
+          description: User group detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsGetResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/user-groups/list:
+    post:
+      tags: [user-groups]
+      operationId: postAdminUserGroupsList
+      summary: List user groups (paginated).
+      description: |
+        Paginated user-group list with search across group name and linked
+        organisation names. Local account managers receive only groups linked
+        to their own organisation (scope-filtering uses the
+        user_group_organisation snapshot rows; the coversAllOrganisations
+        flag in each row is computed at read time from those rows and is not
+        stored on user_group). Requires user_group.list.admin OR
+        user_group.list.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsListRequest'
+      responses:
+        '200':
+          description: User group page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/user-groups/update:
+    post:
+      tags: [user-groups]
+      operationId: postAdminUserGroupsUpdate
+      summary: Update one accordion of a user group.
+      description: |
+        Updates one accordion's worth of fields on an existing user group:
+        name, organisation links, or permission codes. Fields set to null are
+        not modified. Organisation and permission changes use INSERT-only state
+        rows (added rows go active, removed rows get a removed state row).
+        Requires user_group.update (admin-only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsUpdateRequest'
+      responses:
+        '200':
+          description: Updated user group state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsUpdateResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Cascade member removal preview — unlinked orgs have active members; re-send with confirmMemberRemoval=true to proceed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsUpdateCascadePreview'
+        '422':
+          description: Validation error (empty name, no organisations selected, unknown id, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/user-groups/users/add:
+    post:
+      tags: [user-groups]
+      operationId: postAdminUserGroupsUsersAdd
+      summary: Add users to a user group.
+      description: |
+        Binds one or more users to a user group. Each user must be active,
+        belong to an organisation that is actively linked to the group, and
+        not already be an active member. Requires user_group.add_user (admin-only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsUsersAddRequest'
+      responses:
+        '200':
+          description: Users added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsUsersAddResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: Validation error (user not active, organisation not linked, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/user-groups/users/list:
+    post:
+      tags: [user-groups]
+      operationId: postAdminUserGroupsUsersList
+      summary: List users belonging to a user group (paginated).
+      description: |
+        Paginated list of active members of a user group. Local account
+        managers see only members from their own organisation. Sortable by
+        status, firstName, lastName, personalCode, organisationName.
+        Requires user_group.list_users.admin OR user_group.list_users.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsUsersListRequest'
+      responses:
+        '200':
+          description: Group member page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsUsersListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/user-groups/users/remove:
+    post:
+      tags: [user-groups]
+      operationId: postAdminUserGroupsUsersRemove
+      summary: Remove a user from a user group.
+      description: |
+        Marks a user's membership in the given group as removed by inserting
+        a state row with status=removed (INSERT-only audit trail).
+        Requires user_group.remove_user (admin-only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsUsersRemoveRequest'
+      responses:
+        '200':
+          description: Membership removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsUsersRemoveResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/user-groups/users/search-eligible:
+    post:
+      tags: [user-groups]
+      operationId: postAdminUserGroupsUsersSearchEligible
+      summary: Search users eligible to be added to a user group.
+      description: |
+        Returns users that may be added to the group: organisation actively
+        linked to the group, status active, not already an active member,
+        and matching the optional first-name / last-name search term.
+        Requires user_group.search_eligible_users (admin-only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsUsersSearchEligibleRequest'
+      responses:
+        '200':
+          description: Eligible users.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsUsersSearchEligibleResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── Tasks 01, 02: User management ───────────────────────────────────
+  # Task 07 internal endpoint POST /api/v1/internal/users/run-user-deactivation
+  # is service-to-service only (not in public API spec).
+
+  /api/v1/admin/users/change-organisation:
+    post:
+      tags: [users]
+      operationId: postAdminUsersChangeOrganisation
+      summary: Change a user's organisation.
+      description: |
+        Inserts a new user_account_data_state snapshot with the updated
+        organisation_id and removes all active user-group memberships
+        (groups are organisation-scoped). Requires user.edit.admin
+        (admin-only; local account managers cannot change organisations).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersChangeOrganisationRequest'
+      responses:
+        '200':
+          description: Organisation changed; updated user detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersGetResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/users/check-personal-code-exists:
+    post:
+      tags: [users]
+      operationId: postAdminUsersCheckPersonalCodeExists
+      summary: Check whether a personal code is already registered.
+      description: |
+        Boolean pre-INSERT existence check used before creating a new user
+        to prevent duplicates. Requires user.edit.admin OR user.edit.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersCheckPersonalCodeExistsRequest'
+      responses:
+        '200':
+          description: Existence check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersCheckPersonalCodeExistsResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/users/create:
+    post:
+      tags: [users]
+      operationId: postAdminUsersCreate
+      summary: Create a new user account.
+      description: |
+        Creates an immutable identity row (user_account), an initial
+        user_account_data_state snapshot, and an initial active state row.
+        Returns the DB-confirmed read-back of the created user. Requires
+        user.edit.admin OR user.edit.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersCreateRequest'
+      responses:
+        '201':
+          description: User created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersGetResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Conflict — personal code already exists (ERR-409-002).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Validation error (empty required field, invalid personal code checksum, invalid email, accessEnd before accessStart, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/users/get:
+    post:
+      tags: [users]
+      operationId: postAdminUsersGet
+      summary: Get user detail.
+      description: |
+        Returns a single user with personal data, organisation, structural
+        unit, job title, contact info, access period, current state, and
+        active group memberships. Local account managers see only users from
+        their own organisation. Requires user.read.admin OR user.read.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersGetRequest'
+      responses:
+        '200':
+          description: User detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersGetResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/users/list:
+    post:
+      tags: [users]
+      operationId: postAdminUsersList
+      summary: List users (paginated).
+      description: |
+        Paginated user list with free-text search over first name and last
+        name (OR, case-insensitive, contains). Local account managers
+        receive only users from their own organisation (scope-filtering
+        uses organisationId from JWT). Requires user.list.admin OR
+        user.list.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersListRequest'
+      responses:
+        '200':
+          description: User page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/users/organisations/options:
+    post:
+      tags: [users]
+      operationId: postAdminUsersOrganisationsOptions
+      summary: List organisations available for user create/edit form.
+      description: |
+        Organisation dropdown options for the user form. Admin sees all
+        organisations; local account manager receives only their own
+        (derived from JWT organisationId). Unpaginated — the organisation
+        catalogue is small. Requires user.edit.admin OR user.edit.local.
+      responses:
+        '200':
+          description: Organisation options.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrganisationsListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/users/update:
+    post:
+      tags: [users]
+      operationId: postAdminUsersUpdate
+      summary: Update user personal data and access period.
+      description: |
+        Inserts a new user_account_data_state snapshot with updated fields.
+        If accessEnd is today or in the past and current state is active,
+        also inserts a pending_deactivation state row. If accessEnd is
+        removed or set to the future and current state is
+        pending_deactivation, restores active state. Requires
+        user.edit.admin OR user.edit.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersUpdateRequest'
+      responses:
+        '200':
+          description: Updated user detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersGetResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: Validation error (empty required field, invalid email, accessEnd before accessStart, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── Task 03: User-group assignments (user detail view) ──────────────
+
+  /api/v1/admin/users/user-groups/get:
+    post:
+      tags: [user-group-assignments]
+      operationId: postAdminUsersUserGroupsGet
+      summary: Get active user group memberships for a user.
+      description: |
+        Returns the user's active group memberships (userGroupId + display
+        name from the latest user_group_name_state row). Used to pre-select
+        the multiselect dropdown in user detail edit mode. Unpaginated —
+        the per-user membership set is small. Requires user.read.admin OR
+        user.read.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersUserGroupsGetRequest'
+      responses:
+        '200':
+          description: Active memberships.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersUserGroupsGetResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/users/user-groups/available:
+    post:
+      tags: [user-group-assignments]
+      operationId: postAdminUsersUserGroupsAvailable
+      summary: List user groups available for a user's organisation.
+      description: |
+        Returns groups with an active user_group_organisation link to the
+        user's organisation_id. Used to populate the multiselect dropdown
+        choices in user detail edit mode. Unpaginated — the available group
+        set per organisation is small. Requires user.edit.admin OR
+        user.edit.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersUserGroupsAvailableRequest'
+      responses:
+        '200':
+          description: Available groups.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersUserGroupsAvailableResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/admin/users/user-groups/save:
+    post:
+      tags: [user-group-assignments]
+      operationId: postAdminUsersUserGroupsSave
+      summary: Bulk save user group memberships (add + remove).
+      description: |
+        Atomically adds and removes group memberships for a user. Empty
+        added/removed arrays are allowed (no-op, no audit entry). Guard
+        checks user.edit.admin OR user.edit.local; local scope enforced
+        via JWT organisationId. Inactive or pending_deactivation users
+        are rejected with HTTP 409. Requires user.edit.admin OR
+        user.edit.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersUserGroupsSaveRequest'
+      responses:
+        '200':
+          description: Updated active memberships.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersUserGroupsSaveResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Conflict — user inactive (ERR-409-003) or membership already active (ERR-409-001).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Validation error — group not linked to user's organisation (ERR-422-013).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT issued by TIM after TARA authentication.
+        Standard RFC 7519 claims: iss, sub, aud, exp, iat, jti.
+        Project-specific claims: personalCode, organisationId, permissions[].
+
+  responses:
+    BadRequest:
+      description: Invalid request payload.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://ljvis.kemit.ee/problems/bad-request"
+            title: "Bad Request"
+            status: 400
+            detail: "Field 'page' must be a non-negative integer."
+            instance: "/api/v1/admin/user-groups/list"
+    Conflict:
+      description: Conflict with current resource state.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://ljvis.kemit.ee/problems/conflict"
+            title: "Conflict"
+            status: 409
+            detail: "User is already an active member of this group."
+            instance: "/api/v1/admin/user-groups/users/add"
+    Forbidden:
+      description: Insufficient permissions for the requested operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://ljvis.kemit.ee/problems/forbidden"
+            title: "Forbidden"
+            status: 403
+            detail: "Missing required permission: user_group.update"
+            instance: "/api/v1/admin/user-groups/update"
+    InternalServerError:
+      description: Unexpected server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://ljvis.kemit.ee/problems/internal-server-error"
+            title: "Internal Server Error"
+            status: 500
+            detail: "Database transaction failed; the operation was rolled back."
+            instance: "/api/v1/admin/user-groups/create"
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://ljvis.kemit.ee/problems/not-found"
+            title: "Not Found"
+            status: 404
+            detail: "User group with id 999 does not exist."
+            instance: "/api/v1/admin/user-groups/get"
+    ServiceUnavailable:
+      description: Downstream dependency unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://ljvis.kemit.ee/problems/service-unavailable"
+            title: "Service Unavailable"
+            status: 503
+            detail: "Audit log service is unreachable; retry later."
+            instance: "/api/v1/admin/user-groups/update"
+    Unauthorized:
+      description: Missing or invalid JWT.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+          example:
+            type: "https://ljvis.kemit.ee/problems/unauthorized"
+            title: "Unauthorized"
+            status: 401
+            detail: "JWT is missing or expired."
+            instance: "/api/v1/admin/user-groups/list"
+
+  schemas:
+
+    AdminClassifierValuesCheckCodeExistsRequest:
+      type: object
+      required: [classifierId, code]
+      properties:
+        classifierId:
+          type: integer
+          format: int64
+          description: ID of the classifier to check within.
+        code:
+          type: string
+          maxLength: 100
+          description: Value code to check for existence.
+      example:
+        classifierId: 1
+        code: "DE"
+
+    AdminClassifierValuesCheckCodeExistsResponse:
+      type: object
+      required: [exists]
+      properties:
+        exists:
+          type: boolean
+          description: True if a value with this code already exists in the classifier.
+      example:
+        exists: false
+
+    AdminClassifierValuesCreateRequest:
+      type: object
+      required: [classifierId, code, name, validFrom]
+      properties:
+        classifierId:
+          type: integer
+          format: int64
+          description: ID of the classifier to add the value to.
+        code:
+          type: string
+          maxLength: 100
+          description: Business code of the new value. Must be unique within the classifier. Immutable after creation.
+        name:
+          type: string
+          maxLength: 500
+          description: Display name of the value. Immutable after creation.
+        validFrom:
+          type: string
+          format: date
+          description: Start date of validity (inclusive). ISO 8601 date.
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+          description: End date of validity (exclusive). Null means open-ended.
+      example:
+        classifierId: 1
+        code: "DE"
+        name: "Saksamaa"
+        validFrom: "2026-01-01"
+        validUntil: null
+
+    AdminClassifierValuesUpdateRequest:
+      type: object
+      required: [classifierValueId, validFrom]
+      properties:
+        classifierValueId:
+          type: integer
+          format: int64
+          description: ID of the classifier value whose validity period to update.
+        validFrom:
+          type: string
+          format: date
+          description: Start date of validity (inclusive). ISO 8601 date.
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+          description: End date of validity (exclusive). Must be strictly greater than validFrom when provided. Null or future date re-opens an ended value.
+      example:
+        classifierValueId: 99
+        validFrom: "2020-01-01"
+        validUntil: "2026-06-01"
+
+    AdminClassifierValuesListRequest:
+      type: object
+      required: [classifierId]
+      properties:
+        classifierId:
+          type: integer
+          format: int64
+          description: ID of the classifier whose values to list.
+        activeOnly:
+          type: boolean
+          default: true
+          description: When true, only currently valid values are returned. When false, ended values are included.
+        sortField:
+          type: string
+          nullable: true
+          enum: [code, name, validFrom, validUntil]
+          description: Column to sort by.
+        sortDirection:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      example:
+        classifierId: 1
+        activeOnly: true
+        sortField: "code"
+        sortDirection: "asc"
+        page: 1
+        pageSize: 20
+
+    AdminClassifierValuesListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassifierValueListItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      example:
+        data:
+          - classifierValueId: 10
+            code: "EE"
+            name: "Eesti"
+            validFrom: "2020-01-01"
+            validUntil: null
+            isValid: true
+          - classifierValueId: 11
+            code: "DE"
+            name: "Saksamaa"
+            validFrom: "2020-01-01"
+            validUntil: null
+            isValid: true
+        pagination:
+          totalCount: 249
+          page: 1
+          pageSize: 20
+
+    AdminClassifiersGetRequest:
+      type: object
+      description: |
+        Exactly one of classifierId or code must be provided (XOR).
+      properties:
+        classifierId:
+          type: integer
+          format: int64
+          description: Technical identifier of the classifier.
+        code:
+          type: string
+          description: Stable business code of the classifier (e.g. RTK).
+      example:
+        classifierId: 1
+
+    AdminClassifiersListRequest:
+      type: object
+      properties:
+        searchTerm:
+          type: string
+          nullable: true
+          description: Free-text search applied (OR) over classifier code and name. Null means no search.
+        sortField:
+          type: string
+          nullable: true
+          enum: [code, name]
+          description: Column to sort by.
+        sortDirection:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      example:
+        searchTerm: "RTK"
+        sortField: "name"
+        sortDirection: "asc"
+        page: 1
+        pageSize: 20
+
+    AdminClassifiersListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassifierHeader'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      example:
+        data:
+          - classifierId: 1
+            code: "RTK"
+            name: "Riikide ja territooriumide klassifikaator"
+            description: "ISO 3166"
+          - classifierId: 2
+            code: "SEVERITY"
+            name: "Rikkumise raskusaste"
+            description: null
+        pagination:
+          totalCount: 12
+          page: 1
+          pageSize: 20
+
+    AdminClassifiersUpdateRequest:
+      type: object
+      required: [classifierId, name]
+      properties:
+        classifierId:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 100
+          description: New classifier display name. Non-empty after trim.
+        description:
+          type: string
+          nullable: true
+          maxLength: 250
+          description: New classifier description. Empty or null allowed.
+        code:
+          type: string
+          description: Classifier code for validation only. Rejected if different from the stored value (immutable).
+      example:
+        classifierId: 1
+        name: "Riikide ja territooriumide klassifikaator"
+        description: "ISO 3166 alusel"
+        code: "RTK"
+
+    ClassifierHeader:
+      type: object
+      required: [classifierId, code, name]
+      properties:
+        classifierId:
+          type: integer
+          format: int64
+        code:
+          type: string
+          description: Stable business code. Immutable after creation.
+        name:
+          type: string
+          description: Current display name from the latest classifier_name_state row.
+        description:
+          type: string
+          nullable: true
+          description: Current description from the latest classifier_name_state row.
+      example:
+        classifierId: 1
+        code: "RTK"
+        name: "Riikide ja territooriumide klassifikaator"
+        description: "ISO 3166"
+
+    ClassifierValueDetail:
+      type: object
+      required: [classifierValueId, classifierId, code, name, validFrom, isValid]
+      properties:
+        classifierValueId:
+          type: integer
+          format: int64
+        classifierId:
+          type: integer
+          format: int64
+        code:
+          type: string
+          description: Business code of the value within the classifier. Immutable.
+        name:
+          type: string
+          description: Display name of the value. Immutable.
+        validFrom:
+          type: string
+          format: date
+          description: Start date of validity (inclusive). ISO 8601 date.
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+          description: End date of validity (exclusive). Null means open-ended.
+        isValid:
+          type: boolean
+          description: Computed flag — true when validFrom is on or before today and validUntil is null or after today.
+      example:
+        classifierValueId: 137
+        classifierId: 1
+        code: "DE"
+        name: "Saksamaa"
+        validFrom: "2026-01-01"
+        validUntil: null
+        isValid: true
+
+    ClassifierValueListItem:
+      type: object
+      required: [classifierValueId, code, name, validFrom, isValid]
+      properties:
+        classifierValueId:
+          type: integer
+          format: int64
+        code:
+          type: string
+          description: Business code of the value within the classifier.
+        name:
+          type: string
+          description: Display name of the value.
+        validFrom:
+          type: string
+          format: date
+          description: Start date of validity (inclusive). ISO 8601 date.
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+          description: End date of validity (exclusive). Null means open-ended.
+        isValid:
+          type: boolean
+          description: Computed flag — true when validFrom is on or before today and validUntil is null or after today.
+      example:
+        classifierValueId: 10
+        code: "EE"
+        name: "Eesti"
+        validFrom: "2020-01-01"
+        validUntil: null
+        isValid: true
+
+    AdminOrganisationsListResponse:
+      type: object
+      required: [data]
+      description: |
+        Unpaginated list response. Exception to
+        `application_general_rules.md` §3.2 R2 per §3.1: the organisation
+        catalogue is small and immutable, so the whole catalogue is
+        returned in a single call and the UI renders a checkbox list
+        (no TEDI `Pagination` component).
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organisation'
+      example:
+        data:
+          - { id: 3, name: "Maksu- ja Tolliamet" }
+          - { id: 7, name: "Politsei- ja Piirivalveamet" }
+          - { id: 5, name: "Transpordiamet" }
+
+    AdminPermissionsListResponse:
+      type: object
+      required: [data]
+      description: |
+        Unpaginated list response. Exception to
+        `application_general_rules.md` §3.2 R2 per §3.1: the permission
+        catalogue is immutable (Liquibase-seeded, NFR-DATA-17), so the
+        whole catalogue is returned in a single call and the UI renders
+        a checkbox list (no TEDI `Pagination` component).
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+      example:
+        data:
+          - { code: "user.list.admin",              description: "Kasutajate nimekirja vaatamine (koik asutused)" }
+          - { code: "user.read.local",              description: "Kasutaja detailvaate vaatamine (oma asutus)" }
+          - { code: "user_group.update",            description: "Kasutajagrupi nime / asutuste / oiguste muutmine (admin-ainult)" }
+
+    AdminUserGroupsCreateRequest:
+      type: object
+      required: [name, organisationIds]
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          description: User group display name. Trimmed before persistence; must be non-empty after trim.
+        organisationIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+          description: IDs of organisations to link to the new group. Must be non-empty.
+        permissionCodes:
+          type: array
+          items:
+            type: string
+          description: Permission codes to assign. May be empty.
+      example:
+        name: "PPA analyytik"
+        organisationIds: [7]
+        permissionCodes: ["user.list.local", "user.read.local"]
+
+    AdminUserGroupsCreateResponse:
+      type: object
+      required: [userGroupId, name, coversAllOrganisations, organisations, permissions, createdAt, redirectTo]
+      description: |
+        DB-confirmed read-back of the newly created group (Ruuter §2.5 NATO
+        read-back principle). All fields are read from the database after
+        commit, never echoed from the request body.
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        name:
+          type: string
+          description: Latest name from user_group_name_state (the row inserted at creation).
+        coversAllOrganisations:
+          type: boolean
+          description: Computed server-side at read time as count(active user_group_organisation rows) == count(*) FROM organisation. Not stored on user_group.
+        organisations:
+          type: array
+          nullable: true
+          description: Active organisation links read back from user_group_organisation. May be null when coversAllOrganisations is true.
+          items:
+            $ref: '#/components/schemas/UserGroupOrganisation'
+        permissions:
+          type: array
+          description: Active permission links read back from user_group_permission joined to the permission catalogue.
+          items:
+            $ref: '#/components/schemas/UserGroupPermission'
+        createdAt:
+          type: string
+          format: date-time
+          description: Row creation timestamp from user_group.
+        redirectTo:
+          type: string
+          description: Front-end path the client should navigate to after successful creation.
+      example:
+        userGroupId: 42
+        name: "PPA analyytik"
+        coversAllOrganisations: false
+        organisations:
+          - { organisationId: 7, organisationName: "Politsei- ja Piirivalveamet" }
+        permissions:
+          - { code: "user.list.local", description: "Kasutajate nimekirja vaatamine (oma asutus)" }
+          - { code: "user.read.local", description: "Kasutaja detailvaate vaatamine (oma asutus)" }
+        createdAt: "2026-04-28T14:23:11Z"
+        redirectTo: "/kasutajagrupid/42"
+
+    AdminUserGroupsGetRequest:
+      type: object
+      required: [userGroupId]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+      example:
+        userGroupId: 12
+
+    AdminUserGroupsGetResponse:
+      type: object
+      required: [userGroupId, name, coversAllOrganisations, organisations, permissions, userCount]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        coversAllOrganisations:
+          type: boolean
+          description: True when the group is linked to every organisation in the catalogue. Computed server-side at read time as count(active user_group_organisation rows for this group) == count(*) FROM organisation; not stored on user_group. FE may render the literal label "Koik asutused" without aggregating organisation names.
+        organisations:
+          type: array
+          nullable: true
+          description: Active organisation links. May be null when coversAllOrganisations is true.
+          items:
+            $ref: '#/components/schemas/UserGroupOrganisation'
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupPermission'
+        userCount:
+          type: integer
+          description: Number of active members visible to the caller (scope-filtered for local account managers).
+      example:
+        userGroupId: 12
+        name: "PPA ametnik"
+        coversAllOrganisations: false
+        organisations:
+          - { organisationId: 7, organisationName: "Politsei- ja Piirivalveamet" }
+        permissions:
+          - { code: "user.read.local", description: "Kasutaja detailvaate vaatamine (oma asutus)" }
+        userCount: 42
+
+    AdminUserGroupsListRequest:
+      type: object
+      properties:
+        searchTerm:
+          type: string
+          nullable: true
+          description: Free-text search applied (OR) over the latest user_group_name_state.name row (resolved per group via ORDER BY created_at DESC LIMIT 1) and the names of actively linked organisations. Null means no search.
+        sortField:
+          type: string
+          nullable: true
+          enum: [userGroupName]
+          description: Sortable field. Only userGroupName is supported.
+        sortDirection:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      example:
+        searchTerm: "PPA"
+        sortField: "userGroupName"
+        sortDirection: "asc"
+        page: 1
+        pageSize: 20
+
+    AdminUserGroupsListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupListItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      example:
+        data:
+          - userGroupId: 12
+            userGroupName: "PPA ametnik"
+            coversAllOrganisations: false
+            organisationNames: ["Politsei- ja Piirivalveamet"]
+          - userGroupId: 20
+            userGroupName: "Susteemiulene audit"
+            coversAllOrganisations: true
+            organisationNames: null
+        pagination:
+          totalCount: 42
+          page: 1
+          pageSize: 20
+
+    AdminUserGroupsUpdateRequest:
+      type: object
+      required: [userGroupId]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        name:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: New display name. Null means do not modify.
+        organisationIds:
+          type: array
+          nullable: true
+          items:
+            type: integer
+            format: int64
+          description: New full list of linked organisation ids. Null means do not modify; non-null replaces the active set.
+        permissionCodes:
+          type: array
+          nullable: true
+          items:
+            type: string
+          description: New full list of permission codes. Null means do not modify; non-null replaces the active set.
+        confirmMemberRemoval:
+          type: boolean
+          nullable: true
+          description: >
+            Set to true to confirm cascading removal of members whose organisation
+            is being unlinked. Required only when the initial call returned HTTP 409.
+      example:
+        userGroupId: 12
+        name: null
+        organisationIds: [3, 5, 7]
+        permissionCodes: null
+        confirmMemberRemoval: null
+
+    AdminUserGroupsUpdateResponse:
+      type: object
+      required: [userGroupId, name, coversAllOrganisations, organisationIds, permissionCodes]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        coversAllOrganisations:
+          type: boolean
+        organisationIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        permissionCodes:
+          type: array
+          items:
+            type: string
+        cascadeRemovedUserAccountIds:
+          type: array
+          nullable: true
+          items:
+            type: integer
+            format: int64
+          description: IDs of user accounts whose membership was cascade-removed. Null/absent if no cascade occurred.
+      example:
+        userGroupId: 12
+        name: "PPA analyytik"
+        coversAllOrganisations: true
+        organisationIds: [3, 5, 7]
+        permissionCodes: ["user.read.admin", "user.read.local"]
+        cascadeRemovedUserAccountIds: null
+
+    AdminUserGroupsUpdateCascadePreview:
+      type: object
+      description: Returned with HTTP 409 when org removal would affect active members.
+      required: [type, title, status, affectedMemberCount, affectedOrganisationIds]
+      properties:
+        type:
+          type: string
+          example: "urn:ljvis:error:cascade-member-removal-preview"
+        title:
+          type: string
+          example: "Cascading member removal requires confirmation"
+        status:
+          type: integer
+          example: 409
+        affectedMemberCount:
+          type: integer
+        affectedOrganisationIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+      example:
+        type: "urn:ljvis:error:cascade-member-removal-preview"
+        title: "Cascading member removal requires confirmation"
+        status: 409
+        affectedMemberCount: 5
+        affectedOrganisationIds: [3, 7]
+
+    AdminUserGroupsUsersAddRequest:
+      type: object
+      required: [userGroupId, userAccountIds]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        userAccountIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+      example:
+        userGroupId: 12
+        userAccountIds: [101, 102, 103]
+
+    AdminUserGroupsUsersAddResponse:
+      type: object
+      required: [userGroupId, addedUserAccountIds]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        addedUserAccountIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+      example:
+        userGroupId: 12
+        addedUserAccountIds: [101, 102, 103]
+
+    AdminUserGroupsUsersListRequest:
+      type: object
+      required: [userGroupId]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        searchTerm:
+          type: string
+          nullable: true
+          description: Free-text search over user_account.first_name and user_account.last_name (OR).
+        sortField:
+          type: string
+          nullable: true
+          enum: [status, firstName, lastName, personalCode, organisationName]
+        sortDirection:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      example:
+        userGroupId: 12
+        searchTerm: null
+        sortField: "lastName"
+        sortDirection: "asc"
+        page: 1
+        pageSize: 20
+
+    AdminUserGroupsUsersListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupMember'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      example:
+        data:
+          - userAccountId: 101
+            status: "active"
+            firstName: "Mari"
+            lastName: "Maasikas"
+            personalCode: "47001010001"
+            organisationName: "Politsei- ja Piirivalveamet"
+        pagination:
+          totalCount: 42
+          page: 1
+          pageSize: 20
+
+    AdminUserGroupsUsersRemoveRequest:
+      type: object
+      required: [userGroupId, userAccountId]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        userAccountId:
+          type: integer
+          format: int64
+      example:
+        userGroupId: 12
+        userAccountId: 101
+
+    AdminUserGroupsUsersRemoveResponse:
+      type: object
+      required: [userGroupId, userAccountId]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        userAccountId:
+          type: integer
+          format: int64
+      example:
+        userGroupId: 12
+        userAccountId: 101
+
+    AdminUserGroupsUsersSearchEligibleRequest:
+      type: object
+      required: [userGroupId]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        searchTerm:
+          type: string
+          nullable: true
+          description: Free-text search over user_account.first_name and user_account.last_name (OR). Null means no search.
+        sortField:
+          type: string
+          nullable: true
+          enum: [firstName, lastName, personalCode, organisationName]
+        sortDirection:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      example:
+        userGroupId: 12
+        searchTerm: "Mari"
+        sortField: "lastName"
+        sortDirection: "asc"
+        page: 1
+        pageSize: 20
+
+    AdminUserGroupsUsersSearchEligibleResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupEligibleUser'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      example:
+        data:
+          - userAccountId: 101
+            firstName: "Mari"
+            lastName: "Maasikas"
+            personalCode: "47001010001"
+            organisationName: "Politsei- ja Piirivalveamet"
+        pagination:
+          totalCount: 8
+          page: 1
+          pageSize: 20
+
+    AdminUsersChangeOrganisationRequest:
+      type: object
+      required: [userId, organisationId]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID of the user whose organisation to change.
+        organisationId:
+          type: integer
+          format: int64
+          description: ID of the new organisation to assign.
+      example:
+        userId: 42
+        organisationId: 3
+
+    AdminUsersCheckPersonalCodeExistsRequest:
+      type: object
+      required: [personalCode]
+      properties:
+        personalCode:
+          type: string
+          pattern: "^[1-6][0-9]{10}$"
+          description: Estonian personal code (11 digits).
+      example:
+        personalCode: "39001010001"
+
+    AdminUsersCheckPersonalCodeExistsResponse:
+      type: object
+      required: [exists]
+      properties:
+        exists:
+          type: boolean
+          description: True if a user with this personal code already exists.
+      example:
+        exists: false
+
+    AdminUsersCreateRequest:
+      type: object
+      required: [firstName, lastName, personalCode, organisationId, structuralUnit, jobTitle, email, accessStart]
+      properties:
+        firstName:
+          type: string
+          maxLength: 200
+          description: First name. Must be non-empty after trim.
+        lastName:
+          type: string
+          maxLength: 200
+          description: Last name. Must be non-empty after trim.
+        personalCode:
+          type: string
+          pattern: "^[1-6][0-9]{10}$"
+          description: Estonian personal code (11 digits). Must pass checksum and uniqueness validation.
+        organisationId:
+          type: integer
+          format: int64
+          description: Organisation ID. Admin selects from all; local account manager has this fixed from JWT.
+        structuralUnit:
+          type: string
+          maxLength: 100
+          enum: ["LÕUNA PREFEKTUUR", "IDA PREFEKTUUR", "LÄÄNE PREFEKTUUR", "PÕHJA PREFEKTUUR", "KLIM", "TRAM"]
+          description: Structural unit (hardcoded dropdown). Will become a classifier FK in the future.
+        jobTitle:
+          type: string
+          maxLength: 100
+          description: Job title. Must be non-empty after trim.
+        email:
+          type: string
+          maxLength: 320
+          format: email
+          description: Email address (RFC-compliant pattern).
+        phone:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Phone number (digits and spaces only, without country prefix).
+        accessStart:
+          type: string
+          format: date
+          description: Access start date (inclusive). May be past, present, or future.
+        accessEnd:
+          type: string
+          format: date
+          nullable: true
+          description: Access end date (inclusive). Null means open-ended. Must be >= accessStart when provided.
+      example:
+        firstName: "Siim"
+        lastName: "Tamm"
+        personalCode: "39001010001"
+        organisationId: 7
+        structuralUnit: "PÕHJA PREFEKTUUR"
+        jobTitle: "Senior analyst"
+        email: "siim.tamm@ppa.ee"
+        phone: "5555 1234"
+        accessStart: "2026-01-01"
+        accessEnd: null
+
+    AdminUsersGetRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID of the user account to retrieve.
+      example:
+        userId: 42
+
+    AdminUsersGetResponse:
+      type: object
+      required: [userId, firstName, lastName, personalCode, organisationId, organisationName, structuralUnit, jobTitle, email, accessStart, status, userGroups]
+      properties:
+        userId:
+          type: integer
+          format: int64
+        firstName:
+          type: string
+        lastName:
+          type: string
+        personalCode:
+          type: string
+          pattern: "^[1-6][0-9]{10}$"
+        organisationId:
+          type: integer
+          format: int64
+        organisationName:
+          type: string
+        structuralUnit:
+          type: string
+        jobTitle:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        accessStart:
+          type: string
+          format: date
+        accessEnd:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          enum: [active, pending_deactivation, inactive]
+        userGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserDetailGroup'
+      example:
+        userId: 42
+        firstName: "Siim"
+        lastName: "Tamm"
+        personalCode: "39001010001"
+        organisationId: 7
+        organisationName: "Politsei- ja Piirivalveamet"
+        structuralUnit: "PÕHJA PREFEKTUUR"
+        jobTitle: "Senior analyst"
+        email: "siim.tamm@ppa.ee"
+        phone: "5555 1234"
+        accessStart: "2026-01-01"
+        accessEnd: null
+        status: "active"
+        userGroups:
+          - userGroupId: 12
+            userGroupName: "PPA ametnik"
+            membershipCreatedAt: "2026-01-05T10:00:00Z"
+
+    AdminUsersListRequest:
+      type: object
+      properties:
+        searchTerm:
+          type: string
+          nullable: true
+          description: Free-text search applied (OR) over first_name and last_name (case-insensitive, contains). Minimum 3 characters to trigger search. Null means no search.
+        sortField:
+          type: string
+          nullable: true
+          enum: [firstName, lastName, status, organisationName]
+          description: Column to sort by.
+        sortDirection:
+          type: string
+          enum: [asc, desc]
+          default: asc
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      example:
+        searchTerm: "sii"
+        sortField: "firstName"
+        sortDirection: "asc"
+        page: 1
+        pageSize: 20
+
+    AdminUsersListResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserListItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+      example:
+        data:
+          - userId: 42
+            status: "active"
+            firstName: "Siim"
+            lastName: "Tamm"
+            personalCode: "39001010001"
+            organisationName: "Politsei- ja Piirivalveamet"
+            userGroups: ["PPA ametnik", "Inspector"]
+        pagination:
+          totalCount: 137
+          page: 1
+          pageSize: 20
+
+    AdminUsersUpdateRequest:
+      type: object
+      required: [userId, firstName, lastName, structuralUnit, jobTitle, email, accessStart]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID of the user account to update.
+        firstName:
+          type: string
+          maxLength: 200
+          description: Updated first name. Must be non-empty after trim.
+        lastName:
+          type: string
+          maxLength: 200
+          description: Updated last name. Must be non-empty after trim.
+        structuralUnit:
+          type: string
+          maxLength: 100
+          enum: ["LÕUNA PREFEKTUUR", "IDA PREFEKTUUR", "LÄÄNE PREFEKTUUR", "PÕHJA PREFEKTUUR", "KLIM", "TRAM"]
+          description: Updated structural unit.
+        jobTitle:
+          type: string
+          maxLength: 100
+          description: Updated job title. Must be non-empty after trim.
+        email:
+          type: string
+          maxLength: 320
+          format: email
+          description: Updated email address.
+        phone:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Updated phone number. Null to clear.
+        accessStart:
+          type: string
+          format: date
+          description: Access start date.
+        accessEnd:
+          type: string
+          format: date
+          nullable: true
+          description: Access end date. If set to today or past, triggers pending_deactivation. Null means open-ended.
+      example:
+        userId: 42
+        firstName: "Siim"
+        lastName: "Tamm"
+        structuralUnit: "PÕHJA PREFEKTUUR"
+        jobTitle: "Lead analyst"
+        email: "siim.tamm@ppa.ee"
+        phone: "5555 1234"
+        accessStart: "2026-01-01"
+        accessEnd: "2027-12-31"
+
+    AdminUsersUserGroupsAvailableRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID of the target user account.
+      example:
+        userId: 123
+
+    AdminUsersUserGroupsAvailableResponse:
+      type: object
+      required: [data]
+      description: |
+        Unpaginated list of user groups available for the user's
+        organisation. Exception to `application_general_rules.md` §3.2 R2
+        per §3.1: the per-organisation group set is small.
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupMembership'
+      example:
+        data:
+          - { userGroupId: 12, userGroupName: "PPA ametnik" }
+          - { userGroupId: 17, userGroupName: "Statistika" }
+
+    AdminUsersUserGroupsGetRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID of the target user account.
+      example:
+        userId: 123
+
+    AdminUsersUserGroupsGetResponse:
+      type: object
+      required: [data]
+      description: |
+        Unpaginated list of the user's active group memberships. Exception
+        to `application_general_rules.md` §3.2 R2 per §3.1: the per-user
+        membership set is small.
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupMembership'
+      example:
+        data:
+          - { userGroupId: 12, userGroupName: "PPA ametnik" }
+
+    AdminUsersUserGroupsSaveRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID of the target user account.
+        added:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: User group IDs to add as active memberships.
+        removed:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: User group IDs whose active memberships to mark as removed.
+      example:
+        userId: 123
+        added: [12, 17]
+        removed: [9]
+
+    AdminUsersUserGroupsSaveResponse:
+      type: object
+      required: [activeMemberships]
+      properties:
+        activeMemberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupMembership'
+      example:
+        activeMemberships:
+          - { userGroupId: 12, userGroupName: "PPA ametnik" }
+          - { userGroupId: 17, userGroupName: "Statistika" }
+
+    Organisation:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      example:
+        id: 7
+        name: "Politsei- ja Piirivalveamet"
+
+    Pagination:
+      type: object
+      required: [totalCount, page, pageSize]
+      properties:
+        totalCount:
+          type: integer
+          minimum: 0
+          description: Total number of records matching the query (across all pages).
+        page:
+          type: integer
+          minimum: 1
+        pageSize:
+          type: integer
+          minimum: 1
+      example:
+        totalCount: 42
+        page: 1
+        pageSize: 20
+
+    Permission:
+      type: object
+      required: [code, description]
+      properties:
+        code:
+          type: string
+          pattern: "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*(\\.(admin|local))?$"
+        description:
+          type: string
+      example:
+        code: "user.read.local"
+        description: "Kasutaja detailvaate vaatamine (oma asutus)"
+
+    ProblemDetails:
+      type: object
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+      example:
+        type: "https://ljvis.kemit.ee/problems/forbidden"
+        title: "Forbidden"
+        status: 403
+        detail: "Missing required permission: user.edit.admin"
+        instance: "/api/v1/admin/users/update"
+
+    UserDetailGroup:
+      type: object
+      required: [userGroupId, userGroupName, membershipCreatedAt]
+      description: A user group membership entry in the user detail view.
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        userGroupName:
+          type: string
+          description: Latest name from user_group_name_state.
+        membershipCreatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the membership was created.
+      example:
+        userGroupId: 12
+        userGroupName: "PPA ametnik"
+        membershipCreatedAt: "2026-01-05T10:00:00Z"
+
+    UserGroupEligibleUser:
+      type: object
+      required: [userAccountId, firstName, lastName, personalCode, organisationName]
+      properties:
+        userAccountId:
+          type: integer
+          format: int64
+        firstName:
+          type: string
+        lastName:
+          type: string
+        personalCode:
+          type: string
+          pattern: "^[1-6][0-9]{10}$"
+        organisationName:
+          type: string
+      example:
+        userAccountId: 101
+        firstName: "Mari"
+        lastName: "Maasikas"
+        personalCode: "47001010001"
+        organisationName: "Politsei- ja Piirivalveamet"
+
+    UserGroupListItem:
+      type: object
+      required: [userGroupId, userGroupName, coversAllOrganisations]
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        userGroupName:
+          type: string
+        coversAllOrganisations:
+          type: boolean
+        organisationNames:
+          type: array
+          nullable: true
+          description: Names of actively linked organisations. Null when coversAllOrganisations is true (FE renders the literal label "Koik asutused").
+          items:
+            type: string
+      example:
+        userGroupId: 12
+        userGroupName: "PPA ametnik"
+        coversAllOrganisations: false
+        organisationNames: ["Politsei- ja Piirivalveamet"]
+
+    UserGroupMember:
+      type: object
+      required: [userAccountId, status, firstName, lastName, personalCode, organisationName]
+      properties:
+        userAccountId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [active, pending_deactivation, inactive]
+        firstName:
+          type: string
+        lastName:
+          type: string
+        personalCode:
+          type: string
+          pattern: "^[1-6][0-9]{10}$"
+        organisationName:
+          type: string
+      example:
+        userAccountId: 101
+        status: "active"
+        firstName: "Mari"
+        lastName: "Maasikas"
+        personalCode: "47001010001"
+        organisationName: "Politsei- ja Piirivalveamet"
+
+    UserGroupMembership:
+      type: object
+      required: [userGroupId, userGroupName]
+      description: A user group with its display name, used in membership list responses.
+      properties:
+        userGroupId:
+          type: integer
+          format: int64
+        userGroupName:
+          type: string
+          description: Latest name from user_group_name_state.
+      example:
+        userGroupId: 12
+        userGroupName: "PPA ametnik"
+
+    UserGroupOrganisation:
+      type: object
+      required: [organisationId, organisationName]
+      properties:
+        organisationId:
+          type: integer
+          format: int64
+        organisationName:
+          type: string
+      example:
+        organisationId: 7
+        organisationName: "Politsei- ja Piirivalveamet"
+
+    UserGroupPermission:
+      type: object
+      required: [code, description]
+      properties:
+        code:
+          type: string
+          pattern: "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*(\\.(admin|local))?$"
+        description:
+          type: string
+      example:
+        code: "user.read.local"
+        description: "Kasutaja detailvaate vaatamine (oma asutus)"
+
+    UserListItem:
+      type: object
+      required: [userId, status, firstName, lastName, personalCode, organisationName, userGroups]
+      properties:
+        userId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [active, pending_deactivation, inactive]
+        firstName:
+          type: string
+        lastName:
+          type: string
+        personalCode:
+          type: string
+          pattern: "^[1-6][0-9]{10}$"
+        organisationName:
+          type: string
+        userGroups:
+          type: array
+          description: Display names of active user group memberships.
+          items:
+            type: string
+      example:
+        userId: 42
+        status: "active"
+        firstName: "Siim"
+        lastName: "Tamm"
+        personalCode: "39001010001"
+        organisationName: "Politsei- ja Piirivalveamet"
+        userGroups: ["PPA ametnik", "Inspector"]
+
+    # ── EPIC 04: Consumer read surface schemas ─────────────────────────
+
+    ConsumerValuesCurrentRequest:
+      type: object
+      required: [classifierCode]
+      properties:
+        classifierCode:
+          type: string
+          description: The immutable code of the classifier whose currently-valid values are requested.
+          example: "RTK"
+
+    ConsumerValuesCurrentResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerClassifierValueItem'
+      example:
+        data:
+          - code: "EE"
+            name: "Eesti"
+            validFrom: "2020-01-01"
+            validUntil: null
+          - code: "DE"
+            name: "Saksamaa"
+            validFrom: "2020-01-01"
+            validUntil: null
+
+    ConsumerValuesResolveRequest:
+      type: object
+      required: [classifierCode, valueCode]
+      properties:
+        classifierCode:
+          type: string
+          description: The immutable code of the classifier.
+          example: "RTK"
+        valueCode:
+          type: string
+          description: The value code to resolve within the classifier.
+          example: "EE"
+
+    ConsumerValuesResolveResponse:
+      type: object
+      required: [exists]
+      properties:
+        exists:
+          type: boolean
+          description: Whether the value code exists (current or historical) within the classifier.
+        value:
+          $ref: '#/components/schemas/ConsumerClassifierValueItem'
+          description: Value metadata when exists is true; absent when false.
+      example:
+        exists: true
+        value:
+          code: "EE"
+          name: "Eesti"
+          validFrom: "2020-01-01"
+          validUntil: null
+
+    ConsumerCatalogueResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsumerCatalogueItem'
+      example:
+        data:
+          - code: "RTK"
+            name: "Riigid ja territooriumid"
+          - code: "SOIDUKIKATEGOORIA"
+            name: "Sõidukikategooriad"
+
+    ConsumerClassifierValueItem:
+      type: object
+      required: [code, name, validFrom]
+      properties:
+        code:
+          type: string
+          description: Immutable value code within the classifier.
+        name:
+          type: string
+          description: Human-readable name of the value.
+        validFrom:
+          type: string
+          format: date
+          description: Start of validity (inclusive).
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+          description: End of validity (exclusive); null means open-ended.
+      example:
+        code: "EE"
+        name: "Eesti"
+        validFrom: "2020-01-01"
+        validUntil: null
+
+    ConsumerCatalogueItem:
+      type: object
+      required: [code, name]
+      properties:
+        code:
+          type: string
+          description: Immutable classifier code.
+        name:
+          type: string
+          description: Current human-readable name of the classifier.
+      example:
+        code: "RTK"
+        name: "Riigid ja territooriumid"

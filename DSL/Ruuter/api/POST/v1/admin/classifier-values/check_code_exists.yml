@@ -1,0 +1,30 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/classifier-values/check_code_exists"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+require_edit_permission:
+  switch:
+    - condition: ${incoming.headers['X-Authorization-Roles'] != null && incoming.headers['X-Authorization-Roles'].includes('classifier_value.edit')}
+      next: check_code
+    - condition: true
+      next: forbidden
+check_code:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/check_code_exists"
+    headers:
+      type: json
+    body:
+      classifierId: "${incoming.body.classifierId}"
+      code:         "${incoming.body.code}"
+  result: db_response
+return_result:
+  return: "${db_response.response.body}"
+forbidden:
+  status: 403
+  return: ${common_error_messages.forbidden}

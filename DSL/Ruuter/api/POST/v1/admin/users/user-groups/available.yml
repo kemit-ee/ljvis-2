@@ -1,0 +1,21 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/users/user-groups/available"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+get_available:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/user_group_membership/v1/available"
+    headers:
+      type: json
+    body:
+      userId:         "${incoming.body.userId}"
+      organisationId: "${incoming.body.organisationId}"
+  result: db_response
+respond_result:
+  return: "${db_response.response.body}"

@@ -1,0 +1,22 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/classifiers/list"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+get_list:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/ljvis2/iam/classifier/v1/list"
+    headers:
+      type: json
+    body:
+      page:     "${incoming.body.page}"
+      pageSize: "${incoming.body.pageSize}"
+      search:   "${incoming.body.search}"
+  result: db_response
+respond_result:
+  return: "${db_response.response.body}"
