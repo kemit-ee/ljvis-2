@@ -28,6 +28,7 @@ export function ClassifierDetailPage() {
   const { hasPermission } = useAuth();
   const canEditClassifier = hasPermission('classifier.edit');
   const canEditClassifierValue = hasPermission('classifier_value.edit');
+  const forbidden = !hasPermission('classifier.read');
 
     useEffect(() => {
         if (showClassifierEditedAlert) {
@@ -51,7 +52,6 @@ export function ClassifierDetailPage() {
       classifier,
       classifierValues,
       loading,
-      forbidden,
       refetch,
       classifierValueSearchInput,
       setClassifierValueSearchInput,
@@ -157,6 +157,7 @@ export function ClassifierDetailPage() {
       [t, handleRowClick],
   );
 
+  if (loading && !classifier) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
   if (!classifier) return <Text>{t('common.error')}</Text>;
 

@@ -6,7 +6,6 @@ import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { Classifier, ClassifierValue } from './types.ts';
 import { getClassifier, getClassifierValues, listClassifiers } from './api.ts';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
-import { hasStatus } from '../../hooks/statusUtils';
 
 // ---------------------------------------------------------------------------
 // Data hook: classifier list with search
@@ -80,14 +79,12 @@ export function useClassifierDetail(id: string | undefined) {
   const [classifierValueSearch, setClassifierValueSearch] = useState('');
   const [classifierValueSearchInput, setClassifierValueSearchInput] = useState('');
   const [loading, setLoading] = useState(true);
-  const [forbidden, setForbidden] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
 
   const fetchData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
-    setForbidden(false);
     try {
       const [classifiers, classifierValues] = await Promise.all([getClassifier(id), getClassifierValues({
         classifierId: id,
@@ -99,11 +96,7 @@ export function useClassifierDetail(id: string | undefined) {
       setClassifier(classifiers[0] ?? null);
       setClassifierValues(classifierValues);
     } catch (e) {
-      if (hasStatus(e, 403)) {
-        setForbidden(true);
-      } else {
         console.error('Failed to load classifier', e);
-      }
     } finally {
       setLoading(false);
     }
@@ -126,7 +119,7 @@ export function useClassifierDetail(id: string | undefined) {
     setPagination((p) => ({...p, pageIndex: 0}));
   };
 
-  return { classifier, classifierValues, loading, forbidden, refetch: fetchData, classifierValueSearchInput, setClassifierValueSearchInput, handleClassifierValueSearch, clearClassifierValueSearch,
+  return { classifier, classifierValues, loading, refetch: fetchData, classifierValueSearchInput, setClassifierValueSearchInput, handleClassifierValueSearch, clearClassifierValueSearch,
     pagination,
     setPagination,
     sorting,
