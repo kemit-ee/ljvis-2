@@ -131,10 +131,24 @@
   },
   "classifiers": {
     "title": "Classifiers",
-    "viewDetails": "Vaata",
-    "name": "Nimetus",
-    "code": "Kood",
-    "description": "Selgitus"
+    "viewDetails": "View",
+    "name": "Name",
+    "code": "Code",
+    "description": "Description",
+    "data": "Classifier info",
+    "save": "Save",
+    "cancel": "Cancel",
+    "values": "Values",
+    "addValue": "+ Add value",
+    "classifier": "Classifier",
+    "value": "Value",
+    "validFrom": "Valid from",
+    "validUntil": "Valid until",
+    "status": "Status",
+    "statusActive" : "Valid",
+    "statusInactive" : "Finsihed",
+    "change": "Muuda",
+    "switch": "Show only valid values"
   },
   "common": {
     "loading": "Loading...",

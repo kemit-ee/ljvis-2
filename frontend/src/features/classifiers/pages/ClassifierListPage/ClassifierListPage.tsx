@@ -50,6 +50,7 @@ export function ClassifierListPage() {
         cell: (info) => {
           return info.getValue() || '—';
         },
+        enableSorting: false,
       }),
       columnHelper.display({
           id: 'viewDetails',
