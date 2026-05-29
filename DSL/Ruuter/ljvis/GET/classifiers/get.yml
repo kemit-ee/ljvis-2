@@ -34,7 +34,7 @@ extractRequestData:
 getClassifier:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/classifier/get_classifier"
+    url: "[#LJVIS_RESQL]/classifier/get_classifier"
     query:
       id: ${id}
   result: res

@@ -49,7 +49,7 @@ extractRequestData:
 getClassifierValues:
   call: http.get
   args:
-    url: "[#LJVIS_USERS_RESQL]/classifier/get_classifier_values"
+    url: "[#LJVIS_RESQL]/classifier/get_classifier_values"
     query:
       classifierId: ${classifierId}
       search: ${search}
