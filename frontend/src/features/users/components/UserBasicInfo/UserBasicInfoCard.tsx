@@ -2,13 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import type { User } from '../../types';
 import styles from './UserBasicInfoCard.module.css';
-
-export function formatDate(value: string | null | undefined): string {
-  if (!value) return '—';
-  const parts = value.split('-');
-  if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
-  return value;
-}
+import { formatDate } from '../../../../hooks/dateUtils';
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

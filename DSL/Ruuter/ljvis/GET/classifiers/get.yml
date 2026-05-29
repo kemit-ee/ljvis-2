@@ -1,0 +1,50 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get a single classifier by ID"
+  method: get
+  accepts: json
+  returns: json
+  namespace: classifiers
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "Classifier ID"
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: check_permission
+
+check_permission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.indexOf('classifier.read') >= 0}
+      next: extractRequestData
+  next: return_forbidden
+
+extractRequestData:
+  assign:
+    id: ${incoming.params.id}
+  next: getClassifier
+
+getClassifier:
+  call: http.get
+  args:
+    url: "[#LJVIS_USERS_RESQL]/classifier/get_classifier"
+    query:
+      id: ${id}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "insufficient permissions"
+  next: end

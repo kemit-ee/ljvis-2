@@ -35,6 +35,7 @@ declaration:
 WITH latest AS (
     SELECT DISTINCT ON (id)
         id,
+        classifier_id,
         code,
         name,
         description
@@ -42,7 +43,7 @@ WITH latest AS (
     ORDER BY id, created_at DESC
 )
 SELECT
-    l.id::TEXT,
+    l.classifier_id AS id,
     l.code,
     l.name,
     l.description,

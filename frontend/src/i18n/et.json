@@ -135,7 +135,21 @@
     "viewDetails": "Vaata",
     "name": "Nimetus",
     "code": "Kood",
-    "description": "Selgitus"
+    "description": "Selgitus",
+    "data": "Klassifikaatori andmed",
+    "save": "Salvesta",
+    "cancel": "Tühista",
+    "values": "Väärtused",
+    "addValue": "+ Lisa väärtus",
+    "classifier": "Klassifikaator",
+    "value": "Väärtus",
+    "validFrom": "Kehtivuse algus",
+    "validUntil": "Kehtivuse lõpp",
+    "status": "Olek",
+    "statusActive" : "Kehtiv",
+    "statusInactive" : "Lõpetatud",
+    "change": "Muuda",
+    "switch": "Kuva ainult kehtivad väärtused"
   },
   "common": {
     "loading": "Laadimine...",

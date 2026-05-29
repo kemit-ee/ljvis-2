@@ -20,13 +20,6 @@ import type { Permission } from '../permissions/types';
 import { listPermissions } from '../permissions/api';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 
-// ---------------------------------------------------------------------------
-// Helper: check if error has a specific HTTP status
-// ---------------------------------------------------------------------------
-function hasStatus(e: unknown, status: number): boolean {
-  return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === status;
-}
-
 export function useUserGroupList(user: { organisationName?: string; permissions?: string } | null, permissions: string[]) {
   const [data, setData] = useState<UserGroup[]>([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -147,8 +140,6 @@ export function useUserGroupDetail(id: string | undefined) {
   const [totalRows, setTotalRows] = useState(0);
   const [nameError, setNameError] = useState('');
   const [organisationsError, setOrganisationsError] = useState(false);
-  const [forbidden, setForbidden] = useState(false);
-
 
   // --- Edit states ---
   const [editingName, setEditingName] = useState(false);
@@ -189,15 +180,11 @@ export function useUserGroupDetail(id: string | undefined) {
       setUsers(u);
       setTotalRows(u.length);
     } catch (e) {
-      if (hasStatus(e, 403)) {
-        setForbidden(true);
-      } else {
         console.error('Failed to load group', e);
-      }
     } finally {
       setLoading(false);
     }
-  }, [id, userSearch, pagination, sorting, forbidden]);
+  }, [id, userSearch, pagination, sorting]);
 
   useEffect(() => {
     fetchData();
@@ -379,7 +366,6 @@ export function useUserGroupDetail(id: string | undefined) {
     handleDeleteUser,
     nameError,
     organisationsError,
-    forbidden
   };
 }
 

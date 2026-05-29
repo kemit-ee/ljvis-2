@@ -26,6 +26,7 @@ export function UserDetailPage() {
   const { hasAnyPermission } = useAuth();
   const canEditUser = hasAnyPermission(['user.edit.admin', 'user.edit.local']);
   const canViewGroupDetail = hasAnyPermission(['user_group.read.admin', 'user_group.read.local']);
+  const forbidden = !hasAnyPermission(['user.read.admin', 'user.read.local', 'user.edit.admin', 'user.edit.local']);
 
     useEffect(() => {
         if (showNewUserAddedAlert) {
@@ -54,7 +55,7 @@ export function UserDetailPage() {
         }
     }, [showUserGroupEditedAlert]);
 
-  const { user, groups, loading, forbidden, refetch } = useUserDetail(id);
+  const { user, groups, loading, refetch } = useUserDetail(id);
 
   const handleEditSaved = () => {
     setIsEditActive(false);
@@ -100,7 +101,7 @@ export function UserDetailPage() {
     }
   };
 
-  if (loading) return <Text>{t('common.loading')}</Text>;
+  if (loading && !user) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
   if (!user) return <Text>{t('common.error')}</Text>;
 

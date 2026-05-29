@@ -11,14 +11,8 @@ import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
 import { useAuth } from '../auth/AuthContext';
 import { applyValidationError } from '../../shared/api/errors';
+import { hasStatus } from '../../hooks/statusUtils';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
-
-// ---------------------------------------------------------------------------
-// Helper: check if error has a specific HTTP status
-// ---------------------------------------------------------------------------
-function hasStatus(e: unknown, status: number): boolean {
-  return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === status;
-}
 
 // ---------------------------------------------------------------------------
 // Helper: convert DD.MM.YYYY to YYYY-MM-DD
@@ -143,22 +137,16 @@ export function useUserDetail(id: string | undefined) {
   const [user, setUser] = useState<User | null>(null);
   const [groups, setGroups] = useState<UserGroupAssignment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [forbidden, setForbidden] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
-    setForbidden(false);
     try {
       const [users, userGroups] = await Promise.all([getUser(id), getUserGroups(id)]);
       setUser(users[0] ?? null);
       setGroups(userGroups);
     } catch (e) {
-      if (hasStatus(e, 403)) {
-        setForbidden(true);
-      } else {
         console.error('Failed to load user', e);
-      }
     } finally {
       setLoading(false);
     }
@@ -170,7 +158,7 @@ export function useUserDetail(id: string | undefined) {
 
   const isAccessExpired = user?.accessEnd ? new Date(user.accessEnd) < new Date() : false;
 
-  return { user, groups, loading, isAccessExpired, forbidden, refetch: fetchData };
+  return { user, groups, loading, isAccessExpired, refetch: fetchData };
 }
 
 const LOCAL_ADMIN_GROUP = 'Local Admin Group';

@@ -46,6 +46,7 @@ export function UserGroupDetailPage() {
   const canAddUser = hasPermission('user_group.add_user');
   const canRemoveUser = hasPermission('user_group.remove_user');
   const canViewUser = hasAnyPermission(['user.read.admin', 'user.read.local']);
+  const forbidden = !hasAnyPermission(['user_group.read.admin', 'user_group.read.local']);
   const location = useLocation();
   const justCreated = (location.state as { justCreated?: boolean })?.justCreated;
   const justCreatedUser = (location.state as { justCreatedUser?: boolean })?.justCreatedUser;
@@ -69,7 +70,6 @@ export function UserGroupDetailPage() {
     editingPerms, allPerms, selectedPermIds, startEditPerms, togglePerm, toggleAllPerms, savePerms: savePermsHook, cancelEditPerms,
     handleDeleteUser: handleDeleteUserHook,
     isLoading, totalRows, pagination, setPagination, sorting, setSorting, nameError, organisationsError,
-    forbidden
   } = useUserGroupDetail(id);
 
   const savePerms = async () => {
@@ -318,7 +318,7 @@ export function UserGroupDetailPage() {
       [t, handleRowClick, handleDeleteUser, canEditGroup, canViewUser],
   );
 
-  if (loading) return <Text>{t('common.loading')}</Text>;
+    if (loading && !group) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
     if (!group) return <Text>{t('common.error')}</Text>;
 
