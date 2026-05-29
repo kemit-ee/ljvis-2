@@ -56,48 +56,46 @@ Epic 09 katab admin-liidese klassifikaatorite ja klassifikaatori väärtuste lug
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/ljvis2/POST/iam/classifier/v1/list.sql` | SQL | Klassifikaatorite pagineeritud nimekiri snapshotist |
-| `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_list.sql` | SQL | Mock klassifikaatorite nimekiri |
-| `DSL/Resql/ljvis2/POST/iam/classifier/v1/get.sql` | SQL | Ühe klassifikaatori detail snapshotist |
-| `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_get.sql` | SQL | Mock klassifikaatori detail |
-| `DSL/Resql/ljvis2/POST/iam/classifier/v1/update.sql` | SQL | Uus `classifier_name_state` kirje |
-| `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_update.sql` | SQL | Mock uuenduse vastus |
-| `DSL/Resql/ljvis2/POST/iam/classifier/v1/get_latest_name_state.sql` | SQL | Viimase nime/state eelkontroll enne muutmist |
-| `DSL/Resql/ljvis2/POST/iam/classifier/v1/mock_get_latest_name_state.sql` | SQL | Mock latest-state kontroll |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/list.sql` | SQL | Klassifikaatori väärtuste pagineeritud nimekiri snapshotist |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_list.sql` | SQL | Mock väärtuste nimekiri |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/check_code_exists.sql` | SQL | Väärtuse koodi unikaalsuse kontroll |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_check_code_exists.sql` | SQL | Mock koodi olemasolu kontroll |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/create.sql` | SQL | Uue klassifikaatori väärtuse loomine |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_create.sql` | SQL | Mock create vastus |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/create_validity_state.sql` | SQL | Esmase kehtivus-state kirje loomine |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_create_validity_state.sql` | SQL | Mock validity create vastus |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/update.sql` | SQL | Uus `classifier_value_validity_state` kirje |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_update.sql` | SQL | Mock validity update vastus |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/get_latest_validity_state.sql` | SQL | Viimase kehtivus-state kontroll |
-| `DSL/Resql/ljvis2/POST/iam/classifier_value/v1/mock_get_latest_validity_state.sql` | SQL | Mock latest validity state |
-| `DSL/Resql/ljvis2/POST/state_updater/classifier_latest/build.sql` | SQL | `classifier_latest` snapshot rebuild |
-| `DSL/Resql/ljvis2/POST/state_updater/classifier_latest/mock_build.sql` | SQL | Mock snapshot rebuild vastus |
-| `DSL/Resql/ljvis2/POST/state_updater/classifier_value_latest/build.sql` | SQL | `classifier_value_latest` snapshot rebuild |
-| `DSL/Resql/ljvis2/POST/state_updater/classifier_value_latest/mock_build.sql` | SQL | Mock snapshot rebuild vastus |
+| `DSL/Resql/POST/iam/classifier/v1/list.sql` | SQL | Klassifikaatorite pagineeritud nimekiri snapshotist |
+| `DSL/Resql/POST/iam/classifier/v1/mock_list.sql` | SQL | Mock klassifikaatorite nimekiri |
+| `DSL/Resql/POST/iam/classifier/v1/get.sql` | SQL | Ühe klassifikaatori detail snapshotist |
+| `DSL/Resql/POST/iam/classifier/v1/mock_get.sql` | SQL | Mock klassifikaatori detail |
+| `DSL/Resql/POST/iam/classifier/v1/update.sql` | SQL | Uus `classifier_name_state` kirje |
+| `DSL/Resql/POST/iam/classifier/v1/mock_update.sql` | SQL | Mock uuenduse vastus |
+| `DSL/Resql/POST/iam/classifier/v1/get_latest_name_state.sql` | SQL | Viimase nime/state eelkontroll enne muutmist |
+| `DSL/Resql/POST/iam/classifier/v1/mock_get_latest_name_state.sql` | SQL | Mock latest-state kontroll |
+| `DSL/Resql/POST/iam/classifier_value/v1/list.sql` | SQL | Klassifikaatori väärtuste pagineeritud nimekiri snapshotist |
+| `DSL/Resql/POST/iam/classifier_value/v1/mock_list.sql` | SQL | Mock väärtuste nimekiri |
+| `DSL/Resql/POST/iam/classifier_value/v1/check_code_exists.sql` | SQL | Väärtuse koodi unikaalsuse kontroll |
+| `DSL/Resql/POST/iam/classifier_value/v1/mock_check_code_exists.sql` | SQL | Mock koodi olemasolu kontroll |
+| `DSL/Resql/POST/iam/classifier_value/v1/create.sql` | SQL | Uue klassifikaatori väärtuse loomine |
+| `DSL/Resql/POST/iam/classifier_value/v1/mock_create.sql` | SQL | Mock create vastus |
+| `DSL/Resql/POST/iam/classifier_value/v1/create_validity_state.sql` | SQL | Esmase kehtivus-state kirje loomine |
+| `DSL/Resql/POST/iam/classifier_value/v1/mock_create_validity_state.sql` | SQL | Mock validity create vastus |
+| `DSL/Resql/POST/iam/classifier_value/v1/update.sql` | SQL | Uus `classifier_value_validity_state` kirje |
+| `DSL/Resql/POST/iam/classifier_value/v1/mock_update.sql` | SQL | Mock validity update vastus |
+| `DSL/Resql/POST/iam/classifier_value/v1/get_latest_validity_state.sql` | SQL | Viimase kehtivus-state kontroll |
+| `DSL/Resql/POST/iam/classifier_value/v1/mock_get_latest_validity_state.sql` | SQL | Mock latest validity state |
+| `DSL/Resql/POST/state_updater/classifier_latest/build.sql` | SQL | `classifier_latest` snapshot rebuild |
+| `DSL/Resql/POST/state_updater/classifier_latest/mock_build.sql` | SQL | Mock snapshot rebuild vastus |
+| `DSL/Resql/POST/state_updater/classifier_value_latest/build.sql` | SQL | `classifier_value_latest` snapshot rebuild |
+| `DSL/Resql/POST/state_updater/classifier_value_latest/mock_build.sql` | SQL | Mock snapshot rebuild vastus |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard` | Guard | Ligipääs `classifiers/*` endpointidele |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/list.yml` | Ruuter DSL | Klassifikaatorite listi voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/list.yml` | Ruuter DSL | Mock listi voog |
+| `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_list.yml` | Ruuter DSL | Mock listi voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/get.yml` | Ruuter DSL | Klassifikaatori detaili voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/get.yml` | Ruuter DSL | Mock detaili voog |
+| `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_get.yml` | Ruuter DSL | Mock detaili voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/update.yml` | Ruuter DSL | Klassifikaatori nime/kirjelduse muutmise voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifiers/update.yml` | Ruuter DSL | Mock update voog |
+| `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_update.yml` | Ruuter DSL | Mock update voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/.guard` | Guard | Ligipääs `classifier-values/*` endpointidele |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/list.yml` | Ruuter DSL | Väärtuste listi voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/list.yml` | Ruuter DSL | Mock väärtuste list |
+| `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_list.yml` | Ruuter DSL | Mock väärtuste list |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/check_code_exists.yml` | Ruuter DSL | Koodi eelkontrolli voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/check_code_exists.yml` | Ruuter DSL | Mock eelkontroll |
+| `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_check_code_exists.yml` | Ruuter DSL | Mock eelkontroll |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/create.yml` | Ruuter DSL | Väärtuse loomise voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/create.yml` | Ruuter DSL | Mock loomise voog |
+| `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_create.yml` | Ruuter DSL | Mock loomise voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/update.yml` | Ruuter DSL | Kehtivusperioodi muutmise voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/classifier-values/update.yml` | Ruuter DSL | Mock update voog |
+| `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_update.yml` | Ruuter DSL | Mock update voog |
 | `DSL/Liquibase/changelog/20260527153102-epic-09-classifier-management-schema.sql` | Liquibase | Epic 09 skeemimuudatus ja indeksid |
 | `DSL/Liquibase/changelog/20260527153102-epic-09-classifier-management-schema-rollback.sql` | Liquibase | Skeemimuudatuse rollback |
 | `DSL/Liquibase/changelog/20260527153102-epic-09-classifier-management-schema.xml` | Liquibase | Liquibase changeset viitega forward/rollback SQL-idele |

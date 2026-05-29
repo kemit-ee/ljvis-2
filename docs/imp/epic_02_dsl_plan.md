@@ -61,146 +61,142 @@ Epic 02 katab kasutajate ja kasutajagruppide haldamise admin-liideses. Kasutajal
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/ljvis2/POST/iam/user/v1/list.sql` | SQL | Kasutajate pagineeritud nimekiri `user_account_latest`-ist |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_list.sql` | SQL | Mock nimekiri |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/get.sql` | SQL | Kasutaja detailvaade `user_account_latest`-ist |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_get.sql` | SQL | Mock detailvaade |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/check_personal_code_exists.sql` | SQL | Isikukoodi unikaalsuse kontroll |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_check_personal_code_exists.sql` | SQL | Mock koodikontroll |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/create.sql` | SQL | INSERT user_account + user_account_data_state + user_account_state |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_create.sql` | SQL | Mock create kinnitusrida |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/update.sql` | SQL | INSERT user_account_data_state (andmete muutus) |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_update.sql` | SQL | Mock update kinnitusrida |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/change_organisation.sql` | SQL | INSERT user_account_data_state (asutus muutub) + remove active group memberships |
-| `DSL/Resql/ljvis2/POST/iam/user/v1/mock_change_organisation.sql` | SQL | Mock change-org kinnitusrida |
+| `DSL/Resql/POST/iam/user/v1/list.sql` | SQL | Kasutajate pagineeritud nimekiri `user_account_latest`-ist |
+| `DSL/Resql/POST/iam/user/v1/mock_list.sql` | SQL | Mock nimekiri |
+| `DSL/Resql/POST/iam/user/v1/get.sql` | SQL | Kasutaja detailvaade `user_account_latest`-ist |
+| `DSL/Resql/POST/iam/user/v1/mock_get.sql` | SQL | Mock detailvaade |
+| `DSL/Resql/POST/iam/user/v1/check_personal_code_exists.sql` | SQL | Isikukoodi unikaalsuse kontroll |
+| `DSL/Resql/POST/iam/user/v1/mock_check_personal_code_exists.sql` | SQL | Mock koodikontroll |
+| `DSL/Resql/POST/iam/user/v1/create.sql` | SQL | INSERT user_account + user_account_data_state + user_account_state |
+| `DSL/Resql/POST/iam/user/v1/mock_create.sql` | SQL | Mock create kinnitusrida |
+| `DSL/Resql/POST/iam/user/v1/update.sql` | SQL | INSERT user_account_data_state (andmete muutus) |
+| `DSL/Resql/POST/iam/user/v1/mock_update.sql` | SQL | Mock update kinnitusrida |
+| `DSL/Resql/POST/iam/user/v1/change_organisation.sql` | SQL | INSERT user_account_data_state (asutus muutub) + remove active group memberships |
+| `DSL/Resql/POST/iam/user/v1/mock_change_organisation.sql` | SQL | Mock change-org kinnitusrida |
 
 ### RESQL SQL failid (iam/user_group_membership — 6 faili)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/get.sql` | SQL | Kasutaja aktiivsed grupid `user_account_latest.user_groups`-ist |
-| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/mock_get.sql` | SQL | Mock |
-| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/available.sql` | SQL | Kasutaja asutusega seotud saadaolevad grupid `user_group_latest`-ist |
-| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/mock_available.sql` | SQL | Mock |
-| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/save.sql` | SQL | INSERT user_account_user_group + state (added) + INSERT removed state |
-| `DSL/Resql/ljvis2/POST/iam/user_group_membership/v1/mock_save.sql` | SQL | Mock |
+| `DSL/Resql/POST/iam/user_group_membership/v1/get.sql` | SQL | Kasutaja aktiivsed grupid `user_account_latest.user_groups`-ist |
+| `DSL/Resql/POST/iam/user_group_membership/v1/mock_get.sql` | SQL | Mock |
+| `DSL/Resql/POST/iam/user_group_membership/v1/available.sql` | SQL | Kasutaja asutusega seotud saadaolevad grupid `user_group_latest`-ist |
+| `DSL/Resql/POST/iam/user_group_membership/v1/mock_available.sql` | SQL | Mock |
+| `DSL/Resql/POST/iam/user_group_membership/v1/save.sql` | SQL | INSERT user_account_user_group + state (added) + INSERT removed state |
+| `DSL/Resql/POST/iam/user_group_membership/v1/mock_save.sql` | SQL | Mock |
 
 ### RESQL SQL failid (iam/user_group — 16 faili)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/list.sql` | SQL | Kasutajagruppide pagineeritud nimekiri `user_group_latest`-ist |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_list.sql` | SQL | Mock nimekiri |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/get.sql` | SQL | Kasutajagrupi detailvaade `user_group_latest`-ist |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_get.sql` | SQL | Mock detailvaade |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/create.sql` | SQL | INSERT user_group + name_state + org_links + org_states + perm_links + perm_states |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_create.sql` | SQL | Mock create |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/update.sql` | SQL | INSERT user_group_name_state / org/perm sync (lisamine + eemaldamine) |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_update.sql` | SQL | Mock update |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/list_users.sql` | SQL | Grupi liikmete pagineeritud nimekiri `user_account_latest`-ist |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_list_users.sql` | SQL | Mock liikmete nimekiri |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/search_eligible_users.sql` | SQL | Gruppi sobivad kasutajad `user_account_latest`-ist |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_search_eligible_users.sql` | SQL | Mock otsing |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/add_user.sql` | SQL | INSERT user_account_user_group + active state |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_add_user.sql` | SQL | Mock lisamine |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/remove_user.sql` | SQL | INSERT removed state for user_account_user_group_state |
-| `DSL/Resql/ljvis2/POST/iam/user_group/v1/mock_remove_user.sql` | SQL | Mock eemaldamine |
+| `DSL/Resql/POST/iam/user_group/v1/list.sql` | SQL | Kasutajagruppide pagineeritud nimekiri `user_group_latest`-ist |
+| `DSL/Resql/POST/iam/user_group/v1/mock_list.sql` | SQL | Mock nimekiri |
+| `DSL/Resql/POST/iam/user_group/v1/get.sql` | SQL | Kasutajagrupi detailvaade `user_group_latest`-ist |
+| `DSL/Resql/POST/iam/user_group/v1/mock_get.sql` | SQL | Mock detailvaade |
+| `DSL/Resql/POST/iam/user_group/v1/create.sql` | SQL | INSERT user_group + name_state + org_links + org_states + perm_links + perm_states |
+| `DSL/Resql/POST/iam/user_group/v1/mock_create.sql` | SQL | Mock create |
+| `DSL/Resql/POST/iam/user_group/v1/update.sql` | SQL | INSERT user_group_name_state / org/perm sync (lisamine + eemaldamine) |
+| `DSL/Resql/POST/iam/user_group/v1/mock_update.sql` | SQL | Mock update |
+| `DSL/Resql/POST/iam/user_group/v1/list_users.sql` | SQL | Grupi liikmete pagineeritud nimekiri `user_account_latest`-ist |
+| `DSL/Resql/POST/iam/user_group/v1/mock_list_users.sql` | SQL | Mock liikmete nimekiri |
+| `DSL/Resql/POST/iam/user_group/v1/search_eligible_users.sql` | SQL | Gruppi sobivad kasutajad `user_account_latest`-ist |
+| `DSL/Resql/POST/iam/user_group/v1/mock_search_eligible_users.sql` | SQL | Mock otsing |
+| `DSL/Resql/POST/iam/user_group/v1/add_user.sql` | SQL | INSERT user_account_user_group + active state |
+| `DSL/Resql/POST/iam/user_group/v1/mock_add_user.sql` | SQL | Mock lisamine |
+| `DSL/Resql/POST/iam/user_group/v1/remove_user.sql` | SQL | INSERT removed state for user_account_user_group_state |
+| `DSL/Resql/POST/iam/user_group/v1/mock_remove_user.sql` | SQL | Mock eemaldamine |
 
 ### RESQL SQL failid (iam/organisation — 2 faili)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/ljvis2/POST/iam/organisation/v1/list.sql` | SQL | Asutuste nimekiri kasutajagrupi vormi jaoks |
-| `DSL/Resql/ljvis2/POST/iam/organisation/v1/mock_list.sql` | SQL | Mock asutuste nimekiri |
+| `DSL/Resql/POST/iam/organisation/v1/list.sql` | SQL | Asutuste nimekiri kasutajagrupi vormi jaoks |
+| `DSL/Resql/POST/iam/organisation/v1/mock_list.sql` | SQL | Mock asutuste nimekiri |
 
 ### RESQL SQL failid (iam/permission — 2 faili, GET)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/ljvis2/GET/iam/permission/v1/list.sql` | SQL | Õiguste kataloog (parameetrita) |
-| `DSL/Resql/ljvis2/GET/iam/permission/v1/mock_list.sql` | SQL | Mock õiguste kataloog |
+| `DSL/Resql/GET/iam/permission/v1/list.sql` | SQL | Õiguste kataloog (parameetrita) |
+| `DSL/Resql/GET/iam/permission/v1/mock_list.sql` | SQL | Mock õiguste kataloog |
 
 ### state_updater SQL failid (4 faili)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
-| `DSL/Resql/ljvis2/POST/state_updater/user_account_latest/build.sql` | SQL | INSERT user_account_latest snapshot |
-| `DSL/Resql/ljvis2/POST/state_updater/user_account_latest/mock_build.sql` | SQL | Mock snapshot |
-| `DSL/Resql/ljvis2/POST/state_updater/user_group_latest/build.sql` | SQL | INSERT user_group_latest snapshot |
-| `DSL/Resql/ljvis2/POST/state_updater/user_group_latest/mock_build.sql` | SQL | Mock snapshot |
+| `DSL/Resql/POST/state_updater/user_account_latest/build.sql` | SQL | INSERT user_account_latest snapshot |
+| `DSL/Resql/POST/state_updater/user_account_latest/mock_build.sql` | SQL | Mock snapshot |
+| `DSL/Resql/POST/state_updater/user_group_latest/build.sql` | SQL | INSERT user_group_latest snapshot |
+| `DSL/Resql/POST/state_updater/user_group_latest/mock_build.sql` | SQL | Mock snapshot |
 
-### Ruuter DSL failid — users (14 faili + 2 guardi)
+### Ruuter DSL failid — users (14 faili + 1 guard)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
 | `DSL/Ruuter/api/POST/v1/admin/users/.guard` | Guard | user.list.admin/local, user.read.admin/local, user.edit.admin/local |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/POST/v1/admin/users/list.yml` | Ruuter DSL | Kasutajate nimekiri voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/mock_list.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/get.yml` | Ruuter DSL | Detailvaade voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/get.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/mock_get.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/check-personal-code-exists.yml` | Ruuter DSL | Koodikontroll voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/check-personal-code-exists.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/mock_check-personal-code-exists.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/create.yml` | Ruuter DSL | Loomine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/create.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/mock_create.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/update.yml` | Ruuter DSL | Muutmine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/update.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/mock_update.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/change-organisation.yml` | Ruuter DSL | Asutuse muutmine voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/change-organisation.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/mock_change-organisation.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/organisations/options.yml` | Ruuter DSL | Asutuste valikud voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/organisations/options.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/organisations/mock_options.yml` | Ruuter DSL | Mock |
 
 ### Ruuter DSL failid — user-groups/users (8 faili, alamkaust)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
 | `DSL/Ruuter/api/POST/v1/admin/users/user-groups/get.yml` | Ruuter DSL | Kasutaja grupid voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/get.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/user-groups/mock_get.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/user-groups/available.yml` | Ruuter DSL | Saadaolevad grupid voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/available.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/user-groups/mock_available.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/users/user-groups/save.yml` | Ruuter DSL | Bulk-salvestus voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/users/user-groups/save.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/users/user-groups/mock_save.yml` | Ruuter DSL | Mock |
 
-### Ruuter DSL failid — user-groups (14 faili + 2 guardi)
+### Ruuter DSL failid — user-groups (14 faili + 1 guard)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/.guard` | Guard | user_group.list.admin/local, user_group.read.admin/local, user_group.create, user_group.update jt |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/list.yml` | Ruuter DSL | Kasutajagruppide nimekiri voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/user-groups/mock_list.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/get.yml` | Ruuter DSL | Detailvaade voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/get.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/user-groups/mock_get.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/create.yml` | Ruuter DSL | Loomine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/create.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/user-groups/mock_create.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/update.yml` | Ruuter DSL | Muutmine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/update.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/user-groups/mock_update.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/users/list.yml` | Ruuter DSL | Liikmete nimekiri voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/user-groups/users/mock_list.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/users/search-eligible.yml` | Ruuter DSL | Sobivate kasutajate otsing voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/search-eligible.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/user-groups/users/mock_search-eligible.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/users/add.yml` | Ruuter DSL | Liikme lisamine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/add.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/user-groups/users/mock_add.yml` | Ruuter DSL | Mock |
 | `DSL/Ruuter/api/POST/v1/admin/user-groups/users/remove.yml` | Ruuter DSL | Liikme eemaldamine voog (verify + snapshot) |
-| `DSL/Ruuter/mockapi/POST/v1/admin/user-groups/users/remove.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/user-groups/users/mock_remove.yml` | Ruuter DSL | Mock |
 
-### Ruuter DSL failid — organisations (2 faili + 2 guardi)
+### Ruuter DSL failid — organisations (2 faili + 1 guard)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
 | `DSL/Ruuter/api/POST/v1/admin/organisations/.guard` | Guard | organisation.list |
-| `DSL/Ruuter/mockapi/POST/v1/admin/organisations/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/POST/v1/admin/organisations/list.yml` | Ruuter DSL | Asutuste kataloog voog |
-| `DSL/Ruuter/mockapi/POST/v1/admin/organisations/list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/POST/v1/admin/organisations/mock_list.yml` | Ruuter DSL | Mock |
 
-### Ruuter DSL failid — permissions (2 faili + 2 guardi, GET)
+### Ruuter DSL failid — permissions (2 faili + 1 guard, GET)
 
 | Failitee | Tüüp | Eesmärk |
 |---------|------|---------|
 | `DSL/Ruuter/api/GET/v1/admin/permissions/.guard` | Guard | permission.list |
-| `DSL/Ruuter/mockapi/GET/v1/admin/permissions/.guard` | Guard | Tingimusteta lubav mock guard |
 | `DSL/Ruuter/api/GET/v1/admin/permissions/list.yml` | Ruuter DSL | Õiguste kataloog voog (parameetrita GET) |
-| `DSL/Ruuter/mockapi/GET/v1/admin/permissions/list.yml` | Ruuter DSL | Mock |
+| `DSL/Ruuter/api/GET/v1/admin/permissions/mock_list.yml` | Ruuter DSL | Mock |
 
 ### Dokumentatsioon (2 faili)
 

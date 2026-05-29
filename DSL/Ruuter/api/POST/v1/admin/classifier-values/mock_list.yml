@@ -1,0 +1,22 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "API route for POST /api/v1/admin/classifier-values/mock_list"
+  method: post
+  accepts: json
+  returns: json
+  namespace: admin
+
+get_list:
+  call: http.post
+  args:
+    url: "[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/mock_list"
+    headers:
+      type: json
+    body:
+      classifierId: "${incoming.body.classifierId}"
+      page:         "${incoming.body.page}"
+      pageSize:     "${incoming.body.pageSize}"
+  result: db_response
+respond_result:
+  return: "${db_response.response.body}"

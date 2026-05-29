@@ -51,7 +51,7 @@ Issue update rule after delivery:
   - Example: `DSL files for "Klassifikaatorite haldamine" (Epic 09)`.
 - The dedicated task issue body must be exactly: `Create DSL files accordig to "Epic name (link)" and its subtasks.`
 - Commit messages must include that dedicated DSL task reference (e.g. `Refs #123`).
-- PR target branch is `feature/dsl`. PR description must include `Resolves #<dsl_task_issue_number>` so DSL task closes on PR merge.
+- PR target branch is `dev`. PR description must include `Resolves #<dsl_task_issue_number>` so DSL task closes on PR merge.
 - Epic issue must remain open; do not add close keywords for epic.
 - Do not write DSL file delivery info to epic issue body or unrelated tickets.
 - Add comment only on the dedicated DSL task issue with format:
@@ -141,22 +141,13 @@ DSL/Ruuter/
         <entiteet>/
           .guard                 ← ligipääsukontroll endpointi kaustale
           <operatsioon>.yml
+          mock_<operatsioon>.yml
     GET/
       v1/admin/
         <entiteet>/
           .guard
           <operatsioon>.yml      ← ainult parameetrita listid
-  mockapi/
-    POST/
-      v1/admin/
-        <entiteet>/
-          .guard                 ← tingimusteta lubav mock guard
-          <operatsioon>.yml      ← mockapi puus sama failinimi
-    GET/
-      v1/admin/
-        <entiteet>/
-          .guard                 ← tingimusteta lubav mock guard
-          <operatsioon>.yml      ← mockapi puus sama failinimi
+          mock_<operatsioon>.yml
 DSL/Liquibase/
   changelog/
     YYYYMMDDXXXX-selgitus-millega-tegu.sql
@@ -185,8 +176,8 @@ Iga päringu kohta eraldi alamjaotis:
 
 | Väli | Väärtus |
 |------|---------|
-| **Failitee** | `DSL/Resql/ljvis2/POST/<moodul>/<entiteet>/v1/<operatsioon>.sql` |
-| **Mock failitee** | `DSL/Resql/ljvis2/POST/<moodul>/<entiteet>/v1/mock_<operatsioon>.sql` |
+| **Failitee** | `DSL/Resql/POST/<moodul>/<entiteet>/v1/<operatsioon>.sql` |
+| **Mock failitee** | `DSL/Resql/POST/<moodul>/<entiteet>/v1/mock_<operatsioon>.sql` |
 | **HTTP meetod** | POST / GET |
 | **Kirjeldus** | Mida päring teeb (1 lause) |
 | **Sisendparameetrid** | `:param1` (tüüp), `:param2` (tüüp) — või *puuduvad* |
@@ -220,13 +211,12 @@ call_db:
 
 **Ruuter DSL (mock):**
 ```yaml
-# <operatsioon>.yml mockapi puus — kutsub mock RESQL endpointi
+# mock_<operatsioon>.yml — kutsub mock RESQL endpointi
 call_mock:
   url: "[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>"
   ...
 ```
-
-Mockapi puus olev Ruuter fail ei tohi kunagi kutsuda production RESQL operatsiooni nimega `<operatsioon>`; lubatud on ainult `mock_<operatsioon>` ja `state_updater` puhul `mock_build`.
+```
 
 ### Section 4: Arhitektuuri vastavus
 
@@ -243,7 +233,6 @@ Kontrollnimekiri iga reegli kohta:
 | State muutus → INSERT `_state` tabelisse | ✅ / ⚠️ / ❌ | |
 | Mock failid olemas kõigile päringutele | ✅ / ⚠️ / ❌ | |
 | Ruuter URL → RESQL SQL fail olemas | ✅ / ⚠️ / ❌ | |
-| Mockapi URL → mock RESQL SQL fail olemas | ✅ / ⚠️ / ❌ | |
 | Verify-after-write on kirjeldatud | ✅ / ⚠️ / ❌ | |
 | Rollback / recovery voog on kirjeldatud | ✅ / ⚠️ / ❌ | |
 | Partial success on kaetud | ✅ / ⚠️ / ❌ | |
@@ -255,9 +244,8 @@ Kontrollnimekiri iga reegli kohta:
 Soovituslik sanity-check käsk enne commit'i:
 
 ```bash
-for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
-  kind=$(echo "$f" | sed -E 's|^DSL/Ruuter/([^/]+)/.*|\1|')
-  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/(api|mockapi)/([^/]+)/.*|\2|')
+for f in $(find DSL/Ruuter/api -name '*.yml'); do
+  method=$(echo "$f" | sed -E 's|^DSL/Ruuter/api/([^/]+)/.*|\1|')
   grep -o '\[#LOCAL_RESQL\]/[^" ]*' "$f" | while read -r url; do
     rel=$(echo "$url" | sed 's|^\[#LOCAL_RESQL\]/||')
     project=$(echo "$rel" | cut -d'/' -f1)
@@ -266,24 +254,12 @@ for f in $(find DSL/Ruuter/api DSL/Ruuter/mockapi -name '*.yml'); do
     if [ "$segment2" = "state_updater" ]; then
       entity=$(echo "$rel" | cut -d'/' -f3)
       operation=$(echo "$rel" | cut -d'/' -f4)
-      if [ "$kind" = "mockapi" ] && [ "$operation" != "mock_build" ]; then
-        echo "WRONG_TARGET: $f -> $url"
-      fi
-      if [ "$kind" = "api" ] && [ "$operation" = "mock_build" ]; then
-        echo "WRONG_TARGET: $f -> $url"
-      fi
       test -f "DSL/Resql/${method}/state_updater/${entity}/${operation}.sql" || echo "MISSING: $f -> $url"
     else
       version="$segment2"
       module=$(echo "$rel" | cut -d'/' -f3)
       entity=$(echo "$rel" | cut -d'/' -f4)
       operation=$(echo "$rel" | cut -d'/' -f5)
-      if [ "$kind" = "mockapi" ] && ! echo "$operation" | grep -q '^mock_'; then
-        echo "WRONG_TARGET: $f -> $url"
-      fi
-      if [ "$kind" = "api" ] && echo "$operation" | grep -q '^mock_'; then
-        echo "WRONG_TARGET: $f -> $url"
-      fi
       test -f "DSL/Resql/${method}/${module}/${entity}/${version}/${operation}.sql" || echo "MISSING: $f -> $url"
     fi
   done
@@ -291,12 +267,10 @@ done
 ```
 
 **URL kujud:**
-- Production: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → `DSL/Resql/ljvis2/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
-- Mockapi: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/mock_<operatsioon>` → `DSL/Resql/ljvis2/<meetod>/<moodul>/<entiteet>/v1/mock_<operatsioon>.sql`
-- Production `state_updater`: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → `DSL/Resql/ljvis2/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` kihita)
-- Mockapi `state_updater`: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/mock_build` → `DSL/Resql/ljvis2/POST/state_updater/<entiteet>/mock_build.sql` (ilma `v<N>/` kihita)
+- Tavalised: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- `state_updater`: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` kihita)
 
-Kui väljundis on `MISSING:` või `WRONG_TARGET:`, tuleb failitee joondada enne merge'i.
+Kui väljundis on `MISSING:`, tuleb failitee joondada enne merge'i.
 
 Kui skeemimuudatus on vajalik, tuleb lisaks kontrollida, et Liquibase tripletid on reaalselt loodud ja et indeksid katavad `_state`/`_status` ning `*_latest` tabelite peamised lookup-mustrid.
 
@@ -519,8 +493,8 @@ Kõik selle EPICu RESQL, Ruuter ja vajadusel Liquibase failid luuakse vastavates
 
 | Allikas | Sihtkoht |
 |---------|----------|
-| `DSL/Resql/ljvis2/POST/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/ljvis2/POST/<moodul>/<entiteet>/v1/<fail>.sql` |
-| `DSL/Resql/ljvis2/GET/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/ljvis2/GET/<moodul>/<entiteet>/v1/<fail>.sql` |
+| `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/POST/<moodul>/<entiteet>/v1/<fail>.sql` |
+| `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` | `DSL/Resql/GET/<moodul>/<entiteet>/v1/<fail>.sql` |
 
 **Märkus:** `mock_` prefiksiga failid kopeeritakse samasse kataloogi.
 
@@ -530,8 +504,6 @@ Kõik selle EPICu RESQL, Ruuter ja vajadusel Liquibase failid luuakse vastavates
 |---------|----------|
 | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/<fail>.yml` |
 | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/<fail>.yml` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/<fail>.yml` |
-| `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/<fail>.yml` | `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/<fail>.yml` |
 
 ## Guard failid
 
@@ -539,8 +511,6 @@ Kõik selle EPICu RESQL, Ruuter ja vajadusel Liquibase failid luuakse vastavates
 |---------|----------|
 | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/api/POST/v1/admin/<entiteet>/.guard` |
 | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/api/GET/v1/admin/<entiteet>/.guard` |
-| `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/mockapi/POST/v1/admin/<entiteet>/.guard` |
-| `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/.guard` | `DSL/Ruuter/mockapi/GET/v1/admin/<entiteet>/.guard` |
 
 ## Liquibase failid
 
@@ -588,8 +558,6 @@ Iga `.guard` faili kohta lisatakse päringute nimekirja sektsiooni alamjaotis:
 
 Kui moodulil on mitu erinevat ligipääsutaset (nt üks kaustale, teine alamkaustale), dokumenteeritakse mõlemad eraldi.
 Kui sama kaust sisaldab nii read kui write endpoint'e ja üks `.guard` oleks liiga lai, peab write endpoint sisaldama lisaks endpointi-tasemel permission check'i enne esimest RESQL write sammu. `edit` / `update` / `create` vood peavad nõudma vastavat write-õigust isegi siis, kui kaustapõhine `.guard` lubab laiemat ligipääsu.
-
-Mock endpointide puhul dokumenteeritakse eraldi `DSL/Ruuter/mockapi/<http_method>/v1/admin/<entiteet>/.guard`, mille puhul `Nõutud permission` on `—`, `Scope enforcement` on `Ei` ja `Anonüümne lubatud` on `Jah`.
 
 Code-põhiste write voogude puhul tuleb enne DB write sammu teha eksplitsiitne olemasolu/unikaalsuse kontroll (nt `check_code_exists`) ja konflikti korral tagastada funktsionaalne `409`.
 
