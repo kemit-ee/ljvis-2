@@ -14,7 +14,7 @@ WHERE cvl.classifier_id = :classifierId::BIGINT
     SELECT MAX(id) FROM ljvis2.classifier_value_latest WHERE classifier_value_id = cvl.classifier_value_id
   )
   AND (COALESCE(:search, '') = ''
-       OR cvl.classifier_code ILIKE '%' || COALESCE(:search, '') || '%'
+       OR cvl.code ILIKE '%' || COALESCE(:search, '') || '%'
        OR cvl.name ILIKE '%' || COALESCE(:search, '') || '%')
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'isValid desc') = 'isValid desc'  THEN cvl.is_valid END DESC,

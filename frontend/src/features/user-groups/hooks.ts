@@ -19,13 +19,7 @@ import { listOrganisations } from '../organisations/api';
 import type { Permission } from '../permissions/types';
 import { listPermissions } from '../permissions/api';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
-
-// ---------------------------------------------------------------------------
-// Helper: check if error has a specific HTTP status
-// ---------------------------------------------------------------------------
-function hasStatus(e: unknown, status: number): boolean {
-  return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === status;
-}
+import { hasStatus } from '../../hooks/statusUtils';
 
 export function useUserGroupList(user: { organisationName?: string; permissions?: string } | null, permissions: string[]) {
   const [data, setData] = useState<UserGroup[]>([]);

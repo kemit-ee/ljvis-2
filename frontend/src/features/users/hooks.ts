@@ -11,14 +11,8 @@ import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
 import { useAuth } from '../auth/AuthContext';
 import { applyValidationError } from '../../shared/api/errors';
+import { hasStatus } from '../../hooks/statusUtils';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
-
-// ---------------------------------------------------------------------------
-// Helper: check if error has a specific HTTP status
-// ---------------------------------------------------------------------------
-function hasStatus(e: unknown, status: number): boolean {
-  return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === status;
-}
 
 // ---------------------------------------------------------------------------
 // Helper: convert DD.MM.YYYY to YYYY-MM-DD

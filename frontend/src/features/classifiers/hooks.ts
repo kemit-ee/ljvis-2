@@ -6,13 +6,7 @@ import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { Classifier, ClassifierValue } from './types.ts';
 import { getClassifier, getClassifierValues, listClassifiers } from './api.ts';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
-
-// ---------------------------------------------------------------------------
-// Helper: check if error has a specific HTTP status
-// ---------------------------------------------------------------------------
-function hasStatus(e: unknown, status: number): boolean {
-  return typeof e === 'object' && e !== null && 'status' in e && (e as { status: number }).status === status;
-}
+import { hasStatus } from '../../hooks/statusUtils';
 
 // ---------------------------------------------------------------------------
 // Data hook: classifier list with search
