@@ -3,7 +3,7 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
-main[id="main-content"] {
+main[id='main-content'] {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   margin-left: 0 !important;
@@ -11,12 +11,12 @@ main[id="main-content"] {
   max-width: unset !important;
 }
 
-nav[aria-label="Main navigation"] {
+nav[aria-label='Main navigation'] {
   width: 100%;
 }
 
 .h-100 {
-    height: 100%;
+  height: 100%;
 }
 
 .margin-05 {
@@ -39,7 +39,7 @@ nav[aria-label="Main navigation"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem
+  margin-bottom: 1rem;
 }
 
 .login-page-card {

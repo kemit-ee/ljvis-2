@@ -7,7 +7,7 @@ export function toSnakeCase(str: string): string {
 
 export function useSearchHandler(
   setSearch: Dispatch<SetStateAction<string>>,
-  setPagination: Dispatch<SetStateAction<PaginationState>>
+  setPagination: Dispatch<SetStateAction<PaginationState>>,
 ) {
   return (value: string) => {
     if (value.length >= 3 || value.length === 0) {

@@ -4,7 +4,12 @@ import * as Yup from 'yup';
 import { useTranslation } from 'react-i18next';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { Classifier, ClassifierValue } from './types.ts';
-import { getClassifier, getClassifierValues, listClassifiers, updateClassifier } from './api.ts';
+import {
+  getClassifier,
+  getClassifierValues,
+  listClassifiers,
+  updateClassifier,
+} from './api.ts';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 import { applyValidationError } from '../../shared/api/errors';
 
@@ -17,7 +22,10 @@ export function useClassifierList() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 20,
+  });
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const fetchData = useCallback(async () => {
@@ -53,7 +61,11 @@ export function useClassifierList() {
   }, [fetchData]);
 
   const handleSearch = useSearchHandler(setSearch, setPagination);
-  const clearSearch = () => { setSearchInput(''); setSearch(''); setPagination((p) => ({ ...p, pageIndex: 0 })); };
+  const clearSearch = () => {
+    setSearchInput('');
+    setSearch('');
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
+  };
 
   return {
     data,
@@ -76,28 +88,40 @@ export function useClassifierList() {
 // ---------------------------------------------------------------------------
 export function useClassifierDetail(id: string | undefined) {
   const [classifier, setClassifier] = useState<Classifier | null>(null);
-  const [classifierValues, setClassifierValues] = useState<ClassifierValue[]>([]);
+  const [classifierValues, setClassifierValues] = useState<ClassifierValue[]>(
+    [],
+  );
   const [classifierValueSearch, setClassifierValueSearch] = useState('');
-  const [classifierValueSearchInput, setClassifierValueSearchInput] = useState('');
+  const [classifierValueSearchInput, setClassifierValueSearchInput] =
+    useState('');
   const [loading, setLoading] = useState(true);
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 20,
+  });
 
   const fetchData = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
-      const [classifiers, classifierValues] = await Promise.all([getClassifier(id), getClassifierValues({
-        classifierId: id,
-        search: classifierValueSearch,
-        page: String(pagination.pageIndex + 1),
-        pageSize: String(pagination.pageSize),
-        sorting: sorting.length > 0 ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}` : 'isValid desc'
-      })]);
+      const [classifiers, classifierValues] = await Promise.all([
+        getClassifier(id),
+        getClassifierValues({
+          classifierId: id,
+          search: classifierValueSearch,
+          page: String(pagination.pageIndex + 1),
+          pageSize: String(pagination.pageSize),
+          sorting:
+            sorting.length > 0
+              ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
+              : 'isValid desc',
+        }),
+      ]);
       setClassifier(classifiers[0] ?? null);
       setClassifierValues(classifierValues);
     } catch (e) {
-        console.error('Failed to load classifier', e);
+      console.error('Failed to load classifier', e);
     } finally {
       setLoading(false);
     }
@@ -117,25 +141,37 @@ export function useClassifierDetail(id: string | undefined) {
   const clearClassifierValueSearch = () => {
     setClassifierValueSearchInput('');
     setClassifierValueSearch('');
-    setPagination((p) => ({...p, pageIndex: 0}));
+    setPagination((p) => ({ ...p, pageIndex: 0 }));
   };
 
-  return { classifier, classifierValues, loading, refetch: fetchData, classifierValueSearchInput, setClassifierValueSearchInput, handleClassifierValueSearch, clearClassifierValueSearch,
+  return {
+    classifier,
+    classifierValues,
+    loading,
+    refetch: fetchData,
+    classifierValueSearchInput,
+    setClassifierValueSearchInput,
+    handleClassifierValueSearch,
+    clearClassifierValueSearch,
     pagination,
     setPagination,
     sorting,
-    setSorting};
+    setSorting,
+  };
 }
 
 // ---------------------------------------------------------------------------
 // Form hook: edit classifier (Formik)
 // ---------------------------------------------------------------------------
-export function useClassifierForm(classifier: Classifier | undefined, onSaved: () => void) {
+export function useClassifierForm(
+  classifier: Classifier | undefined,
+  onSaved: () => void,
+) {
   const { t } = useTranslation();
   const isEdit = !!classifier;
 
   const validationSchema = Yup.object({
-    name: Yup.string().required(t('classifiers.validation.required'))
+    name: Yup.string().required(t('classifiers.validation.required')),
   });
 
   const formik = useFormik({
@@ -149,11 +185,19 @@ export function useClassifierForm(classifier: Classifier | undefined, onSaved: (
     onSubmit: async (values, { setFieldError }) => {
       try {
         if (isEdit && classifier) {
-          await updateClassifier({ id: classifier.id, name: values.name, description: values.description });
+          await updateClassifier({
+            id: classifier.id,
+            name: values.name,
+            description: values.description,
+          });
           onSaved();
         }
       } catch (e) {
-        if (!applyValidationError(e, setFieldError, (code) => t(`users.validation.api.${code}`))) {
+        if (
+          !applyValidationError(e, setFieldError, (code) =>
+            t(`users.validation.api.${code}`),
+          )
+        ) {
           console.error('Update failed', e);
         }
       }

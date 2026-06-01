@@ -1,5 +1,14 @@
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Card, Heading, Icon, Select, Text, Tooltip } from '@tedi-design-system/react/tedi';
+import {
+  Alert,
+  Button,
+  Card,
+  Heading,
+  Icon,
+  Select,
+  Text,
+  Tooltip,
+} from '@tedi-design-system/react/tedi';
 import type { UserGroup } from '../../../user-groups/types';
 import styles from './UserGroupsCard.module.css';
 
@@ -46,29 +55,29 @@ export function UserGroupsCard({
     <Card className="mb-1">
       <Card.Content>
         <div className="card-main">
-          <Heading element="h3">
-            {t('users.userGroups')}
-          </Heading>
-          {canEditUser && !isGroupEditActive && groups.length === 0 &&
-              <Tooltip>
-                <Tooltip.Trigger>
-                  <Button
-                      iconLeft="add"
-                      visualType="secondary"
-                      size="small"
-                      onClick={() => setIsGroupEditActive(true)}
-                      disabled={statusColor === 'neutral' || statusColor === 'warning'}
-                  >
-                    {t('users.connectGroup')}
-                  </Button>
-                </Tooltip.Trigger>
-                {(statusColor === 'neutral' || statusColor === 'warning') &&
-                  <Tooltip.Content>
-                    {t('users.connectGroupTooltip')}
-                  </Tooltip.Content>
-                }
-              </Tooltip>
-          }
+          <Heading element="h3">{t('users.userGroups')}</Heading>
+          {canEditUser && !isGroupEditActive && groups.length === 0 && (
+            <Tooltip>
+              <Tooltip.Trigger>
+                <Button
+                  iconLeft="add"
+                  visualType="secondary"
+                  size="small"
+                  onClick={() => setIsGroupEditActive(true)}
+                  disabled={
+                    statusColor === 'neutral' || statusColor === 'warning'
+                  }
+                >
+                  {t('users.connectGroup')}
+                </Button>
+              </Tooltip.Trigger>
+              {(statusColor === 'neutral' || statusColor === 'warning') && (
+                <Tooltip.Content>
+                  {t('users.connectGroupTooltip')}
+                </Tooltip.Content>
+              )}
+            </Tooltip>
+          )}
         </div>
         <div className={styles['groups-grid']}>
           <div>
@@ -77,23 +86,29 @@ export function UserGroupsCard({
                 <Card.Content>
                   <div className={styles['empty-state']}>
                     <Icon name="account_circle" color="brand" size={36} />
-                    <Text className={styles['user-group-card-text']}>{t('users.noGroups')}</Text>
+                    <Text className={styles['user-group-card-text']}>
+                      {t('users.noGroups')}
+                    </Text>
                     <Tooltip>
                       <Tooltip.Trigger>
                         <Button
-                            iconLeft="add"
-                            visualType="primary"
-                            onClick={() => setIsGroupEditActive(true)}
-                            disabled={statusColor === 'neutral' || statusColor === 'warning'}
+                          iconLeft="add"
+                          visualType="primary"
+                          onClick={() => setIsGroupEditActive(true)}
+                          disabled={
+                            statusColor === 'neutral' ||
+                            statusColor === 'warning'
+                          }
                         >
                           {t('users.connectGroup')}
                         </Button>
                       </Tooltip.Trigger>
-                      {(statusColor === 'neutral' || statusColor === 'warning') &&
+                      {(statusColor === 'neutral' ||
+                        statusColor === 'warning') && (
                         <Tooltip.Content>
                           {t('users.connectGroupTooltip')}
                         </Tooltip.Content>
-                      }
+                      )}
                     </Tooltip>
                   </div>
                 </Card.Content>
@@ -101,79 +116,95 @@ export function UserGroupsCard({
             ) : (
               <div>
                 {showGroupsNotCreatedAlert && (
-                    <div className="mb-1">
-                      <Alert
-                          type="info"
-                          size="small"
-                      >
-                        {t('users.groupsNotCreated')}
-                      </Alert>
-                    </div>
+                  <div className="mb-1">
+                    <Alert type="info" size="small">
+                      {t('users.groupsNotCreated')}
+                    </Alert>
+                  </div>
                 )}
                 {!showGroupsNotCreatedAlert && (
-                    <div>
+                  <div>
                     <div className="mb-1">
-                      <Alert
-                          type="info"
-                          size="small"
-                      >
+                      <Alert type="info" size="small">
                         {t('users.groupNote')}
                       </Alert>
                     </div>
                     <div className={styles['select-row']}>
                       <div className={styles['select-wrapper']}>
                         <Select
-                            id="chooseGroup"
-                            label={t('users.chooseGroup')}
-                            isSearchable={false}
-                            disabled={statusColor === 'neutral' || statusColor === 'warning' || availableGroups.length === 0}
-                            options={availableGroups.map((g) => ({label: g.name, value: g.id}))}
-                            value={availableGroups.map((g) => ({
-                              label: g.name,
-                              value: g.id
-                            })).find((o) => o.value === (selectedGroupId || availableGroups[0]?.id)) ?? null}
-                            onChange={(val) => {
-                              if (val && !Array.isArray(val) && 'value' in val) {
-                                setSelectedGroupId((val as { value: string }).value);
-                              } else {
-                                setSelectedGroupId('');
-                              }
-                            }}
-                        />
-                      </div>
-                      <Button
-                          visualType="secondary"
-                          disabled={statusColor === 'neutral' || statusColor === 'warning' || availableGroups.length === 0}
-                          onClick={() => {
-                            const selectedId = selectedGroupId || availableGroups[0]?.id;
-                            const group = availableGroups.find((g) => g.id === selectedId);
-                            if (group) {
-                              setAllSelectedGroups((prev) => [...prev, group]);
+                          id="chooseGroup"
+                          label={t('users.chooseGroup')}
+                          isSearchable={false}
+                          disabled={
+                            statusColor === 'neutral' ||
+                            statusColor === 'warning' ||
+                            availableGroups.length === 0
+                          }
+                          options={availableGroups.map((g) => ({
+                            label: g.name,
+                            value: g.id,
+                          }))}
+                          value={
+                            availableGroups
+                              .map((g) => ({
+                                label: g.name,
+                                value: g.id,
+                              }))
+                              .find(
+                                (o) =>
+                                  o.value ===
+                                  (selectedGroupId || availableGroups[0]?.id),
+                              ) ?? null
+                          }
+                          onChange={(val) => {
+                            if (val && !Array.isArray(val) && 'value' in val) {
+                              setSelectedGroupId(
+                                (val as { value: string }).value,
+                              );
+                            } else {
                               setSelectedGroupId('');
                             }
                           }}
+                        />
+                      </div>
+                      <Button
+                        visualType="secondary"
+                        disabled={
+                          statusColor === 'neutral' ||
+                          statusColor === 'warning' ||
+                          availableGroups.length === 0
+                        }
+                        onClick={() => {
+                          const selectedId =
+                            selectedGroupId || availableGroups[0]?.id;
+                          const group = availableGroups.find(
+                            (g) => g.id === selectedId,
+                          );
+                          if (group) {
+                            setAllSelectedGroups((prev) => [...prev, group]);
+                            setSelectedGroupId('');
+                          }
+                        }}
                       >
                         {t('users.addConnection')}
                       </Button>
                     </div>
-                    </div>
-                )
-                }
+                  </div>
+                )}
                 <ul className={styles['group-list']}>
                   {allSelectedGroups.map((g) => (
                     <li key={g.id}>
                       {canViewGroupDetail ? (
                         <Card>
-                          <Card.Content
-                            padding={1}
-                            background='secondary'
-                          >
+                          <Card.Content padding={1} background="secondary">
                             <div className={styles['group-card-row']}>
                               <div className={styles['group-card-content']}>
-                                <Icon name="group" color="secondary" size={24}/>
-                                <p>
-                                  {g.name}
-                                </p>
+                                <Icon
+                                  name="group"
+                                  color="secondary"
+                                  size={24}
+                                />
+                                <p>{g.name}</p>
                               </div>
                               <div className={styles['group-card-actions']}>
                                 <Button
@@ -182,8 +213,15 @@ export function UserGroupsCard({
                                   iconLeft="delete"
                                   color="danger"
                                   visualType="neutral"
-                                  disabled={statusColor === 'neutral' || statusColor === 'warning'}
-                                  onClick={() => setAllSelectedGroups((prev) => prev.filter((s) => s.id !== g.id))}
+                                  disabled={
+                                    statusColor === 'neutral' ||
+                                    statusColor === 'warning'
+                                  }
+                                  onClick={() =>
+                                    setAllSelectedGroups((prev) =>
+                                      prev.filter((s) => s.id !== g.id),
+                                    )
+                                  }
                                 >
                                   {t('users.cancel')}
                                 </Button>
@@ -197,27 +235,34 @@ export function UserGroupsCard({
                     </li>
                   ))}
                 </ul>
-                {canEditUser && (isGroupEditActive || groups.length > 0) && !showGroupsNotCreatedAlert && (
-                    <div className={`${styles['form-actions']}${!isDesktop ? ` ${styles['form-actions-mobile']}` : ''}`}>
+                {canEditUser &&
+                  (isGroupEditActive || groups.length > 0) &&
+                  !showGroupsNotCreatedAlert && (
+                    <div
+                      className={`${styles['form-actions']}${!isDesktop ? ` ${styles['form-actions-mobile']}` : ''}`}
+                    >
                       <Button
-                          type="button"
-                          size="small"
-                          visualType="link"
-                          disabled={!hasGroupChanges}
-                          onClick={() => { resetGroups(); setIsGroupEditActive(false); }}
+                        type="button"
+                        size="small"
+                        visualType="link"
+                        disabled={!hasGroupChanges}
+                        onClick={() => {
+                          resetGroups();
+                          setIsGroupEditActive(false);
+                        }}
                       >
                         {t('users.cancel')}
                       </Button>
                       <Button
-                          type="button"
-                          size="small"
-                          disabled={!hasGroupChanges}
-                          onClick={handleGroupSave}
+                        type="button"
+                        size="small"
+                        disabled={!hasGroupChanges}
+                        onClick={handleGroupSave}
                       >
                         {t('users.save')}
                       </Button>
                     </div>
-                )}
+                  )}
               </div>
             )}
           </div>

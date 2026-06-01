@@ -146,8 +146,8 @@
     "validFrom": "Kehtivuse algus",
     "validUntil": "Kehtivuse lõpp",
     "status": "Olek",
-    "statusActive" : "Kehtiv",
-    "statusInactive" : "Lõpetatud",
+    "statusActive": "Kehtiv",
+    "statusInactive": "Lõpetatud",
     "change": "Muuda",
     "switch": "Kuva ainult kehtivad väärtused",
     "validation": {

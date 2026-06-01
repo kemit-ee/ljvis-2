@@ -30,59 +30,59 @@ export function useHeaderProps(): HeaderProps<'a'> {
       imageUrl: '/assets/klim_logo.svg',
     },
     children: (
-        <React.Fragment key=".0">
-          <HeaderContent>
-            <StretchContent direction="horizontal">
-              <Row alignItems="center" justifyContent="end" gap={3}>
-                <HeaderLanguage
-                    languages={LANGUAGES.map(({ code, label }) => ({
-                      label,
-                      isSelected: currentLang === code,
-                      'aria-label': label,
-                      onClick: ({ onToggle }) => {
-                        i18n.changeLanguage(code);
-                        onToggle(false);
-                      },
-                    }))}
-                />
-              </Row>
-            </StretchContent>
-          </HeaderContent>
-          {isDesktop && (
-              <HeaderRole
-                  primaryInfo={`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
-              >
-                {() => (
-                    <Button visualType="link">
-                      {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
-                    </Button>
-                )}
-              </HeaderRole>
-          )}
-          <HeaderSettings onActionClick={logout} iconName="account_circle">
-            {!isDesktop
-                ? () => (
-                    <div>
-                      {user && (
-                          <div className="header-role-border">
-                            <HeaderRole
-                                primaryInfo={`${user.firstname} ${user.lastname}`}
-                                renderModal={true}
-                                label=""
-                            >
-                              {() => (
-                                  <Button visualType="link">
-                                    {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
-                                  </Button>
-                              )}
-                            </HeaderRole>
-                          </div>
-                      )}
+      <React.Fragment key=".0">
+        <HeaderContent>
+          <StretchContent direction="horizontal">
+            <Row alignItems="center" justifyContent="end" gap={3}>
+              <HeaderLanguage
+                languages={LANGUAGES.map(({ code, label }) => ({
+                  label,
+                  isSelected: currentLang === code,
+                  'aria-label': label,
+                  onClick: ({ onToggle }) => {
+                    i18n.changeLanguage(code);
+                    onToggle(false);
+                  },
+                }))}
+              />
+            </Row>
+          </StretchContent>
+        </HeaderContent>
+        {isDesktop && (
+          <HeaderRole
+            primaryInfo={`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
+          >
+            {() => (
+              <Button visualType="link">
+                {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
+              </Button>
+            )}
+          </HeaderRole>
+        )}
+        <HeaderSettings onActionClick={logout} iconName="account_circle">
+          {!isDesktop
+            ? () => (
+                <div>
+                  {user && (
+                    <div className="header-role-border">
+                      <HeaderRole
+                        primaryInfo={`${user.firstname} ${user.lastname}`}
+                        renderModal={true}
+                        label=""
+                      >
+                        {() => (
+                          <Button visualType="link">
+                            {`${user?.firstname || ''} ${user?.lastname || ''}`.trim()}
+                          </Button>
+                        )}
+                      </HeaderRole>
                     </div>
-                )
-                : undefined}
-          </HeaderSettings>
-        </React.Fragment>
+                  )}
+                </div>
+              )
+            : undefined}
+        </HeaderSettings>
+      </React.Fragment>
     ),
     skipLinks: {
       links: [{ children: 'Skip to content', href: '#main-content' }],

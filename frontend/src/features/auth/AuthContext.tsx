@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react';
 import type { ReactNode } from 'react';
 import type { AuthUser } from './types';
 import { getUserInfo, logout as apiLogout } from './api';
@@ -69,7 +75,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, permissions, hasPermission, hasAnyPermission, refetchUser: fetchUser, logout: logoutUser }}
+      value={{
+        user,
+        loading,
+        permissions,
+        hasPermission,
+        hasAnyPermission,
+        refetchUser: fetchUser,
+        logout: logoutUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
