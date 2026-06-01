@@ -162,6 +162,14 @@
     "loading": "Laadimine...",
     "error": "Tekkis viga",
     "forbidden": "Teil puudub ligipääs sellele lehele",
+    "errors": {
+      "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
+      "networkError": "Ühenduse viga. Kontrollige võrguühendust.",
+      "forbidden": "Puuduvad õigused selle toimingu tegemiseks.",
+      "notFound": "Soovitud ressurssi ei leitud.",
+      "requestFailed": "Päring ebaõnnestus. Palun proovige uuesti.",
+      "unexpected": "Ilmnes ootamatu viga."
+    },
     "back": "Tagasi",
     "yes": "Jah",
     "no": "Ei",

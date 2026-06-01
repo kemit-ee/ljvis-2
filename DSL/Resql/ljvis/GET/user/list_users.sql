@@ -68,9 +68,9 @@ SELECT
     l.access_start,
     l.access_end,
     COALESCE(
-        (SELECT STRING_AGG(elem->>'name', ', ')
+        (SELECT ARRAY_AGG(elem->>'name')
          FROM JSONB_ARRAY_ELEMENTS(l.user_groups) AS elem),
-        ''
+        ARRAY[]::TEXT[]
     ) AS user_groups,
     :page AS page,
     CEIL(COUNT(*) OVER () / :page_size::DECIMAL) AS total_pages,

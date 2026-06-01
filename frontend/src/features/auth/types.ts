@@ -7,5 +7,5 @@ export interface AuthUser {
   organisationname: string;
   email: string;
   status: string;
-  permissions: string;
+  permissions: string | string[];
 }

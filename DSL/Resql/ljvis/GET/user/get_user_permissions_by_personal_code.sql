@@ -56,7 +56,7 @@ SELECT
     u.email,
     u.status,
     COALESCE(
-        (SELECT STRING_AGG(DISTINCT perm->>'code', ',')
+        (SELECT ARRAY_AGG(DISTINCT perm->>'code')
          FROM JSONB_ARRAY_ELEMENTS(u.user_groups) AS grp
          JOIN LATERAL (
              SELECT DISTINCT ON (ugl.user_group_id)
@@ -66,7 +66,7 @@ SELECT
              ORDER BY ugl.user_group_id, ugl.created_at DESC
          ) AS gl ON true
          CROSS JOIN JSONB_ARRAY_ELEMENTS(gl.permissions) AS perm),
-        ''
+        ARRAY[]::TEXT[]
     ) AS permissions
 FROM latest_user u
 WHERE u.personal_code = :personal_code

@@ -28,7 +28,7 @@ import { listPermissions } from '../permissions/api';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 
 export function useUserGroupList(
-  user: { organisationName?: string; permissions?: string } | null,
+  user: { organisationName?: string; permissions?: string | string[] } | null,
   permissions: string[],
 ) {
   const [data, setData] = useState<UserGroup[]>([]);
@@ -60,8 +60,7 @@ export function useUserGroupList(
         result.map(async (group) => {
           if (search) {
             const groupOrgs = await getUserGroupOrganisations(group.id);
-            const orgNames = groupOrgs.map((o) => o.name).join(', ');
-            return { ...group, organisations: orgNames };
+            return { ...group, organisations: groupOrgs.map((o) => o.name) };
           }
           return group;
         }),
@@ -70,33 +69,20 @@ export function useUserGroupList(
       const expandedData: UserGroup[] = [];
       groupsWithOrgs.forEach((group) => {
         if (group.coversAllOrganisations) {
-          expandedData.push({ ...group, organisations: '' });
-        } else if (group.organisations) {
-          const orgs = group.organisations
-            .split(',')
-            .map((o) => o.trim())
-            .filter((o) => o);
-          if (search) {
+          expandedData.push({ ...group, organisations: [] });
+        } else {
+          const orgs = group.organisations ?? [];
+          if (orgs.length > 0) {
             orgs.forEach((org, index) => {
               expandedData.push({
                 ...group,
-                organisations: org,
-                isAdditionalGroupRow: index > 0,
-              });
-            });
-          } else if (orgs.length > 0) {
-            orgs.forEach((org, index) => {
-              expandedData.push({
-                ...group,
-                organisations: org,
+                organisations: [org],
                 isAdditionalGroupRow: index > 0,
               });
             });
           } else {
             expandedData.push({ ...group });
           }
-        } else {
-          expandedData.push({ ...group });
         }
       });
 

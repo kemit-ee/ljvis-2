@@ -152,7 +152,7 @@ export function UserListPage() {
         header: t('users.userGroups'),
         enableSorting: false,
         cell: (info) => {
-          const group = info.getValue();
+          const group = info.getValue()?.[0];
           if (!group)
             return (
               <span

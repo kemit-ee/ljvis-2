@@ -72,7 +72,7 @@ export function UserGroupListPage() {
           ) {
             return t('userGroups.allOrganisations');
           }
-          return info.getValue() || '—';
+          return info.getValue()?.[0] || '—';
         },
         enableSorting: false,
       }),

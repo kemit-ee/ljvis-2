@@ -15,7 +15,7 @@ export interface User {
   status: 'active' | 'pending_deactivation' | 'inactive';
   createdAt?: string;
   updatedAt?: string;
-  userGroups?: string;
+  userGroups?: string[];
 }
 
 export interface UserListItem extends User {

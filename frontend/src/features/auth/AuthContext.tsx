@@ -8,6 +8,7 @@ import {
 import type { ReactNode } from 'react';
 import type { AuthUser } from './types';
 import { getUserInfo, logout as apiLogout } from './api';
+import { setUnauthorizedHandler } from '../../shared/api/client';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -40,7 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const info = await getUserInfo();
       setUser(info);
       if (info?.permissions) {
-        setPermissions(info.permissions.split(',').filter(Boolean));
+        setPermissions(
+          Array.isArray(info.permissions)
+            ? info.permissions.filter(Boolean)
+            : (info.permissions as string).split(',').filter(Boolean),
+        );
       } else {
         setPermissions([]);
       }
@@ -71,6 +76,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     document.cookie = 'customJwtCookie=; Max-Age=0; Path=/;';
     setUser(null);
     setPermissions([]);
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUser(null);
+      setPermissions([]);
+    });
+    return () => setUnauthorizedHandler(undefined);
   }, []);
 
   return (

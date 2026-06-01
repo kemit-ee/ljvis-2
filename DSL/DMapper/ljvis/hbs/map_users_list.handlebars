@@ -11,7 +11,7 @@
         "status": "{{this.status}}",
         "accessStart": "{{this.accessStart}}",
         "accessEnd": "{{this.accessEnd}}",
-        "userGroups": "{{this.userGroups}}",
+        "userGroups": [{{#each this.userGroups}}"{{this}}"{{#unless @last}},{{/unless}}{{/each}}],
         "page": {{this.page}},
         "totalPages": {{this.totalPages}},
         "total": {{this.total}}

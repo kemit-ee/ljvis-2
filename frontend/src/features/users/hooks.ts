@@ -81,22 +81,15 @@ export function useUserList() {
 
       const expandedData: UserListItem[] = [];
       result.forEach((user) => {
-        if (user.userGroups) {
-          const groups = user.userGroups
-            .split(',')
-            .map((g) => g.trim())
-            .filter((g) => g);
-          if (groups.length > 0) {
-            groups.forEach((group, index) => {
-              expandedData.push({
-                ...user,
-                userGroups: group,
-                isAdditionalGroupRow: index > 0,
-              });
+        const groups = user.userGroups ?? [];
+        if (groups.length > 0) {
+          groups.forEach((group, index) => {
+            expandedData.push({
+              ...user,
+              userGroups: [group],
+              isAdditionalGroupRow: index > 0,
             });
-          } else {
-            expandedData.push(user);
-          }
+          });
         } else {
           expandedData.push(user);
         }
