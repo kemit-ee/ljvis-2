@@ -4,8 +4,9 @@ import * as Yup from 'yup';
 import { useTranslation } from 'react-i18next';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { Classifier, ClassifierValue } from './types.ts';
-import { getClassifier, getClassifierValues, listClassifiers } from './api.ts';
+import { getClassifier, getClassifierValues, listClassifiers, updateClassifier } from './api.ts';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
+import { applyValidationError } from '../../shared/api/errors';
 
 // ---------------------------------------------------------------------------
 // Data hook: classifier list with search
@@ -134,24 +135,27 @@ export function useClassifierForm(classifier: Classifier | undefined, onSaved: (
   const isEdit = !!classifier;
 
   const validationSchema = Yup.object({
-    name: Yup.string().required(t('users.validation.required')),
-    description: Yup.string().required(t('users.validation.required')),
+    name: Yup.string().required(t('classifiers.validation.required'))
   });
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: classifier?.name || '',
-      description: classifier?.description || '',
+      id: classifier?.id ?? '',
+      name: classifier?.name ?? '',
+      description: classifier?.description ?? '',
     },
     validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setFieldError }) => {
       try {
-        // TODO: Add updateClassifier API call
-        console.log('Saving classifier:', values);
-        onSaved();
+        if (isEdit && classifier) {
+          await updateClassifier({ id: classifier.id, name: values.name, description: values.description });
+          onSaved();
+        }
       } catch (e) {
-        console.error('Save failed', e);
+        if (!applyValidationError(e, setFieldError, (code) => t(`users.validation.api.${code}`))) {
+          console.error('Update failed', e);
+        }
       }
     },
   });

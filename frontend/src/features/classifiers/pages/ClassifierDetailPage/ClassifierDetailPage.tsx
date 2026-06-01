@@ -81,7 +81,7 @@ export function ClassifierDetailPage() {
   const filteredTotalRows = filteredClassifierValues.length;
 
   const handleSaveClick = () => {
-
+      formik.submitForm();
   };
 
   const handleRowClick = useCallback(

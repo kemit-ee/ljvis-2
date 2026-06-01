@@ -146,9 +146,16 @@
     "validUntil": "Valid until",
     "status": "Status",
     "statusActive" : "Valid",
-    "statusInactive" : "Finsihed",
-    "change": "Muuda",
-    "switch": "Show only valid values"
+    "statusInactive" : "Finshed",
+    "change": "Change",
+    "switch": "Show only valid values",
+    "validation": {
+      "required": "Required field",
+      "valueConflict": "COMING",
+      "api": {
+        "required": "Required field"
+      }
+    }
   },
   "common": {
     "loading": "Loading...",

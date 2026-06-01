@@ -4,6 +4,7 @@ import type { FormikProps } from 'formik';
 import styles from './ClassifierInfoEditCard.module.css';
 
 interface ClassifierEditFormValues {
+  id: string;
   name: string;
   description: string;
 }
@@ -49,7 +50,6 @@ export function ClassifierInfoEditCard({
               className={isDesktop ? styles['form-name'] : 'mb-1'}
               label={t('classifiers.description')}
               value={formik.values.description}
-              required
               onChange={(v) => formik.setFieldValue('description', v)}
               {...(formik.touched.description && formik.errors.description ? { helper: { text: formik.errors.description, type: 'error' as const } } : {})}
             />

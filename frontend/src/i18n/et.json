@@ -149,7 +149,14 @@
     "statusActive" : "Kehtiv",
     "statusInactive" : "Lõpetatud",
     "change": "Muuda",
-    "switch": "Kuva ainult kehtivad väärtused"
+    "switch": "Kuva ainult kehtivad väärtused",
+    "validation": {
+      "required": "Kohustuslik väli",
+      "valueConflict": "Sellise nimetuseda klassifikaatori väärtus on juba olemas",
+      "api": {
+        "required": "Kohustuslik väli"
+      }
+    }
   },
   "common": {
     "loading": "Laadimine...",

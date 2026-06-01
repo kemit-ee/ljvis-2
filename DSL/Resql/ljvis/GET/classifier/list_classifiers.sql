@@ -33,14 +33,14 @@ declaration:
         type: number
 */
 WITH latest AS (
-    SELECT DISTINCT ON (id)
+    SELECT DISTINCT ON (classifier_id)
         id,
         classifier_id,
         code,
         name,
         description
     FROM ljvis2.classifier_latest
-    ORDER BY id, created_at DESC
+    ORDER BY classifier_id, created_at DESC
 )
 SELECT
     l.classifier_id AS id,
