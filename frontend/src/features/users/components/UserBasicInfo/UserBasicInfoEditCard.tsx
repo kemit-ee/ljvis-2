@@ -1,6 +1,18 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Heading, Select, TextField } from '@tedi-design-system/react/tedi';
-import { CardContent, DatePicker, Modal, ModalCloser, ModalProvider } from '@tedi-design-system/react/community';
+import {
+  Button,
+  Card,
+  Heading,
+  Select,
+  TextField,
+} from '@tedi-design-system/react/tedi';
+import {
+  CardContent,
+  DatePicker,
+  Modal,
+  ModalCloser,
+  ModalProvider,
+} from '@tedi-design-system/react/community';
 import type { FormikProps } from 'formik';
 import { PhoneField } from '../PhoneField/PhoneField';
 import styles from './UserBasicInfoEditCard.module.css';
@@ -25,8 +37,18 @@ interface UserBasicInfoEditCardProps {
   orgOptions: { label: string; value: string }[];
   structuralUnits: { label: string; value: string }[];
   isLocalAdmin: boolean;
-  handleOrgChange: (val: { value: string; label: string | React.ReactNode } | readonly { value: string; label: string | React.ReactNode }[] | null) => void;
-  handleStructuralUnitChange: (val: { value: string; label: string | React.ReactNode } | readonly { value: string; label: string | React.ReactNode }[] | null) => void;
+  handleOrgChange: (
+    val:
+      | { value: string; label: string | React.ReactNode }
+      | readonly { value: string; label: string | React.ReactNode }[]
+      | null,
+  ) => void;
+  handleStructuralUnitChange: (
+    val:
+      | { value: string; label: string | React.ReactNode }
+      | readonly { value: string; label: string | React.ReactNode }[]
+      | null,
+  ) => void;
   handleSaveClick: () => void;
   onCancel: () => void;
   showConfirmModal: boolean;
@@ -54,9 +76,7 @@ export function UserBasicInfoEditCard({
         <Card.Content>
           <div className={styles['card-header']}>
             <div>
-              <Heading element="h3">
-                {t('users.basicInfo')}
-              </Heading>
+              <Heading element="h3">{t('users.basicInfo')}</Heading>
             </div>
           </div>
           <div className={isDesktop ? 'grid-3col' : 'grid-2col'}>
@@ -66,7 +86,14 @@ export function UserBasicInfoEditCard({
               value={formik.values.firstName}
               required
               onChange={(v) => formik.setFieldValue('firstName', v)}
-              {...(formik.touched.firstName && formik.errors.firstName ? { helper: { text: formik.errors.firstName, type: 'error' as const } } : {})}
+              {...(formik.touched.firstName && formik.errors.firstName
+                ? {
+                    helper: {
+                      text: formik.errors.firstName,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
             <TextField
               id="lastName"
@@ -74,7 +101,14 @@ export function UserBasicInfoEditCard({
               value={formik.values.lastName}
               required
               onChange={(v) => formik.setFieldValue('lastName', v)}
-              {...(formik.touched.lastName && formik.errors.lastName ? { helper: { text: formik.errors.lastName, type: 'error' as const } } : {})}
+              {...(formik.touched.lastName && formik.errors.lastName
+                ? {
+                    helper: {
+                      text: formik.errors.lastName,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
             <TextField
               id="personalCode"
@@ -84,35 +118,65 @@ export function UserBasicInfoEditCard({
               required
               disabled
               onChange={(v) => formik.setFieldValue('personalCode', v)}
-              {...(formik.touched.personalCode && formik.errors.personalCode ? { helper: { text: formik.errors.personalCode, type: 'error' as const } } : {})}
+              {...(formik.touched.personalCode && formik.errors.personalCode
+                ? {
+                    helper: {
+                      text: formik.errors.personalCode,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
             <Select
               id="organisationId"
               label={t('users.organisation')}
               options={orgOptions}
-              value={orgOptions.find((o) => o.value === formik.values.organisationId) ?? null}
+              value={
+                orgOptions.find(
+                  (o) => o.value === formik.values.organisationId,
+                ) ?? null
+              }
               onChange={isLocalAdmin ? undefined : handleOrgChange}
               disabled={isLocalAdmin}
               required
             />
             <Select
-                id="structuralUnitId"
-                label={t('users.structuralUnit')}
-                options={structuralUnits}
-                value={structuralUnits.find((o) => o.value === formik.values.structuralUnitName) ?? null}
-                onChange={isLocalAdmin ? undefined : handleStructuralUnitChange}
-                disabled={isLocalAdmin}
-                required
-                {...(formik.touched.structuralUnitName && formik.errors.structuralUnitName ? { helper: { text: formik.errors.structuralUnitName, type: 'error' as const } } : {})}
+              id="structuralUnitId"
+              label={t('users.structuralUnit')}
+              options={structuralUnits}
+              value={
+                structuralUnits.find(
+                  (o) => o.value === formik.values.structuralUnitName,
+                ) ?? null
+              }
+              onChange={isLocalAdmin ? undefined : handleStructuralUnitChange}
+              disabled={isLocalAdmin}
+              required
+              {...(formik.touched.structuralUnitName &&
+              formik.errors.structuralUnitName
+                ? {
+                    helper: {
+                      text: formik.errors.structuralUnitName,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
             <TextField
-                id="jobTitleName"
-                label={t('users.jobTitle')}
-                value={formik.values.jobTitleName}
-                input={{ maxLength: 100 }}
-                required
-                onChange={(v) => formik.setFieldValue('jobTitleName', v)}
-                {...(formik.touched.jobTitleName && formik.errors.jobTitleName ? { helper: { text: formik.errors.jobTitleName, type: 'error' as const } } : {})}
+              id="jobTitleName"
+              label={t('users.jobTitle')}
+              value={formik.values.jobTitleName}
+              input={{ maxLength: 100 }}
+              required
+              onChange={(v) => formik.setFieldValue('jobTitleName', v)}
+              {...(formik.touched.jobTitleName && formik.errors.jobTitleName
+                ? {
+                    helper: {
+                      text: formik.errors.jobTitleName,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
             <TextField
               id="email"
@@ -120,12 +184,26 @@ export function UserBasicInfoEditCard({
               value={formik.values.email}
               required
               onChange={(v) => formik.setFieldValue('email', v)}
-              {...(formik.touched.email && formik.errors.email ? { helper: { text: formik.errors.email, type: 'error' as const } } : {})}
+              {...(formik.touched.email && formik.errors.email
+                ? {
+                    helper: {
+                      text: formik.errors.email,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
             <PhoneField
-                value={formik.values.phone}
-                onChange={(v) => formik.setFieldValue('phone', v)}
-                {...(formik.touched.phone && formik.errors.phone ? { helper: { text: formik.errors.phone, type: 'error' as const } } : {})}
+              value={formik.values.phone}
+              onChange={(v) => formik.setFieldValue('phone', v)}
+              {...(formik.touched.phone && formik.errors.phone
+                ? {
+                    helper: {
+                      text: formik.errors.phone,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
             {isDesktop && <div />}
             <DatePicker
@@ -133,28 +211,44 @@ export function UserBasicInfoEditCard({
               label={t('users.accessStart')}
               value={
                 formik.values.accessStart
-                    ? dayjs(formik.values.accessStart)
-                    : null
+                  ? dayjs(formik.values.accessStart)
+                  : null
               }
               onChange={(v) => formik.setFieldValue('accessStart', v)}
               placeholder={t('users.datePickerPlaceholder')}
               required
-              {...(formik.touched.accessStart && formik.errors.accessStart ? { helper: { text: formik.errors.accessStart, type: 'error' as const } } : {})}
+              {...(formik.touched.accessStart && formik.errors.accessStart
+                ? {
+                    helper: {
+                      text: formik.errors.accessStart,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
             <DatePicker
               id="accessEnd"
               label={t('users.accessEnd')}
               value={
                 formik.values.accessStart
-                    ? dayjs(formik.values.accessEnd)
-                    : null
+                  ? dayjs(formik.values.accessEnd)
+                  : null
               }
               onChange={(v) => formik.setFieldValue('accessEnd', v)}
               placeholder={t('users.datePickerPlaceholder')}
-              {...(formik.touched.accessEnd && formik.errors.accessEnd ? { helper: { text: formik.errors.accessEnd, type: 'error' as const } } : {})}
+              {...(formik.touched.accessEnd && formik.errors.accessEnd
+                ? {
+                    helper: {
+                      text: formik.errors.accessEnd,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
             />
           </div>
-          <div className={`${styles['form-actions']}${!isDesktop ? ` ${styles['form-actions-mobile']}` : ''}`}>
+          <div
+            className={`${styles['form-actions']}${!isDesktop ? ` ${styles['form-actions-mobile']}` : ''}`}
+          >
             <Button
               type="button"
               size="small"
@@ -163,22 +257,42 @@ export function UserBasicInfoEditCard({
             >
               {t('users.cancel')}
             </Button>
-            <Button type="button" size="small" onClick={handleSaveClick}>{t('users.save')}</Button>
+            <Button type="button" size="small" onClick={handleSaveClick}>
+              {t('users.save')}
+            </Button>
           </div>
         </Card.Content>
       </Card>
       {showConfirmModal && (
-        <ModalProvider defaultOpen
-                       onToggle={(open) => { if (!open) setShowConfirmModal(false); }}>
+        <ModalProvider
+          defaultOpen
+          onToggle={(open) => {
+            if (!open) setShowConfirmModal(false);
+          }}
+        >
           <Modal aria-labelledby="confirm-save-title">
             <CardContent>
-              <Heading element="h3" id="confirm-save-title">{t('users.confirmOrganisationChange')}</Heading>
+              <Heading element="h3" id="confirm-save-title">
+                {t('users.confirmOrganisationChange')}
+              </Heading>
               <div className="modal-actions">
                 <ModalCloser>
-                  <Button visualType="secondary" onClick={() => setShowConfirmModal(false)}>{t('common.discard')}</Button>
+                  <Button
+                    visualType="secondary"
+                    onClick={() => setShowConfirmModal(false)}
+                  >
+                    {t('common.discard')}
+                  </Button>
                 </ModalCloser>
                 <ModalCloser>
-                  <Button onClick={() => { setShowConfirmModal(false); formik.submitForm(); }}>{t('common.confirmChange')}</Button>
+                  <Button
+                    onClick={() => {
+                      setShowConfirmModal(false);
+                      formik.submitForm();
+                    }}
+                  >
+                    {t('common.confirmChange')}
+                  </Button>
                 </ModalCloser>
               </div>
             </CardContent>

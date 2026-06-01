@@ -6,7 +6,8 @@ import { useSideNavProps } from './useSideNavProps';
 import styles from './AppLayout.module.css';
 
 export function AppLayout() {
-  const { sideNav, toggleButton, isMobileOpen, isDesktop, closeSideNav } = useSideNavProps();
+  const { sideNav, toggleButton, isMobileOpen, isDesktop, closeSideNav } =
+    useSideNavProps();
   const headerProps = useHeaderProps();
   const footerProps = useFooterProps();
 
@@ -14,21 +15,22 @@ export function AppLayout() {
     <>
       {!isDesktop && sideNav}
       {!isDesktop && isMobileOpen && (
-        <div 
-          className={styles['overlay']}
-          onClick={closeSideNav}
-        />
+        <div className={styles['overlay']} onClick={closeSideNav} />
       )}
       <Layout header={headerProps} footer={footerProps}>
-          <>
-            {toggleButton}
-            <div className={styles[isDesktop ? 'content-desktop' : 'content-mobile']}>
-              {sideNav}
-              <main className={styles[isDesktop ? 'main-desktop' : 'main-mobile']}>
-                <Outlet />
-              </main>
-            </div>
-          </>
+        <>
+          {toggleButton}
+          <div
+            className={styles[isDesktop ? 'content-desktop' : 'content-mobile']}
+          >
+            {sideNav}
+            <main
+              className={styles[isDesktop ? 'main-desktop' : 'main-mobile']}
+            >
+              <Outlet />
+            </main>
+          </div>
+        </>
       </Layout>
     </>
   );

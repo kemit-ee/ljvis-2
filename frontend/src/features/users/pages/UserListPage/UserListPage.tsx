@@ -3,7 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import { Heading, Search, StatusBadge, Button, Card, Text } from '@tedi-design-system/react/tedi';
+import {
+  Heading,
+  Search,
+  StatusBadge,
+  Button,
+  Card,
+  Text,
+} from '@tedi-design-system/react/tedi';
 import type { UserListItem } from '../../types';
 import { useUserList } from '../../hooks';
 import { useAuth } from '../../../auth/AuthContext';
@@ -30,7 +37,7 @@ export function UserListPage() {
     searchInput,
     setSearchInput,
     handleSearch,
-    clearSearch
+    clearSearch,
   } = useUserList();
 
   const handleRowClick = useCallback(
@@ -50,12 +57,23 @@ export function UserListPage() {
             return <div className="additional-group-row-marker"></div>;
           }
           const s = info.getValue();
-          const color = s === 'active' ? 'success' : s === 'pending_deactivation' ? 'warning' : 'neutral';
+          const color =
+            s === 'active'
+              ? 'success'
+              : s === 'pending_deactivation'
+                ? 'warning'
+                : 'neutral';
           const label =
-            s === 'active' ? t('users.statusActive') :
-            s === 'pending_deactivation' ? t('users.statusDeactivating') :
-            t('users.statusInactive');
-          return <StatusBadge variant="filled-bordered" color={color}>{label}</StatusBadge>;
+            s === 'active'
+              ? t('users.statusActive')
+              : s === 'pending_deactivation'
+                ? t('users.statusDeactivating')
+                : t('users.statusInactive');
+          return (
+            <StatusBadge variant="filled-bordered" color={color}>
+              {label}
+            </StatusBadge>
+          );
         },
       }),
       columnHelper.accessor('firstName', {
@@ -64,7 +82,13 @@ export function UserListPage() {
         cell: (info) => {
           if (info.row.original.isAdditionalGroupRow) return null;
           return (
-            <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>
+            <span
+              className={
+                info.row.original.status === 'inactive'
+                  ? 'inactive-text'
+                  : undefined
+              }
+            >
               {info.getValue()}
             </span>
           );
@@ -76,7 +100,13 @@ export function UserListPage() {
         cell: (info) => {
           if (info.row.original.isAdditionalGroupRow) return null;
           return (
-            <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>
+            <span
+              className={
+                info.row.original.status === 'inactive'
+                  ? 'inactive-text'
+                  : undefined
+              }
+            >
               {info.getValue()}
             </span>
           );
@@ -88,7 +118,13 @@ export function UserListPage() {
         cell: (info) => {
           if (info.row.original.isAdditionalGroupRow) return null;
           return (
-            <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>
+            <span
+              className={
+                info.row.original.status === 'inactive'
+                  ? 'inactive-text'
+                  : undefined
+              }
+            >
               {info.getValue()}
             </span>
           );
@@ -100,7 +136,13 @@ export function UserListPage() {
         cell: (info) => {
           if (info.row.original.isAdditionalGroupRow) return null;
           return (
-            <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>
+            <span
+              className={
+                info.row.original.status === 'inactive'
+                  ? 'inactive-text'
+                  : undefined
+              }
+            >
               {info.getValue()}
             </span>
           );
@@ -111,9 +153,26 @@ export function UserListPage() {
         enableSorting: false,
         cell: (info) => {
           const group = info.getValue();
-          if (!group) return <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>—</span>;
+          if (!group)
+            return (
+              <span
+                className={
+                  info.row.original.status === 'inactive'
+                    ? 'inactive-text'
+                    : undefined
+                }
+              >
+                —
+              </span>
+            );
           return (
-            <span className={info.row.original.status === 'inactive' ? 'inactive-text' : undefined}>
+            <span
+              className={
+                info.row.original.status === 'inactive'
+                  ? 'inactive-text'
+                  : undefined
+              }
+            >
               {group}
             </span>
           );
@@ -123,7 +182,8 @@ export function UserListPage() {
         id: 'viewDetails',
         header: '',
         cell: (info) => {
-          if (info.row.original.isAdditionalGroupRow || !canViewUser) return null;
+          if (info.row.original.isAdditionalGroupRow || !canViewUser)
+            return null;
           return (
             <div className="cell-center">
               <a
@@ -149,46 +209,47 @@ export function UserListPage() {
 
   return (
     <div>
-        <Card className="mt-05">
-            <Card.Content>
-                <div className="card-main">
-                    <Heading element="h1">{t('users.title')}</Heading>
-                    {canAddUser && (
-                        <Button onClick={() => navigate('/users/new')}>{t('users.addUser')}
-                        </Button>
-                    )}
-                </div>
-                <div className="search-wrapper">
-                    <Search
-                        id="users-search"
-                        label={t('common.search')}
-                        hideLabel
-                        value={searchInput}
-                        onIconClick={() => handleSearch(searchInput)}
-                        onChange={setSearchInput}
-                        onSearch={handleSearch}
-                        onClear={clearSearch}
-                        placeholder={t('common.search')}
-                    />
-                </div>
-                <Table
-                    id="users-table"
-                    data={data}
-                    columns={columns}
-                    isLoading={isLoading}
-                    totalRows={totalRows}
-                    pagination={pagination}
-                    onPaginationChange={setPagination}
-                    sorting={sorting}
-                    onSortingChange={setSorting}
-                    manualPagination
-                    manualSorting
-                    placeholder={{
-                        children: t('common.tableIsEmpty')
-                    }}
-                />
-            </Card.Content>
-        </Card>
+      <Card className="mt-05">
+        <Card.Content>
+          <div className="card-main">
+            <Heading element="h1">{t('users.title')}</Heading>
+            {canAddUser && (
+              <Button onClick={() => navigate('/users/new')}>
+                {t('users.addUser')}
+              </Button>
+            )}
+          </div>
+          <div className="search-wrapper">
+            <Search
+              id="users-search"
+              label={t('common.search')}
+              hideLabel
+              value={searchInput}
+              onIconClick={() => handleSearch(searchInput)}
+              onChange={setSearchInput}
+              onSearch={handleSearch}
+              onClear={clearSearch}
+              placeholder={t('common.search')}
+            />
+          </div>
+          <Table
+            id="users-table"
+            data={data}
+            columns={columns}
+            isLoading={isLoading}
+            totalRows={totalRows}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            manualPagination
+            manualSorting
+            placeholder={{
+              children: t('common.tableIsEmpty'),
+            }}
+          />
+        </Card.Content>
+      </Card>
     </div>
   );
 }

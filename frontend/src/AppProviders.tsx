@@ -8,9 +8,5 @@ export function AppProviders({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation();
   const locale = (i18n.language?.substring(0, 2) as TediLocale) || 'et';
 
-  return (
-    <LabelProvider locale={locale}>
-      {children}
-    </LabelProvider>
-  );
+  return <LabelProvider locale={locale}>{children}</LabelProvider>;
 }

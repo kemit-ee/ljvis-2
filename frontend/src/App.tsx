@@ -35,7 +35,10 @@ function AppRoutes() {
           <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/user-groups" element={<UserGroupListPage />} />
           <Route path="/user-groups/new" element={<UserGroupCreatePage />} />
-          <Route path="/user-groups/:id/add-user" element={<UserGroupAddUserPage />} />
+          <Route
+            path="/user-groups/:id/add-user"
+            element={<UserGroupAddUserPage />}
+          />
           <Route path="/user-groups/:id" element={<UserGroupDetailPage />} />
           <Route path="/classifiers" element={<ClassifierListPage />} />
           <Route path="/classifiers/:id" element={<ClassifierDetailPage />} />

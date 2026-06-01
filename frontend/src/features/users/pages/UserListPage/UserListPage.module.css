@@ -12,7 +12,9 @@
   border-top: none;
 }
 
-:global(#users-table) tr:has(:global(.additional-group-row-marker)) td:nth-child(6) {
+:global(#users-table)
+  tr:has(:global(.additional-group-row-marker))
+  td:nth-child(6) {
   border-top: 1px solid #e5e7eb;
 }
 
@@ -21,4 +23,3 @@
   width: 5% !important;
   max-width: 5% !important;
 }
-

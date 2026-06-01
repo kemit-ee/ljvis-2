@@ -38,22 +38,32 @@ export function useSideNavProps(): UseSideNavPropsResult {
       children: t('nav.desktop'),
       icon: 'dashboard',
       to: '/',
-      isActive: pathname === '/'
+      isActive: pathname === '/',
     });
 
-    if (hasAnyPermission([PERMISSIONS.USER_LIST_ADMIN, PERMISSIONS.USER_LIST_LOCAL])) {
+    if (
+      hasAnyPermission([
+        PERMISSIONS.USER_LIST_ADMIN,
+        PERMISSIONS.USER_LIST_LOCAL,
+      ])
+    ) {
       adminSubItems.push({
         children: t('nav.users'),
         to: '/users',
-        isActive: pathname.startsWith('/users')
+        isActive: pathname.startsWith('/users'),
       });
     }
 
-    if (hasAnyPermission([PERMISSIONS.USER_GROUP_LIST_ADMIN, PERMISSIONS.USER_GROUP_LIST_LOCAL])) {
+    if (
+      hasAnyPermission([
+        PERMISSIONS.USER_GROUP_LIST_ADMIN,
+        PERMISSIONS.USER_GROUP_LIST_LOCAL,
+      ])
+    ) {
       adminSubItems.push({
         children: t('nav.userGroups'),
         to: '/user-groups',
-        isActive: pathname.startsWith('/user-groups')
+        isActive: pathname.startsWith('/user-groups'),
       });
     }
 
@@ -61,14 +71,14 @@ export function useSideNavProps(): UseSideNavPropsResult {
       adminSubItems.push({
         children: t('nav.classifiers'),
         to: '/classifiers',
-        isActive: pathname.startsWith('/classifiers')
+        isActive: pathname.startsWith('/classifiers'),
       });
     }
 
     items.push({
       children: t('nav.administration'),
       icon: 'account_circle',
-      subItems: adminSubItems
+      subItems: adminSubItems,
     });
 
     return items;
@@ -76,15 +86,23 @@ export function useSideNavProps(): UseSideNavPropsResult {
 
   const getWrapperClassName = () => {
     const classes = [styles.wrapper];
-    
+
     if (isDesktop) {
       classes.push(styles['wrapper-desktop']);
-      classes.push(isCollapsed ? styles['wrapper-desktop-collapsed'] : styles['wrapper-desktop-expanded']);
+      classes.push(
+        isCollapsed
+          ? styles['wrapper-desktop-collapsed']
+          : styles['wrapper-desktop-expanded'],
+      );
     } else {
       classes.push(styles['wrapper-mobile']);
-      classes.push(isMobileOpen ? styles['wrapper-mobile-visible'] : styles['wrapper-mobile-hidden']);
+      classes.push(
+        isMobileOpen
+          ? styles['wrapper-mobile-visible']
+          : styles['wrapper-mobile-hidden'],
+      );
     }
-    
+
     return classes.join(' ');
   };
 
@@ -102,8 +120,8 @@ export function useSideNavProps(): UseSideNavPropsResult {
       </div>
     ),
     toggleButton: !isDesktop ? (
-      <SideNav.Toggle 
-        menuOpen={isMobileOpen} 
+      <SideNav.Toggle
+        menuOpen={isMobileOpen}
         toggleMenu={() => setIsMobileOpen(!isMobileOpen)}
         variant="mobile"
       />
