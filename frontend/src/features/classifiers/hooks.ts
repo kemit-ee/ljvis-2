@@ -9,9 +9,11 @@ import {
   getClassifierValues,
   listClassifiers,
   updateClassifier,
+  insertClassifierValue,
 } from './api.ts';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 import { applyValidationError } from '../../shared/api/errors';
+import { toIsoDate } from '../../hooks/dateUtils';
 
 // ---------------------------------------------------------------------------
 // Data hook: classifier list with search
@@ -205,4 +207,71 @@ export function useClassifierForm(
   });
 
   return { formik, isEdit };
+}
+
+// ---------------------------------------------------------------------------
+// Form hook: create classifier value (Formik)
+// ---------------------------------------------------------------------------
+export function useClassifierValueForm(
+  classifierId: string | undefined,
+  onSaved: () => void,
+) {
+  const { t } = useTranslation();
+
+  const validationSchema = Yup.object({
+    code: Yup.string().required(t('classifiers.validation.required')),
+    name: Yup.string().required(t('classifiers.validation.required')),
+    validFrom: Yup.string().required(t('classifiers.validation.required')),
+    validUntil: Yup.string()
+      .nullable()
+      .test(
+        'is-after-start',
+        t('users.validation.endBeforeStart'),
+        function (value) {
+          const { validFrom } = this.parent;
+          if (!value || value === null || !validFrom) return true;
+          return new Date(value) > new Date(validFrom);
+        },
+      ),
+  });
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      id: '',
+      code: '',
+      name: '',
+      validFrom: '',
+      validUntil: '',
+    },
+    validationSchema,
+    onSubmit: async (values, { setFieldError }) => {
+      try {
+        if (!classifierId) return;
+        const trimmedValues = {
+          ...values,
+          validFrom: toIsoDate(values.validFrom),
+          validUntil: toIsoDate(values.validUntil),
+        };
+        await insertClassifierValue({
+          classifierId: classifierId,
+          code: trimmedValues.code,
+          name: trimmedValues.name,
+          validFrom: trimmedValues.validFrom,
+          validUntil: trimmedValues.validUntil,
+        });
+        onSaved();
+      } catch (e) {
+        if (
+          !applyValidationError(e, setFieldError, (code) =>
+            t(`classifiers.validation.api.${code}`),
+          )
+        ) {
+          console.error('Save failed', e);
+        }
+      }
+    },
+  });
+
+  return { formik };
 }

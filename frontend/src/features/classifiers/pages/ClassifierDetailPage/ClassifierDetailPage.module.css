@@ -24,9 +24,3 @@
   width: 5% !important;
   max-width: 5% !important;
 }
-
-.page-header-title {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}

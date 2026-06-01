@@ -21,23 +21,7 @@ import { useAuth } from '../auth/AuthContext';
 import { applyValidationError } from '../../shared/api/errors';
 import { hasStatus } from '../../hooks/statusUtils';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
-
-// ---------------------------------------------------------------------------
-// Helper: convert DD.MM.YYYY to YYYY-MM-DD
-// ---------------------------------------------------------------------------
-function toIsoDate(value: unknown): string {
-  if (!value) return '';
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    '$isDayjsObject' in value
-  ) {
-    return (value as unknown as { format: (fmt: string) => string }).format(
-      'YYYY-MM-DD',
-    );
-  }
-  return String(value);
-}
+import { toIsoDate } from '../../hooks/dateUtils';
 
 // ---------------------------------------------------------------------------
 // Helper: derive user status from accessEnd

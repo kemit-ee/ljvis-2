@@ -11,6 +11,7 @@ import { UserGroupAddUserPage } from './features/user-groups/pages/UserGroupAddU
 import { UserGroupDetailPage } from './features/user-groups/pages/UserGroupDetailPage/UserGroupDetailPage';
 import { ClassifierListPage } from './features/classifiers/pages/ClassifierListPage/ClassifierListPage';
 import { ClassifierDetailPage } from './features/classifiers/pages/ClassifierDetailPage/ClassifierDetailPage';
+import { ClassifierValueCreatePage } from './features/classifiers/pages/ClassifierValueCreatePage/ClassifierValueCreatePage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 
@@ -42,6 +43,10 @@ function AppRoutes() {
           <Route path="/user-groups/:id" element={<UserGroupDetailPage />} />
           <Route path="/classifiers" element={<ClassifierListPage />} />
           <Route path="/classifiers/:id" element={<ClassifierDetailPage />} />
+          <Route
+            path="/classifiers/:id/add-value"
+            element={<ClassifierValueCreatePage />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

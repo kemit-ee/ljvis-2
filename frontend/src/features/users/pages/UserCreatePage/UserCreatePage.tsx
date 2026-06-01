@@ -288,7 +288,7 @@ export function UserCreatePage() {
                         id="accessEnd"
                         label={t('users.accessEnd')}
                         value={
-                          formik.values.accessStart
+                          formik.values.accessEnd
                             ? dayjs(formik.values.accessEnd)
                             : null
                         }

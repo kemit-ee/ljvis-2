@@ -141,8 +141,10 @@
     "cancel": "Tühista",
     "values": "Väärtused",
     "addValue": "+ Lisa väärtus",
+    "addClassifierValue": "Lisa klassifikaatori väärtus",
     "classifier": "Klassifikaator",
     "value": "Väärtus",
+    "valueData": "Klassifikaatori väärtuse andmed",
     "validFrom": "Kehtivuse algus",
     "validUntil": "Kehtivuse lõpp",
     "status": "Olek",
@@ -150,6 +152,7 @@
     "statusInactive": "Lõpetatud",
     "change": "Muuda",
     "switch": "Kuva ainult kehtivad väärtused",
+    "valueAddedNote": "Klassifikaatori väärtus on lisatud",
     "validation": {
       "required": "Kohustuslik väli",
       "valueConflict": "Sellise nimetuseda klassifikaatori väärtus on juba olemas",
