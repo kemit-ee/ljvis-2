@@ -1,12 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import type { PaginationState, SortingState } from '@tanstack/react-table';
-import type { User, UserListItem, UserGroupAssignment } from './types';
+import type { User, UserGroupAssignment } from './types';
 import {
-  listUsers,
-  getUser,
   getUserGroups,
   insertUser,
   updateUser,
@@ -20,11 +17,10 @@ import { listOrganisations } from '../organisations/api';
 import { useAuth } from '../auth/AuthContext';
 import { applyValidationError } from '../../shared/api/errors';
 import { hasStatus } from '../../hooks/statusUtils';
-import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 
-// ---------------------------------------------------------------------------
-// Helper: convert DD.MM.YYYY to YYYY-MM-DD
-// ---------------------------------------------------------------------------
+const LOCAL_ADMIN_GROUP = 'Local Admin Group';
+const SUPER_ADMIN_GROUP = 'Super Admin Group';
+
 function toIsoDate(value: unknown): string {
   if (!value) return '';
   if (
@@ -39,9 +35,6 @@ function toIsoDate(value: unknown): string {
   return String(value);
 }
 
-// ---------------------------------------------------------------------------
-// Helper: derive user status from accessEnd
-// ---------------------------------------------------------------------------
 function createStatus(accessEnd: string): string {
   const endStr = toIsoDate(accessEnd);
   if (!endStr) return 'active';
@@ -51,134 +44,6 @@ function createStatus(accessEnd: string): string {
   return end <= today ? 'pending_deactivation' : 'active';
 }
 
-// ---------------------------------------------------------------------------
-// Data hook: paginated user list
-// ---------------------------------------------------------------------------
-export function useUserList() {
-  const [data, setData] = useState<UserListItem[]>([]);
-  const [totalRows, setTotalRows] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 20,
-  });
-  const [sorting, setSorting] = useState<SortingState>([]);
-
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const sortStr = sorting.length
-        ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
-        : 'status asc';
-      const result = await listUsers({
-        page: String(pagination.pageIndex + 1),
-        pageSize: String(pagination.pageSize),
-        search,
-        sorting: sortStr,
-      });
-
-      const expandedData: UserListItem[] = [];
-      result.forEach((user) => {
-        const groups = user.userGroups ?? [];
-        if (groups.length > 0) {
-          groups.forEach((group, index) => {
-            expandedData.push({
-              ...user,
-              userGroups: [group],
-              isAdditionalGroupRow: index > 0,
-            });
-          });
-        } else {
-          expandedData.push(user);
-        }
-      });
-
-      setData(expandedData);
-      if (result.length > 0 && result[0].total != null) {
-        setTotalRows(result[0].total);
-      } else {
-        setTotalRows(result.length);
-      }
-    } catch (e) {
-      console.error('Failed to load users', e);
-      setData([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pagination, sorting, search]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleSearch = useSearchHandler(setSearch, setPagination);
-
-  const clearSearch = () => {
-    setSearchInput('');
-    setSearch('');
-    setPagination((p) => ({ ...p, pageIndex: 0 }));
-  };
-
-  return {
-    data,
-    totalRows,
-    isLoading,
-    pagination,
-    setPagination,
-    sorting,
-    setSorting,
-    searchInput,
-    setSearchInput,
-    handleSearch,
-    clearSearch,
-    refetch: fetchData,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Data hook: single user + assigned groups
-// ---------------------------------------------------------------------------
-export function useUserDetail(id: string | undefined) {
-  const [user, setUser] = useState<User | null>(null);
-  const [groups, setGroups] = useState<UserGroupAssignment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchData = useCallback(async () => {
-    if (!id) return;
-    setLoading(true);
-    try {
-      const [users, userGroups] = await Promise.all([
-        getUser(id),
-        getUserGroups(id),
-      ]);
-      setUser(users[0] ?? null);
-      setGroups(userGroups);
-    } catch (e) {
-      console.error('Failed to load user', e);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const isAccessExpired = user?.accessEnd
-    ? new Date(user.accessEnd) < new Date()
-    : false;
-
-  return { user, groups, loading, isAccessExpired, refetch: fetchData };
-}
-
-const LOCAL_ADMIN_GROUP = 'Local Admin Group';
-const SUPER_ADMIN_GROUP = 'Super Admin Group';
-
-// ---------------------------------------------------------------------------
-// Form hook: create / edit user (Formik + orgs dropdown)
-// ---------------------------------------------------------------------------
 export function useUserForm(
   user: User | undefined,
   onSaved: (id?: string) => void,
@@ -211,8 +76,8 @@ export function useUserForm(
       : undefined;
     if (!params) return;
     listUserGroups(params)
-      .then((groups) =>
-        setAllGroups(groups.map((g) => ({ ...g, id: String(g.id) }))),
+      .then((paged) =>
+        setAllGroups(paged.content.map((g) => ({ ...g, id: String(g.id) }))),
       )
       .catch(console.error);
   }, [user?.organisationName]);
@@ -316,8 +181,8 @@ export function useUserForm(
             );
             if (newOrg) {
               listUserGroups({ search: newOrg.label })
-                .then((groups) =>
-                  setAllGroups(groups.map((g) => ({ ...g, id: String(g.id) }))),
+                .then((paged) =>
+                  setAllGroups(paged.content.map((g) => ({ ...g, id: String(g.id) }))),
                 )
                 .catch(console.error);
             }
@@ -381,81 +246,5 @@ export function useUserForm(
     handleOrgChange,
     handleStructuralUnitChange,
     isLocalAdmin,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Hook: group selection & save for UserDetailPage
-// ---------------------------------------------------------------------------
-export function useGroupSave(
-  userId: string | undefined,
-  groups: UserGroupAssignment[],
-  allGroups: UserGroup[],
-  onSaved: () => void,
-) {
-  const [allSelectedGroups, setAllSelectedGroups] = useState<UserGroup[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState('');
-
-  useEffect(() => {
-    setAllSelectedGroups(
-      groups.map((g) => ({ id: g.userGroupId, name: g.name })),
-    ); // eslint-disable-line react-hooks/set-state-in-effect
-  }, [groups]);
-
-  const availableGroups = allGroups.filter(
-    (g) => !allSelectedGroups.some((s) => s.id === g.id),
-  );
-
-  const hasGroupChanges = (() => {
-    const originalIds = new Set(groups.map((g) => g.userGroupId));
-    const currentIds = new Set(allSelectedGroups.map((g) => g.id));
-    return (
-      originalIds.size !== currentIds.size ||
-      [...originalIds].some((id) => !currentIds.has(id))
-    );
-  })();
-
-  const getRemovedGroups = (): UserGroup[] => {
-    if (groups.length === 0) return [];
-    const currentIds = new Set(allSelectedGroups.map((g) => g.id));
-    return groups
-      .filter((g) => !currentIds.has(g.userGroupId))
-      .map((g) => ({ id: g.userGroupId, name: g.name }));
-  };
-
-  const handleGroupSave = async () => {
-    if (!userId) return;
-    try {
-      const originalIds = new Set(groups.map((g) => g.userGroupId));
-      const addedGroupIds = allSelectedGroups
-        .filter((g) => !originalIds.has(g.id))
-        .map((g) => g.id);
-      await setUserGroups(
-        userId,
-        addedGroupIds,
-        getRemovedGroups().map((g) => g.id),
-      );
-      onSaved();
-    } catch (e) {
-      console.error('Failed to save groups', e);
-    }
-  };
-
-  const resetGroups = () => {
-    setAllSelectedGroups(
-      groups.map((g) => ({ id: g.userGroupId, name: g.name })),
-    );
-    setSelectedGroupId('');
-  };
-
-  return {
-    allSelectedGroups,
-    setAllSelectedGroups,
-    selectedGroupId,
-    setSelectedGroupId,
-    availableGroups,
-    hasGroupChanges,
-    handleGroupSave,
-    resetGroups,
   };
 }

@@ -13,7 +13,7 @@ import {
   Alert,
   Text,
 } from '@tedi-design-system/react/tedi';
-import { useUserGroupForm } from '../../hooks';
+import { useUserGroupForm } from './useUserGroupForm';
 import {
   Table,
   Modal,

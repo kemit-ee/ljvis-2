@@ -1,20 +1,20 @@
-[
-    {{#each users}}
-    {
-        "id": "{{this.id}}",
-        "firstName": "{{this.firstName}}",
-        "lastName": "{{this.lastName}}",
-        "personalCode": "{{this.personalCode}}",
-        "organisationId": "{{this.organisationId}}",
-        "organisationName": "{{this.organisationName}}",
-        "email": "{{this.email}}",
-        "status": "{{this.status}}",
-        "accessStart": "{{this.accessStart}}",
-        "accessEnd": "{{this.accessEnd}}",
-        "userGroups": [{{#each this.userGroups}}"{{this}}"{{#unless @last}},{{/unless}}{{/each}}],
-        "page": {{this.page}},
-        "totalPages": {{this.totalPages}},
-        "total": {{this.total}}
-    }{{#unless @last}},{{/unless}}
-    {{/each}}
-]
+{
+    "content": [
+        {{#each users}}
+        {
+            "id": "{{this.id}}",
+            "firstName": "{{this.firstName}}",
+            "lastName": "{{this.lastName}}",
+            "personalCode": "{{this.personalCode}}",
+            "organisationId": "{{this.organisationId}}",
+            "organisationName": "{{this.organisationName}}",
+            "email": "{{this.email}}",
+            "status": "{{this.status}}",
+            "accessStart": "{{this.accessStart}}",
+            "accessEnd": "{{this.accessEnd}}",
+            "userGroups": [{{#each this.userGroups}}"{{this}}"{{#unless @last}},{{/unless}}{{/each}}]
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with users.[0]}}{{total}}{{else}}0{{/with}}
+}

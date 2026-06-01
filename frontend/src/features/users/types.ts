@@ -19,9 +19,6 @@ export interface User {
 }
 
 export interface UserListItem extends User {
-  page?: number;
-  totalPages?: number;
-  total?: number;
   isAdditionalGroupRow?: boolean;
 }
 

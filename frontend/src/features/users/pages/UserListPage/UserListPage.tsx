@@ -12,7 +12,7 @@ import {
   Text,
 } from '@tedi-design-system/react/tedi';
 import type { UserListItem } from '../../types';
-import { useUserList } from '../../hooks';
+import { useUserList } from './useUserList';
 import { useAuth } from '../../../auth/AuthContext';
 import './UserListPage.module.css';
 

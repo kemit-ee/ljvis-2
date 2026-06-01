@@ -72,8 +72,6 @@ SELECT
          FROM JSONB_ARRAY_ELEMENTS(l.user_groups) AS elem),
         ARRAY[]::TEXT[]
     ) AS user_groups,
-    :page AS page,
-    CEIL(COUNT(*) OVER () / :page_size::DECIMAL) AS total_pages,
     (COUNT(*) OVER ())::INTEGER AS total
 FROM latest l
 WHERE
