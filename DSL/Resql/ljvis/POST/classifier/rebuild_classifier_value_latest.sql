@@ -8,7 +8,7 @@ declaration:
   namespace: classifier
   allowlist:
     body:
-      - field: classifier_id
+      - field: classifier_value_id
         type: string
       - field: created_by
         type: string
@@ -25,21 +25,22 @@ INSERT INTO ljvis2.classifier_value_latest (
     name,
     valid_from,
     valid_until,
+    is_valid,
     created_by
 )
 SELECT
     cv.classifier_id,
     cv.id,
-    (SELECT c.code FROM ljvis2.classifier c WHERE c.id = cv.classifier_id),
+    (SELECT code FROM ljvis2.classifier WHERE id = cv.classifier_id LIMIT 1),
     cv.code,
     cv.name,
-    (SELECT vs.valid_from FROM ljvis2.classifier_value_validity_state vs WHERE vs.classifier_value_id = cv.id ORDER BY vs.created_at DESC LIMIT 1),
-    (SELECT vs.valid_until FROM ljvis2.classifier_value_validity_state vs WHERE vs.classifier_value_id = cv.id ORDER BY vs.created_at DESC LIMIT 1),
+    cvvs.valid_from,
+    cvvs.valid_until,
+    (cvvs.valid_from <= CURRENT_DATE AND (cvvs.valid_until IS NULL OR cvvs.valid_until >= CURRENT_DATE)),
     :created_by::BIGINT
 FROM ljvis2.classifier_value cv
-WHERE cv.classifier_id = :classifier_id::BIGINT
-  AND NOT EXISTS (
-    SELECT 1 FROM ljvis2.classifier_value_latest cvl
-    WHERE cvl.classifier_value_id = cv.id
-  )
+        , (SELECT valid_from, valid_until FROM ljvis2.classifier_value_validity_state
+    WHERE classifier_value_id = :classifier_value_id::BIGINT
+    ORDER BY created_at DESC, id DESC LIMIT 1) cvvs
+WHERE cv.id = :classifier_value_id::BIGINT
 RETURNING id;

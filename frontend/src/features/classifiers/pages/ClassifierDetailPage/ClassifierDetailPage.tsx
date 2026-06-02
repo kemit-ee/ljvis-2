@@ -117,7 +117,7 @@ export function ClassifierDetailPage() {
 
   const handleRowClick = useCallback(
     (row: ClassifierValue) => {
-      navigate(`/classifiers/${row.classifierValueId}`);
+      navigate(`/classifiers/${row.classifierId}/${row.classifierValueId}`);
     },
     [navigate],
   );

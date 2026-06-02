@@ -21,6 +21,7 @@ interface ClassifierValueFormValues {
 interface ClassifierValueInfoCardProps {
   formik: FormikProps<ClassifierValueFormValues>;
   isDesktop: boolean;
+  isEdit: boolean;
   handleSaveClick: () => void;
   onCancel: () => void;
 }
@@ -28,6 +29,7 @@ interface ClassifierValueInfoCardProps {
 export function ClassifierValueInfoCard({
   formik,
   isDesktop,
+  isEdit,
   handleSaveClick,
   onCancel,
 }: ClassifierValueInfoCardProps) {
@@ -54,6 +56,7 @@ export function ClassifierValueInfoCard({
               label={t('classifiers.code')}
               value={formik.values.code}
               required
+              disabled={isEdit}
               onChange={(v) => formik.setFieldValue('code', v)}
               {...(formik.touched.code && formik.errors.code
                 ? {
@@ -69,6 +72,7 @@ export function ClassifierValueInfoCard({
               label={t('classifiers.name')}
               value={formik.values.name}
               required
+              disabled={isEdit}
               onChange={(v) => formik.setFieldValue('name', v)}
               {...(formik.touched.name && formik.errors.name
                 ? {

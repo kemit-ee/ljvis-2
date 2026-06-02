@@ -7,46 +7,50 @@ import {
   Row,
   Col,
 } from '@tedi-design-system/react/tedi';
-import { useClassifierDetail, useClassifierValueForm } from '../../hooks';
+import { useClassifierValueForm, useClassifierValueDetail } from '../../hooks';
 import { useAuth } from '../../../auth/AuthContext';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { ClassifierValueInfoCard } from '../../components/ClassifierValueInfoCard/ClassifierValueInfoCard.tsx';
 
-export function ClassifierValueCreatePage() {
-  const { id } = useParams<{ id: string }>();
+export function ClassifierValueEditPage() {
+  const { id, valueId } = useParams<{ id: string; valueId: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('classifier_value.edit');
 
-  const { classifier, loading, refetch } = useClassifierDetail(id);
+  const {
+    value,
+    loading: valueLoading,
+    refetch,
+  } = useClassifierValueDetail(valueId);
 
   const handleEditSaved = () => {
     refetch();
-    if (classifier) {
-      navigate(`/classifiers/${classifier.id}`, {
+    if (id) {
+      navigate(`/classifiers/${id}`, {
         state: { justCreated: true },
       });
     }
   };
 
-  const { formik } = useClassifierValueForm(id, handleEditSaved);
+  const { formik } = useClassifierValueForm(id, handleEditSaved, value);
 
   const handleSaveClick = () => {
     formik.submitForm();
   };
 
-  if (loading && !classifier) return <Text>{t('common.loading')}</Text>;
+  if (valueLoading && !value) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (!classifier) return <Text>{t('common.error')}</Text>;
+  if (!value) return <Text>{t('common.error')}</Text>;
 
   return (
     <div>
       <Button
         visualType="link"
-        onClick={() => navigate(`/classifiers/${classifier.id}`)}
+        onClick={() => navigate(`/classifiers/${id}`)}
         iconLeft="arrow_back"
       >
         {t('common.back')}
@@ -54,7 +58,7 @@ export function ClassifierValueCreatePage() {
 
       <div className="page-header">
         <div className="page-header-title">
-          <Heading element="h1">{t('classifiers.addClassifierValue')}</Heading>
+          <Heading element="h1">{t('classifiers.editClassifierValue')}</Heading>
         </div>
       </div>
 
@@ -64,11 +68,11 @@ export function ClassifierValueCreatePage() {
             <ClassifierValueInfoCard
               formik={formik}
               isDesktop={isDesktop}
-              isEdit={false}
+              isEdit={true}
               handleSaveClick={handleSaveClick}
               onCancel={() => {
                 formik.resetForm();
-                navigate(`/classifiers/${classifier.id}`);
+                navigate(`/classifiers/${id}`);
               }}
             />
           </Col>

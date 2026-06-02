@@ -10,6 +10,8 @@ declaration:
     body:
       - field: classifierId
         type: string
+      - field: classifierValueId
+        type: string
       - field: code
         type: string
       - field: name
@@ -36,25 +38,12 @@ check_permission:
 extractRequestData:
   assign:
     classifier_id: "${incoming.body.classifierId}"
+    classifier_value_id: "${incoming.body.classifierValueId}"
     code: "${incoming.body.code}"
     name: "${incoming.body.name}"
     valid_from: "${incoming.body.validFrom}"
     valid_until: "${incoming.body.validUntil ?? ''}"
     created_by: "${auth_user.id}"
-  next: insertClassifierValue
-
-insertClassifierValue:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/classifier/insert_classifier_value"
-    headers:
-      type: json
-    body:
-      classifier_id: ${classifier_id}
-      code: ${code}
-      name: ${name}
-      created_by: ${created_by}
-  result: insertRes
   next: createClassifierValueValidityState
 
 createClassifierValueValidityState:
@@ -64,7 +53,7 @@ createClassifierValueValidityState:
     headers:
       type: json
     body:
-      classifier_value_id: ${insertRes.response.body[0].id}
+      classifier_value_id: ${classifier_value_id}
       valid_from: ${valid_from}
       valid_until: ${valid_until}
       created_by: ${created_by}
@@ -78,7 +67,7 @@ rebuildLatest:
     headers:
       type: json
     body:
-      classifier_value_id: ${insertRes.response.body[0].id}
+      classifier_value_id: ${classifier_value_id}
       created_by: ${created_by}
   result: latestRes
   next: returnSuccess

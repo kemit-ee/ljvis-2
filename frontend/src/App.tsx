@@ -12,6 +12,7 @@ import { UserGroupDetailPage } from './features/user-groups/pages/UserGroupDetai
 import { ClassifierListPage } from './features/classifiers/pages/ClassifierListPage/ClassifierListPage';
 import { ClassifierDetailPage } from './features/classifiers/pages/ClassifierDetailPage/ClassifierDetailPage';
 import { ClassifierValueCreatePage } from './features/classifiers/pages/ClassifierValueCreatePage/ClassifierValueCreatePage';
+import { ClassifierValueEditPage } from './features/classifiers/pages/ClassifierValueEditPage/ClassifierValueEditPage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 
@@ -46,6 +47,10 @@ function AppRoutes() {
           <Route
             path="/classifiers/:id/add-value"
             element={<ClassifierValueCreatePage />}
+          />
+          <Route
+            path="/classifiers/:id/:valueId"
+            element={<ClassifierValueEditPage />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

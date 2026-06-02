@@ -142,6 +142,7 @@
     "values": "Väärtused",
     "addValue": "+ Lisa väärtus",
     "addClassifierValue": "Lisa klassifikaatori väärtus",
+    "editClassifierValue": "Muuda klassifikaatori väärtust",
     "classifier": "Klassifikaator",
     "value": "Väärtus",
     "valueData": "Klassifikaatori väärtuse andmed",
@@ -156,6 +157,7 @@
     "validation": {
       "required": "Kohustuslik väli",
       "valueConflict": "Sellise nimetuseda klassifikaatori väärtus on juba olemas",
+      "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
       "api": {
         "required": "Kohustuslik väli"
       }

@@ -10,6 +10,8 @@ import {
   listClassifiers,
   updateClassifier,
   insertClassifierValue,
+  getClassifierValue,
+  updateClassifierValue,
 } from './api.ts';
 import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 import { applyValidationError } from '../../shared/api/errors';
@@ -210,13 +212,42 @@ export function useClassifierForm(
 }
 
 // ---------------------------------------------------------------------------
-// Form hook: create classifier value (Formik)
+// Data hook: single classifier value
+// ---------------------------------------------------------------------------
+export function useClassifierValueDetail(valueId: string | undefined) {
+  const [value, setValue] = useState<ClassifierValue | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    if (!valueId) return;
+    setLoading(true);
+    try {
+      const result = await getClassifierValue(valueId);
+      setValue(result[0] ?? null);
+    } catch (e) {
+      console.error('Failed to load classifier value', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [valueId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { value, loading, refetch: fetchData };
+}
+
+// ---------------------------------------------------------------------------
+// Form hook: create / edit classifier value (Formik)
 // ---------------------------------------------------------------------------
 export function useClassifierValueForm(
   classifierId: string | undefined,
   onSaved: () => void,
+  existingValue?: ClassifierValue | null,
 ) {
   const { t } = useTranslation();
+  const isEdit = !!existingValue;
 
   const validationSchema = Yup.object({
     code: Yup.string().required(t('classifiers.validation.required')),
@@ -226,7 +257,7 @@ export function useClassifierValueForm(
       .nullable()
       .test(
         'is-after-start',
-        t('users.validation.endBeforeStart'),
+        t('classifiers.validation.endBeforeStart'),
         function (value) {
           const { validFrom } = this.parent;
           if (!value || value === null || !validFrom) return true;
@@ -238,11 +269,11 @@ export function useClassifierValueForm(
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      id: '',
-      code: '',
-      name: '',
-      validFrom: '',
-      validUntil: '',
+      id: existingValue?.classifierValueId ?? '',
+      code: existingValue?.code ?? '',
+      name: existingValue?.name ?? '',
+      validFrom: existingValue?.validFrom ?? '',
+      validUntil: existingValue?.validUntil ?? '',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -253,13 +284,24 @@ export function useClassifierValueForm(
           validFrom: toIsoDate(values.validFrom),
           validUntil: toIsoDate(values.validUntil),
         };
-        await insertClassifierValue({
-          classifierId: classifierId,
-          code: trimmedValues.code,
-          name: trimmedValues.name,
-          validFrom: trimmedValues.validFrom,
-          validUntil: trimmedValues.validUntil,
-        });
+        if (isEdit && existingValue) {
+          await updateClassifierValue({
+            classifierId: classifierId,
+            classifierValueId: existingValue.classifierValueId,
+            code: trimmedValues.code,
+            name: trimmedValues.name,
+            validFrom: trimmedValues.validFrom,
+            validUntil: trimmedValues.validUntil,
+          });
+        } else {
+          await insertClassifierValue({
+            classifierId: classifierId,
+            code: trimmedValues.code,
+            name: trimmedValues.name,
+            validFrom: trimmedValues.validFrom,
+            validUntil: trimmedValues.validUntil,
+          });
+        }
         onSaved();
       } catch (e) {
         if (
