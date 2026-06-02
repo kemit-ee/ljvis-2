@@ -75,14 +75,18 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    const adminIsActive = adminSubItems.some((item) => item.isActive);
+
     items.push({
       children: t('nav.administration'),
       icon: 'account_circle',
+      isActive: adminIsActive,
+      isDefaultOpen: adminIsActive,
       subItems: adminSubItems,
     });
 
     return items;
-  }, [pathname, t, hasAnyPermission]);
+  }, [pathname, t, hasPermission, hasAnyPermission]);
 
   const getWrapperClassName = () => {
     const classes = [styles.wrapper];
@@ -106,10 +110,15 @@ export function useSideNavProps(): UseSideNavPropsResult {
     return classes.join(' ');
   };
 
+  const adminIsActive = navItems
+    .flatMap((item) => item.subItems ?? [])
+    .some((sub) => sub.isActive);
+
   return {
     sideNav: (
       <div className={getWrapperClassName()}>
         <SideNav
+          key={adminIsActive ? 'sidenav-admin-open' : 'sidenav'}
           linkAs={Link}
           navItems={navItems}
           ariaLabel="Main navigation"

@@ -142,13 +142,19 @@
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const arr = Array.isArray(body) ? body : (body.response || []);",
-        "pm.test('Response is array', () => pm.expect(arr).to.be.an('array'));",
+        "const paged = body.response || {content: [], total: 0};",
+        "const arr = paged.content || [];",
+        "pm.test('Response has content and total', () => {",
+        "  pm.expect(paged).to.have.property('content');",
+        "  pm.expect(paged).to.have.property('total');",
+        "  pm.expect(paged.content).to.be.an('array');",
+        "});",
         "pm.test('At least 2 seeded groups visible', () => pm.expect(arr.length).to.be.at.least(2));",
         "pm.test('Group has id and name', () => {",
         "  pm.expect(arr[0]).to.have.property('id');",
         "  pm.expect(arr[0]).to.have.property('name');",
-        "});"
+        "});",
+        "pm.test('organisations is an array', () => pm.expect(arr[0].organisations).to.be.an('array'));"
       ]}}]
     },
     {

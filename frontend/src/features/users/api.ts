@@ -1,12 +1,9 @@
 import { get, post } from '../../shared/api/client';
+import type { PagedResponse, ListApiParams } from '../../hooks/usePaginatedList';
 import type { User, UserListItem, UserGroupAssignment } from './types';
 
-export const listUsers = (params: {
-  page: string;
-  pageSize: string;
-  search?: string;
-  sorting?: string;
-}) => get<UserListItem[]>('/users/list', params as Record<string, string>);
+export const listUsers = (params: ListApiParams) =>
+  get<PagedResponse<UserListItem>>('/users/list', params as Record<string, string>);
 
 export const getUser = (id: string) => get<User[]>('/users/get', { id });
 

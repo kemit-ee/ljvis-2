@@ -29,8 +29,8 @@ declaration:
       - field: name
         type: string
       - field: organisations
-        type: string
-        description: "Comma-separated organisation names"
+        type: array
+        description: "Array of organisation names"
       - field: total
         type: number
 */
@@ -47,9 +47,9 @@ SELECT
     l.user_group_id AS id,
     l.name,
     COALESCE(
-        (SELECT STRING_AGG(elem->>'name', ', ')
+        (SELECT ARRAY_AGG(elem->>'name')
          FROM JSONB_ARRAY_ELEMENTS(l.organisations) AS elem),
-        ''
+        ARRAY[]::TEXT[]
     ) AS organisations,
     l.covers_all_organisations,
     (COUNT(*) OVER ())::INTEGER AS total

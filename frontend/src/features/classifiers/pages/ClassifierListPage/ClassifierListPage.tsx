@@ -5,7 +5,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
 import { Card, Heading, Search, Text } from '@tedi-design-system/react/tedi';
 import type { Classifier } from '../../types';
-import { useClassifierList } from '../../hooks';
+import { useClassifierList } from './useClassifierList';
 import { useAuth } from '../../../auth/AuthContext';
 import './ClassifierListPage.module.css';
 

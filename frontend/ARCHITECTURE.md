@@ -15,23 +15,27 @@ src/
     <feature-name>/
       types.ts               — TypeScript interfaces and type aliases for this feature
       api.ts                 — pure async functions calling the backend API
-      hooks.ts               — React hooks: data fetching, form state, feature business logic
+      use<Entity>Form.ts     — shared form hook (only if used by more than one page)
 
-      pages/                 — route-level screens for this feature
-        EntityListPage.tsx
-        EntityDetailPage.tsx
-        EntityCreatePage.tsx
+      pages/
+        EntityListPage/
+          EntityListPage.tsx
+          useEntityList.ts   — hook used only by this page (co-located)
 
-      components/            — feature-local UI components
+        EntityDetailPage/
+          EntityDetailPage.tsx
+          useEntityDetail.ts — hook used only by this page (co-located)
+          useEntityAction.ts — additional hooks used only by this page
+
+        EntityCreatePage/
+          EntityCreatePage.tsx
+          (imports shared hook from feature root if needed)
+
+      components/            — feature-local UI components used by multiple pages
         EntityCard/
           EntityCard.tsx
           EntityCard.css
           EntityCard.test.tsx
-
-        EntityForm/
-          EntityForm.tsx
-          EntityForm.css
-          EntityForm.test.tsx
 
   layout/                    — App shell: header, sidebar, footer
   i18n/                      — Translation files
@@ -53,62 +57,97 @@ Nothing lives outside its feature folder except:
 - `i18n/` translation files
 - app bootstrap/routing files (`App.tsx`, `main.tsx`)
 
-### 2. Feature folder structure
+### 2. Hook co-location rule
 
-| Path          | Contains                                                       | Does NOT contain                        |
-| ------------- | -------------------------------------------------------------- | --------------------------------------- |
-| `types.ts`    | TypeScript interfaces and type aliases                         | Logic, API calls, React components      |
-| `api.ts`      | Pure `async` functions using `shared/api/client`               | React hooks, state, JSX                 |
-| `hooks.ts`    | Feature hooks: data loading, form state, business interactions | JSX, DOM manipulation, direct `fetch()` |
-| `pages/`      | Route-level screens connected to app routes                    | Low-level reusable components only      |
-| `components/` | Feature-local presentational/components used by pages          | Cross-feature shared components         |
+**Hooks live next to the page that uses them.** There is no central `hooks.ts` per feature.
 
-### 3. Pages vs components
+| Scenario | Where the hook lives |
+|---|---|
+| Used by exactly one page | Inside that page's folder: `pages/EntityListPage/useEntityList.ts` |
+| Used by two or more pages within the same feature | Feature root: `features/<name>/useEntityForm.ts` |
+| Used by multiple features | `shared/hooks/useSharedHook.ts` |
 
-Use `pages/` for components that represent a route/screen:
+Never create a `hooks.ts` at the feature root. It grows unbounded and hides which page each hook belongs to.
+
+### 3. Feature folder structure
+
+| Path | Contains | Does NOT contain |
+|---|---|---|
+| `types.ts` | TypeScript interfaces and type aliases | Logic, API calls, React components |
+| `api.ts` | Pure `async` functions using `shared/api/client` | React hooks, state, JSX |
+| `use<Entity>Form.ts` | Shared form hook (only when two+ pages need it) | Single-page hooks |
+| `pages/<Page>/` | Page component + its co-located hooks | Shared UI components |
+| `components/` | Feature-local UI used by multiple pages | Single-page components |
+
+### 4. Pages vs components
+
+Use `pages/<PageName>/` for route-level screens:
 
 ```text
-UserListPage.tsx
-UserDetailPage.tsx
-UserCreatePage.tsx
+pages/
+  UserListPage/
+    UserListPage.tsx
+    useUserList.ts
+
+  UserDetailPage/
+    UserDetailPage.tsx
+    useUserDetail.ts
+    useGroupSave.ts
 ```
 
-Use `components/` for smaller UI blocks used inside pages:
-
-```text
-UserBasicInfoCard.tsx
-UserGroupsCard.tsx
-PhoneField.tsx
-```
-
-If a component grows and gets its own CSS/tests, place it in its own folder:
+Use `components/` for UI blocks reused across multiple pages of the same feature:
 
 ```text
 components/
-  PhoneField/
-    PhoneField.tsx
-    PhoneField.css
-    PhoneField.test.tsx
+  UserBasicInfo/
+    UserBasicInfoCard.tsx
+    UserBasicInfoEditCard.tsx
+
+  UserGroups/
+    UserGroupsCard.tsx
 ```
 
-### 4. File responsibilities
+### 5. File responsibilities
 
-| File type                | Responsibility                                                                    |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| `*.tsx`                  | UI rendering and UI-only state, such as modal open/close or local expand/collapse |
-| `*.css` / `*.module.css` | Static styling, responsive rules, layout classes                                  |
-| `*.test.tsx`             | Component/unit tests colocated with the component they test                       |
-| `api.ts`                 | Backend calls only                                                                |
-| `hooks.ts`               | Data fetching, form state, callback composition, feature-level business logic     |
-| `types.ts`               | Types only                                                                        |
+| File type | Responsibility |
+|---|---|
+| `*.tsx` | UI rendering and UI-only state (modal open/close, expand/collapse) |
+| `*.css` / `*.module.css` | Static styling, responsive rules, layout classes |
+| `*.test.tsx` | Component/unit tests co-located with what they test |
+| `api.ts` | Backend calls only |
+| `use*.ts` | Data fetching, form state, callback composition, business logic |
+| `types.ts` | Types only |
 
-### 5. Styling rules
+### 6. Paginated lists
+
+All paginated list endpoints use the shared `usePaginatedList` hook from `shared/hooks/usePaginatedList.ts`.
+
+API functions for paginated endpoints accept `ListApiParams` and return `PagedResponse<T>`:
+
+```ts
+import type { PagedResponse, ListApiParams } from '../../hooks/usePaginatedList';
+
+export const listUsers = (params: ListApiParams) =>
+  get<PagedResponse<UserListItem>>('/users/list', params as Record<string, string>);
+```
+
+The backend returns `{ content: T[], total: number }`. The hook extracts `content` and `total`:
+
+```ts
+export function useEntityList() {
+  return usePaginatedList(listEntities, { defaultSort: 'name asc' });
+}
+```
+
+Never read pagination metadata (page, totalPages) from individual items — it must come from the envelope.
+
+### 7. Styling rules
 
 Prefer CSS classes over inline styles.
 
-Use inline `style={{ ... }}` only for truly dynamic values, for example calculated width, measured height, or runtime positioning.
+Use inline `style={{ ... }}` only for truly dynamic values (calculated width, measured height, runtime positioning).
 
-Avoid `<style>{...}</style>` inside React components. Put media queries and static styles into CSS files or CSS modules.
+Avoid `<style>{...}</style>` inside React components.
 
 Good:
 
@@ -137,60 +176,47 @@ Avoid:
 <style>{`@media (...) { ... }`}</style>
 ```
 
-### 6. Import rules
+### 8. Import rules
 
-- Within a feature: use relative `./` imports.
-- Cross-feature API/types imports are allowed only when a feature explicitly depends on another feature's public API/types.
+- Within a page folder: use `./` relative imports.
+- From a page to feature root (api/types/shared hooks): use `../../`.
+- Cross-feature imports are allowed only for `api.ts` and `types.ts`, not for page components or hooks.
 - Shared utilities/components/hooks must live in `shared/`.
-- Do not import another feature's internal UI components unless they were intentionally moved to `shared/`.
 
 Examples:
 
 ```ts
-import type { User } from './types';
-import { listUsers } from './api';
-import { listOrganisations } from '../organisations/api';
-import { get } from '../../shared/api/client';
+import type { User } from '../../types';           // feature root
+import { listUsers } from '../../api';             // feature root
+import { useUserDetail } from './useUserDetail';   // co-located
+import { useUserForm } from '../../useUserForm';   // shared within feature
+import { listOrganisations } from '../../../organisations/api'; // cross-feature api
+import { get } from '../../../../shared/api/client';
 ```
 
-### 7. Adding a new feature
+### 9. Adding a new feature
 
 1. Create `src/features/<name>/`.
-2. Add `types.ts` for feature interfaces and type aliases.
-3. Add `api.ts` for backend calls using `shared/api/client`.
-4. Add `hooks.ts` for data-fetching, form, and business-logic hooks.
-5. Add `pages/` for route-level screens.
-6. Add `components/` for feature-local UI blocks.
+2. Add `types.ts` for domain interfaces and type aliases.
+3. Add `api.ts` for backend calls — all functions typed with `ListApiParams` / `PagedResponse<T>` where applicable.
+4. For each route screen, create `pages/<PageName>/`:
+   - `<PageName>.tsx` — the route component
+   - `use<PageName>.ts` (or more specific name) — the hook for that page
+5. If a hook is shared between two or more pages, place it at the feature root as `use<SharedConcept>.ts`.
+6. Add `components/` only for UI blocks reused across multiple pages.
 7. Register routes in `App.tsx`.
-8. Add tests next to the component/hook they test.
+8. Add tests co-located with what they test.
 
-### 8. Hook categories in `hooks.ts`
-
-Organize hooks in this order with section comments:
-
-```ts
-// Data hooks: fetch and cache server data
-export function useEntityList() { ... }
-export function useEntityDetail(id) { ... }
-
-// Form hooks: manage form state, validation, submission
-export function useEntityForm(entity, onSaved) { ... }
-
-// Business logic hooks: complex interactions and composed actions
-export function useEntityActions(id) { ... }
-```
-
-### 9. TSX component rules
+### 10. TSX component rules
 
 - Receive data and callbacks from hooks.
 - Do not call backend APIs directly from `.tsx` components.
-- Keep UI-only state in components.
+- Keep UI-only state (modal open, tab index, etc.) in components.
 - Keep business/data logic in hooks.
-- Keep components focused on rendering.
 - Split large components into smaller feature-local components.
 - Add `alt` text for images.
 - Avoid duplicate `id` attributes.
-- Use buttons for actions instead of `<a href="#">`.
+- Use `<button>` for actions, not `<a href="#">`.
 
 ## API Error Handling
 
@@ -208,7 +234,7 @@ throw new ApiError(`POST ${path} failed: 422`, 422, json?.response);
 Use `applyValidationError` from `shared/api/errors.ts` inside any Formik `onSubmit`:
 
 ```ts
-import { applyValidationError } from '../../shared/api/errors';
+import { applyValidationError } from '../../../../shared/api/errors';
 
 onSubmit: async (values, { setFieldError }) => {
   try {
@@ -221,7 +247,7 @@ onSubmit: async (values, { setFieldError }) => {
 }
 ```
 
-`applyValidationError` returns `true` if it handled the error (mapped `field` → Formik error message), `false` otherwise.
+`applyValidationError` returns `true` if it handled the error (mapped `field` → Formik error), `false` otherwise.
 
 ### Adding a new backend error code
 
@@ -240,25 +266,34 @@ onSubmit: async (values, { setFieldError }) => {
 
 ## Current Features
 
-| Feature       | Folder                    | Description                                                      |
-| ------------- | ------------------------- | ---------------------------------------------------------------- |
-| Users         | `features/users/`         | User CRUD, list, detail, user-specific group assignment          |
-| User Groups   | `features/user-groups/`   | User group CRUD, organisation/permission management, member list |
-| Organisations | `features/organisations/` | Organisation list/reference data                                 |
-| Permissions   | `features/permissions/`   | Permission list/reference data                                   |
+| Feature | Folder | Description |
+|---|---|---|
+| Users | `features/users/` | User CRUD, list, detail, user-specific group assignment |
+| User Groups | `features/user-groups/` | User group CRUD, organisation/permission management, member list |
+| Classifiers | `features/classifiers/` | Classifier list and detail with classifier values |
+| Organisations | `features/organisations/` | Organisation list/reference data |
+| Permissions | `features/permissions/` | Permission list/reference data |
 
 ## Example: Users Feature
 
 ```text
 features/users/
   api.ts
-  hooks.ts
   types.ts
+  useUserForm.ts             — shared between UserDetailPage and UserCreatePage
 
   pages/
-    UserListPage.tsx
-    UserCreatePage.tsx
-    UserDetailPage.tsx
+    UserListPage/
+      UserListPage.tsx
+      useUserList.ts         — co-located: only used here
+
+    UserDetailPage/
+      UserDetailPage.tsx
+      useUserDetail.ts       — co-located: only used here
+      useGroupSave.ts        — co-located: only used here
+
+    UserCreatePage/
+      UserCreatePage.tsx     — imports ../../useUserForm
 
   components/
     PhoneField/
@@ -267,17 +302,10 @@ features/users/
 
     UserBasicInfo/
       UserBasicInfoCard.tsx
-      UserBasicInfoCard.test.tsx
       UserBasicInfoEditCard.tsx
-      UserBasicInfoEditCard.test.tsx
 
     UserGroups/
       UserGroupsCard.tsx
-      UserGroupsCard.css
-      UserGroupsCard.test.tsx
-
-    UserFormModal/
-      UserFormModal.tsx
 ```
 
 ## Example: User Groups Feature
@@ -285,26 +313,34 @@ features/users/
 ```text
 features/user-groups/
   api.ts
-  hooks.ts
   types.ts
 
   pages/
-    UserGroupListPage.tsx
-    UserGroupDetailPage.tsx
-    UserGroupCreatePage.tsx
+    UserGroupListPage/
+      UserGroupListPage.tsx
+      useUserGroupList.ts    — co-located
+
+    UserGroupDetailPage/
+      UserGroupDetailPage.tsx
+      useUserGroupDetail.ts  — co-located
+
+    UserGroupCreatePage/
+      UserGroupCreatePage.tsx
+      useUserGroupForm.ts    — co-located
+
+    UserGroupAddUserPage/
+      UserGroupAddUserPage.tsx
+      useUserGroupAddUser.ts — co-located
 
   components/
-    UserGroupBasicInfo/
-    UserGroupOrganisations/
-    UserGroupPermissions/
-    UserGroupMembers/
+    UserGroupNameEditor/
+    UserGroupOrgsEditor/
+    UserGroupPermsEditor/
 ```
 
 ## Boundary Between Users and User Groups
 
 Use `features/users/` for screens and components where the primary entity is a user.
-
-Example:
 
 ```text
 features/users/components/UserGroups/UserGroupsCard.tsx
@@ -312,13 +348,10 @@ features/users/components/UserGroups/UserGroupsCard.tsx
 
 This is acceptable when the component shows or edits groups assigned to one specific user.
 
-Use `features/user-groups/` for screens and components where the primary entity is a user group.
-
-Example:
+Use `features/user-groups/` for screens where the primary entity is a user group.
 
 ```text
-features/user-groups/pages/UserGroupDetailPage.tsx
+features/user-groups/pages/UserGroupDetailPage/UserGroupDetailPage.tsx
 ```
 
 If a UI component becomes useful in both features, move it to `shared/components/`.
-

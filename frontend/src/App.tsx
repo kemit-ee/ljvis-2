@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
+import { ErrorProvider } from './shared/errors/ErrorContext';
+import { ToastContainer } from './shared/errors/ToastContainer';
 import { AppLayout } from './layout/AppLayout';
 import { DesktopPage } from './features/desktop/DesktopPage';
 import { UserListPage } from './features/users/pages/UserListPage/UserListPage';
@@ -61,9 +63,12 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <ErrorProvider>
+      <AuthProvider>
+        <AppRoutes />
+        <ToastContainer />
+      </AuthProvider>
+    </ErrorProvider>
   );
 }
 

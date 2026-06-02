@@ -1,10 +1,9 @@
 export interface UserGroup {
   id: string;
   name: string;
-  organisations?: string;
+  organisations?: string[];
   createdAt?: string;
   updatedAt?: string;
-  total?: number;
   isAdditionalGroupRow?: boolean;
   coversAllOrganisations?: boolean;
 }

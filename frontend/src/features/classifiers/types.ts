@@ -3,7 +3,6 @@ export interface Classifier {
   code: string;
   name: string;
   description: string;
-  total?: number;
   createdAt?: string;
   createdBy?: string;
 }

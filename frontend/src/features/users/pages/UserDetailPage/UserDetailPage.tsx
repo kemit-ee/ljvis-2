@@ -10,7 +10,9 @@ import {
   Row,
   Col,
 } from '@tedi-design-system/react/tedi';
-import { useUserDetail, useUserForm, useGroupSave } from '../../hooks';
+import { useUserDetail } from './useUserDetail';
+import { useGroupSave } from './useGroupSave';
+import { useUserForm } from '../../useUserForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
