@@ -17,8 +17,10 @@ import { listOrganisations } from '../organisations/api';
 import { useAuth } from '../auth/AuthContext';
 import { applyValidationError } from '../../shared/api/errors';
 import { hasStatus } from '../../hooks/statusUtils';
-import { toSnakeCase, useSearchHandler } from '../../hooks/stringUtils';
 import { toIsoDate } from '../../hooks/dateUtils';
+
+const LOCAL_ADMIN_GROUP = 'Local Admin Group';
+const SUPER_ADMIN_GROUP = 'Super Admin Group';
 
 function createStatus(accessEnd: string): string {
   const endStr = toIsoDate(accessEnd);

@@ -7,7 +7,8 @@ import {
   Row,
   Col,
 } from '@tedi-design-system/react/tedi';
-import { useClassifierDetail, useClassifierValueForm } from '../../hooks';
+import { useClassifierValueForm } from '../ClassifierValueEditPage/useClassifierValueForm.ts';
+import { useClassifierDetail } from '../ClassifierDetailPage/useClassifierDetail.ts';
 import { useAuth } from '../../../auth/AuthContext';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
