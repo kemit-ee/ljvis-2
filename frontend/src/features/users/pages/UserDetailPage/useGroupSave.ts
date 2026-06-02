@@ -15,7 +15,7 @@ export function useGroupSave(
   useEffect(() => {
     setAllSelectedGroups(
       groups.map((g) => ({ id: g.userGroupId, name: g.name })),
-    ); // eslint-disable-line react-hooks/set-state-in-effect
+    );
   }, [groups]);
 
   const availableGroups = allGroups.filter(

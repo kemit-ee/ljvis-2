@@ -44,28 +44,44 @@ function classifyApiError(
   return { message: 'common.errors.requestFailed', type: 'error' };
 }
 
-// const AUTO_DISMISS_MS = 6000;
-const AUTO_DISMISS_MS = 60000;
+const AUTO_DISMISS_MS = 6000;
 const MAX_TOASTS = 5;
 
 export function ErrorProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const counterRef = useRef(0);
+  const timersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   const dismissToast = useCallback((id: string) => {
+    timersRef.current.delete(id);
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const showMessage = useCallback(
-    (message: string, type: ToastType = 'error', scope?: string) => {
-      const id = String(++counterRef.current);
-      setToasts((prev) => [
-        ...prev.slice(-(MAX_TOASTS - 1)),
-        { id, message, type, scope },
-      ]);
-      setTimeout(() => dismissToast(id), AUTO_DISMISS_MS);
+  const scheduleTimer = useCallback(
+    (id: string) => {
+      const existing = timersRef.current.get(id);
+      if (existing !== undefined) clearTimeout(existing);
+      timersRef.current.set(id, setTimeout(() => dismissToast(id), AUTO_DISMISS_MS));
     },
     [dismissToast],
+  );
+
+  const showMessage = useCallback(
+    (message: string, type: ToastType = 'error', scope?: string) => {
+      setToasts((prev) => {
+        const existing = prev.find((t) => t.message === message && t.type === type);
+
+        if (existing) {
+          scheduleTimer(existing.id);
+          return prev;
+        }
+
+        const id = String(++counterRef.current);
+        scheduleTimer(id);
+        return [...prev.slice(-(MAX_TOASTS - 1)), { id, message, type, scope }];
+      });
+    },
+    [scheduleTimer],
   );
 
   useEffect(() => {
