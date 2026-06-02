@@ -11,7 +11,7 @@ import {
   Text,
 } from '@tedi-design-system/react/tedi';
 import type { UserGroup } from '../../types';
-import { useUserGroupList } from '../../hooks';
+import { useUserGroupList } from './useUserGroupList';
 import { useAuth } from '../../../auth/AuthContext';
 import './UserGroupListPage.module.css';
 
@@ -20,7 +20,7 @@ const columnHelper = createColumnHelper<UserGroup>();
 export function UserGroupListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { hasPermission, hasAnyPermission, user, permissions } = useAuth();
+  const { hasPermission, hasAnyPermission } = useAuth();
   const forbidden = !hasAnyPermission([
     'user_group.list.admin',
     'user_group.list.local',
@@ -43,7 +43,7 @@ export function UserGroupListPage() {
     setSearchInput,
     handleSearch,
     clearSearch,
-  } = useUserGroupList(user, permissions);
+  } = useUserGroupList();
 
   const handleRowClick = useCallback(
     (row: UserGroup) => {
@@ -72,7 +72,7 @@ export function UserGroupListPage() {
           ) {
             return t('userGroups.allOrganisations');
           }
-          return info.getValue() || '—';
+          return info.getValue()?.[0] || '—';
         },
         enableSorting: false,
       }),

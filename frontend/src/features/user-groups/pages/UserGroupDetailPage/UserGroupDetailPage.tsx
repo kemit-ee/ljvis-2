@@ -22,7 +22,7 @@ import {
   Card,
   Alert,
 } from '@tedi-design-system/react/tedi';
-import { useUserGroupDetail } from '../../hooks';
+import { useUserGroupDetail } from './useUserGroupDetail';
 import { useAuth } from '../../../auth/AuthContext';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { UserGroupUser } from '../../types';

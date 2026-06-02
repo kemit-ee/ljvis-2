@@ -85,7 +85,8 @@
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const groups = Array.isArray(body) ? body : (body.response || []);",
+        "const paged = body.response || {content: [], total: 0};",
+        "const groups = paged.content || [];",
         "const g = groups.find(g => g.name === 'Super Admin Group');",
         "if (g) pm.environment.set('seeded_group_admin_id', String(g.id));"
       ]}}]
@@ -105,15 +106,21 @@
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const users = Array.isArray(body) ? body : (body.response || []);",
-        "pm.test('Response is array', () => pm.expect(users).to.be.an('array'));",
+        "const paged = body.response || {content: [], total: 0};",
+        "const users = paged.content || [];",
+        "pm.test('Response has content and total', () => {",
+        "  pm.expect(paged).to.have.property('content');",
+        "  pm.expect(paged).to.have.property('total');",
+        "  pm.expect(paged.content).to.be.an('array');",
+        "});",
         "pm.test('At least 1 seeded user visible', () => pm.expect(users.length).to.be.at.least(1));",
         "pm.test('User has required fields', () => {",
         "  pm.expect(users[0]).to.have.property('id');",
         "  pm.expect(users[0]).to.have.property('firstName');",
         "  pm.expect(users[0]).to.have.property('lastName');",
         "  pm.expect(users[0]).to.have.property('personalCode');",
-        "});"
+        "});",
+        "pm.test('userGroups is an array', () => pm.expect(users[0].userGroups).to.be.an('array'));"
       ]}}]
     },
     {

@@ -11,7 +11,7 @@ import {
   Text,
 } from '@tedi-design-system/react/tedi';
 import { DatePicker } from '@tedi-design-system/react/community';
-import { useUserForm } from '../../hooks';
+import { useUserForm } from '../../useUserForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';

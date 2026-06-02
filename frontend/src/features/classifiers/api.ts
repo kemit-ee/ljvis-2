@@ -1,12 +1,9 @@
 import { get, post } from '../../shared/api/client';
+import type { PagedResponse, ListApiParams } from '../../hooks/usePaginatedList';
 import type { Classifier, ClassifierValue } from './types.ts';
 
-export const listClassifiers = (params?: {
-  search?: string;
-  page?: string;
-  pageSize?: string;
-  sorting?: string;
-}) => get<Classifier[]>('/classifiers/list', params as Record<string, string>);
+export const listClassifiers = (params?: ListApiParams) =>
+  get<PagedResponse<Classifier>>('/classifiers/list', params as Record<string, string>);
 
 export const getClassifier = (id: string) =>
   get<Classifier[]>('/classifiers/get', { id });

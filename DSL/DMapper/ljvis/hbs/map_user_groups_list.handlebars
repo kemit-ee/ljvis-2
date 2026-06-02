@@ -1,0 +1,13 @@
+{
+    "content": [
+        {{#each groups}}
+        {
+            "id": "{{this.id}}",
+            "name": "{{this.name}}",
+            "organisations": [{{#each this.organisations}}"{{this}}"{{#unless @last}},{{/unless}}{{/each}}],
+            "coversAllOrganisations": {{this.coversAllOrganisations}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with groups.[0]}}{{total}}{{else}}0{{/with}}
+}

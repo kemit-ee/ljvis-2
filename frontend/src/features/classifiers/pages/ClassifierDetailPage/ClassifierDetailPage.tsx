@@ -14,7 +14,8 @@ import {
   Checkbox,
 } from '@tedi-design-system/react/tedi';
 import { Table } from '@tedi-design-system/react/community';
-import { useClassifierDetail, useClassifierForm } from '../../hooks';
+import { useClassifierDetail } from './useClassifierDetail';
+import { useClassifierForm } from './useClassifierForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';

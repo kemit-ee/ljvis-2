@@ -1,8 +1,17 @@
 import type { Dispatch, SetStateAction } from 'react';
-import type { PaginationState } from '@tanstack/react-table';
+import type { PaginationState, SortingState } from '@tanstack/react-table';
 
 export function toSnakeCase(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+export function buildSortString(
+  sorting: SortingState,
+  defaultSort = 'name asc',
+): string {
+  return sorting.length
+    ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
+    : defaultSort;
 }
 
 export function useSearchHandler(

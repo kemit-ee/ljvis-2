@@ -10,7 +10,7 @@ import {
   Checkbox,
   Separator,
 } from '@tedi-design-system/react/tedi';
-import { useUserGroupAddUser } from '../../hooks';
+import { useUserGroupAddUser } from './useUserGroupAddUser';
 import { useMemo } from 'react';
 import type { UserGroupUser } from '../../types.ts';
 import { createColumnHelper } from '@tanstack/react-table';

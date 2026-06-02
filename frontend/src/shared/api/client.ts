@@ -14,6 +14,28 @@ export class ApiError extends Error {
   }
 }
 
+type ErrorListener = (err: ApiError) => void;
+type VoidCallback = () => void;
+
+let globalErrorListener: ErrorListener | undefined;
+let unauthorizedHandler: VoidCallback | undefined;
+
+export function setGlobalErrorListener(fn: ErrorListener | undefined): void {
+  globalErrorListener = fn;
+}
+
+export function setUnauthorizedHandler(fn: VoidCallback | undefined): void {
+  unauthorizedHandler = fn;
+}
+
+function handleErrorResponse(err: ApiError): void {
+  if (err.status === 401) {
+    unauthorizedHandler?.();
+  } else {
+    globalErrorListener?.(err);
+  }
+}
+
 export async function get<T>(
   path: string,
   params?: Record<string, string>,
@@ -26,12 +48,15 @@ export async function get<T>(
   }
   const res = await fetch(url.toString(), { credentials: 'include' });
   const json = (await res.json().catch(() => null)) as RuuterResponse<T> | null;
-  if (!res.ok)
-    throw new ApiError(
+  if (!res.ok) {
+    const err = new ApiError(
       `GET ${path} failed: ${res.status}`,
       res.status,
       json?.response,
     );
+    handleErrorResponse(err);
+    throw err;
+  }
   return json!.response;
 }
 
@@ -46,11 +71,14 @@ export async function post<T>(
     body: JSON.stringify(body),
   });
   const json = (await res.json().catch(() => null)) as RuuterResponse<T> | null;
-  if (!res.ok)
-    throw new ApiError(
+  if (!res.ok) {
+    const err = new ApiError(
       `POST ${path} failed: ${res.status}`,
       res.status,
       json?.response,
     );
+    handleErrorResponse(err);
+    throw err;
+  }
   return json!.response;
 }
