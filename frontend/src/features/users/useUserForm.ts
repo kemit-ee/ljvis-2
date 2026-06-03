@@ -37,7 +37,9 @@ export function useUserForm(
   groups: UserGroupAssignment[] = [],
 ) {
   const { t } = useTranslation();
-  const { user: authUser } = useAuth();
+  const { user: authUser, hasPermission } = useAuth();
+  const scope = hasPermission('user_group.list.admin') ? 'admin' : 'local';
+  const userScope = hasPermission('user.edit.admin') ? 'admin' : 'local';
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [isLocalAdmin, setIsLocalAdmin] = useState(false);
   const [allGroups, setAllGroups] = useState<UserGroup[]>([]);
@@ -49,7 +51,7 @@ export function useUserForm(
 
   useEffect(() => {
     if (!authUser) return;
-    getUserGroups(authUser.id)
+    getUserGroups(userScope, authUser.id)
       .then((groups) => {
         if (groups.some((g) => g.name === SUPER_ADMIN_GROUP)) return;
         setIsLocalAdmin(groups.some((g) => g.name === LOCAL_ADMIN_GROUP));
@@ -62,7 +64,7 @@ export function useUserForm(
       ? { search: user.organisationName }
       : undefined;
     if (!params) return;
-    listUserGroups(params)
+    listUserGroups(scope, params)
       .then((paged) =>
         setAllGroups(paged.content.map((g) => ({ ...g, id: String(g.id) }))),
       )
@@ -82,6 +84,7 @@ export function useUserForm(
           if (!value || value.length !== 11) return true;
           try {
             const result = await checkPersonalCodeConflict(
+              userScope,
               value,
               user?.id ?? '',
             );
@@ -156,18 +159,19 @@ export function useUserForm(
             trimmedValues.organisationId !== user.organisationId;
           if (organisationChanged && user) {
             await setUserGroups(
+              userScope,
               user.id,
               [],
               groups.map((g) => g.userGroupId),
             );
           }
-          await updateUser({ id: user.id, ...trimmedValues });
+          await updateUser(userScope, { id: user.id, ...trimmedValues });
           if (organisationChanged) {
             const newOrg = orgOptions.find(
               (o) => o.value === trimmedValues.organisationId,
             );
             if (newOrg) {
-              listUserGroups({ search: newOrg.label })
+              listUserGroups(scope, { search: newOrg.label })
                 .then((paged) =>
                   setAllGroups(paged.content.map((g) => ({ ...g, id: String(g.id) }))),
                 )
@@ -176,7 +180,7 @@ export function useUserForm(
           }
           onSaved();
         } else {
-          const result = await insertUser(trimmedValues);
+          const result = await insertUser(userScope, trimmedValues);
           onSaved(result[0]?.id);
         }
       } catch (e) {

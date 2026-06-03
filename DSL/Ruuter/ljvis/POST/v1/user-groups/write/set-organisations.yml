@@ -1,0 +1,96 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Replace all organisation links for a user group"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "User group ID"
+      - field: addedOrganisationIds
+        type: array
+        description: "Array of added organisation IDs"
+      - field: removedOrganisationIds
+        type: array
+        description: "Array of removed organisation IDs"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    user_group_id: "${incoming.body.id}"
+    added_organisation_ids: "${(incoming.body.addedOrganisationIds ?? []).join(',')}"
+    removed_organisation_ids: "${(incoming.body.removedOrganisationIds ?? []).join(',')}"
+    created_by: "${auth_user.personalcode}"
+  next: checkRemovedOrgs
+
+checkRemovedOrgs:
+  switch:
+    - condition: "${removed_organisation_ids == ''}"
+      next: checkAddedOrgs
+  next: removeOrgs
+
+removeOrgs:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      organisation_ids: ${removed_organisation_ids}
+      status: "removed"
+      created_by: ${created_by}
+  result: removeRes
+  next: checkAddedOrgs
+
+checkAddedOrgs:
+  switch:
+    - condition: "${added_organisation_ids == ''}"
+      next: rebuildLatest
+  next: insertOrgs
+
+insertOrgs:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      organisation_ids: ${added_organisation_ids}
+      status: "active"
+      created_by: ${created_by}
+  result: insertRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/rebuild_user_group_latest"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
+
+returnSuccess:
+  return: "ok"
+  next: end
+
+return_validation_error:
+  status: 422
+  return: "validation failed"
+  next: end

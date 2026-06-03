@@ -8,8 +8,11 @@ import {
   addUserToGroup,
 } from '../../api';
 import { toSnakeCase } from '../../../../hooks/stringUtils';
+import { useAuth } from '../../../auth/useAuth';
 
 export function useUserGroupAddUser(id: string | undefined) {
+  const { hasPermission } = useAuth();
+  const scope = hasPermission('user_group.read.admin') ? 'admin' : 'local';
   const [group, setGroup] = useState<UserGroup | null>(null);
   const [availableUsers, setAvailableUsers] = useState<UserGroupUser[]>([]);
   const [userSearch, setUserSearch] = useState('');
@@ -31,8 +34,8 @@ export function useUserGroupAddUser(id: string | undefined) {
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
       const [g, orgs] = await Promise.all([
-        getUserGroup(id),
-        getUserGroupOrganisations(id),
+        getUserGroup(scope, id),
+        getUserGroupOrganisations(scope, id),
       ]);
       const organisationIds = orgs.map((o) => o.organisationId).join(',');
       const u = await getUserGroupAvailableUsers({
@@ -51,7 +54,7 @@ export function useUserGroupAddUser(id: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [id, userSearch, pagination, sorting]);
+  }, [id, scope, userSearch, pagination, sorting]);
 
   useEffect(() => {
     fetchData();

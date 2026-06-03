@@ -57,9 +57,10 @@
     {
       "name": "[Setup] Save org ID",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {"raw": "{{api_url}}/ljvis/organisations/list", "host": ["{{api_url}}"], "path": ["ljvis", "organisations", "list"]}
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/organisations/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "organisations", "list"]},
+        "body": {"mode": "raw", "raw": "{}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -73,40 +74,32 @@
     {
       "name": "[Setup] Save seeded group ID",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/user-groups/list?page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "user-groups", "list"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const paged = body.response || {content: [], total: 0};",
+        "const paged = body.content !== undefined ? body : (body.response || {content: [], total: 0});",
         "const groups = paged.content || [];",
         "const g = groups.find(g => g.name === 'Super Admin Group');",
         "if (g) pm.environment.set('seeded_group_admin_id', String(g.id));"
       ]}}]
     },
     {
-      "name": "GET /users/list — admin sees all users",
+      "name": "POST /v1/users/admin/list — admin sees all users",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "list"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const paged = body.response || {content: [], total: 0};",
+        "const paged = body.content !== undefined ? body : (body.response || {content: [], total: 0});",
         "const users = paged.content || [];",
         "pm.test('Response has content and total', () => {",
         "  pm.expect(paged).to.have.property('content');",
@@ -124,37 +117,29 @@
       ]}}]
     },
     {
-      "name": "GET /users/list — no permission → 403",
+      "name": "POST /v1/users/admin/list — no permission → 403",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "list"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 403 for user without permission', () => pm.response.to.have.status(403));"
       ]}}]
     },
     {
-      "name": "GET /users/list — search filter returns matching users",
+      "name": "POST /v1/users/admin/list — search filter returns matching users",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20&search=Admin",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "list"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}, {"key": "search", "value": "Admin"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20, \"search\": \"Admin\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "const _d = body.response || body; const arr = Array.isArray(_d) ? _d : (_d.content || []);",
         "pm.test('Search results returned', () => pm.expect(arr).to.be.an('array'));",
         "pm.test('All results match search term', () => {",
         "  arr.forEach(u => {",
@@ -165,32 +150,24 @@
       ]}}]
     },
     {
-      "name": "GET /users/check-personal-code-exists — existing code → 409",
+      "name": "POST /v1/users/check-personal-code-exists — existing code → 409",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/check-personal-code-exists?personalCode=38001085718",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "check-personal-code-exists"],
-          "query": [{"key": "personalCode", "value": "38001085718"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/read/check-personal-code-exists", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "read", "check-personal-code-exists"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"38001085718\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 409 for existing personal code', () => pm.response.to.have.status(409));"
       ]}}]
     },
     {
-      "name": "GET /users/check-personal-code-exists — unknown code → 200 empty",
+      "name": "POST /v1/users/check-personal-code-exists — unknown code → 200 empty",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/check-personal-code-exists?personalCode=99999999999",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "check-personal-code-exists"],
-          "query": [{"key": "personalCode", "value": "99999999999"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/read/check-personal-code-exists", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "read", "check-personal-code-exists"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"99999999999\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200 for unused personal code', () => pm.response.to.have.status(200));",
@@ -204,7 +181,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/edit/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "edit", "insert"]},
         "body": {"mode": "raw", "raw": "{\"firstName\":\"Test\",\"lastName\":\"User\",\"personalCode\":\"50001018888\",\"organisationId\":\"1\",\"structuralUnitName\":\"Unit\",\"jobTitleName\":\"Title\",\"email\":\"test@ci.test\",\"accessStart\":\"2026-01-01\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -216,7 +193,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/edit/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "edit", "insert"]},
         "body": {"mode": "raw", "raw": "{\"firstName\":\"\",\"lastName\":\"User\",\"personalCode\":\"51001011234\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Unit A\",\"jobTitleName\":\"Title\",\"email\":\"test@ci.test\",\"accessStart\":\"2026-01-01\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -228,7 +205,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/edit/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "edit", "insert"]},
         "body": {"mode": "raw", "raw": "{\"firstName\":\"Test\",\"lastName\":\"User CI\",\"personalCode\":\"51001011234\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Unit A\",\"jobTitleName\":\"Test Job\",\"email\":\"test.user@ci.test\",\"accessStart\":\"2026-01-01\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -244,7 +221,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/edit/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "edit", "insert"]},
         "body": {"mode": "raw", "raw": "{\"firstName\":\"Test\",\"lastName\":\"User CI\",\"personalCode\":\"51001011234\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Unit A\",\"jobTitleName\":\"Test Job\",\"email\":\"test.user2@ci.test\",\"accessStart\":\"2026-01-01\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -252,17 +229,12 @@
       ]}}]
     },
     {
-      "name": "GET /users/get — admin gets created user",
+      "name": "POST /v1/users/admin/get — admin gets created user",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/get?id={{created_user_id}}",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "get"],
-          "query": [{"key": "id", "value": "{{created_user_id}}"}]
-        }
-      },
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_user_id}}\"}"}      },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
@@ -277,17 +249,12 @@
       ]}}]
     },
     {
-      "name": "GET /users/get-groups — empty for new user",
+      "name": "POST /v1/users/get-groups — empty for new user",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/get-groups?userId={{created_user_id}}",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "get-groups"],
-          "query": [{"key": "userId", "value": "{{created_user_id}}"}]
-        }
-      },
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/read/get-groups", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "read", "get-groups"]},
+        "body": {"mode": "raw", "raw": "{\"userId\": \"{{created_user_id}}\"}"}      },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
@@ -300,7 +267,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/update", "host": ["{{api_url}}"], "path": ["ljvis", "users", "update"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/edit/update", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "edit", "update"]},
         "body": {"mode": "raw", "raw": "{\"id\":\"{{created_user_id}}\",\"firstName\":\"Test\",\"lastName\":\"User CI\",\"personalCode\":\"51001011234\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Unit A\",\"jobTitleName\":\"Updated Job\",\"email\":\"test.user@ci.test\",\"accessStart\":\"2026-01-01\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -312,7 +279,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/set-groups", "host": ["{{api_url}}"], "path": ["ljvis", "users", "set-groups"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/edit/set-groups", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "edit", "set-groups"]},
         "body": {"mode": "raw", "raw": "{\"userId\":\"{{created_user_id}}\",\"addedGroupIds\":[\"{{seeded_group_admin_id}}\"],\"removedGroupIds\":[]}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -320,17 +287,12 @@
       ]}}]
     },
     {
-      "name": "GET /users/get-groups — verify group assignment",
+      "name": "POST /v1/users/get-groups — verify group assignment",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/get-groups?userId={{created_user_id}}",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "get-groups"],
-          "query": [{"key": "userId", "value": "{{created_user_id}}"}]
-        }
-      },
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/read/get-groups", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "read", "get-groups"]},
+        "body": {"mode": "raw", "raw": "{\"userId\": \"{{created_user_id}}\"}"}      },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
@@ -343,19 +305,15 @@
     {
       "name": "[Setup] Save Local Admin Group ID",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/user-groups/list?page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "user-groups", "list"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const groups = Array.isArray(body) ? body : (body.response || []);",
+        "const _d = body.response || body; const groups = Array.isArray(_d) ? _d : (_d.content || []);",
         "const g = groups.find(g => g.name === 'Local Admin Group');",
         "pm.test('Local Admin Group found', () => pm.expect(g).to.not.be.undefined);",
         "if (g) pm.environment.set('local_admin_group_id', String(g.id));"
@@ -366,7 +324,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/edit/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "edit", "insert"]},
         "body": {"mode": "raw", "raw": "{\"firstName\":\"Local\",\"lastName\":\"Admin CI\",\"personalCode\":\"48001011236\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Test Unit\",\"jobTitleName\":\"Test Job\",\"email\":\"local.admin.ci@test.ee\",\"accessStart\":\"2026-01-01\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -382,7 +340,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/set-groups", "host": ["{{api_url}}"], "path": ["ljvis", "users", "set-groups"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/edit/set-groups", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "edit", "set-groups"]},
         "body": {"mode": "raw", "raw": "{\"userId\":\"{{created_local_admin_id}}\",\"addedGroupIds\":[\"{{local_admin_group_id}}\"],\"removedGroupIds\":[]}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -406,21 +364,17 @@
       ]}}]
     },
     {
-      "name": "GET /users/list — local admin sees only JUM users",
+      "name": "POST /v1/users/local/list — local admin sees only JUM users",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_local_ci}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "list"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_local_ci}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/local/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "local", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "const _d = body.response || body; const arr = Array.isArray(_d) ? _d : (_d.content || []);",
         "pm.test('Response is array', () => pm.expect(arr).to.be.an('array'));",
         "pm.test('Local admin sees only JUM users', () => {",
         "  arr.forEach(u => pm.expect(u.organisationName).to.equal('Justiitsministeerium'));",
@@ -433,7 +387,7 @@
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_local_ci}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/users/insert", "host": ["{{api_url}}"], "path": ["ljvis", "users", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/local/edit/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "local", "edit", "insert"]},
         "body": {"mode": "raw", "raw": "{\"firstName\":\"New\",\"lastName\":\"User CI\",\"personalCode\":\"48001021232\",\"organisationId\":\"{{seeded_org_bootstrap_id}}\",\"structuralUnitName\":\"Test Unit\",\"jobTitleName\":\"Test Job\",\"email\":\"new.user.ci@test.ee\",\"accessStart\":\"2026-01-01\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -445,21 +399,17 @@
       ]}}]
     },
     {
-      "name": "GET /users/list — local admin sees newly inserted user",
+      "name": "POST /v1/users/local/list — local admin sees newly inserted user",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_local_ci}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/users/list?page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "users", "list"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_local_ci}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/local/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "local", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "const _d = body.response || body; const arr = Array.isArray(_d) ? _d : (_d.content || []);",
         "pm.test('Response is array', () => pm.expect(arr).to.be.an('array'));",
         "pm.test('Newly inserted user visible to local admin', () => {",
         "  const found = arr.find(u => u.personalCode === '48001021232');",

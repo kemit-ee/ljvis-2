@@ -1,0 +1,62 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get classifier values by classifier ID"
+  method: post
+  accepts: json
+  returns: json
+  namespace: classifiers
+  allowlist:
+    body:
+      - field: classifierId
+        type: string
+        description: "Classifier ID"
+      - field: search
+        type: string
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Items per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction"
+
+extractRequestData:
+  assign:
+    classifierId: "${incoming.body.classifierId}"
+    search: "${incoming.body.search ?? ''}"
+    page: "${incoming.body.page ?? 1}"
+    pageSize: "${incoming.body.pageSize ?? 20}"
+    sorting: "${incoming.body.sorting ?? 'isValid desc'}"
+  next: getClassifierValues
+
+getClassifierValues:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier_values"
+    headers:
+      type: json
+    body:
+      classifierId: ${classifierId}
+      search: ${search}
+      page: ${page}
+      pageSize: ${pageSize}
+      sorting: ${sorting}
+  result: res
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_classifier_value"
+    headers:
+      type: json
+    body:
+      classifierValues: ${res.response.body}
+  result: mapped
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

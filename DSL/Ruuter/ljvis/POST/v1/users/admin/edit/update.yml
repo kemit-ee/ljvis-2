@@ -1,0 +1,149 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Update an existing user"
+  method: post
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: firstName
+        type: string
+      - field: lastName
+        type: string
+      - field: personalCode
+        type: string
+      - field: organisationId
+        type: string
+      - field: structuralUnitName
+        type: string
+      - field: jobTitleName
+        type: string
+      - field: email
+        type: string
+      - field: phone
+        type: string
+      - field: accessStart
+        type: string
+      - field: accessEnd
+        type: string
+      - field: status
+        type: string
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    user_account_id: "${incoming.body.id}"
+    first_name: "${incoming.body.firstName}"
+    last_name: "${incoming.body.lastName}"
+    personal_code: "${incoming.body.personalCode}"
+    organisation_id: "${incoming.body.organisationId}"
+    structural_unit: "${incoming.body.structuralUnitName}"
+    job_title: "${incoming.body.jobTitleName}"
+    email: "${incoming.body.email}"
+    phone: "${incoming.body.phone ?? ''}"
+    access_start: "${incoming.body.accessStart}"
+    access_end: "${incoming.body.accessEnd ?? ''}"
+    created_by: "${auth_user.personalcode}"
+    status: "${incoming.body.status ?? ''}"
+  next: validateId
+
+validateId:
+  switch:
+    - condition: ${user_account_id == null || user_account_id == ''}
+      next: return_invalid_id
+  next: validateUser
+
+return_invalid_id:
+  assign:
+    field_error:
+      type: VALIDATION_ERROR
+      field: id
+      code: required
+  next: propagate_error
+
+validateUser:
+  template: "[#LJVIS_PROJECT_LAYER]/user/validate-user-fields"
+  requestType: templates
+  body:
+    first_name: ${first_name}
+    last_name: ${last_name}
+    personal_code: ${personal_code}
+    organisation_id: ${organisation_id}
+    structural_unit_id: ${structural_unit}
+    job_title_name: ${job_title}
+    email: ${email}
+    access_start: ${access_start}
+  result: field_error
+  next: checkUser
+
+checkUser:
+  switch:
+    - condition: ${field_error != 'valid'}
+      next: propagate_error
+  next: createUserDataState
+
+createUserDataState:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/insert_user_account_data_state"
+    headers:
+      type: json
+    body:
+      user_account_id: ${user_account_id}
+      first_name: ${first_name}
+      last_name: ${last_name}
+      organisation_id: ${organisation_id}
+      email: ${email}
+      phone: ${phone}
+      structural_unit: ${structural_unit}
+      job_title: ${job_title}
+      access_start: ${access_start}
+      access_end: ${access_end}
+      created_by: ${created_by}
+  result: dataStateRes
+  next: createUserState
+
+createUserState:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/insert_user_account_state"
+    headers:
+      type: json
+    body:
+      user_account_id: ${user_account_id}
+      status: ${status}
+      created_by: ${created_by}
+  result: stateRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/rebuild_user_account_latest"
+    headers:
+      type: json
+    body:
+      user_account_id: ${user_account_id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
+
+returnSuccess:
+  return: ${latestRes.response.body}
+  next: end
+
+propagate_error:
+  status: 422
+  return: ${field_error}
+  next: end

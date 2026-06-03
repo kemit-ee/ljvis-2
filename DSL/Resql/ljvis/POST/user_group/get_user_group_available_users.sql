@@ -1,0 +1,99 @@
+/*
+declaration:
+  version: 0.1
+  description: "Available users for adding to group — active, from linked organisations, not yet members"
+  method: post
+  namespace: user_group
+  returns: json
+  allowlist:
+    body:
+      - field: user_group_id
+        type: string
+        description: "User group ID to exclude existing members"
+      - field: organisation_ids
+        type: string
+        description: "Comma-separated organisation IDs (from group links)"
+      - field: search
+        type: string
+        description: "Search by first or last name"
+      - field: page
+        type: number
+        description: "Page number"
+      - field: page_size
+        type: number
+        description: "Items per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction"
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: first_name
+        type: string
+      - field: last_name
+        type: string
+      - field: personal_code
+        type: string
+      - field: organisation_name
+        type: string
+      - field: status
+        type: string
+      - field: page
+        type: number
+      - field: total_pages
+        type: number
+      - field: total
+        type: number
+*/
+WITH latest AS (
+    SELECT DISTINCT ON (user_account_id)
+        user_account_id,
+        first_name,
+        last_name,
+        personal_code,
+        organisation_id,
+        organisation_name,
+        status,
+        user_groups
+    FROM ljvis2.user_account_latest
+    ORDER BY user_account_id, created_at DESC
+)
+SELECT
+    l.user_account_id AS id,
+    l.first_name,
+    l.last_name,
+    l.personal_code,
+    l.organisation_name,
+    l.status,
+    :page AS page,
+    CEIL(COUNT(*) OVER () / :page_size::DECIMAL) AS total_pages,
+    (COUNT(*) OVER ())::INTEGER AS total
+FROM latest l
+WHERE
+    l.status = 'active'
+    AND NOT EXISTS (
+        SELECT 1 FROM JSONB_ARRAY_ELEMENTS(l.user_groups) AS ug
+        WHERE ug->>'id' = COALESCE(:user_group_id, '')
+    )
+    AND (
+        COALESCE(:organisation_ids, '') = ''
+        OR l.organisation_id = ANY(STRING_TO_ARRAY(COALESCE(:organisation_ids, ''), ',')::BIGINT[])
+    )
+    AND (
+        COALESCE(:search, '') = ''
+        OR l.first_name ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.last_name  ILIKE '%' || COALESCE(:search, '') || '%'
+    )
+ORDER BY
+    CASE WHEN COALESCE(:sorting, 'first_name asc') = 'status asc'           THEN l.status          END ASC,
+    CASE WHEN COALESCE(:sorting, 'first_name asc') = 'status desc'          THEN l.status          END DESC,
+    CASE WHEN COALESCE(:sorting, 'first_name asc') = 'first_name asc'       THEN l.first_name      END ASC,
+    CASE WHEN COALESCE(:sorting, 'first_name asc') = 'first_name desc'      THEN l.first_name      END DESC,
+    CASE WHEN COALESCE(:sorting, 'first_name asc') = 'last_name asc'        THEN l.last_name       END ASC,
+    CASE WHEN COALESCE(:sorting, 'first_name asc') = 'last_name desc'       THEN l.last_name       END DESC,
+    CASE WHEN COALESCE(:sorting, 'first_name asc') = 'organisation_name asc'  THEN l.organisation_name END ASC,
+    CASE WHEN COALESCE(:sorting, 'first_name asc') = 'organisation_name desc' THEN l.organisation_name END DESC,
+    l.first_name ASC
+LIMIT :page_size::INTEGER
+OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);

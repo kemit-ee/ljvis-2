@@ -1,0 +1,33 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get a single classifier by ID"
+  method: post
+  accepts: json
+  returns: json
+  namespace: classifiers
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "Classifier ID"
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+  next: getClassifier
+
+getClassifier:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

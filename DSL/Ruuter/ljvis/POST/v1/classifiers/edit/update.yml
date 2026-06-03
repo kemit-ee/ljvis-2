@@ -1,0 +1,82 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Update classifier"
+  method: post
+  accepts: json
+  returns: json
+  namespace: classifiers
+  allowlist:
+    body:
+      - field: id
+        type: number
+      - field: name
+        type: string
+      - field: description
+        type: string
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    name: "${incoming.body.name}"
+    description: "${incoming.body.description}"
+    created_by: "${auth_user.id}"
+  next: validateClassifier
+
+validateClassifier:
+  template: "[#LJVIS_PROJECT_LAYER]/classifier/validate-classifier-fields"
+  requestType: templates
+  body:
+    name: ${name}
+    description: ${description}
+  result: field_error
+  next: checkClassifier
+
+checkClassifier:
+  switch:
+    - condition: ${field_error != 'valid'}
+      next: propagate_error
+  next: createClassifierNameState
+
+createClassifierNameState:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/insert_classifier_name_state"
+    headers:
+      type: json
+    body:
+      classifier_id: ${id}
+      name: ${name}
+      description: ${description}
+      created_by: ${created_by}
+  result: nameStateRes
+  next: rebuildLatest
+
+rebuildLatest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/rebuild_classifier_latest"
+    headers:
+      type: json
+    body:
+      classifier_id: ${id}
+      created_by: ${created_by}
+  result: latestRes
+  next: returnSuccess
+
+returnSuccess:
+  return: ${nameStateRes.response.body}
+  next: end
+
+propagate_error:
+  status: 422
+  return: ${field_error}
+  next: end

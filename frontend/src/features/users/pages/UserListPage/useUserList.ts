@@ -1,6 +1,9 @@
+import { useCallback } from 'react';
 import { usePaginatedList } from '../../../../hooks/usePaginatedList';
+import type { ListParams } from '../../../../hooks/usePaginatedList';
 import { listUsers } from '../../api';
 import type { UserListItem } from '../../types';
+import { useAuth } from '../../../auth/useAuth';
 
 function expandUserRows(result: UserListItem[]): UserListItem[] {
   const expanded: UserListItem[] = [];
@@ -18,7 +21,13 @@ function expandUserRows(result: UserListItem[]): UserListItem[] {
 }
 
 export function useUserList() {
-  return usePaginatedList(listUsers, {
+  const { hasPermission } = useAuth();
+  const scope = hasPermission('user.list.admin') ? 'admin' : 'local';
+  const fetchFn = useCallback(
+    (params: ListParams) => listUsers(scope, params),
+    [scope],
+  );
+  return usePaginatedList(fetchFn, {
     defaultSort: 'status asc',
     transform: expandUserRows,
   });

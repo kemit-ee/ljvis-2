@@ -45,10 +45,12 @@ check_personal_code:
   next: return_bad_request
 
 lookup_user_permissions:
-  call: http.get
+  call: http.post
   args:
     url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
-    query:
+    headers:
+      type: json
+    body:
       personal_code: ${personal_code}
   result: user_res
   next: check_user_found
