@@ -23,21 +23,81 @@
       ]}}]
     },
     {
-      "name": "GET /organisations/list — verify seeded orgs",
+      "name": "[Auth] Login — No-perm User",
       "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {"raw": "{{api_url}}/ljvis/organisations/list", "host": ["{{api_url}}"], "path": ["ljvis", "organisations", "list"]}
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_user}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/organisations/list — no cookie → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/organisations/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "organisations", "list"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without cookie', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/organisations/list — TARA user not registered in LJVIS → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/organisations/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "organisations", "list"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 for TARA user not registered in LJVIS', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/organisations/list — shape, content and sort order",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/organisations/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "organisations", "list"]},
+        "body": {"mode": "raw", "raw": "{}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
         "const orgs = Array.isArray(body) ? body : (body.response || []);",
         "pm.test('Response is an array', () => pm.expect(orgs).to.be.an('array'));",
+        "pm.test('Exactly 3 seeded organisations', () => pm.expect(orgs.length).to.equal(3));",
+        "pm.test('Each org has id (number) and name (string)', () => {",
+        "  orgs.forEach(o => {",
+        "    pm.expect(o).to.have.property('id');",
+        "    pm.expect(Number(o.id)).to.be.a('number').and.to.be.above(0);",
+        "    pm.expect(o.name).to.be.a('string').and.to.not.be.empty;",
+        "  });",
+        "});",
+        "pm.test('No extra fields exposed (id and name only)', () => {",
+        "  const keys = Object.keys(orgs[0]);",
+        "  pm.expect(keys).to.have.members(['id', 'name']);",
+        "});",
         "const names = orgs.map(o => o.name);",
-        "pm.test('CI Bootstrap Organisation is present', () => pm.expect(names).to.include('CI Bootstrap Organisation'));",
-        "pm.test('Justiitsministeerium is present', () => pm.expect(names).to.include('Justiitsministeerium'));",
-        "pm.test('Politsei- ja Piirivalveamet is present', () => pm.expect(names).to.include('Politsei- ja Piirivalveamet'));"
+        "pm.test('All 3 seeded orgs present', () => {",
+        "  pm.expect(names).to.include('CI Bootstrap Organisation');",
+        "  pm.expect(names).to.include('Justiitsministeerium');",
+        "  pm.expect(names).to.include('Politsei- ja Piirivalveamet');",
+        "});",
+        "pm.test('Results sorted alphabetically by name', () => {",
+        "  pm.expect(names[0]).to.equal('CI Bootstrap Organisation');",
+        "  pm.expect(names[1]).to.equal('Justiitsministeerium');",
+        "  pm.expect(names[2]).to.equal('Politsei- ja Piirivalveamet');",
+        "});"
       ]}}]
     }
   ],

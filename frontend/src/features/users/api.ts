@@ -1,13 +1,14 @@
-import { get, post } from '../../shared/api/client';
+import { post } from '../../shared/api/client';
 import type { PagedResponse, ListApiParams } from '../../hooks/usePaginatedList';
 import type { User, UserListItem, UserGroupAssignment } from './types';
 
-export const listUsers = (params: ListApiParams) =>
-  get<PagedResponse<UserListItem>>('/users/list', params as Record<string, string>);
+export const listUsers = (scope: 'admin' | 'local', params: ListApiParams) =>
+  post<PagedResponse<UserListItem>>(`/v1/users/${scope}/list`, params as Record<string, unknown>);
 
-export const getUser = (id: string) => get<User[]>('/users/get', { id });
+export const getUser = (scope: 'admin' | 'local', id: string) =>
+  post<User[]>(`/v1/users/${scope}/read/get`, { id });
 
-export const insertUser = (data: {
+export const insertUser = (scope: 'admin' | 'local', data: {
   firstName: string;
   lastName: string;
   personalCode: string;
@@ -18,9 +19,9 @@ export const insertUser = (data: {
   phone: string;
   accessStart: string;
   accessEnd: string;
-}) => post<User[]>('/users/insert', data);
+}) => post<User[]>(`/v1/users/${scope}/edit/insert`, data);
 
-export const updateUser = (data: {
+export const updateUser = (scope: 'admin' | 'local', data: {
   id: string;
   firstName: string;
   lastName: string;
@@ -33,23 +34,25 @@ export const updateUser = (data: {
   accessStart: string;
   accessEnd: string;
   status: string;
-}) => post<User[]>('/users/update', data);
+}) => post<User[]>(`/v1/users/${scope}/edit/update`, data);
 
-export const getUserGroups = (userId: string) =>
-  get<UserGroupAssignment[]>('/users/get-groups', { userId });
+export const getUserGroups = (scope: 'admin' | 'local', userId: string) =>
+  post<UserGroupAssignment[]>(`/v1/users/${scope}/read/get-groups`, { userId });
 
 export const setUserGroups = (
+  scope: 'admin' | 'local',
   userId: string,
   addedGroupIds: string[],
   removedGroupIds: string[],
 ) =>
-  post<string>('/users/set-groups', { userId, addedGroupIds, removedGroupIds });
+  post<string>(`/v1/users/${scope}/edit/set-groups`, { userId, addedGroupIds, removedGroupIds });
 
 export const checkPersonalCodeConflict = (
+  scope: 'admin' | 'local',
   personalCode: string,
   id: string = '',
 ) =>
-  get<{ id: string }[]>('/users/check-personal-code-exists', {
+  post<{ id: string }[]>(`/v1/users/${scope}/read/check-personal-code-exists`, {
     personalCode,
     id,
   });

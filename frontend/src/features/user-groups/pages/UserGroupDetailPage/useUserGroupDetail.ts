@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../auth/useAuth';
 import type {
   UserGroup,
   UserGroupOrganisation,
@@ -25,6 +26,8 @@ import { toSnakeCase } from '../../../../hooks/stringUtils';
 
 export function useUserGroupDetail(id: string | undefined) {
   const { t } = useTranslation();
+  const { hasPermission } = useAuth();
+  const scope = hasPermission('user_group.read.admin') ? 'admin' : 'local';
   const [group, setGroup] = useState<UserGroup | null>(null);
   const [orgs, setOrgs] = useState<UserGroupOrganisation[]>([]);
   const [perms, setPerms] = useState<UserGroupPermission[]>([]);
@@ -61,10 +64,10 @@ export function useUserGroupDetail(id: string | undefined) {
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
       const [g, o, p, u] = await Promise.all([
-        getUserGroup(id),
-        getUserGroupOrganisations(id),
-        getUserGroupPermissions(id),
-        getUserGroupUsers({
+        getUserGroup(scope, id),
+        getUserGroupOrganisations(scope, id),
+        getUserGroupPermissions(scope, id),
+        getUserGroupUsers(scope, {
           userGroupId: id,
           search: userSearch,
           page: String(pagination.pageIndex + 1),
@@ -82,7 +85,7 @@ export function useUserGroupDetail(id: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [id, userSearch, pagination, sorting]);
+  }, [id, scope, userSearch, pagination, sorting]);
 
   useEffect(() => {
     fetchData();

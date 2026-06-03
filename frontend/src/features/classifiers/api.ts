@@ -1,12 +1,18 @@
-import { get, post } from '../../shared/api/client';
-import type { PagedResponse, ListApiParams } from '../../hooks/usePaginatedList';
+import { post } from '../../shared/api/client';
+import type {
+  PagedResponse,
+  ListApiParams,
+} from '../../hooks/usePaginatedList';
 import type { Classifier, ClassifierValue } from './types.ts';
 
 export const listClassifiers = (params?: ListApiParams) =>
-  get<PagedResponse<Classifier>>('/classifiers/list', params as Record<string, string>);
+  post<PagedResponse<Classifier>>(
+    '/v1/classifiers/read/list',
+    params as Record<string, unknown>,
+  );
 
 export const getClassifier = (id: string) =>
-  get<Classifier[]>('/classifiers/get', { id });
+  post<Classifier[]>('/v1/classifiers/read/get', { id });
 
 export const getClassifierValues = (params: {
   classifierId: string;
@@ -15,16 +21,16 @@ export const getClassifierValues = (params: {
   pageSize?: string;
   sorting?: string;
 }) =>
-  get<ClassifierValue[]>(
-    '/classifiers/get-values',
-    params as Record<string, string>,
+  post<ClassifierValue[]>(
+    '/v1/classifiers/read/get-values',
+    params as Record<string, unknown>,
   );
 
 export const updateClassifier = (data: {
   id: string;
   name: string;
   description: string;
-}) => post<Classifier[]>('/classifiers/update', data);
+}) => post<Classifier[]>('/v1/classifiers/edit/update', data);
 
 export const insertClassifierValue = (data: {
   classifierId: string;
@@ -32,10 +38,10 @@ export const insertClassifierValue = (data: {
   name: string;
   validFrom: string;
   validUntil: string;
-}) => post<ClassifierValue[]>('/classifiers/insert-value', data);
+}) => post<ClassifierValue[]>('/v1/classifiers/values/insert', data);
 
 export const getClassifierValue = (classifierValueId: string) =>
-  get<ClassifierValue[]>('/classifiers/get-value', { classifierValueId });
+  post<ClassifierValue[]>('/v1/classifiers/read/get-value', { classifierValueId });
 
 export const updateClassifierValue = (data: {
   classifierId: string;
@@ -44,4 +50,4 @@ export const updateClassifierValue = (data: {
   name: string;
   validFrom: string;
   validUntil: string;
-}) => post<ClassifierValue[]>('/classifiers/update-value', data);
+}) => post<ClassifierValue[]>('/v1/classifiers/values/update', data);

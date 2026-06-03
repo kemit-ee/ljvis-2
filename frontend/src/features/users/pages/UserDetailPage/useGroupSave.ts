@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { UserGroupAssignment } from '../../types';
 import type { UserGroup } from '../../../user-groups/types';
 import { setUserGroups } from '../../api';
+import { useAuth } from '../../../auth/useAuth';
 
 export function useGroupSave(
   userId: string | undefined,
@@ -9,6 +10,8 @@ export function useGroupSave(
   allGroups: UserGroup[],
   onSaved: () => void,
 ) {
+  const { hasPermission } = useAuth();
+  const scope = hasPermission('user.edit.admin') ? 'admin' : 'local';
   const [allSelectedGroups, setAllSelectedGroups] = useState<UserGroup[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState('');
 
@@ -47,6 +50,7 @@ export function useGroupSave(
         .filter((g) => !originalIds.has(g.id))
         .map((g) => g.id);
       await setUserGroups(
+        scope,
         userId,
         addedGroupIds,
         getRemovedGroups().map((g) => g.id),

@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { User, UserGroupAssignment } from '../../types';
 import { getUser, getUserGroups } from '../../api';
+import { useAuth } from '../../../auth/useAuth';
 
 export function useUserDetail(id: string | undefined) {
+  const { hasPermission } = useAuth();
+  const scope = hasPermission('user.read.admin') ? 'admin' : 'local';
   const [user, setUser] = useState<User | null>(null);
   const [groups, setGroups] = useState<UserGroupAssignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,8 +15,8 @@ export function useUserDetail(id: string | undefined) {
     setLoading(true);
     try {
       const [users, userGroups] = await Promise.all([
-        getUser(id),
-        getUserGroups(id),
+        getUser(scope, id),
+        getUserGroups(scope, id),
       ]);
       setUser(users[0] ?? null);
       setGroups(userGroups);
@@ -22,7 +25,7 @@ export function useUserDetail(id: string | undefined) {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, scope]);
 
   useEffect(() => {
     fetchData();
