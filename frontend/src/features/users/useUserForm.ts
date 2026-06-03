@@ -17,23 +17,10 @@ import { listOrganisations } from '../organisations/api';
 import { useAuth } from '../auth/AuthContext';
 import { applyValidationError } from '../../shared/api/errors';
 import { hasStatus } from '../../hooks/statusUtils';
+import { toIsoDate } from '../../hooks/dateUtils';
 
 const LOCAL_ADMIN_GROUP = 'Local Admin Group';
 const SUPER_ADMIN_GROUP = 'Super Admin Group';
-
-function toIsoDate(value: unknown): string {
-  if (!value) return '';
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    '$isDayjsObject' in value
-  ) {
-    return (value as unknown as { format: (fmt: string) => string }).format(
-      'YYYY-MM-DD',
-    );
-  }
-  return String(value);
-}
 
 function createStatus(accessEnd: string): string {
   const endStr = toIsoDate(accessEnd);

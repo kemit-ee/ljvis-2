@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -32,6 +32,9 @@ export function ClassifierDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showClassifierValueAddedAlert, setShowClassifierValueAddedAlert] =
+    useState(!!(location.state as { justCreated?: boolean })?.justCreated);
   const [showClassifierEditedAlert, setShowClassifierEditedAlert] =
     useState(false);
   const [
@@ -45,6 +48,15 @@ export function ClassifierDetailPage() {
   const canEditClassifier = hasPermission('classifier.edit');
   const canEditClassifierValue = hasPermission('classifier_value.edit');
   const forbidden = !hasPermission('classifier.read');
+
+  useEffect(() => {
+    if (showClassifierValueAddedAlert) {
+      const timer = setTimeout(() => {
+        setShowClassifierValueAddedAlert(false);
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [showClassifierValueAddedAlert]);
 
   useEffect(() => {
     if (showClassifierEditedAlert) {
@@ -106,7 +118,7 @@ export function ClassifierDetailPage() {
 
   const handleRowClick = useCallback(
     (row: ClassifierValue) => {
-      navigate(`/classifiers/${row.classifierValueId}`);
+      navigate(`/classifiers/${row.classifierId}/${row.classifierValueId}`);
     },
     [navigate],
   );
@@ -189,6 +201,17 @@ export function ClassifierDetailPage() {
 
   return (
     <div>
+      {showClassifierValueAddedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowClassifierValueAddedAlert(false)}
+          type="success"
+          size="small"
+        >
+          {t('classifiers.valueAddedNote')}
+        </Alert>
+      )}
       {showClassifierEditedAlert && (
         <Alert
           icon="check_circle"
@@ -256,7 +279,9 @@ export function ClassifierDetailPage() {
                 {t('classifiers.values')}
               </Heading>
               {canEditClassifierValue && (
-                <Button onClick={() => navigate(`/classifiers/${id}/value`)}>
+                <Button
+                  onClick={() => navigate(`/classifiers/${id}/add-value`)}
+                >
                   {t('classifiers.addValue')}
                 </Button>
               )}

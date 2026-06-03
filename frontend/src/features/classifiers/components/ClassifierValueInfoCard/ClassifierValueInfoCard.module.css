@@ -1,0 +1,47 @@
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.form-actions-mobile {
+  margin-top: 1rem;
+}
+
+.form-name {
+  width: 50%;
+  margin-bottom: 1rem;
+}
+
+.form-grid-desktop {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 50%;
+}
+
+.form-grid-mobile {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+.date-row-desktop {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.date-row-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

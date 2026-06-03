@@ -19,7 +19,6 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { UserBasicInfoCard } from '../../components/UserBasicInfo/UserBasicInfoCard';
 import { UserBasicInfoEditCard } from '../../components/UserBasicInfo/UserBasicInfoEditCard';
 import { UserGroupsCard } from '../../components/UserGroups/UserGroupsCard';
-import styles from './UserDetailPage.module.css';
 
 export function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -193,7 +192,7 @@ export function UserDetailPage() {
       </Button>
 
       <div className="page-header">
-        <div className={styles['page-header-title']}>
+        <div className="page-header-title">
           <Heading element="h1">
             {user.firstName} {user.lastName}
           </Heading>
