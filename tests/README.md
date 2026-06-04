@@ -149,7 +149,7 @@ tests/postman/
 
 ---
 
-## Seeded test data (tests/bootstrap/seed_admin_and_organizations.sql)
+## Seeded test data (tests/bootstrap/seed_test_data.sql)
 
 Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`).
 

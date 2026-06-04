@@ -62,7 +62,7 @@ services:
     environment:
       - PGPASSWORD=01234
     volumes:
-      - ./tests/bootstrap/seed_admin_and_organizations.sql:/seed.sql:ro
+      - ./tests/bootstrap/seed_test_data.sql:/seed.sql:ro
     command: ["psql", "-h", "database", "-U", "ljvis", "-d", "ljvis_db", "-f", "/seed.sql"]
     networks:
       - ljvis-ci
