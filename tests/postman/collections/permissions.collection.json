@@ -75,7 +75,7 @@
         "const body = pm.response.json();",
         "const perms = Array.isArray(body) ? body : (body.response || []);",
         "pm.test('Response is an array', () => pm.expect(perms).to.be.an('array'));",
-        "pm.test('Exactly 19 seeded permissions', () => pm.expect(perms.length).to.equal(19));",
+        "pm.test('Exactly 23 seeded permissions', () => pm.expect(perms.length).to.equal(23));",
         "pm.test('Each permission has id, code and description', () => {",
         "  perms.forEach(p => {",
         "    pm.expect(p).to.have.property('id');",

@@ -24,8 +24,10 @@ volumes and networks separate from any other running stack.
 # 1. Start a clean local test stack (separate from your dev docker-compose.yml)
 docker compose -f docker-compose.ci.yml -p ljvis-local up -d --build
 
-# 2. Wait ~60-90 s for all services to become healthy, then run all collections
+# 2. For Mac system use: wait ~60-90 s for all services to become healthy, then run all collections
 tests/postman/run-all.sh tests/postman/ci-stack-environment.json
+# 2.1 For Windows system use:
+tests\postman\run-all.bat
 
 # 3. Tear down and delete all volumes when done
 docker compose -f docker-compose.ci.yml -p ljvis-local down -v
@@ -114,6 +116,7 @@ via API, with no shared state between collections.
 ```
 tests/postman/
 ├── collections/
+│   ├── classifiers.collection.json
 │   ├── organisations.collection.json
 │   ├── permissions.collection.json
 │   ├── users.collection.json
@@ -123,11 +126,12 @@ tests/postman/
 └── run-all.sh
 ```
 
-`run-all.sh` runs them in order. To add a new feature, create a new
-`<feature>.collection.json` in `collections/` and add it to `run-all.sh`.
+`run-all.sh` (Linux/Mac) or `run-all.bat` (Windows) run them in order. To add a new feature, create a new
+`<feature>.collection.json` in `collections/` and add it to `run-all.sh` (Linux/Mac) and `run-all.bat` (Windows).
 
 | Collection | What it covers |
 |---|---|
+| **classifiers** | List (search/pagination), get (403/success), get-values (403/success with status), edit/update (403/422/200), values/insert (403/200), values/update (403/200) |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
 | **permissions** | `GET /permissions/list` — verify seeded permissions, check `user_group.update` present |
 | **users** | List (admin/403), check-exists, insert (success/409/422/403), get, update, set-groups, get-groups |
@@ -137,6 +141,7 @@ tests/postman/
 
 | Collection | Auth roles used | Setup queries |
 |---|---|---|
+| classifiers | Super Admin, No-perm (403 tests) | classifier ID |
 | organisations | Super Admin | — |
 | permissions | Super Admin | — |
 | users | Super Admin, No-perm (403 tests) | org ID, group ID |
@@ -144,7 +149,7 @@ tests/postman/
 
 ---
 
-## Seeded test data (tests/bootstrap/seed_admin_and_organizations.sql)
+## Seeded test data (tests/bootstrap/seed_test_data.sql)
 
 Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`).
 
@@ -166,8 +171,15 @@ Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`)
 
 | Group | Key permissions |
 |---|---|
-| Super Admin Group | `user.list.admin`, `user.read.admin`, `user.edit.admin`, `user_group.list.admin`, `user_group.update`, `organisation.list`, `permission.list` |
-| Local Admin Group | `user.list.local`, `user.read.local`, `user.edit.local`, `user_group.list.local`, `user_group.update` |
+| Super Admin Group | `user.list.admin`, `user.read.admin`, `user.edit.admin`, `user_group.list.admin`, `user_group.update`, `organisation.list`, `permission.list`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit` |
+| Local Admin Group | `user.list.local`, `user.read.local`, `user.edit.local`, `user_group.list.local`, `user_group.update`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit` |
+
+### Classifiers
+
+| Code | Name | Values |
+|---|---|---|
+| RTK | Riikide ja territooriumide klassifikaator | EE (Eesti), LV (Läti), LT (Leedu) |
+| TEST | Test Classifier | — |
 
 ### Test-created data (cleaned up by `down -v`)
 
@@ -175,6 +187,7 @@ Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`)
 |---|---|
 | Inserted user (users collection) | `51001011234` |
 | Inserted group (user-groups collection) | `Test Group CI` |
+| Inserted classifier value (classifiers collection) | `TEST_CI` (code) |
 
 ---
 

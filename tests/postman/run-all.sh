@@ -28,6 +28,10 @@ newman run "$COL/user-groups.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/user-groups.html"
 
+newman run "$COL/classifiers.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/classifiers.html"
+
 echo ""
 echo "All collections passed."
 echo "HTML reports:"

@@ -68,7 +68,7 @@ and share state via `pm.environment.set` / `pm.environment.get`.
 The skill reads automatically:
 - `DSL/Ruuter/ljvis/GET/<area>/*.yml` — endpoint definition, required permissions, query params
 - `DSL/Ruuter/ljvis/POST/<area>/*.yml` — endpoint definition, required body fields, validation steps
-- `tests/bootstrap/seed_admin_and_organizations.sql` — what test data is available
+- `tests/bootstrap/seed_test_data.sql` — what test data is available
 - `tests/postman/ci-stack-environment.json` — existing environment variables
 - `tests/postman/ljvis-e2e-collection.json` — existing test structure (avoid duplicating)
 
@@ -78,7 +78,7 @@ The user **must** confirm:
 
 ---
 
-## Seeded Test Users (from `seed_admin_and_organizations.sql`)
+## Seeded Test Users (from `seed_test_data.sql`)
 
 | Personal code | Role | Cookie variable | Groups |
 |---|---|---|---|
