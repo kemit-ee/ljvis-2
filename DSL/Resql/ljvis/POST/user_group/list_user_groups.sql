@@ -73,10 +73,10 @@ WHERE
         )
     )
 ORDER BY
-    CASE WHEN COALESCE(:sorting, 'name asc') = 'name asc'            THEN l.name          END ASC,
-    CASE WHEN COALESCE(:sorting, 'name asc') = 'name desc'           THEN l.name          END DESC,
+    CASE WHEN COALESCE(:sorting, 'name asc') = 'name asc'            THEN l.name COLLATE "et-EE-x-icu"          END ASC,
+    CASE WHEN COALESCE(:sorting, 'name asc') = 'name desc'           THEN l.name COLLATE "et-EE-x-icu"          END DESC,
     CASE WHEN COALESCE(:sorting, 'name asc') = 'organisations asc'   THEN l.organisations END ASC,
     CASE WHEN COALESCE(:sorting, 'name asc') = 'organisations desc'  THEN l.organisations END DESC,
-    l.name ASC
+    l.name COLLATE "et-EE-x-icu" ASC
 LIMIT :page_size::INTEGER
 OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);

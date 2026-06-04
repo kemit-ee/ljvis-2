@@ -93,12 +93,12 @@ WHERE
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc'            THEN l.status           END ASC,
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status desc'           THEN l.status           END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name asc'        THEN l.first_name       END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name desc'       THEN l.first_name       END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name asc'         THEN l.last_name        END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name desc'        THEN l.last_name        END DESC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc'  THEN l.organisation_name END ASC,
-    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN l.organisation_name END DESC,
-    l.first_name ASC
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name asc'        THEN l.first_name COLLATE "et-EE-x-icu" END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'first_name desc'       THEN l.first_name COLLATE "et-EE-x-icu" END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name asc'         THEN l.last_name COLLATE "et-EE-x-icu" END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'last_name desc'        THEN l.last_name COLLATE "et-EE-x-icu" END DESC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc'  THEN l.organisation_name COLLATE "et-EE-x-icu" END ASC,
+    CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN l.organisation_name COLLATE "et-EE-x-icu" END DESC,
+    l.first_name COLLATE "et-EE-x-icu" ASC
 LIMIT :page_size::INTEGER
 OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);

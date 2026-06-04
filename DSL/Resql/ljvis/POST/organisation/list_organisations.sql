@@ -16,4 +16,4 @@ SELECT
     id,
     name
 FROM ljvis2.organisation
-ORDER BY name;
+ORDER BY name COLLATE "et-EE-x-icu";
