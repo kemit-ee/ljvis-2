@@ -54,12 +54,12 @@ WHERE
     OR l.code ILIKE '%' || COALESCE(:search, '') || '%'
     OR l.name ILIKE '%' || COALESCE(:search, '') || '%'
 ORDER BY
-    CASE WHEN COALESCE(:sorting, 'name asc') = 'name asc'  THEN l.name  END ASC,
-    CASE WHEN COALESCE(:sorting, 'name asc') = 'name desc' THEN l.name  END DESC,
-    CASE WHEN COALESCE(:sorting, 'name asc') = 'code asc'  THEN l.code  END ASC,
-    CASE WHEN COALESCE(:sorting, 'name asc') = 'code desc' THEN l.code  END DESC,
-    CASE WHEN COALESCE(:sorting, 'name asc') = 'description asc'  THEN l.description  END ASC,
-    CASE WHEN COALESCE(:sorting, 'name asc') = 'description desc' THEN l.description  END DESC,
-    l.code ASC
+    CASE WHEN COALESCE(:sorting, 'name asc') = 'name asc'  THEN l.name COLLATE "et-EE-x-icu"  END ASC,
+    CASE WHEN COALESCE(:sorting, 'name asc') = 'name desc' THEN l.name COLLATE "et-EE-x-icu"  END DESC,
+    CASE WHEN COALESCE(:sorting, 'name asc') = 'code asc'  THEN l.code COLLATE "et-EE-x-icu"  END ASC,
+    CASE WHEN COALESCE(:sorting, 'name asc') = 'code desc' THEN l.code COLLATE "et-EE-x-icu"  END DESC,
+    CASE WHEN COALESCE(:sorting, 'name asc') = 'description asc'  THEN l.description COLLATE "et-EE-x-icu"  END ASC,
+    CASE WHEN COALESCE(:sorting, 'name asc') = 'description desc' THEN l.description COLLATE "et-EE-x-icu"  END DESC,
+    l.code COLLATE "et-EE-x-icu" ASC
 LIMIT :page_size::INTEGER
 OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
