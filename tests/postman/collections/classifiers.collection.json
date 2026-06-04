@@ -1,0 +1,302 @@
+{
+  "info": {
+    "name": "LJVIS — Classifiers",
+    "_postman_id": "ljvis-classifiers-v1",
+    "description": "Functional tests for /classifiers endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_admin}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_user}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/read/list — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/read/list — shape, content and sort order",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const _d = body.response || body; const classifiers = Array.isArray(_d) ? _d : (_d.content || []);",
+        "pm.test('Response is an array', () => pm.expect(classifiers).to.be.an('array'));",
+        "pm.test('Each classifier has id (number) and name (string)', () => {",
+        "  classifiers.forEach(c => {",
+        "    pm.expect(c).to.have.property('id');",
+        "    pm.expect(Number(c.id)).to.be.a('number').and.to.be.above(0);",
+        "    pm.expect(c.name).to.be.a('string').and.to.not.be.empty;",
+        "  });",
+        "});",
+        "pm.test('Each classifier has id, code, name and description', () => {",
+        "  if (classifiers.length > 0) {",
+        "    const keys = Object.keys(classifiers[0]);",
+        "    pm.expect(keys).to.have.members(['id', 'code', 'name', 'description']);",
+        "  }",
+        "});",
+        "pm.test('Results sorted alphabetically by name', () => {",
+        "  if (classifiers.length > 1) {",
+        "    const names = classifiers.map(c => c.name);",
+        "    for (let i = 1; i < names.length; i++) {",
+        "      pm.expect(names[i] >= names[i-1], 'Names should be sorted alphabetically').to.be.true;",
+        "    }",
+        "  }",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/read/list — with search filter",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "list"]},
+        "body": {"mode": "raw", "raw": "{\"search\": \"test\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const _d = body.response || body; const classifiers = Array.isArray(_d) ? _d : (_d.content || []);",
+        "pm.test('Response is an array', () => pm.expect(classifiers).to.be.an('array'));",
+        "pm.test('Search filter is applied', () => {",
+        "  if (classifiers.length > 0) {",
+        "    classifiers.forEach(c => {",
+        "      pm.expect(c.name.toLowerCase()).to.include('test');",
+        "    });",
+        "  }",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/read/list — with pagination",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 10}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const _d = body.response || body; const classifiers = Array.isArray(_d) ? _d : (_d.content || []);",
+        "pm.test('Response is an array', () => pm.expect(classifiers).to.be.an('array'));",
+        "pm.test('Pagination limit respected', () => {",
+        "  pm.expect(classifiers.length).to.be.at.most(10);",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "[Setup] Save first classifier ID",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "list"]},
+        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 1}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const _d = body.response || body; const classifiers = Array.isArray(_d) ? _d : (_d.content || []);",
+        "pm.test('At least one classifier found', () => pm.expect(classifiers.length).to.be.at.least(1));",
+        "if (classifiers.length > 0) pm.environment.set('seeded_classifier_id', String(classifiers[0].id));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/read/get — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{seeded_classifier_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/read/get — returns classifier details",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{seeded_classifier_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const classifier = Array.isArray(body) ? body[0] : (body.response ? body.response[0] : body);",
+        "pm.test('Classifier has required fields', () => {",
+        "  pm.expect(classifier).to.have.property('id');",
+        "  pm.expect(classifier).to.have.property('code');",
+        "  pm.expect(classifier).to.have.property('name');",
+        "  pm.expect(classifier).to.have.property('description');",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/read/get-values — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/get-values", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "get-values"]},
+        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"page\": 1, \"pageSize\": 20}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/read/get-values — returns values with status indicators",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/read/get-values", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "read", "get-values"]},
+        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"page\": 1, \"pageSize\": 20}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const _d = body.response || body; const values = Array.isArray(_d) ? _d : (_d.content || []);",
+        "pm.test('Response is an array', () => pm.expect(values).to.be.an('array'));",
+        "pm.test('Each value has required fields', () => {",
+        "  values.forEach(v => {",
+        "    pm.expect(v).to.have.property('classifierValueId');",
+        "    pm.expect(v).to.have.property('code');",
+        "    pm.expect(v).to.have.property('name');",
+        "    pm.expect(v).to.have.property('isValid');",
+        "  });",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/edit/update — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/edit/update", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "edit", "update"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{seeded_classifier_id}}\", \"name\": \"Updated Name CI\", \"description\": \"Updated Description CI\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/edit/update — missing required field → 422",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/edit/update", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "edit", "update"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{seeded_classifier_id}}\", \"name\": \"\", \"description\": \"Description\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422 when name is missing', () => pm.response.to.have.status(422));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/edit/update — updates classifier name and description",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/edit/update", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "edit", "update"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{seeded_classifier_id}}\", \"name\": \"Updated Classifier CI\", \"description\": \"Updated description for CI test\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/values/insert — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/values/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "values", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"code\": \"TEST_CI\", \"name\": \"Test Value CI\", \"validFrom\": \"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/values/insert — creates new classifier value",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/values/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "values", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"code\": \"TEST_CI\", \"name\": \"Test Value CI\", \"validFrom\": \"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const arr = Array.isArray(body) ? body : (body.response || []);",
+        "pm.test('Response contains classifier value id', () => pm.expect(arr[0]).to.have.property('id'));",
+        "pm.environment.set('created_classifier_value_id', String(arr[0].id));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/values/update — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/values/update", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "values", "update"]},
+        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_classifier_value_id}}\", \"code\": \"TEST_CI\", \"name\": \"Updated Test Value CI\", \"validFrom\": \"2026-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST /v1/classifiers/values/update — updates classifier value validity",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/values/update", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "values", "update"]},
+        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_classifier_value_id}}\", \"code\": \"TEST_CI\", \"name\": \"Updated Test Value CI\", \"validFrom\": \"2026-01-01\", \"validUntil\": \"2099-12-31\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    }
+  ],
+  "variable": []
+}

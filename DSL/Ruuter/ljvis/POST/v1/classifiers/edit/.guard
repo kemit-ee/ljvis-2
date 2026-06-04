@@ -8,7 +8,7 @@ authenticate:
 
 check:
   switch:
-    - condition: ${u.permissions != null && u.permissions.includes('classifier.update')}
+    - condition: ${u.permissions != null && u.permissions.includes('classifier.edit')}
       next: allow
   next: deny
 

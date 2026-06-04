@@ -1,6 +1,6 @@
 -- Bootstrap seed for CI functional tests.
 -- Runs via psql AFTER Liquibase has applied schema ONLY (no seed data from Liquibase).
--- Seeds groups, permissions, organisations, users and latest snapshots.
+-- Seeds groups, permissions, organisations, users, classifiers and latest snapshots.
 -- NOT a Liquibase migration — plain SQL, idempotent.
 
 BEGIN;
@@ -67,7 +67,11 @@ INSERT INTO ljvis2.permission (code, description, created_by) VALUES
     ('user.edit.admin',                'Kasutaja lisamine, vaatamine ja muutmine kõigi asutuste ulatuses', 'bootstrap'),
     ('user.edit.local',                'Kasutaja lisamine, vaatamine ja muutmine ainult oma asutuse kasutajatele', 'bootstrap'),
     ('organisation.list',              'Asutuste kataloogi laadimine UI valikute jaoks', 'bootstrap'),
-    ('permission.list',                'Õiguste kataloogi laadimine UI valikute jaoks', 'bootstrap')
+    ('permission.list',                'Õiguste kataloogi laadimine UI valikute jaoks', 'bootstrap'),
+    ('classifier.list',                'Klassifikaatorite nimekirja detailvaate vaatamine', 'bootstrap'),
+    ('classifier.read',                'Klassifikaatori detailvaate vaatamine', 'bootstrap'),
+    ('classifier.edit',                'Klassifikaatori nimetuse ja selgituse muutmine', 'bootstrap'),
+    ('classifier_value.edit',          'Klassifikaatorile uue väärtuse loomine ja väärtuse kehtivusperioodi muutmine', 'bootstrap')
 ON CONFLICT (code) DO NOTHING;
 
 -- ============================================================
@@ -82,7 +86,8 @@ JOIN ljvis2.permission p ON p.code IN (
     'user_group.create', 'user_group.update', 'user_group.list_users.admin',
     'user_group.search_eligible_users', 'user_group.add_user', 'user_group.remove_user',
     'user.list.admin', 'user.read.admin', 'user.edit.admin',
-    'organisation.list', 'permission.list'
+    'organisation.list', 'permission.list',
+    'classifier.list', 'classifier.read', 'classifier.edit', 'classifier_value.edit'
 )
 WHERE gns.name = 'Super Admin Group'
   AND NOT EXISTS (
@@ -99,7 +104,8 @@ JOIN ljvis2.permission p ON p.code IN (
     'user_group.create', 'user_group.update', 'user_group.list_users.local',
     'user_group.search_eligible_users', 'user_group.add_user', 'user_group.remove_user',
     'user.list.local', 'user.read.local', 'user.edit.local',
-    'organisation.list', 'permission.list'
+    'organisation.list', 'permission.list',
+    'classifier.list', 'classifier.read', 'classifier.edit', 'classifier_value.edit'
 )
 WHERE gns.name = 'Local Admin Group'
   AND NOT EXISTS (
@@ -186,6 +192,115 @@ FROM ljvis2.user_account_user_group uaug
 WHERE NOT EXISTS (
     SELECT 1 FROM ljvis2.user_account_user_group_state WHERE user_account_user_group_id = uaug.id
 );
+
+-- ============================================================
+-- Classifiers
+-- ============================================================
+INSERT INTO ljvis2.classifier (code, created_by)
+SELECT 'RTK', 1
+WHERE NOT EXISTS (SELECT 1 FROM ljvis2.classifier WHERE code = 'RTK');
+
+WITH ins AS (
+    INSERT INTO ljvis2.classifier (code, created_by)
+    SELECT 'TEST', 1
+    WHERE NOT EXISTS (SELECT 1 FROM ljvis2.classifier WHERE code = 'TEST')
+    RETURNING id
+)
+INSERT INTO ljvis2.classifier_name_state (classifier_id, name, created_by)
+SELECT id, 'Test Classifier', 1 FROM ins;
+
+INSERT INTO ljvis2.classifier_name_state (classifier_id, name, created_by)
+SELECT c.id, 'Riikide ja territooriumide klassifikaator', 1
+FROM ljvis2.classifier c
+WHERE c.code = 'RTK'
+  AND NOT EXISTS (
+      SELECT 1 FROM ljvis2.classifier_name_state cns
+      WHERE cns.classifier_id = c.id
+  );
+
+INSERT INTO ljvis2.classifier_value (classifier_id, code, name, created_by)
+SELECT c.id, 'EE', 'Eesti', 1
+FROM ljvis2.classifier c
+WHERE c.code = 'RTK'
+  AND NOT EXISTS (
+      SELECT 1 FROM ljvis2.classifier_value cv
+      WHERE cv.classifier_id = c.id AND cv.code = 'EE'
+  );
+
+INSERT INTO ljvis2.classifier_value (classifier_id, code, name, created_by)
+SELECT c.id, 'LV', 'Läti', 1
+FROM ljvis2.classifier c
+WHERE c.code = 'RTK'
+  AND NOT EXISTS (
+      SELECT 1 FROM ljvis2.classifier_value cv
+      WHERE cv.classifier_id = c.id AND cv.code = 'LV'
+  );
+
+INSERT INTO ljvis2.classifier_value (classifier_id, code, name, created_by)
+SELECT c.id, 'LT', 'Leedu', 1
+FROM ljvis2.classifier c
+WHERE c.code = 'RTK'
+  AND NOT EXISTS (
+      SELECT 1 FROM ljvis2.classifier_value cv
+      WHERE cv.classifier_id = c.id AND cv.code = 'LT'
+  );
+
+INSERT INTO ljvis2.classifier_value_validity_state (classifier_value_id, valid_from, created_by)
+SELECT cvv.id, '2024-01-01', 1
+FROM ljvis2.classifier cv
+JOIN ljvis2.classifier_value cvv ON cvv.classifier_id = cv.id
+WHERE cv.code = 'RTK' AND cvv.code = 'EE'
+  AND NOT EXISTS (
+      SELECT 1 FROM ljvis2.classifier_value_validity_state cvvs
+      WHERE cvvs.classifier_value_id = cvv.id
+  );
+
+INSERT INTO ljvis2.classifier_value_validity_state (classifier_value_id, valid_from, created_by)
+SELECT cvv.id, '2024-01-01', 1
+FROM ljvis2.classifier cv
+JOIN ljvis2.classifier_value cvv ON cvv.classifier_id = cv.id
+WHERE cv.code = 'RTK' AND cvv.code = 'LV'
+  AND NOT EXISTS (
+      SELECT 1 FROM ljvis2.classifier_value_validity_state cvvs
+      WHERE cvvs.classifier_value_id = cvv.id
+  );
+
+INSERT INTO ljvis2.classifier_value_validity_state (classifier_value_id, valid_from, created_by)
+SELECT cvv.id, '2024-01-01', 1
+FROM ljvis2.classifier cv
+JOIN ljvis2.classifier_value cvv ON cvv.classifier_id = cv.id
+WHERE cv.code = 'RTK' AND cvv.code = 'LT'
+  AND NOT EXISTS (
+      SELECT 1 FROM ljvis2.classifier_value_validity_state cvvs
+      WHERE cvvs.classifier_value_id = cvv.id
+  );
+
+-- ============================================================
+-- Snapshots: classifier_latest
+-- ============================================================
+INSERT INTO ljvis2.classifier_latest (classifier_id, code, name, created_by)
+SELECT
+    c.id,
+    c.code,
+    (SELECT cns.name FROM ljvis2.classifier_name_state cns
+     WHERE cns.classifier_id = c.id ORDER BY cns.created_at DESC LIMIT 1),
+    1
+FROM ljvis2.classifier c
+WHERE NOT EXISTS (SELECT 1 FROM ljvis2.classifier_latest WHERE classifier_id = c.id);
+
+INSERT INTO ljvis2.classifier_value_latest (classifier_value_id, classifier_id, classifier_code, code, name, valid_from, created_by)
+SELECT
+    cv.id,
+    cv.classifier_id,
+    c.code,
+    cv.code,
+    cv.name,
+    (SELECT cvvs.valid_from FROM ljvis2.classifier_value_validity_state cvvs
+     WHERE cvvs.classifier_value_id = cv.id ORDER BY cvvs.created_at DESC LIMIT 1),
+    1
+FROM ljvis2.classifier_value cv
+JOIN ljvis2.classifier c ON c.id = cv.classifier_id
+WHERE NOT EXISTS (SELECT 1 FROM ljvis2.classifier_value_latest WHERE classifier_value_id = cv.id);
 
 -- ============================================================
 -- Snapshots: user_account_latest
