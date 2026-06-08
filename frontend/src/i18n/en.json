@@ -27,7 +27,8 @@
     "users": "Users",
     "administration": "Administration",
     "userGroups": "User Groups",
-    "classifiers": "Klassifikaatorid"
+    "classifiers": "Klassifikaatorid",
+    "logs": "Logs"
   },
   "users": {
     "title": "Users",
@@ -160,6 +161,16 @@
         "required": "Required field"
       }
     }
+  },
+  "logs": {
+    "title": "Logs",
+    "viewDetails": "View",
+    "date": "Date",
+    "person": "Person",
+    "eventCategory": "Category",
+    "eventType": "Type",
+    "description": "Description",
+    "exportCsv": "Export CSV"
   },
   "common": {
     "loading": "Loading...",

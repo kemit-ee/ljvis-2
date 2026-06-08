@@ -1,0 +1,15 @@
+:global(#logs-table) td,
+:global(#logs-table) th {
+  border-left: 1px solid #e5e7eb;
+}
+
+:global(#logs-table) td:first-child,
+:global(#logs-table) th:first-child {
+  border-left: none;
+}
+
+:global(#logs-table) td:last-child,
+:global(#logs-table) th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}
