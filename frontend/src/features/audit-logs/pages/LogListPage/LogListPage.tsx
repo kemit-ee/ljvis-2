@@ -6,9 +6,11 @@ import { Table } from '@tedi-design-system/react/community';
 import { Card, Heading, Search, Text, Button } from '@tedi-design-system/react/tedi';
 import type { AuditLog } from '../../types.ts';
 import { useLogList } from './useLogList.ts';
+import { useLogListCsv } from './useLogListCsv.ts';
 import { useAuth } from '../../../auth/AuthContext.tsx';
 import './LogListPage.module.css';
 import { formatDateTime } from '../../../../hooks/dateUtils.ts';
+import { buildSortString } from '../../../../hooks/stringUtils.ts';
 
 
 const columnHelper = createColumnHelper<AuditLog>();
@@ -32,6 +34,15 @@ export function LogListPage() {
     handleSearch,
     clearSearch,
   } = useLogList();
+
+  const { exportCsv } = useLogListCsv();
+
+  const handleExportCsv = useCallback(() => {
+    exportCsv({
+      search: searchInput,
+      sorting: buildSortString(sorting, 'createdAt desc'),
+    });
+  }, [exportCsv, searchInput, sorting]);
 
   const handleRowClick = useCallback(
     (row: AuditLog) => {
@@ -120,9 +131,9 @@ export function LogListPage() {
         <Card.Content>
           <div className="card-main">
             <Heading element="h1">{t('logs.title')}</Heading>
-            <Button>
-                {t('logs.exportCsv')}
-            </Button>
+              <Button onClick={handleExportCsv}>
+                  {t('logs.exportCsv')}
+              </Button>
           </div>
           <div className="grid-2col">
             <div className="search-wrapper">

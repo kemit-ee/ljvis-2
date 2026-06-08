@@ -5,6 +5,7 @@ export interface AuditLog {
   actorName?: string;
   actorPersonalCode: string;
   description: string;
+  logContent?: string;
   createdAt?: string;
   createdBy?: string;
 }

@@ -170,6 +170,7 @@
     "eventCategory": "Category",
     "eventType": "Type",
     "description": "Description",
+    "content": "Log content",
     "exportCsv": "Export CSV"
   },
   "common": {

@@ -172,6 +172,7 @@
     "eventCategory": "Kategooria",
     "eventType": "Tüüp",
     "description": "Kirjeldus",
+    "content": "Logi sisu",
     "exportCsv": "Ekspordi CSV"
   },
   "common": {
