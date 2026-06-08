@@ -171,7 +171,9 @@
     "eventType": "Type",
     "description": "Description",
     "content": "Log content",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "data": "Auditikirje andmed",
+    "dataTitle": "Auditikirje"
   },
   "common": {
     "loading": "Loading...",

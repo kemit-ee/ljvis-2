@@ -105,7 +105,7 @@ export function LogListPage() {
           return (
             <div className="cell-center">
               <a
-                href={`/classifiers/${info.row.original.id}`}
+                href={`/logs/${info.row.original.id}`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

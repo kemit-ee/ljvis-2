@@ -173,7 +173,9 @@
     "eventType": "Tüüp",
     "description": "Kirjeldus",
     "content": "Logi sisu",
-    "exportCsv": "Ekspordi CSV"
+    "exportCsv": "Ekspordi CSV",
+    "data": "Auditikirje andmed",
+    "dataTitle": "Auditikirje"
   },
   "common": {
     "loading": "Laadimine...",

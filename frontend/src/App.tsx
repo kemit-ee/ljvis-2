@@ -16,6 +16,7 @@ import { ClassifierDetailPage } from './features/classifiers/pages/ClassifierDet
 import { ClassifierValueCreatePage } from './features/classifiers/pages/ClassifierValueCreatePage/ClassifierValueCreatePage';
 import { ClassifierValueEditPage } from './features/classifiers/pages/ClassifierValueEditPage/ClassifierValueEditPage';
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
+import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDetailPage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 
@@ -56,6 +57,7 @@ function AppRoutes() {
             element={<ClassifierValueEditPage />}
           />
           <Route path="/logs" element={<LogListPage />} />
+          <Route path="/logs/:id" element={<LogDetailPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
