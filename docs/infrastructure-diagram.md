@@ -131,7 +131,7 @@ graph TD
 ## Märkused
 
 - Kõik teenused on samas Docker võrgus: `ljvisnetwork`
-- `TARA Mock` on kommentaari järgi ainult **local dev / CI** jaoks, mitte productionis
+- `TARA Mock` on ainult **local dev / CI** jaoks, mitte productionis
 - Diagramm ei kirjelda Kubernetes/Helm production paigutust, vaid olemasolevat `docker-compose` põhist taristut
 
 ## AWS production / Kubernetes target taristu
