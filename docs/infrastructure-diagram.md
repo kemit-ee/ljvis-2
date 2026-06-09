@@ -1,6 +1,6 @@
 # LJVIS2 taristu vaade
 
-See diagramm kirjeldab **praegust lokaalse/dev keskkonna taristut**, lähtudes failist `docker-compose.yml`. Arenduskeskkonna avalik aadress on `https://dev.liiklusvalve.ee/`.
+See diagramm kirjeldab **praegust lokaalse/dev keskkonna taristut**. Arenduskeskkonna avalik aadress on `https://dev.liiklusvalve.ee/`.
 
 ## Taristu diagramm
 
