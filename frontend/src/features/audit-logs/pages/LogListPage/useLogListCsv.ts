@@ -4,6 +4,7 @@ import { exportLogs } from '../../api';
 import type { ListApiParams } from '../../../../hooks/usePaginatedList';
 import type { AuditLog } from '../../types';
 import { formatDateTime } from '../../../../hooks/dateUtils';
+import { decodeHtmlEntities } from '../../../../hooks/stringUtils';
 
 function generateExportFilename(): string {
   const now = new Date();
@@ -31,9 +32,7 @@ function formatLogRow(log: AuditLog): string[] {
     person = '-';
   }
 
-  const decodedLogContent = log.logContent
-    ? log.logContent.replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&amp;/g, '&')
-    : '';
+  const decodedLogContent = decodeHtmlEntities(log.logContent || '');
 
   return [
     log.createdAt ? formatDateTime(log.createdAt) : '',

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { AuditLog } from '../../types';
 import { getLog } from '../../api';
+import { decodeHtmlEntities } from '../../../../hooks/stringUtils';
 
 export function useLogDetail(id: string | undefined) {
   const [auditLog, setAuditLog] = useState<AuditLog | null>(null);
@@ -39,9 +40,7 @@ export function useLogDetail(id: string | undefined) {
     person = '-';
   }
 
-  const decodedLogContent = auditLog?.logContent
-    ? auditLog.logContent.replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&amp;/g, '&')
-    : '';
+  const decodedLogContent = decodeHtmlEntities(auditLog?.logContent || '');
 
   let cleanedLogContent = decodedLogContent;
   if (cleanedLogContent.startsWith('[') && cleanedLogContent.endsWith(']')) {
