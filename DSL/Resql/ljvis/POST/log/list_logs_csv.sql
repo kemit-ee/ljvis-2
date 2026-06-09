@@ -60,4 +60,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'createdAt desc') = 'eventCategory desc' THEN e.event_category COLLATE "et-EE-x-icu" END DESC,
     CASE WHEN COALESCE(:sorting, 'createdAt desc') = 'actorName asc'  THEN e.actor_name COLLATE "et-EE-x-icu" END ASC,
     CASE WHEN COALESCE(:sorting, 'createdAt desc') = 'actorName desc' THEN e.actor_name COLLATE "et-EE-x-icu" END DESC,
-    e.created_at DESC;
+    e.created_at DESC
+LIMIT 10000;

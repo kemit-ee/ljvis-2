@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import { Card, Heading, Search, Text, Button } from '@tedi-design-system/react/tedi';
+import {
+  Card,
+  Heading,
+  Search,
+  Text,
+  Button,
+} from '@tedi-design-system/react/tedi';
 import type { AuditLog } from '../../types.ts';
 import { useLogList } from './useLogList.ts';
 import { useLogListCsv } from './useLogListCsv.ts';
@@ -12,14 +18,13 @@ import './LogListPage.module.css';
 import { formatDateTime } from '../../../../hooks/dateUtils.ts';
 import { buildSortString } from '../../../../hooks/stringUtils.ts';
 
-
 const columnHelper = createColumnHelper<AuditLog>();
 
 export function LogListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
-  const forbidden = !hasPermission('classifier.list');
+  const forbidden = !hasPermission('audit.read');
 
   const {
     data,
@@ -65,7 +70,7 @@ export function LogListPage() {
         cell: (info) => {
           const actorName = info.row.original.actorName;
           const actorPersonalCode = info.row.original.actorPersonalCode;
-          
+
           if (actorName && actorPersonalCode) {
             return `${actorName} (${actorPersonalCode})`;
           }
@@ -79,24 +84,24 @@ export function LogListPage() {
         },
       }),
       columnHelper.accessor('eventCategory', {
-          header: t('logs.eventCategory'),
-          cell: (info) => {
-              return info.getValue();
-          },
+        header: t('logs.eventCategory'),
+        cell: (info) => {
+          return info.getValue();
+        },
       }),
       columnHelper.accessor('eventType', {
         header: t('logs.eventType'),
         cell: (info) => {
           return info.getValue();
         },
-        enableSorting: false
+        enableSorting: false,
       }),
       columnHelper.accessor('description', {
-          header: t('logs.description'),
-          cell: (info) => {
-              return info.getValue();
-          },
-          enableSorting: false
+        header: t('logs.description'),
+        cell: (info) => {
+          return info.getValue();
+        },
+        enableSorting: false,
       }),
       columnHelper.display({
         id: 'viewDetails',
@@ -131,9 +136,7 @@ export function LogListPage() {
         <Card.Content>
           <div className="card-main">
             <Heading element="h1">{t('logs.title')}</Heading>
-              <Button onClick={handleExportCsv}>
-                  {t('logs.exportCsv')}
-              </Button>
+            <Button onClick={handleExportCsv}>{t('logs.exportCsv')}</Button>
           </div>
           <div className="grid-2col">
             <div className="search-wrapper">
