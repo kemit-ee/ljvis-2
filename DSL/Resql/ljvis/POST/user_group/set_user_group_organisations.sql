@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Batch-insert user_group_organisation link rows and their state rows for comma-separated organisation IDs"
+  description: "Update user group organisations — copy latest snapshot with orgs added or removed (delta)"
   method: post
   accepts: json
   returns: json
@@ -9,13 +9,14 @@ declaration:
   allowlist:
     body:
       - field: user_group_id
-        type: number
+        type: string
+        description: "user_group_key of the target group"
       - field: organisation_ids
         type: string
         description: "Comma-separated organisation IDs"
       - field: status
         type: string
-        description: "active or removed"
+        description: "active (add) or removed (remove)"
       - field: created_by
         type: string
   response:
@@ -23,27 +24,39 @@ declaration:
       - field: id
         type: number
 */
-WITH org_id_list AS (
+WITH org_ids_list AS (
     SELECT unnest(string_to_array(:organisation_ids, ','))::BIGINT AS org_id
 ),
-existing_links AS (
-    SELECT ugo.id, ugo.organisation_id
-    FROM ljvis2.user_group_organisation ugo
-    WHERE ugo.user_group_id = :user_group_id::BIGINT
-      AND ugo.organisation_id = ANY(SELECT org_id FROM org_id_list)
+latest AS (
+    SELECT DISTINCT ON (user_group_key)
+        user_group_key, name, organisations, permissions
+    FROM ljvis2.user_group
+    WHERE user_group_key = :user_group_id::BIGINT
+    ORDER BY user_group_key, created_at DESC
 ),
-new_links AS (
-    INSERT INTO ljvis2.user_group_organisation (user_group_id, organisation_id, created_by)
-    SELECT :user_group_id::BIGINT, o.org_id, :created_by
-    FROM org_id_list o
-    WHERE o.org_id NOT IN (SELECT organisation_id FROM existing_links)
-    RETURNING id
+kept_ids AS (
+    SELECT org_id
+    FROM latest,
+         UNNEST(organisations) AS org_id
+    WHERE org_id NOT IN (SELECT org_id FROM org_ids_list)
 ),
-link_ids AS (
-    SELECT id FROM existing_links
-    UNION ALL
-    SELECT id FROM new_links
+added_ids AS (
+    SELECT org_id
+    FROM org_ids_list
+    WHERE :status = 'active'
+),
+new_orgs AS (
+    SELECT COALESCE(
+        ARRAY_AGG(org_id ORDER BY org_id),
+        ARRAY[]::BIGINT[]
+    ) AS organisations
+    FROM (
+        SELECT org_id FROM kept_ids
+        UNION ALL
+        SELECT org_id FROM added_ids
+    ) combined
 )
-INSERT INTO ljvis2.user_group_organisation_state (user_group_organisation_id, status, created_by)
-SELECT id, :status, :created_by FROM link_ids
-RETURNING id;
+INSERT INTO ljvis2.user_group (user_group_key, name, organisations, permissions, created_by)
+SELECT l.user_group_key, l.name, no.organisations, l.permissions, :created_by
+FROM latest l, new_orgs no
+RETURNING user_group_key AS id;

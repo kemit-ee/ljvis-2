@@ -116,7 +116,7 @@
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
         "const _d = body.response || body; const users = Array.isArray(_d) ? _d : (_d.content || []);",
-        "const u = users.find(u => u.personalCode === '38001085718');",
+        "const u = users.find(u => u.personalCode === '60001019906');",
         "pm.test('Super Admin found', () => pm.expect(u).to.not.be.undefined);",
         "if (u) pm.environment.set('seeded_no_group_user_id', String(u.id));"
       ]}}]
@@ -340,7 +340,7 @@
         "const body = pm.response.json();",
         "const arr = Array.isArray(body) ? body : (body.response || []);",
         "pm.test('Created user is a member of the group', () => pm.expect(arr.length).to.be.above(0));",
-        "pm.test('Member has personalCode 38001085718', () => pm.expect(arr[0].personalCode).to.equal('38001085718'));"
+        "pm.test('Member has personalCode 60001019906', () => pm.expect(arr[0].personalCode).to.equal('60001019906'));"
       ]}}]
     },
     {

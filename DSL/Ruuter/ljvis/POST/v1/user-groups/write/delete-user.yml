@@ -40,18 +40,6 @@ deleteUser:
       status: "removed"
       created_by: ${created_by}
   result: res
-  next: rebuildLatest
-
-rebuildLatest:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user/rebuild_user_account_latest"
-    headers:
-      type: json
-    body:
-      user_account_id: ${user_ids}
-      created_by: ${created_by}
-  result: latestRes
   next: returnSuccess
 
 returnSuccess:

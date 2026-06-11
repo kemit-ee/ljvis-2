@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 -- changeset ljvis:20260605100000 ignore:true
-
+CREATE SCHEMA IF NOT EXISTS ljvis2;
 -- 1. audit_event
 CREATE TABLE ljvis2.audit_event (
                              id                          BIGSERIAL       NOT NULL,

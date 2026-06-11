@@ -37,7 +37,7 @@ extractRequestData:
     name: "${incoming.body.name}"
     valid_from: "${incoming.body.validFrom}"
     valid_until: "${incoming.body.validUntil ?? ''}"
-    created_by: "${auth_user.id}"
+    created_by: "${auth_user.personalcode || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getClassifierCode
@@ -71,11 +71,12 @@ calculateChangedFields:
 createClassifierValueValidityState:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/classifier/insert_classifier_value_validity_state"
+    url: "[#LJVIS_RESQL]/classifier/update_classifier_value"
     headers:
       type: json
     body:
       classifier_value_id: ${classifier_value_id}
+      name: ${name}
       valid_from: ${valid_from}
       valid_until: ${valid_until}
       created_by: ${created_by}

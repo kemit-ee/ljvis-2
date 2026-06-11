@@ -33,17 +33,16 @@ declaration:
         type: number
 */
 WITH latest AS (
-    SELECT DISTINCT ON (classifier_id)
-        id,
-        classifier_id,
+    SELECT DISTINCT ON (classifier_key)
+        classifier_key,
         code,
         name,
         description
-    FROM ljvis2.classifier_latest
-    ORDER BY classifier_id, created_at DESC
+    FROM ljvis2.classifier
+    ORDER BY classifier_key, created_at DESC
 )
 SELECT
-    l.classifier_id AS id,
+    l.classifier_key AS id,
     l.code,
     l.name,
     l.description,
@@ -61,5 +60,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'name asc') = 'description asc'  THEN l.description COLLATE "et-EE-x-icu"  END ASC,
     CASE WHEN COALESCE(:sorting, 'name asc') = 'description desc' THEN l.description COLLATE "et-EE-x-icu"  END DESC,
     l.code COLLATE "et-EE-x-icu" ASC
-LIMIT :page_size::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
+LIMIT :pageSize::INTEGER
+OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :pageSize::INTEGER);

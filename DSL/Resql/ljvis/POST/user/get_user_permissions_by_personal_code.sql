@@ -33,8 +33,8 @@ declaration:
         description: "Array of permission codes from all user groups"
 */
 WITH latest_user AS (
-    SELECT DISTINCT ON (user_account_id)
-        user_account_id AS id,
+    SELECT DISTINCT ON (user_account_key)
+        user_account_key AS id,
         personal_code,
         first_name,
         last_name,
@@ -43,15 +43,17 @@ WITH latest_user AS (
         email,
         status,
         user_groups
-    FROM ljvis2.user_account_latest
-    ORDER BY user_account_id, created_at DESC
+    FROM ljvis2.user_account
+    WHERE personal_code = :personal_code
+      AND status IN ('active', 'deactivating')
+    ORDER BY user_account_key, created_at DESC
 ),
 latest_group_perms AS (
-    SELECT DISTINCT ON (user_group_id)
-        user_group_id,
+    SELECT DISTINCT ON (user_group_key)
+        user_group_key,
         permissions
-    FROM ljvis2.user_group_latest
-    ORDER BY user_group_id, created_at DESC
+    FROM ljvis2.user_group
+    ORDER BY user_group_key, created_at DESC
 )
 SELECT
     u.id,
@@ -63,16 +65,11 @@ SELECT
     u.email,
     u.status,
     COALESCE(
-        (SELECT ARRAY_AGG(DISTINCT perm->>'code')
+        (SELECT ARRAY_AGG(DISTINCT perm)
          FROM latest_group_perms lgp,
-         JSONB_ARRAY_ELEMENTS(lgp.permissions) AS perm
-         WHERE lgp.user_group_id IN (
-             SELECT (grp->>'id')::BIGINT
-             FROM JSONB_ARRAY_ELEMENTS(u.user_groups) AS grp
-         )),
+         UNNEST(lgp.permissions) AS perm
+         WHERE lgp.user_group_key = ANY(u.user_groups)),
         ARRAY[]::TEXT[]
     ) AS permissions
 FROM latest_user u
-WHERE u.personal_code = :personal_code
-  AND u.status IN ('active', 'deactivating')
 LIMIT 1;

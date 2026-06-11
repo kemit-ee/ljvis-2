@@ -47,8 +47,8 @@ declaration:
         type: number
 */
 WITH latest AS (
-    SELECT DISTINCT ON (user_account_id)
-        user_account_id,
+    SELECT DISTINCT ON (user_account_key)
+        user_account_key,
         first_name,
         last_name,
         personal_code,
@@ -56,11 +56,11 @@ WITH latest AS (
         organisation_name,
         status,
         user_groups
-    FROM ljvis2.user_account_latest
-    ORDER BY user_account_id, created_at DESC
+    FROM ljvis2.user_account
+    ORDER BY user_account_key, created_at DESC
 )
 SELECT
-    l.user_account_id AS id,
+    l.user_account_key AS id,
     l.first_name,
     l.last_name,
     l.personal_code,
@@ -73,10 +73,7 @@ FROM latest l
 WHERE
     (
         COALESCE(:user_group_id, '') = ''
-        OR EXISTS (
-            SELECT 1 FROM JSONB_ARRAY_ELEMENTS(l.user_groups) AS ug
-            WHERE ug->>'id' = COALESCE(:user_group_id, '')
-        )
+        OR l.user_groups @> ARRAY[:user_group_id::BIGINT]
     )
     AND (
         COALESCE(:user_organisation_id, '') = ''

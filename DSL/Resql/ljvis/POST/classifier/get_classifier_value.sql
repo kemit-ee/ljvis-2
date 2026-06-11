@@ -1,14 +1,16 @@
-SELECT
-    cvl.classifier_id,
-    cvl.classifier_value_id,
-    cvl.classifier_code,
-    cvl.code,
-    cvl.name,
-    cvl.valid_from,
-    cvl.valid_until,
-    cvl.is_valid
-FROM ljvis2.classifier_value_latest cvl
-WHERE cvl.classifier_value_id = :classifier_value_id::BIGINT
-  AND cvl.id = (
-    SELECT MAX(id) FROM ljvis2.classifier_value_latest WHERE classifier_value_id = :classifier_value_id::BIGINT
-  );
+SELECT DISTINCT ON (cv.classifier_value_key)
+    cv.classifier_key   AS classifier_id,
+    cv.classifier_value_key,
+    (SELECT DISTINCT ON (c.classifier_key) c.code
+     FROM ljvis2.classifier c
+     WHERE c.classifier_key = cv.classifier_key
+     ORDER BY c.classifier_key, c.created_at DESC) AS classifier_code,
+    cv.code,
+    cv.name,
+    cv.valid_from,
+    cv.valid_until,
+    (cv.valid_from <= CURRENT_DATE AND (cv.valid_until IS NULL OR cv.valid_until > CURRENT_DATE)) AS is_valid
+FROM ljvis2.classifier_value cv
+WHERE cv.classifier_value_key = :classifier_value_id::BIGINT
+ORDER BY cv.classifier_value_key, cv.created_at DESC
+LIMIT 1;

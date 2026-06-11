@@ -33,7 +33,7 @@ extractRequestData:
   assign:
     search: "${incoming.body.search ?? ''}"
     page: "${incoming.body.page ?? 1}"
-    page_size: "${incoming.body.pageSize ?? 20}"
+    pageSize: "${incoming.body.pageSize ?? 20}"
     sorting: "${incoming.body.sorting ?? 'name asc'}"
     created_by: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
@@ -49,7 +49,7 @@ getClassifiers:
     body:
       search: ${search}
       page: ${page}
-      page_size: ${page_size}
+      pageSize: ${pageSize}
       sorting: ${sorting}
   result: res
   next: checkAuditCondition

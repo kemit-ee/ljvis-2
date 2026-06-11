@@ -21,24 +21,22 @@ declaration:
         type: string
 */
 WITH latest AS (
-    SELECT DISTINCT ON (user_group_id)
-        user_group_id,
+    SELECT DISTINCT ON (user_group_key)
+        user_group_key,
         name,
         organisations,
-        covers_all_organisations
-    FROM ljvis2.user_group_latest
-    ORDER BY user_group_id, created_at DESC
+        (CARDINALITY(organisations) = (SELECT COUNT(*)::INT FROM ljvis2.organisation)) AS covers_all_organisations
+    FROM ljvis2.user_group
+    ORDER BY user_group_key, created_at DESC
 )
 SELECT
-    l.user_group_id AS id,
-    l.name
+    l.user_group_key AS id,
+    l.name,
+    l.covers_all_organisations
 FROM latest l
-WHERE l.user_group_id = :id::BIGINT
+WHERE l.user_group_key = :id::BIGINT
   AND (
       COALESCE(:organisation_id, '') = ''
-      OR EXISTS (
-          SELECT 1 FROM JSONB_ARRAY_ELEMENTS(l.organisations) AS org
-          WHERE org->>'id' = :organisation_id
-      )
+      OR l.organisations @> ARRAY[:organisation_id::BIGINT]
   )
 LIMIT 1;

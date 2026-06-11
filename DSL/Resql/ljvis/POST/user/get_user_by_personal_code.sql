@@ -27,16 +27,17 @@ declaration:
       - field: status
         type: string
 */
-SELECT
-    u.id,
-    u.first_name,
-    u.last_name,
-    u.personal_code,
-    u.organisation_id,
-    (SELECT o.name FROM users.organisation o WHERE o.id = u.organisation_id) AS organisation_name,
-    u.email,
-    u.status
-FROM users."user" u
-WHERE u.personal_code = :personal_code
-  AND u.status = 'active'
+SELECT DISTINCT ON (ua.user_account_key)
+    ua.user_account_key AS id,
+    ua.first_name,
+    ua.last_name,
+    ua.personal_code,
+    ua.organisation_id,
+    ua.organisation_name,
+    ua.email,
+    ua.status
+FROM ljvis2.user_account ua
+WHERE ua.personal_code = :personal_code
+  AND ua.status = 'active'
+ORDER BY ua.user_account_key, ua.created_at DESC
 LIMIT 1;

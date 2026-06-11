@@ -42,23 +42,22 @@ declaration:
       - field: status
         type: string
 */
-SELECT
-    ual.user_account_id AS id,
-    ual.first_name,
-    ual.last_name,
-    ual.personal_code,
-    ual.organisation_id,
-    (SELECT o.name FROM ljvis2.organisation o WHERE o.id = ual.organisation_id) AS organisation_name,
-    ual.email,
-    ual.phone,
-    ual.structural_unit,
-    ual.job_title,
-    ual.access_start,
-    ual.access_end,
-    ual.status
-FROM ljvis2.user_account_latest ual
-WHERE ual.user_account_id = :id::BIGINT
-  AND (COALESCE(:organisation_id, '') = '' OR ual.organisation_id = :organisation_id::BIGINT)
-  AND ual.id = (
-    SELECT MAX(id) FROM ljvis2.user_account_latest WHERE user_account_id = :id::BIGINT
-  );
+SELECT DISTINCT ON (ua.user_account_key)
+    ua.user_account_key AS id,
+    ua.first_name,
+    ua.last_name,
+    ua.personal_code,
+    ua.organisation_id,
+    ua.organisation_name,
+    ua.email,
+    ua.phone,
+    ua.structural_unit,
+    ua.job_title,
+    ua.access_start,
+    ua.access_end,
+    ua.status
+FROM ljvis2.user_account ua
+WHERE ua.user_account_key = :id::BIGINT
+  AND (COALESCE(:organisation_id, '') = '' OR ua.organisation_id = :organisation_id::BIGINT)
+ORDER BY ua.user_account_key, ua.created_at DESC
+LIMIT 1;

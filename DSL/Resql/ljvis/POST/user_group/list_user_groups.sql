@@ -35,20 +35,24 @@ declaration:
         type: number
 */
 WITH latest AS (
-    SELECT DISTINCT ON (user_group_id)
-        user_group_id,
+    SELECT DISTINCT ON (user_group_key)
+        user_group_key,
         name,
         organisations,
-        covers_all_organisations
-    FROM ljvis2.user_group_latest
-    ORDER BY user_group_id, created_at DESC
+        (CARDINALITY(organisations) = (SELECT COUNT(*)::INT FROM ljvis2.organisation)) AS covers_all_organisations
+    FROM ljvis2.user_group
+    ORDER BY user_group_key, created_at DESC
 )
 SELECT
-    l.user_group_id AS id,
+    l.user_group_key AS id,
     l.name,
     COALESCE(
-        (SELECT ARRAY_AGG(elem->>'name')
-         FROM JSONB_ARRAY_ELEMENTS(l.organisations) AS elem),
+        ARRAY(
+            SELECT o.name
+            FROM UNNEST(l.organisations) AS org_id
+            JOIN ljvis2.organisation o ON o.id = org_id
+            ORDER BY o.name
+        ),
         ARRAY[]::TEXT[]
     ) AS organisations,
     l.covers_all_organisations,
@@ -57,19 +61,16 @@ FROM latest l
 WHERE
     (
         COALESCE(:organisation_id, '') = ''
-        OR EXISTS (
-            SELECT 1
-            FROM JSONB_ARRAY_ELEMENTS(l.organisations) AS elem
-            WHERE (elem->>'id')::BIGINT = :organisation_id::BIGINT
-        )
+        OR l.organisations @> ARRAY[:organisation_id::BIGINT]
     )
     AND (
         COALESCE(:search, '') = ''
         OR l.name ILIKE '%' || COALESCE(:search, '') || '%'
         OR EXISTS (
             SELECT 1
-            FROM JSONB_ARRAY_ELEMENTS(l.organisations) AS elem
-            WHERE elem->>'name' ILIKE '%' || COALESCE(:search, '') || '%'
+            FROM UNNEST(l.organisations) AS org_id
+            JOIN ljvis2.organisation o ON o.id = org_id
+            WHERE o.name ILIKE '%' || COALESCE(:search, '') || '%'
         )
     )
 ORDER BY
