@@ -52,103 +52,54 @@ createGroup:
     headers:
       type: json
     body:
+      name: ${name}
       created_by: ${created_by}
   result: groupRes
+  next: extractGroupId
 
 extractGroupId:
   assign:
     user_group_id: "${groupRes.response.body[0].id}"
-  next: createGroupNameState
-
-createGroupNameState:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user_group/insert_user_group_name_state"
-    headers:
-      type: json
-    body:
-      user_group_id: ${user_group_id}
-      name: ${name}
-      created_by: ${created_by}
-  result: nameStateRes
   next: checkOrganisations
 
 checkOrganisations:
   switch:
     - condition: "${organisation_ids == ''}"
       next: return_validation_error
-    - condition: "${organisation_ids != ''}"
-      next: assignOrganisations
-  next: checkPermissions
+  next: assignOrganisations
 
 assignOrganisations:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/user_group/insert_user_group_organisation"
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
     headers:
       type: json
     body:
       user_group_id: ${user_group_id}
       organisation_ids: ${organisation_ids}
-      created_by: ${created_by}
-  result: orgsRes
-  next: assignOrganisationState
-
-assignOrganisationState:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user_group/insert_user_group_organisation_state"
-    headers:
-      type: json
-    body:
-      user_group_organisation_ids: "${orgsRes.response.body.map(r => r.id).join(',')}"
       status: "active"
       created_by: ${created_by}
-  result: orgStateRes
+  result: orgsRes
   next: checkPermissions
 
 checkPermissions:
   switch:
     - condition: "${permission_ids == ''}"
-      next: rebuildLatest
+      next: returnSuccess
   next: assignPermissions
 
 assignPermissions:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/user_group/insert_user_group_permission"
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_permissions"
     headers:
       type: json
     body:
       user_group_id: ${user_group_id}
       permission_ids: ${permission_ids}
-      created_by: ${created_by}
-  result: permsRes
-  next: assignPermissionState
-
-assignPermissionState:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user_group/insert_user_group_permission_state"
-    headers:
-      type: json
-    body:
-      user_group_permission_ids: "${permsRes.response.body.map(r => r.id).join(',')}"
       status: "active"
       created_by: ${created_by}
-  result: permStateRes
-  next: rebuildLatest
-
-rebuildLatest:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user_group/rebuild_user_group_latest"
-    headers:
-      type: json
-    body:
-      user_group_id: ${user_group_id}
-      created_by: ${created_by}
-  result: latestRes
+  result: permsRes
   next: returnSuccess
 
 returnSuccess:

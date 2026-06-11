@@ -91,16 +91,17 @@ checkUser:
   switch:
     - condition: ${field_error != 'valid'}
       next: propagate_error
-  next: createUserDataState
+  next: updateUser
 
-createUserDataState:
+updateUser:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/user/insert_user_account_data_state"
+    url: "[#LJVIS_RESQL]/user/update_user_account"
     headers:
       type: json
     body:
       user_account_id: ${user_account_id}
+      personal_code: ${personal_code}
       first_name: ${first_name}
       last_name: ${last_name}
       organisation_id: ${organisation_id}
@@ -110,37 +111,13 @@ createUserDataState:
       job_title: ${job_title}
       access_start: ${access_start}
       access_end: ${access_end}
-      created_by: ${created_by}
-  result: dataStateRes
-  next: createUserState
-
-createUserState:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user/insert_user_account_state"
-    headers:
-      type: json
-    body:
-      user_account_id: ${user_account_id}
       status: ${status}
       created_by: ${created_by}
-  result: stateRes
-  next: rebuildLatest
-
-rebuildLatest:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user/rebuild_user_account_latest"
-    headers:
-      type: json
-    body:
-      user_account_id: ${user_account_id}
-      created_by: ${created_by}
-  result: latestRes
+  result: updateRes
   next: returnSuccess
 
 returnSuccess:
-  return: ${latestRes.response.body}
+  return: ${updateRes.response.body}
   next: end
 
 propagate_error:

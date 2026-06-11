@@ -1,21 +1,24 @@
 -- liquibase formatted sql
 -- changeset ljvis:20260526100001 ignore:true
--- Seed data
+-- Seed data (v2 denormalized snapshot model)
 
-INSERT INTO ljvis2.classifier (code, created_by) VALUES ('RTK', 1);
+-- classifier — single full snapshot (v2: code + name + description in one row)
+-- classifier_key = 1: RTK
+INSERT INTO ljvis2.classifier (classifier_key, code, name, description, created_by)
+VALUES (nextval('ljvis2.seq_classifier_key'), 'RTK', 'Riikide ja territooriumide klassifikaator', NULL, 'ljvis2');
 
-INSERT INTO ljvis2.classifier_name_state (classifier_id, name, created_by) VALUES (1,  'Riikide ja territooriumide klassifikaator', 1);
+-- classifier_values — single full snapshot per value (v3: classifier_key only; classifier_code resolved via JOIN; is_valid computed at read time)
+INSERT INTO ljvis2.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+SELECT nextval('ljvis2.seq_classifier_value_key'),
+       (SELECT classifier_key FROM ljvis2.classifier WHERE code = 'RTK' ORDER BY created_at DESC LIMIT 1),
+       'EE', 'Eesti', '2026-05-26', NULL, 'ljvis2';
 
-INSERT INTO ljvis2.classifier_value (classifier_id, code, name, created_by) VALUES (1, 'EE', 'Eesti', 1);
-INSERT INTO ljvis2.classifier_value (classifier_id, code, name, created_by) VALUES (1, 'LV', 'Läti', 1);
-INSERT INTO ljvis2.classifier_value (classifier_id, code, name, created_by) VALUES (1, 'LT', 'Leedu', 1);
+INSERT INTO ljvis2.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+SELECT nextval('ljvis2.seq_classifier_value_key'),
+       (SELECT classifier_key FROM ljvis2.classifier WHERE code = 'RTK' ORDER BY created_at DESC LIMIT 1),
+       'LV', 'Läti', '2026-05-26', NULL, 'ljvis2';
 
-INSERT INTO ljvis2.classifier_value_validity_state (classifier_value_id, valid_from, created_by) VALUES (1, '2026-05-26', 1);
-INSERT INTO ljvis2.classifier_value_validity_state (classifier_value_id, valid_from, created_by) VALUES (2, '2026-05-26', 1);
-INSERT INTO ljvis2.classifier_value_validity_state (classifier_value_id, valid_from, created_by) VALUES (3, '2026-05-26', 1);
-
-INSERT INTO ljvis2.classifier_latest (classifier_id, code, name, created_by) VALUES (1, 'RTK', 'Riikide ja territooriumide klassifikaator', 1);
-
-INSERT INTO ljvis2.classifier_value_latest (classifier_value_id, classifier_id, classifier_code, code, name, valid_from, created_by) VALUES (1, 1, 'RTK', 'EE', 'Eesti', '2026-05-26', 1);
-INSERT INTO ljvis2.classifier_value_latest (classifier_value_id, classifier_id, classifier_code, code, name, valid_from, created_by) VALUES (2, 1, 'RTK', 'LV', 'Läti', '2026-05-26', 1);
-INSERT INTO ljvis2.classifier_value_latest (classifier_value_id, classifier_id, classifier_code, code, name, valid_from, created_by) VALUES (3, 1, 'RTK', 'LT', 'Leedu', '2026-05-26', 1);
+INSERT INTO ljvis2.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+SELECT nextval('ljvis2.seq_classifier_value_key'),
+       (SELECT classifier_key FROM ljvis2.classifier WHERE code = 'RTK' ORDER BY created_at DESC LIMIT 1),
+       'LT', 'Leedu', '2026-05-26', NULL, 'ljvis2';

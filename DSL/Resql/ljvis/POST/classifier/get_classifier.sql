@@ -1,12 +1,11 @@
-SELECT
-    cl.classifier_id     AS "id",
-    cl.code              AS "code",
-    cl.name              AS "name",
-    cl.description       AS "description",
-    cl.created_at        AS "createdAt",
-    cl.created_by        AS "createdBy"
-FROM ljvis2.classifier_latest cl
-WHERE cl.classifier_id = :id::BIGINT
-  AND cl.id = (
-    SELECT MAX(id) FROM ljvis2.classifier_latest WHERE classifier_id = :id::BIGINT
-);
+SELECT DISTINCT ON (classifier_key)
+    classifier_key   AS id,
+    code,
+    name,
+    description,
+    created_at       AS "createdAt",
+    created_by       AS "createdBy"
+FROM ljvis2.classifier
+WHERE classifier_key = :id::BIGINT
+ORDER BY classifier_key, created_at DESC
+LIMIT 1;

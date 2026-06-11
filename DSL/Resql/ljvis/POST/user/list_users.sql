@@ -50,8 +50,8 @@ declaration:
         type: number
 */
 WITH latest AS (
-    SELECT DISTINCT ON (user_account_id)
-        user_account_id,
+    SELECT DISTINCT ON (user_account_key)
+        user_account_key,
         personal_code,
         first_name,
         last_name,
@@ -62,11 +62,11 @@ WITH latest AS (
         access_end,
         status,
         user_groups
-    FROM ljvis2.user_account_latest
-    ORDER BY user_account_id, created_at DESC
+    FROM ljvis2.user_account
+    ORDER BY user_account_key, created_at DESC
 )
 SELECT
-    l.user_account_id AS id,
+    l.user_account_key AS id,
     l.first_name,
     l.last_name,
     l.personal_code,
@@ -77,8 +77,12 @@ SELECT
     l.access_start,
     l.access_end,
     COALESCE(
-        (SELECT ARRAY_AGG(elem->>'name')
-         FROM JSONB_ARRAY_ELEMENTS(l.user_groups) AS elem),
+        (SELECT ARRAY_AGG(
+             (SELECT name FROM ljvis2.user_group
+              WHERE user_group_key = grp_key
+              ORDER BY created_at DESC LIMIT 1)
+         )
+         FROM UNNEST(l.user_groups) AS grp_key),
         ARRAY[]::TEXT[]
     ) AS user_groups,
     (COUNT(*) OVER ())::INTEGER AS total

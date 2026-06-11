@@ -38,18 +38,6 @@ updateName:
       name: ${name}
       created_by: ${created_by}
   result: res
-  next: rebuildLatest
-
-rebuildLatest:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user_group/rebuild_user_group_latest"
-    headers:
-      type: json
-    body:
-      user_group_id: ${user_group_id}
-      created_by: ${created_by}
-  result: latestRes
   next: returnSuccess
 
 returnSuccess:

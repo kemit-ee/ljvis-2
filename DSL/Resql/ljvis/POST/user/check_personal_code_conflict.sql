@@ -18,13 +18,9 @@ declaration:
       - field: id
         type: string
 */
-SELECT ual.user_account_id AS id
-FROM ljvis2.user_account_latest ual
-WHERE ual.personal_code = :personal_code
-  AND (COALESCE(:id, '') = '' OR ual.user_account_id != :id::BIGINT)
-  AND ual.id = (
-      SELECT id FROM ljvis2.user_account_latest ual2
-      WHERE ual2.user_account_id = ual.user_account_id
-      ORDER BY ual2.created_at DESC LIMIT 1
-  )
+SELECT DISTINCT ON (ua.user_account_key) ua.user_account_key AS id
+FROM ljvis2.user_account ua
+WHERE ua.personal_code = :personal_code
+  AND (COALESCE(:id, '') = '' OR ua.user_account_key != :id::BIGINT)
+ORDER BY ua.user_account_key, ua.created_at DESC
 LIMIT 1;

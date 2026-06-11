@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Insert a new classifier value"
+  description: "Create a new classifier value — full snapshot INSERT"
   method: post
   namespace: classifier
   returns: json
@@ -9,32 +9,33 @@ declaration:
     body:
       - field: classifier_id
         type: string
-        description: "Classifier ID"
+        description: "classifier_key of the owning classifier"
       - field: code
         type: string
-        description: "Classifier value code"
       - field: name
         type: string
-        description: "Classifier value name"
+      - field: valid_from
+        type: string
+      - field: valid_until
+        type: string
       - field: created_by
         type: string
-        description: "User ID who created the value"
   response:
     fields:
       - field: id
-        type: string
+        type: number
 */
 INSERT INTO ljvis2.classifier_value (
-  classifier_id,
-  code,
-  name,
-  created_by
+    classifier_value_key, classifier_key,
+    code, name, valid_from, valid_until, created_by
 )
 VALUES (
-  :classifier_id::BIGINT,
-  :code,
-  :name,
-  :created_by::BIGINT
+    nextval('ljvis2.seq_classifier_value_key'),
+    :classifier_id::BIGINT,
+    :code,
+    :name,
+    :valid_from::DATE,
+    CASE WHEN COALESCE(:valid_until, '') = '' THEN NULL ELSE :valid_until::DATE END,
+    :created_by
 )
-RETURNING
-  id;
+RETURNING classifier_value_key AS id;

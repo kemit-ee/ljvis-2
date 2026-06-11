@@ -20,17 +20,17 @@ declaration:
         type: string
 */
 WITH latest AS (
-    SELECT DISTINCT ON (user_group_id)
-        user_group_id,
+    SELECT DISTINCT ON (user_group_key)
+        user_group_key,
         permissions
-    FROM ljvis2.user_group_latest
-    ORDER BY user_group_id, created_at DESC
+    FROM ljvis2.user_group
+    WHERE user_group_key = :user_group_id::BIGINT
+    ORDER BY user_group_key, created_at DESC
 )
 SELECT
-    (elem->>'id')::BIGINT AS permission_id,
-    elem->>'code'         AS code,
-    elem->>'description'  AS description
-FROM latest,
-     JSONB_ARRAY_ELEMENTS(permissions) AS elem
-WHERE user_group_id = :user_group_id::BIGINT
-ORDER BY code;
+    p.id          AS permission_id,
+    p.code,
+    p.description
+FROM ljvis2.permission p
+WHERE p.code IN (SELECT UNNEST(permissions) FROM latest)
+ORDER BY p.code;
