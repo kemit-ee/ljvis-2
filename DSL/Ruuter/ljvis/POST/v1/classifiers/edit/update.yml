@@ -72,9 +72,9 @@ checkClassifier:
   switch:
     - condition: ${field_error != 'valid'}
       next: propagate_error
-  next: createClassifierNameState
+  next: updateClassifier
 
-createClassifierNameState:
+updateClassifier:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/classifier/update_classifier"
@@ -85,19 +85,7 @@ createClassifierNameState:
       name: ${name}
       description: ${description}
       created_by: ${created_by}
-  result: nameStateRes
-  next: rebuildLatest
-
-rebuildLatest:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/classifier/rebuild_classifier_latest"
-    headers:
-      type: json
-    body:
-      classifier_id: ${id}
-      created_by: ${created_by}
-  result: latestRes
+  result: updatedRes
   next: buildAuditEvent
 
 buildAuditEvent:
@@ -125,7 +113,7 @@ logAuditEvent:
   next: returnSuccess
 
 returnSuccess:
-  return: ${nameStateRes.response.body}
+  return: ${updatedRes.response.body}
   next: end
 
 propagate_error:

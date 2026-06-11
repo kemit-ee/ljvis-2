@@ -66,9 +66,9 @@ calculateChangedFields:
     valid_from: ${valid_from}
     valid_until: ${valid_until}
   result: changedFieldsResult
-  next: createClassifierValueValidityState
+  next: updateClassifierValue
 
-createClassifierValueValidityState:
+updateClassifierValue:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/classifier/update_classifier_value"
@@ -80,19 +80,7 @@ createClassifierValueValidityState:
       valid_from: ${valid_from}
       valid_until: ${valid_until}
       created_by: ${created_by}
-  result: validityStateRes
-  next: rebuildLatest
-
-rebuildLatest:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/classifier/rebuild_classifier_value_latest"
-    headers:
-      type: json
-    body:
-      classifier_value_id: ${classifier_value_id}
-      created_by: ${created_by}
-  result: latestRes
+  result: updatedRes
   next: buildAuditEvent
 
 buildAuditEvent:
@@ -120,5 +108,5 @@ logAuditEvent:
   next: returnSuccess
 
 returnSuccess:
-  return: ${validityStateRes.response.body}
+  return: ${updatedRes.response.body}
   next: end

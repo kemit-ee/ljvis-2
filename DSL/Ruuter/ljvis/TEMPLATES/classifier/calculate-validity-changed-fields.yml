@@ -15,10 +15,10 @@ declaration:
       - field: valid_until
         type: string
 
-getLatestValidityState:
+getClassifierCode:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/classifier/get_latest_classifier_value_validity_state"
+    url: "[#LJVIS_RESQL]/classifier/get_classifier_value"
     headers:
       type: json
     body:

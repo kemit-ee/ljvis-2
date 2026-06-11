@@ -1,6 +1,6 @@
 SELECT DISTINCT ON (cv.classifier_value_key)
     cv.classifier_key   AS classifier_id,
-    cv.classifier_value_key,
+    cv.classifier_value_key AS classifier_value_id,
     (SELECT DISTINCT ON (c.classifier_key) c.code
      FROM ljvis2.classifier c
      WHERE c.classifier_key = cv.classifier_key

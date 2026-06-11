@@ -37,6 +37,22 @@ extractRequestData:
     created_by: "${auth_user.personalcode || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+  next: getClassifierCode
+
+getClassifierCode:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier"
+    headers:
+      type: json
+    body:
+      id: ${classifier_id}
+  result: classifierRes
+  next: setClassifierCode
+
+setClassifierCode:
+  assign:
+    classifier_code: "${classifierRes.response.body[0].code  || ''}"
   next: insertClassifierValue
 
 insertClassifierValue:
@@ -53,37 +69,11 @@ insertClassifierValue:
       valid_until: ${valid_until}
       created_by: ${created_by}
   result: insertRes
-  next: createClassifierValueValidityState
-
-createClassifierValueValidityState:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/classifier/insert_classifier_value_validity_state"
-    headers:
-      type: json
-    body:
-      classifier_value_id: ${insertRes.response.body[0].id}
-      valid_from: ${valid_from}
-      valid_until: ${valid_until}
-      created_by: ${created_by}
-  result: validityStateRes
-  next: rebuildLatest
-
-rebuildLatest:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/classifier/rebuild_classifier_value_latest"
-    headers:
-      type: json
-    body:
-      classifier_value_id: ${insertRes.response.body[0].id}
-      created_by: ${created_by}
-  result: latestRes
   next: buildAuditData
 
 buildAuditData:
   assign:
-    classifier_code: "${latestRes.response.body[0].classifierCode || ''}"
+    classifier_code: ${classifier_code}
     classifier_value_id: "${insertRes.response.body[0].id}"
     description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}"
     log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
@@ -107,5 +97,5 @@ logAuditEvent:
   next: returnSuccess
 
 returnSuccess:
-  return: ${validityStateRes.response.body}
+  return: ${insertRes.response.body}
   next: end
