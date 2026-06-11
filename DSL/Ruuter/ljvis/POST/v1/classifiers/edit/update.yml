@@ -28,7 +28,7 @@ extractRequestData:
     id: "${incoming.body.id}"
     name: "${incoming.body.name}"
     description: "${incoming.body.description}"
-    created_by: "${auth_user.id}"
+    created_by: "${auth_user.personalcode}"
   next: validateClassifier
 
 validateClassifier:
@@ -49,7 +49,7 @@ checkClassifier:
 createClassifierNameState:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/classifier/insert_classifier_name_state"
+    url: "[#LJVIS_RESQL]/classifier/update_classifier"
     headers:
       type: json
     body:
@@ -58,18 +58,6 @@ createClassifierNameState:
       description: ${description}
       created_by: ${created_by}
   result: nameStateRes
-  next: rebuildLatest
-
-rebuildLatest:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/classifier/rebuild_classifier_latest"
-    headers:
-      type: json
-    body:
-      classifier_id: ${id}
-      created_by: ${created_by}
-  result: latestRes
   next: returnSuccess
 
 returnSuccess:

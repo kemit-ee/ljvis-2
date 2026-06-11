@@ -19,6 +19,9 @@ tim-db/
 .env
 .env.local
 .env.*.local
+.env.tara
+
+.actrc
 
 .ai
 
