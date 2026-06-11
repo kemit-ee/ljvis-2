@@ -1,0 +1,34 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get audit log details by id"
+  method: post
+  accepts: json
+  returns: json
+  namespace: logs
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "Audit log id"
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+  next: getLog
+
+getLog:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/get_audit_event"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+
+
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

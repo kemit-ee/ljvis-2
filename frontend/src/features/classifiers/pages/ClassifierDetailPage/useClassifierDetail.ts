@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { Classifier, ClassifierValue } from '../../types';
 import { getClassifier, getClassifierValues } from '../../api';
@@ -15,9 +15,12 @@ export function useClassifierDetail(id: string | undefined) {
     pageIndex: 0,
     pageSize: 20,
   });
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoading(true);
     try {
       const [classifiers, values] = await Promise.all([
@@ -39,6 +42,7 @@ export function useClassifierDetail(id: string | undefined) {
       console.error('Failed to load classifier', e);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, [id, classifierValueSearch, pagination, sorting]);
 

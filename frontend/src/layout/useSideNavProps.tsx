@@ -75,6 +75,14 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.AUDIT_READ)) {
+      adminSubItems.push({
+        children: t('nav.logs'),
+        to: '/logs',
+        isActive: pathname.startsWith('/logs'),
+      });
+    }
+
     const adminIsActive = adminSubItems.some((item) => item.isActive);
 
     items.push({

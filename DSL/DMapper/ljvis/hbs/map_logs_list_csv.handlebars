@@ -1,0 +1,17 @@
+{
+    "content": [
+        {{#each logs}}
+        {
+            "id": "{{this.id}}",
+            "eventType": "{{this.eventType}}",
+            "eventCategory": "{{this.eventCategory}}",
+            "actorName": "{{this.actorName}}",
+            "actorPersonalCode": "{{this.actorPersonalCode}}",
+            "description": "{{this.description}}",
+            "logContent": "{{this.logContent}}",
+            "createdAt": "{{this.createdAt}}",
+            "createdBy": "{{this.createdBy}}"
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ]
+}

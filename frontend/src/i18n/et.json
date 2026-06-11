@@ -24,7 +24,8 @@
     "users": "Kasutajad",
     "administration": "Haldus",
     "userGroups": "Kasutajagrupid",
-    "classifiers": "Klassifikaatorid"
+    "classifiers": "Klassifikaatorid",
+    "logs": "Logid"
   },
   "desktop": {
     "title": "Töölaud"
@@ -162,6 +163,19 @@
         "required": "Kohustuslik väli"
       }
     }
+  },
+  "logs": {
+    "title": "Logid",
+    "viewDetails": "Vaata",
+    "date": "Kuupäev",
+    "person": "Isik",
+    "eventCategory": "Kategooria",
+    "eventType": "Tüüp",
+    "description": "Kirjeldus",
+    "content": "Logi sisu",
+    "exportCsv": "Ekspordi CSV",
+    "data": "Auditikirje andmed",
+    "dataTitle": "Auditikirje"
   },
   "common": {
     "loading": "Laadimine...",
