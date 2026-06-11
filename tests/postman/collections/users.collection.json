@@ -155,7 +155,7 @@
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
         "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/read/check-personal-code-exists", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "read", "check-personal-code-exists"]},
-        "body": {"mode": "raw", "raw": "{\"personalCode\": \"38001085718\"}"}
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"60001019906\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 409 for existing personal code', () => pm.response.to.have.status(409));"

@@ -25,18 +25,18 @@
     },
     {
       "key": "pc_admin",
-      "value": "38001085718",
+      "value": "60001019906",
       "enabled": true,
       "description": "Super Admin personal code — seeded by tests/bootstrap/seed-admin.sql"
     },
     {
       "key": "pc_org_admin",
-      "value": "48004115799",
+      "value": "60001017727",
       "enabled": true
     },
     {
       "key": "pc_user",
-      "value": "39001011234",
+      "value": "60001017869",
       "enabled": true
     },
     {
