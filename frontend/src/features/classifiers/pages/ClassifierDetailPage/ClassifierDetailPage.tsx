@@ -43,6 +43,7 @@ export function ClassifierDetailPage() {
     setShowUserClassifierValueEditedAlert,
   ] = useState(!!locationState?.justEdited);
   const skipAudit = !!(locationState?.justCreated || locationState?.justEdited || locationState?.backPressed);
+  const [skipAuditForClassifierSave, setSkipAuditForClassifierSave] = useState(false);
   const [isEditActive, setIsEditActive] = useState(false);
   const [showOnlyValid, setShowOnlyValid] = useState(true);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -91,7 +92,7 @@ export function ClassifierDetailPage() {
     setPagination,
     sorting,
     setSorting,
-  } = useClassifierDetail(id, skipAudit);
+  } = useClassifierDetail(id, skipAudit || skipAuditForClassifierSave);
 
   const handleEditSaved = () => {
     setIsEditActive(false);
@@ -116,6 +117,7 @@ export function ClassifierDetailPage() {
 
   const handleSaveClick = () => {
     formik.submitForm();
+    setSkipAuditForClassifierSave(true);
   };
 
   const handleRowClick = useCallback(
