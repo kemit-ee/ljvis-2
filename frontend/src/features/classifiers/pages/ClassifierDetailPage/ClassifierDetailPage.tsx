@@ -33,14 +33,16 @@ export function ClassifierDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const locationState = location.state as { justCreated?: boolean; justEdited?: boolean; backPressed?: boolean } | null;
   const [showClassifierValueAddedAlert, setShowClassifierValueAddedAlert] =
-    useState(!!(location.state as { justCreated?: boolean })?.justCreated);
+    useState(!!locationState?.justCreated);
   const [showClassifierEditedAlert, setShowClassifierEditedAlert] =
     useState(false);
   const [
     showClassifierValueEditedAlert,
     setShowUserClassifierValueEditedAlert,
-  ] = useState(false);
+  ] = useState(!!locationState?.justEdited);
+  const skipAudit = !!(locationState?.justCreated || locationState?.justEdited || locationState?.backPressed);
   const [isEditActive, setIsEditActive] = useState(false);
   const [showOnlyValid, setShowOnlyValid] = useState(true);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -89,7 +91,7 @@ export function ClassifierDetailPage() {
     setPagination,
     sorting,
     setSorting,
-  } = useClassifierDetail(id);
+  } = useClassifierDetail(id, skipAudit);
 
   const handleEditSaved = () => {
     setIsEditActive(false);
@@ -220,7 +222,7 @@ export function ClassifierDetailPage() {
           type="success"
           size="small"
         >
-          {t('users.userEditedNote')}
+          {t('classifiers.editedNote')}
         </Alert>
       )}
       {showClassifierValueEditedAlert && (
@@ -231,7 +233,7 @@ export function ClassifierDetailPage() {
           type="success"
           size="small"
         >
-          {t('users.userGroupEditedNote')}
+          {t('classifiers.valueEditedNote')}
         </Alert>
       )}
       <Button

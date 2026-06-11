@@ -43,4 +43,4 @@ FROM ljvis2.classifier_value cv
     WHERE classifier_value_id = :classifier_value_id::BIGINT
     ORDER BY created_at DESC, id DESC LIMIT 1) cvvs
 WHERE cv.id = :classifier_value_id::BIGINT
-RETURNING id;
+RETURNING id, classifier_code;

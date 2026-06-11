@@ -32,7 +32,7 @@ export function ClassifierValueEditPage() {
     refetch();
     if (id) {
       navigate(`/classifiers/${id}`, {
-        state: { justCreated: true },
+        state: { justEdited: true },
       });
     }
   };
@@ -51,7 +51,7 @@ export function ClassifierValueEditPage() {
     <div>
       <Button
         visualType="link"
-        onClick={() => navigate(`/classifiers/${id}`)}
+        onClick={() => navigate(`/classifiers/${id}`, {state: { backPressed: true }})}
         iconLeft="arrow_back"
       >
         {t('common.back')}
