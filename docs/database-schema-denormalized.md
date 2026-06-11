@@ -1,13 +1,12 @@
 # LJVIS2 uus andmebaasi skeem
 
-See dokument kirjeldab **uut denormaliseeritud andmemudelit**, mis tuli `feature/denormalized-tables` Liquibase skriptidest.
+See dokument kirjeldab **uut denormaliseeritud andmemudelit**.
 
 ## Peamised muutused
 
-- **Vana normaliseeritud mudel** on asendatud **INSERT-only snapshot** mudeliga
-- `user_account` ja `user_group` hoiavad nüüd ühes reas kogu hetke-snapshoti
+- **Vana normaliseeritud mudel** on asendatud **INSERT-only** mudeliga
 - eraldi `*_state`, `*_latest` ja junction-tabeleid enam põhiskeemis ei ole
-- domeenid on jagatud eraldi skeemidesse: `common`, `user_mgmt`, `classifier`
+- tabelid on jagatud skeemidesse: `users` (kasutajahaldus), `classifier` (klassifikaatorid) ja `audit` (audit log)
 - mitmed seosed on nüüd hoitud **array-väljades** või **loogiliste võtmetena**, mitte klassikaliste FK-dena
 
 ## Nimekonventsioon
@@ -20,7 +19,7 @@ See dokument kirjeldab **uut denormaliseeritud andmemudelit**, mis tuli `feature
 
 ```mermaid
 erDiagram
-    common_organisation {
+    users_organisation {
         BIGSERIAL id PK
         VARCHAR name
         VARCHAR code UK
@@ -28,7 +27,7 @@ erDiagram
         VARCHAR created_by
     }
 
-    common_permission {
+    users_permission {
         BIGSERIAL id PK
         VARCHAR code UK
         VARCHAR description
@@ -36,7 +35,7 @@ erDiagram
         VARCHAR created_by
     }
 
-    user_mgmt_user_group {
+    users_user_group {
         BIGSERIAL id PK
         BIGINT user_group_key
         VARCHAR name
@@ -46,7 +45,7 @@ erDiagram
         VARCHAR created_by
     }
 
-    user_mgmt_user_account {
+    users_user_account {
         BIGSERIAL id PK
         BIGINT user_account_key
         VARCHAR personal_code
@@ -88,38 +87,50 @@ erDiagram
         VARCHAR created_by
     }
 
-    common_organisation ||--o{ user_mgmt_user_account : "organisation_id"
+    audit_audit_event {
+        BIGSERIAL id PK
+        VARCHAR event_type
+        VARCHAR event_category
+        VARCHAR actor_name
+        VARCHAR actor_personal_code
+        VARCHAR description
+        JSONB log_content
+        TIMESTAMPTZ created_at
+        VARCHAR created_by
+    }
+
+    users_organisation ||--o{ users_user_account : "organisation_id"
     classifier_classifier ||--o{ classifier_classifier_value : "logical via classifier_key"
 
-    common_organisation }o..o{ user_mgmt_user_group : "logical via organisations[]"
-    common_permission }o..o{ user_mgmt_user_group : "logical via permissions[]"
-    user_mgmt_user_group }o..o{ user_mgmt_user_account : "logical via user_groups[]"
+    users_organisation }o..o{ users_user_group : "logical via organisations[]"
+    users_permission }o..o{ users_user_group : "logical via permissions[]"
+    users_user_group }o..o{ users_user_account : "logical via user_groups[]"
 ```
 
 ## Tabelid
 
-### `common.organisation`
+### `users.organisation`
 
 Püsikataloog organisatsioonidele.
 
 - Füüsiline PK: `id`
 - Ärivõti: `code`
-- Sellele viitab `user_mgmt.user_account.organisation_id`
+- Sellele viitab `users.user_account.organisation_id`
 
-### `common.permission`
+### `users.permission`
 
 Püsikataloog õigustele.
 
 - Füüsiline PK: `id`
 - Ärivõti: `code`
-- `user_mgmt.user_group.permissions` hoiab õigusi `TEXT[]` kujul permission code väärtustena
+- `users.user_group.permissions` hoiab õigusi `TEXT[]` kujul permission code väärtustena
 
-### `user_mgmt.user_group`
+### `users.user_group`
 
 Denormaliseeritud kasutajagrupi snapshot-tabel.
 
 - Füüsiline PK: `id`
-- Loogiline identiteet: `user_group_key`
+- Loogiline identiteet: `user_group_key` (võetakse `users.seq_user_group_key` järjestusest)
 - Iga muudatus lisab **uue täieliku rea**
 - Kehtiv seis leitakse: latest row per `user_group_key`
 
@@ -127,18 +138,18 @@ Olulised väljad:
 
 - `organisations BIGINT[]`
   - organisatsioonide ID-de massiiv
-  - loogiline seos `common.organisation.id` vastu
+  - loogiline seos `users.organisation.id` vastu
 
 - `permissions TEXT[]`
   - õiguste koodide massiiv
-  - loogiline seos `common.permission.code` vastu
+  - loogiline seos `users.permission.code` vastu
 
-### `user_mgmt.user_account`
+### `users.user_account`
 
 Denormaliseeritud kasutaja snapshot-tabel.
 
 - Füüsiline PK: `id`
-- Loogiline identiteet: `user_account_key`
+- Loogiline identiteet: `user_account_key` (võetakse `users.seq_user_account_key` järjestusest)
 - Iga muudatus lisab **uue täieliku rea**
 - Kehtiv seis leitakse: latest row per `user_account_key`
 
@@ -146,21 +157,21 @@ Olulised väljad:
 
 - `organisation_id`
   - ainus klassikaline FK selles põhiosas
-  - viitab `common.organisation.id`
+  - viitab `users.organisation.id`
 
 - `organisation_name`
   - hoitakse denormaliseeritult rea sees
 
 - `user_groups BIGINT[]`
   - kasutajale kuuluvate gruppide `user_group_key` massiiv
-  - loogiline seos `user_mgmt.user_group.user_group_key` vastu
+  - loogiline seos `users.user_group.user_group_key` vastu
 
 ### `classifier.classifier`
 
 Denormaliseeritud klassifikaatori snapshot-tabel.
 
 - Füüsiline PK: `id`
-- Loogiline identiteet: `classifier_key`
+- Loogiline identiteet: `classifier_key` (võetakse `classifier.seq_classifier_key` järjestusest)
 - `code` on ärikood
 - Iga muudatus lisab uue snapshot-rea
 
@@ -169,9 +180,39 @@ Denormaliseeritud klassifikaatori snapshot-tabel.
 Denormaliseeritud klassifikaatori väärtuse snapshot-tabel.
 
 - Füüsiline PK: `id`
-- Loogiline identiteet: `classifier_value_key`
+- Loogiline identiteet: `classifier_value_key` (võetakse `classifier.seq_classifier_value_key` järjestusest)
 - `classifier_key` viitab loogiliselt klassifikaatorile
 - DB tasemel FK-d ei ole, sest `classifier.classifier.classifier_key` ei ole unikaalne snapshot-mudelis
+
+### `audit.audit_event`
+
+INSERT-only audit logi tabel.
+
+- Füüsiline PK: `id`
+- Iga audit sündmus lisab uue rea
+- Täielikult denormaliseeritud - ei ole FK-d teistele tabelitele
+- `log_content` on JSONB väli, mis hoiab sündmuse-spetsiifilisi andmeid
+
+Olulised väljad:
+
+- `event_type VARCHAR(100)`
+  - sündmuse tüüp kujul `resource.action[.qualifier]` (nt `user.create`, `auth.login.success`)
+  - definitsioonid on rakenduse koodis, mitte kataloogitabelis
+
+- `event_category VARCHAR(50)`
+  - sündmuse kategooria filtreerimiseks: `authentication`, `user_management`, `classifier_management`, `access_control`, `system_process`
+
+- `actor_name VARCHAR(400)`
+  - tegija kuvatav nimi (nt "Mari Mustikas")
+  - denormaliseeritud tekst - ei ole FK kasutajale
+
+- `actor_personal_code VARCHAR(50)`
+  - tegija isikukood
+  - salvestatud selges tekstis audit logis
+
+- `log_content JSONB`
+  - paindlik JSONB väli sündmuse-spetsiifilistele andmetele
+  - võimalikud võtmed: `targetPersonalCode`, `targetName`, `organisationId`, `scope`, `searchTerm`, `displayedPersonalCodes`, `changedFields`, `addedGroups`, `removedGroups`, jne
 
 ## Seoste tõlgendus
 
@@ -181,15 +222,15 @@ Uues mudelis tuleb eristada kahte tüüpi seoseid.
 
 Need on päriselt andmebaasi constraintid:
 
-- `user_mgmt.user_account.organisation_id -> common.organisation.id`
+- `users.user_account.organisation_id -> users.organisation.id`
 
 ### Loogilised seosed
 
 Need eksisteerivad andmemudelis, aga mitte klassikalise FK-na:
 
-- `user_mgmt.user_group.organisations[] -> common.organisation.id`
-- `user_mgmt.user_group.permissions[] -> common.permission.code`
-- `user_mgmt.user_account.user_groups[] -> user_mgmt.user_group.user_group_key`
+- `users.user_group.organisations[] -> users.organisation.id`
+- `users.user_group.permissions[] -> users.permission.code`
+- `users.user_account.user_groups[] -> users.user_group.user_group_key`
 - `classifier.classifier_value.classifier_key -> classifier.classifier.classifier_key`
 
 ## Snapshot-mudeli loogika
@@ -201,21 +242,36 @@ Selle asemel:
 - iga muudatus lisab **uue rea**
 - kehtiv seis leitakse `created_at` järgi
 - loogiline identiteet ei ole füüsiline PK, vaid:
-  - `user_account_key`
-  - `user_group_key`
-  - `classifier_key`
-  - `classifier_value_key`
+  - `user_account_key` (võetakse `users.seq_user_account_key` järjestusest)
+  - `user_group_key` (võetakse `users.seq_user_group_key` järjestusest)
+  - `classifier_key` (võetakse `classifier.seq_classifier_key` järjestusest)
+  - `classifier_value_key` (võetakse `classifier.seq_classifier_value_key` järjestusest)
+
+## Järjestused (Sequences)
+
+Loogiliste identiteetide genereerimiseks kasutatakse PostgreSQL järjestusi:
+
+**Users skeem:**
+- `users.seq_user_account_key` - genereerib `user_account_key` väärtused
+- `users.seq_user_group_key` - genereerib `user_group_key` väärtused
+
+**Classifier skeem:**
+- `classifier.seq_classifier_key` - genereerib `classifier_key` väärtused
+- `classifier.seq_classifier_value_key` - genereerib `classifier_value_key` väärtused
+
+Iga uus kasutaja, grupp või klassifikaator saab unikaalse loogilise võtme vastavast järjestusest, mis jääb muutumatuks kogu olemasolu ajal, isegi kui füüsilised read muutuvad.
 
 ## Skeemi lühivaade
 
 ```mermaid
 flowchart LR
-    ORG[common.organisation]
-    PERM[common.permission]
-    UG[user_mgmt.user_group\nuser_group_key\norganisations[]\npermissions[]]
-    UA[user_mgmt.user_account\nuser_account_key\norganisation_id\nuser_groups[]]
+    ORG[users.organisation]
+    PERM[users.permission]
+    UG[users.user_group\nuser_group_key\norganisations[]\npermissions[]]
+    UA[users.user_account\nuser_account_key\norganisation_id\nuser_groups[]]
     C[classifier.classifier\nclassifier_key]
     CV[classifier.classifier_value\nclassifier_value_key\nclassifier_key]
+    AE[audit.audit_event\nevent_type\nlog_content JSONB]
 
     UA --> ORG
     UG -. organisations[] .-> ORG
@@ -240,13 +296,4 @@ Denormaliseeritud mudel asendab varasema lähenemise, kus olid eraldi:
 - `classifier_latest`
 - `classifier_value_latest`
 
-## Kokkuvõte
 
-Uus mudel on:
-
-- **snapshot-põhine**
-- **denormaliseeritud**
-- osaliselt **array-põhiste loogiliste seostega**
-- lugemisel taastatav `latest row per logical key` loogikaga
-
-Infra või arenduse vaatest on kõige olulisem mõista, et see ei ole enam klassikaline tugevalt FK-dega normaliseeritud ER-mudel, vaid **append-only loogikaga snapshot-andmemudel**.

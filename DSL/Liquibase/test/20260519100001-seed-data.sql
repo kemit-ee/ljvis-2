@@ -50,38 +50,38 @@ VALUES (
 );
 
 -- user_accounts — single full snapshot per user (v2: all fields + user_groups as JSONB array of user_group_key values)
--- user_account_key = 1: Super Admin (60001019906) — member of groups 1 and 2
+-- user_account_key = 1: Super Admin (38001085718) — member of groups 1 and 2
 INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, status, user_groups, created_by
 ) VALUES (
     nextval('users.seq_user_account_key'),
-    '60001019906', 'Admin', 'Super',
+    '38001085718', 'Admin', 'Super',
     1, 'Justiitsministeerium', 'LÕUNA PREFEKTUUR', 'Spetsialist',
     'admin.super@just.ee', '56789012', '2026-01-01', 'active', ARRAY[1,2]::BIGINT[], 'ljvis2'
 );
 
--- user_account_key = 2: Org Admin (60001017727) — member of group 2
+-- user_account_key = 2: Org Admin (48004115799) — member of group 2
 INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, status, user_groups, created_by
 ) VALUES (
     nextval('users.seq_user_account_key'),
-    '60001017727', 'Org', 'Admin',
+    '48004115799', 'Org', 'Admin',
     2, 'Sotsiaalministeerium', 'IDA PREFEKTUUR', 'Spetsialist',
     'org.admin@kollane.ee', '123', '2026-02-02', 'active', ARRAY[2]::BIGINT[], 'ljvis2'
 );
 
--- user_account_key = 3: Mari Tamm (60001017869) — no groups
+-- user_account_key = 3: Mari Tamm (39001011234) — no groups
 INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, status, user_groups, created_by
 ) VALUES (
     nextval('users.seq_user_account_key'),
-    '60001017869', 'Mari', 'Tamm',
+    '39001011234', 'Mari', 'Tamm',
     3, 'Haridusministeerium', 'KLIM', 'Teadur',
     'mari.tamm@roheline.ee', '56789012', '2025-01-01', 'active', '{}'::BIGINT[], 'ljvis2'
 );
