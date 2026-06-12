@@ -21,6 +21,14 @@ declaration:
         type: string
         description: "Sorting"
 
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
 extractRequestData:
   assign:
     search: "${incoming.body.search ?? ''}"
@@ -28,6 +36,8 @@ extractRequestData:
     page_size: "${incoming.body.pageSize ?? 20}"
     sorting: "${incoming.body.sorting ?? 'status asc'}"
     organisation_id: ""
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getUsers
 
 getUsers:
@@ -43,6 +53,7 @@ getUsers:
       sorting: ${sorting}
       organisation_id: ${organisation_id}
   result: res
+  next: mapResponse
 
 mapResponse:
   call: http.post
@@ -53,6 +64,82 @@ mapResponse:
     body:
       users: ${res.response.body}
   result: mapped
+  next: setDefaults
+
+setDefaults:
+  assign:
+    result_count: ${mapped.response.body.total}
+    view_description: "Kasutajate nimekiri, leht ${page}, tulemusi 0"
+    view_log_content: "{\"page\":${page},\"pageSize\":${page_size},\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"displayedPersonalCodes\":[],\"scope\":\"allOrganisations\",\"organisationId\":null}"
+  next: checkSearch
+
+checkSearch:
+  switch:
+    - condition: ${search.length >= 3}
+      next: logSearchEvent
+  next: extractPersonalCodes
+
+logSearchEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user.list.search"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: "Otsing '${search}'"
+      log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"allOrganisations\",\"organisationId\":null}"
+      created_by: ${actor_name}
+  result: audit_result
+  next: extractPersonalCodes
+
+extractPersonalCodes:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_personal_codes"
+    headers:
+      type: json
+    body:
+      users: ${res.response.body}
+  result: personal_codes_result
+  next: setPersonalCode
+
+setPersonalCode:
+  assign:
+    personal_codes: "${personal_codes_result.response.body}"
+  next: checkResultCount
+
+checkResultCount:
+  switch:
+    - condition: ${result_count > 0}
+      next: setDescriptionAndLogContent
+  next: logViewEvent
+
+setDescriptionAndLogContent:
+  assign:
+    view_description: "Kasutajate nimekiri, leht ${page}, tulemusi ${result_count}: ${personal_codes}"
+    view_log_content: "{\"page\":${page},\"pageSize\":${page_size},\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"displayedPersonalCodes\":\"${personal_codes}\",\"scope\":\"allOrganisations\",\"organisationId\":null}"
+  next: logViewEvent
+
+logViewEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user.list.view"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${view_description}
+      log_content: ${view_log_content}
+      created_by: ${actor_name}
+  result: audit_result
+  next: returnSuccess
 
 returnSuccess:
   return: ${mapped.response.body}
