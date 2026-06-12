@@ -154,6 +154,8 @@
     "change": "Change",
     "switch": "Show only valid values",
     "valueAddedNote": "Classifier value has been added",
+    "editedNote": "Classifier has been edited",
+    "valueEditedNote": "Classifier value has been edited",
     "validation": {
       "required": "Required field",
       "valueConflict": "COMING",

@@ -37,10 +37,38 @@ extractRequestData:
     name: "${incoming.body.name}"
     valid_from: "${incoming.body.validFrom}"
     valid_until: "${incoming.body.validUntil ?? ''}"
-    created_by: "${auth_user.personalcode}"
-  next: createClassifierValueValidityState
+    created_by: "${auth_user.personalcode || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+  next: getClassifierCode
 
-createClassifierValueValidityState:
+getClassifierCode:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier"
+    headers:
+      type: json
+    body:
+      id: ${classifier_id}
+  result: classifierRes
+  next: setClassifierCode
+
+setClassifierCode:
+  assign:
+    classifier_code: "${classifierRes.response.body[0].code  || ''}"
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "[#LJVIS_PROJECT_LAYER]/classifier/calculate-validity-changed-fields"
+  requestType: templates
+  body:
+    classifier_value_id: ${classifier_value_id}
+    valid_from: ${valid_from}
+    valid_until: ${valid_until}
+  result: changedFieldsResult
+  next: updateClassifierValue
+
+updateClassifierValue:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/classifier/update_classifier_value"
@@ -52,9 +80,33 @@ createClassifierValueValidityState:
       valid_from: ${valid_from}
       valid_until: ${valid_until}
       created_by: ${created_by}
-  result: validityStateRes
+  result: updatedRes
+  next: buildAuditEvent
+
+buildAuditEvent:
+  assign:
+    changed_fields: ${changedFieldsResult}
+    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), väärtus '${code}' (ID ${classifier_value_id}), muudetud väljad: ${changed_fields}"
+    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"changedFields\":${changed_fields},\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "classifier_value.update"
+      event_category: "classifier_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${description}
+      log_content: ${log_content}
+      created_by: ${actor_name}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:
-  return: ${validityStateRes.response.body}
+  return: ${updatedRes.response.body}
   next: end

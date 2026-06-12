@@ -28,7 +28,35 @@ extractRequestData:
     id: "${incoming.body.id}"
     name: "${incoming.body.name}"
     description: "${incoming.body.description}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+  next: getClassifier
+
+getClassifier:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: classifierRes
+  next: setClassifierCode
+
+setClassifierCode:
+  assign:
+    classifier_code: "${classifierRes.response.body[0].code  || ''}"
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "[#LJVIS_PROJECT_LAYER]/classifier/calculate-classifier-changed-fields"
+  requestType: templates
+  body:
+    classifier_id: ${id}
+    name: ${name}
+    description: ${description}
+  result: changedFieldsResult
   next: validateClassifier
 
 validateClassifier:
@@ -44,9 +72,9 @@ checkClassifier:
   switch:
     - condition: ${field_error != 'valid'}
       next: propagate_error
-  next: createClassifierNameState
+  next: updateClassifier
 
-createClassifierNameState:
+updateClassifier:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/classifier/update_classifier"
@@ -57,11 +85,35 @@ createClassifierNameState:
       name: ${name}
       description: ${description}
       created_by: ${created_by}
-  result: nameStateRes
+  result: updatedRes
+  next: buildAuditEvent
+
+buildAuditEvent:
+  assign:
+    changed_fields: ${changedFieldsResult}
+    description: "Klassifikaator '${classifier_code}' (ID ${id}), muudetud väljad: ${changed_fields}"
+    log_content: "{\"classifierId\":${id},\"classifierCode\":\"${classifier_code}\",\"changedFields\":${changed_fields}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "classifier.update"
+      event_category: "classifier_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${description}
+      log_content: ${log_content}
+      created_by: ${actor_name}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:
-  return: ${nameStateRes.response.body}
+  return: ${updatedRes.response.body}
   next: end
 
 propagate_error:

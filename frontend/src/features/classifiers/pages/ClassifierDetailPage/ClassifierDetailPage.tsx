@@ -1,11 +1,10 @@
-import { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
   Heading,
   Text,
-  Alert,
   Row,
   Col,
   Card,
@@ -15,6 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { Table } from '@tedi-design-system/react/community';
 import { useClassifierDetail } from './useClassifierDetail';
+import { AutoHideAlert } from '../../../../components/AutoHideAlert/AutoHideAlert';
 import { useClassifierForm } from './useClassifierForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { BREAKPOINTS } from '../../../../constants/constants';
@@ -33,14 +33,16 @@ export function ClassifierDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showClassifierValueAddedAlert, setShowClassifierValueAddedAlert] =
-    useState(!!(location.state as { justCreated?: boolean })?.justCreated);
-  const [showClassifierEditedAlert, setShowClassifierEditedAlert] =
-    useState(false);
-  const [
-    showClassifierValueEditedAlert,
-    setShowUserClassifierValueEditedAlert,
-  ] = useState(false);
+  const locationState = location.state as { alert?: { message: string } } | null;
+  const [alertMessage, setAlertMessage] = useState<string | null>(locationState?.alert?.message ?? null);
+
+  useEffect(() => {
+    if (alertMessage) {
+      const timer = setTimeout(() => setAlertMessage(null), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [alertMessage]);
+
   const [isEditActive, setIsEditActive] = useState(false);
   const [showOnlyValid, setShowOnlyValid] = useState(true);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -48,33 +50,6 @@ export function ClassifierDetailPage() {
   const canEditClassifier = hasPermission('classifier.edit');
   const canEditClassifierValue = hasPermission('classifier_value.edit');
   const forbidden = !hasPermission('classifier.read');
-
-  useEffect(() => {
-    if (showClassifierValueAddedAlert) {
-      const timer = setTimeout(() => {
-        setShowClassifierValueAddedAlert(false);
-      }, 8000);
-      return () => clearTimeout(timer);
-    }
-  }, [showClassifierValueAddedAlert]);
-
-  useEffect(() => {
-    if (showClassifierEditedAlert) {
-      const timer = setTimeout(() => {
-        setShowClassifierEditedAlert(false);
-      }, 8000);
-      return () => clearTimeout(timer);
-    }
-  }, [showClassifierEditedAlert]);
-
-  useEffect(() => {
-    if (showClassifierValueEditedAlert) {
-      const timer = setTimeout(() => {
-        setShowUserClassifierValueEditedAlert(false);
-      }, 8000);
-      return () => clearTimeout(timer);
-    }
-  }, [showClassifierValueEditedAlert]);
 
   const {
     classifier,
@@ -93,8 +68,7 @@ export function ClassifierDetailPage() {
 
   const handleEditSaved = () => {
     setIsEditActive(false);
-    setShowClassifierEditedAlert(true);
-    setShowUserClassifierValueEditedAlert(false);
+    setAlertMessage(t('classifiers.editedNote'));
     refetch();
   };
 
@@ -201,39 +175,7 @@ export function ClassifierDetailPage() {
 
   return (
     <div>
-      {showClassifierValueAddedAlert && (
-        <Alert
-          icon="check_circle"
-          className="mb-1"
-          onClose={() => setShowClassifierValueAddedAlert(false)}
-          type="success"
-          size="small"
-        >
-          {t('classifiers.valueAddedNote')}
-        </Alert>
-      )}
-      {showClassifierEditedAlert && (
-        <Alert
-          icon="check_circle"
-          className="mb-1"
-          onClose={() => setShowClassifierEditedAlert(false)}
-          type="success"
-          size="small"
-        >
-          {t('users.userEditedNote')}
-        </Alert>
-      )}
-      {showClassifierValueEditedAlert && (
-        <Alert
-          icon="check_circle"
-          className="mb-1"
-          onClose={() => setShowUserClassifierValueEditedAlert(false)}
-          type="success"
-          size="small"
-        >
-          {t('users.userGroupEditedNote')}
-        </Alert>
-      )}
+      {alertMessage && <AutoHideAlert onClose={() => setAlertMessage(null)} message={alertMessage} />}
       <Button
         visualType="link"
         onClick={() => navigate('/classifiers')}

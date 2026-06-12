@@ -25,14 +25,12 @@ export function ClassifierValueEditPage() {
   const {
     value,
     loading: valueLoading,
-    refetch,
   } = useClassifierValueDetail(valueId);
 
   const handleEditSaved = () => {
-    refetch();
     if (id) {
       navigate(`/classifiers/${id}`, {
-        state: { justCreated: true },
+        state: { alert: { message: t('classifiers.valueEditedNote') } },
       });
     }
   };

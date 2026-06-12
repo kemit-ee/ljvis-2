@@ -13,7 +13,7 @@ WITH latest AS (
 )
 SELECT
     cvl.classifier_key        AS classifier_id,
-    cvl.classifier_value_key,
+    cvl.classifier_value_key  AS classifier_value_id,
     (SELECT DISTINCT ON (c.classifier_key) c.code
      FROM ljvis2.classifier c
      WHERE c.classifier_key = cvl.classifier_key
