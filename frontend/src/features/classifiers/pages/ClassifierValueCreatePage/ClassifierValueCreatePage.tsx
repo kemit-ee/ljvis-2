@@ -24,7 +24,7 @@ export function ClassifierValueCreatePage() {
   const handleEditSaved = () => {
     if (id) {
       navigate(`/classifiers/${id}`, {
-        state: { justCreated: true },
+        state: { alert: { message: t('classifiers.valueAddedNote') } },
       });
     }
   };

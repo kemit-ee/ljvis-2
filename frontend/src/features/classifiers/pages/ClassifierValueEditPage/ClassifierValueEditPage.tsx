@@ -30,7 +30,7 @@ export function ClassifierValueEditPage() {
   const handleEditSaved = () => {
     if (id) {
       navigate(`/classifiers/${id}`, {
-        state: { justEdited: true },
+        state: { alert: { message: t('classifiers.valueEditedNote') } },
       });
     }
   };
