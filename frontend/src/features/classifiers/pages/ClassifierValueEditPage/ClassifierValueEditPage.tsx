@@ -73,7 +73,7 @@ export function ClassifierValueEditPage() {
               handleSaveClick={handleSaveClick}
               onCancel={() => {
                 formik.resetForm();
-                navigate(`/classifiers/${id}`);
+                navigate(`/classifiers/${id}`, {state: { backPressed: true }});
               }}
             />
           </Col>

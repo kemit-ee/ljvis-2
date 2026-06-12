@@ -22,7 +22,7 @@ export function ClassifierValueCreatePage() {
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('classifier_value.edit');
 
-  const { classifier, loading, refetch } = useClassifierDetail(id);
+  const { classifier, loading, refetch } = useClassifierDetail(id, true);
 
   const handleEditSaved = () => {
     refetch();
@@ -47,7 +47,7 @@ export function ClassifierValueCreatePage() {
     <div>
       <Button
         visualType="link"
-        onClick={() => navigate(`/classifiers/${classifier.id}`)}
+        onClick={() => navigate(`/classifiers/${classifier.id}`, {state: { backPressed: true }})}
         iconLeft="arrow_back"
       >
         {t('common.back')}
@@ -69,7 +69,7 @@ export function ClassifierValueCreatePage() {
               handleSaveClick={handleSaveClick}
               onCancel={() => {
                 formik.resetForm();
-                navigate(`/classifiers/${classifier.id}`);
+                navigate(`/classifiers/${classifier.id}`, {state: { backPressed: true }});
               }}
             />
           </Col>
