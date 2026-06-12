@@ -11,8 +11,8 @@ export const listClassifiers = (params?: ListApiParams) =>
     params as Record<string, unknown>,
   );
 
-export const getClassifier = (id: string, skipAudit?: boolean) =>
-  post<Classifier[]>('/v1/classifiers/read/get', { id, skipAudit });
+export const getClassifier = (id: string) =>
+  post<Classifier[]>('/v1/classifiers/read/get', { id });
 
 export const getClassifierValues = (params: {
   classifierId: string;

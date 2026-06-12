@@ -4,7 +4,7 @@ import type { Classifier, ClassifierValue } from '../../types';
 import { getClassifier, getClassifierValues } from '../../api';
 import { toSnakeCase } from '../../../../hooks/stringUtils';
 
-export function useClassifierDetail(id: string | undefined, skipAudit?: boolean) {
+export function useClassifierDetail(id: string | undefined) {
   const [classifier, setClassifier] = useState<Classifier | null>(null);
   const [classifierValues, setClassifierValues] = useState<ClassifierValue[]>([]);
   const [classifierValueSearch, setClassifierValueSearch] = useState('');
@@ -24,7 +24,7 @@ export function useClassifierDetail(id: string | undefined, skipAudit?: boolean)
     setLoading(true);
     try {
       const [classifiers, values] = await Promise.all([
-        getClassifier(id, skipAudit),
+        getClassifier(id),
         getClassifierValues({
           classifierId: id,
           search: classifierValueSearch,
@@ -44,7 +44,7 @@ export function useClassifierDetail(id: string | undefined, skipAudit?: boolean)
       setLoading(false);
       isFetching.current = false;
     }
-  }, [id, classifierValueSearch, pagination, sorting, skipAudit]);
+  }, [id, classifierValueSearch, pagination, sorting]);
 
   useEffect(() => {
     fetchData();

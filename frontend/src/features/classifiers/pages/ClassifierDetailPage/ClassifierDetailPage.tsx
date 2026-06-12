@@ -33,7 +33,7 @@ export function ClassifierDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const locationState = location.state as { justCreated?: boolean; justEdited?: boolean; backPressed?: boolean } | null;
+  const locationState = location.state as { justCreated?: boolean; justEdited?: boolean } | null;
   const [showClassifierValueAddedAlert, setShowClassifierValueAddedAlert] =
     useState(!!locationState?.justCreated);
   const [showClassifierEditedAlert, setShowClassifierEditedAlert] =
@@ -42,8 +42,6 @@ export function ClassifierDetailPage() {
     showClassifierValueEditedAlert,
     setShowUserClassifierValueEditedAlert,
   ] = useState(!!locationState?.justEdited);
-  const skipAudit = !!(locationState?.justCreated || locationState?.justEdited || locationState?.backPressed);
-  const [skipAuditForClassifierSave, setSkipAuditForClassifierSave] = useState(false);
   const [isEditActive, setIsEditActive] = useState(false);
   const [showOnlyValid, setShowOnlyValid] = useState(true);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -92,7 +90,7 @@ export function ClassifierDetailPage() {
     setPagination,
     sorting,
     setSorting,
-  } = useClassifierDetail(id, skipAudit || skipAuditForClassifierSave);
+  } = useClassifierDetail(id);
 
   const handleEditSaved = () => {
     setIsEditActive(false);
@@ -117,7 +115,6 @@ export function ClassifierDetailPage() {
 
   const handleSaveClick = () => {
     formik.submitForm();
-    setSkipAuditForClassifierSave(true);
   };
 
   const handleRowClick = useCallback(

@@ -11,10 +11,6 @@ declaration:
       - field: id
         type: string
         description: "Classifier ID"
-      - field: skipAudit
-        type: boolean
-        description: "Skip audit event logging"
-        required: false
 
 get_user_context:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -27,7 +23,6 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    skip_audit: ${incoming.body.skipAudit ?? false}
     created_by: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
@@ -49,12 +44,6 @@ buildAuditData:
     classifier_code: "${res.response.body[0].code || ''}"
     description: "Klassifikaator '${classifier_code}' (ID ${id}) vaatamine"
     log_content: "{\"classifierId\":\"${id}\",\"classifierCode\":\"${classifier_code}\"}"
-  next: checkSkipAudit
-
-checkSkipAudit:
-  switch:
-    - condition: ${skip_audit}
-      next: returnSuccess
   next: logAuditEvent
 
 logAuditEvent:

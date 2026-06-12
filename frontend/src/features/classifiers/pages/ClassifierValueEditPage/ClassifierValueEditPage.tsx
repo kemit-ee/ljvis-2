@@ -25,11 +25,9 @@ export function ClassifierValueEditPage() {
   const {
     value,
     loading: valueLoading,
-    refetch,
   } = useClassifierValueDetail(valueId);
 
   const handleEditSaved = () => {
-    refetch();
     if (id) {
       navigate(`/classifiers/${id}`, {
         state: { justEdited: true },
@@ -51,7 +49,7 @@ export function ClassifierValueEditPage() {
     <div>
       <Button
         visualType="link"
-        onClick={() => navigate(`/classifiers/${id}`, {state: { backPressed: true }})}
+        onClick={() => navigate(`/classifiers/${id}`)}
         iconLeft="arrow_back"
       >
         {t('common.back')}
@@ -73,7 +71,7 @@ export function ClassifierValueEditPage() {
               handleSaveClick={handleSaveClick}
               onCancel={() => {
                 formik.resetForm();
-                navigate(`/classifiers/${id}`, {state: { backPressed: true }});
+                navigate(`/classifiers/${id}`);
               }}
             />
           </Col>

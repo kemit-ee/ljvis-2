@@ -8,7 +8,6 @@ import {
   Col,
 } from '@tedi-design-system/react/tedi';
 import { useClassifierValueForm } from '../ClassifierValueEditPage/useClassifierValueForm.ts';
-import { useClassifierDetail } from '../ClassifierDetailPage/useClassifierDetail.ts';
 import { useAuth } from '../../../auth/AuthContext';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -22,12 +21,9 @@ export function ClassifierValueCreatePage() {
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('classifier_value.edit');
 
-  const { classifier, loading, refetch } = useClassifierDetail(id, true);
-
   const handleEditSaved = () => {
-    refetch();
-    if (classifier) {
-      navigate(`/classifiers/${classifier.id}`, {
+    if (id) {
+      navigate(`/classifiers/${id}`, {
         state: { justCreated: true },
       });
     }
@@ -39,15 +35,14 @@ export function ClassifierValueCreatePage() {
     formik.submitForm();
   };
 
-  if (loading && !classifier) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (!classifier) return <Text>{t('common.error')}</Text>;
+  if (!id) return <Text>{t('common.error')}</Text>;
 
   return (
     <div>
       <Button
         visualType="link"
-        onClick={() => navigate(`/classifiers/${classifier.id}`, {state: { backPressed: true }})}
+        onClick={() => navigate(`/classifiers/${id}`)}
         iconLeft="arrow_back"
       >
         {t('common.back')}
@@ -69,7 +64,7 @@ export function ClassifierValueCreatePage() {
               handleSaveClick={handleSaveClick}
               onCancel={() => {
                 formik.resetForm();
-                navigate(`/classifiers/${classifier.id}`, {state: { backPressed: true }});
+                navigate(`/classifiers/${id}`);
               }}
             />
           </Col>
