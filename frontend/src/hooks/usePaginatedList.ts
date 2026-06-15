@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { buildSortString, useSearchHandler } from './stringUtils';
 
@@ -37,8 +37,11 @@ export function usePaginatedList<T, R = T>(
     pageSize: 20,
   });
   const [sorting, setSorting] = useState<SortingState>([]);
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
+    if (isFetching.current) return;
+    isFetching.current = true;
     setIsLoading(true);
     try {
       const result = await fetchFn({
@@ -55,6 +58,7 @@ export function usePaginatedList<T, R = T>(
       setData([]);
     } finally {
       setIsLoading(false);
+      isFetching.current = false;
     }
   }, [fetchFn, pagination, sorting, search, defaultSort, transform]);
 
