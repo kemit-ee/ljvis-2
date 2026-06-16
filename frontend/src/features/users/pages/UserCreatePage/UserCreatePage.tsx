@@ -149,7 +149,7 @@ export function UserCreatePage() {
                       options={orgOptions}
                       value={
                         orgOptions.find(
-                          (o) => o.value === formik.values.organisationId,
+                          (o) => o.value === String(formik.values.organisationId),
                         ) ?? null
                       }
                       onChange={isLocalAdmin ? undefined : handleOrgChange}
@@ -175,10 +175,7 @@ export function UserCreatePage() {
                             (o) => o.value === formik.values.structuralUnitName,
                           ) ?? null
                         }
-                        onChange={
-                          isLocalAdmin ? undefined : handleStructuralUnitChange
-                        }
-                        disabled={isLocalAdmin}
+                        onChange={handleStructuralUnitChange}
                         required
                         {...(formik.touched.structuralUnitName &&
                         formik.errors.structuralUnitName
