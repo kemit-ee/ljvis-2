@@ -91,6 +91,29 @@ checkUser:
   switch:
     - condition: ${field_error != 'valid'}
       next: propagate_error
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "[#LJVIS_PROJECT_LAYER]/user/calculate-user-changed-fields"
+  requestType: templates
+  body:
+    user_account_id: ${user_account_id}
+    first_name: ${first_name}
+    last_name: ${last_name}
+    organisation_id: ${organisation_id}
+    structural_unit_name: ${structural_unit}
+    job_title_name: ${job_title}
+    email: ${email}
+    phone: ${phone}
+    access_start: ${access_start}
+    access_end: ${access_end}
+  result: changedFieldsResult
+  next: extractResult
+
+extractResult:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+    changed_fields_result: ${parsed_result.changed_fields}
   next: updateUser
 
 updateUser:
@@ -114,6 +137,51 @@ updateUser:
       status: ${status}
       created_by: ${created_by}
   result: updateRes
+  next: checkAnyChanges
+
+checkAnyChanges:
+  switch:
+    - condition: ${changed_fields_result.length > 0}
+      next: setAnyChanges
+  next: setNoChanges
+
+setAnyChanges:
+  assign:
+    changed_fields: ${changed_fields_result}
+    changed_fields_str: ${changed_fields_result.join(',')}
+    view_description: "Kasutaja muutmine: ${first_name} ${last_name} (${personal_code}), muudetud: ${changed_fields_str}"
+  next: buildAuditLog
+
+setNoChanges:
+  assign:
+    changed_fields: ${changed_fields_result}
+    view_description: "Kasutaja muutmine: ${first_name} ${last_name} (${personal_code})"
+  next: buildAuditLog
+
+buildAuditLog:
+  assign:
+    changed_fields_json: ${JSON.stringify(changed_fields)}
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: ${auth_user.personalcode}
+    description: ${view_description}
+    view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"changedFields\":${changed_fields_json},\"previousOrganisationId\":null,\"newOrganisationId\":null,\"removedGroupIds\":null}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user.update"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${description}
+      log_content: ${view_log_content}
+      created_by: ${actor_name}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

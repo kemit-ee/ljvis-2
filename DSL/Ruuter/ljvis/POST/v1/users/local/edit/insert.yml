@@ -110,6 +110,31 @@ createUser:
       access_end: ${access_end}
       created_by: ${created_by}
   result: userRes
+  next: buildAuditLog
+
+buildAuditLog:
+  assign:
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: ${auth_user.personalcode}
+    view_description: "Kasutaja loomine: ${first_name} ${last_name} (${personal_code})"
+    view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"organisationId\":${organisation_id}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user.create"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${view_description}
+      log_content: ${view_log_content}
+      created_by: ${actor_name}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

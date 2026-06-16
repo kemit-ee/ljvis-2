@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { User, UserGroupAssignment } from '../../types';
 import { getUser, getUserGroups } from '../../api';
 import { useAuth } from '../../../auth/useAuth';
@@ -9,9 +9,12 @@ export function useUserDetail(id: string | undefined) {
   const [user, setUser] = useState<User | null>(null);
   const [groups, setGroups] = useState<UserGroupAssignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoading(true);
     try {
       const [users, userGroups] = await Promise.all([
@@ -24,6 +27,7 @@ export function useUserDetail(id: string | undefined) {
       console.error('Failed to load user', e);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, [id, scope]);
 

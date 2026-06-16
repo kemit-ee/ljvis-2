@@ -34,6 +34,7 @@ export const updateUser = (scope: 'admin' | 'local', data: {
   accessStart: string;
   accessEnd: string;
   status: string;
+  removedGroupIds: string[];
 }) => post<User[]>(`/v1/users/${scope}/edit/update`, data);
 
 export const getUserGroups = (scope: 'admin' | 'local', userId: string) =>
