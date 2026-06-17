@@ -20,7 +20,7 @@ export const getUserGroupPermissions = (scope: 'admin' | 'local', id: string) =>
   post<UserGroupPermission[]>(`/v1/user-groups/${scope}/read/get-permissions`, { id });
 
 export const getUserGroupUsers = (scope: 'admin' | 'local', params?: {
-  userGroupId: string;
+  userGroupId: number;
   page?: string;
   pageSize?: string;
   sorting?: string;

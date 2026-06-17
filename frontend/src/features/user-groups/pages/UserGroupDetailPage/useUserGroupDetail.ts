@@ -68,7 +68,7 @@ export function useUserGroupDetail(id: string | undefined) {
         getUserGroupOrganisations(scope, id),
         getUserGroupPermissions(scope, id),
         getUserGroupUsers(scope, {
-          userGroupId: id,
+          userGroupId: Number(id),
           search: userSearch,
           page: String(pagination.pageIndex + 1),
           pageSize: String(pagination.pageSize),

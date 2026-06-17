@@ -38,8 +38,8 @@ extractRequestData:
     page_size: "${incoming.body.pageSize ?? 20}"
     sorting: "${incoming.body.sorting ?? 'status asc'}"
     search: "${incoming.body.search ?? ''}"
-    user_group_id: "${incoming.body.userGroupId}"
-    user_organisation_id: "${auth_user.organisationid}"
+    user_group_id: ${incoming.body.userGroupId}
+    user_organisation_id: ${auth_user.organisationid}
   next: getUsers
 
 getUsers:
