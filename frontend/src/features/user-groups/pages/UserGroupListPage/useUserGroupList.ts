@@ -33,7 +33,7 @@ export function useUserGroupList() {
   const scope = hasPermission('user_group.list.admin') ? 'admin' : 'local';
   const readScope = hasPermission('user_group.read.admin') ? 'admin' : 'local';
   const fetchFn = useCallback(async (params: ListParams): Promise<PagedResponse<UserGroup>> => {
-    const paged = await listUserGroups(scope, params);
+    const paged = await listUserGroups(scope, { ...params, logSearch: true });
     const content = await Promise.all(
       paged.content.map(async (group) => {
         if (params.search) {

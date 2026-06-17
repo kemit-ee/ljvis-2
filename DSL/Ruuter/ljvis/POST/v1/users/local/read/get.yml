@@ -46,7 +46,7 @@ buildAuditLog:
     user_last_name: "${res.response.body[0].lastName || ''}"
     user_personal_code: "${res.response.body[0].personalCode || ''}"
     view_description: "Kasutaja vaatamine: ${user_first_name} ${user_last_name} (${user_personal_code})"
-    view_log_content: "{\"targetPersonalCode\":\"${user_personal_code}\",\"targetName\":\"${user_first_name} ${user_last_name}\",\"scope\":\"ownOrganisation\",\"organisationId\":\"${organisation_id}\"}"
+    view_log_content: "{\"targetPersonalCode\":\"${user_personal_code}\",\"targetName\":\"${user_first_name} ${user_last_name}\",\"scope\":\"ownOrganisation\",\"organisationId\":${organisation_id}}"
   next: logAuditEvent
 
 logAuditEvent:
