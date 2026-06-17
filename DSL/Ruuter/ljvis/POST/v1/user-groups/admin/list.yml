@@ -27,7 +27,6 @@ extractRequestData:
     page: "${incoming.body.page ?? 1}"
     page_size: "${incoming.body.pageSize ?? 20}"
     sorting: "${incoming.body.sorting ?? 'name asc'}"
-    organisation_id: ""
   next: getUserGroups
 
 getUserGroups:
@@ -41,7 +40,7 @@ getUserGroups:
       page: ${page}
       page_size: ${page_size}
       sorting: ${sorting}
-      organisation_id: ${organisation_id}
+      organisation_id: 0
   result: res
 
 mapResponse:

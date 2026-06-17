@@ -20,8 +20,8 @@ declaration:
         type: string
         description: "Sort column and direction"
       - field: organisation_id
-        type: string
-        description: "Filter by organisation ID (for local admin)"
+        type: number
+        description: "Filter by organisation ID (for local admin), 0 means no filter"
   response:
     fields:
       - field: id
@@ -60,8 +60,8 @@ SELECT
 FROM latest l
 WHERE
     (
-        COALESCE(:organisation_id, '') = ''
-        OR l.organisations @> ARRAY[:organisation_id::BIGINT]
+        :organisation_id = 0
+        OR :organisation_id = ANY(l.organisations)
     )
     AND (
         COALESCE(:search, '') = ''
