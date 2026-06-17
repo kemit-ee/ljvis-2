@@ -23,7 +23,7 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    organisation_id: "${auth_user.organisationid}"
+    organisation_id: ${auth_user.organisationid}
   next: getUserGroup
 
 getUserGroup:

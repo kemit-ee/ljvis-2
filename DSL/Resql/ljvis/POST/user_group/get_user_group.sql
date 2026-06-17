@@ -11,8 +11,8 @@ declaration:
         type: string
         description: "User group ID"
       - field: organisation_id
-        type: string
-        description: "Optional organisation filter"
+        type: number
+        description: "Optional organisation filter (0 = no filter)"
   response:
     fields:
       - field: id
@@ -36,7 +36,7 @@ SELECT
 FROM latest l
 WHERE l.user_group_key = :id::BIGINT
   AND (
-      COALESCE(:organisation_id, '') = ''
-      OR l.organisations @> ARRAY[:organisation_id::BIGINT]
+      :organisation_id = 0
+      OR :organisation_id = ANY(l.organisations)
   )
 LIMIT 1;

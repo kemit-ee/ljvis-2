@@ -15,7 +15,7 @@ declaration:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    organisation_id: ""
+    organisation_id: 0
   next: getUserGroup
 
 getUserGroup:

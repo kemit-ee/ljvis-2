@@ -8,11 +8,11 @@ declaration:
   allowlist:
     body:
       - field: user_group_id
-        type: string
-        description: "User group ID to filter members by"
+        type: number
+        description: "User group ID to filter members by (0 = no filter)"
       - field: user_organisation_id
-        type: string
-        description: "Organisation ID for local admin scope filtering (empty = no filter)"
+        type: number
+        description: "Organisation ID for local admin scope filtering (0 = no filter)"
       - field: page
         type: number
         description: "Page number"
@@ -72,11 +72,12 @@ SELECT
 FROM latest l
 WHERE
     (
-        COALESCE(:user_group_id, '') = ''
-        OR l.user_groups @> ARRAY[:user_group_id::BIGINT]
-    )
-    AND (
-        COALESCE(:user_organisation_id, '') = ''
+    :user_group_id = 0
+        OR :user_group_id = ANY(l.user_groups)
+        )
+    AND
+    (
+    :user_organisation_id = 0
         OR l.organisation_id = :user_organisation_id::BIGINT
     )
     AND (
