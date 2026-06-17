@@ -20,6 +20,9 @@ declaration:
       - field: sorting
         type: string
         description: "Sorting"
+      - field: logSearch
+        type: boolean
+        description: "Whether to log this as a user-initiated search"
 
 get_user_context:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -36,6 +39,9 @@ extractRequestData:
     page_size: "${incoming.body.pageSize ?? 20}"
     sorting: "${incoming.body.sorting ?? 'name asc'}"
     organisation_id: "${auth_user.organisationid}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    log_search: "${incoming.body.logSearch ?? false}"
   next: getUserGroups
 
 getUserGroups:
@@ -51,6 +57,7 @@ getUserGroups:
       sorting: ${sorting}
       organisation_id: ${organisation_id}
   result: res
+  next: mapResponse
 
 mapResponse:
   call: http.post
@@ -61,6 +68,35 @@ mapResponse:
     body:
       groups: ${res.response.body}
   result: mapped
+  next: setDefaults
+
+setDefaults:
+  assign:
+    result_count: ${mapped.response.body.total}
+  next: checkSearch
+
+checkSearch:
+  switch:
+    - condition: "${log_search == true && search.length >= 3}"
+      next: logSearchEvent
+  next: returnSuccess
+
+logSearchEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user_group.list.search"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: "Otsing '${search}', tulemusi ${result_count}"
+      log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"ownOrganisation\",\"organisationId\":${organisation_id}}"
+      created_by: ${actor_name}
+  result: audit_result
+  next: returnSuccess
 
 returnSuccess:
   return: ${mapped.response.body}
