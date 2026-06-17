@@ -1,0 +1,46 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Build audit log description for set-groups action"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: first_name
+        type: string
+      - field: last_name
+        type: string
+      - field: personal_code
+        type: string
+      - field: added_group_ids
+        type: string
+      - field: removed_group_ids
+        type: string
+
+buildDescription:
+  switch:
+    - condition: "${incoming.body.added_group_ids != '' && incoming.body.removed_group_ids != ''}"
+      next: descBoth
+    - condition: "${incoming.body.added_group_ids != ''}"
+      next: descAddedOnly
+    - condition: "${incoming.body.removed_group_ids != ''}"
+      next: descRemovedOnly
+  next: descNone
+
+descBoth:
+  return: "Kasutaja gruppide muutmine: ${incoming.body.first_name} ${incoming.body.last_name} (${incoming.body.personal_code}), lisatud: ${incoming.body.added_group_ids}, eemaldatud: ${incoming.body.removed_group_ids}"
+  next: end
+
+descAddedOnly:
+  return: "Kasutaja gruppide muutmine: ${incoming.body.first_name} ${incoming.body.last_name} (${incoming.body.personal_code}), lisatud: ${incoming.body.added_group_ids}"
+  next: end
+
+descRemovedOnly:
+  return: "Kasutaja gruppide muutmine: ${incoming.body.first_name} ${incoming.body.last_name} (${incoming.body.personal_code}), eemaldatud: ${incoming.body.removed_group_ids}"
+  next: end
+
+descNone:
+  return: "Kasutaja gruppide muutmine: ${incoming.body.first_name} ${incoming.body.last_name} (${incoming.body.personal_code})"
+  next: end
