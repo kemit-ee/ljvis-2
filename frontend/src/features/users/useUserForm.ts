@@ -157,15 +157,16 @@ export function useUserForm(
         if (isEdit && user) {
           const organisationChanged =
             trimmedValues.organisationId !== user.organisationId;
+          const removedGroupIds = groups.map((g) => g.userGroupId);
           if (organisationChanged && user) {
             await setUserGroups(
               userScope,
               user.id,
               [],
-              groups.map((g) => g.userGroupId),
+              removedGroupIds,
             );
           }
-          await updateUser(userScope, { id: user.id, ...trimmedValues });
+          await updateUser(userScope, { id: user.id, ...trimmedValues, removedGroupIds });
           if (organisationChanged) {
             const newOrg = orgOptions.find(
               (o) => o.value === trimmedValues.organisationId,

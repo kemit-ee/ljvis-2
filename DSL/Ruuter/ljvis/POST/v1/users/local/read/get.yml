@@ -36,13 +36,35 @@ getUser:
       id: ${id}
       organisation_id: ${organisation_id}
   result: res
-  next: checkUserFound
+  next: buildAuditLog
 
-checkUserFound:
-  switch:
-    - condition: ${res.response.body.length > 0}
-      next: mapResponse
-  next: return_forbidden
+buildAuditLog:
+  assign:
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: ${auth_user.personalcode}
+    user_first_name: "${res.response.body[0].firstName || ''}"
+    user_last_name: "${res.response.body[0].lastName || ''}"
+    user_personal_code: "${res.response.body[0].personalCode || ''}"
+    view_description: "Kasutaja vaatamine: ${user_first_name} ${user_last_name} (${user_personal_code})"
+    view_log_content: "{\"targetPersonalCode\":\"${user_personal_code}\",\"targetName\":\"${user_first_name} ${user_last_name}\",\"scope\":\"ownOrganisation\",\"organisationId\":\"${organisation_id}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user.view"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${view_description}
+      log_content: ${view_log_content}
+      created_by: ${actor_name}
+  result: audit_result
+  next: mapResponse
 
 mapResponse:
   call: http.post
@@ -53,6 +75,7 @@ mapResponse:
     body:
       users: ${res.response.body}
   result: mapped
+  next: returnSuccess
 
 returnSuccess:
   return: ${mapped.response.body}
