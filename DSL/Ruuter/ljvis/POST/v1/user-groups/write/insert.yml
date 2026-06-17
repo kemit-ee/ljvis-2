@@ -31,6 +31,9 @@ extractRequestData:
     organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
     permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
     created_by: "${auth_user.personalcode}"
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: "${auth_user.personalcode}"
+    selected_org_count: ${(incoming.body.organisationIds ?? []).length}
   next: validateRequired
 
 validateRequired:
@@ -43,6 +46,12 @@ validateNameLength:
   switch:
     - condition: ${name.length > 50}
       next: return_validation_error
+  next: validateOrganisations
+
+validateOrganisations:
+  switch:
+    - condition: "${organisation_ids == ''}"
+      next: return_validation_error
   next: createGroup
 
 createGroup:
@@ -53,6 +62,8 @@ createGroup:
       type: json
     body:
       name: ${name}
+      organisation_ids: ${organisation_ids}
+      permission_ids: ${permission_ids}
       created_by: ${created_by}
   result: groupRes
   next: extractGroupId
@@ -60,46 +71,50 @@ createGroup:
 extractGroupId:
   assign:
     user_group_id: "${groupRes.response.body[0].id}"
-  next: checkOrganisations
+  next: getPermissions
 
-checkOrganisations:
-  switch:
-    - condition: "${organisation_ids == ''}"
-      next: return_validation_error
-  next: assignOrganisations
-
-assignOrganisations:
+getPermissions:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
     headers:
       type: json
     body:
       user_group_id: ${user_group_id}
-      organisation_ids: ${organisation_ids}
-      status: "active"
-      created_by: ${created_by}
-  result: orgsRes
-  next: checkPermissions
+  result: permsDataRes
+  next: getOrganisationsCount
 
-checkPermissions:
-  switch:
-    - condition: "${permission_ids == ''}"
-      next: returnSuccess
-  next: assignPermissions
-
-assignPermissions:
+getOrganisationsCount:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/user_group/set_user_group_permissions"
+    url: "[#LJVIS_RESQL]/organisation/list_organisations"
+    headers:
+      type: json
+    body: {}
+  result: orgsCountRes
+  next: buildAuditEvent
+
+buildAuditEvent:
+  assign:
+    covers_all_organisations: ${selected_org_count === (orgsCountRes.response.body ?? []).length}
+    permission_codes: ${JSON.stringify((permsDataRes.response.body ?? []).map(p => p.code))}
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
       type: json
     body:
-      user_group_id: ${user_group_id}
-      permission_ids: ${permission_ids}
-      status: "active"
-      created_by: ${created_by}
-  result: permsRes
+      event_type: "user_group.create"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: "Kasutajagrupi '${name}' loomine"
+      log_content: "{\"targetGroupId\":${user_group_id},\"groupName\":\"${name}\",\"organisationIds\":[${organisation_ids}],\"permissionCodes\":${permission_codes},\"coversAllOrganisations\":${covers_all_organisations}}"
+      created_by: ${actor_name}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:
