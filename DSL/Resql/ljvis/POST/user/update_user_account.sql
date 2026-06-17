@@ -35,6 +35,8 @@ declaration:
         type: string
       - field: created_by
         type: string
+      - field: clear_groups
+        type: boolean
   response:
     fields:
       - field: id
@@ -66,7 +68,7 @@ SELECT
     :access_start::DATE,
     CASE WHEN COALESCE(:access_end, '') = '' THEN NULL ELSE :access_end::DATE END,
     :status,
-    l.user_groups,
+    CASE WHEN CAST(:clear_groups AS BOOLEAN) THEN ARRAY[]::BIGINT[] ELSE l.user_groups END,
     :created_by
 FROM latest l
 RETURNING user_account_key AS id;
