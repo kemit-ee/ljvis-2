@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update user group permissions — copy latest snapshot with permission codes added or removed (delta; IDs resolved to codes)"
+  description: "Update user group permissions — apply added and removed permission IDs in a single insert"
   method: post
   accepts: json
   returns: json
@@ -11,12 +11,12 @@ declaration:
       - field: user_group_id
         type: string
         description: "user_group_key of the target group"
-      - field: permission_ids
+      - field: added_permission_ids
         type: string
-        description: "Comma-separated permission catalogue IDs"
-      - field: status
+        description: "Comma-separated permission catalogue IDs to add"
+      - field: removed_permission_ids
         type: string
-        description: "active (add) or removed (remove)"
+        description: "Comma-separated permission catalogue IDs to remove"
       - field: created_by
         type: string
   response:
@@ -24,13 +24,21 @@ declaration:
       - field: id
         type: number
 */
-WITH perm_ids_list AS (
-    SELECT unnest(string_to_array(:permission_ids, ','))::BIGINT AS perm_id
+WITH removed_ids_list AS (
+    SELECT unnest(string_to_array(NULLIF(:removed_permission_ids, ''), ','))::BIGINT AS perm_id
 ),
-perm_codes_list AS (
-    SELECT p.code
-    FROM perm_ids_list pil
-    JOIN ljvis2.permission p ON p.id = pil.perm_id
+added_ids_list AS (
+    SELECT unnest(string_to_array(NULLIF(:added_permission_ids, ''), ','))::BIGINT AS perm_id
+),
+removed_codes_list AS (
+    SELECT code
+    FROM ljvis2.permission
+    WHERE id IN (SELECT perm_id FROM removed_ids_list)
+),
+added_codes_list AS (
+    SELECT code
+    FROM ljvis2.permission
+    WHERE id IN (SELECT perm_id FROM added_ids_list)
 ),
 latest AS (
     SELECT DISTINCT ON (user_group_key)
@@ -43,12 +51,7 @@ kept_perms AS (
     SELECT perm_code
     FROM latest,
          UNNEST(permissions) AS perm_code
-    WHERE perm_code NOT IN (SELECT code FROM perm_codes_list)
-),
-added_perms AS (
-    SELECT code AS perm_code
-    FROM perm_codes_list
-    WHERE :status = 'active'
+    WHERE perm_code NOT IN (SELECT code FROM removed_codes_list)
 ),
 new_perms AS (
     SELECT COALESCE(
@@ -58,7 +61,7 @@ new_perms AS (
     FROM (
         SELECT perm_code FROM kept_perms
         UNION ALL
-        SELECT perm_code FROM added_perms
+        SELECT code AS perm_code FROM added_codes_list
     ) combined
 )
 INSERT INTO ljvis2.user_group (user_group_key, name, organisations, permissions, created_by)

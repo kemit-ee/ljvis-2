@@ -49,15 +49,9 @@ extractResult:
   assign:
     parsed_result: ${JSON.parse(changedFieldsResult)}
     old_name: ${parsed_result.old_name}
-  next: checkRemovedPerms
+  next: setPerms
 
-checkRemovedPerms:
-  switch:
-    - condition: "${removed_permission_ids == ''}"
-      next: checkAddedPerms
-  next: removePerms
-
-removePerms:
+setPerms:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/user_group/set_user_group_permissions"
@@ -65,30 +59,10 @@ removePerms:
       type: json
     body:
       user_group_id: ${user_group_id}
-      permission_ids: ${removed_permission_ids}
-      status: "removed"
+      added_permission_ids: ${added_permission_ids}
+      removed_permission_ids: ${removed_permission_ids}
       created_by: ${actor_personal_code}
-  result: removeRes
-  next: checkAddedPerms
-
-checkAddedPerms:
-  switch:
-    - condition: "${added_permission_ids == ''}"
-      next: listAllPermissions
-  next: insertPerms
-
-insertPerms:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user_group/set_user_group_permissions"
-    headers:
-      type: json
-    body:
-      user_group_id: ${user_group_id}
-      permission_ids: ${added_permission_ids}
-      status: "active"
-      created_by: ${actor_personal_code}
-  result: insertRes
+  result: setPermsRes
   next: listAllPermissions
 
 listAllPermissions:
