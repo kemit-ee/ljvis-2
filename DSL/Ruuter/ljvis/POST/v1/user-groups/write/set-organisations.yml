@@ -50,7 +50,6 @@ calculateChangedFields:
 extractResult:
   assign:
     parsed_result: ${JSON.parse(changedFieldsResult)}
-    changed_fields_result: ${parsed_result.changed_fields}
     old_name: ${parsed_result.old_name}
   next: checkRemovedOrgs
 
