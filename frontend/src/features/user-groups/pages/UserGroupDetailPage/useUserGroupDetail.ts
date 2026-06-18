@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/useAuth';
@@ -55,9 +55,12 @@ export function useUserGroupDetail(id: string | undefined) {
   const [selectedPermIds, setSelectedPermIds] = useState<Set<string>>(new Set());
   const [originalPermIds, setOriginalPermIds] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoading(true);
     try {
       const sortStr = sorting.length
@@ -84,6 +87,7 @@ export function useUserGroupDetail(id: string | undefined) {
       console.error('Failed to load group', e);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, [id, scope, userSearch, pagination, sorting]);
 
