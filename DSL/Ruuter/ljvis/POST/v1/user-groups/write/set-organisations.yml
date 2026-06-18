@@ -51,15 +51,9 @@ extractResult:
   assign:
     parsed_result: ${JSON.parse(changedFieldsResult)}
     old_name: ${parsed_result.old_name}
-  next: checkRemovedOrgs
+  next: setOrgs
 
-checkRemovedOrgs:
-  switch:
-    - condition: "${removed_organisation_ids == ''}"
-      next: checkAddedOrgs
-  next: removeOrgs
-
-removeOrgs:
+setOrgs:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
@@ -67,30 +61,10 @@ removeOrgs:
       type: json
     body:
       user_group_id: ${user_group_id}
-      organisation_ids: ${removed_organisation_ids}
-      status: "removed"
+      added_organisation_ids: ${added_organisation_ids}
+      removed_organisation_ids: ${removed_organisation_ids}
       created_by: ${actor_personal_code}
-  result: removeRes
-  next: checkAddedOrgs
-
-checkAddedOrgs:
-  switch:
-    - condition: "${added_organisation_ids == ''}"
-      next: returnSuccess
-  next: insertOrgs
-
-insertOrgs:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
-    headers:
-      type: json
-    body:
-      user_group_id: ${user_group_id}
-      organisation_ids: ${added_organisation_ids}
-      status: "active"
-      created_by: ${actor_personal_code}
-  result: insertRes
+  result: setOrgsRes
   next: returnSuccess
 
 returnSuccess:

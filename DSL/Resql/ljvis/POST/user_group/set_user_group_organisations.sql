@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update user group organisations — copy latest snapshot with orgs added or removed (delta)"
+  description: "Update user group organisations — apply added and removed org IDs in a single insert"
   method: post
   accepts: json
   returns: json
@@ -11,12 +11,12 @@ declaration:
       - field: user_group_id
         type: string
         description: "user_group_key of the target group"
-      - field: organisation_ids
+      - field: added_organisation_ids
         type: string
-        description: "Comma-separated organisation IDs"
-      - field: status
+        description: "Comma-separated organisation IDs to add"
+      - field: removed_organisation_ids
         type: string
-        description: "active (add) or removed (remove)"
+        description: "Comma-separated organisation IDs to remove"
       - field: created_by
         type: string
   response:
@@ -24,8 +24,11 @@ declaration:
       - field: id
         type: number
 */
-WITH org_ids_list AS (
-    SELECT unnest(string_to_array(:organisation_ids, ','))::BIGINT AS org_id
+WITH removed_list AS (
+    SELECT unnest(string_to_array(NULLIF(:removed_organisation_ids, ''), ','))::BIGINT AS org_id
+),
+added_list AS (
+    SELECT unnest(string_to_array(NULLIF(:added_organisation_ids, ''), ','))::BIGINT AS org_id
 ),
 latest AS (
     SELECT DISTINCT ON (user_group_key)
@@ -38,12 +41,7 @@ kept_ids AS (
     SELECT org_id
     FROM latest,
          UNNEST(organisations) AS org_id
-    WHERE org_id NOT IN (SELECT org_id FROM org_ids_list)
-),
-added_ids AS (
-    SELECT org_id
-    FROM org_ids_list
-    WHERE :status = 'active'
+    WHERE org_id NOT IN (SELECT org_id FROM removed_list)
 ),
 new_orgs AS (
     SELECT COALESCE(
@@ -53,7 +51,7 @@ new_orgs AS (
     FROM (
         SELECT org_id FROM kept_ids
         UNION ALL
-        SELECT org_id FROM added_ids
+        SELECT org_id FROM added_list
     ) combined
 )
 INSERT INTO ljvis2.user_group (user_group_key, name, organisations, permissions, created_by)
