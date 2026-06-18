@@ -32,8 +32,6 @@ declaration:
         type: string
       - field: status
         type: string
-      - field: removedGroupIds
-        type: array
 
 get_user_context:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -58,7 +56,22 @@ extractRequestData:
     access_end: "${incoming.body.accessEnd ?? ''}"
     created_by: "${auth_user.personalcode}"
     status: "${incoming.body.status ?? ''}"
-    removed_group_ids: "${JSON.stringify((incoming.body.removedGroupIds ?? []).map(Number))}"
+  next: getCurrentUserGroups
+
+getCurrentUserGroups:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user_groups"
+    headers:
+      type: json
+    body:
+      user_id: ${user_account_id}
+  result: currentGroupsRes
+  next: extractRemovedGroupIds
+
+extractRemovedGroupIds:
+  assign:
+    removed_group_ids: "${JSON.stringify((currentGroupsRes.response.body ?? []).map(g => Number(g.userGroupId)))}"
   next: validateId
 
 validateId:
@@ -118,6 +131,7 @@ extractResult:
     parsed_result: ${JSON.parse(changedFieldsResult)}
     changed_fields_result: ${parsed_result.changed_fields}
     old_organisation_id: ${parsed_result.old_organisation_id}
+    clear_groups: ${changed_fields_result.includes('organisation_id')}
   next: updateUser
 
 updateUser:
@@ -140,6 +154,7 @@ updateUser:
       access_end: ${access_end}
       status: ${status}
       created_by: ${created_by}
+      clear_groups: ${clear_groups}
   result: updateRes
   next: checkAnyChanges
 
