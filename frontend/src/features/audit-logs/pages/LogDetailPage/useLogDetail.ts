@@ -11,9 +11,7 @@ export function useLogDetail(id: string | undefined) {
     if (!id) return;
     setLoading(true);
     try {
-      const [logs] = await Promise.all([
-        getLog(id),
-      ]);
+      const [logs] = await Promise.all([getLog(id)]);
       setAuditLog(logs[0] ?? null);
     } catch (e) {
       console.error('Failed to load classifier', e);

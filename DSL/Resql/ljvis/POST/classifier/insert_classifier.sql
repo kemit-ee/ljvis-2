@@ -21,6 +21,6 @@ declaration:
       - field: id
         type: number
 */
-INSERT INTO ljvis2.classifier (classifier_key, code, name, description, created_by)
-VALUES (nextval('ljvis2.seq_classifier_key'), :code, :name, :description, :created_by)
+INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
+VALUES (nextval('classifier.seq_classifier_key'), :code, :name, :description, :created_by)
 RETURNING classifier_key AS id;

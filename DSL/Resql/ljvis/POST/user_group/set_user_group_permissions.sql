@@ -30,12 +30,12 @@ WITH perm_ids_list AS (
 perm_codes_list AS (
     SELECT p.code
     FROM perm_ids_list pil
-    JOIN ljvis2.permission p ON p.id = pil.perm_id
+    JOIN users.permission p ON p.id = pil.perm_id
 ),
 latest AS (
     SELECT DISTINCT ON (user_group_key)
         user_group_key, name, organisations, permissions
-    FROM ljvis2.user_group
+    FROM users.user_group
     WHERE user_group_key = :user_group_id::BIGINT
     ORDER BY user_group_key, created_at DESC
 ),
@@ -61,7 +61,7 @@ new_perms AS (
         SELECT perm_code FROM added_perms
     ) combined
 )
-INSERT INTO ljvis2.user_group (user_group_key, name, organisations, permissions, created_by)
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
 SELECT l.user_group_key, l.name, l.organisations, np.permissions, :created_by
 FROM latest l, new_perms np
 RETURNING user_group_key AS id;

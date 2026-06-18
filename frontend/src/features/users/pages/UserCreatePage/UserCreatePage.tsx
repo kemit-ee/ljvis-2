@@ -149,7 +149,8 @@ export function UserCreatePage() {
                       options={orgOptions}
                       value={
                         orgOptions.find(
-                          (o) => o.value === String(formik.values.organisationId),
+                          (o) =>
+                            o.value === String(formik.values.organisationId),
                         ) ?? null
                       }
                       onChange={isLocalAdmin ? undefined : handleOrgChange}

@@ -19,18 +19,18 @@ export function useClassifierValueForm(
     name: Yup.string().required(t('classifiers.validation.required')),
     validFrom: Yup.string().required(t('classifiers.validation.required')),
     validUntil: isEdit
-        ? Yup.string().nullable()
-        : Yup.string()
-      .nullable()
-      .test(
-        'is-after-start',
-        t('users.validation.endBeforeStart'),
-        function (value) {
-          const { validFrom } = this.parent;
-          if (!value || value === null || !validFrom) return true;
-          return new Date(value) > new Date(validFrom);
-        },
-      ),
+      ? Yup.string().nullable()
+      : Yup.string()
+          .nullable()
+          .test(
+            'is-after-start',
+            t('users.validation.endBeforeStart'),
+            function (value) {
+              const { validFrom } = this.parent;
+              if (!value || value === null || !validFrom) return true;
+              return new Date(value) > new Date(validFrom);
+            },
+          ),
   });
 
   const formik = useFormik({

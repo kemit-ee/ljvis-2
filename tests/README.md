@@ -50,12 +50,7 @@ without tearing down volumes, delete it first:
 
 ```bash
 PGPASSWORD=01234 psql -h localhost -p 5433 -U ljvis -d ljvis_db -c "
-  DELETE FROM ljvis2.user_account_latest WHERE user_account_id IN (SELECT id FROM ljvis2.user_account WHERE personal_code = '51001011234');
-  DELETE FROM ljvis2.user_account_user_group_state WHERE user_account_user_group_id IN (SELECT uaug.id FROM ljvis2.user_account_user_group uaug JOIN ljvis2.user_account ua ON ua.id = uaug.user_account_id WHERE ua.personal_code = '51001011234');
-  DELETE FROM ljvis2.user_account_user_group WHERE user_account_id IN (SELECT id FROM ljvis2.user_account WHERE personal_code = '51001011234');
-  DELETE FROM ljvis2.user_account_state WHERE user_account_id IN (SELECT id FROM ljvis2.user_account WHERE personal_code = '51001011234');
-  DELETE FROM ljvis2.user_account_data_state WHERE user_account_id IN (SELECT id FROM ljvis2.user_account WHERE personal_code = '51001011234');
-  DELETE FROM ljvis2.user_account WHERE personal_code = '51001011234';
+  DELETE FROM users.user_account WHERE personal_code = '51001011234';
 "
 ```
 
@@ -88,7 +83,7 @@ tests/postman/run-all.sh tests/postman/dev-stack-environment.json
 ## Infrastructure
 
 One database (`ljvis_db`), one RESQL service (`resql-ljvis`). All application
-tables live in the `ljvis2` schema. Liquibase manages the schema; the bootstrap
+tables live in the `users`, `classifier`, and `audit` schemas. Liquibase manages the schema; the bootstrap
 service seeds minimal test data after migrations.
 
 | Constant | Value |
@@ -216,14 +211,6 @@ To clean manually (between runs without full teardown):
 
 ```bash
 PGPASSWORD=01234 psql -h localhost -p 5433 -U ljvis -d ljvis_db -c "
-  DO \$\$ DECLARE pc TEXT;
-  BEGIN FOR pc IN SELECT unnest(ARRAY['48001011236','48001021232']) LOOP
-    DELETE FROM ljvis2.user_account_latest WHERE user_account_id IN (SELECT id FROM ljvis2.user_account WHERE personal_code = pc);
-    DELETE FROM ljvis2.user_account_user_group_state WHERE user_account_user_group_id IN (SELECT uaug.id FROM ljvis2.user_account_user_group uaug JOIN ljvis2.user_account ua ON ua.id = uaug.user_account_id WHERE ua.personal_code = pc);
-    DELETE FROM ljvis2.user_account_user_group WHERE user_account_id IN (SELECT id FROM ljvis2.user_account WHERE personal_code = pc);
-    DELETE FROM ljvis2.user_account_state WHERE user_account_id IN (SELECT id FROM ljvis2.user_account WHERE personal_code = pc);
-    DELETE FROM ljvis2.user_account_data_state WHERE user_account_id IN (SELECT id FROM ljvis2.user_account WHERE personal_code = pc);
-    DELETE FROM ljvis2.user_account WHERE personal_code = pc;
-  END LOOP; END \$\$;
+  DELETE FROM users.user_account WHERE personal_code = ANY(ARRAY['48001011236','48001021232']);
 "
 ```

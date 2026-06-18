@@ -11,7 +11,11 @@ function expandUserRows(result: UserListItem[]): UserListItem[] {
     const groups = user.userGroups ?? [];
     if (groups.length > 0) {
       groups.forEach((group, index) => {
-        expanded.push({ ...user, userGroups: [group], isAdditionalGroupRow: index > 0 });
+        expanded.push({
+          ...user,
+          userGroups: [group],
+          isAdditionalGroupRow: index > 0,
+        });
       });
     } else {
       expanded.push(user);

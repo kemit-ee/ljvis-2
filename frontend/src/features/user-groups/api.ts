@@ -1,5 +1,8 @@
 import { post } from '../../shared/api/client';
-import type { PagedResponse, ListApiParams } from '../../hooks/usePaginatedList';
+import type {
+  PagedResponse,
+  ListApiParams,
+} from '../../hooks/usePaginatedList';
 import type {
   UserGroup,
   UserGroupOrganisation,
@@ -7,25 +10,42 @@ import type {
   UserGroupUser,
 } from './types';
 
-export const listUserGroups = (scope: 'admin' | 'local', params?: ListApiParams) =>
-  post<PagedResponse<UserGroup>>(`/v1/user-groups/${scope}/list`, params as Record<string, unknown>);
+export const listUserGroups = (
+  scope: 'admin' | 'local',
+  params?: ListApiParams,
+) =>
+  post<PagedResponse<UserGroup>>(
+    `/v1/user-groups/${scope}/list`,
+    params as Record<string, unknown>,
+  );
 
 export const getUserGroup = (scope: 'admin' | 'local', id: string) =>
   post<UserGroup[]>(`/v1/user-groups/${scope}/read/get`, { id });
 
-export const getUserGroupOrganisations = (scope: 'admin' | 'local', id: string) =>
-  post<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/read/get-organisations`, { id });
+export const getUserGroupOrganisations = (
+  scope: 'admin' | 'local',
+  id: string,
+) =>
+  post<UserGroupOrganisation[]>(
+    `/v1/user-groups/${scope}/read/get-organisations`,
+    { id },
+  );
 
 export const getUserGroupPermissions = (scope: 'admin' | 'local', id: string) =>
-  post<UserGroupPermission[]>(`/v1/user-groups/${scope}/read/get-permissions`, { id });
+  post<UserGroupPermission[]>(`/v1/user-groups/${scope}/read/get-permissions`, {
+    id,
+  });
 
-export const getUserGroupUsers = (scope: 'admin' | 'local', params?: {
-  userGroupId: number;
-  page?: string;
-  pageSize?: string;
-  sorting?: string;
-  search?: string;
-}) =>
+export const getUserGroupUsers = (
+  scope: 'admin' | 'local',
+  params?: {
+    userGroupId: number;
+    page?: string;
+    pageSize?: string;
+    sorting?: string;
+    search?: string;
+  },
+) =>
   post<UserGroupUser[]>(
     `/v1/user-groups/${scope}/read/get-users`,
     params as Record<string, unknown>,

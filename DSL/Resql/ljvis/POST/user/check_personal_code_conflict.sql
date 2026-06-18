@@ -19,7 +19,7 @@ declaration:
         type: string
 */
 SELECT DISTINCT ON (ua.user_account_key) ua.user_account_key AS id
-FROM ljvis2.user_account ua
+FROM users.user_account ua
 WHERE ua.personal_code = :personal_code
   AND (COALESCE(:id, '') = '' OR ua.user_account_key != :id::BIGINT)
 ORDER BY ua.user_account_key, ua.created_at DESC

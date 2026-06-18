@@ -23,7 +23,10 @@ interface ToastContainerProps {
   scope?: string;
 }
 
-export function ToastContainer({ variant = 'float', scope }: ToastContainerProps) {
+export function ToastContainer({
+  variant = 'float',
+  scope,
+}: ToastContainerProps) {
   const { toasts, dismissToast } = useErrorContext();
   const { t } = useTranslation();
 
@@ -33,7 +36,9 @@ export function ToastContainer({ variant = 'float', scope }: ToastContainerProps
 
   return (
     <div
-      className={variant === 'inline' ? styles.containerInline : styles.container}
+      className={
+        variant === 'inline' ? styles.containerInline : styles.container
+      }
       role="region"
       aria-live="polite"
       aria-label="Notifications"

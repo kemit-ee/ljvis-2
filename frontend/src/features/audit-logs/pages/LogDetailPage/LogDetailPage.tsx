@@ -6,7 +6,7 @@ import {
   Text,
   Row,
   Col,
-  Card
+  Card,
 } from '@tedi-design-system/react/tedi';
 import { useLogDetail } from './useLogDetail';
 import { useAuth } from '../../../auth/AuthContext';
@@ -38,12 +38,7 @@ export function LogDetailPage() {
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('audit.read');
 
-  const {
-    auditLog,
-    loading,
-    person,
-    decodedLogContent
-  } = useLogDetail(id);
+  const { auditLog, loading, person, decodedLogContent } = useLogDetail(id);
 
   if (loading && !auditLog) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -77,9 +72,7 @@ export function LogDetailPage() {
                   <Field label={t('logs.date')}>
                     {formatDateTime(auditLog.createdAt)}
                   </Field>
-                  <Field label={t('logs.person')}>
-                    {person}
-                  </Field>
+                  <Field label={t('logs.person')}>{person}</Field>
                   <Field label={t('logs.eventCategory')}>
                     {auditLog.eventCategory}
                   </Field>
@@ -89,9 +82,7 @@ export function LogDetailPage() {
                   <Field label={t('logs.description')}>
                     {auditLog.description}
                   </Field>
-                  <Field label={t('logs.content')}>
-                    {decodedLogContent}
-                  </Field>
+                  <Field label={t('logs.content')}>{decodedLogContent}</Field>
                 </div>
               </Card.Content>
             </Card>

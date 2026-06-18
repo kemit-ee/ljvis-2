@@ -32,11 +32,11 @@ latest_users AS (
         ua.user_account_key, ua.personal_code, ua.first_name, ua.last_name,
         ua.organisation_id, ua.organisation_name, ua.structural_unit, ua.job_title,
         ua.email, ua.phone, ua.access_start, ua.access_end, ua.status, ua.user_groups
-    FROM ljvis2.user_account ua
+    FROM users.user_account ua
     JOIN user_key_list ukl ON ukl.user_account_key = ua.user_account_key
     ORDER BY ua.user_account_key, ua.created_at DESC
 )
-INSERT INTO ljvis2.user_account (
+INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, access_end, status, user_groups, created_by

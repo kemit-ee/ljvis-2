@@ -56,7 +56,7 @@ WITH latest AS (
         organisation_name,
         status,
         user_groups
-    FROM ljvis2.user_account
+    FROM users.user_account
     ORDER BY user_account_key, created_at DESC
 )
 SELECT

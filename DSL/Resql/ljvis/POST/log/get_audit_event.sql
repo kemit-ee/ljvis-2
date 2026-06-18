@@ -41,5 +41,5 @@ SELECT
     e.log_content::VARCHAR,
     e.created_at,
     e.created_by
-FROM ljvis2.audit_event e
+FROM audit.audit_event e
 WHERE e.id = :id::BIGINT;

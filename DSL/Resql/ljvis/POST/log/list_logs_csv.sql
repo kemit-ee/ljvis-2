@@ -44,7 +44,7 @@ SELECT
     e.log_content::VARCHAR,
     e.created_at,
     e.created_by
-FROM ljvis2.audit_event e
+FROM audit.audit_event e
 WHERE
     COALESCE(:search, '') = ''
     OR e.event_type ILIKE '%' || COALESCE(:search, '') || '%'

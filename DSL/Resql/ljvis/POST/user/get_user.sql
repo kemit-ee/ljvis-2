@@ -56,7 +56,7 @@ SELECT DISTINCT ON (ua.user_account_key)
     ua.access_start,
     ua.access_end,
     ua.status
-FROM ljvis2.user_account ua
+FROM users.user_account ua
 WHERE ua.user_account_key = :id::BIGINT
   AND (COALESCE(:organisation_id::TEXT, '') = '' OR ua.organisation_id::TEXT = :organisation_id::TEXT)
 ORDER BY ua.user_account_key, ua.created_at DESC

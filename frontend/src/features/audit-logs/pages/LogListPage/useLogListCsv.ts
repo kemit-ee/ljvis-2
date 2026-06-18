@@ -20,7 +20,7 @@ function generateExportFilename(): string {
 function formatLogRow(log: AuditLog): string[] {
   const actorName = log.actorName || '';
   const actorPersonalCode = log.actorPersonalCode || '';
-  
+
   let person = '';
   if (actorName && actorPersonalCode) {
     person = `${actorName} (${actorPersonalCode})`;
@@ -40,61 +40,70 @@ function formatLogRow(log: AuditLog): string[] {
     log.eventCategory || '',
     log.eventType || '',
     log.description || '',
-    decodedLogContent
+    decodedLogContent,
   ];
 }
 
 export function useLogListCsv() {
   const { t } = useTranslation();
 
-  const exportCsv = useCallback(async (params: ListApiParams) => {
-    try {
-      const result = await exportLogs(params);
-      const logs = result.content;
+  const exportCsv = useCallback(
+    async (params: ListApiParams) => {
+      try {
+        const result = await exportLogs(params);
+        const logs = result.content;
 
-      const headers = [
-        t('logs.date'),
-        t('logs.person'),
-        t('logs.eventCategory'),
-        t('logs.eventType'),
-        t('logs.description'),
-        t('logs.content')
-      ];
+        const headers = [
+          t('logs.date'),
+          t('logs.person'),
+          t('logs.eventCategory'),
+          t('logs.eventType'),
+          t('logs.description'),
+          t('logs.content'),
+        ];
 
-      const rows = logs.map(formatLogRow);
+        const rows = logs.map(formatLogRow);
 
-      const csvContent = [headers, ...rows]
-        .map((row) =>
-          row
-            .map((cell) => {
-              // Escape quotes and wrap in quotes if contains semicolon or quote
-              const cellStr = String(cell);
-              if (cellStr.includes(';') || cellStr.includes('"') || cellStr.includes('\n')) {
-                return `"${cellStr.replace(/"/g, '""')}"`;
-              }
-              return cellStr;
-            })
-            .join(';'),
-        )
-        .join('\n');
+        const csvContent = [headers, ...rows]
+          .map((row) =>
+            row
+              .map((cell) => {
+                // Escape quotes and wrap in quotes if contains semicolon or quote
+                const cellStr = String(cell);
+                if (
+                  cellStr.includes(';') ||
+                  cellStr.includes('"') ||
+                  cellStr.includes('\n')
+                ) {
+                  return `"${cellStr.replace(/"/g, '""')}"`;
+                }
+                return cellStr;
+              })
+              .join(';'),
+          )
+          .join('\n');
 
-      const bom = '\uFEFF';
-      const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const bom = '\uFEFF';
+        const blob = new Blob([bom + csvContent], {
+          type: 'text/csv;charset=utf-8;',
+        });
 
-      const filename = generateExportFilename();
+        const filename = generateExportFilename();
 
-      // Download file
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    } catch (e) {
-      console.error('CSV export failed', e);
-    }
-  }, [t]);
+        // Download file
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      } catch (e) {
+        console.error('CSV export failed', e);
+      }
+    },
+    [t],
+  );
 
   return { exportCsv };
 }

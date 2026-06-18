@@ -1,6 +1,9 @@
 import { useCallback } from 'react';
 import { usePaginatedList } from '../../../../hooks/usePaginatedList';
-import type { ListParams, PagedResponse } from '../../../../hooks/usePaginatedList';
+import type {
+  ListParams,
+  PagedResponse,
+} from '../../../../hooks/usePaginatedList';
 import type { UserGroup } from '../../types';
 import { listUserGroups, getUserGroupOrganisations } from '../../api';
 import { useAuth } from '../../../auth/useAuth';
@@ -32,19 +35,25 @@ export function useUserGroupList() {
   const { hasPermission } = useAuth();
   const scope = hasPermission('user_group.list.admin') ? 'admin' : 'local';
   const readScope = hasPermission('user_group.read.admin') ? 'admin' : 'local';
-  const fetchFn = useCallback(async (params: ListParams): Promise<PagedResponse<UserGroup>> => {
-    const paged = await listUserGroups(scope, { ...params, logSearch: true });
-    const content = await Promise.all(
-      paged.content.map(async (group) => {
-        if (params.search) {
-          const groupOrgs = await getUserGroupOrganisations(readScope, group.id);
-          return { ...group, organisations: groupOrgs.map((o) => o.name) };
-        }
-        return group;
-      }),
-    );
-    return { content, total: paged.total };
-  }, [scope, readScope]);
+  const fetchFn = useCallback(
+    async (params: ListParams): Promise<PagedResponse<UserGroup>> => {
+      const paged = await listUserGroups(scope, { ...params, logSearch: true });
+      const content = await Promise.all(
+        paged.content.map(async (group) => {
+          if (params.search) {
+            const groupOrgs = await getUserGroupOrganisations(
+              readScope,
+              group.id,
+            );
+            return { ...group, organisations: groupOrgs.map((o) => o.name) };
+          }
+          return group;
+        }),
+      );
+      return { content, total: paged.total };
+    },
+    [scope, readScope],
+  );
 
   return usePaginatedList(fetchFn, {
     defaultSort: 'name asc',

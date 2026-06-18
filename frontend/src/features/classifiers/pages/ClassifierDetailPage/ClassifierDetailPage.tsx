@@ -33,8 +33,12 @@ export function ClassifierDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const locationState = location.state as { alert?: { message: string } } | null;
-  const [alertMessage, setAlertMessage] = useState<string | null>(locationState?.alert?.message ?? null);
+  const locationState = location.state as {
+    alert?: { message: string };
+  } | null;
+  const [alertMessage, setAlertMessage] = useState<string | null>(
+    locationState?.alert?.message ?? null,
+  );
 
   useEffect(() => {
     if (alertMessage) {
@@ -175,7 +179,12 @@ export function ClassifierDetailPage() {
 
   return (
     <div>
-      {alertMessage && <AutoHideAlert onClose={() => setAlertMessage(null)} message={alertMessage} />}
+      {alertMessage && (
+        <AutoHideAlert
+          onClose={() => setAlertMessage(null)}
+          message={alertMessage}
+        />
+      )}
       <Button
         visualType="link"
         onClick={() => navigate('/classifiers')}

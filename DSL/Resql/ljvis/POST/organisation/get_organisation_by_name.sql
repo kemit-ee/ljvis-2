@@ -16,6 +16,6 @@ declaration:
         type: number
 */
 SELECT id
-FROM ljvis2.organisation
+FROM users.organisation
 WHERE name = :name
 LIMIT 1;
