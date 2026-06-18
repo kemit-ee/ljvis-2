@@ -9,7 +9,9 @@ export interface ListParams {
   sorting: string;
 }
 
-export type ListApiParams = Partial<ListParams>;
+export type ListApiParams = Partial<ListParams> & {
+  logSearch?: boolean;
+};
 
 export interface PagedResponse<T> {
   content: T[];
