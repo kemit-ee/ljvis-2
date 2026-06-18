@@ -41,7 +41,9 @@ export const insertClassifierValue = (data: {
 }) => post<ClassifierValue[]>('/v1/classifiers/values/insert', data);
 
 export const getClassifierValue = (classifierValueId: string) =>
-  post<ClassifierValue[]>('/v1/classifiers/read/get-value', { classifierValueId });
+  post<ClassifierValue[]>('/v1/classifiers/read/get-value', {
+    classifierValueId,
+  });
 
 export const updateClassifierValue = (data: {
   classifierId: string;

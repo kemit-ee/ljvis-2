@@ -18,5 +18,5 @@ SELECT
     id,
     code,
     description
-FROM ljvis2.permission
+FROM users.permission
 ORDER BY code;

@@ -50,7 +50,7 @@ SELECT
     e.created_at,
     e.created_by,
     (COUNT(*) OVER ())::INTEGER AS total
-FROM ljvis2.audit_event e
+FROM audit.audit_event e
 WHERE
     COALESCE(:search, '') = ''
     OR e.event_type ILIKE '%' || COALESCE(:search, '') || '%'

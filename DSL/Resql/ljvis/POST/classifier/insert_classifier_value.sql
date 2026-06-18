@@ -25,12 +25,12 @@ declaration:
       - field: id
         type: number
 */
-INSERT INTO ljvis2.classifier_value (
+INSERT INTO classifier.classifier_value (
     classifier_value_key, classifier_key,
     code, name, valid_from, valid_until, created_by
 )
 VALUES (
-    nextval('ljvis2.seq_classifier_value_key'),
+    nextval('classifier.seq_classifier_value_key'),
     :classifier_id::BIGINT,
     :code,
     :name,

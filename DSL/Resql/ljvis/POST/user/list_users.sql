@@ -62,7 +62,7 @@ WITH latest AS (
         access_end,
         status,
         user_groups
-    FROM ljvis2.user_account
+    FROM users.user_account
     ORDER BY user_account_key, created_at DESC
 )
 SELECT
@@ -78,7 +78,7 @@ SELECT
     l.access_end,
     COALESCE(
         (SELECT ARRAY_AGG(
-             (SELECT name FROM ljvis2.user_group
+             (SELECT name FROM users.user_group
               WHERE user_group_key = grp_key
               ORDER BY created_at DESC LIMIT 1)
          )

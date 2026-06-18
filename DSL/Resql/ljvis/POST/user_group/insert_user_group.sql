@@ -23,12 +23,12 @@ declaration:
       - field: id
         type: number
 */
-INSERT INTO ljvis2.user_group (user_group_key, name, organisations, permissions, created_by)
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
 VALUES (
-    nextval('ljvis2.seq_user_group_key'),
+    nextval('users.seq_user_group_key'),
     :name,
     ARRAY(SELECT unnest(string_to_array(NULLIF(:organisation_ids, ''), ','))::BIGINT ORDER BY 1),
-    ARRAY(SELECT code FROM ljvis2.permission WHERE id::TEXT = ANY(string_to_array(NULLIF(:permission_ids, ''), ',')) ORDER BY code),
+    ARRAY(SELECT code FROM users.permission WHERE id::TEXT = ANY(string_to_array(NULLIF(:permission_ids, ''), ',')) ORDER BY code),
     :created_by
 )
 RETURNING user_group_key AS id;

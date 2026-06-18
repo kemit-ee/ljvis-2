@@ -28,11 +28,11 @@ declaration:
 WITH latest AS (
     SELECT DISTINCT ON (classifier_value_key)
         classifier_value_key, classifier_key, code, name
-    FROM ljvis2.classifier_value
+    FROM classifier.classifier_value
     WHERE classifier_value_key = :classifier_value_id::BIGINT
     ORDER BY classifier_value_key, created_at DESC
 )
-INSERT INTO ljvis2.classifier_value (
+INSERT INTO classifier.classifier_value (
     classifier_value_key, classifier_key,
     code, name, valid_from, valid_until, created_by
 )

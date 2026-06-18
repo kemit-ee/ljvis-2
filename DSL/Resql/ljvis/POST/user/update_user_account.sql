@@ -45,11 +45,11 @@ declaration:
 WITH latest AS (
     SELECT DISTINCT ON (user_account_key)
         user_account_key, user_groups
-    FROM ljvis2.user_account
+    FROM users.user_account
     WHERE user_account_key = :user_account_id::BIGINT
     ORDER BY user_account_key, created_at DESC
 )
-INSERT INTO ljvis2.user_account (
+INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, access_end, status, user_groups, created_by
@@ -60,7 +60,7 @@ SELECT
     :first_name,
     :last_name,
     :organisation_id::BIGINT,
-    (SELECT name FROM ljvis2.organisation WHERE id = :organisation_id::BIGINT),
+    (SELECT name FROM users.organisation WHERE id = :organisation_id::BIGINT),
     :structural_unit,
     :job_title,
     :email,

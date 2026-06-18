@@ -36,7 +36,7 @@ SELECT DISTINCT ON (ua.user_account_key)
     ua.organisation_name,
     ua.email,
     ua.status
-FROM ljvis2.user_account ua
+FROM users.user_account ua
 WHERE ua.personal_code = :personal_code
   AND ua.status = 'active'
 ORDER BY ua.user_account_key, ua.created_at DESC

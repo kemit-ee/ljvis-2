@@ -6,9 +6,12 @@ import { toSnakeCase } from '../../../../hooks/stringUtils';
 
 export function useClassifierDetail(id: string | undefined) {
   const [classifier, setClassifier] = useState<Classifier | null>(null);
-  const [classifierValues, setClassifierValues] = useState<ClassifierValue[]>([]);
+  const [classifierValues, setClassifierValues] = useState<ClassifierValue[]>(
+    [],
+  );
   const [classifierValueSearch, setClassifierValueSearch] = useState('');
-  const [classifierValueSearchInput, setClassifierValueSearchInput] = useState('');
+  const [classifierValueSearchInput, setClassifierValueSearchInput] =
+    useState('');
   const [loading, setLoading] = useState(true);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({

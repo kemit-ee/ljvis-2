@@ -32,11 +32,11 @@ latest AS (
         user_account_key, personal_code, first_name, last_name,
         organisation_id, organisation_name, structural_unit, job_title,
         email, phone, access_start, access_end, status, user_groups
-    FROM ljvis2.user_account
+    FROM users.user_account
     WHERE user_account_key = :user_account_id::BIGINT
     ORDER BY user_account_key, created_at DESC
 )
-INSERT INTO ljvis2.user_account (
+INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, access_end, status, user_groups, created_by

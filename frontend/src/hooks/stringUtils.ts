@@ -28,5 +28,8 @@ export function useSearchHandler(
 
 export function decodeHtmlEntities(text: string): string {
   if (!text) return '';
-  return text.replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&amp;/g, '&');
+  return text
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&amp;/g, '&');
 }

@@ -52,8 +52,12 @@ export function useUserGroupDetail(id: string | undefined) {
   const [originalOrgIds, setOriginalOrgIds] = useState<Set<string>>(new Set());
   const [editingPerms, setEditingPerms] = useState(false);
   const [allPerms, setAllPerms] = useState<Permission[]>([]);
-  const [selectedPermIds, setSelectedPermIds] = useState<Set<string>>(new Set());
-  const [originalPermIds, setOriginalPermIds] = useState<Set<string>>(new Set());
+  const [selectedPermIds, setSelectedPermIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [originalPermIds, setOriginalPermIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const fetchData = useCallback(async () => {

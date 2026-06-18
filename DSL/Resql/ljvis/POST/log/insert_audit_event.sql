@@ -33,7 +33,7 @@ declaration:
       - field: id
         type: number
 */
-INSERT INTO ljvis2.audit_event (
+INSERT INTO audit.audit_event (
     event_type,
     event_category,
     actor_name,

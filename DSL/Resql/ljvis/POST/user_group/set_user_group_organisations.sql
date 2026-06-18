@@ -30,7 +30,7 @@ WITH org_ids_list AS (
 latest AS (
     SELECT DISTINCT ON (user_group_key)
         user_group_key, name, organisations, permissions
-    FROM ljvis2.user_group
+    FROM users.user_group
     WHERE user_group_key = :user_group_id::BIGINT
     ORDER BY user_group_key, created_at DESC
 ),
@@ -56,7 +56,7 @@ new_orgs AS (
         SELECT org_id FROM added_ids
     ) combined
 )
-INSERT INTO ljvis2.user_group (user_group_key, name, organisations, permissions, created_by)
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
 SELECT l.user_group_key, l.name, no.organisations, l.permissions, :created_by
 FROM latest l, new_orgs no
 RETURNING user_group_key AS id;

@@ -20,7 +20,7 @@ declaration:
 WITH latest_user AS (
     SELECT DISTINCT ON (user_account_key)
         user_groups
-    FROM ljvis2.user_account
+    FROM users.user_account
     WHERE user_account_key = :user_id::BIGINT
     ORDER BY user_account_key, created_at DESC
 ),
@@ -33,7 +33,7 @@ latest_groups AS (
     SELECT DISTINCT ON (ug.user_group_key)
         ug.user_group_key,
         ug.name
-    FROM ljvis2.user_group ug
+    FROM users.user_group ug
     JOIN user_group_keys ugk ON ugk.user_group_key = ug.user_group_key
     ORDER BY ug.user_group_key, ug.created_at DESC
 )

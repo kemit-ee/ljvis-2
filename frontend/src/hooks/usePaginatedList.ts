@@ -53,7 +53,11 @@ export function usePaginatedList<T, R = T>(
         sorting: buildSortString(sorting, defaultSort),
       });
 
-      setData(transform ? transform(result.content) : (result.content as unknown as R[]));
+      setData(
+        transform
+          ? transform(result.content)
+          : (result.content as unknown as R[]),
+      );
       setTotalRows(result.total);
     } catch (e) {
       console.error('[usePaginatedList] fetch failed', e);

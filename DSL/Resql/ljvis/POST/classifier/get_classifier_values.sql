@@ -7,7 +7,7 @@ WITH latest AS (
         valid_from,
         valid_until,
         (valid_from <= CURRENT_DATE AND (valid_until IS NULL OR valid_until > CURRENT_DATE)) AS is_valid
-    FROM ljvis2.classifier_value
+    FROM classifier.classifier_value
     WHERE classifier_key = :classifierId::BIGINT
     ORDER BY classifier_value_key, created_at DESC
 )
@@ -15,7 +15,7 @@ SELECT
     cvl.classifier_key        AS classifier_id,
     cvl.classifier_value_key  AS classifier_value_id,
     (SELECT DISTINCT ON (c.classifier_key) c.code
-     FROM ljvis2.classifier c
+     FROM classifier.classifier c
      WHERE c.classifier_key = cvl.classifier_key
      ORDER BY c.classifier_key, c.created_at DESC) AS classifier_code,
     cvl.code,

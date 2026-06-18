@@ -35,18 +35,18 @@ declaration:
       - field: id
         type: number
 */
-INSERT INTO ljvis2.user_account (
+INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, access_end, status, user_groups, created_by
 )
 SELECT
-    nextval('ljvis2.seq_user_account_key'),
+    nextval('users.seq_user_account_key'),
     :personal_code,
     :first_name,
     :last_name,
     :organisation_id::BIGINT,
-    (SELECT name FROM ljvis2.organisation WHERE id = :organisation_id::BIGINT),
+    (SELECT name FROM users.organisation WHERE id = :organisation_id::BIGINT),
     :structural_unit,
     :job_title,
     :email,

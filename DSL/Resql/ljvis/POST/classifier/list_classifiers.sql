@@ -38,7 +38,7 @@ WITH latest AS (
         code,
         name,
         description
-    FROM ljvis2.classifier
+    FROM classifier.classifier
     ORDER BY classifier_key, created_at DESC
 )
 SELECT

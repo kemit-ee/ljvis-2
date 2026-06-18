@@ -8,22 +8,22 @@ BEGIN;
 -- ============================================================
 -- Organisations  (flat catalogue — unchanged from v1)
 -- ============================================================
-INSERT INTO ljvis2.organisation (name, code, created_by)
+INSERT INTO users.organisation (name, code, created_by)
 SELECT 'CI Bootstrap Organisation', 'CBO', 'bootstrap'
-WHERE NOT EXISTS (SELECT 1 FROM ljvis2.organisation WHERE code = 'CBO');
+WHERE NOT EXISTS (SELECT 1 FROM users.organisation WHERE code = 'CBO');
 
-INSERT INTO ljvis2.organisation (name, code, created_by)
+INSERT INTO users.organisation (name, code, created_by)
 SELECT 'Justiitsministeerium', 'JUM', 'bootstrap'
-WHERE NOT EXISTS (SELECT 1 FROM ljvis2.organisation WHERE code = 'JUM');
+WHERE NOT EXISTS (SELECT 1 FROM users.organisation WHERE code = 'JUM');
 
-INSERT INTO ljvis2.organisation (name, code, created_by)
+INSERT INTO users.organisation (name, code, created_by)
 SELECT 'Politsei- ja Piirivalveamet', 'PPA', 'bootstrap'
-WHERE NOT EXISTS (SELECT 1 FROM ljvis2.organisation WHERE code = 'PPA');
+WHERE NOT EXISTS (SELECT 1 FROM users.organisation WHERE code = 'PPA');
 
 -- ============================================================
 -- Permissions  (flat catalogue — unchanged from v1)
 -- ============================================================
-INSERT INTO ljvis2.permission (code, description, created_by) VALUES
+INSERT INTO users.permission (code, description, created_by) VALUES
     ('user_group.list.admin',            'Kasutajagruppide nimekirja vaatamine kõigi asutuste ulatuses', 'bootstrap'),
     ('user_group.list.local',            'Kasutajagruppide nimekirja vaatamine ainult oma asutusega seotud gruppidele', 'bootstrap'),
     ('user_group.read.admin',            'Kasutajagrupi detailvaate algandmete vaatamine kõigi gruppide ulatuses', 'bootstrap'),
@@ -52,57 +52,57 @@ ON CONFLICT (code) DO NOTHING;
 -- ============================================================
 -- User groups  (v2: single snapshot INSERT per group)
 -- ============================================================
-INSERT INTO ljvis2.user_group (user_group_key, name, organisations, permissions, created_by)
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
 SELECT
-    nextval('ljvis2.seq_user_group_key'),
+    nextval('users.seq_user_group_key'),
     'Super Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
-     FROM ljvis2.organisation),
+     FROM users.organisation),
     ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit']::TEXT[],
     'bootstrap'
-WHERE NOT EXISTS (SELECT 1 FROM ljvis2.user_group WHERE name = 'Super Admin Group');
+WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Super Admin Group');
 
-INSERT INTO ljvis2.user_group (user_group_key, name, organisations, permissions, created_by)
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
 SELECT
-    nextval('ljvis2.seq_user_group_key'),
+    nextval('users.seq_user_group_key'),
     'Local Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
-     FROM ljvis2.organisation WHERE code = 'JUM'),
+     FROM users.organisation WHERE code = 'JUM'),
     ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit']::TEXT[],
     'bootstrap'
-WHERE NOT EXISTS (SELECT 1 FROM ljvis2.user_group WHERE name = 'Local Admin Group');
+WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Local Admin Group');
 
 -- ============================================================
 -- Users  (v2: single snapshot INSERT per user)
 -- Personal codes match docker/tara-mock/identities.json
 -- ============================================================
-INSERT INTO ljvis2.user_account (
+INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, status, user_groups, created_by
 )
 SELECT
-    nextval('ljvis2.seq_user_account_key'),
+    nextval('users.seq_user_account_key'),
     '38001085718', 'Super', 'Admin',
     o.id, o.name, 'LÕUNA PREFEKTUUR', 'Spetsialist',
     'super.admin@ljvis.test', '55500001', '2024-01-01', 'active',
     (SELECT ARRAY[ug.user_group_key]
-     FROM ljvis2.user_group ug WHERE ug.name = 'Super Admin Group'
+     FROM users.user_group ug WHERE ug.name = 'Super Admin Group'
      ORDER BY ug.created_at DESC LIMIT 1),
     'bootstrap'
-FROM ljvis2.organisation o
+FROM users.organisation o
 WHERE o.code = 'PPA'
-  AND NOT EXISTS (SELECT 1 FROM ljvis2.user_account WHERE personal_code = '38001085718');
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '38001085718');
 
 -- ============================================================
 -- Classifiers  (v2: single snapshot INSERT per classifier)
 -- ============================================================
-INSERT INTO ljvis2.classifier (classifier_key, code, name, created_by)
-SELECT nextval('ljvis2.seq_classifier_key'), 'RTK', 'Riikide ja territooriumide klassifikaator', 'bootstrap'
-WHERE NOT EXISTS (SELECT 1 FROM ljvis2.classifier WHERE code = 'RTK');
+INSERT INTO classifier.classifier (classifier_key, code, name, created_by)
+SELECT nextval('classifier.seq_classifier_key'), 'RTK', 'Riikide ja territooriumide klassifikaator', 'bootstrap'
+WHERE NOT EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'RTK');
 
-INSERT INTO ljvis2.classifier (classifier_key, code, name, created_by)
-SELECT nextval('ljvis2.seq_classifier_key'), 'TEST', 'Test Classifier', 'bootstrap'
-WHERE NOT EXISTS (SELECT 1 FROM ljvis2.classifier WHERE code = 'TEST');
+INSERT INTO classifier.classifier (classifier_key, code, name, created_by)
+SELECT nextval('classifier.seq_classifier_key'), 'TEST', 'Test Classifier', 'bootstrap'
+WHERE NOT EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TEST');
 
 COMMIT;

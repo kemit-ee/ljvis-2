@@ -13,8 +13,7 @@ import { DescriptionList } from '../DescriptionList';
 import { useFooterProps } from '../../../layout/useFooterProps';
 import styles from './LoginPage.module.css';
 
-const AUTH_URL =
-  '/tim/oauth2/authorization/tara?callback_url=http://localhost:3001';
+const AUTH_URL = `/tim/oauth2/authorization/tara?callback_url=${window.location.origin}`;
 
 export function LoginPage() {
   const { t } = useTranslation();

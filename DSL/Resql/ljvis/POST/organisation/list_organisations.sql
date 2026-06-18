@@ -15,5 +15,5 @@ declaration:
 SELECT
     id,
     name
-FROM ljvis2.organisation
+FROM users.organisation
 ORDER BY name COLLATE "et-EE-x-icu";

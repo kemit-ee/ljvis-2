@@ -61,7 +61,10 @@ export function ErrorProvider({ children }: { children: ReactNode }) {
     (id: string) => {
       const existing = timersRef.current.get(id);
       if (existing !== undefined) clearTimeout(existing);
-      timersRef.current.set(id, setTimeout(() => dismissToast(id), AUTO_DISMISS_MS));
+      timersRef.current.set(
+        id,
+        setTimeout(() => dismissToast(id), AUTO_DISMISS_MS),
+      );
     },
     [dismissToast],
   );
@@ -69,7 +72,9 @@ export function ErrorProvider({ children }: { children: ReactNode }) {
   const showMessage = useCallback(
     (message: string, type: ToastType = 'error', scope?: string) => {
       setToasts((prev) => {
-        const existing = prev.find((t) => t.message === message && t.type === type);
+        const existing = prev.find(
+          (t) => t.message === message && t.type === type,
+        );
 
         if (existing) {
           scheduleTimer(existing.id);

@@ -43,7 +43,7 @@ WITH latest_user AS (
         email,
         status,
         user_groups
-    FROM ljvis2.user_account
+    FROM users.user_account
     WHERE personal_code = :personal_code
       AND status IN ('active', 'deactivating')
     ORDER BY user_account_key, created_at DESC
@@ -52,7 +52,7 @@ latest_group_perms AS (
     SELECT DISTINCT ON (user_group_key)
         user_group_key,
         permissions
-    FROM ljvis2.user_group
+    FROM users.user_group
     ORDER BY user_group_key, created_at DESC
 )
 SELECT
