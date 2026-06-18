@@ -1,0 +1,100 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Calculate changed fields for user group including SQL lookup"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: user_group_id
+        type: string
+      - field: name
+        type: string
+      - field: addedOrganisationIds
+        type: array
+      - field: removedOrganisationIds
+        type: array
+      - field: addedPermissionIds
+        type: array
+      - field: removedPermissionIds
+        type: array
+      - field: userIds
+        type: array
+
+getUserGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.user_group_id}
+      organisation_id: 0
+  result: res
+  next: buildAuditData
+
+buildAuditData:
+  assign:
+    old_name: "${res.response.body[0].name || ''}"
+    new_name: "${incoming.body.name || ''}"
+    name_changed: ${new_name != old_name && new_name != ''}
+    added_organisation_ids: "${(incoming.body.addedOrganisationIds ?? []).join(',')}"
+    removed_organisation_ids: "${(incoming.body.removedOrganisationIds ?? []).join(',')}"
+    added_permission_ids: "${(incoming.body.addedPermissionIds ?? []).join(',')}"
+    removed_permission_ids: "${(incoming.body.removedPermissionIds ?? []).join(',')}"
+    user_ids: "${(incoming.body.userIds ?? []).join(',')}"
+    organisations_changed: ${added_organisation_ids != '' || removed_organisation_ids != ''}
+    permissions_changed: ${added_permission_ids != '' || removed_permission_ids != ''}
+    users_changed: ${user_ids != ''}
+    changed_fields: "[]"
+  next: checkName
+
+checkName:
+  switch:
+    - condition: ${name_changed}
+      next: addName
+  next: checkOrganisations
+
+addName:
+  assign:
+    changed_fields: "[\"name\"]"
+  next: checkOrganisations
+
+checkOrganisations:
+  switch:
+    - condition: ${organisations_changed}
+      next: addOrganisations
+  next: checkPermissions
+
+addOrganisations:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"organisations\"]" : "[\"organisations\"]"}'
+  next: checkPermissions
+
+checkPermissions:
+  switch:
+    - condition: ${permissions_changed}
+      next: addPermissions
+  next: checkUsers
+
+addPermissions:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"permissions\"]" : "[\"permissions\"]"}'
+  next: checkUsers
+
+checkUsers:
+  switch:
+    - condition: ${users_changed}
+      next: addUsers
+  next: returnResult
+
+addUsers:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"users\"]" : "[\"users\"]"}'
+  next: returnResult
+
+returnResult:
+  return: "{\"changed_fields\":${changed_fields},\"old_name\":\"${old_name}\"}"
+  next: end
