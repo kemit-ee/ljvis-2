@@ -11,6 +11,9 @@ declaration:
       - field: id
         type: string
         description: "User group UUID"
+      - field: logAudit
+        type: boolean
+        description: "Whether to log an audit event (default true)"
 
 get_user_context:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -24,6 +27,7 @@ extractRequestData:
   assign:
     id: "${incoming.body.id}"
     organisation_id: ${auth_user.organisationid}
+    log_audit: ${incoming.body.logAudit !== false}
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getUserGroup
@@ -71,7 +75,13 @@ getGroupUsers:
       search: ""
       sorting: ""
   result: usersRes
-  next: buildAuditEvent
+  next: checkLogAudit
+
+checkLogAudit:
+  switch:
+    - condition: ${log_audit === true}
+      next: buildAuditEvent
+  next: returnSuccess
 
 buildAuditEvent:
   assign:

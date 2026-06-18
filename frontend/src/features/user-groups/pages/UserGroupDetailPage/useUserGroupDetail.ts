@@ -67,7 +67,7 @@ export function useUserGroupDetail(id: string | undefined) {
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
       const [g, o, p, u] = await Promise.all([
-        getUserGroup(scope, id),
+        getUserGroup(scope, id, true),
         getUserGroupOrganisations(scope, id),
         getUserGroupPermissions(scope, id),
         getUserGroupUsers(scope, {
@@ -155,7 +155,6 @@ export function useUserGroupDetail(id: string | undefined) {
     );
     await setUserGroupOrganisations(id, addedOrgIds, removedOrgIds);
     setEditingOrgs(false);
-    fetchData();
   };
 
   const cancelEditOrgs = () => setEditingOrgs(false);
@@ -195,7 +194,6 @@ export function useUserGroupDetail(id: string | undefined) {
     );
     await setUserGroupPermissions(id, addedPermissionIds, removedPermissionIds);
     setEditingPerms(false);
-    fetchData();
   };
 
   const cancelEditPerms = () => setEditingPerms(false);

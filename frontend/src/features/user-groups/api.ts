@@ -10,8 +10,8 @@ import type {
 export const listUserGroups = (scope: 'admin' | 'local', params?: ListApiParams) =>
   post<PagedResponse<UserGroup>>(`/v1/user-groups/${scope}/list`, params as Record<string, unknown>);
 
-export const getUserGroup = (scope: 'admin' | 'local', id: string) =>
-  post<UserGroup[]>(`/v1/user-groups/${scope}/read/get`, { id });
+export const getUserGroup = (scope: 'admin' | 'local', id: string, logAudit: boolean) =>
+  post<UserGroup[]>(`/v1/user-groups/${scope}/read/get`, { id, logAudit });
 
 export const getUserGroupOrganisations = (scope: 'admin' | 'local', id: string) =>
   post<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/read/get-organisations`, { id });
