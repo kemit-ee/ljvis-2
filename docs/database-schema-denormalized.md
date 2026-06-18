@@ -1,6 +1,6 @@
-# LJVIS2 uus andmebaasi skeem
+# LJVIS2 andmebaasi skeem
 
-See dokument kirjeldab **uut denormaliseeritud andmemudelit**.
+See dokument kirjeldab **LJVIS2 denormaliseeritud andmemudelit**.
 
 ## Peamised muutused
 
