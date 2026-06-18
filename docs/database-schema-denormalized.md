@@ -267,8 +267,8 @@ Iga uus kasutaja, grupp või klassifikaator saab unikaalse loogilise võtme vast
 flowchart LR
     ORG[users.organisation]
     PERM[users.permission]
-    UG[users.user_group\nuser_group_key\norganisations[]\npermissions[]]
-    UA[users.user_account\nuser_account_key\norganisation_id\nuser_groups[]]
+    UG["users.user_group<br/>user_group_key<br/>organisations[]<br/>permissions[]"]
+    UA["users.user_account<br/>user_account_key<br/>organisation_id<br/>user_groups[]"]
     C[classifier.classifier\nclassifier_key]
     CV[classifier.classifier_value\nclassifier_value_key\nclassifier_key]
     AE[audit.audit_event\nevent_type\nlog_content JSONB]
