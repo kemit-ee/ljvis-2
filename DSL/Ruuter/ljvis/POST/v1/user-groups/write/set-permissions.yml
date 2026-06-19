@@ -33,22 +33,23 @@ extractRequestData:
     removed_permission_ids: "${(incoming.body.removedPermissionIds ?? []).join(',')}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-  next: calculateChangedFields
+  next: getUserGroup
 
-calculateChangedFields:
-  template: "[#LJVIS_PROJECT_LAYER]/user_group/calculate-user-group-changed-fields"
-  requestType: templates
-  body:
-    user_group_id: ${user_group_id}
-    addedPermissionIds: ${incoming.body.addedPermissionIds}
-    removedPermissionIds: ${incoming.body.removedPermissionIds}
-  result: changedFieldsResult
+getUserGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group"
+    headers:
+      type: json
+    body:
+      id: ${user_group_id}
+      organisation_id: 0
+  result: res
   next: extractResult
 
 extractResult:
   assign:
-    parsed_result: ${JSON.parse(changedFieldsResult)}
-    old_name: ${parsed_result.old_name}
+    group_name: "${res.response.body[0].name || ''}"
   next: setPerms
 
 setPerms:
@@ -82,7 +83,7 @@ returnSuccess:
     removed_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.removedPermissionIds ?? []))}
     added_codes: ${JSON.stringify(all_perms.filter(p => added_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
     removed_codes: ${JSON.stringify(all_perms.filter(p => removed_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
-    description: "Kasutajagrupi ${old_name} muutmine: õigused"
+    description: "Kasutajagrupi ${group_name} muutmine: õigused"
     log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":${added_codes},\"removedPermissionCodes\":${removed_codes},\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 

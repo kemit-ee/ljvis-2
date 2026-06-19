@@ -142,10 +142,10 @@ export function useUserGroupDetail(id: string | undefined) {
   };
 
   const saveOrgs = async () => {
-    if (!id) return;
-    if (selectedOrgIds.size == 0) {
+    if (!id) return false;
+    if (selectedOrgIds.size === 0) {
       setOrganisationsError(true);
-      return;
+      return false;
     }
     const removedOrgIds = Array.from(originalOrgIds).filter(
       (oid) => !selectedOrgIds.has(oid),

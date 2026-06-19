@@ -91,7 +91,7 @@ export function UserDetailPage() {
     isLocalAdmin,
     handleOrgChange,
     handleStructuralUnitChange,
-  } = useUserForm(user ?? undefined, handleEditSaved, groups);
+  } = useUserForm(user ?? undefined, handleEditSaved);
 
   const structuralUnits = [
     { value: 'LÕUNA PREFEKTUUR', label: 'LÕUNA PREFEKTUUR' },

@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import type { User, UserGroupAssignment } from './types';
+import type { User } from './types';
 import {
   getUserGroups,
   insertUser,
   updateUser,
-  setUserGroups,
   checkPersonalCodeConflict,
 } from './api';
 import type { UserGroup } from '../user-groups/types';
@@ -34,7 +33,6 @@ function createStatus(accessEnd: string): string {
 export function useUserForm(
   user: User | undefined,
   onSaved: (id?: string) => void,
-  groups: UserGroupAssignment[] = [],
 ) {
   const { t } = useTranslation();
   const { user: authUser, hasPermission } = useAuth();
