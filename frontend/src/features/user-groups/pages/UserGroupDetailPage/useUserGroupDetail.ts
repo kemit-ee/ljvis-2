@@ -216,7 +216,6 @@ export function useUserGroupDetail(id: string | undefined) {
     try {
       const result = await deleteUserGroupUser(id, userId);
       console.log('Vastus: ', result);
-      fetchData();
     } catch (e) {
       console.error('Failed to delete user from group', e);
     }

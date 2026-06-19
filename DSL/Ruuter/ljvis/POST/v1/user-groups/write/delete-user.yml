@@ -24,8 +24,23 @@ get_user_context:
 extractRequestData:
   assign:
     user_group_id: "${incoming.body.id}"
-    user_ids: "${incoming.body.userId}"
-    created_by: "${auth_user.personalcode}"
+    user_id: "${incoming.body.userId}"
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: ${auth_user.personalcode}
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "[#LJVIS_PROJECT_LAYER]/user_group/calculate-user-group-changed-fields"
+  requestType: templates
+  body:
+    user_group_id: ${user_group_id}
+  result: changedFieldsResult
+  next: extractResult
+
+extractResult:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+    old_name: ${parsed_result.old_name}
   next: deleteUser
 
 deleteUser:
@@ -36,10 +51,47 @@ deleteUser:
       type: json
     body:
       user_group_id: ${user_group_id}
-      user_ids: ${user_ids}
+      user_ids: ${user_id}
       status: "removed"
-      created_by: ${created_by}
+      created_by: ${actor_personal_code}
   result: res
+  next: getRemovedUserPersonalCode
+
+getRemovedUserPersonalCode:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user"
+    headers:
+      type: json
+    body:
+      id: ${user_id}
+      organisation_id: ""
+  result: personalCodesRes
+  next: buildAuditEvent
+
+buildAuditEvent:
+  assign:
+    removed_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
+    removed_personal_codes_str: ${ (personalCodesRes.response.body ?? []).map(u => "'" + u.personalCode + "'").join(', ') }
+    description: "Kasutajagrupi ${old_name} muutmine: eemaldatud kasutajad: ${removed_personal_codes_str}"
+    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":${removed_personal_codes_json},\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user_group.update"
+      event_category: "user_group_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${description}
+      log_content: ${log_content}
+      created_by: ${actor_name}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:
