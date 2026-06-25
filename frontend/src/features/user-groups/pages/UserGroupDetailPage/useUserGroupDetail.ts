@@ -48,12 +48,12 @@ export function useUserGroupDetail(id: string | undefined) {
   const [editName, setEditName] = useState('');
   const [editingOrgs, setEditingOrgs] = useState(false);
   const [allOrgs, setAllOrgs] = useState<Organisation[]>([]);
-  const [selectedOrgIds, setSelectedOrgIds] = useState<Set<string>>(new Set());
-  const [originalOrgIds, setOriginalOrgIds] = useState<Set<string>>(new Set());
+  const [selectedOrgIds, setSelectedOrgIds] = useState<Set<number>>(new Set());
+  const [originalOrgIds, setOriginalOrgIds] = useState<Set<number>>(new Set());
   const [editingPerms, setEditingPerms] = useState(false);
   const [allPerms, setAllPerms] = useState<Permission[]>([]);
-  const [selectedPermIds, setSelectedPermIds] = useState<Set<string>>(new Set());
-  const [originalPermIds, setOriginalPermIds] = useState<Set<string>>(new Set());
+  const [selectedPermIds, setSelectedPermIds] = useState<Set<number>>(new Set());
+  const [originalPermIds, setOriginalPermIds] = useState<Set<number>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const isFetching = useRef(false);
 
@@ -115,15 +115,15 @@ export function useUserGroupDetail(id: string | undefined) {
 
   const startEditOrgs = async () => {
     const all = await listOrganisations();
-    setAllOrgs(all.map((o) => ({ ...o, id: String(o.id) })));
-    const currentIds = new Set(orgs.map((o) => String(o.organisationId)));
+    setAllOrgs(all);
+    const currentIds = new Set(orgs.map((o) => Number(o.organisationId)));
     setSelectedOrgIds(currentIds);
     setOriginalOrgIds(currentIds);
     setEditingOrgs(true);
     setOrganisationsError(false);
   };
 
-  const toggleOrg = (orgId: string) => {
+  const toggleOrg = (orgId: number) => {
     setOrganisationsError(false);
     setSelectedOrgIds((prev) => {
       const next = new Set(prev);
@@ -161,14 +161,14 @@ export function useUserGroupDetail(id: string | undefined) {
 
   const startEditPerms = async () => {
     const all = await listPermissions();
-    setAllPerms(all.map((p) => ({ ...p, id: String(p.id) })));
-    const currentIds = new Set(perms.map((p) => String(p.permissionId)));
+    setAllPerms(all);
+    const currentIds = new Set(perms.map((p) => Number(p.permissionId)));
     setSelectedPermIds(currentIds);
     setOriginalPermIds(currentIds);
     setEditingPerms(true);
   };
 
-  const togglePerm = (permId: string) => {
+  const togglePerm = (permId: number) => {
     setSelectedPermIds((prev) => {
       const next = new Set(prev);
       if (next.has(permId)) next.delete(permId);
