@@ -83,7 +83,7 @@ INSERT INTO users.user_account (
 )
 SELECT
     nextval('users.seq_user_account_key'),
-    '38001085718', 'Super', 'Admin',
+    '60001019906', 'Super', 'Admin',
     o.id, o.name, 'LÕUNA PREFEKTUUR', 'Spetsialist',
     'super.admin@ljvis.test', '55500001', '2024-01-01', 'active',
     (SELECT ARRAY[ug.user_group_key]
@@ -92,7 +92,7 @@ SELECT
     'bootstrap'
 FROM users.organisation o
 WHERE o.code = 'PPA'
-  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '38001085718');
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60001019906');
 
 -- ============================================================
 -- Classifiers  (v2: single snapshot INSERT per classifier)

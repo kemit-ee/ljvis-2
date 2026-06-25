@@ -72,8 +72,8 @@ SELECT
 FROM latest l
 WHERE
     (
-    :user_group_id = 0
-        OR :user_group_id = ANY(l.user_groups)
+    :user_group_id::BIGINT = 0
+        OR :user_group_id::BIGINT = ANY(l.user_groups)
         )
     AND
     (
