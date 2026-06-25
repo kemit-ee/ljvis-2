@@ -105,7 +105,7 @@
     "organisations": "Asutused",
     "organisationsDescription": "Asutused, kellele on antud kasutajagrupi õigused",
     "connectedOrganisations": "Seotud asutused",
-    "organisationsNotSelected": "Valige vähemalt üks asutus.",
+    "organisationsNotSelected": "Vähemalt üks asutus peab olema valitud",
     "allOrganisations": "Kõik asutused",
     "permissions": "Õigused",
     "groupPermissions": "Kasutajagrupi õigused",

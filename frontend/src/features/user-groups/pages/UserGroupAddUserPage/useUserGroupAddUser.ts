@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { UserGroup, UserGroupUser } from '../../types';
 import {
@@ -24,19 +24,20 @@ export function useUserGroupAddUser(id: string | undefined) {
   });
   const [sorting, setSorting] = useState<SortingState>([]);
   const [totalRows, setTotalRows] = useState(0);
-  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoading(true);
     try {
       const sortStr = sorting.length
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
       const [g, orgs] = await Promise.all([
-        getUserGroup(scope, id),
+        getUserGroup(scope, id, false),
         getUserGroupOrganisations(scope, id),
       ]);
       const organisationIds = orgs.map((o) => o.organisationId).join(',');
@@ -55,6 +56,7 @@ export function useUserGroupAddUser(id: string | undefined) {
       console.error('Failed to load group', e);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, [id, scope, userSearch, pagination, sorting]);
 

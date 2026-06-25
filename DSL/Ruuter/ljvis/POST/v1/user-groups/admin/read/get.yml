@@ -11,11 +11,25 @@ declaration:
       - field: id
         type: string
         description: "User group UUID"
+      - field: logAudit
+        type: boolean
+        description: "Whether to log an audit event (default true)"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
     organisation_id: 0
+    log_audit: ${incoming.body.logAudit !== false}
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getUserGroup
 
 getUserGroup:
@@ -38,6 +52,55 @@ mapResponse:
     body:
       groups: ${res.response.body}
   result: mapped
+  next: getGroupUsers
+
+getGroupUsers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_users"
+    headers:
+      type: json
+    body:
+      user_group_id: ${Number(id)}
+      user_organisation_id: 0
+      page: 1
+      page_size: 10000
+      search: ""
+      sorting: ""
+  result: usersRes
+  next: checkLogAudit
+
+checkLogAudit:
+  switch:
+    - condition: ${log_audit === true}
+      next: buildAuditEvent
+  next: returnSuccess
+
+buildAuditEvent:
+  assign:
+    group_name: "${res.response.body[0].name || ''}"
+    displayed_personal_codes: ${JSON.stringify((usersRes.response.body ?? []).map(u => u.personalCode))}
+    personal_codes_str: "${(usersRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ')}"
+    view_description: "${(usersRes.response.body ?? []).length > 0 ? 'Kasutajagrupi ' + group_name + ' vaatamine, kasutajaid: ' + personal_codes_str : 'Kasutajagrupi ' + group_name + ' vaatamine'}"
+    log_content: "{\"targetGroupId\":${id},\"scope\":\"allOrganisations\",\"organisationId\":null,\"displayedUserPersonalCodes\":${displayed_personal_codes}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user_group.view"
+      event_category: "user_group_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${view_description}
+      log_content: ${log_content}
+      created_by: ${actor_name}
+  result: audit_result
+  next: returnSuccess
 
 returnSuccess:
   return: ${mapped.response.body}

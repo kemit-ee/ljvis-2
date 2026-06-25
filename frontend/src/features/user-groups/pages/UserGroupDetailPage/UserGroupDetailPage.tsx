@@ -119,7 +119,8 @@ export function UserGroupDetailPage() {
   };
 
   const saveOrgs = async () => {
-    await saveOrgsHook();
+    const ok = await saveOrgsHook();
+    if (ok === false) return;
     await refetchUser();
   };
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/useAuth';
@@ -59,16 +59,19 @@ export function useUserGroupDetail(id: string | undefined) {
     new Set(),
   );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoading(true);
     try {
       const sortStr = sorting.length
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
       const [g, o, p, u] = await Promise.all([
-        getUserGroup(scope, id),
+        getUserGroup(scope, id, true),
         getUserGroupOrganisations(scope, id),
         getUserGroupPermissions(scope, id),
         getUserGroupUsers(scope, {
@@ -88,6 +91,7 @@ export function useUserGroupDetail(id: string | undefined) {
       console.error('Failed to load group', e);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, [id, scope, userSearch, pagination, sorting]);
 
@@ -142,10 +146,10 @@ export function useUserGroupDetail(id: string | undefined) {
   };
 
   const saveOrgs = async () => {
-    if (!id) return;
-    if (selectedOrgIds.size == 0) {
+    if (!id) return false;
+    if (selectedOrgIds.size === 0) {
       setOrganisationsError(true);
-      return;
+      return false;
     }
     const removedOrgIds = Array.from(originalOrgIds).filter(
       (oid) => !selectedOrgIds.has(oid),
@@ -155,7 +159,6 @@ export function useUserGroupDetail(id: string | undefined) {
     );
     await setUserGroupOrganisations(id, addedOrgIds, removedOrgIds);
     setEditingOrgs(false);
-    fetchData();
   };
 
   const cancelEditOrgs = () => setEditingOrgs(false);
@@ -195,7 +198,6 @@ export function useUserGroupDetail(id: string | undefined) {
     );
     await setUserGroupPermissions(id, addedPermissionIds, removedPermissionIds);
     setEditingPerms(false);
-    fetchData();
   };
 
   const cancelEditPerms = () => setEditingPerms(false);
@@ -218,7 +220,6 @@ export function useUserGroupDetail(id: string | undefined) {
     try {
       const result = await deleteUserGroupUser(id, userId);
       console.log('Vastus: ', result);
-      fetchData();
     } catch (e) {
       console.error('Failed to delete user from group', e);
     }
