@@ -75,8 +75,8 @@ export const updateUserGroupName = (id: string, name: string) =>
 
 export const setUserGroupOrganisations = (
   id: string,
-  addedOrganisationIds: string[],
-  removedOrganisationIds: string[],
+  addedOrganisationIds: number[],
+  removedOrganisationIds: number[],
 ) =>
   post<string>('/v1/user-groups/write/set-organisations', {
     id,
@@ -86,8 +86,8 @@ export const setUserGroupOrganisations = (
 
 export const setUserGroupPermissions = (
   id: string,
-  addedPermissionIds: string[],
-  removedPermissionIds: string[],
+  addedPermissionIds: number[],
+  removedPermissionIds: number[],
 ) =>
   post<string>('/v1/user-groups/write/set-permissions', {
     id,
