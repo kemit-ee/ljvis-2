@@ -27,7 +27,7 @@ latest_users AS (
         user_account_key,
         organisation_id,
         user_groups
-    FROM ljvis2.user_account
+    FROM users.user_account
     ORDER BY user_account_key, created_at DESC
 )
 SELECT string_agg(lu.user_account_key::TEXT, ',') AS user_ids
