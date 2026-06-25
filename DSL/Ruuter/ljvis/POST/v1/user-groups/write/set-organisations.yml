@@ -66,12 +66,68 @@ setOrgs:
       removed_organisation_ids: ${removed_organisation_ids}
       created_by: ${actor_personal_code}
   result: setOrgsRes
+  next: checkRemovedOrgs
+
+checkRemovedOrgs:
+  switch:
+    - condition: "${removed_organisation_ids == ''}"
+      next: returnSuccess
+  next: getCascadeRemovedUsers
+
+getCascadeRemovedUsers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_group_users_by_organisations"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      organisation_ids: ${removed_organisation_ids}
+  result: cascadeUsersRes
+  next: extractCascadeUserIds
+
+extractCascadeUserIds:
+  assign:
+    cascade_user_ids: "${cascadeUsersRes.response.body[0].userIds || ''}"
+  next: checkCascadeUsers
+
+checkCascadeUsers:
+  switch:
+    - condition: "${cascade_user_ids == '' || cascade_user_ids == null}"
+      next: returnSuccess
+  next: removeUsersFromGroup
+
+removeUsersFromGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_users"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      user_ids: ${cascade_user_ids}
+      status: "removed"
+      created_by: ${actor_personal_code}
+  result: removeUsersRes
+  next: getCascadePersonalCodes
+
+getCascadePersonalCodes:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_users_by_ids"
+    headers:
+      type: json
+    body:
+      user_ids: ${cascade_user_ids}
+  result: cascadePersonalCodesRes
   next: returnSuccess
 
 returnSuccess:
   assign:
-    description: "Kasutajagrupi ${group_name} muutmine: organisatsioonid"
-    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":${added_organisation_ids_json},\"removedOrganisationIds\":${removed_organisation_ids_json},\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+    cascade_removed_json: "${typeof cascadePersonalCodesRes !== 'undefined' ? JSON.stringify((cascadePersonalCodesRes.response.body ?? []).map(u => u.personalCode)) : '[]'}"
+    cascade_removed_str: "${typeof cascadePersonalCodesRes !== 'undefined' && (cascadePersonalCodesRes.response.body ?? []).length > 0 ? ', kaskaad: ' + (cascadePersonalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ') : ''}"
+    description: "Kasutajagrupi ${group_name} muutmine: organisatsioonid${cascade_removed_str}"
+    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":${added_organisation_ids_json},\"removedOrganisationIds\":${removed_organisation_ids_json},\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":${cascade_removed_json}}"
   next: logAuditEvent
 
 logAuditEvent:
