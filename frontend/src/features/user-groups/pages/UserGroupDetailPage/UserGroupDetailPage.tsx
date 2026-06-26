@@ -160,7 +160,7 @@ export function UserGroupDetailPage() {
             label={t('common.space')}
             hideLabel
             size="large"
-            value={info.row.original.id}
+            value={String(info.row.original.id)}
             name="organisations"
             checked={selectedOrgIds.has(info.row.original.id)}
             onChange={() => toggleOrg(info.row.original.id)}
@@ -199,7 +199,7 @@ export function UserGroupDetailPage() {
             label={t('common.space')}
             hideLabel
             size="large"
-            value={info.row.original.id}
+            value={String(info.row.original.id)}
             name="permissions"
             checked={selectedPermIds.has(info.row.original.id)}
             onChange={() => togglePerm(info.row.original.id)}

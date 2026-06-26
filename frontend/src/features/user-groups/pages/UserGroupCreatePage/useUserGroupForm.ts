@@ -11,8 +11,8 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [name, setName] = useState('');
-  const [selectedOrgs, setSelectedOrgs] = useState<Set<string>>(new Set());
-  const [selectedPerms, setSelectedPerms] = useState<Set<string>>(new Set());
+  const [selectedOrgs, setSelectedOrgs] = useState<Set<number>>(new Set());
+  const [selectedPerms, setSelectedPerms] = useState<Set<number>>(new Set());
   const [nameError, setNameError] = useState('');
   const [organisationsError, setOrganisationsError] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -20,13 +20,13 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
   useEffect(() => {
     Promise.all([listOrganisations(), listPermissions()])
       .then(([orgs, perms]) => {
-        setOrganisations(orgs.map((o) => ({ ...o, id: String(o.id) })));
-        setPermissions(perms.map((p) => ({ ...p, id: String(p.id) })));
+        setOrganisations(orgs);
+        setPermissions(perms);
       })
       .catch(console.error);
   }, []);
 
-  const toggleOrg = (id: string) => {
+  const toggleOrg = (id: number) => {
     setOrganisationsError(false);
     setSelectedOrgs((prev) => {
       const next = new Set(prev);
@@ -36,7 +36,7 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
     });
   };
 
-  const togglePerm = (id: string) => {
+  const togglePerm = (id: number) => {
     setSelectedPerms((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -48,14 +48,14 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
   const toggleAllOrgs = () => {
     setOrganisationsError(false);
     setSelectedOrgs((prev) => {
-      if (prev.size === organisations.length) return new Set();
+      if (prev.size === organisations.length) return new Set<number>();
       return new Set(organisations.map((org) => org.id));
     });
   };
 
   const toggleAllPerms = () => {
     setSelectedPerms((prev) => {
-      if (prev.size === permissions.length) return new Set();
+      if (prev.size === permissions.length) return new Set<number>();
       return new Set(permissions.map((perm) => perm.id));
     });
   };

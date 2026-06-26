@@ -66,8 +66,8 @@ export const getUserGroupAvailableUsers = (params?: {
 
 export const insertUserGroup = (data: {
   name: string;
-  organisationIds?: string[];
-  permissionIds?: string[];
+  organisationIds?: number[];
+  permissionIds?: number[];
 }) => post<UserGroup[]>('/v1/user-groups/write/insert', data);
 
 export const updateUserGroupName = (id: string, name: string) =>
