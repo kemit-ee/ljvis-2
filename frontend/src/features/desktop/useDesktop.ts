@@ -17,19 +17,19 @@ const createAvailableForms = async (
   perms: string[],
 ): Promise<ControlForm[]> => {
   const permKeys = perms
-    .map((p) => ({ key: p.replace(SEARCH_WRITE, ''), perm: p }))
-    .filter(({ key }) => !!FORM_CONFIG[key]);
+    .map((p) => p.replace(SEARCH_WRITE, ''))
+    .filter((key) => !!FORM_CONFIG[key]);
 
   if (permKeys.length === 0) return [];
 
-  const codes = permKeys.map(({ key }) => FORM_CONFIG[key].classifierCode);
+  const codes = permKeys.map((key) => FORM_CONFIG[key].classifierCode);
   const classifierValues: BatchFormClassifierValue[] = await getAvailableFormClassifierValues(codes);
 
   const valuesByCode = new Map(
     classifierValues.map((v) => [v.classifierCode, v]),
   );
 
-  return permKeys.reduce<ControlForm[]>((acc, { key }) => {
+  return permKeys.reduce<ControlForm[]>((acc, key) => {
     const value = valuesByCode.get(FORM_CONFIG[key].classifierCode);
     if (!value || value.description !== DESKTOP.DASHBOARD_MANUAL_ADD) return acc;
     acc.push({ name: value.name, route: FORM_CONFIG[key].route, hasParent: value.hasParent });
