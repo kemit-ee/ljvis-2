@@ -23,7 +23,7 @@ DO $$
                    nextval('classifier.seq_classifier_key'),
                    'FORM_TYPE',
                    'Kontrollvormi tüüp',
-                   'Kontrollvormide tüüpide klassifikaator (EPIC 06)',
+                   'Kontrollvormide tüüpide klassifikaator',
                    v_created_by
                )
         RETURNING classifier_key INTO v_clf_key;
