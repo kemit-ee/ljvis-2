@@ -19,7 +19,8 @@
     "officialInfo": "COMING"
   },
   "desktop": {
-    "title": "Desktop"
+    "title": "Desktop",
+    "addForm": "+ Add"
   },
   "nav": {
     "desktop": "Desktop",

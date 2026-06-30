@@ -28,7 +28,8 @@
     "logs": "Logid"
   },
   "desktop": {
-    "title": "Töölaud"
+    "title": "Töölaud",
+    "addForm": "+ Lisa"
   },
   "users": {
     "title": "Kasutajad",

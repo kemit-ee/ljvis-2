@@ -1,0 +1,44 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get a single form classifier value by code"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: code
+        type: string
+        description: "Classifier code"
+
+extractRequestData:
+  assign:
+    code: "${incoming.body.code}"
+  next: getClassifierValue
+
+getClassifierValue:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-form/get_available_form_classifier_value"
+    headers:
+      type: json
+    body:
+      code: ${code}
+  result: res
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_form_classifier_value"
+    headers:
+      type: json
+    body:
+      values: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
