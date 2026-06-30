@@ -19,8 +19,11 @@ export const listUserGroups = (
     params as Record<string, unknown>,
   );
 
-export const getUserGroup = (scope: 'admin' | 'local', id: string, logAudit: boolean) =>
-  post<UserGroup[]>(`/v1/user-groups/${scope}/read/get`, { id, logAudit });
+export const getUserGroup = (
+  scope: 'admin' | 'local',
+  id: string,
+  logAudit: boolean,
+) => post<UserGroup[]>(`/v1/user-groups/${scope}/read/get`, { id, logAudit });
 
 export const getUserGroupOrganisations = (
   scope: 'admin' | 'local',
