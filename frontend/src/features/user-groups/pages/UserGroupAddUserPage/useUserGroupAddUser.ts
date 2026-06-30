@@ -24,7 +24,9 @@ export function useUserGroupAddUser(id: string | undefined) {
   });
   const [sorting, setSorting] = useState<SortingState>([]);
   const [totalRows, setTotalRows] = useState(0);
-  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(
+    new Set(),
+  );
   const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
