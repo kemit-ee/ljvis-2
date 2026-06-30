@@ -1,34 +1,40 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
-import type { Permission } from '../permissions/types.ts';
 import type {
   ControlForm,
-  FormClassifierValue,
+  BatchFormClassifierValue,
 } from '../control-forms/types.ts';
 import {
-  getAvailableFormClassifierValue,
-  getAvailablePerms,
+  getAvailableFormClassifierValues,
 } from '../control-forms/api';
 import { FORM_CONFIG } from '../control-forms/formRoutes.ts';
 import { useAuth } from '../auth/AuthContext';
+import { DESKTOP } from '../../constants/constants';
+
+const SEARCH_WRITE = '.write';
+const SEARCH_FORM_WRITE = '_form.write';
 
 const createAvailableForms = async (
-  perms: Permission[],
+  perms: string[],
 ): Promise<ControlForm[]> => {
-  const results = await Promise.all(
-    perms.map(async (p) => {
-      const key = p.code.replace('.write', '');
-      const classifierValues: FormClassifierValue[] =
-        await getAvailableFormClassifierValue(FORM_CONFIG[key].classifierCode);
-      return classifierValues[0].description === 'DASHBOARD_MANUAL_ADD'
-        ? {
-            name: classifierValues[0].name,
-            route: FORM_CONFIG[key].route,
-            hasParent: classifierValues[0].hasParent,
-          }
-        : null;
-    }),
+  const permKeys = perms
+    .map((p) => ({ key: p.replace(SEARCH_WRITE, ''), perm: p }))
+    .filter(({ key }) => !!FORM_CONFIG[key]);
+
+  if (permKeys.length === 0) return [];
+
+  const codes = permKeys.map(({ key }) => FORM_CONFIG[key].classifierCode);
+  const classifierValues: BatchFormClassifierValue[] = await getAvailableFormClassifierValues(codes);
+
+  const valuesByCode = new Map(
+    classifierValues.map((v) => [v.classifierCode, v]),
   );
-  return results.filter((f): f is ControlForm => f !== null);
+
+  return permKeys.reduce<ControlForm[]>((acc, { key }) => {
+    const value = valuesByCode.get(FORM_CONFIG[key].classifierCode);
+    if (!value || value.description !== DESKTOP.DASHBOARD_MANUAL_ADD) return acc;
+    acc.push({ name: value.name, route: FORM_CONFIG[key].route, hasParent: value.hasParent });
+    return acc;
+  }, []);
 };
 
 export function useDesktop() {
@@ -43,7 +49,8 @@ export function useDesktop() {
     isFetching.current = true;
     setLoading(true);
     try {
-      const perms = await getAvailablePerms(Number(authUser.id));
+      const rawPerms = Array.isArray(authUser.permissions) ? authUser.permissions : [authUser.permissions];
+      const perms = rawPerms.filter((p: string) => p.endsWith(SEARCH_FORM_WRITE));
       setAvailableForms(await createAvailableForms(perms));
     } catch (e) {
       console.error('Failed to available forms', e);

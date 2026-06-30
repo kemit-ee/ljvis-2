@@ -5,12 +5,6 @@
 INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.write', 'Välisriigi rikkumise andmevormi vormi loomine, täitmine, salvestamine ja failide üleslaadimine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.read', 'Välisriigi rikkumise andmevormi vormi andmete lugemine ja failide allalaadimine', 'ljvis2');
 
-ALTER TABLE classifier.classifier_value ADD COLUMN IF NOT EXISTS description VARCHAR(250);
-ALTER TABLE classifier.classifier_value ADD COLUMN IF NOT EXISTS parent_key BIGINT;
-
-COMMENT ON COLUMN classifier.classifier_value.description IS 'Classifier value description';
-COMMENT ON COLUMN classifier.classifier_value.parent_key IS 'Parent key for classifier value';
-
 DO $$
     DECLARE
         v_created_by    VARCHAR(100) := 'system';

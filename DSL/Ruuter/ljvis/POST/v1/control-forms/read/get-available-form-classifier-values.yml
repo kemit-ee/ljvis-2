@@ -1,37 +1,37 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Get a single form classifier value by code"
+  description: "Get form classifier values by multiple codes"
   method: post
   accepts: json
   returns: json
   namespace: control-forms
   allowlist:
     body:
-      - field: code
-        type: string
-        description: "Classifier code"
+      - field: codes
+        type: array
+        description: "List of classifier codes"
 
 extractRequestData:
   assign:
-    code: "${incoming.body.code}"
-  next: getClassifierValue
+    codes: "${incoming.body.codes.join(',')}"
+  next: getClassifierValues
 
-getClassifierValue:
+getClassifierValues:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/control-form/get_available_form_classifier_value"
+    url: "[#LJVIS_RESQL]/control-form/get_available_form_classifier_values"
     headers:
       type: json
     body:
-      code: ${code}
+      codes: ${codes}
   result: res
   next: mapResponse
 
 mapResponse:
   call: http.post
   args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_form_classifier_value"
+    url: "[#LJVIS_DMAPPER_HBS]/map_form_classifier_values"
     headers:
       type: json
     body:

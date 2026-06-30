@@ -4,8 +4,9 @@ export interface ControlForm {
   hasParent: boolean;
 }
 
-export interface FormClassifierValue {
+export interface BatchFormClassifierValue {
   name: string;
   description: string;
   hasParent: boolean;
+  classifierCode: string;
 }
