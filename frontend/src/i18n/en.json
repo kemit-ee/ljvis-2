@@ -22,6 +22,19 @@
     "title": "Desktop",
     "addForm": "+ Add"
   },
+  "forms": {
+    "foreign_violation_form": "Foreign country road transport inspection report",
+    "ti_kontrollkaart_form": "Labour Inspectorate inspection form",
+    "reputation_noncompliance_form": "Transport manager declared non-compliant with good repute",
+    "sp_compound_form": "Transport supervision and vehicle technical condition inspection",
+    "admin_procedure_form": "Administrative procedure for serious road transport violations",
+    "sp_driver_form": "Driver driving and rest time inspection form",
+    "sp_teammate_form": "Team member driving and rest time inspection form",
+    "sp_vehicle_tech_form": "Motor vehicle technical compliance inspection form",
+    "sp_trailer_tech_form": "Trailer technical compliance inspection form",
+    "sp_dangerous_goods_form": "Dangerous goods transport inspection form",
+    "sp_transport_suspended_form": "Transport suspended inspection form"
+  },
   "nav": {
     "desktop": "Desktop",
     "management": "Management",

@@ -1,51 +1,75 @@
 export interface FormConfig {
-  classifierCode: string;
+  labelKey: string;
   route: string;
+  hasParent: boolean;
+  showOnDashboard: boolean;
 }
 
 export const FORM_CONFIG: Record<string, FormConfig> = {
   foreign_violation_form: {
-    classifierCode: 'FOREIGN_AUDIT',
+    labelKey: 'forms.foreign_violation_form',
     route: '/foreign-violation',
+    hasParent: false,
+    showOnDashboard: true,
   },
   ti_kontrollkaart_form: {
-    classifierCode: 'TI_KONTROLLKAART',
+    labelKey: 'forms.ti_kontrollkaart_form',
     route: '/ti-kontrollkaart',
+    hasParent: false,
+    showOnDashboard: true,
   },
   reputation_noncompliance_form: {
-    classifierCode: 'REPUTATION_NONCOMPLIANCE',
+    labelKey: 'forms.reputation_noncompliance_form',
     route: '/reputation-noncompliance',
+    hasParent: false,
+    showOnDashboard: true,
   },
   sp_compound_form: {
-    classifierCode: 'SP_COMPOUND',
+    labelKey: 'forms.sp_compound_form',
     route: '/sp-compound',
+    hasParent: false,
+    showOnDashboard: true,
   },
   admin_procedure_form: {
-    classifierCode: 'ADMIN_PROCEDURE',
+    labelKey: 'forms.admin_procedure_form',
     route: '/admin-procedure',
+    hasParent: false,
+    showOnDashboard: false,
   },
   sp_driver_form: {
-    classifierCode: 'SP_DRIVER_FORM',
+    labelKey: 'forms.sp_driver_form',
     route: '/sp-driver',
+    hasParent: true,
+    showOnDashboard: true,
   },
   sp_teammate_form: {
-    classifierCode: 'SP_TEAMMATE_FORM',
+    labelKey: 'forms.sp_teammate_form',
     route: '/sp-teammate',
+    hasParent: true,
+    showOnDashboard: true,
   },
   sp_vehicle_tech_form: {
-    classifierCode: 'SP_VEHICLE_TECH',
+    labelKey: 'forms.sp_vehicle_tech_form',
     route: '/sp-vehicle-tech',
+    hasParent: true,
+    showOnDashboard: true,
   },
   sp_trailer_tech_form: {
-    classifierCode: 'SP_TRAILER_TECH',
+    labelKey: 'forms.sp_trailer_tech_form',
     route: '/sp-trailer-tech',
+    hasParent: true,
+    showOnDashboard: true,
   },
   sp_dangerous_goods_form: {
-    classifierCode: 'SP_DANGEROUS_GOODS',
+    labelKey: 'forms.sp_dangerous_goods_form',
     route: '/sp-dangerous-goods',
+    hasParent: true,
+    showOnDashboard: true,
   },
   sp_transport_suspended_form: {
-    classifierCode: 'SP_TRANSPORT_SUSPENDED',
+    labelKey: 'forms.sp_transport_suspended_form',
     route: '/sp-transport-suspended',
+    hasParent: true,
+    showOnDashboard: true,
   },
 };

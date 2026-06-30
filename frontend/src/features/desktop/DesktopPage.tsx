@@ -6,7 +6,7 @@ import {
   Text,
   Dropdown,
 } from '@tedi-design-system/react/tedi';
-import { useDesktop } from '../desktop/useDesktop.ts';
+import { useDesktop } from './useDesktop.ts';
 
 export function DesktopPage() {
   const { t } = useTranslation();
@@ -35,7 +35,7 @@ export function DesktopPage() {
                   onClick={() => navigate(`/control-forms/${form.route}`)}
                   {...(form.hasParent ? { indent: 2 } : {})}
                 >
-                  {form.name}
+                  {t(form.labelKey)}
                 </Dropdown.Item>
               ))}
             </Dropdown.Content>
