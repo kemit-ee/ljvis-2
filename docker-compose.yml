@@ -73,7 +73,7 @@ services:
       - application.logging.printStackTrace=true
       - application.internalRequests.disabled=true
       - server.port=8086
-      - application.externalAuthAllowed=
+      - application.externalAuthAllowed=.*mock.*
     volumes:
       - ./DSL/Ruuter:/DSL
       - ./constants.ini:/app/constants.ini

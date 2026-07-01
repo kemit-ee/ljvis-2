@@ -1,0 +1,12 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - userGroupId: "1"
+          name: "Super Admin Group"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end

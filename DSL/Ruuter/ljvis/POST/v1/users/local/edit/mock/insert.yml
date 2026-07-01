@@ -1,0 +1,20 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - id: "a0000001-0000-0000-0000-000000000098"
+          firstName: "Mock"
+          lastName: "Kasutaja"
+          personalCode: "49001010000"
+          organisationId: "b0000001-0000-0000-0000-000000000002"
+          email: "mock.kasutaja@just.ee"
+          structuralUnitId: null
+          accessStart: "2025-01-01"
+          accessEnd: null
+          status: "active"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end
