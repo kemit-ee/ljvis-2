@@ -35,8 +35,6 @@ extractRequestData:
     valid_from: "${incoming.body.validFrom}"
     valid_until: "${incoming.body.validUntil ?? ''}"
     created_by: "${auth_user.personalcode || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getClassifierCode
 
 getClassifierCode:
@@ -69,30 +67,21 @@ insertClassifierValue:
       valid_until: ${valid_until}
       created_by: ${created_by}
   result: insertRes
-  next: buildAuditData
-
-buildAuditData:
-  assign:
-    classifier_code: ${classifier_code}
-    classifier_value_id: "${insertRes.response.body[0].id}"
-    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}"
-    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "classifier_value.add"
-      event_category: "classifier_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/classifier/log-classifier-value-add"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    classifier_id: ${classifier_id}
+    classifier_code: ${classifier_code}
+    classifier_value_id: "${insertRes.response.body[0].id}"
+    code: ${code}
+    name: ${name}
+    valid_from: ${valid_from}
+    valid_until: ${valid_until}
   result: audit_result
   next: returnSuccess
 

@@ -1,0 +1,38 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: user group update name event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: user_group_id
+        type: string
+      - field: old_name
+        type: string
+      - field: new_name
+        type: string
+
+buildAudit:
+  assign:
+    description: "Kasutajagrupi nime muutmine, vana nimi:'${incoming.body.old_name}', uus nimi:'${incoming.body.new_name}'"
+    log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[\"name\"],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user_group.update"
+    event_category: "user_group_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

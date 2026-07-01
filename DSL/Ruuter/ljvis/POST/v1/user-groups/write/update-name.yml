@@ -25,8 +25,6 @@ extractRequestData:
   assign:
     user_group_id: "${incoming.body.id}"
     name: "${incoming.body.name}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getUserGroup
 
 getUserGroup:
@@ -55,30 +53,19 @@ updateName:
     body:
       user_group_id: ${user_group_id}
       name: ${name}
-      created_by: ${actor_personal_code}
+      created_by: "${auth_user.personalcode || ''}"
   result: res
-  next: buildAuditLog
-
-buildAuditLog:
-  assign:
-    description: "Kasutajagrupi nime muutmine, vana nimi:'${group_name}', uus nimi:'${name}'"
-    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[\"name\"],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user_group.update"
-      event_category: "user_group_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/user-group/log-user-group-update-name"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    user_group_id: ${user_group_id}
+    old_name: ${group_name}
+    new_name: ${name}
   result: audit_result
   next: returnSuccess
 

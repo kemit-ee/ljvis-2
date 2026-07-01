@@ -29,8 +29,6 @@ extractRequestData:
     name: "${incoming.body.name}"
     description: "${incoming.body.description}"
     created_by: "${auth_user.personalcode || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getClassifier
 
 getClassifier:
@@ -86,29 +84,17 @@ updateClassifier:
       description: ${description}
       created_by: ${created_by}
   result: updatedRes
-  next: buildAuditEvent
-
-buildAuditEvent:
-  assign:
-    changed_fields: ${changedFieldsResult}
-    description: "Klassifikaator '${classifier_code}' (ID ${id}), muudetud väljad: ${changed_fields}"
-    log_content: "{\"classifierId\":${id},\"classifierCode\":\"${classifier_code}\",\"changedFields\":${changed_fields}}"
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "classifier.update"
-      event_category: "classifier_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/classifier/log-classifier-update"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    classifier_id: ${id}
+    classifier_code: ${classifier_code}
+    changed_fields: ${changedFieldsResult}
   result: audit_result
   next: returnSuccess
 

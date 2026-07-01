@@ -27,8 +27,6 @@ extractRequestData:
   assign:
     user_group_id: "${incoming.body.id}"
     user_ids: "${(incoming.body.userIds ?? []).join(',')}"
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
   next: getUserGroup
 
 getUserGroup:
@@ -51,7 +49,7 @@ extractResult:
 checkUserIds:
   switch:
     - condition: "${user_ids == ''}"
-      next: buildEmptyAuditEvent
+      next: logAuditEvent
   next: addUsers
 
 addUsers:
@@ -64,50 +62,19 @@ addUsers:
       user_group_id: ${user_group_id}
       user_ids: ${user_ids}
       status: "active"
-      created_by: ${actor_personal_code}
+      created_by: "${auth_user.personalcode || ''}"
   result: addRes
-  next: getAddedUserPersonalCodes
-
-getAddedUserPersonalCodes:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user/get_users_by_ids"
-    headers:
-      type: json
-    body:
-      user_ids: ${user_ids}
-  result: personalCodesRes
-  next: buildAuditEvent
-
-buildEmptyAuditEvent:
-  assign:
-    added_personal_codes_json: "[]"
-    description: "Kasutajagrupi ${group_name} muutmine: lisatud kasutajad: "
-    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
-  next: logAuditEvent
-
-buildAuditEvent:
-  assign:
-    added_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
-    added_personal_codes_str: ${ (personalCodesRes.response.body ?? []).map(u => "'" + u.personalCode + "'").join(', ') }
-    description: "Kasutajagrupi ${group_name} muutmine: lisatud kasutajad: ${added_personal_codes_str}"
-    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":${added_personal_codes_json},\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user_group.update"
-      event_category: "user_group_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/user-group/log-user-group-add-users"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    user_group_id: ${user_group_id}
+    group_name: ${group_name}
+    user_ids: ${user_ids}
   result: audit_result
   next: returnSuccessResult
 

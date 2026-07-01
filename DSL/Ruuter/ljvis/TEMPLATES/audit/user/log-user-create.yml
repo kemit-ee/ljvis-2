@@ -1,0 +1,40 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: user create event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: first_name
+        type: string
+      - field: last_name
+        type: string
+      - field: personal_code
+        type: string
+      - field: organisation_id
+        type: string
+
+buildAudit:
+  assign:
+    description: "Kasutaja loomine: ${incoming.body.first_name} ${incoming.body.last_name} (${incoming.body.personal_code})"
+    log_content: "{\"targetPersonalCode\":\"${incoming.body.personal_code}\",\"targetName\":\"${incoming.body.first_name} ${incoming.body.last_name}\",\"organisationId\":${incoming.body.organisation_id}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user.create"
+    event_category: "user_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

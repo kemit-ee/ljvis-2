@@ -1,0 +1,53 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Write one audit event to the database (base template)"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: event_type
+        type: string
+      - field: event_category
+        type: string
+      - field: description
+        type: string
+      - field: log_content
+        type: string
+
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
+  next: buildActorFields
+
+buildActorFields:
+  assign:
+    actor_name: "${timRes.response.body.firstName || ''} ${timRes.response.body.lastName || ''}"
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+  next: logToResql
+
+logToResql:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: ${incoming.body.event_type}
+      event_category: ${incoming.body.event_category}
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${incoming.body.description}
+      log_content: ${incoming.body.log_content}
+      created_by: ${actor_name}
+  result: res
+  next: end
