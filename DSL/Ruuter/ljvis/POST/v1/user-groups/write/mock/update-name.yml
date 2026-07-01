@@ -1,0 +1,12 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - id: "2"
+          name: "Updated Group Name"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end

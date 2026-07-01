@@ -1,0 +1,14 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - id: 1
+          name: "Politsei- ja Piirivalveamet"
+        - id: 2
+          name: "Justiitsministeerium"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end

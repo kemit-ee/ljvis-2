@@ -1,0 +1,20 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - id: "a0000001-0000-0000-0000-000000000001"
+          firstName: "Marko"
+          lastName: "Mägi"
+          personalCode: "60001019906"
+          organisationId: "b0000001-0000-0000-0000-000000000001"
+          email: "marko.magi@ppa.ee"
+          structuralUnitId: null
+          accessStart: "2024-01-01"
+          accessEnd: null
+          status: "active"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end
