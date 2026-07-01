@@ -41,6 +41,8 @@ CREATE TABLE classifier.classifier_value (
     classifier_key        BIGINT          NOT NULL,
     code                  VARCHAR(100)    NOT NULL,
     name                  VARCHAR(500)    NOT NULL,
+    description           VARCHAR(250),
+    parent_key            BIGINT,
     valid_from            DATE            NOT NULL,
     valid_until           DATE,
     created_at            TIMESTAMPTZ     NOT NULL DEFAULT now(),
@@ -55,6 +57,8 @@ COMMENT ON COLUMN classifier.classifier_value.classifier_value_key IS 'Stable lo
 COMMENT ON COLUMN classifier.classifier_value.classifier_key       IS 'Logical key of the owning classifier (classifier.classifier.classifier_key). Enables filtering values by classifier without a lookup. Bare BIGINT — no FK possible against a non-unique column.';
 COMMENT ON COLUMN classifier.classifier_value.code                 IS 'Business code of the value within the classifier (e.g. EE). Logically immutable across snapshots; per-classifier uniqueness enforced at orchestration (Ruuter) layer.';
 COMMENT ON COLUMN classifier.classifier_value.name                 IS 'Human-readable name of the value as of this snapshot (e.g. Eesti); max 500 characters';
+COMMENT ON COLUMN classifier.classifier_value.description          IS 'Classifier value description';
+COMMENT ON COLUMN classifier.classifier_value.parent_key           IS 'Parent key for classifier value';
 COMMENT ON COLUMN classifier.classifier_value.valid_from           IS 'Start date of validity (inclusive) as of this snapshot';
 COMMENT ON COLUMN classifier.classifier_value.valid_until          IS 'End date of validity (exclusive — value is NOT valid on this date) as of this snapshot; NULL = open-ended';
 COMMENT ON COLUMN classifier.classifier_value.created_at           IS 'Snapshot creation timestamp; ordering key for latest-row resolution';

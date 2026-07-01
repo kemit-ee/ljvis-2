@@ -28,7 +28,21 @@
     "logs": "Logid"
   },
   "desktop": {
-    "title": "Töölaud"
+    "title": "Töölaud",
+    "addForm": "+ Lisa"
+  },
+  "forms": {
+    "foreign_violation_form": "Välisriigis teostatud autoveoalase kontrolli kontrollkaart",
+    "ti_kontrollkaart_form": "Tööinspektsiooni kontrollkaart",
+    "reputation_noncompliance_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
+    "sp_compound_form": "Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart",
+    "admin_procedure_form": "Haldusmenetlus seoses raskete autoveoalaste rikkumistega",
+    "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
+    "sp_teammate_form": "Meeskonna liikme sõidu- ja puhkeaja kontrollvorm",
+    "sp_vehicle_tech_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
+    "sp_trailer_tech_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
+    "sp_dangerous_goods_form": "Ohtliku veose veo kontrollvorm",
+    "sp_transport_suspended_form": "Autovedu on katkestatud kontrollvorm"
   },
   "users": {
     "title": "Kasutajad",

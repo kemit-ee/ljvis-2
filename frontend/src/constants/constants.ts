@@ -10,3 +10,8 @@ export const PERMISSIONS = {
   CLASSIFIER_LIST: 'classifier.list',
   AUDIT_READ: 'audit.read',
 } as const;
+
+export const DESKTOP = {
+  DASHBOARD_MANUAL_ADD: 'DASHBOARD_MANUAL_ADD',
+  DASHBOARD_EXCLUDED: 'DASHBOARD_EXCLUDED',
+} as const;
