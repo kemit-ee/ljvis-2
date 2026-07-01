@@ -2,9 +2,6 @@
 -- changeset ljvis:20260630100002 ignore:true
 -- Seed data
 
-INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.write', 'Välisriigi rikkumise andmevormi vormi loomine, täitmine, salvestamine ja failide üleslaadimine', 'ljvis2');
-INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.read', 'Välisriigi rikkumise andmevormi vormi andmete lugemine ja failide allalaadimine', 'ljvis2');
-
 DO $$
     DECLARE
         v_created_by    VARCHAR(100) := 'system';

@@ -27,6 +27,13 @@ INSERT INTO users.permission (code, description, created_by) VALUES ('user.edit.
 INSERT INTO users.permission (code, description, created_by) VALUES ('user.edit.local',                'Kasutaja lisamine, vaatamine ja muutmine ainult oma asutuse kasutajatele',                 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('organisation.list',              'Asutuste kataloogi laadimine UI valikute jaoks (modaalid, akordionite tabelid)',           'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('permission.list',                'Õiguste kataloogi laadimine UI valikute jaoks (kasutatakse ainult muutmisrežiimis)',       'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('classifier.list',                'Klassifikaatorite nimekirja detailvaate vaatamine',                                        'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('classifier.read',                'Klassifikaatori detailvaate vaatamine',                                                    'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('classifier.edit',                'Klassifikaatori nimetuse ja selgituse muutmine',                                           'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('classifier_value.edit',          'Klassifikaatorile uue väärtuse loomine ja väärtuse kehtivusperioodi muutmine',             'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('audit.read',                     'Auditilogi kirjete vaatamine, filtreerimine, sorteerimine ja eksportimine CSV-failina',    'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.write',   'Välisriigi rikkumise andmevormi vormi loomine, täitmine, salvestamine ja failide üleslaadimine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.read',    'Välisriigi rikkumise andmevormi vormi andmete lugemine ja failide allalaadimine',          'ljvis2');
 
 -- user_groups — single full snapshot per group (v2: organisations + permissions embedded as JSONB)
 -- user_group_key = 1: Super Admin Group
