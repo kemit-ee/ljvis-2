@@ -4,7 +4,7 @@ import checker from 'vite-plugin-checker';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const useMock = env.VITE_USE_MOCK === 'true';
+  const useMock = env.VITE_USE_MOCK === 'false';
 
   return {
   plugins: [
@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
         target: 'http://localhost:8086',
         changeOrigin: true,
         rewrite: useMock
-          ? (path) => path.replace(/^\/api\/(.+)\/([^/]+)$/, '/ljvis/$1/mock/$2')
+          ? (path) => path.replace(/^\/api(.+?)(\?.*)?$/, '/ljvis$1/mock$2')
           : (path) => path.replace(/^\/api/, '/ljvis'),
       },
       '/tim': {
