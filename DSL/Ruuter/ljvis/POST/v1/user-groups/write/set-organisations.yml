@@ -33,8 +33,7 @@ extractRequestData:
     removed_organisation_ids: "${(incoming.body.removedOrganisationIds ?? []).join(',')}"
     added_organisation_ids_json: ${JSON.stringify((incoming.body.addedOrganisationIds ?? []).map(Number))}
     removed_organisation_ids_json: ${JSON.stringify((incoming.body.removedOrganisationIds ?? []).map(Number))}
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    cascade_user_ids: "[]"
   next: getUserGroup
 
 getUserGroup:
@@ -64,14 +63,14 @@ setOrgs:
       user_group_id: ${user_group_id}
       added_organisation_ids: ${added_organisation_ids}
       removed_organisation_ids: ${removed_organisation_ids}
-      created_by: ${actor_personal_code}
+      created_by: "${auth_user.personalcode || ''}"
   result: setOrgsRes
   next: checkRemovedOrgs
 
 checkRemovedOrgs:
   switch:
     - condition: "${removed_organisation_ids == ''}"
-      next: returnSuccess
+      next: logAuditEvent
   next: getCascadeRemovedUsers
 
 getCascadeRemovedUsers:
@@ -94,7 +93,7 @@ extractCascadeUserIds:
 checkCascadeUsers:
   switch:
     - condition: "${cascade_user_ids == '' || cascade_user_ids == null}"
-      next: returnSuccess
+      next: logAuditEvent
   next: removeUsersFromGroup
 
 removeUsersFromGroup:
@@ -107,43 +106,21 @@ removeUsersFromGroup:
       user_group_id: ${user_group_id}
       user_ids: ${cascade_user_ids}
       status: "removed"
-      created_by: ${actor_personal_code}
+      created_by: "${auth_user.personalcode || ''}"
   result: removeUsersRes
-  next: getCascadePersonalCodes
-
-getCascadePersonalCodes:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user/get_users_by_ids"
-    headers:
-      type: json
-    body:
-      user_ids: ${cascade_user_ids}
-  result: cascadePersonalCodesRes
-  next: returnSuccess
-
-returnSuccess:
-  assign:
-    cascade_removed_json: "${typeof cascadePersonalCodesRes !== 'undefined' ? JSON.stringify((cascadePersonalCodesRes.response.body ?? []).map(u => u.personalCode)) : '[]'}"
-    cascade_removed_str: "${typeof cascadePersonalCodesRes !== 'undefined' && (cascadePersonalCodesRes.response.body ?? []).length > 0 ? ', kaskaad: ' + (cascadePersonalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ') : ''}"
-    description: "Kasutajagrupi ${group_name} muutmine: organisatsioonid${cascade_removed_str}"
-    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":${added_organisation_ids_json},\"removedOrganisationIds\":${removed_organisation_ids_json},\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":${cascade_removed_json}}"
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user_group.update"
-      event_category: "user_group_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/user-group/log-user-group-set-organisations"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    user_group_id: ${user_group_id}
+    group_name: ${group_name}
+    added_org_ids_json: ${added_organisation_ids_json}
+    removed_org_ids_json: ${removed_organisation_ids_json}
+    cascade_user_ids: ${cascade_user_ids}
   result: audit_result
   next: returnSuccessResult
 

@@ -31,8 +31,6 @@ extractRequestData:
     organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
     permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
     created_by: "${auth_user.personalcode}"
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: "${auth_user.personalcode}"
     selected_org_count: ${(incoming.body.organisationIds ?? []).length}
   next: validateRequired
 
@@ -71,49 +69,19 @@ createGroup:
 extractGroupId:
   assign:
     user_group_id: "${groupRes.response.body[0].id}"
-  next: getPermissions
-
-getPermissions:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
-    headers:
-      type: json
-    body:
-      user_group_id: ${user_group_id}
-  result: permsDataRes
-  next: getOrganisationsCount
-
-getOrganisationsCount:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/organisation/list_organisations"
-    headers:
-      type: json
-    body: {}
-  result: orgsCountRes
-  next: buildAuditEvent
-
-buildAuditEvent:
-  assign:
-    covers_all_organisations: ${selected_org_count === (orgsCountRes.response.body ?? []).length}
-    permission_codes: ${JSON.stringify((permsDataRes.response.body ?? []).map(p => p.code))}
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user_group.create"
-      event_category: "user_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: "Kasutajagrupi '${name}' loomine"
-      log_content: "{\"targetGroupId\":${user_group_id},\"groupName\":\"${name}\",\"organisationIds\":[${organisation_ids}],\"permissionCodes\":${permission_codes},\"coversAllOrganisations\":${covers_all_organisations}}"
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/user-group/log-user-group-create"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    user_group_id: ${user_group_id}
+    group_name: ${name}
+    organisation_ids: ${organisation_ids}
+    selected_org_count: ${selected_org_count}
+    permission_ids: ${permission_ids}
   result: audit_result
   next: returnSuccess
 

@@ -31,8 +31,6 @@ extractRequestData:
     user_group_id: "${incoming.body.id}"
     added_permission_ids: "${(incoming.body.addedPermissionIds ?? []).join(',')}"
     removed_permission_ids: "${(incoming.body.removedPermissionIds ?? []).join(',')}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getUserGroup
 
 getUserGroup:
@@ -62,45 +60,20 @@ setPerms:
       user_group_id: ${user_group_id}
       added_permission_ids: ${added_permission_ids}
       removed_permission_ids: ${removed_permission_ids}
-      created_by: ${actor_personal_code}
+      created_by: "${auth_user.personalcode || ''}"
   result: setPermsRes
-  next: listAllPermissions
-
-listAllPermissions:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/permission/list_permissions"
-    headers:
-      type: json
-    body: {}
-  result: allPermsRes
-  next: returnSuccess
-
-returnSuccess:
-  assign:
-    all_perms: ${JSON.parse(JSON.stringify(allPermsRes.response.body ?? []))}
-    added_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.addedPermissionIds ?? []))}
-    removed_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.removedPermissionIds ?? []))}
-    added_codes: ${JSON.stringify(all_perms.filter(p => added_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
-    removed_codes: ${JSON.stringify(all_perms.filter(p => removed_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
-    description: "Kasutajagrupi ${group_name} muutmine: õigused"
-    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":${added_codes},\"removedPermissionCodes\":${removed_codes},\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user_group.update"
-      event_category: "user_group_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/user-group/log-user-group-set-permissions"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    user_group_id: ${user_group_id}
+    group_name: ${group_name}
+    added_permission_ids_arr: ${incoming.body.addedPermissionIds ?? []}
+    removed_permission_ids_arr: ${incoming.body.removedPermissionIds ?? []}
   result: audit_result
   next: returnSuccessResult
 

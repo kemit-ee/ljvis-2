@@ -161,26 +161,17 @@ setNoChanges:
 buildAuditLog:
   assign:
     changed_fields_json: ${JSON.stringify(changed_fields)}
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
-    description: ${view_description}
     view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"changedFields\":${changed_fields_json},\"previousOrganisationId\":null,\"newOrganisationId\":null,\"removedGroupIds\":null}"
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user.update"
-      event_category: "user_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${view_log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/user/log-user-update"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    description: ${view_description}
+    log_content: ${view_log_content}
   result: audit_result
   next: returnSuccess
 

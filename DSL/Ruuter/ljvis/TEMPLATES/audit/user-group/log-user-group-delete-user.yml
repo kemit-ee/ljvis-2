@@ -1,0 +1,52 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: user group delete-user event — fetches removed user personal code internally"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: user_group_id
+        type: string
+      - field: group_name
+        type: string
+      - field: user_id
+        type: string
+
+fetchUser:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.user_id}
+      organisation_id: ""
+  result: personalCodesRes
+  next: buildAudit
+
+buildAudit:
+  assign:
+    removed_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
+    removed_personal_codes_str: "${(personalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ')}"
+    description: "Kasutajagrupi ${incoming.body.group_name} muutmine: eemaldatud kasutajad: ${removed_personal_codes_str}"
+    log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":${removed_personal_codes_json},\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user_group.update"
+    event_category: "user_group_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end
