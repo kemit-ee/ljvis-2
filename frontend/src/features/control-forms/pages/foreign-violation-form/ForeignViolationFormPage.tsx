@@ -318,20 +318,38 @@ export function ForeignViolationFormPage() {
                       ]
                     }
                   >
-                    <TextField
-                      id="companyRegCode"
-                      label={t('forms.foreign_violation.companyRegCode')}
-                      value={formik.values.firstName}
-                      input={{ maxLength: 20 }}
-                      onChange={(v) => formik.setFieldValue('companyRegCode', v)}
-                    />
-                    <TextField
-                      id="companyName"
-                      label={t('forms.foreign_violation.companyName')}
-                      value={formik.values.lastName}
-                      input={{ maxLength: 300 }}
-                      onChange={(v) => formik.setFieldValue('companyName', v)}
-                    />
+                    <div className={styles['select-row']}>
+                      <div className={styles['select-wrapper']}>
+                        <TextField
+                          id="companyRegCode"
+                          label={t('forms.foreign_violation.companyRegCode')}
+                          value={formik.values.firstName}
+                          input={{ maxLength: 20 }}
+                          onChange={(v) => formik.setFieldValue('companyRegCode', v)}
+                        />
+                      </div>
+                      <Button
+                        onClick={() => {}}
+                      >
+                        {t('common.search')}
+                      </Button>
+                    </div>
+                    <div className={styles['select-row']}>
+                      <div className={styles['select-wrapper']}>
+                        <TextField
+                          id="companyName"
+                          label={t('forms.foreign_violation.companyName')}
+                          value={formik.values.lastName}
+                          input={{ maxLength: 300 }}
+                          onChange={(v) => formik.setFieldValue('companyName', v)}
+                        />
+                      </div>
+                      <Button
+                        onClick={() => {}}
+                      >
+                        {t('common.search')}
+                      </Button>
+                    </div>
                     <Select
                       id="companyCountry"
                       label={t('forms.foreign_violation.companyCountry')}
@@ -425,13 +443,22 @@ export function ForeignViolationFormPage() {
                     }
                     style={{ alignItems: 'start' }}
                   >
-                    <TextField
-                      id="vehicleRegNr"
-                      label={t('forms.foreign_violation.vehicleRegNr')}
-                      value={formik.values.firstName}
-                      input={{ maxLength: 20 }}
-                      onChange={(v) => formik.setFieldValue('vehicleRegNr', v)}
-                    />
+                    <div className={styles['select-row']}>
+                      <div className={styles['select-wrapper']}>
+                        <TextField
+                          id="vehicleRegNr"
+                          label={t('forms.foreign_violation.vehicleRegNr')}
+                          value={formik.values.firstName}
+                          input={{ maxLength: 20 }}
+                          onChange={(v) => formik.setFieldValue('vehicleRegNr', v)}
+                        />
+                      </div>
+                      <Button
+                        onClick={() => {}}
+                      >
+                        {t('common.search')}
+                      </Button>
+                    </div>
                     <TextField
                       id="vehicleMake"
                       label={t('forms.foreign_violation.vehicleMake')}
@@ -510,13 +537,22 @@ export function ForeignViolationFormPage() {
                       ]
                     }
                   >
-                    <TextField
-                      id="licenceCopyNumber"
-                      label={t('forms.foreign_violation.licenceCopyNumber')}
-                      value={formik.values.firstName}
-                      input={{ maxLength: 100 }}
-                      onChange={(v) => formik.setFieldValue('licenceCopyNumber', v)}
-                    />
+                    <div className={styles['select-row']}>
+                      <div className={styles['select-wrapper']}>
+                        <TextField
+                          id="licenceCopyNumber"
+                          label={t('forms.foreign_violation.licenceCopyNumber')}
+                          value={formik.values.firstName}
+                          input={{ maxLength: 100 }}
+                          onChange={(v) => formik.setFieldValue('licenceCopyNumber', v)}
+                        />
+                      </div>
+                      <Button
+                        onClick={() => {}}
+                      >
+                        {t('common.search')}
+                      </Button>
+                    </div>
                   </div>
                 </Card.Content>
               </Card>
@@ -842,9 +878,8 @@ export function ForeignViolationFormPage() {
           {
             <div className="page-actions-buttons">
               <Button
-                type="button"
                 visualType="secondary"
-                onClick={() => navigate('/users')}
+                onClick={() => navigate('/')}
               >
                 {t('users.cancel')}
               </Button>

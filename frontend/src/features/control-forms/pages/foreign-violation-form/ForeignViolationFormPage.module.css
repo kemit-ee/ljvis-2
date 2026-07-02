@@ -34,3 +34,13 @@
 .full-span {
   grid-column: 1 / -1;
 }
+
+.select-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.select-wrapper {
+  flex: 1;
+}
