@@ -1,4 +1,4 @@
-import { post } from '../../shared/api/client';
+import { get, post, put, del } from '../../shared/api/client';
 import type {
   PagedResponse,
   ListApiParams,
@@ -14,30 +14,28 @@ export const listUserGroups = (
   scope: 'admin' | 'local',
   params?: ListApiParams,
 ) =>
-  post<PagedResponse<UserGroup>>(
-    `/v1/user-groups/${scope}/list`,
-    params as Record<string, unknown>,
+  get<PagedResponse<UserGroup>>(
+    `/v1/user-groups/${scope}`,
+    params as Record<string, string>,
   );
 
 export const getUserGroup = (
   scope: 'admin' | 'local',
   id: string,
   logAudit: boolean,
-) => post<UserGroup[]>(`/v1/user-groups/${scope}/read/get`, { id, logAudit });
+) =>
+  get<UserGroup[]>(`/v1/user-groups/${scope}/${id}`, {
+    logAudit: String(logAudit),
+  });
 
 export const getUserGroupOrganisations = (
   scope: 'admin' | 'local',
   id: string,
 ) =>
-  post<UserGroupOrganisation[]>(
-    `/v1/user-groups/${scope}/read/get-organisations`,
-    { id },
-  );
+  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/${id}/organisations`);
 
 export const getUserGroupPermissions = (scope: 'admin' | 'local', id: string) =>
-  post<UserGroupPermission[]>(`/v1/user-groups/${scope}/read/get-permissions`, {
-    id,
-  });
+  get<UserGroupPermission[]>(`/v1/user-groups/${scope}/${id}/permissions`);
 
 export const getUserGroupUsers = (
   scope: 'admin' | 'local',
@@ -49,9 +47,14 @@ export const getUserGroupUsers = (
     search?: string;
   },
 ) =>
-  post<UserGroupUser[]>(
-    `/v1/user-groups/${scope}/read/get-users`,
-    params as Record<string, unknown>,
+  get<UserGroupUser[]>(
+    `/v1/user-groups/${scope}/${params?.userGroupId}/users`,
+    {
+      ...(params?.page !== undefined && { page: params.page }),
+      ...(params?.pageSize !== undefined && { pageSize: params.pageSize }),
+      ...(params?.sorting !== undefined && { sorting: params.sorting }),
+      ...(params?.search !== undefined && { search: params.search }),
+    },
   );
 
 export const getUserGroupAvailableUsers = (params?: {
@@ -63,7 +66,7 @@ export const getUserGroupAvailableUsers = (params?: {
   search?: string;
 }) =>
   post<UserGroupUser[]>(
-    '/v1/user-groups/search/get-available-users',
+    '/v1/user-groups/available-users',
     params as Record<string, unknown>,
   );
 
@@ -71,17 +74,17 @@ export const insertUserGroup = (data: {
   name: string;
   organisationIds?: number[];
   permissionIds?: number[];
-}) => post<UserGroup[]>('/v1/user-groups/write/insert', data);
+}) => post<UserGroup[]>('/v1/user-groups', data);
 
 export const updateUserGroupName = (id: string, name: string) =>
-  post<UserGroup[]>('/v1/user-groups/write/update-name', { id, name });
+  put<UserGroup[]>(`/v1/user-groups/${id}`, { id, name });
 
 export const setUserGroupOrganisations = (
   id: string,
   addedOrganisationIds: number[],
   removedOrganisationIds: number[],
 ) =>
-  post<string>('/v1/user-groups/write/set-organisations', {
+  put<string>(`/v1/user-groups/${id}/organisations`, {
     id,
     addedOrganisationIds,
     removedOrganisationIds,
@@ -92,14 +95,14 @@ export const setUserGroupPermissions = (
   addedPermissionIds: number[],
   removedPermissionIds: number[],
 ) =>
-  post<string>('/v1/user-groups/write/set-permissions', {
+  put<string>(`/v1/user-groups/${id}/permissions`, {
     id,
     addedPermissionIds,
     removedPermissionIds,
   });
 
 export const deleteUserGroupUser = (id: string, userId: string) =>
-  post<{ id: string }[]>('/v1/user-groups/write/delete-user', { id, userId });
+  del<{ id: string }[]>(`/v1/user-groups/${id}/users/${userId}`);
 
 export const addUserToGroup = (id: string, userIds: string[]) =>
-  post<string>('/v1/user-groups/write/add-users', { id, userIds });
+  put<string>(`/v1/user-groups/${id}/users`, { id, userIds });

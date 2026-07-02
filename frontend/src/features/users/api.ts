@@ -1,4 +1,4 @@
-import { post } from '../../shared/api/client';
+import { get, post, put } from '../../shared/api/client';
 import type {
   PagedResponse,
   ListApiParams,
@@ -6,13 +6,13 @@ import type {
 import type { User, UserListItem, UserGroupAssignment } from './types';
 
 export const listUsers = (scope: 'admin' | 'local', params: ListApiParams) =>
-  post<PagedResponse<UserListItem>>(
-    `/v1/users/${scope}/list`,
-    params as Record<string, unknown>,
+  get<PagedResponse<UserListItem>>(
+    `/v1/users/${scope}`,
+    params as Record<string, string>,
   );
 
 export const getUser = (scope: 'admin' | 'local', id: string) =>
-  post<User[]>(`/v1/users/${scope}/read/get`, { id });
+  get<User[]>(`/v1/users/${scope}/${id}`);
 
 export const insertUser = (
   scope: 'admin' | 'local',
@@ -28,7 +28,7 @@ export const insertUser = (
     accessStart: string;
     accessEnd: string;
   },
-) => post<User[]>(`/v1/users/${scope}/edit/insert`, data);
+) => post<User[]>(`/v1/users/${scope}`, data);
 
 export const updateUser = (
   scope: 'admin' | 'local',
@@ -46,10 +46,10 @@ export const updateUser = (
     accessEnd: string;
     status: string;
   },
-) => post<User[]>(`/v1/users/${scope}/edit/update`, data);
+) => put<User[]>(`/v1/users/${scope}/${data.id}`, data);
 
 export const getUserGroups = (scope: 'admin' | 'local', userId: string) =>
-  post<UserGroupAssignment[]>(`/v1/users/${scope}/read/get-groups`, { userId });
+  get<UserGroupAssignment[]>(`/v1/users/${scope}/${userId}/groups`);
 
 export const setUserGroups = (
   scope: 'admin' | 'local',
@@ -57,7 +57,7 @@ export const setUserGroups = (
   addedGroupIds: string[],
   removedGroupIds: string[],
 ) =>
-  post<string>(`/v1/users/${scope}/edit/set-groups`, {
+  put<string>(`/v1/users/${scope}/${userId}/groups`, {
     userId,
     addedGroupIds,
     removedGroupIds,
@@ -68,7 +68,7 @@ export const checkPersonalCodeConflict = (
   personalCode: string,
   id: string = '',
 ) =>
-  post<{ id: string }[]>(`/v1/users/${scope}/read/check-personal-code-exists`, {
+  post<{ id: string }[]>(`/v1/users/${scope}/check-personal-code`, {
     personalCode,
     id,
   });
