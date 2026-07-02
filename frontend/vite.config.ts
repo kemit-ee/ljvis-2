@@ -4,7 +4,7 @@ import checker from 'vite-plugin-checker';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const useMock = env.VITE_USE_MOCK === 'false';
+  const useMock = env.VITE_USE_MOCK === 'true';
 
   return {
   plugins: [
