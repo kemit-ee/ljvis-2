@@ -11,7 +11,7 @@ Kõik audit sündmused kirjutatakse `audit.audit_event` tabelisse RESQL kaudu (`
 | Väli | Kirjeldus |
 |---|---|
 | `event_type` | Toimingu tüüp (vt loend allpool) |
-| `event_category` | Valdkond: `user_management`, `user_group_management`, `classifier_management` |
+| `event_category` | Valdkond: `user_management`, `user_group_management`, `classifier_management`, `control_form_management` |
 | `actor_name` | Toimingu tegija nimi (hangib JWT-st) |
 | `actor_personal_code` | Toimingu tegija isikukood (hangib JWT-st) |
 | `description` | Inimloetav eestikeelne kirjeldus |
@@ -34,6 +34,9 @@ Kõik audit sündmused kirjutatakse `audit.audit_event` tabelisse RESQL kaudu (`
 | `classifier.view` | `classifier_management` | **Alati** klassifikaatori detailvaate avamisel |
 | `classifier.list.search` | `classifier_management` | **Ainult** kui `search.length >= 3` |
 | `classifier_value.update` | `classifier_management` | **Alati** klassifikaatori väärtuse kehtivuse muutmisel |
+| `control_form.foreign_violation.create` | `control_form_management` | **Alati** uue välisriigi rikkumise vormi loomisel (esmakordne salvestus) |
+| `control_form.foreign_violation.update` | `control_form_management` | **Ainult** kui vähemalt üht välja muudeti (eelmise snapshot'iga võrreldes) |
+| `control_form.foreign_violation.view` | `control_form_management` | **Ainult** kui vaataja erineb vormi loojast |
 
 ---
 
@@ -124,6 +127,28 @@ Ilma otsinguta nimekirjavaatamine logib `user.list.view`, aga mitte eraldi otsin
 {
   "classifierId": "42",
   "classifierCode": "RTK"
+}
+```
+
+**`control_form.foreign_violation.create`**
+```json
+{
+  "formKey": "vr-2026-00001/V"
+}
+```
+
+**`control_form.foreign_violation.update`**
+```json
+{
+  "formKey": "vr-2026-00001/V",
+  "changedFields": ["reporting_country_code", "sanction_code"]
+}
+```
+
+**`control_form.foreign_violation.view`**
+```json
+{
+  "formKey": "vr-2026-00001/V"
 }
 ```
 
@@ -252,4 +277,4 @@ sequenceDiagram
 
 - Audit tabeli definitsioon: `DSL/Liquibase/changelog/20260605100000-initial-audit.sql`
 - Audit lugemise otspunktid: `DSL/Ruuter/ljvis/POST/v1/logs/read/`
-- OpenAPI: `docs/openapi.yaml` — tag `logs`
+- OpenAPI: `docs/openapi.yaml` — tagid `logs`, `foreign-violation-forms`
