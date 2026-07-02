@@ -1,0 +1,103 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List user groups filtered by own organisation (local scope)"
+  method: get
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    params:
+      - field: search
+        type: string
+        description: "Search by group name or organisation name"
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Page size"
+      - field: sorting
+        type: string
+        description: "Sorting"
+      - field: logSearch
+        type: boolean
+        description: "Whether to log this as a user-initiated search"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    search: "${incoming.params.search ?? ''}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'name asc'}"
+    organisation_id: "${auth_user.organisationid}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    log_search: "${incoming.params.logSearch ?? false}"
+  next: getUserGroups
+
+getUserGroups:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/list_user_groups"
+    headers:
+      type: json
+    body:
+      search: ${search}
+      page: ${page}
+      page_size: ${page_size}
+      sorting: ${sorting}
+      organisation_id: ${organisation_id}
+  result: res
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user_groups_list"
+    headers:
+      type: json
+    body:
+      groups: ${res.response.body}
+  result: mapped
+  next: setDefaults
+
+setDefaults:
+  assign:
+    result_count: ${mapped.response.body.total}
+  next: checkSearch
+
+checkSearch:
+  switch:
+    - condition: "${log_search == true && search.length >= 3}"
+      next: logSearchEvent
+  next: returnSuccess
+
+logSearchEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user_group.list.search"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: "Otsing '${search}', tulemusi ${result_count}"
+      log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"ownOrganisation\",\"organisationId\":${organisation_id}}"
+      created_by: ${actor_name}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

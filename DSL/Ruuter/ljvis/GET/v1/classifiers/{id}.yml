@@ -1,0 +1,68 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get a single classifier by ID"
+  method: get
+  accepts: json
+  returns: json
+  namespace: classifiers
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "Classifier ID"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.id}"
+    created_by: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+  next: getClassifier
+
+getClassifier:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: buildAuditData
+
+buildAuditData:
+  assign:
+    classifier_code: "${res.response.body[0].code || ''}"
+    description: "Klassifikaator '${classifier_code}' (ID ${id}) vaatamine"
+    log_content: "{\"classifierId\":\"${id}\",\"classifierCode\":\"${classifier_code}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "classifier.view"
+      event_category: "classifier_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${description}
+      log_content: ${log_content}
+      created_by: ${created_by}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

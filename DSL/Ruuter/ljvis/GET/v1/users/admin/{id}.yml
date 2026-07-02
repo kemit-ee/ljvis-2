@@ -1,0 +1,82 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get a single user by ID (admin scope — all organisations)"
+  method: get
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "User UUID"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.id}"
+    organisation_id: ""
+  next: getUser
+
+getUser:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      organisation_id: ${organisation_id}
+  result: res
+  next: buildAuditLog
+
+buildAuditLog:
+  assign:
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: ${auth_user.personalcode}
+    user_first_name: "${res.response.body[0].firstName || ''}"
+    user_last_name: "${res.response.body[0].lastName || ''}"
+    user_personal_code: "${res.response.body[0].personalCode || ''}"
+    view_description: "Kasutaja vaatamine: ${user_first_name} ${user_last_name} (${user_personal_code})"
+    view_log_content: "{\"targetPersonalCode\":\"${user_personal_code}\",\"targetName\":\"${user_first_name} ${user_last_name}\",\"scope\":\"allOrganisations\",\"organisationId\":null}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user.view"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${view_description}
+      log_content: ${view_log_content}
+      created_by: ${actor_name}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user"
+    headers:
+      type: json
+    body:
+      users: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

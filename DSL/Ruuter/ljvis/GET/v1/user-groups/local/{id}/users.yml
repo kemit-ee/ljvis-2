@@ -1,0 +1,72 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List members of a user group filtered by own organisation (local scope)"
+  method: get
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    params:
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Items per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction"
+      - field: search
+        type: string
+        description: "Search by first or last name"
+      - field: userGroupId
+        type: string
+        description: "Filter by user group"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'status asc'}"
+    search: "${incoming.params.search ?? ''}"
+    user_group_id: ${incoming.params.userGroupId}
+    user_organisation_id: ${auth_user.organisationid}
+  next: getUsers
+
+getUsers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_users"
+    headers:
+      type: json
+    body:
+      page: ${page}
+      page_size: ${page_size}
+      sorting: ${sorting}
+      search: ${search}
+      user_group_id: ${user_group_id}
+      user_organisation_id: ${user_organisation_id}
+  result: res
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user_group_users"
+    headers:
+      type: json
+    body:
+      users: ${res.response.body}
+  result: mapped
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
