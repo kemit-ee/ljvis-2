@@ -85,6 +85,17 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | POST | `/v1/logs/read/list-csv` |
 | POST | `/v1/logs/read/get` |
 
+### Välisriigi rikkumise andmevorm
+| Meetod | Tee | Õigus |
+|--------|-----|-------|
+| POST | `/api/v1/control-forms/foreign-violation/save` | `foreign_violation_form.write` |
+| POST | `/api/v1/control-forms/foreign-violation/get` | `foreign_violation_form.read` |
+| POST | `/api/v1/control-forms/files/upload` | `foreign_violation_form.write` |
+| POST | `/api/v1/control-forms/files/list` | `foreign_violation_form.read` |
+| POST | `/api/v1/control-forms/files/download` | `foreign_violation_form.read` |
+| GET | `/api/v1/classifiers/violation-types?regulation=1071_2009` | `classifier.read` |
+| GET | `/api/v1/classifiers/countries` | `classifier.read` |
+
 ---
 
 ## Mock otspunktid
@@ -171,3 +182,14 @@ Mock-otspunktid peegeldavad päris otspunkte, lisades `/mock/` vahekaustad tee s
 | POST | `/v1/logs/read/mock/list` |
 | POST | `/v1/logs/read/mock/list-csv` |
 | POST | `/v1/logs/read/mock/get` |
+
+### Välisriigi rikkumise andmevorm
+| Meetod | Tee |
+|--------|-----|
+| POST | `/api/v1/control-forms/foreign-violation/mock/save` |
+| POST | `/api/v1/control-forms/foreign-violation/mock/get` |
+| POST | `/api/v1/control-forms/files/mock/upload` |
+| POST | `/api/v1/control-forms/files/mock/list` |
+| POST | `/api/v1/control-forms/files/mock/download` |
+| GET | `/api/v1/classifiers/mock/violation-types` |
+| GET | `/api/v1/classifiers/mock/countries` |

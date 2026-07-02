@@ -12,7 +12,7 @@ info:
     object convention with totalCount, page, pageSize.
   contact:
     name: TBD
-    email: tbd@example.ee
+    email: sten.viljus@askend.com
 
 servers:
   - url: https://dev.liiklusvalve.ee
@@ -48,6 +48,8 @@ tags:
     description: Permission catalogue lookups.
   - name: logs
     description: Audit log read operations.
+  - name: foreign-violation-forms
+    description: Välisriigi rikkumise andmevorm — create, read, and file management.
 
 paths:
 
@@ -1698,6 +1700,247 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── Foreign violation forms ─────────────────────────────────
+
+  /api/v1/control-forms/foreign-violation/save:
+    post:
+      tags: [foreign-violation-forms]
+      operationId: postForeignViolationFormSave
+      summary: Save a foreign violation form.
+      description: |
+        Creates a new form on first save (generates form number `vr-YYYY-NNNNN/V`).
+        Subsequent saves append a new snapshot row — previous data is not overwritten.
+        Form is editable only while status is `saved`; in `confirmed` or `published` all
+        fields become read-only. Requires `foreign_violation_form.write`.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForeignViolationFormSaveRequest'
+      responses:
+        '200':
+          description: Form saved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForeignViolationFormSaveResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: Validation error — required fields missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/control-forms/foreign-violation/get:
+    post:
+      tags: [foreign-violation-forms]
+      operationId: postForeignViolationFormGet
+      summary: Get the latest snapshot of a foreign violation form.
+      description: |
+        Returns the latest snapshot row for the given form key.
+        Requires `foreign_violation_form.read`.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [formKey]
+              properties:
+                formKey:
+                  type: string
+                  description: Form unique identifier (e.g. `vr-2026-00001/V`).
+      responses:
+        '200':
+          description: Form snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForeignViolationFormSnapshot'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/control-forms/files/upload:
+    post:
+      tags: [foreign-violation-forms]
+      operationId: postControlFormFilesUpload
+      summary: Upload a file attachment to a form snapshot.
+      description: |
+        Uploads a file and attaches its metadata to the form snapshot.
+        File is stored in S3; metadata is stored in `foreign_violation_form.files`.
+        Allowed formats: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx,
+        odt, rtf, msg, eml, txt, zip, ddd. Max size: 10 MB.
+        Requires `foreign_violation_form.write`.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [formKey, file]
+              properties:
+                formKey:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded and metadata saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileMetadata'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: Unsupported file type or file exceeds 10 MB.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/control-forms/files/list:
+    post:
+      tags: [foreign-violation-forms]
+      operationId: postControlFormFilesList
+      summary: List file attachments for a form.
+      description: |
+        Returns the list of file metadata attached to the given form key.
+        Requires `foreign_violation_form.read`.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [formKey]
+              properties:
+                formKey:
+                  type: string
+      responses:
+        '200':
+          description: List of file metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileMetadata'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/control-forms/files/download:
+    post:
+      tags: [foreign-violation-forms]
+      operationId: postControlFormFilesDownload
+      summary: Download a specific file attachment.
+      description: |
+        Returns the binary content of the requested file from S3.
+        Requires `foreign_violation_form.read`.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fileId]
+              properties:
+                fileId:
+                  type: string
+      responses:
+        '200':
+          description: File binary content.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/classifiers/violation-types:
+    get:
+      tags: [foreign-violation-forms]
+      operationId: getClassifierViolationTypes
+      summary: Get EU Regulation 1071/2009 violation types grouped by severity.
+      description: |
+        Returns classifier values from `EU_INFRINGEMENT` (153 values) filtered by
+        severity group (MSI, VSI, SI). Requires `classifier.read`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: regulation
+          required: true
+          schema:
+            type: string
+            enum: [1071_2009]
+          description: Regulation code filter.
+      responses:
+        '200':
+          description: Violation types grouped by severity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViolationTypesResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/classifiers/countries:
+    get:
+      tags: [foreign-violation-forms]
+      operationId: getClassifierCountries
+      summary: Get countries classifier.
+      description: |
+        Returns all values from the `countries` classifier.
+        Requires `classifier.read`.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of country values.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassifierValueSimple'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
@@ -3444,3 +3687,249 @@ components:
             $ref: '#/components/schemas/LogEntry'
         total:
           type: number
+
+    ForeignViolationFormSaveRequest:
+      type: object
+      required: [sanctionCode, recommendedMeasureCode, dataEntryDate, inspectorFirstName, inspectorLastName, inspectorOrganisationId, inspectorUnit, inspectorProfession]
+      properties:
+        formKey:
+          type: string
+          nullable: true
+          description: Existing form key for updates; null for first save.
+        reportingCountryCode:
+          type: string
+          description: Reporting country code from `countries` classifier. Required.
+        reportingAuthorityName:
+          type: string
+          maxLength: 600
+          description: Name of the reporting authority. Required.
+        inspectionDate:
+          type: string
+          format: date
+          description: Date of inspection. Must not be in the future. Required.
+        inspectionTime:
+          type: string
+          nullable: true
+          description: Time of inspection in HH:MM format.
+        inspectionAddressLine1:
+          type: string
+          nullable: true
+          description: Inspection location address (street/settlement).
+        inspectionAddressLine2:
+          type: string
+          nullable: true
+          description: Inspection location address (road/parking).
+        inspectionRegion:
+          type: string
+          nullable: true
+          description: Inspection location region/county (free text, not Estonian dropdown).
+        inspectionCity:
+          type: string
+          nullable: true
+          description: Inspection location city/municipality.
+        inspectionCountryCode:
+          type: string
+          nullable: true
+          description: Inspection country code from `countries` classifier.
+        companyRegCode:
+          type: string
+          nullable: true
+          description: Carrier company registration code.
+        companyName:
+          type: string
+          nullable: true
+          description: Carrier company name.
+        companyCountryCode:
+          type: string
+          nullable: true
+          description: Carrier company country from `countries` classifier.
+        companyAddressLine1:
+          type: string
+          nullable: true
+          description: Carrier company address.
+        companyAddressLine2:
+          type: string
+          nullable: true
+          description: Carrier company address (additional line).
+        companyCity:
+          type: string
+          nullable: true
+          description: Carrier company city.
+        companyPostalCode:
+          type: string
+          nullable: true
+          description: Carrier company postal code.
+        driverFirstName:
+          type: string
+          nullable: true
+          description: Driver first name.
+        driverLastName:
+          type: string
+          nullable: true
+          description: Driver last name.
+        vehicleRegNr:
+          type: string
+          nullable: true
+          description: Vehicle registration number (stored in uppercase).
+        vehicleMake:
+          type: string
+          nullable: true
+          description: Vehicle make.
+        vehicleModel:
+          type: string
+          nullable: true
+          description: Vehicle model.
+        vehicleCountryCode:
+          type: string
+          nullable: true
+          description: Vehicle registration country from `countries` classifier.
+        vehicleVin:
+          type: string
+          maxLength: 17
+          nullable: true
+          description: Vehicle VIN (max 17 characters).
+        vehicleFirstRegistration:
+          type: string
+          format: date
+          nullable: true
+          description: Vehicle first registration date.
+        vehicleBodyType:
+          type: string
+          nullable: true
+          description: Vehicle body type.
+        licenceCopyNumber:
+          type: string
+          nullable: true
+          description: Community licence certified copy number.
+        violationDescription:
+          type: string
+          nullable: true
+          description: Free text description of the violation.
+        minorViolationsCount:
+          type: integer
+          nullable: true
+          description: Number of minor violations detected.
+        sanctionCode:
+          type: string
+          description: |
+            Applied sanction. Required. One of: Korras, Hoiatus, Kabotažzveo ajutine keelamine,
+            Trahv, Liiklemiskeeld, Sõiduki kasutamise takistamine, Muu.
+        sanctionNotes:
+          type: string
+          nullable: true
+          description: Additional sanction notes. Shown only when sanction is not "Korras".
+        violations:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Array of EU Regulation 1071/2009 violation codes (from `EU_INFRINGEMENT` classifier).
+        recommendedMeasureCode:
+          type: string
+          description: |
+            Recommended measure from the other country. Required. One of: Puuduvad, Hoiatus,
+            Kõigi või osa Ühenduse tegevusloa kinnitatud ärakirjade teatud ajaks peatamine,
+            Kõigi või osa Ühenduse tegevusloa kinnitatud ärakirjade kehtetuks tunnistamine,
+            Ühenduse tegevusloa teatud ajaks peatamine, Ühenduse tegevusloa kehtetuks tunnistamine,
+            Juhitunnistuse väljastamisest keeldumine, Juhitunnistuse kehtetuks tunnistamine, Muu.
+        recommendedMeasureNotes:
+          type: string
+          nullable: true
+          description: Required when recommendedMeasureCode is "Muu".
+        notes:
+          type: string
+          nullable: true
+          description: Free text notes.
+        dataEntryDate:
+          type: string
+          format: date
+          description: Data entry date. Defaults to today; editable. Required.
+        inspectorFirstName:
+          type: string
+          description: Inspector first name (pre-filled from user profile). Required.
+        inspectorLastName:
+          type: string
+          description: Inspector last name (pre-filled from user profile). Required.
+        inspectorOrganisationId:
+          type: string
+          description: Inspector organisation (pre-filled from user profile). Required.
+        inspectorUnit:
+          type: string
+          description: Inspector structural unit from `STRUCTURE_UNIT` classifier filtered by organisation. Required.
+        inspectorProfession:
+          type: string
+          description: Inspector job title (pre-filled from user profile). Required.
+
+    ForeignViolationFormSaveResponse:
+      type: object
+      properties:
+        formKey:
+          type: string
+          description: Form unique identifier in format `vr-YYYY-NNNNN/V`.
+        status:
+          type: string
+          enum: [saved, confirmed, published]
+
+    ForeignViolationFormSnapshot:
+      allOf:
+        - $ref: '#/components/schemas/ForeignViolationFormSaveRequest'
+        - type: object
+          properties:
+            formKey:
+              type: string
+              description: Form unique identifier.
+            status:
+              type: string
+              enum: [saved, confirmed, published]
+            createdAt:
+              type: string
+              format: date-time
+            createdBy:
+              type: string
+
+    FileMetadata:
+      type: object
+      properties:
+        fileId:
+          type: string
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+          description: File size in bytes.
+        mimeType:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        uploadedBy:
+          type: string
+
+    ViolationTypesResponse:
+      type: object
+      properties:
+        MSI:
+          type: array
+          description: Most serious infringements.
+          items:
+            $ref: '#/components/schemas/ClassifierValueSimple'
+        VSI:
+          type: array
+          description: Very serious infringements.
+          items:
+            $ref: '#/components/schemas/ClassifierValueSimple'
+        SI:
+          type: array
+          description: Serious infringements.
+          items:
+            $ref: '#/components/schemas/ClassifierValueSimple'
+
+    ClassifierValueSimple:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Classifier value code.
+        name:
+          type: string
+          description: Human-readable name.
