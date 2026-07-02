@@ -7,7 +7,9 @@ import {
   insertForeignViolationForm
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
+import type { Country } from '../../../countries/types';
 import { listOrganisations } from '../../../organisations/api';
+import { listCountries } from '../../../countries/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 
@@ -17,10 +19,15 @@ export function useForeignViolationForm(
 ) {
   const { t } = useTranslation();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const isEdit = !!user;
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    listCountries().then(setCountries).catch(console.error);
   }, []);
 
   const validationSchema = Yup.object({
@@ -70,6 +77,11 @@ export function useForeignViolationForm(
       phone: user?.phone ?? '',
       accessStart: user?.accessStart ?? '',
       accessEnd: user?.accessEnd ?? '',
+      reportingCountry: '',
+      inspectionCountry: '',
+      inspectionTime: '',
+      companyCountry: '',
+      vehicleCountry: ''
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -98,6 +110,11 @@ export function useForeignViolationForm(
   const orgOptions = organisations.map((o) => ({
     label: o.name,
     value: String(o.id),
+  }));
+
+  const countryOptions = countries.map((c) => ({
+    label: c.name,
+    value: c.code,
   }));
 
   const handleOrgChange = (
@@ -132,6 +149,7 @@ export function useForeignViolationForm(
   return {
     formik,
     isEdit,
+    countryOptions,
     orgOptions,
     handleOrgChange,
     handleStructuralUnitChange

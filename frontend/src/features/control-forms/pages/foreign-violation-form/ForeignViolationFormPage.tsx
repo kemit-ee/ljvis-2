@@ -93,6 +93,7 @@ export function ForeignViolationFormPage() {
 
   const {
     formik,
+    countryOptions,
     orgOptions,
     handleOrgChange,
     handleStructuralUnitChange,
@@ -124,21 +125,18 @@ export function ForeignViolationFormPage() {
                       ]
                     }
                   >
-                    <TextField
+                    <Select
                       id="reportingCountry"
                       label={t('forms.foreign_violation.reportingCountry')}
-                      value={formik.values.firstName}
-                      input={{ maxLength: 100 }}
-                      onChange={(v) => formik.setFieldValue('reportingCountry', v)}
+                      options={countryOptions}
+                      value={countryOptions.find((o) => o.value === formik.values.reportingCountry) ?? null}
+                      onChange={(val) =>
+                        formik.setFieldValue(
+                          'reportingCountry',
+                          val && !Array.isArray(val) ? (val as { value: string }).value : '',
+                        )
+                      }
                       required
-                      {...(formik.touched.firstName && formik.errors.firstName
-                        ? {
-                            helper: {
-                              text: formik.errors.firstName,
-                              type: 'error' as const,
-                            },
-                          }
-                        : {})}
                     />
                     <TextField
                       id="reportingAuthority"
@@ -214,7 +212,7 @@ export function ForeignViolationFormPage() {
                           }
                           onChange={(v) => formik.setFieldValue('accessEnd', v)}
                           placeholder={t('forms.foreign_violation.timePickerPlaceholder')}
-                          {...(formik.touched.accessEnd && formik.errors.accessEnd
+                          {...(formik.touched.inspectionTime && formik.errors.inspectionTime
                               ? {
                                 helper: {
                                   text: formik.errors.accessEnd,
@@ -289,20 +287,17 @@ export function ForeignViolationFormPage() {
                             }
                             : {})}
                     />
-                    <TextField
-                        id="inspectionCountry"
-                        label={t('forms.foreign_violation.inspectionCountry')}
-                        value={formik.values.email}
-                        onChange={(v) => formik.setFieldValue('inspectionCountry', v)}
-                        input={{ maxLength: 100 }}
-                        {...(formik.touched.email && formik.errors.email
-                            ? {
-                              helper: {
-                                text: formik.errors.email,
-                                type: 'error' as const,
-                              },
-                            }
-                            : {})}
+                    <Select
+                      id="inspectionCountry"
+                      label={t('forms.foreign_violation.inspectionCountry')}
+                      options={countryOptions}
+                      value={countryOptions.find((o) => o.value === formik.values.inspectionCountry) ?? null}
+                      onChange={(val) =>
+                        formik.setFieldValue(
+                          'inspectionCountry',
+                          val && !Array.isArray(val) ? (val as { value: string }).value : '',
+                        )
+                      }
                     />
                   </div>
                 </Card.Content>
@@ -337,12 +332,17 @@ export function ForeignViolationFormPage() {
                       input={{ maxLength: 300 }}
                       onChange={(v) => formik.setFieldValue('companyName', v)}
                     />
-                    <TextField
+                    <Select
                       id="companyCountry"
                       label={t('forms.foreign_violation.companyCountry')}
-                      value={formik.values.personalCode}
-                      input={{ maxLength: 100 }}
-                      onChange={(v) => formik.setFieldValue('companyCountry', v)}
+                      options={countryOptions}
+                      value={countryOptions.find((o) => o.value === formik.values.companyCountry) ?? null}
+                      onChange={(val) =>
+                        formik.setFieldValue(
+                          'companyCountry',
+                          val && !Array.isArray(val) ? (val as { value: string }).value : '',
+                        )
+                      }
                     />
                     <TextField
                       id="companyAddressLine1"
@@ -446,12 +446,17 @@ export function ForeignViolationFormPage() {
                       input={{ maxLength: 100 }}
                       onChange={(v) => formik.setFieldValue('vehicleModel', v)}
                     />
-                    <TextField
+                    <Select
                       id="vehicleCountry"
                       label={t('forms.foreign_violation.vehicleCountry')}
-                      value={formik.values.structuralUnitName}
-                      input={{ maxLength: 100 }}
-                      onChange={(v) => formik.setFieldValue('vehicleCountry', v)}
+                      options={countryOptions}
+                      value={countryOptions.find((o) => o.value === formik.values.vehicleCountry) ?? null}
+                      onChange={(val) =>
+                        formik.setFieldValue(
+                          'vehicleCountry',
+                          val && !Array.isArray(val) ? (val as { value: string }).value : '',
+                        )
+                      }
                     />
                     <TextField
                       id="vehicleVin"
