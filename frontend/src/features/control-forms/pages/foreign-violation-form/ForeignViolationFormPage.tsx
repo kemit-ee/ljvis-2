@@ -772,8 +772,8 @@ export function ForeignViolationFormPage() {
                         id="dataEntryDate"
                         label={t('forms.foreign_violation.dataEntryDate')}
                         value={
-                          formik.values.accessStart
-                            ? dayjs(formik.values.accessStart)
+                          formik.values.dataEntryDate
+                            ? dayjs(formik.values.dataEntryDate)
                             : null
                         }
                         onChange={(v) => formik.setFieldValue('dataEntryDate', v)}
@@ -803,14 +803,14 @@ export function ForeignViolationFormPage() {
                     <TextField
                       id="inspectorFirstName"
                       label={t('forms.foreign_violation.inspectorFirstName')}
-                      value={formik.values.phone}
+                      value={formik.values.inspectorFirstName}
                       required
                       onChange={(v) => formik.setFieldValue('inspectorFirstName', v)}
                     />
                     <TextField
                       id="inspectorLastName"
                       label={t('forms.foreign_violation.inspectorLastName')}
-                      value={formik.values.phone}
+                      value={formik.values.inspectorLastName}
                       required
                       onChange={(v) => formik.setFieldValue('inspectorLastName', v)}
                     />
@@ -820,30 +820,30 @@ export function ForeignViolationFormPage() {
                       options={orgOptions}
                       value={
                         orgOptions.find(
-                          (o) => o.value === String(formik.values.organisationId),
+                          (o) => o.value === String(formik.values.inspectorOrganisationId),
                         ) ?? null
                       }
                       onChange={handleOrgChange}
                       required
                     />
                     <Select
-                      id="inspectorUnit"
+                      id="inspectorStructuralUnitName"
                       label={t('forms.foreign_violation.inspectorUnit')}
                       options={structuralUnits}
                       value={
                         structuralUnits.find(
-                          (o) => o.value === formik.values.structuralUnitName,
+                          (o) => o.value === formik.values.inspectorStructuralUnitName,
                         ) ?? null
                       }
                       onChange={handleStructuralUnitChange}
                       required
                     />
                     <TextField
-                      id="inspectorProfession"
+                      id="inspectorJobTitleName"
                       label={t('forms.foreign_violation.inspectorProfession')}
-                      value={formik.values.phone}
+                      value={formik.values.inspectorJobTitleName}
                       required
-                      onChange={(v) => formik.setFieldValue('inspectorProfession', v)}
+                      onChange={(v) => formik.setFieldValue('inspectorJobTitleName', v)}
                     />
                   </div>
                 </Card.Content>

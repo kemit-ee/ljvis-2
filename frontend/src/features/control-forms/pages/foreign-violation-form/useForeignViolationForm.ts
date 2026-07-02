@@ -12,12 +12,14 @@ import { listOrganisations } from '../../../organisations/api';
 import { listCountries } from '../../../countries/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { useAuth } from '../../../auth/AuthContext';
 
 export function useForeignViolationForm(
   user: User | undefined,
   onSaved: (id?: string) => void,
 ) {
   const { t } = useTranslation();
+  const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
   const isEdit = !!user;
@@ -81,7 +83,13 @@ export function useForeignViolationForm(
       inspectionCountry: '',
       inspectionTime: '',
       companyCountry: '',
-      vehicleCountry: ''
+      vehicleCountry: '',
+      dataEntryDate: '',
+      inspectorFirstName: authUser?.firstname ?? '',
+      inspectorLastName: authUser?.lastname ?? '',
+      inspectorOrganisationId: authUser?.organisationid ?? '',
+      inspectorStructuralUnitName: authUser?.structuralunit ?? '',
+      inspectorJobTitleName: authUser?.jobtitle ?? ''
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
