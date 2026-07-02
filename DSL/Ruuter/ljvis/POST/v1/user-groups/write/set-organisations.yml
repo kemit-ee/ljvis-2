@@ -33,7 +33,7 @@ extractRequestData:
     removed_organisation_ids: "${(incoming.body.removedOrganisationIds ?? []).join(',')}"
     added_organisation_ids_json: ${JSON.stringify((incoming.body.addedOrganisationIds ?? []).map(Number))}
     removed_organisation_ids_json: ${JSON.stringify((incoming.body.removedOrganisationIds ?? []).map(Number))}
-    cascade_user_ids: "[]"
+    cascade_user_ids: ""
   next: getUserGroup
 
 getUserGroup:
