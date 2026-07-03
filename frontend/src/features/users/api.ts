@@ -12,7 +12,7 @@ export const listUsers = (scope: 'admin' | 'local', params: ListApiParams) =>
   );
 
 export const getUser = (scope: 'admin' | 'local', id: string) =>
-  get<User[]>(`/v1/users/${scope}/${id}`);
+  get<User[]>(`/v1/users/${scope}/get-by-id`, { id });
 
 export const insertUser = (
   scope: 'admin' | 'local',
@@ -46,10 +46,10 @@ export const updateUser = (
     accessEnd: string;
     status: string;
   },
-) => put<User[]>(`/v1/users/${scope}/${data.id}`, data);
+) => put<User[]>(`/v1/users/${scope}/update`, data);
 
 export const getUserGroups = (scope: 'admin' | 'local', userId: string) =>
-  get<UserGroupAssignment[]>(`/v1/users/${scope}/${userId}/groups`);
+  get<UserGroupAssignment[]>(`/v1/users/${scope}/get-groups`, { userId });
 
 export const setUserGroups = (
   scope: 'admin' | 'local',
@@ -57,7 +57,7 @@ export const setUserGroups = (
   addedGroupIds: string[],
   removedGroupIds: string[],
 ) =>
-  put<string>(`/v1/users/${scope}/${userId}/groups`, {
+  put<string>(`/v1/users/${scope}/set-groups`, {
     userId,
     addedGroupIds,
     removedGroupIds,

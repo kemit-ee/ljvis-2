@@ -12,7 +12,7 @@ export const listClassifiers = (params?: ListApiParams) =>
   );
 
 export const getClassifier = (id: string) =>
-  get<Classifier[]>(`/v1/classifiers/${id}`);
+  get<Classifier[]>('/v1/classifiers/get-by-id', { id });
 
 export const getClassifierValues = (params: {
   classifierId: string;
@@ -22,7 +22,7 @@ export const getClassifierValues = (params: {
   sorting?: string;
 }) =>
   get<ClassifierValue[]>(
-    `/v1/classifiers/${params.classifierId}/values`,
+    '/v1/classifiers/get-values',
     params as Record<string, string>,
   );
 
@@ -30,7 +30,7 @@ export const updateClassifier = (data: {
   id: string;
   name: string;
   description: string;
-}) => put<Classifier[]>(`/v1/classifiers/${data.id}`, data);
+}) => put<Classifier[]>('/v1/classifiers/update', data);
 
 export const insertClassifierValue = (data: {
   classifierId: string;
@@ -38,14 +38,15 @@ export const insertClassifierValue = (data: {
   name: string;
   validFrom: string;
   validUntil: string;
-}) => post<ClassifierValue[]>(`/v1/classifiers/${data.classifierId}/values`, data);
+}) => post<ClassifierValue[]>('/v1/classifiers/insert-value', data);
 
 export const getClassifierValue = (
   classifierId: string,
   classifierValueId: string,
 ) =>
   get<ClassifierValue[]>(
-    `/v1/classifiers/${classifierId}/values/${classifierValueId}`,
+    '/v1/classifiers/get-value',
+    { id: classifierId, valueId: classifierValueId },
   );
 
 export const updateClassifierValue = (data: {
@@ -55,4 +56,4 @@ export const updateClassifierValue = (data: {
   name: string;
   validFrom: string;
   validUntil: string;
-}) => put<ClassifierValue[]>(`/v1/classifiers/${data.classifierId}/values/${data.classifierValueId}`, data);
+}) => put<ClassifierValue[]>('/v1/classifiers/update-value', data);

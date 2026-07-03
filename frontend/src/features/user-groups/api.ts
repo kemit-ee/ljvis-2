@@ -24,7 +24,8 @@ export const getUserGroup = (
   id: string,
   logAudit: boolean,
 ) =>
-  get<UserGroup[]>(`/v1/user-groups/${scope}/${id}`, {
+  get<UserGroup[]>(`/v1/user-groups/${scope}/get-by-id`, {
+    id,
     logAudit: String(logAudit),
   });
 
@@ -32,10 +33,10 @@ export const getUserGroupOrganisations = (
   scope: 'admin' | 'local',
   id: string,
 ) =>
-  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/${id}/organisations`);
+  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/get-organisations`, { id });
 
 export const getUserGroupPermissions = (scope: 'admin' | 'local', id: string) =>
-  get<UserGroupPermission[]>(`/v1/user-groups/${scope}/${id}/permissions`);
+  get<UserGroupPermission[]>(`/v1/user-groups/${scope}/get-permissions`, { id });
 
 export const getUserGroupUsers = (
   scope: 'admin' | 'local',
@@ -48,8 +49,9 @@ export const getUserGroupUsers = (
   },
 ) =>
   get<UserGroupUser[]>(
-    `/v1/user-groups/${scope}/${params?.userGroupId}/users`,
+    `/v1/user-groups/${scope}/get-users`,
     {
+      ...(params?.userGroupId !== undefined && { id: String(params.userGroupId) }),
       ...(params?.page !== undefined && { page: params.page }),
       ...(params?.pageSize !== undefined && { pageSize: params.pageSize }),
       ...(params?.sorting !== undefined && { sorting: params.sorting }),
@@ -77,14 +79,14 @@ export const insertUserGroup = (data: {
 }) => post<UserGroup[]>('/v1/user-groups', data);
 
 export const updateUserGroupName = (id: string, name: string) =>
-  put<UserGroup[]>(`/v1/user-groups/${id}`, { id, name });
+  put<UserGroup[]>('/v1/user-groups/update', { id, name });
 
 export const setUserGroupOrganisations = (
   id: string,
   addedOrganisationIds: number[],
   removedOrganisationIds: number[],
 ) =>
-  put<string>(`/v1/user-groups/${id}/organisations`, {
+  put<string>('/v1/user-groups/set-organisations', {
     id,
     addedOrganisationIds,
     removedOrganisationIds,
@@ -95,14 +97,14 @@ export const setUserGroupPermissions = (
   addedPermissionIds: number[],
   removedPermissionIds: number[],
 ) =>
-  put<string>(`/v1/user-groups/${id}/permissions`, {
+  put<string>('/v1/user-groups/set-permissions', {
     id,
     addedPermissionIds,
     removedPermissionIds,
   });
 
 export const deleteUserGroupUser = (id: string, userId: string) =>
-  del<{ id: string }[]>(`/v1/user-groups/${id}/users/${userId}`);
+  del<{ id: string }[]>('/v1/user-groups/delete-user', { id, userId });
 
 export const addUserToGroup = (id: string, userIds: string[]) =>
-  put<string>(`/v1/user-groups/${id}/users`, { id, userIds });
+  put<string>('/v1/user-groups/add-users', { id, userIds });
