@@ -166,7 +166,7 @@ sequenceDiagram
     participant DB as RESQL / DB
     participant DM as DMAPPER
 
-    K->>R: POST /v1/users/admin/edit/insert {body}
+    K->>R: POST /v1/users/admin {body}
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user {firstname, lastname, personalcode}
     R->>R: extractRequestData
@@ -199,7 +199,7 @@ sequenceDiagram
     participant DB as RESQL / DB
     participant DM as DMAPPER
 
-    K->>R: POST /v1/users/admin/list {search, page, pageSize}
+    K->>R: GET /v1/users/admin?search=...&page=...&pageSize=...
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
@@ -228,7 +228,7 @@ sequenceDiagram
     participant DB as RESQL / DB
     participant DM as DMAPPER
 
-    K->>R: POST /v1/users/admin/read/get {id}
+    K->>R: GET /v1/users/admin/user?id=...
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
@@ -251,7 +251,7 @@ sequenceDiagram
     participant T as TIM (JWT)
     participant DB as RESQL / DB
 
-    K->>R: POST /v1/user-groups/write/add-users {id, userIds}
+    K->>R: PUT /v1/user-groups/users {id, userIds}
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
@@ -276,5 +276,5 @@ sequenceDiagram
 ## Viited
 
 - Audit tabeli definitsioon: `DSL/Liquibase/changelog/20260605100000-initial-audit.sql`
-- Audit lugemise otspunktid: `DSL/Ruuter/ljvis/POST/v1/logs/read/`
+- Audit lugemise otspunktid: `DSL/Ruuter/ljvis/GET/v1/logs/`
 - OpenAPI: `docs/openapi.yaml` — tagid `logs`, `foreign-violation-forms`
