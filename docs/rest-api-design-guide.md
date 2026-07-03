@@ -45,40 +45,51 @@ Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaa
 
 ### 2.3 Keelatud mustrid
 
-```
-# Vale — id path segmendina
-/v1/users/admin/123
-
-# Vale — meetodinimetus URI-s
-/v1/users/admin/get-user
-
-# Vale — tegevusnimetus lisatasandil
-/v1/users/admin/read/get
-
-# Vale — CRUD-verb URI-s
-/v1/users/admin/edit/insert
-```
+| Vale URI | Probleem |
+|----------|----------|
+| `GET /v1/users/admin/123` | `id` on path segmendina — Ruuter DSL ei suuda seda staatilise failiteena lahendada |
+| `GET /v1/users/admin/get-user` | HTTP meetodi nimetus URI-s — meetod ise ütleb juba `GET` |
+| `POST /v1/users/admin/read/get` | CRUD-tegevus lisatasandil — `read/get` on redundantne |
+| `POST /v1/users/admin/edit/insert` | CRUD-verb URI-s — loomine on `POST` meetodi ülesanne, mitte URI osa |
+| `POST /v1/users/admin/list` | Nimekirja lugemine `POST`-iga — nimekirioperatsioonid on `GET` |
 
 ### 2.4 Soovituslikud mustrid
 
-```
-# Üksiku ressursi lugemine — id query paramina
-GET /v1/users/admin/user?id=123
+| Toiming | Soovituslik URI | Selgitus |
+|---------|-----------------|----------|
+| Nimekirja lugemine | `GET /v1/users/admin?search=Mari&page=0&pageSize=20` | Filtrid query paramitena |
+| Üksiku ressursi lugemine | `GET /v1/users/admin/user?id=123` | `id` query paramina, toiming staatilise segmendina |
+| Ressursi loomine | `POST /v1/users/admin` | HTTP meetod tähistab loomist |
+| Ressursi uuendamine | `PUT /v1/users/admin/update` | Toiming staatilise segmendina, `id` request body-s |
+| Seosega ressursi lugemine | `GET /v1/user-groups/admin/users?id=456` | `scope` path segmendina, `id` query paramina |
+| Ressursi kustutamine | `DELETE /v1/user-groups/user?id=456&userId=789` | Mitu identifikaatorit query paramitena |
 
-# Nimekirja lugemine — filtrid query paramitena
-GET /v1/users/admin?search=Mari&page=0&pageSize=20
+### 2.5 Andmevoo näidis — kasutaja detailvaate avamine
 
-# Ressursi loomine — HTTP meetod tähistab loomist
-POST /v1/users/admin
+```mermaid
+sequenceDiagram
+    participant B as Brauser
+    participant V as Vite / Nginx
+    participant R as Ruuter
+    participant T as TIM (JWT)
+    participant Q as RESQL
+    participant M as DataMapper
 
-# Ressursi uuendamine — toiming staatilise segmendina, id body-s
-PUT /v1/users/admin/update
-
-# Seosega ressursi lugemine — scope path segmendina, id query paramina
-GET /v1/user-groups/admin/users?id=456
-
-# Ressursi kustutamine — id query paramina
-DELETE /v1/user-groups/user?id=456&userId=789
+    B->>V: GET /v1/users/admin/user?id=abc-123
+    V->>R: proxy → GET/v1/users/admin/user.yml
+    R->>T: check-user-authority (JWT küpsis)
+    T-->>R: { personalCode, firstName, lastName, organisationId }
+    R->>Q: get_user { id: "abc-123", organisation_id: "" }
+    Q-->>R: [{ user row }]
+    alt Kasutajat ei leitud
+        R-->>B: HTTP 404
+    else Leitud
+        R->>M: map_user { users }
+        M-->>R: { mapped user object }
+        R->>Q: insert_audit_event { event_type: "user.view", ... }
+        Q-->>R: ok
+        R-->>B: HTTP 200 { user }
+    end
 ```
 
 ---
