@@ -32,7 +32,7 @@ Projekti teenuste arendamisel kasutatakse **contract-first** lähenemist — enn
 
 ### 2.2 Staatilised path segmendid vs query paramid
 
-Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaamilised identifikaatorid edastatakse **query paramitena**.
+Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaamilised identifikaatorid edastatakse **query param**itena.
 
 | Tüüp | Näide | Selgitus |
 |------|-------|----------|
@@ -174,7 +174,7 @@ PUT /v1/users/admin/update
 ## 6. Autentimine ja autoriseerimine
 
 - Kõik otspunktid nõuavad JWT küpsist, mille väljastab TIM pärast TARA autentimist.
-- Ruuter kontrollib iga päringu alguses `check-user-authority` templiga kasutaja olemasolut ja aktiivsust.
+- Ruuter kontrollib iga päringu alguses `check-user-authority` templiga kasutaja olemasolu ja aktiivsust.
 - Õigused (`permissions`) on stringikoodid (nt `user.list.admin`, `classifier.read`) — kasutajal peavad olema vajalikud koodid JWT-s.
 - `scope` path segment (`admin` | `local`) määrab, milline DSL fail käivitub ja millised andmed on nähtavad.
 
