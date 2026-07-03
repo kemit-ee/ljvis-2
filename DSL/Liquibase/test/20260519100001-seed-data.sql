@@ -65,7 +65,7 @@ INSERT INTO users.user_account (
 ) VALUES (
     nextval('users.seq_user_account_key'),
     '38001085718', 'Admin', 'Super',
-    1, 'Justiitsministeerium', 'LÕUNA PREFEKTUUR', 'Spetsialist',
+    1, 'Justiitsministeerium', 'PPA_LOUNA', 'Spetsialist',
     'admin.super@just.ee', '56789012', '2026-01-01', 'active', ARRAY[1,2]::BIGINT[], 'ljvis2'
 );
 
@@ -77,7 +77,7 @@ INSERT INTO users.user_account (
 ) VALUES (
     nextval('users.seq_user_account_key'),
     '48004115799', 'Org', 'Admin',
-    2, 'Sotsiaalministeerium', 'IDA PREFEKTUUR', 'Spetsialist',
+    2, 'Sotsiaalministeerium', 'PPA_IDA', 'Spetsialist',
     'org.admin@kollane.ee', '123', '2026-02-02', 'active', ARRAY[2]::BIGINT[], 'ljvis2'
 );
 
@@ -89,6 +89,6 @@ INSERT INTO users.user_account (
 ) VALUES (
     nextval('users.seq_user_account_key'),
     '39001011234', 'Mari', 'Tamm',
-    3, 'Haridusministeerium', 'KLIM', 'Teadur',
+    3, 'Haridusministeerium', 'KLIM_HQ', 'Teadur',
     'mari.tamm@roheline.ee', '56789012', '2025-01-01', 'active', '{}'::BIGINT[], 'ljvis2'
 );

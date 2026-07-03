@@ -110,8 +110,22 @@
       "inspectorProfession": "Job title",
       "filesBasicInfo": "Files",
       "filesBoxInfo": "Drop files here or click to browse",
-      "filesHelper": "Allowed formats: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maximum file size 10 MB."
+      "filesHelper": "Allowed formats: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maximum file size 10 MB.",
+      "validation": {
+        "required": "Kohustuslik väli",
+        "api": {
+          "required": "Kohustuslik väli"
+        }
+      }
     }
+  },
+  "structureUnits": {
+    "prefSouth": "Southern prefecture",
+    "prefEast": "Eastern prefecture",
+    "prefWest": "Western prefecture",
+    "prefNorth": "Northern prefecture",
+    "klimHq": "Ministry of Climate",
+    "tramHq": "Transport Administration"
   },
   "nav": {
     "desktop": "Desktop",

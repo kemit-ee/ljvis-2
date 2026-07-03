@@ -57,3 +57,49 @@ DO $$
             END LOOP;
 
     END $$;
+
+DO $$
+    DECLARE
+        v_created_by    VARCHAR(100) := 'system';
+        v_clf_key       BIGINT;       -- classifier_key for STRUCTURE_UNIT
+        v_rec           RECORD;
+    BEGIN
+
+        -- ============================================================
+        -- 1. Classifier header (ljvis2.classifier)
+        -- ============================================================
+
+        INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
+        VALUES (
+                   nextval('classifier.seq_classifier_key'),
+                   'STRUCTURE_UNIT',
+                   'Struktuuriüksus',
+                   'Organisatsioonide struktuuriüksuste klassifikaator',
+                   v_created_by
+               )
+        RETURNING classifier_key INTO v_clf_key;
+
+        FOR v_rec IN
+            SELECT * FROM (VALUES
+                               ('PPA_LOUNA', 'Lõuna prefektuur',    'PPA'),
+                               ('PPA_IDA',   'Ida prefektuur',      'PPA'),
+                               ('PPA_LAANE', 'Lääne prefektuur',    'PPA'),
+                               ('PPA_POHJA', 'Põhja prefektuur',    'PPA'),
+                               ('KLIM_HQ',  'Kliimaministeerium',   'KLIM'),
+                               ('TRAM_HQ',  'Transpordiamet',       'TRAM')
+                          ) AS t(code, name, org_code)
+            LOOP
+                INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, description, valid_from, valid_until, created_by)
+                VALUES (
+                           nextval('classifier.seq_classifier_value_key'),
+                           v_clf_key,
+                           v_rec.code,
+                           v_rec.name,
+                           v_rec.org_code,
+                           CURRENT_DATE,
+                           NULL,
+                           v_created_by
+                       );
+            END LOOP;
+
+    END $$;

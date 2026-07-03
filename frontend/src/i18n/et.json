@@ -128,6 +128,14 @@
       }
     }
   },
+  "structureUnits": {
+    "prefSouth": "Lõuna prefektuur",
+    "prefEast": "Ida prefektuur",
+    "prefWest": "Lääne prefektuur",
+    "prefNorth": "Põhja prefektuur",
+    "klimHq": "Kliimaministeerium",
+    "tramHq": "Transpordiamet"
+  },
   "users": {
     "title": "Kasutajad",
     "addUser": "+ Lisa kasutaja",

@@ -149,11 +149,11 @@ export function useForeignViolationForm(
   ) => {
     if (val && !Array.isArray(val) && 'value' in val) {
       formik.setFieldValue(
-        'inspectorStructuralUnitName',
+        'inspectorUnit',
         (val as { value: string }).value,
       );
     } else {
-      formik.setFieldValue('inspectorStructuralUnitName', '');
+      formik.setFieldValue('inspectorUnit', '');
     }
   };
 

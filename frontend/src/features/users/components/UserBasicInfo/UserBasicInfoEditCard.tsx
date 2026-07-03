@@ -35,7 +35,7 @@ interface UserBasicInfoEditCardProps {
   formik: FormikProps<UserEditFormValues>;
   isDesktop: boolean;
   orgOptions: { label: string; value: string }[];
-  structuralUnits: { label: string; value: string }[];
+  structuralUnitOptions: { label: string; value: string }[];
   isLocalAdmin: boolean;
   handleOrgChange: (
     val:
@@ -59,7 +59,7 @@ export function UserBasicInfoEditCard({
   formik,
   isDesktop,
   orgOptions,
-  structuralUnits,
+  structuralUnitOptions,
   isLocalAdmin,
   handleOrgChange,
   handleStructuralUnitChange,
@@ -143,9 +143,9 @@ export function UserBasicInfoEditCard({
             <Select
               id="structuralUnitId"
               label={t('users.structuralUnit')}
-              options={structuralUnits}
+              options={structuralUnitOptions}
               value={
-                structuralUnits.find(
+                structuralUnitOptions.find(
                   (o) => o.value === formik.values.structuralUnitName,
                 ) ?? null
               }

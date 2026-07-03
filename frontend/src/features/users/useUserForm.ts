@@ -13,6 +13,7 @@ import type { UserGroup } from '../user-groups/types';
 import { listUserGroups } from '../user-groups/api';
 import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
+import { STRUCTURE_UNIT_OPTIONS } from '../../constants/constants';
 import { useAuth } from '../auth/AuthContext';
 import { applyValidationError } from '../../shared/api/errors';
 import { hasStatus } from '../../hooks/statusUtils';
@@ -226,6 +227,10 @@ export function useUserForm(
     formik,
     isEdit,
     orgOptions,
+    structuralUnitOptions: STRUCTURE_UNIT_OPTIONS.map((opt) => ({
+      label: t(opt.labelKey),
+      value: opt.value,
+    })),
     handleOrgChange,
     handleStructuralUnitChange,
     isLocalAdmin,

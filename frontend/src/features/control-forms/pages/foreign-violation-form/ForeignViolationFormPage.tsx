@@ -17,7 +17,7 @@ import { DatePicker, TimePicker, Accordion, AccordionItem, AccordionItemHeader, 
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS } from '../../../../constants/constants';
+import { BREAKPOINTS, STRUCTURE_UNIT_OPTIONS } from '../../../../constants/constants';
 import dayjs from 'dayjs';
 import styles from './ForeignViolationFormPage.module.css';
 
@@ -31,15 +31,6 @@ export function ForeignViolationFormPage() {
   const handleSaved = (id?: string) => {
     navigate(`/users/${id}`, { state: { justCreated: true } });
   };
-
-  const structuralUnits = [
-    { value: 'LÕUNA PREFEKTUUR', label: 'LÕUNA PREFEKTUUR' },
-    { value: 'IDA PREFEKTUUR', label: 'IDA PREFEKTUUR' },
-    { value: 'LÄÄNE PREFEKTUUR', label: 'LÄÄNE PREFEKTUUR' },
-    { value: 'PÕHJA PREFEKTUUR', label: 'PÕHJA PREFEKTUUR' },
-    { value: 'KLIM', label: 'KLIM' },
-    { value: 'TRAM', label: 'TRAM' },
-  ];
 
   const euViolationGroups = [
     {
@@ -855,9 +846,15 @@ export function ForeignViolationFormPage() {
                     <Select
                       id="inspectorUnit"
                       label={t('forms.foreign_violation.inspectorUnit')}
-                      options={structuralUnits}
+                      options={STRUCTURE_UNIT_OPTIONS.map((opt) => ({
+                        label: t(opt.labelKey),
+                        value: opt.value,
+                      }))}
                       value={
-                        structuralUnits.find(
+                        STRUCTURE_UNIT_OPTIONS.map((opt) => ({
+                          label: t(opt.labelKey),
+                          value: opt.value,
+                        })).find(
                           (o) => o.value === formik.values.inspectorUnit,
                         ) ?? null
                       }
