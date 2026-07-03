@@ -38,7 +38,7 @@ export const insertClassifierValue = (data: {
   name: string;
   validFrom: string;
   validUntil: string;
-}) => post<ClassifierValue[]>('/v1/classifiers/insert-value', data);
+}) => post<ClassifierValue[]>('/v1/classifiers/value', data);
 
 export const getClassifierValue = (
   classifierId: string,
@@ -56,4 +56,4 @@ export const updateClassifierValue = (data: {
   name: string;
   validFrom: string;
   validUntil: string;
-}) => put<ClassifierValue[]>('/v1/classifiers/update-value', data);
+}) => put<ClassifierValue[]>('/v1/classifiers/value', data);
