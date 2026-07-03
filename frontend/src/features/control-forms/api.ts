@@ -1,17 +1,6 @@
 import { post } from '../../shared/api/client';
-import type { User } from '../users/types';
+import type { ForeignViolationForm } from './types';
 
 export const insertForeignViolationForm = (
-  data: {
-    firstName: string;
-    lastName: string;
-    personalCode: string;
-    organisationId: string;
-    structuralUnitName: string;
-    jobTitleName: string;
-    email: string;
-    phone: string;
-    accessStart: string;
-    accessEnd: string;
-  },
-) => post<User[]>(`/v1/users/edit/insert`, data);
+  data: ForeignViolationForm,
+) => post<ForeignViolationForm[]>(`/v1/control-forms/foreign-violation-form/insert`, data as unknown as Record<string, unknown>);

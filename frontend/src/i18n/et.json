@@ -100,15 +100,15 @@
       "recommendedMeasureNotes": "Soovitatud meetme täpsustus",
       "recommendedMeasureGeneralNotes": "Märkused",
       "recommendedMeasureGeneralNotesPlaceholder": "Sisestage märkused...",
-      "recommendedMeasurePuuduvad": "Puuduvad",
-      "recommendedMeasureHoiatus": "Hoiatus",
-      "recommendedMeasureTeadet1": "Kõigi või osa ühenduse tegevusloa kinnitatud ärakirjade teatud ajaks peatamine",
-      "recommendedMeasureTeadet2": "Kõigi või osa ühenduse tegevusloa kinnitatud ärakirjade kehtetuks tunnistamine",
-      "recommendedMeasureTeadet3": "Ühenduse tegevusloa kinnitatud ärakirjade teatud ajaks peatamine",
-      "recommendedMeasureTeadet4": "Ühenduse tegevusloa kehtetuks tunnistamine",
-      "recommendedMeasureTeadet5": "Juhitunnistuse väljastamisest keeldumine",
-      "recommendedMeasureTeadet6": "Juhitunnistuse kehtetuks tunnistamine",
-      "recommendedMeasureMuu": "Muu",
+      "recommendedMeasureNone": "Puuduvad",
+      "recommendedMeasureWarning": "Hoiatus",
+      "recommendedMeasureSuspension1": "Kõigi või osa ühenduse tegevusloa kinnitatud ärakirjade teatud ajaks peatamine",
+      "recommendedMeasureWithdrawal1": "Kõigi või osa ühenduse tegevusloa kinnitatud ärakirjade kehtetuks tunnistamine",
+      "recommendedMeasureSuspension2": "Ühenduse tegevusloa kinnitatud ärakirjade teatud ajaks peatamine",
+      "recommendedMeasureWithdrawal2": "Ühenduse tegevusloa kehtetuks tunnistamine",
+      "recommendedMeasureRefusal": "Juhitunnistuse väljastamisest keeldumine",
+      "recommendedMeasureWithdrawal3": "Juhitunnistuse kehtetuks tunnistamine",
+      "recommendedMeasureOther": "Muu",
       "dataEntryDateBasicInfo": "Andmete sisestamise kuupäev",
       "dataEntryDate": "Andmete sisestamise kuupäev",
       "inspectorBasicInfo": "Andmete sisestaja",
@@ -119,7 +119,13 @@
       "inspectorProfession": "Ametinimetus",
       "filesBasicInfo": "Failid",
       "filesBoxInfo": "Kukuta failid siia või klõpsa valimiseks",
-      "filesHelper": "Lubatud formaadid: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maksimaalne failisuurus 10 MB."
+      "filesHelper": "Lubatud formaadid: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maksimaalne failisuurus 10 MB.",
+      "validation": {
+        "required": "Kohustuslik väli",
+        "api": {
+          "required": "Kohustuslik väli"
+        }
+      }
     }
   },
   "users": {

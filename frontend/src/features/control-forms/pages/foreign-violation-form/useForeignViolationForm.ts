@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import type { User } from '../../../users/types';
+import dayjs from 'dayjs';
+import type { ForeignViolationForm } from '../../../control-forms/types';
 import {
   insertForeignViolationForm
 } from '../../api';
@@ -11,18 +12,17 @@ import type { Country } from '../../../countries/types';
 import { listOrganisations } from '../../../organisations/api';
 import { listCountries } from '../../../countries/api';
 import { applyValidationError } from '../../../../shared/api/errors';
-import { toIsoDate } from '../../../../hooks/dateUtils';
 import { useAuth } from '../../../auth/AuthContext';
 
 export function useForeignViolationForm(
-  user: User | undefined,
+  form: ForeignViolationForm | undefined,
   onSaved: (id?: string) => void,
 ) {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
-  const isEdit = !!user;
+  const isEdit = !!form;
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
@@ -33,72 +33,75 @@ export function useForeignViolationForm(
   }, []);
 
   const validationSchema = Yup.object({
-    firstName: Yup.string().required(t('users.validation.required')),
-    lastName: Yup.string().required(t('users.validation.required')),
-    personalCode: Yup.string()
-      .required(t('users.validation.required')),
-    organisationId: Yup.string().required(t('users.validation.required')),
-    structuralUnitName: Yup.string().required(t('users.validation.required')),
-    jobTitleName: Yup.string().required(t('users.validation.required')),
-    email: Yup.string()
-      .required(t('users.validation.required'))
-      .test('email-format', t('users.validation.email'), (value) => {
-        if (!value) return true;
-        if (value.indexOf('@') < 1) return false;
-        if (value.indexOf('.', value.indexOf('@')) < value.indexOf('@') + 2)
-          return false;
-        return value.lastIndexOf('.') < value.length - 2;
-      }),
-    phone: Yup.string().matches(/^[+\d\s]*$/, t('users.validation.phone')),
-    accessStart: Yup.string().required(t('users.validation.required')),
-    accessEnd: isEdit
-      ? Yup.string().nullable()
-      : Yup.string()
-          .nullable()
-          .test(
-            'is-after-start',
-            t('users.validation.endBeforeStart'),
-            function (value) {
-              const { accessStart } = this.parent;
-              if (!value || value === null || !accessStart) return true;
-              return new Date(value) > new Date(accessStart);
-            },
-          ),
+    reportingCountryCode: Yup.string().required(t('users.validation.required')),
+    reportingAuthority: Yup.string().required(t('users.validation.required')),
+    inspectionDate: Yup.string().required(t('users.validation.required')),
+    sanctionCode: Yup.string().required(t('users.validation.required')),
+    recommendedMeasureCode: Yup.string().required(t('users.validation.required')),
+    recommendedMeasureNotes: Yup.string().when('recommendedMeasureCode', {
+      is: 'MUU',
+      then: (schema) => schema.required(t('users.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    dataEntryDate: Yup.string().required(t('users.validation.required')),
+    inspectorFirstName: Yup.string().required(t('users.validation.required')),
+    inspectorLastName: Yup.string().required(t('users.validation.required')),
+    inspectorOrganisationId: Yup.string().required(t('users.validation.required')),
+    inspectorUnit: Yup.string().required(t('users.validation.required')),
+    inspectorProfession: Yup.string().required(t('users.validation.required'))
   });
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      firstName: user?.firstName ?? '',
-      lastName: user?.lastName ?? '',
-      personalCode: user?.personalCode ?? '',
-      organisationId: user?.organisationId ?? '',
-      structuralUnitName: user?.structuralUnitName ?? '',
-      jobTitleName: user?.jobTitleName ?? '',
-      email: user?.email ?? '',
-      phone: user?.phone ?? '',
-      accessStart: user?.accessStart ?? '',
-      accessEnd: user?.accessEnd ?? '',
-      reportingCountry: '',
-      inspectionCountry: '',
-      inspectionTime: '',
-      companyCountry: '',
-      vehicleCountry: '',
-      dataEntryDate: '',
-      inspectorFirstName: authUser?.firstname ?? '',
-      inspectorLastName: authUser?.lastname ?? '',
-      inspectorOrganisationId: authUser?.organisationid ?? '',
-      inspectorStructuralUnitName: authUser?.structuralunit ?? '',
-      inspectorJobTitleName: authUser?.jobtitle ?? ''
+      id: form?.id ?? '',
+      reportingCountryCode: form?.reportingCountryCode ?? '',
+      reportingAuthority: form?.reportingAuthority ?? '',
+      inspectionCountryCode: form?.inspectionCountryCode ?? '',
+      inspectionDate: form?.inspectionDate ?? '',
+      inspectionTime: form?.inspectionTime ?? '',
+      inspectionAddressLine1: form?.inspectionAddressLine1 ?? '',
+      inspectionAddressLine2: form?.inspectionAddressLine2 ?? '',
+      inspectionRegion: form?.inspectionRegion ?? '',
+      inspectionCity: form?.inspectionCity ?? '',
+      companyRegCode: form?.companyRegCode ?? '',
+      companyName: form?.companyName ?? '',
+      companyCountryCode: form?.companyCountryCode ?? '',
+      companyAddressLine1: form?.companyAddressLine1 ?? '',
+      companyAddressLine2: form?.companyAddressLine2 ?? '',
+      companyCity: form?.companyCity ?? '',
+      companyPostalCode: form?.companyPostalCode ?? '',
+      driverFirstName: form?.driverFirstName ?? '',
+      driverLastName: form?.driverLastName ?? '',
+      vehicleRegNr: form?.vehicleRegNr ?? '',
+      vehicleMake: form?.vehicleMake ?? '',
+      vehicleModel: form?.vehicleModel ?? '',
+      vehicleCountryCode: form?.vehicleCountryCode ?? '',
+      vehicleVin: form?.vehicleVin ?? '',
+      vehicleFirstRegistration: form?.vehicleFirstRegistration ?? '',
+      vehicleBodyType: form?.vehicleBodyType ?? '',
+      licenceCopyNumber: form?.licenceCopyNumber ?? '',
+      violationDescription: form?.violationDescription ?? '',
+      minorViolationsCount: form?.minorViolationsCount ?? '',
+      sanctionCode: form?.sanctionCode ?? 'KORRAS',
+      sanctionNotes: form?.sanctionNotes ?? '',
+      recommendedMeasureCode: form?.recommendedMeasureCode ?? 'PUUDUVAD',
+      recommendedMeasureNotes: form?.recommendedMeasureNotes ?? '',
+      recommendedMeasureGeneralNotes: form?.notes ?? '',
+      violations: form?.violations ?? '[]',
+      dataEntryDate: form?.dataEntryDate ?? dayjs().format('YYYY-MM-DD'),
+      inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
+      inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
+      inspectorOrganisationId: form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
+      inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
+      inspectorProfession: form?.inspectorProfession ?? authUser?.jobtitle ?? '',
+      files: form?.files ?? '[]',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
       try {
         const trimmedValues = {
           ...values,
-          phone: values.phone.trim(),
-          accessStart: toIsoDate(values.accessStart),
-          accessEnd: toIsoDate(values.accessEnd),
           status: 'saved',
         };
         const result = await insertForeignViolationForm(trimmedValues);
@@ -106,7 +109,7 @@ export function useForeignViolationForm(
       } catch (e) {
         if (
           !applyValidationError(e, setFieldError, (code) =>
-            t(`users.validation.api.${code}`),
+            t(`foreign_violation.validation.api.${code}`),
           )
         ) {
           console.error('Save failed', e);
@@ -132,9 +135,9 @@ export function useForeignViolationForm(
       | null,
   ) => {
     if (val && !Array.isArray(val) && 'value' in val) {
-      formik.setFieldValue('organisationId', (val as { value: string }).value);
+      formik.setFieldValue('inspectorOrganisationId', (val as { value: string }).value);
     } else {
-      formik.setFieldValue('organisationId', '');
+      formik.setFieldValue('inspectorOrganisationId', '');
     }
   };
 
@@ -146,11 +149,11 @@ export function useForeignViolationForm(
   ) => {
     if (val && !Array.isArray(val) && 'value' in val) {
       formik.setFieldValue(
-        'structuralUnitName',
+        'inspectorStructuralUnitName',
         (val as { value: string }).value,
       );
     } else {
-      formik.setFieldValue('structuralUnitName', '');
+      formik.setFieldValue('inspectorStructuralUnitName', '');
     }
   };
 
