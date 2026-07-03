@@ -145,7 +145,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/classifiers/{id}:
+  /v1/classifiers/classifier:
     get:
       tags: [classifiers]
       operationId: getClassifier
@@ -154,7 +154,7 @@ paths:
         Returns one classifier header with id, code, current name, and
         current description from the latest snapshot. Requires classifier.read.
       parameters:
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
@@ -171,6 +171,7 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /v1/classifiers/update:
     put:
       tags: [classifiers]
       operationId: putClassifier
@@ -178,12 +179,8 @@ paths:
       description: |
         Inserts a new name/description state row for the classifier and
         rebuilds the latest snapshot. Rejects any request that carries a
-        modified code (immutable). Requires classifier.edit.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
+        modified code (immutable). id must be included in the request body.
+        Requires classifier.edit.
       requestBody:
         required: true
         content:
@@ -205,7 +202,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/classifiers/{id}/values:
+  /v1/classifiers/values:
     get:
       tags: [classifier-values]
       operationId: getClassifierValues
@@ -213,10 +210,10 @@ paths:
       description: |
         Paginated value list for a given classifier. The activeOnly flag
         controls whether ended values are included. Sortable by code, name,
-        validFrom, validUntil. Requires classifier.read.
+        validFrom, validUntil. classifierId passed as query param. Requires classifier.read.
       parameters:
-        - in: path
-          name: id
+        - in: query
+          name: classifierId
           required: true
           schema: { type: string }
         - in: query
@@ -247,19 +244,16 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /v1/classifiers/value:
     post:
       tags: [classifier-values]
-      operationId: postClassifierValues
+      operationId: postClassifierValue
       summary: Add a new value to a classifier.
       description: |
         Creates a classifier value with code, name, and initial validity
-        period. Code must be unique within the classifier (pre-INSERT
-        check). Requires classifier_value.edit.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
+        period. classifierId must be included in the request body.
+        Code must be unique within the classifier (pre-INSERT check).
+        Requires classifier_value.edit.
       requestBody:
         required: true
         content:
@@ -286,17 +280,16 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/classifiers/{id}/values/{valueId}:
     get:
       tags: [classifier-values]
       operationId: getClassifierValue
       summary: Get a single classifier value by ID.
       parameters:
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
-        - in: path
+        - in: query
           name: valueId
           required: true
           schema: { type: string }
@@ -319,19 +312,9 @@ paths:
       summary: Update a classifier value's validity period.
       description: |
         Inserts a new validity state row with the provided validFrom and
-        optional validUntil. Supports ending (set validUntil to a chosen date),
-        extending (push validUntil into the future), and re-opening an ended
-        value (clear validUntil or set it to a future date). Code and name are
-        immutable. Requires classifier_value.edit.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
-        - in: path
-          name: valueId
-          required: true
-          schema: { type: string }
+        optional validUntil. classifierId and classifierValueId must be
+        included in the request body. Code and name are immutable.
+        Requires classifier_value.edit.
       requestBody:
         required: true
         content:
@@ -352,20 +335,15 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/classifiers/{id}/values/check-code:
+  /v1/classifiers/check-code:
     post:
       tags: [classifier-values]
       operationId: postClassifierValuesCheckCode
       summary: Check whether a value code exists in a classifier.
       description: |
         Returns a boolean indicating whether the given code already exists
-        within the specified classifier. Used before value creation for
-        uniqueness validation. Requires classifier_value.edit.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
+        within the specified classifier. classifierId must be included in
+        the request body. Requires classifier_value.edit.
       requestBody:
         required: true
         content:
@@ -545,7 +523,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/{scope}/{id}:
+  /v1/user-groups/{scope}/user-group:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroup
@@ -559,10 +537,13 @@ paths:
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
+        - in: query
+          name: logAudit
+          schema: { type: boolean }
       responses:
         '200':
           description: User group detail.
@@ -576,21 +557,14 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /v1/user-groups/update:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroup
       summary: Update user group name.
       description: |
-        Updates the name of an existing user group. Requires user_group.update (admin-only).
-      parameters:
-        - in: path
-          name: scope
-          required: true
-          schema: { type: string, enum: [admin, local] }
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
+        Updates the name of an existing user group. id must be included in
+        the request body. Requires user_group.update (admin-only).
       requestBody:
         required: true
         content:
@@ -623,7 +597,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/{scope}/{id}/organisations:
+  /v1/user-groups/{scope}/organisations:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroupOrganisations
@@ -633,7 +607,7 @@ paths:
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
@@ -652,27 +626,22 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /v1/user-groups/organisations:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroupOrganisations
       summary: Set organisations on a user group.
-      parameters:
-        - in: path
-          name: scope
-          required: true
-          schema: { type: string, enum: [admin, local] }
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
+      description: id must be included in the request body.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [organisationIds]
+              required: [id, organisationIds]
               properties:
+                id:
+                  type: string
                 organisationIds:
                   type: array
                   items:
@@ -692,7 +661,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/{scope}/{id}/permissions:
+  /v1/user-groups/{scope}/permissions:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroupPermissions
@@ -702,7 +671,7 @@ paths:
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
@@ -721,27 +690,22 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /v1/user-groups/permissions:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroupPermissions
       summary: Set permissions on a user group.
-      parameters:
-        - in: path
-          name: scope
-          required: true
-          schema: { type: string, enum: [admin, local] }
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
+      description: id must be included in the request body.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [permissionIds]
+              required: [id, permissionIds]
               properties:
+                id:
+                  type: string
                 permissionIds:
                   type: array
                   items:
@@ -761,7 +725,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/{scope}/{id}/users:
+  /v1/user-groups/{scope}/users:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroupUsers
@@ -775,7 +739,7 @@ paths:
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
@@ -804,23 +768,14 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /v1/user-groups/users:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroupUsers
       summary: Add users to a user group.
       description: |
-        Binds one or more users to a user group. Each user must be active,
-        belong to an organisation that is actively linked to the group, and
-        not already be an active member. Requires user_group.add_user (admin-only).
-      parameters:
-        - in: path
-          name: scope
-          required: true
-          schema: { type: string, enum: [admin, local] }
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
+        Binds one or more users to a user group. id must be included in
+        the request body. Requires user_group.add_user (admin-only).
       requestBody:
         required: true
         content:
@@ -848,7 +803,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/{scope}/{id}/users/{userId}:
+  /v1/user-groups/user:
     delete:
       tags: [user-groups-admin]
       operationId: deleteUserGroupUser
@@ -858,15 +813,11 @@ paths:
         a state row with status=removed (INSERT-only audit trail).
         Requires user_group.remove_user (admin-only).
       parameters:
-        - in: path
-          name: scope
-          required: true
-          schema: { type: string, enum: [admin, local] }
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
-        - in: path
+        - in: query
           name: userId
           required: true
           schema: { type: string }
@@ -1000,7 +951,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/users/{scope}/{id}:
+  /v1/users/{scope}/user:
     get:
       tags: [users-admin]
       operationId: getUser
@@ -1014,7 +965,7 @@ paths:
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
@@ -1031,24 +982,20 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /v1/users/{scope}/update:
     put:
       tags: [users-admin]
       operationId: putUser
       summary: Update user personal data and access period.
       description: |
         Inserts a new user_account_data_state snapshot with updated fields.
-        If accessEnd is today or in the past and current state is active,
-        also inserts a pending_deactivation state row. Requires
+        id must be included in the request body. Requires
         user.edit.admin OR user.edit.local.
       parameters:
         - in: path
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -1076,7 +1023,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/users/{scope}/{id}/groups:
+  /v1/users/{scope}/groups:
     get:
       tags: [users-admin]
       operationId: getUserGroups2
@@ -1086,8 +1033,8 @@ paths:
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
-        - in: path
-          name: id
+        - in: query
+          name: userId
           required: true
           schema: { type: string }
       responses:
@@ -1108,17 +1055,14 @@ paths:
       operationId: putUserGroups
       summary: Bulk save user group memberships for a user.
       description: |
-        Atomically adds and removes group memberships for a user. Requires
+        Atomically adds and removes group memberships for a user.
+        userId must be included in the request body. Requires
         user.edit.admin OR user.edit.local.
       parameters:
         - in: path
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -1151,47 +1095,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/users/{scope}/{id}/organisation:
-    put:
-      tags: [users-admin]
-      operationId: putUserOrganisation
-      summary: Change a user's organisation.
-      description: |
-        Inserts a new user_account_data_state snapshot with the updated
-        organisation_id and removes all active user-group memberships
-        (groups are organisation-scoped). Requires user.edit.admin
-        (admin-only; local account managers cannot change organisations).
-      parameters:
-        - in: path
-          name: scope
-          required: true
-          schema: { type: string, enum: [admin, local] }
-        - in: path
-          name: id
-          required: true
-          schema: { type: string }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersChangeOrganisationRequest'
-      responses:
-        '200':
-          description: Organisation changed; updated user detail.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersGetResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/check-personal-code:
+  /v1/users/{scope}/check-personal-code:
     post:
       tags: [users-admin]
       operationId: postUsersCheckPersonalCode
@@ -1199,6 +1103,11 @@ paths:
       description: |
         Boolean pre-INSERT existence check used before creating a new user
         to prevent duplicates. Requires user.edit.admin OR user.edit.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
       requestBody:
         required: true
         content:
@@ -1218,35 +1127,6 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/users/available-groups:
-    post:
-      tags: [users-admin]
-      operationId: postUsersAvailableGroups
-      summary: List user groups available for a user's organisation.
-      description: |
-        Returns groups with an active user_group_organisation link to the
-        user's organisation_id. Used to populate the multiselect dropdown
-        choices in user detail edit mode. Unpaginated. Requires
-        user.edit.admin OR user.edit.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersUserGroupsAvailableRequest'
-      responses:
-        '200':
-          description: Available groups.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersUserGroupsAvailableResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
   # ── Audit Logs ─────────────────────────────────────────────────────
 
@@ -1284,13 +1164,13 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/logs/{id}:
+  /v1/logs/log:
     get:
       tags: [logs]
       operationId: getLog
       summary: Get a single audit log entry.
       parameters:
-        - in: path
+        - in: query
           name: id
           required: true
           schema: { type: string }
@@ -1309,20 +1189,26 @@ paths:
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
   /v1/logs/export:
-    post:
+    get:
       tags: [logs]
-      operationId: postLogsExport
+      operationId: getLogsExport
       summary: Export audit log entries as CSV.
       description: |
-        Accepts filter/sort body (same as GET /v1/logs query params) and
-        returns a CSV file. POST used because filter payloads may exceed
-        safe URL length. Requires audit.read.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersListRequest'
+        Accepts filter/sort as query params and returns a CSV file.
+        Requires audit.read.
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
+          schema: { type: string }
       responses:
         '200':
           description: CSV file.
