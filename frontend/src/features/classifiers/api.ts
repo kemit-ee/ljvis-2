@@ -12,7 +12,7 @@ export const listClassifiers = (params?: ListApiParams) =>
   );
 
 export const getClassifier = (id: string) =>
-  get<Classifier[]>('/v1/classifiers/get-by-id', { id });
+  get<Classifier[]>('/v1/classifiers/classifier', { id });
 
 export const getClassifierValues = (params: {
   classifierId: string;
@@ -22,7 +22,7 @@ export const getClassifierValues = (params: {
   sorting?: string;
 }) =>
   get<ClassifierValue[]>(
-    '/v1/classifiers/get-values',
+    '/v1/classifiers/values',
     params as Record<string, string>,
   );
 
@@ -45,7 +45,7 @@ export const getClassifierValue = (
   classifierValueId: string,
 ) =>
   get<ClassifierValue[]>(
-    '/v1/classifiers/get-value',
+    '/v1/classifiers/value',
     { id: classifierId, valueId: classifierValueId },
   );
 

@@ -24,7 +24,7 @@ export const getUserGroup = (
   id: string,
   logAudit: boolean,
 ) =>
-  get<UserGroup[]>(`/v1/user-groups/${scope}/get-by-id`, {
+  get<UserGroup[]>(`/v1/user-groups/${scope}/user-group`, {
     id,
     logAudit: String(logAudit),
   });
@@ -33,10 +33,10 @@ export const getUserGroupOrganisations = (
   scope: 'admin' | 'local',
   id: string,
 ) =>
-  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/get-organisations`, { id });
+  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/organisations`, { id });
 
 export const getUserGroupPermissions = (scope: 'admin' | 'local', id: string) =>
-  get<UserGroupPermission[]>(`/v1/user-groups/${scope}/get-permissions`, { id });
+  get<UserGroupPermission[]>(`/v1/user-groups/${scope}/permissions`, { id });
 
 export const getUserGroupUsers = (
   scope: 'admin' | 'local',
@@ -49,7 +49,7 @@ export const getUserGroupUsers = (
   },
 ) =>
   get<UserGroupUser[]>(
-    `/v1/user-groups/${scope}/get-users`,
+    `/v1/user-groups/${scope}/users`,
     {
       ...(params?.userGroupId !== undefined && { id: String(params.userGroupId) }),
       ...(params?.page !== undefined && { page: params.page }),
@@ -86,7 +86,7 @@ export const setUserGroupOrganisations = (
   addedOrganisationIds: number[],
   removedOrganisationIds: number[],
 ) =>
-  put<string>('/v1/user-groups/set-organisations', {
+  put<string>('/v1/user-groups/organisations', {
     id,
     addedOrganisationIds,
     removedOrganisationIds,
@@ -97,14 +97,14 @@ export const setUserGroupPermissions = (
   addedPermissionIds: number[],
   removedPermissionIds: number[],
 ) =>
-  put<string>('/v1/user-groups/set-permissions', {
+  put<string>('/v1/user-groups/permissions', {
     id,
     addedPermissionIds,
     removedPermissionIds,
   });
 
 export const deleteUserGroupUser = (id: string, userId: string) =>
-  del<{ id: string }[]>('/v1/user-groups/delete-user', { id, userId });
+  del<{ id: string }[]>('/v1/user-groups/user', { id, userId });
 
 export const addUserToGroup = (id: string, userIds: string[]) =>
-  put<string>('/v1/user-groups/add-users', { id, userIds });
+  put<string>('/v1/user-groups/users', { id, userIds });
