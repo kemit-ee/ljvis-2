@@ -65,6 +65,7 @@ export function ForeignViolationFormPage() {
 
   const {
     formik,
+    serialNumber,
     countryOptions,
     orgOptions,
     handleOrgChange,
@@ -78,7 +79,7 @@ export function ForeignViolationFormPage() {
       <form onSubmit={formik.handleSubmit}>
         <div className="card-main">
           <Heading element="h1">
-            vr-{new Date().getFullYear()}-?????/1
+            vr-{new Date().getFullYear()}-{String(serialNumber || 0).padStart(5, '0')}/1
           </Heading>
         </div>
 

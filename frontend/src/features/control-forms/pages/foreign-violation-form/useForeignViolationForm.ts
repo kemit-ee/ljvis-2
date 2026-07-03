@@ -11,6 +11,7 @@ import type { Organisation } from '../../../organisations/types';
 import type { Country } from '../../../countries/types';
 import { listOrganisations } from '../../../organisations/api';
 import { listCountries } from '../../../countries/api';
+import { getSerialNumber } from '../../../control-forms/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
 
@@ -22,6 +23,7 @@ export function useForeignViolationForm(
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
+  const [serialNumber, setSerialNumber] = useState<number>();
   const isEdit = !!form;
 
   useEffect(() => {
@@ -30,6 +32,10 @@ export function useForeignViolationForm(
 
   useEffect(() => {
     listCountries().then(setCountries).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    getSerialNumber().then(setSerialNumber).catch(console.error);
   }, []);
 
   const validationSchema = Yup.object({
@@ -161,6 +167,7 @@ export function useForeignViolationForm(
   return {
     formik,
     isEdit,
+    serialNumber,
     countryOptions,
     orgOptions,
     handleOrgChange,
