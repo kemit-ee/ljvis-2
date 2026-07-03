@@ -33,22 +33,23 @@ export function useForeignViolationForm(
   }, []);
 
   const validationSchema = Yup.object({
-    reportingCountryCode: Yup.string().required(t('users.validation.required')),
-    reportingAuthority: Yup.string().required(t('users.validation.required')),
-    inspectionDate: Yup.string().required(t('users.validation.required')),
-    sanctionCode: Yup.string().required(t('users.validation.required')),
-    recommendedMeasureCode: Yup.string().required(t('users.validation.required')),
+    reportingCountryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    reportingAuthority: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectionDate: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    sanctionCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    recommendedMeasureCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
     recommendedMeasureNotes: Yup.string().when('recommendedMeasureCode', {
       is: 'MUU',
       then: (schema) => schema.required(t('users.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
-    dataEntryDate: Yup.string().required(t('users.validation.required')),
-    inspectorFirstName: Yup.string().required(t('users.validation.required')),
-    inspectorLastName: Yup.string().required(t('users.validation.required')),
-    inspectorOrganisationId: Yup.string().required(t('users.validation.required')),
-    inspectorUnit: Yup.string().required(t('users.validation.required')),
-    inspectorProfession: Yup.string().required(t('users.validation.required'))
+    minorViolationsCount: Yup.string().matches(/^\d{0,3}$/, t('forms.foreign_violation.validation.minorViolationsCount')),
+    dataEntryDate: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorFirstName: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorLastName: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorOrganisationId: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorUnit: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required'))
   });
 
   const formik = useFormik({

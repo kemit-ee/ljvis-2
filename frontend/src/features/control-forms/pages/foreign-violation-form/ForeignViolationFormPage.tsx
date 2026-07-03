@@ -28,8 +28,8 @@ export function ForeignViolationFormPage() {
   const forbidden = !(hasPermission('foreign_violation_form.write') && hasPermission('foreign_violation_form.read') && hasPermission('classifier.read'));
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
-  const handleSaved = (id?: string) => {
-    navigate(`/users/${id}`, { state: { justCreated: true } });
+  const handleSaved = () => {
+    navigate(`/`, { state: { justCreated: true } });
   };
 
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
@@ -122,7 +122,7 @@ export function ForeignViolationFormPage() {
                       id="reportingAuthority"
                       label={t('forms.foreign_violation.reportingAuthority')}
                       value={formik.values.reportingAuthority}
-                      input={{ maxLength: 100 }}
+                      input={{ maxLength: 600 }}
                       onChange={(v) => formik.setFieldValue('reportingAuthority', v)}
                       required
                       {...(formik.touched.reportingAuthority && formik.errors.reportingAuthority
@@ -415,7 +415,7 @@ export function ForeignViolationFormPage() {
                           label={t('forms.foreign_violation.vehicleRegNr')}
                           value={formik.values.vehicleRegNr}
                           input={{ maxLength: 20 }}
-                          onChange={(v) => formik.setFieldValue('vehicleRegNr', v)}
+                          onChange={(v) => formik.setFieldValue('vehicleRegNr', v.toUpperCase())}
                         />
                       </div>
                       <Button
@@ -568,8 +568,12 @@ export function ForeignViolationFormPage() {
                       id="minorViolationsCount"
                       label={t('forms.foreign_violation.minorViolationsCount')}
                       value={formik.values.minorViolationsCount}
-                      input={{ type: 'number', min: 0 }}
-                      onChange={(v) => formik.setFieldValue('minorViolationsCount', v)}
+                      onChange={(v) => {
+                        const numericValue = v.replace(/\D/g, '');
+                        const parsedValue = parseInt(numericValue, 10) || 0;
+                        formik.setFieldValue('minorViolationsCount', String(parsedValue));
+                      }}
+                      input={{maxLength: 3 }}
                     />
                   </div>
                 </Card.Content>
@@ -882,7 +886,7 @@ export function ForeignViolationFormPage() {
                     name="file-dropzone"
                     label={t('forms.foreign_violation.filesBoxInfo')}
                     onChange={(files) => formik.setFieldValue('files', files)}
-                    maxSize={10}
+                    maxSize={10 * 1024 * 1024}
                     helper={{
                       text: t('forms.foreign_violation.filesHelper')
                     }}

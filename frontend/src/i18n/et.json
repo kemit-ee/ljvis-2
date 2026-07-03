@@ -90,10 +90,10 @@
       "sanctionNotesPlaceholder": "Sisestage märkused...",
       "sanctionKorras": "Korras",
       "sanctionHoiatus": "Hoiatus",
-      "sanctionKabotaaz": "Kabotaäžveo ajutine keelamine",
+      "sanctionKabotaaz": "Kabotaažveo ajutine keelamine",
       "sanctionTrahv": "Trahv",
       "sanctionLiiklemiskeeld": "Liiklemiskeeld",
-      "sanctionSoiduk": "Sõiduki kasatamise takistamine",
+      "sanctionSoiduk": "Sõiduki kasutamise takistamine",
       "sanctionMuu": "Muu",
       "euViolationGroupMsi": "Kõige raskemad rikkumised (MSI)",
       "euViolationMsi101": "MSI101 - ületatakse 2 järjestikuse nädala maksimaalset sõiduaega 25% või rohkem 112h30 ≤ ...",
@@ -278,6 +278,7 @@
       "filesHelper": "Lubatud formaadid: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maksimaalne failisuurus 10 MB.",
       "validation": {
         "required": "Kohustuslik väli",
+        "minorViolationsCount": "Lubatud kuni kolmekohaline number",
         "api": {
           "required": "Kohustuslik väli"
         }
