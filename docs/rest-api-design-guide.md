@@ -46,17 +46,39 @@ Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaa
 ### 2.3 Keelatud mustrid
 
 ```
-❌ /v1/users/admin/123          → id path segmendina
-❌ /v1/users/admin/get-user     → meetodinimetus URI-s
-❌ /v1/users/admin/read/get     → tegevusnimetus lisatasandil
-❌ /v1/users/admin/edit/insert  → CRUD-verb URI-s
+# Vale — id path segmendina
+/v1/users/admin/123
+
+# Vale — meetodinimetus URI-s
+/v1/users/admin/get-user
+
+# Vale — tegevusnimetus lisatasandil
+/v1/users/admin/read/get
+
+# Vale — CRUD-verb URI-s
+/v1/users/admin/edit/insert
 ```
 
+### 2.4 Soovituslikud mustrid
+
 ```
-✅ /v1/users/admin/user?id=123
-✅ /v1/users/admin
-✅ /v1/users/admin/update
-✅ POST /v1/users/admin
+# Üksiku ressursi lugemine — id query paramina
+GET /v1/users/admin/user?id=123
+
+# Nimekirja lugemine — filtrid query paramitena
+GET /v1/users/admin?search=Mari&page=0&pageSize=20
+
+# Ressursi loomine — HTTP meetod tähistab loomist
+POST /v1/users/admin
+
+# Ressursi uuendamine — toiming staatilise segmendina, id body-s
+PUT /v1/users/admin/update
+
+# Seosega ressursi lugemine — scope path segmendina, id query paramina
+GET /v1/user-groups/admin/users?id=456
+
+# Ressursi kustutamine — id query paramina
+DELETE /v1/user-groups/user?id=456&userId=789
 ```
 
 ---
