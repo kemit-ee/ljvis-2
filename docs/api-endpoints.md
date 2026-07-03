@@ -2,6 +2,8 @@
 
 Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioonis.
 
+> **Ruuter DSL konventsioon:** `id` ja muud ressursiidentifikaatorid edastatakse query paramitena (`?id=...`), mitte URL path segmentidena. Path segmendid tähistavad ainult staatilisi ressursikollektsioone või toiminguid.
+
 ## Päris otspunktid
 
 ### Auth
@@ -11,88 +13,66 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | POST | `/auth/logout` |
 
 ### Klassifikaatorid
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/classifiers/read/list` |
-| POST | `/v1/classifiers/read/get` |
-| POST | `/v1/classifiers/read/get-value` |
-| POST | `/v1/classifiers/read/get-values` |
-| POST | `/v1/classifiers/edit/update` |
-| POST | `/v1/classifiers/values/insert` |
-| POST | `/v1/classifiers/values/update` |
+| Meetod | Tee | Query paramid | Märkus |
+|--------|-----|---------------|--------|
+| GET | `/v1/classifiers` | `search`, `page`, `pageSize`, `sorting` | nimekiri |
+| GET | `/v1/classifiers/classifier` | `id` | üksik klassifikaator |
+| PUT | `/v1/classifiers/update` | — | uuenda nime/kirjeldust (id request body-s) |
+| GET | `/v1/classifiers/values` | `classifierId`, `search`, `page`, `pageSize`, `sorting` | väärtuste nimekiri |
+| POST | `/v1/classifiers/value` | — | lisa uus väärtus (classifierId body-s) |
+| GET | `/v1/classifiers/value` | `id`, `valueId` | üksik väärtus |
+| PUT | `/v1/classifiers/value` | — | uuenda kehtivusperioodi (classifierId, classifierValueId body-s) |
+| GET | `/v1/classifiers/catalogue` | — | kõik klassifikaatorite koodid |
 
-### Kasutajagrupid — admin
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/user-groups/admin/list` |
-| POST | `/v1/user-groups/admin/read/get` |
-| POST | `/v1/user-groups/admin/read/get-organisations` |
-| POST | `/v1/user-groups/admin/read/get-permissions` |
-| POST | `/v1/user-groups/admin/read/get-users` |
+### Kasutajagrupid
+| Meetod | Tee | Query paramid | Märkus |
+|--------|-----|---------------|--------|
+| GET | `/v1/user-groups/{scope}` | `search`, `page`, `pageSize`, `sorting` | nimekiri (`scope`=admin\|local) |
+| POST | `/v1/user-groups` | — | loo uus grupp |
+| GET | `/v1/user-groups/{scope}/user-group` | `id`, `logAudit` | grupi detail |
+| PUT | `/v1/user-groups/update` | — | uuenda nime (id body-s) |
+| GET | `/v1/user-groups/{scope}/organisations` | `id` | grupi asutused |
+| PUT | `/v1/user-groups/organisations` | — | sea grupi asutused (id body-s) |
+| GET | `/v1/user-groups/{scope}/permissions` | `id` | grupi õigused |
+| PUT | `/v1/user-groups/permissions` | — | sea grupi õigused (id body-s) |
+| GET | `/v1/user-groups/{scope}/users` | `id`, `page`, `pageSize`, `sorting`, `search` | grupi liikmed |
+| PUT | `/v1/user-groups/users` | — | lisa kasutajaid gruppi (id body-s) |
+| DELETE | `/v1/user-groups/user` | `id`, `userId` | eemalda kasutaja grupist |
+| POST | `/v1/user-groups/available-users` | — | otsi lisatavaid kasutajaid |
 
-### Kasutajagrupid — local
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/user-groups/local/list` |
-| POST | `/v1/user-groups/local/read/get` |
-| POST | `/v1/user-groups/local/read/get-organisations` |
-| POST | `/v1/user-groups/local/read/get-permissions` |
-| POST | `/v1/user-groups/local/read/get-users` |
-
-### Kasutajagrupid — write & search
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/user-groups/write/insert` |
-| POST | `/v1/user-groups/write/update-name` |
-| POST | `/v1/user-groups/write/set-organisations` |
-| POST | `/v1/user-groups/write/set-permissions` |
-| POST | `/v1/user-groups/write/add-users` |
-| POST | `/v1/user-groups/write/delete-user` |
-| POST | `/v1/user-groups/search/get-available-users` |
-
-### Kasutajad — admin
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/users/admin/list` |
-| POST | `/v1/users/admin/read/get` |
-| POST | `/v1/users/admin/read/get-groups` |
-| POST | `/v1/users/admin/read/check-personal-code-exists` |
-| POST | `/v1/users/admin/edit/insert` |
-| POST | `/v1/users/admin/edit/update` |
-| POST | `/v1/users/admin/edit/set-groups` |
-
-### Kasutajad — local
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/users/local/list` |
-| POST | `/v1/users/local/read/get` |
-| POST | `/v1/users/local/read/get-groups` |
-| POST | `/v1/users/local/read/check-personal-code-exists` |
-| POST | `/v1/users/local/edit/insert` |
-| POST | `/v1/users/local/edit/update` |
-| POST | `/v1/users/local/edit/set-groups` |
+### Kasutajad
+| Meetod | Tee | Query paramid | Märkus |
+|--------|-----|---------------|--------|
+| GET | `/v1/users/{scope}` | `search`, `page`, `pageSize`, `sorting` | nimekiri (`scope`=admin\|local) |
+| POST | `/v1/users/{scope}` | — | loo uus kasutaja |
+| GET | `/v1/users/{scope}/user` | `id` | kasutaja detail |
+| PUT | `/v1/users/{scope}/update` | — | uuenda andmeid (id body-s) |
+| GET | `/v1/users/{scope}/groups` | `userId` | kasutaja grupiliikmelisused |
+| PUT | `/v1/users/{scope}/groups` | — | salvesta grupiliikmelisused (userId body-s) |
+| POST | `/v1/users/{scope}/check-personal-code` | — | kontrolli isikukoodi olemasolu |
 
 ### Organisatsioonid & õigused
 | Meetod | Tee |
 |--------|-----|
-| POST | `/v1/organisations/list` |
-| POST | `/v1/permissions/list` |
+| GET | `/v1/organisations` |
+| GET | `/v1/permissions` |
 
 ### Audit logid
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/logs/read/list` |
-| POST | `/v1/logs/read/list-csv` |
-| POST | `/v1/logs/read/get` |
+| Meetod | Tee | Query paramid | Märkus |
+|--------|-----|---------------|--------|
+| GET | `/v1/logs` | `search`, `page`, `pageSize`, `sorting` | nimekiri |
+| GET | `/v1/logs/log` | `id` | üksik kirje |
+| GET | `/v1/logs/export` | `search`, `page`, `pageSize`, `sorting` | ekspordi CSV |
 
 ### Välisriigi rikkumise andmevorm
 | Meetod | Tee | Õigus |
 |--------|-----|-------|
-| POST | `/api/v1/control-forms/foreign-violation/save` | `foreign_violation_form.write` |
-| POST | `/api/v1/control-forms/foreign-violation/get` | `foreign_violation_form.read` |
-| POST | `/api/v1/control-forms/files/upload` | `foreign_violation_form.write` |
-| POST | `/api/v1/control-forms/files/list` | `foreign_violation_form.read` |
-| POST | `/api/v1/control-forms/files/download` | `foreign_violation_form.read` |
+| POST | `/api/v1/control-forms/foreign-violation` | `foreign_violation_form.write` |
+| GET | `/api/v1/control-forms/foreign-violation/{formKey}` | `foreign_violation_form.read` |
+| PUT | `/api/v1/control-forms/foreign-violation/{formKey}` | `foreign_violation_form.write` |
+| GET | `/api/v1/control-forms/foreign-violation/{formKey}/files` | `foreign_violation_form.read` |
+| POST | `/api/v1/control-forms/foreign-violation/{formKey}/files` | `foreign_violation_form.write` |
+| GET | `/api/v1/control-forms/foreign-violation/{formKey}/files/{fileId}` | `foreign_violation_form.read` |
 | GET | `/api/v1/classifiers/violation-types?regulation=1071_2009` | `classifier.read` |
 | GET | `/api/v1/classifiers/countries` | `classifier.read` |
 
@@ -100,96 +80,73 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 
 ## Mock otspunktid
 
-Mock-otspunktid peegeldavad päris otspunkte, lisades `/mock/` vahekaustad tee sisse.
+Mock-otspunktid peegeldavad päris otspunkte. Ruuter otsib mock faili lisades tee lõppu `/mock` — nt `GET /v1/users/admin` → `GET/v1/users/admin/mock.yml`. Vite proxy suunab `VITE_USE_MOCK=true` korral kõik päringud mock teedele.
 
 ### Auth
 | Meetod | Tee |
 |--------|-----|
-| GET | `/auth/jwt/mock/userinfo` |
-| POST | `/auth/mock/logout` |
+| GET | `/auth/jwt/userinfo/mock` |
+| POST | `/auth/logout/mock` |
 
 ### Klassifikaatorid
 | Meetod | Tee |
 |--------|-----|
-| POST | `/v1/classifiers/read/mock/list` |
-| POST | `/v1/classifiers/read/mock/get` |
-| POST | `/v1/classifiers/read/mock/get-value` |
-| POST | `/v1/classifiers/read/mock/get-values` |
-| POST | `/v1/classifiers/edit/mock/update` |
-| POST | `/v1/classifiers/values/mock/insert` |
-| POST | `/v1/classifiers/values/mock/update` |
+| GET | `/v1/classifiers/mock` |
+| GET | `/v1/classifiers/classifier/mock` |
+| PUT | `/v1/classifiers/update/mock` |
+| GET | `/v1/classifiers/values/mock` |
+| POST | `/v1/classifiers/value/mock` |
+| GET | `/v1/classifiers/value/mock` |
+| PUT | `/v1/classifiers/value/mock` |
 
-### Kasutajagrupid — admin
+### Kasutajagrupid
 | Meetod | Tee |
 |--------|-----|
-| POST | `/v1/user-groups/admin/mock/list` |
-| POST | `/v1/user-groups/admin/read/mock/get` |
-| POST | `/v1/user-groups/admin/read/mock/get-organisations` |
-| POST | `/v1/user-groups/admin/read/mock/get-permissions` |
-| POST | `/v1/user-groups/admin/read/mock/get-users` |
+| GET | `/v1/user-groups/admin/mock` |
+| GET | `/v1/user-groups/local/mock` |
+| POST | `/v1/user-groups/mock` |
+| GET | `/v1/user-groups/admin/user-group/mock` |
+| GET | `/v1/user-groups/local/user-group/mock` |
+| PUT | `/v1/user-groups/update/mock` |
+| GET | `/v1/user-groups/admin/organisations/mock` |
+| GET | `/v1/user-groups/local/organisations/mock` |
+| PUT | `/v1/user-groups/organisations/mock` |
+| GET | `/v1/user-groups/admin/permissions/mock` |
+| GET | `/v1/user-groups/local/permissions/mock` |
+| PUT | `/v1/user-groups/permissions/mock` |
+| GET | `/v1/user-groups/admin/users/mock` |
+| GET | `/v1/user-groups/local/users/mock` |
+| PUT | `/v1/user-groups/users/mock` |
+| DELETE | `/v1/user-groups/user/mock` |
+| POST | `/v1/user-groups/available-users/mock` |
 
-### Kasutajagrupid — local
+### Kasutajad
 | Meetod | Tee |
 |--------|-----|
-| POST | `/v1/user-groups/local/mock/list` |
-| POST | `/v1/user-groups/local/read/mock/get` |
-| POST | `/v1/user-groups/local/read/mock/get-organisations` |
-| POST | `/v1/user-groups/local/read/mock/get-permissions` |
-| POST | `/v1/user-groups/local/read/mock/get-users` |
-
-### Kasutajagrupid — write & search
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/user-groups/write/mock/insert` |
-| POST | `/v1/user-groups/write/mock/update-name` |
-| POST | `/v1/user-groups/write/mock/set-organisations` |
-| POST | `/v1/user-groups/write/mock/set-permissions` |
-| POST | `/v1/user-groups/write/mock/add-users` |
-| POST | `/v1/user-groups/write/mock/delete-user` |
-| POST | `/v1/user-groups/search/mock/get-available-users` |
-
-### Kasutajad — admin
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/users/admin/mock/list` |
-| POST | `/v1/users/admin/read/mock/get` |
-| POST | `/v1/users/admin/read/mock/get-groups` |
-| POST | `/v1/users/admin/read/mock/check-personal-code-exists` |
-| POST | `/v1/users/admin/edit/mock/insert` |
-| POST | `/v1/users/admin/edit/mock/update` |
-| POST | `/v1/users/admin/edit/mock/set-groups` |
-
-### Kasutajad — local
-| Meetod | Tee |
-|--------|-----|
-| POST | `/v1/users/local/mock/list` |
-| POST | `/v1/users/local/read/mock/get` |
-| POST | `/v1/users/local/read/mock/get-groups` |
-| POST | `/v1/users/local/read/mock/check-personal-code-exists` |
-| POST | `/v1/users/local/edit/mock/insert` |
-| POST | `/v1/users/local/edit/mock/update` |
-| POST | `/v1/users/local/edit/mock/set-groups` |
+| GET | `/v1/users/admin/mock` |
+| GET | `/v1/users/local/mock` |
+| POST | `/v1/users/admin/mock` |
+| POST | `/v1/users/local/mock` |
+| GET | `/v1/users/admin/user/mock` |
+| GET | `/v1/users/local/user/mock` |
+| PUT | `/v1/users/admin/update/mock` |
+| PUT | `/v1/users/local/update/mock` |
+| GET | `/v1/users/admin/groups/mock` |
+| GET | `/v1/users/local/groups/mock` |
+| PUT | `/v1/users/admin/groups/mock` |
+| PUT | `/v1/users/local/groups/mock` |
+| POST | `/v1/users/admin/check-personal-code/mock` |
+| POST | `/v1/users/local/check-personal-code/mock` |
 
 ### Organisatsioonid & õigused
 | Meetod | Tee |
 |--------|-----|
-| POST | `/v1/organisations/mock/list` |
-| POST | `/v1/permissions/mock/list` |
+| GET | `/v1/organisations/mock` |
+| GET | `/v1/permissions/mock` |
 
 ### Audit logid
 | Meetod | Tee |
 |--------|-----|
-| POST | `/v1/logs/read/mock/list` |
-| POST | `/v1/logs/read/mock/list-csv` |
-| POST | `/v1/logs/read/mock/get` |
-
-### Välisriigi rikkumise andmevorm
-| Meetod | Tee |
-|--------|-----|
-| POST | `/api/v1/control-forms/foreign-violation/mock/save` |
-| POST | `/api/v1/control-forms/foreign-violation/mock/get` |
-| POST | `/api/v1/control-forms/files/mock/upload` |
-| POST | `/api/v1/control-forms/files/mock/list` |
-| POST | `/api/v1/control-forms/files/mock/download` |
-| GET | `/api/v1/classifiers/mock/violation-types` |
-| GET | `/api/v1/classifiers/mock/countries` |
+| GET | `/v1/logs/mock` |
+| GET | `/v1/logs/log/mock` |
+| GET | `/v1/logs/export/mock` |
