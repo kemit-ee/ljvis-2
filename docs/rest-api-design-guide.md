@@ -178,6 +178,95 @@ PUT /v1/users/admin/update
 - Õigused (`permissions`) on stringikoodid (nt `user.list.admin`, `classifier.read`) — kasutajal peavad olema vajalikud koodid JWT-s.
 - `scope` path segment (`admin` | `local`) määrab, milline DSL fail käivitub ja millised andmed on nähtavad.
 
+### 6.1 .guard failid
+
+Ruuter täidab iga päringu eel automaatselt `.guard` faili, kui see asub vastava meetodi kausta `v1/` tasemel. LJVIS-is on guard fail kõikides meetodikataloogides:
+
+```
+DSL/Ruuter/ljvis/
+  GET/v1/.guard
+  POST/v1/.guard
+  PUT/v1/.guard
+  DELETE/v1/.guard
+```
+
+`.guard` fail käivitub **enne** tegelikku endpoint-faili ja tagastab kas `200 success` (lubab edasi) või `403 unauthorized` (katkestab).
+
+**Guard faili loogika sammhaaval:**
+
+| Samm | Toiming | Tulemus |
+|------|---------|---------|
+| `check_for_cookie` | Kontrollib, kas `cookie` päis on olemas | Puudub → `guard_fail` |
+| `authenticate` | Kutsub TIM-i `check-user-authority` template'i JWT küpsisega | Tagastab `authority_result` |
+| `check_authority_result` | Kontrollib, et tulemus ei ole `"false"` | Vale → `guard_fail` |
+| `guard_success` | Tagastab `200 "success"` | Ruuter jätkab endpoint-failiga |
+| `guard_fail` | Tagastab `403 "unauthorized"` | Päring katkeb, vastust ei saadeta |
+
+**Guard faili struktuur** (`GET/v1/.guard`):
+
+```yaml
+check_for_cookie:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: guard_fail
+  next: authenticate
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority_result
+
+check_authority_result:
+  switch:
+    - condition: ${authority_result !== "false"}
+      next: guard_success
+  next: guard_fail
+
+guard_success:
+  return: "success"
+  status: 200
+  next: end
+
+guard_fail:
+  return: "unauthorized"
+  status: 403
+  next: end
+```
+
+### 6.2 Guard andmevoog
+
+```mermaid
+sequenceDiagram
+    participant B as Brauser
+    participant R as Ruuter
+    participant G as .guard
+    participant T as TIM (JWT)
+    participant E as Endpoint YML
+
+    B->>R: GET /v1/users/admin/user?id=123
+    R->>G: käivita GET/v1/.guard
+    G->>G: check_for_cookie
+    alt Cookie puudub
+        G-->>R: 403 unauthorized
+        R-->>B: HTTP 403
+    else Cookie olemas
+        G->>T: check-user-authority (cookie)
+        alt TIM tagastab "false"
+            T-->>G: "false"
+            G-->>R: 403 unauthorized
+            R-->>B: HTTP 403
+        else TIM kinnitab kasutaja
+            T-->>G: { personalCode, firstName, ... }
+            G-->>R: 200 success
+            R->>E: käivita GET/v1/users/admin/user.yml
+            E-->>R: vastus
+            R-->>B: HTTP 200 { user }
+        end
+    end
+```
+
 ---
 
 ## 7. Mock otspunktid
