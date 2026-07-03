@@ -17,7 +17,7 @@ import { DatePicker, TimePicker, Accordion, AccordionItem, AccordionItemHeader, 
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, STRUCTURE_UNIT_OPTIONS } from '../../../../constants/constants';
+import { BREAKPOINTS, STRUCTURE_UNIT_OPTIONS, EU_VIOLATION_GROUPS } from '../../../../constants/constants';
 import dayjs from 'dayjs';
 import styles from './ForeignViolationFormPage.module.css';
 
@@ -32,33 +32,14 @@ export function ForeignViolationFormPage() {
     navigate(`/users/${id}`, { state: { justCreated: true } });
   };
 
-  const euViolationGroups = [
-    {
-      id: 'msi',
-      label: 'Kõige raskemad rikkumised (MSI)',
-      items: [
-        { value: 'MSI101', label: 'MSI101 - Sõiduaeg ületatud >50%' },
-        { value: 'MSI102', label: 'MSI102 - Puhkeaeg lühendatud >50%' },
-        { value: 'MSI103', label: 'MSI103 - Sõidumeeriku puudumine' },
-      ],
-    },
-    {
-      id: 'vsi',
-      label: 'Väga rasked rikkumised (VSI)',
-      items: [
-        { value: 'VSI800', label: 'VSI800 - Sõiduaeg ületatud 25-50%' },
-        { value: 'VSI801', label: 'VSI801 - Puhkeaeg lühendatud 25-50%' },
-      ],
-    },
-    {
-      id: 'si',
-      label: 'Rasked rikkumised (SI)',
-      items: [
-        { value: 'SI901', label: 'SI901 - Sõiduaeg ületatud <25%' },
-        { value: 'SI902', label: 'SI902 - Puhkeaeg lühendatud <25%' },
-      ],
-    },
-  ];
+  const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
+    ...group,
+    label: t(group.labelKey),
+    items: group.items.map((item) => ({
+      ...item,
+      label: t(item.labelKey),
+    })),
+  }));
 
   const recommendedMeasureOptions = [
     { value: 'PUUDUVAD', labelKey: 'forms.foreign_violation.recommendedMeasureNone' },
@@ -658,13 +639,13 @@ export function ForeignViolationFormPage() {
                               name={`euViolations_${group.id}`}
                               inputType="checkbox"
                               label=""
-                              value={[]}
+                              value={JSON.parse(formik.values.violations || '[]')}
                               items={group.items.map((item) => ({
                                 id: `euViolation_${item.value}`,
                                 label: item.label,
                                 value: item.value,
                               }))}
-                              onChange={() => {}}
+                              onChange={(val) => formik.setFieldValue('violations', JSON.stringify(val))}
                             />
                           </div>
                         ))}
