@@ -191,5 +191,6 @@ GET /v1/users/admin/user?id=1  →  GET/v1/users/admin/user/mock.yml
 - `docs/openapi.yaml` — täielik API leping
 - `docs/api-endpoints.md` — kõigi otspunktide loend tabelina
 - `docs/audit-logging.md` — audit sündmuste logimise reeglid
+- `docs/errors.json` — kõigi veatüüpide masinarloetav kataloog (kood, sõnum, stsenaariumid, otspunktid)
 - `docs/db_errorhandling_rules.md` — andmebaasi veakäsitluse reeglid
 - `DSL/Ruuter/ljvis/` — Ruuter DSL failid (tegelik implementatsioon)
