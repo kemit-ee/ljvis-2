@@ -887,12 +887,15 @@ export function ForeignViolationFormPage() {
                     name="file-dropzone"
                     label={t('forms.foreign_violation.filesBoxInfo')}
                     onChange={(files) => formik.setFieldValue('files', JSON.stringify(files))}
-                    maxSize={10 * 1024 * 1024}
-                    helper={{
-                      text: t('forms.foreign_violation.filesHelper')
-                    }}
+                    maxSize={10}
+                    helper={
+                      formik.errors.files
+                        ? { text: formik.errors.files, type: 'error' as const }
+                        : { text: t('forms.foreign_violation.filesHelper') }
+                    }
                     multiple
                     accept=".jpg,.jpeg,.png,.gif,.bmp,.tif,.tiff,.pdf,.doc,.docx,.xls,.xlsx,.odt,.rtf,.msg,.eml,.txt,.zip,.ddd"
+                    validateIndividually
                   />
                 </Card.Content>
               </Card>

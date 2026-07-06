@@ -62,7 +62,11 @@ export function useForeignViolationForm(
     inspectorLastName: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorOrganisationId: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorUnit: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required'))
+    inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    files: Yup.string().test('no-invalid-files', t('forms.foreign_violation.filesHelper'), (value) => {
+      const filesArray = JSON.parse(value || '[]');
+      return !filesArray.some((f: any) => f.isValid === false);
+    }),
   });
 
   const formik = useFormik({
