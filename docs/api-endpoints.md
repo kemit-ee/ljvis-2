@@ -2,7 +2,7 @@
 
 Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioonis.
 
-> **Ruuter DSL konventsioon:** `id` ja muud ressursiidentifikaatorid edastatakse query paramitena (`?id=...`), mitte URL path segmentidena. Path segmendid tähistavad ainult staatilisi ressursikollektsioone või toiminguid.
+> **Ruuter DSL konventsioon:** `id` ja muud ressursiidentifikaatorid edastatakse query paramitena (`?q=...`), mitte URL path segmentidena. Path segmendid tähistavad ainult staatilisi ressursikollektsioone või toiminguid. `?q=` on ühtne parameeter nii ID-otsingul (üksik ressurss) kui ka teksti-otsingul (nimekiri).
 
 ## Päris otspunktid
 
@@ -27,27 +27,27 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 ### Kasutajagrupid
 | Meetod | Tee | Query paramid | Märkus |
 |--------|-----|---------------|--------|
-| GET | `/v1/user-groups/{scope}` | `search`, `page`, `pageSize`, `sorting` | nimekiri (`scope`=admin\|local) |
+| GET | `/v1/user-groups/{scope}` | `q`, `logAudit` | grupi detail (`scope`=admin\|local) |
+| GET | `/v1/user-groups/{scope}/search` | `q`, `page`, `pageSize`, `sorting` | nimekiri/otsing |
 | POST | `/v1/user-groups` | — | loo uus grupp |
-| GET | `/v1/user-groups/{scope}/user-group` | `id`, `logAudit` | grupi detail |
 | PUT | `/v1/user-groups/update` | — | uuenda nime (id body-s) |
-| GET | `/v1/user-groups/{scope}/organisations` | `id` | grupi asutused |
+| GET | `/v1/user-groups/{scope}/organisations` | `q` | grupi asutused |
 | PUT | `/v1/user-groups/organisations` | — | sea grupi asutused (id body-s) |
-| GET | `/v1/user-groups/{scope}/permissions` | `id` | grupi õigused |
+| GET | `/v1/user-groups/{scope}/permissions` | `q` | grupi õigused |
 | PUT | `/v1/user-groups/permissions` | — | sea grupi õigused (id body-s) |
-| GET | `/v1/user-groups/{scope}/users` | `id`, `page`, `pageSize`, `sorting`, `search` | grupi liikmed |
+| GET | `/v1/user-groups/{scope}/users` | `q`, `page`, `pageSize`, `sorting`, `search` | grupi liikmed |
 | PUT | `/v1/user-groups/users` | — | lisa kasutajaid gruppi (id body-s) |
-| DELETE | `/v1/user-groups/user` | `id`, `userId` | eemalda kasutaja grupist |
+| DELETE | `/v1/user-groups/user` | `q`, `userId` | eemalda kasutaja grupist |
 | POST | `/v1/user-groups/available-users` | — | otsi lisatavaid kasutajaid |
 
 ### Kasutajad
 | Meetod | Tee | Query paramid | Märkus |
 |--------|-----|---------------|--------|
-| GET | `/v1/users/{scope}` | `search`, `page`, `pageSize`, `sorting` | nimekiri (`scope`=admin\|local) |
+| GET | `/v1/users/{scope}` | `q` | kasutaja detail (`scope`=admin\|local) |
+| GET | `/v1/users/{scope}/search` | `q`, `page`, `pageSize`, `sorting` | nimekiri/otsing |
 | POST | `/v1/users/{scope}` | — | loo uus kasutaja |
-| GET | `/v1/users/{scope}/user` | `id` | kasutaja detail |
 | PUT | `/v1/users/{scope}/update` | — | uuenda andmeid (id body-s) |
-| GET | `/v1/users/{scope}/groups` | `userId` | kasutaja grupiliikmelisused |
+| GET | `/v1/users/{scope}/groups` | `q` | kasutaja grupiliikmelisused |
 | PUT | `/v1/users/{scope}/groups` | — | salvesta grupiliikmelisused (userId body-s) |
 | POST | `/v1/users/{scope}/check-personal-code` | — | kontrolli isikukoodi olemasolu |
 
@@ -104,9 +104,9 @@ Mock-otspunktid peegeldavad päris otspunkte. Ruuter otsib mock faili lisades te
 |--------|-----|
 | GET | `/v1/user-groups/admin/mock` |
 | GET | `/v1/user-groups/local/mock` |
+| GET | `/v1/user-groups/admin/search/mock` |
+| GET | `/v1/user-groups/local/search/mock` |
 | POST | `/v1/user-groups/mock` |
-| GET | `/v1/user-groups/admin/user-group/mock` |
-| GET | `/v1/user-groups/local/user-group/mock` |
 | PUT | `/v1/user-groups/update/mock` |
 | GET | `/v1/user-groups/admin/organisations/mock` |
 | GET | `/v1/user-groups/local/organisations/mock` |
@@ -125,10 +125,10 @@ Mock-otspunktid peegeldavad päris otspunkte. Ruuter otsib mock faili lisades te
 |--------|-----|
 | GET | `/v1/users/admin/mock` |
 | GET | `/v1/users/local/mock` |
+| GET | `/v1/users/admin/search/mock` |
+| GET | `/v1/users/local/search/mock` |
 | POST | `/v1/users/admin/mock` |
 | POST | `/v1/users/local/mock` |
-| GET | `/v1/users/admin/user/mock` |
-| GET | `/v1/users/local/user/mock` |
 | PUT | `/v1/users/admin/update/mock` |
 | PUT | `/v1/users/local/update/mock` |
 | GET | `/v1/users/admin/groups/mock` |

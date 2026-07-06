@@ -449,40 +449,36 @@ paths:
   /v1/user-groups/{scope}:
     get:
       tags: [user-groups-admin]
-      operationId: getUserGroups
-      summary: List user groups (admin or local scope).
+      operationId: getUserGroup
+      summary: Get user group detail (admin or local scope).
       description: |
-        Paginated user-group list with search across group name and linked
-        organisation names. scope=admin returns all organisations; scope=local
-        returns only groups linked to the caller's organisation.
-        Requires user_group.list.admin OR user_group.list.local.
+        Returns a single user group with its active organisations, active
+        permissions, and current member count. Requires
+        user_group.read.admin OR user_group.read.local.
       parameters:
         - in: path
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
         - in: query
-          name: search
+          name: q
+          required: true
           schema: { type: string }
+          description: User group ID.
         - in: query
-          name: page
-          schema: { type: integer }
-        - in: query
-          name: pageSize
-          schema: { type: integer }
-        - in: query
-          name: sorting
-          schema: { type: string }
+          name: logAudit
+          schema: { type: boolean }
       responses:
         '200':
-          description: User group page.
+          description: User group detail.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminUserGroupsListResponse'
+                $ref: '#/components/schemas/AdminUserGroupsGetResponse'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
     post:
@@ -523,38 +519,44 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/{scope}/user-group:
+  /v1/user-groups/{scope}/search:
     get:
       tags: [user-groups-admin]
-      operationId: getUserGroup
-      summary: Get user group detail.
+      operationId: getUserGroups
+      summary: Search/list user groups (admin or local scope).
       description: |
-        Returns a single user group with its active organisations, active
-        permissions, and current member count. Requires
-        user_group.read.admin OR user_group.read.local.
+        Paginated user-group list with search across group name and linked
+        organisation names. scope=admin returns all organisations; scope=local
+        returns only groups linked to the caller's organisation.
+        Requires user_group.list.admin OR user_group.list.local.
       parameters:
         - in: path
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
         - in: query
-          name: id
-          required: true
+          name: q
           schema: { type: string }
+          description: Search term.
         - in: query
-          name: logAudit
-          schema: { type: boolean }
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
+          schema: { type: string }
       responses:
         '200':
-          description: User group detail.
+          description: User group page.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminUserGroupsGetResponse'
+                $ref: '#/components/schemas/AdminUserGroupsListResponse'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
   /v1/user-groups/update:
@@ -608,9 +610,10 @@ paths:
           required: true
           schema: { type: string, enum: [admin, local] }
         - in: query
-          name: id
+          name: q
           required: true
           schema: { type: string }
+          description: User group ID.
       responses:
         '200':
           description: Linked organisations.
@@ -672,9 +675,10 @@ paths:
           required: true
           schema: { type: string, enum: [admin, local] }
         - in: query
-          name: id
+          name: q
           required: true
           schema: { type: string }
+          description: User group ID.
       responses:
         '200':
           description: Linked permissions.
@@ -740,9 +744,10 @@ paths:
           required: true
           schema: { type: string, enum: [admin, local] }
         - in: query
-          name: id
+          name: q
           required: true
           schema: { type: string }
+          description: User group ID.
         - in: query
           name: page
           schema: { type: integer }
@@ -814,13 +819,15 @@ paths:
         Requires user_group.remove_user (admin-only).
       parameters:
         - in: query
-          name: id
+          name: q
           required: true
           schema: { type: string }
+          description: User group ID.
         - in: query
           name: userId
           required: true
           schema: { type: string }
+          description: User UUID to remove.
       responses:
         '200':
           description: Membership removed.
@@ -871,39 +878,33 @@ paths:
   /v1/users/{scope}:
     get:
       tags: [users-admin]
-      operationId: getUsers
-      summary: List users (admin or local scope).
+      operationId: getUser
+      summary: Get user detail (admin or local scope).
       description: |
-        Paginated user list with free-text search over first name and last
-        name. scope=admin covers all organisations; scope=local is own org.
-        Requires user.list.admin OR user.list.local.
+        Returns a single user with personal data, organisation, structural
+        unit, job title, contact info, access period, current state, and
+        active group memberships. Requires user.read.admin OR user.read.local.
       parameters:
         - in: path
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
         - in: query
-          name: search
+          name: q
+          required: true
           schema: { type: string }
-        - in: query
-          name: page
-          schema: { type: integer }
-        - in: query
-          name: pageSize
-          schema: { type: integer }
-        - in: query
-          name: sorting
-          schema: { type: string }
+          description: User UUID.
       responses:
         '200':
-          description: User page.
+          description: User detail.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminUsersListResponse'
+                $ref: '#/components/schemas/AdminUsersGetResponse'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
     post:
@@ -951,35 +952,43 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/users/{scope}/user:
+  /v1/users/{scope}/search:
     get:
       tags: [users-admin]
-      operationId: getUser
-      summary: Get user detail.
+      operationId: getUsers
+      summary: Search/list users (admin or local scope).
       description: |
-        Returns a single user with personal data, organisation, structural
-        unit, job title, contact info, access period, current state, and
-        active group memberships. Requires user.read.admin OR user.read.local.
+        Paginated user list with free-text search over first name and last
+        name. scope=admin covers all organisations; scope=local is own org.
+        Requires user.list.admin OR user.list.local.
       parameters:
         - in: path
           name: scope
           required: true
           schema: { type: string, enum: [admin, local] }
         - in: query
-          name: id
-          required: true
+          name: q
+          schema: { type: string }
+          description: Search term.
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
           schema: { type: string }
       responses:
         '200':
-          description: User detail.
+          description: User page.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminUsersGetResponse'
+                $ref: '#/components/schemas/AdminUsersListResponse'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
   /v1/users/{scope}/update:
@@ -1034,9 +1043,10 @@ paths:
           required: true
           schema: { type: string, enum: [admin, local] }
         - in: query
-          name: userId
+          name: q
           required: true
           schema: { type: string }
+          description: User UUID.
       responses:
         '200':
           description: Active group memberships.
@@ -1171,9 +1181,10 @@ paths:
       summary: Get a single audit log entry.
       parameters:
         - in: query
-          name: id
+          name: q
           required: true
           schema: { type: string }
+          description: Audit log entry ID.
       responses:
         '200':
           description: Audit log entry detail.
