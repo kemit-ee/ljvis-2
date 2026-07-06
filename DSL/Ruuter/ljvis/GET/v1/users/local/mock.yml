@@ -2,7 +2,7 @@ mock_step:
   call: reflect.mock
   args:
     response:
-      content:
+      items:
         - id: "a0000001-0000-0000-0000-000000000002"
           firstName: "Kairi"
           lastName: "Sepp"
@@ -10,26 +10,15 @@ mock_step:
           organisationId: "b0000001-0000-0000-0000-000000000002"
           organisationName: "Justiitsministeerium"
           email: "kairi.sepp@just.ee"
+          phone: "+372 5000 0002"
           structuralUnitId: null
-          status: "active"
+          structuralUnitName: null
+          jobTitleName: null
           accessStart: "2024-01-01"
           accessEnd: ""
-          userGroups: ["Local Admin Group"]
-        - id: "a0000001-0000-0000-0000-000000000003"
-          firstName: "Mari"
-          lastName: "Tamm"
-          personalCode: "60001017869"
-          organisationId: "b0000001-0000-0000-0000-000000000002"
-          organisationName: "Justiitsministeerium"
-          email: "mari.tamm@just.ee"
-          structuralUnitId: null
           status: "active"
-          accessStart: "2024-03-01"
-          accessEnd: ""
-          userGroups: []
-      total: 2
   result: mock_data
 
 returnSuccess:
-  return: ${mock_data.response.body}
+  return: ${mock_data.response.body.items}
   next: end

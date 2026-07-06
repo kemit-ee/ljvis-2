@@ -8,13 +8,13 @@ declaration:
   namespace: users
   allowlist:
     params:
-      - field: userId
+      - field: q
         type: string
         description: "User UUID"
 
 extractRequestData:
   assign:
-    user_id: "${incoming.params.userId}"
+    user_id: "${incoming.params.q}"
 
 getUserGroups:
   call: http.post

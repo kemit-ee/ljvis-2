@@ -1,28 +1,19 @@
 declaration:
   call: declare
   version: 0.1
-  description: "List all user groups (admin scope — all organisations)"
+  description: "Get a single user group by ID (admin scope — all organisations)"
   method: get
   accepts: json
   returns: json
   namespace: user-groups
   allowlist:
     params:
-      - field: search
+      - field: q
         type: string
-        description: "Search by group name or organisation name"
-      - field: page
-        type: number
-        description: "Page number"
-      - field: pageSize
-        type: number
-        description: "Page size"
-      - field: sorting
-        type: string
-        description: "Sorting"
-      - field: logSearch
+        description: "User group ID"
+      - field: logAudit
         type: boolean
-        description: "Whether to log this as a user-initiated search"
+        description: "Whether to log an audit event (default true)"
 
 get_user_context:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -34,65 +25,79 @@ get_user_context:
 
 extractRequestData:
   assign:
-    search: "${incoming.params.search ?? ''}"
-    page: "${incoming.params.page ?? 1}"
-    page_size: "${incoming.params.pageSize ?? 20}"
-    sorting: "${incoming.params.sorting ?? 'name asc'}"
+    id: "${incoming.params.q}"
+    organisation_id: 0
+    log_audit: ${incoming.params.logAudit !== false}
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    log_search: "${incoming.params.logSearch ?? false}"
-  next: getUserGroups
+  next: getUserGroup
 
-getUserGroups:
+getUserGroup:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/user_group/list_user_groups"
+    url: "[#LJVIS_RESQL]/user_group/get_user_group"
     headers:
       type: json
     body:
-      search: ${search}
-      page: ${page}
-      page_size: ${page_size}
-      sorting: ${sorting}
-      organisation_id: 0
+      id: ${id}
+      organisation_id: ${organisation_id}
   result: res
-  next: mapResponse
 
 mapResponse:
   call: http.post
   args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_user_groups_list"
+    url: "[#LJVIS_DMAPPER_HBS]/map_user_group"
     headers:
       type: json
     body:
       groups: ${res.response.body}
   result: mapped
-  next: setDefaults
+  next: getGroupUsers
 
-setDefaults:
-  assign:
-    result_count: ${mapped.response.body.total}
-  next: checkSearch
+getGroupUsers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_users"
+    headers:
+      type: json
+    body:
+      user_group_id: ${Number(id)}
+      user_organisation_id: 0
+      page: 1
+      page_size: 10000
+      search: ""
+      sorting: ""
+  result: usersRes
+  next: checkLogAudit
 
-checkSearch:
+checkLogAudit:
   switch:
-    - condition: "${log_search == true && search.length >= 3}"
-      next: logSearchEvent
+    - condition: ${log_audit === true}
+      next: buildAuditEvent
   next: returnSuccess
 
-logSearchEvent:
+buildAuditEvent:
+  assign:
+    group_name: "${res.response.body[0].name || ''}"
+    displayed_personal_codes: ${JSON.stringify((usersRes.response.body ?? []).map(u => u.personalCode))}
+    personal_codes_str: "${(usersRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ')}"
+    view_description: "${(usersRes.response.body ?? []).length > 0 ? 'Kasutajagrupi ' + group_name + ' vaatamine, kasutajaid: ' + personal_codes_str : 'Kasutajagrupi ' + group_name + ' vaatamine'}"
+    log_content: "{\"targetGroupId\":${id},\"scope\":\"allOrganisations\",\"organisationId\":null,\"displayedUserPersonalCodes\":${displayed_personal_codes}}"
+  next: logAuditEvent
+
+logAuditEvent:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
       type: json
     body:
-      event_type: "user_group.list.search"
-      event_category: "user_management"
+      event_type: "user_group.view"
+      event_category: "user_group_management"
       actor_name: ${actor_name}
       actor_personal_code: ${actor_personal_code}
-      description: "Otsing '${search}', tulemusi ${result_count}"
-      log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"allOrganisations\",\"organisationId\":null}"
+      description: ${view_description}
+      log_content: ${log_content}
       created_by: ${actor_name}
   result: audit_result
   next: returnSuccess

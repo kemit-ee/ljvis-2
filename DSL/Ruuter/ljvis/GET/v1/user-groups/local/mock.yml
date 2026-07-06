@@ -2,12 +2,16 @@ mock_step:
   call: reflect.mock
   args:
     response:
-      content:
-        - id: "2"
-          name: "Local Admin Group"
-          organisations: ["Justiitsministeerium"]
-          coversAllOrganisations: false
-      total: 1
+      id: "2"
+      name: "Local Admin Group"
+      coversAllOrganisations: false
+      organisations:
+        - id: "b0000001-0000-0000-0000-000000000002"
+          name: "Justiitsministeerium"
+      permissions:
+        - code: "user.list.local"
+          description: "Kasutajate nimekiri (local)"
+      userCount: 1
   result: mock_data
 
 returnSuccess:

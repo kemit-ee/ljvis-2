@@ -2,16 +2,18 @@ mock_step:
   call: reflect.mock
   args:
     response:
-      content:
-        - id: "1"
-          name: "Super Admin Group"
-          organisations: ["Politsei- ja Piirivalveamet", "Justiitsministeerium"]
-          coversAllOrganisations: true
-        - id: "2"
-          name: "Local Admin Group"
-          organisations: ["Justiitsministeerium"]
-          coversAllOrganisations: false
-      total: 2
+      id: "1"
+      name: "Super Admin Group"
+      coversAllOrganisations: true
+      organisations:
+        - id: "b0000001-0000-0000-0000-000000000001"
+          name: "Politsei- ja Piirivalveamet"
+        - id: "b0000001-0000-0000-0000-000000000002"
+          name: "Justiitsministeerium"
+      permissions:
+        - code: "user.list.admin"
+          description: "Kasutajate nimekiri (admin)"
+      userCount: 2
   result: mock_data
 
 returnSuccess:
