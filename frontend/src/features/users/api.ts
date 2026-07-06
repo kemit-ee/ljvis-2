@@ -5,14 +5,16 @@ import type {
 } from '../../hooks/usePaginatedList';
 import type { User, UserListItem, UserGroupAssignment } from './types';
 
-export const listUsers = (scope: 'admin' | 'local', params: ListApiParams) =>
-  get<PagedResponse<UserListItem>>(
-    `/v1/users/${scope}`,
-    params as Record<string, string>,
+export const listUsers = (scope: 'admin' | 'local', params: ListApiParams) => {
+  const { search, ...rest } = params;
+  return get<PagedResponse<UserListItem>>(
+    `/v1/users/${scope}/search`,
+    { ...rest, ...(search !== undefined && { q: search }) } as Record<string, string>,
   );
+};
 
 export const getUser = (scope: 'admin' | 'local', id: string) =>
-  get<User[]>(`/v1/users/${scope}/user`, { id });
+  get<User[]>(`/v1/users/${scope}`, { q: id });
 
 export const insertUser = (
   scope: 'admin' | 'local',
@@ -49,7 +51,7 @@ export const updateUser = (
 ) => put<User[]>(`/v1/users/${scope}/update`, data);
 
 export const getUserGroups = (scope: 'admin' | 'local', userId: string) =>
-  get<UserGroupAssignment[]>(`/v1/users/${scope}/groups`, { userId });
+  get<UserGroupAssignment[]>(`/v1/users/${scope}/groups`, { q: userId });
 
 export const setUserGroups = (
   scope: 'admin' | 'local',

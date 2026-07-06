@@ -13,19 +13,21 @@ import type {
 export const listUserGroups = (
   scope: 'admin' | 'local',
   params?: ListApiParams,
-) =>
-  get<PagedResponse<UserGroup>>(
-    `/v1/user-groups/${scope}`,
-    params as Record<string, string>,
+) => {
+  const { search, ...rest } = params ?? {};
+  return get<PagedResponse<UserGroup>>(
+    `/v1/user-groups/${scope}/search`,
+    { ...rest, ...(search !== undefined && { q: search }) } as Record<string, string>,
   );
+};
 
 export const getUserGroup = (
   scope: 'admin' | 'local',
   id: string,
   logAudit: boolean,
 ) =>
-  get<UserGroup[]>(`/v1/user-groups/${scope}/user-group`, {
-    id,
+  get<UserGroup[]>(`/v1/user-groups/${scope}`, {
+    q: id,
     logAudit: String(logAudit),
   });
 
@@ -33,10 +35,10 @@ export const getUserGroupOrganisations = (
   scope: 'admin' | 'local',
   id: string,
 ) =>
-  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/organisations`, { id });
+  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/organisations`, { q: id });
 
 export const getUserGroupPermissions = (scope: 'admin' | 'local', id: string) =>
-  get<UserGroupPermission[]>(`/v1/user-groups/${scope}/permissions`, { id });
+  get<UserGroupPermission[]>(`/v1/user-groups/${scope}/permissions`, { q: id });
 
 export const getUserGroupUsers = (
   scope: 'admin' | 'local',
@@ -51,7 +53,7 @@ export const getUserGroupUsers = (
   get<UserGroupUser[]>(
     `/v1/user-groups/${scope}/users`,
     {
-      ...(params?.userGroupId !== undefined && { id: String(params.userGroupId) }),
+      ...(params?.userGroupId !== undefined && { q: String(params.userGroupId) }),
       ...(params?.page !== undefined && { page: params.page }),
       ...(params?.pageSize !== undefined && { pageSize: params.pageSize }),
       ...(params?.sorting !== undefined && { sorting: params.sorting }),
