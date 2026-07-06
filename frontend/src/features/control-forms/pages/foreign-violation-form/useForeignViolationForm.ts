@@ -26,6 +26,12 @@ export function useForeignViolationForm(
   const [serialNumber, setSerialNumber] = useState<number>();
   const isEdit = !!form;
 
+  const formNumberString = isEdit && form?.formNumber
+    ? form.formNumber
+    : serialNumber !== undefined
+      ? `vr-${new Date().getFullYear()}-${String(serialNumber).padStart(5, '0')}/1`
+      : '';
+
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
@@ -62,6 +68,7 @@ export function useForeignViolationForm(
     enableReinitialize: true,
     initialValues: {
       id: form?.id ?? '',
+      formNumber: form?.formNumber ?? '',
       reportingCountryCode: form?.reportingCountryCode ?? '',
       reportingAuthority: form?.reportingAuthority ?? '',
       inspectionCountryCode: form?.inspectionCountryCode ?? '',
@@ -167,7 +174,7 @@ export function useForeignViolationForm(
   return {
     formik,
     isEdit,
-    serialNumber,
+    formNumberString,
     countryOptions,
     orgOptions,
     handleOrgChange,

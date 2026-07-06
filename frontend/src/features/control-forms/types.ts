@@ -6,6 +6,7 @@ export interface ControlForm {
 
 export interface ForeignViolationForm {
   id?: string;
+  formNumber: string;
   reportingCountryCode: string;
   reportingAuthority: string;
   inspectionCountryCode?: string;
