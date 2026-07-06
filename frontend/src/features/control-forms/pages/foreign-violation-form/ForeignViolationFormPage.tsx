@@ -42,14 +42,14 @@ export function ForeignViolationFormPage() {
   }));
 
   const recommendedMeasureOptions = [
-    { value: 'PUUDUVAD', labelKey: 'forms.foreign_violation.recommendedMeasureNone' },
+    { value: 'PUUDUVAD', labelKey: 'forms.foreign_violation.recommendedMeasureMissing' },
     { value: 'HOIATUS', labelKey: 'forms.foreign_violation.recommendedMeasureWarning' },
-    { value: 'KOIGI_VOI_OSA_TEGEVUSLOA_ARAKIRJAD_PEATAMINE', labelKey: 'forms.foreign_violation.recommendedMeasureSuspension1' },
-    { value: 'KOIGI_VOI_OSA_TEGEVUSLOA_ARAKIRJAD_KEHTEVUKS', labelKey: 'forms.foreign_violation.recommendedMeasureWithdrawal1' },
-    { value: 'TEGEVUSLOA_ARAKIRJAD_PEATAMINE', labelKey: 'forms.foreign_violation.recommendedMeasureSuspension2' },
-    { value: 'TEGEVUSLOA_KEHTEVUKS', labelKey: 'forms.foreign_violation.recommendedMeasureWithdrawal2' },
-    { value: 'JUHITUNNISTUSE_KEELDUMINE', labelKey: 'forms.foreign_violation.recommendedMeasureRefusal' },
-    { value: 'JUHITUNNISTUSE_KEHTEVUKS', labelKey: 'forms.foreign_violation.recommendedMeasureWithdrawal3' },
+    { value: 'UHENDUSE_TEGEVUSLOA_PEATAMINE', labelKey: 'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseSuspension' },
+    { value: 'UHENDUSE_TEGEVUSLUBA_KEHTETUKS', labelKey: 'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseWithdrawal' },
+    { value: 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE', labelKey: 'forms.foreign_violation.recommendedMeasureActivityLicenseRecordsSuspension' },
+    { value: 'TEGEVUSLUBA_KEHTETUKS', labelKey: 'forms.foreign_violation.recommendedMeasureActivityLicenseWithdrawal' },
+    { value: 'JUHITUNNISTUSEST_KEELDUMINE', labelKey: 'forms.foreign_violation.recommendedMeasureDriverCertificateRefusal' },
+    { value: 'JUHITUNNISTUS_KEHTETUKS', labelKey: 'forms.foreign_violation.recommendedMeasureDriverCertificateWithdrawal' },
     { value: 'MUU', labelKey: 'forms.foreign_violation.recommendedMeasureOther' },
   ];
 
