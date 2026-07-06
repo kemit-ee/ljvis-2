@@ -14,6 +14,7 @@ import { listCountries } from '../../../countries/api';
 import { getSerialNumber } from '../../../control-forms/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
+import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 
 export function useForeignViolationForm(
   form: ForeignViolationForm | undefined,
@@ -117,6 +118,11 @@ export function useForeignViolationForm(
         const trimmedValues = {
           ...values,
           status: 'saved',
+          formNumber: formNumberString,
+          inspectionDate: toIsoDate(values.inspectionDate),
+          inspectionTime: toIsoTime(values.inspectionTime),
+          dataEntryDate: toIsoDate(values.dataEntryDate),
+          vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
         };
         const result = await insertForeignViolationForm(trimmedValues);
         onSaved(result[0]?.id);

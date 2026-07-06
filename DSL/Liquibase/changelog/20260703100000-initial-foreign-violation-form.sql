@@ -2,6 +2,8 @@
 -- changeset ljvis:20260703100000 ignore:true
 CREATE SCHEMA IF NOT EXISTS forms;
 -- 1. foreign_violation_form
+CREATE SEQUENCE forms.seq_foreign_violation_form_key START 1;
+
 CREATE TABLE forms.foreign_violation_form (
     -- ── Identity & lifecycle ────────────────────────────────────────
                                                id                                  BIGSERIAL       NOT NULL,
