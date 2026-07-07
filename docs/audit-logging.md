@@ -37,6 +37,9 @@ All audit events are written to the `audit.audit_event` table via RESQL (`POST [
 | `control_form.foreign_violation.create` | `control_form_management` | **Always** when creating a new foreign violation form (first save) |
 | `control_form.foreign_violation.update` | `control_form_management` | **Only** when at least one field changed (compared to the previous snapshot) |
 | `control_form.foreign_violation.view` | `control_form_management` | **Only** when the viewer differs from the form's creator |
+| `authz.denied` | matching resource | **Always** when `.guard` or an endpoint denies access due to a missing permission (403). `log_content.requiredPermission`, `log_content.endpoint`. |
+| `authz.scope_violation` | matching resource | **Always** when a local-scope user attempts to access a resource in a different organisation. `log_content.attemptedOrganisationId`, `log_content.actorOrganisationId`. |
+| `input.rate_limited` | matching resource | **Always** when a request is rejected due to a rate-limit violation (429). `log_content.limitBucket`, `log_content.retryAfterSeconds`. |
 
 ---
 
