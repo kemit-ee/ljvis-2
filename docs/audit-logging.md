@@ -1,95 +1,95 @@
-# Audit sündmuste logimine
+# Audit event logging
 
-## Ülevaade
+## Overview
 
-Kõik audit sündmused kirjutatakse `audit.audit_event` tabelisse RESQL kaudu (`POST [LJVIS_RESQL]/log/insert_audit_event`). Tabel on **INSERT-only** — kirjeid ei kustutata ega uuendata.
+All audit events are written to the `audit.audit_event` table via RESQL (`POST [LJVIS_RESQL]/log/insert_audit_event`). The table is **INSERT-only** — rows are never deleted or updated.
 
 ---
 
-## Logitavad väljad
+## Logged fields
 
-| Väli | Kirjeldus |
+| Field | Description |
 |---|---|
-| `event_type` | Toimingu tüüp (vt loend allpool) |
-| `event_category` | Valdkond: `user_management`, `user_group_management`, `classifier_management`, `control_form_management` |
-| `actor_name` | Toimingu tegija nimi (hangib JWT-st) |
-| `actor_personal_code` | Toimingu tegija isikukood (hangib JWT-st) |
-| `description` | Inimloetav eestikeelne kirjeldus |
-| `log_content` | JSON-objekt täiendavate andmetega |
-| `created_by` | Sama mis `actor_name` |
+| `event_type` | Action type (see list below) |
+| `event_category` | Domain: `user_management`, `user_group_management`, `classifier_management`, `control_form_management` |
+| `actor_name` | Actor's name (sourced from JWT) |
+| `actor_personal_code_hash` | SHA-256 hash of the actor's personal code, keyed with the audit salt (`sha256(personalCode || audit_salt)`); sourced from JWT. Cleartext personal codes are never stored. |
+| `description` | Human-readable Estonian description |
+| `log_content` | JSON object with additional data |
+| `created_by` | Same as `actor_name` |
 
 ---
 
-## Sündmuse tüübid ja tingimused
+## Event types and conditions
 
-| `event_type` | `event_category` | Millal logitakse |
+| `event_type` | `event_category` | When logged |
 |---|---|---|
-| `user.view` | `user_management` | **Alati** kasutaja detailvaate avamisel |
-| `user.list.view` | `user_management` | **Alati** kasutajate nimekirja vaatamisel |
-| `user.list.search` | `user_management` | **Ainult** kui `search.length >= 3` |
-| `user.create` | `user_management` | **Alati** uue kasutaja loomisel |
-| `user.update` | `user_management` | **Alati** kasutajaandmete muutmisel |
-| `user.set_groups` | `user_management` | **Alati** grupiliikmesuste salvestamisel (ka tühja muudatuse korral) |
-| `user_group.update` | `user_group_management` | **Alati** grupi muutmisel (kasutajad, organisatsioonid, õigused) |
-| `classifier.view` | `classifier_management` | **Alati** klassifikaatori detailvaate avamisel |
-| `classifier.list.search` | `classifier_management` | **Ainult** kui `search.length >= 3` |
-| `classifier_value.update` | `classifier_management` | **Alati** klassifikaatori väärtuse kehtivuse muutmisel |
-| `control_form.foreign_violation.create` | `control_form_management` | **Alati** uue välisriigi rikkumise vormi loomisel (esmakordne salvestus) |
-| `control_form.foreign_violation.update` | `control_form_management` | **Ainult** kui vähemalt üht välja muudeti (eelmise snapshot'iga võrreldes) |
-| `control_form.foreign_violation.view` | `control_form_management` | **Ainult** kui vaataja erineb vormi loojast |
+| `user.view` | `user_management` | **Always** when opening a user's detail view |
+| `user.list.view` | `user_management` | **Always** when viewing the user list |
+| `user.list.search` | `user_management` | **Only** when `search.length >= 3` |
+| `user.create` | `user_management` | **Always** when creating a new user |
+| `user.update` | `user_management` | **Always** when updating user data |
+| `user.set_groups` | `user_management` | **Always** when saving group memberships (even an empty change) |
+| `user_group.update` | `user_group_management` | **Always** when updating a group (users, organisations, permissions) |
+| `classifier.view` | `classifier_management` | **Always** when opening a classifier's detail view |
+| `classifier.list.search` | `classifier_management` | **Only** when `search.length >= 3` |
+| `classifier_value.update` | `classifier_management` | **Always** when changing a classifier value's validity |
+| `control_form.foreign_violation.create` | `control_form_management` | **Always** when creating a new foreign violation form (first save) |
+| `control_form.foreign_violation.update` | `control_form_management` | **Only** when at least one field changed (compared to the previous snapshot) |
+| `control_form.foreign_violation.view` | `control_form_management` | **Only** when the viewer differs from the form's creator |
 
 ---
 
-## Logimise töövoog
+## Logging workflow
 
-Iga Ruuter YML järgib sama malli:
+Every Ruuter YML follows the same template:
 
 ```
-1. get_user_context    → hangib JWT-st kasutajaandmed
-2. Äriloogika          → RESQL päring (INSERT/UPDATE)
-3. buildAuditLog       → kirjelduse ja log_content JSON-i koostamine
-4. logAuditEvent       → INSERT audit.audit_event (RESQL kaudu)
-5. mapResponse         → vastuse teisendus (DMAPPER)
-6. returnSuccess       → vastus kliendile
+1. get_user_context    → sources user data from JWT
+2. Business logic      → RESQL query (INSERT/UPDATE)
+3. buildAuditLog       → composes description and log_content JSON
+4. logAuditEvent       → INSERT audit.audit_event (via RESQL)
+5. mapResponse         → response transform (DMAPPER)
+6. returnSuccess       → response to client
 ```
 
 
 
-> **NB!** Kirjutamisoperatsioonidel logitakse **enne** vastuse tagastamist (samm 4 enne 5).  
-> Lugemisoperatsioonidel (list, view) logitakse **pärast** RESQL vastuse saamist, kasutades vastuses olevaid andmeid (nt isikukoodid, nimed).
+> **NB!** On write operations the event is logged **before** the response is returned (step 4 before 5).
+> On read operations (list, view) the event is logged **after** the RESQL response arrives. Personal codes are hashed with `sha256(personalCode || audit_salt)` in the `buildAuditLog` step before the `insert_audit_event` call — cleartext personal codes never reach the `audit.audit_event` table (see `logging-spec.md` §6 and item 19).
 
 ---
 
-## Tingimuslik logimine
+## Conditional logging
 
-Mõned operatsioonid logitakse ainult teatud tingimusel:
+Some operations are logged only under certain conditions:
 
 ```
-search.length >= 3  →  user.list.search      (kasutajate otsing)
-search.length >= 3  →  classifier.list.search (klassifikaatorite otsing)
+search.length >= 3  →  user.list.search      (user search)
+search.length >= 3  →  classifier.list.search (classifier search)
 ```
 
-Ilma otsinguta nimekirjavaatamine logib `user.list.view`, aga mitte eraldi otsingusündmust.
+Without a search, a list view logs `user.list.view` but no separate search event.
 
 ---
 
-## `log_content` välja struktuur näidete kaupa
+## `log_content` field structure by example
 
 **`user.view`**
 ```json
 {
-  "targetPersonalCode": "60001017727",
-  "targetName": "Kairi Sepp",
+  "targetPersonalCodeHash": "sha256:9f2c4b8e…d1a0",
+  "targetNameInitials": "K.S.",
   "scope": "allOrganisations",
   "organisationId": null
 }
 ```
 
-**`user.update`** (organisatsiooni muutusega)
+**`user.update`** (with organisation change)
 ```json
 {
-  "targetPersonalCode": "60001017727",
-  "targetName": "Kairi Sepp",
+  "targetPersonalCodeHash": "sha256:9f2c4b8e…d1a0",
+  "targetNameInitials": "K.S.",
   "changedFields": ["organisation_id", "email"],
   "previousOrganisationId": 1,
   "newOrganisationId": 2,
@@ -100,14 +100,14 @@ Ilma otsinguta nimekirjavaatamine logib `user.list.view`, aga mitte eraldi otsin
 **`user.set_groups`**
 ```json
 {
-  "targetPersonalCode": "60001017727",
-  "targetName": "Kairi Sepp",
+  "targetPersonalCodeHash": "sha256:9f2c4b8e…d1a0",
+  "targetNameInitials": "K.S.",
   "addedGroupIds": [3, 5],
   "removedGroupIds": [1]
 }
 ```
 
-**`user_group.update`** (kasutajate lisamine)
+**`user_group.update`** (adding users)
 ```json
 {
   "targetGroupId": 7,
@@ -116,9 +116,9 @@ Ilma otsinguta nimekirjavaatamine logib `user.list.view`, aga mitte eraldi otsin
   "removedOrganisationIds": [],
   "addedPermissionCodes": [],
   "removedPermissionCodes": [],
-  "addedUserPersonalCodes": ["60001017727", "38501220002"],
-  "removedUserPersonalCodes": [],
-  "cascadeRemovedPersonalCodes": []
+  "addedUserPersonalCodeHashes": ["sha256:9f2c4b8e…d1a0", "sha256:71bfa03e…af12"],
+  "removedUserPersonalCodeHashes": [],
+  "cascadeRemovedPersonalCodeHashes": []
 }
 ```
 
@@ -154,13 +154,13 @@ Ilma otsinguta nimekirjavaatamine logib `user.list.view`, aga mitte eraldi otsin
 
 ---
 
-## Andmevoo sequence diagrammid
+## Data flow sequence diagrams
 
-### Kirjutamisoperatsioon (nt `user.create`, `user.update`)
+### Write operation (e.g. `user.create`, `user.update`)
 
 ```mermaid
 sequenceDiagram
-    participant K as Klient
+    participant K as Client
     participant R as Ruuter
     participant T as TIM (JWT)
     participant DB as RESQL / DB
@@ -171,16 +171,16 @@ sequenceDiagram
     T-->>R: auth_user {firstname, lastname, personalcode}
     R->>R: extractRequestData
     R->>R: validate-user-fields (template)
-    alt Valideerimise viga
+    alt Validation error
         R-->>K: HTTP 422 {field_error}
-    else Isikukoodi konflikt
+    else Personal code conflict
         R->>DB: check_personal_code_conflict
         DB-->>R: [{id}]
         R-->>K: HTTP 409 "personal code already exists"
     else OK
         R->>DB: insert_user_account
         DB-->>R: {new user row}
-        R->>R: buildAuditLog — koosta description ja log_content
+        R->>R: buildAuditLog — compose description and log_content
         R->>DB: insert_audit_event {event_type:"user.create", ...}
         DB-->>R: ok
         R->>DM: map_user {users}
@@ -189,11 +189,11 @@ sequenceDiagram
     end
 ```
 
-### Lugemisoperatsioon nimekirjaga (nt `user.list.*`)
+### Read operation with a list (e.g. `user.list.*`)
 
 ```mermaid
 sequenceDiagram
-    participant K as Klient
+    participant K as Client
     participant R as Ruuter
     participant T as TIM (JWT)
     participant DB as RESQL / DB
@@ -207,22 +207,22 @@ sequenceDiagram
     DB-->>R: [{user rows}]
     R->>DM: map_users_list {users}
     DM-->>R: {content:[], total:N}
-    R->>DM: map_personal_codes {users}
-    DM-->>R: "60001..., 38501..."
+    R->>DM: map_personal_code_hashes {users}
+    DM-->>R: ["sha256:9f2c...", "sha256:71bf..."]
     alt search.length >= 3
         R->>DB: insert_audit_event {event_type:"user.list.search", searchTerm, resultCount}
         DB-->>R: ok
     end
-    R->>DB: insert_audit_event {event_type:"user.list.view", page, resultCount, displayedPersonalCodes}
+    R->>DB: insert_audit_event {event_type:"user.list.view", page, resultCount, displayedPersonalCodeHashes}
     DB-->>R: ok
     R-->>K: HTTP 200 {content, total}
 ```
 
-### Lugemisoperatsioon detailvaatega (nt `user.view`, `classifier.view`)
+### Read operation with a detail view (e.g. `user.view`, `classifier.view`)
 
 ```mermaid
 sequenceDiagram
-    participant K as Klient
+    participant K as Client
     participant R as Ruuter
     participant T as TIM (JWT)
     participant DB as RESQL / DB
@@ -234,19 +234,19 @@ sequenceDiagram
     R->>R: extractRequestData
     R->>DB: get_user {id, organisation_id:""}
     DB-->>R: [{user row}]
-    R->>R: buildAuditLog — hangib nime ja isikukoodi vastusest
-    R->>DB: insert_audit_event {event_type:"user.view", targetPersonalCode, targetName}
+    R->>R: buildAuditLog — hashes personal code, composes name initials
+    R->>DB: insert_audit_event {event_type:"user.view", targetPersonalCodeHash, targetNameInitials}
     DB-->>R: ok
     R->>DM: map_user {users}
     DM-->>R: {mapped user}
     R-->>K: HTTP 200 {user detail}
 ```
 
-### Grupi kasutajate muutmine (nt `user_group.update`)
+### Updating a group's users (e.g. `user_group.update`)
 
 ```mermaid
 sequenceDiagram
-    participant K as Klient
+    participant K as Client
     participant R as Ruuter
     participant T as TIM (JWT)
     participant DB as RESQL / DB
@@ -255,26 +255,26 @@ sequenceDiagram
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
-    R->>DB: get_user_group {id} — hangib grupi nime
+    R->>DB: get_user_group {id} — fetches the group name
     DB-->>R: [{name:"..."}]
-    alt userIds on tühi
+    alt userIds is empty
         R->>R: buildEmptyAuditEvent
     else
         R->>DB: set_user_group_users {user_group_id, user_ids, status:"active"}
         DB-->>R: ok
-        R->>DB: get_users_by_ids {user_ids} — hangib isikukoodid
+        R->>DB: get_users_by_ids {user_ids} — fetches personal codes (hashed before serialisation)
         DB-->>R: [{personalCode}, ...]
-        R->>R: buildAuditEvent — koosta addedUserPersonalCodes
+        R->>R: buildAuditEvent — hashes and composes addedUserPersonalCodeHashes
     end
-    R->>DB: insert_audit_event {event_type:"user_group.update", addedUserPersonalCodes, ...}
+    R->>DB: insert_audit_event {event_type:"user_group.update", addedUserPersonalCodeHashes, ...}
     DB-->>R: ok
     R-->>K: HTTP 200 "ok"
 ```
 
 ---
 
-## Viited
+## References
 
-- Audit tabeli definitsioon: `DSL/Liquibase/changelog/20260605100000-initial-audit.sql`
-- Audit lugemise otspunktid: `DSL/Ruuter/ljvis/GET/v1/logs/`
-- OpenAPI: `docs/openapi.yaml` — tagid `logs`, `foreign-violation-forms`
+- Audit table definition: `DSL/Liquibase/changelog/20260605100000-initial-audit.sql`
+- Audit read endpoints: `DSL/Ruuter/ljvis/GET/v1/logs/`
+- OpenAPI: `docs/openapi.yaml` — tags `logs`, `foreign-violation-forms`
