@@ -17,7 +17,7 @@ import { DatePicker, TimePicker, Accordion, AccordionItem, AccordionItemHeader, 
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, STRUCTURE_UNIT_OPTIONS, EU_VIOLATION_GROUPS } from '../../../../constants/constants';
+import { BREAKPOINTS, STRUCTURE_UNIT_OPTIONS, EU_VIOLATION_GROUPS, COUNTRIES } from '../../../../constants/constants';
 import dayjs from 'dayjs';
 import styles from './ForeignViolationFormPage.module.css';
 
@@ -40,6 +40,11 @@ export function ForeignViolationFormPage() {
       label: t(item.labelKey),
     })),
   }));
+
+  const countries = COUNTRIES.map((country) => ({
+    ...country,
+    label: t(country.labelKey),
+  })).sort((a, b) => a.label.localeCompare(b.label));
 
   const recommendedMeasureOptions = [
     { value: 'PUUDUVAD', labelKey: 'forms.foreign_violation.recommendedMeasureMissing' },
@@ -66,7 +71,6 @@ export function ForeignViolationFormPage() {
   const {
     formik,
     formNumberString,
-    countryOptions,
     orgOptions,
     handleOrgChange,
     handleStructuralUnitChange,
@@ -101,8 +105,8 @@ export function ForeignViolationFormPage() {
                     <Select
                       id="reportingCountry"
                       label={t('forms.foreign_violation.reportingCountry')}
-                      options={countryOptions}
-                      value={countryOptions.find((o) => o.value === formik.values.reportingCountryCode) ?? null}
+                      options={countries}
+                      value={countries.find((o) => o.value === formik.values.reportingCountryCode) ?? null}
                       onChange={(val) =>
                         formik.setFieldValue(
                           'reportingCountryCode',
@@ -256,8 +260,8 @@ export function ForeignViolationFormPage() {
                     <Select
                       id="inspectionCountry"
                       label={t('forms.foreign_violation.inspectionCountry')}
-                      options={countryOptions}
-                      value={countryOptions.find((o) => o.value === formik.values.inspectionCountryCode) ?? null}
+                      options={countries}
+                      value={countries.find((o) => o.value === formik.values.inspectionCountryCode) ?? null}
                       onChange={(val) =>
                         formik.setFieldValue(
                           'inspectionCountryCode',
@@ -319,8 +323,8 @@ export function ForeignViolationFormPage() {
                     <Select
                       id="companyCountry"
                       label={t('forms.foreign_violation.companyCountry')}
-                      options={countryOptions}
-                      value={countryOptions.find((o) => o.value === formik.values.companyCountryCode) ?? null}
+                      options={countries}
+                      value={countries.find((o) => o.value === formik.values.companyCountryCode) ?? null}
                       onChange={(val) =>
                         formik.setFieldValue(
                           'companyCountryCode',
@@ -442,8 +446,8 @@ export function ForeignViolationFormPage() {
                     <Select
                       id="vehicleCountry"
                       label={t('forms.foreign_violation.vehicleCountry')}
-                      options={countryOptions}
-                      value={countryOptions.find((o) => o.value === formik.values.vehicleCountryCode) ?? null}
+                      options={countries}
+                      value={countries.find((o) => o.value === formik.values.vehicleCountryCode) ?? null}
                       onChange={(val) =>
                         formik.setFieldValue(
                           'vehicleCountryCode',
@@ -694,6 +698,15 @@ export function ForeignViolationFormPage() {
                         onChange={(v) => formik.setFieldValue('recommendedMeasureNotes', v)}
                         className={styles['full-span']}
                         required
+                        {...(formik.touched.recommendedMeasureNotes &&
+                        formik.errors.recommendedMeasureNotes
+                            ? {
+                              helper: {
+                                text: formik.errors.recommendedMeasureNotes,
+                                type: 'error' as const,
+                              },
+                            }
+                            : {})}
                       />
                     </div>
                   )}

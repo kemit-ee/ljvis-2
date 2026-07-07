@@ -8,9 +8,7 @@ import {
   insertForeignViolationForm
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
-import type { Country } from '../../../countries/types';
 import { listOrganisations } from '../../../organisations/api';
-import { listCountries } from '../../../countries/api';
 import { getSerialNumber } from '../../../control-forms/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
@@ -23,7 +21,6 @@ export function useForeignViolationForm(
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
   const [serialNumber, setSerialNumber] = useState<number>();
   const isEdit = !!form;
 
@@ -35,10 +32,6 @@ export function useForeignViolationForm(
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    listCountries().then(setCountries).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -147,11 +140,6 @@ export function useForeignViolationForm(
     value: String(o.id),
   }));
 
-  const countryOptions = countries.map((c) => ({
-    label: c.name,
-    value: c.code,
-  }));
-
   const handleOrgChange = (
     val:
       | { value: string; label: string | React.ReactNode }
@@ -185,7 +173,6 @@ export function useForeignViolationForm(
     formik,
     isEdit,
     formNumberString,
-    countryOptions,
     orgOptions,
     handleOrgChange,
     handleStructuralUnitChange
