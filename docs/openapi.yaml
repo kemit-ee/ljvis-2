@@ -171,7 +171,7 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-  /v1/classifiers/update:
+  /v1/classifiers:
     put:
       tags: [classifiers]
       operationId: putClassifier
@@ -559,7 +559,7 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-  /v1/user-groups/update:
+  /v1/user-groups:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroup
@@ -991,7 +991,7 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-  /v1/users/{scope}/update:
+  /v1/users/{scope}:
     put:
       tags: [users-admin]
       operationId: putUser

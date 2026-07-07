@@ -48,7 +48,7 @@ export const updateUser = (
     accessEnd: string;
     status: string;
   },
-) => put<User[]>(`/v1/users/${scope}/update`, data);
+) => put<User[]>(`/v1/users/${scope}`, data);
 
 export const getUserGroups = (scope: 'admin' | 'local', userId: string) =>
   get<UserGroupAssignment[]>(`/v1/users/${scope}/groups`, { q: userId });

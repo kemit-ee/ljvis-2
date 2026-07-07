@@ -81,7 +81,7 @@ export const insertUserGroup = (data: {
 }) => post<UserGroup[]>('/v1/user-groups', data);
 
 export const updateUserGroupName = (id: string, name: string) =>
-  put<UserGroup[]>('/v1/user-groups/update', { id, name });
+  put<UserGroup[]>('/v1/user-groups', { id, name });
 
 export const setUserGroupOrganisations = (
   id: string,
