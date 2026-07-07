@@ -68,6 +68,7 @@ export function ClassifierDetailPage() {
     setPagination,
     sorting,
     setSorting,
+    totalRows,
   } = useClassifierDetail(id);
 
   const handleEditSaved = () => {
@@ -87,8 +88,6 @@ export function ClassifierDetailPage() {
     }
     return classifierValues;
   }, [classifierValues, showOnlyValid]);
-
-  const filteredTotalRows = filteredClassifierValues.length;
 
   const handleSaveClick = () => {
     formik.submitForm();
@@ -269,7 +268,7 @@ export function ClassifierDetailPage() {
               data={filteredClassifierValues}
               columns={classifierValueColumns}
               isLoading={loading}
-              totalRows={filteredTotalRows}
+              totalRows={totalRows}
               pagination={pagination}
               onPaginationChange={setPagination}
               sorting={sorting}
