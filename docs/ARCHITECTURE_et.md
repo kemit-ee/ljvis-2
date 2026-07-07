@@ -2,7 +2,6 @@
 
 **Versioon:** 0.1  
 **Kuupäev:** 2026-07-07  
-**Staatus:** Ajakohane (`feature/api-structure-rewrite` järgi)
 
 ---
 
@@ -10,13 +9,14 @@
 
 1. [Süsteemi ülevaade](#1-süsteemi-ülevaade)
 2. [Arhitektuuristiil](#2-arhitektuuristiil)
-3. [Komponendid](#3-komponendid)
-4. [Andmevood](#4-andmevood)
-5. [API loogika](#5-api-loogika)
-6. [Autentimine ja autoriseerimine](#6-autentimine-ja-autoriseerimine)
-7. [Audit-logimine](#7-audit-logimine)
-8. [Andmemudel](#8-andmemudel)
-9. [Viited](#9-viited)
+3. [Süsteemi arhitektuuridiagramm](#3-süsteemi-arhitektuuridiagramm)
+4. [Komponendid](#4-komponendid)
+5. [Andmevood](#5-andmevood)
+6. [API loogika](#6-api-loogika)
+7. [Autentimine ja autoriseerimine](#7-autentimine-ja-autoriseerimine)
+8. [Audit-logimine](#8-audit-logimine)
+9. [Andmemudel](#9-andmemudel)
+10. [Viited](#10-viited)
 
 ---
 
@@ -49,9 +49,55 @@ Süsteem töötab Docker Compose põhises dev/test keskkonnas ja on kavandatud A
 
 ---
 
-## 3. Komponendid
+## 3. Süsteemi arhitektuuridiagramm
 
-### 3.1 Frontend
+```mermaid
+graph TD
+    User["Kasutaja (ametnik / admin)"]
+
+    subgraph PublicZone["Avalik tsoon (HTTPS :443)"]
+        Frontend["Frontend\nReact + Vite + Nginx\nport 443"]
+    end
+
+    subgraph AppZone["Rakendustsoon (sisemine võrk)"]
+        Ruuter["Ruuter\nAPI gateway + DSL\nport 8086"]
+        RuuterInternal["Ruuter Internal\nSisemised vood\nport 8089"]
+        RESQL["RESQL\nSQL → REST\nport 8090"]
+        DMapper["DMapper\nAndmete transformatsioon\nport 3005"]
+        TIM["TIM\nAutentimine + sessioonid\nport 8085"]
+    end
+
+    subgraph DataZone["Andmetsoon"]
+        DB[("PostgreSQL\nLJVIS DB\nport 5432")]
+        TIMDB[("PostgreSQL\nTIM DB\nport 5432")]
+        Liquibase["Liquibase\nSkeemimigratsioonid"]
+    end
+
+    subgraph External["Välised teenused"]
+        TARA["TARA / OIDC\n(dev: TARA Mock)"]
+    end
+
+    User -->|HTTPS| Frontend
+    Frontend -->|/api/v1/...| Ruuter
+    Frontend -->|/tim/...| TIM
+
+    Ruuter -->|JWT valideerimine| TIM
+    Ruuter -->|SQL päringud| RESQL
+    Ruuter -->|Transformatsioon| DMapper
+    RuuterInternal -->|SQL päringud| RESQL
+
+    RESQL -->|JDBC| DB
+    Liquibase -->|Migratsioonid| DB
+
+    TIM -->|Sessioon| TIMDB
+    TIM -->|OIDC| TARA
+```
+
+---
+
+## 4. Komponendid
+
+### 4.1 Frontend
 
 - **Tehnoloogia:** React 18, Vite, TypeScript, i18next (et/en)
 - **Asukoht:** `frontend/src/`
@@ -71,7 +117,7 @@ Põhifunktsionaalsused:
 | `features/auth/` | Sisselogimine, sessiooni kontroll, väljalogimine |
 | `features/control-forms/` | Kontrollvormide marsruutimine (LJVIS-133) |
 
-### 3.2 Ruuter (API gateway + äriloogika)
+### 4.2 Ruuter (API gateway + äriloogika)
 
 - **Asukoht:** `DSL/Ruuter/ljvis/`
 - **Meetodid:** `GET/`, `POST/`, `PUT/`, `DELETE/`
@@ -89,26 +135,26 @@ Jagatud alamvoogud (ei ole HTTP endpointid):
 
 Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
 
-### 3.3 RESQL
+### 4.3 RESQL
 
 - **Asukoht:** `DSL/Resql/ljvis/`
 - **Roll:** SQL failid muudetakse automaatselt REST endpointideks
 - **Kutsumisviis:** Ruuter kutsub HTTP POST-iga `[#LJVIS_RESQL]/ressurss/päringunimi`
 - **Andmebaas:** PostgreSQL, JDBC ühendus
 
-### 3.4 DMapper
+### 4.4 DMapper
 
 - **Asukoht:** `DSL/DMapper/`
 - **Roll:** Andmete transformatsioon Handlebars mallide kaudu
 - **Kasutus:** Ruuter kutsub DMapper-it, kui vastuse kuju vajab ümberkujundamist
 
-### 3.5 TIM
+### 4.5 TIM
 
 - **Roll:** Autentimine ja sessioonihaldus
 - **Protokoll:** OIDC (dev-s TARA Mock, prod-s päris TARA)
 - **Suhtlus Ruuteriga:** Ruuter valideerib igal päringul JWT küpsise TIM-i vastu (`check-user-authority` mall)
 
-### 3.6 Liquibase
+### 4.6 Liquibase
 
 - **Asukoht:** `DSL/Liquibase/`
 - **Roll:** Andmebaasi skeemi versioonihaldus ja migratsioonid
@@ -116,9 +162,9 @@ Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
 
 ---
 
-## 4. Andmevood
+## 5. Andmevood
 
-### 4.1 Tüüpiline API päring (autenditud lugemine)
+### 5.1 Tüüpiline API päring (autenditud lugemine)
 
 ```
 Brauser
@@ -129,7 +175,7 @@ Brauser
   → vastus tagasi Ruuteri kaudu Frontendile
 ```
 
-### 4.2 Kirjutamisoperatsioon (nt kasutaja loomine)
+### 5.2 Kirjutamisoperatsioon (nt kasutaja loomine)
 
 ```
 Frontend (POST /v1/users/admin)
@@ -140,7 +186,7 @@ Frontend (POST /v1/users/admin)
   → vastus Frontendile
 ```
 
-### 4.3 Autentimisvoog
+### 5.3 Autentimisvoog
 
 ```
 Brauser → Frontend → TIM (OIDC login)
@@ -149,7 +195,7 @@ Brauser → Frontend → TIM (OIDC login)
   → Frontend salvestab sessiooni
 ```
 
-### 4.4 Andmevoo diagramm
+### 5.4 Andmevoo diagramm
 
 ```mermaid
 sequenceDiagram
@@ -174,9 +220,9 @@ sequenceDiagram
 
 ---
 
-## 5. API loogika
+## 6. API loogika
 
-### 5.1 URL-i konventsioon
+### 6.1 URL-i konventsioon
 
 Ruuter DSL kasutab **staatilisi path segmente** — dünaamilised identifikaatorid edastatakse **query parameetrina**.
 
@@ -192,7 +238,7 @@ Scope (`admin` \| `local`) on **staatiline path segment** — see määrab äril
 
 Lähemalt: [`docs/rest-api-design-guide.md`](rest-api-design-guide.md)
 
-### 5.2 Ressursside kaupa
+### 6.2 Ressursside kaupa
 
 | Ressurss | Lugemine | Nimekiri | Loomine | Muutmine |
 |----------|----------|----------|---------|----------|
@@ -204,7 +250,7 @@ Lähemalt: [`docs/rest-api-design-guide.md`](rest-api-design-guide.md)
 Täielik loetelu: [`docs/api-endpoints.md`](api-endpoints.md)  
 OpenAPI spetsifikatsioon: [`docs/openapi.yaml`](openapi.yaml)
 
-### 5.3 Valideerimise loogika
+### 6.3 Valideerimise loogika
 
 Kõik kasutajaandmete sisestamise ja muutmise päringud läbivad:
 
@@ -224,15 +270,15 @@ Lähemalt: [`docs/db_errorhandling_rules.md`](db_errorhandling_rules.md)
 
 ---
 
-## 6. Autentimine ja autoriseerimine
+## 7. Autentimine ja autoriseerimine
 
-### 6.1 Autentimine
+### 7.1 Autentimine
 
 - Kõik API endpointid on kaitstud `.guard` failidega
 - Guard kontrollib JWT küpsist TIM-i vastu (`check-user-authority` mall)
 - Ebaõnnestunud autentimine → HTTP 403
 
-### 6.2 Autoriseerimine
+### 7.2 Autoriseerimine
 
 - Ressursipõhised õigused koodidega `ressurss.tegevus[.ulatus]`
 - Näited: `user.list.admin`, `user_group.update`, `classifier.edit`
@@ -251,7 +297,7 @@ Täielik maatriks: [`docs/permissions-matrix.md`](permissions-matrix.md)
 
 ---
 
-## 7. Audit-logimine
+## 8. Audit-logimine
 
 Kõik olulised lugemis- ja kirjutamisoperatsioonid logitakse `audit_event` tabelisse.
 
@@ -270,7 +316,7 @@ Lähemalt: [`docs/audit-logging.md`](audit-logging.md)
 
 ---
 
-## 8. Andmemudel
+## 9. Andmemudel
 
 Põhilised tabelid:
 
@@ -292,7 +338,7 @@ Lähemalt: [`docs/data_model.md`](data_model.md)
 
 ---
 
-## 9. Viited
+## 10. Viited
 
 | Dokument | Sisu |
 |----------|------|
