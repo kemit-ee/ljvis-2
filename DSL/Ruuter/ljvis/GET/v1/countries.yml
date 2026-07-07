@@ -1,0 +1,22 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List all countries"
+  method: get
+  accepts: json
+  returns: json
+  namespace: countries
+
+getCountries:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/countries/list_countries"
+    headers:
+      type: json
+    body: {}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
