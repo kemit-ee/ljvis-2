@@ -26,13 +26,13 @@ All audit events are written to the `audit.audit_event` table via RESQL (`POST [
 |---|---|---|
 | `user.view` | `user_management` | **Always** when opening a user's detail view |
 | `user.list.view` | `user_management` | **Always** when viewing the user list |
-| `user.list.search` | `user_management` | **Only** when `search.length >= 3` |
+| `user.list.search` | `user_management` | **Always** when search was used (search != null, any length). Only `searchTermLength` is stored, never the search term content. |
 | `user.create` | `user_management` | **Always** when creating a new user |
 | `user.update` | `user_management` | **Always** when updating user data |
 | `user.set_groups` | `user_management` | **Always** when saving group memberships (even an empty change) |
 | `user_group.update` | `user_group_management` | **Always** when updating a group (users, organisations, permissions) |
 | `classifier.view` | `classifier_management` | **Always** when opening a classifier's detail view |
-| `classifier.list.search` | `classifier_management` | **Only** when `search.length >= 3` |
+| `classifier.list.search` | `classifier_management` | **Always** when search was used (search != null, any length). Only `searchTermLength` is stored, never the search term content. |
 | `classifier_value.update` | `classifier_management` | **Always** when changing a classifier value's validity |
 | `control_form.foreign_violation.create` | `control_form_management` | **Always** when creating a new foreign violation form (first save) |
 | `control_form.foreign_violation.update` | `control_form_management` | **Only** when at least one field changed (compared to the previous snapshot) |
@@ -62,14 +62,18 @@ Every Ruuter YML follows the same template:
 
 ## Conditional logging
 
-Some operations are logged only under certain conditions:
+`*.list.search` events are logged every time search was used, regardless of the
+search term length. The search term content is never stored — only its length
+(`searchTermLength`). See `logging-spec.md` §6 (forbidden data) and §7
+items 3, 13.
 
 ```
-search.length >= 3  →  user.list.search      (user search)
-search.length >= 3  →  classifier.list.search (classifier search)
+search != null  →  user.list.search       {searchTermLength: N}
+search != null  →  classifier.list.search {searchTermLength: N}
 ```
 
-Without a search, a list view logs `user.list.view` but no separate search event.
+Without a search (search == null), list views log only `user.list.view` /
+`classifier.list.view` and no separate search event.
 
 ---
 
@@ -209,8 +213,8 @@ sequenceDiagram
     DM-->>R: {content:[], total:N}
     R->>DM: map_personal_code_hashes {users}
     DM-->>R: ["sha256:9f2c...", "sha256:71bf..."]
-    alt search.length >= 3
-        R->>DB: insert_audit_event {event_type:"user.list.search", searchTerm, resultCount}
+    alt search != null
+        R->>DB: insert_audit_event {event_type:"user.list.search", searchTermLength, resultCount}
         DB-->>R: ok
     end
     R->>DB: insert_audit_event {event_type:"user.list.view", page, resultCount, displayedPersonalCodeHashes}
