@@ -150,6 +150,7 @@ extractRequestData:
     status: "${incoming.body.status}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    created_by: "${auth_user.personalcode}"
   next: insertForm
 
 insertForm:
@@ -202,7 +203,18 @@ insertForm:
       inspectorProfession: ${inspector_profession}
       files: ${files}
       status: ${status}
+      created_by: ${created_by}
   result: insertRes
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-create"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:
