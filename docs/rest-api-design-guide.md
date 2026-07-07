@@ -27,19 +27,19 @@ Projekti teenuste arendamisel kasutatakse **contract-first** lähenemist — enn
 ### 2.1 Üldpõhimõtted
 
 - URI-d on **väiketähelised**, sõnad eraldatakse sidekriipsuga (`kebab-case`): `/user-groups`, `/audit-logs`.
-- URI tähistab **ressursikollektsiooni või toimingut**, mitte HTTP meetodit — `GET /v1/users/admin/user`, mitte `GET /v1/users/admin/get-user`.
+- URI tähistab **ressursikollektsiooni või toimingut**, mitte HTTP meetodit — `GET /v1/users/admin/?q=123`, mitte `GET /v1/users/admin/get-user`.
 - Versioon on URI esimene segment: `/v1/...`
 
 ### 2.2 Staatilised path segmendid vs query paramid
 
-Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaamilised identifikaatorid edastatakse **query param**itena.
+Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaamilised identifikaatorid edastatakse **query paramitena**.
 
 | Tüüp | Näide | Selgitus |
 |------|-------|----------|
 | Staatiline segment | `/v1/users/admin` | `admin` on DSL kausta nimi |
-| Staatiline toiming | `/v1/users/admin/user` | `user.yml` fail DSL-is |
-| Query param (id) | `/v1/users/admin/user?id=123` | dünaamiline väärtus |
-| Query param (filter) | `/v1/users/admin?search=Mari&page=1` | otsing ja leheküljed |
+| Staatiline toiming | `/v1/users/admin/search` | `search.yml` fail DSL-is |
+| Query param (id) | `/v1/users/admin/?q=123` | dünaamiline identifikaator (`?q=` on de facto standard) |
+| Query param (filter) | `/v1/users/admin/search/?q=Mari&page=1` | otsing ja leheküljed eraldi endpoint-is |
 
 **Scope** (`admin` | `local`) on **staatiline path segment** — see kaardistub eraldi DSL failidega, millel on erinev äriloogika ja õigusekontrroll.
 
@@ -49,6 +49,7 @@ Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaa
 |----------|----------|
 | `GET /v1/users/admin/123` | `id` on path segmendina — Ruuter DSL ei suuda seda staatilise failiteena lahendada |
 | `GET /v1/users/admin/get-user` | HTTP meetodi nimetus URI-s — meetod ise ütleb juba `GET` |
+| `GET /v1/users/admin/user?id=123` | Ressursinimi `user` kordab `users` kogumiku nime — kasuta `GET /v1/users/admin/?q=123` |
 | `POST /v1/users/admin/read/get` | CRUD-tegevus lisatasandil — `read/get` on redundantne |
 | `POST /v1/users/admin/edit/insert` | CRUD-verb URI-s — loomine on `POST` meetodi ülesanne, mitte URI osa |
 | `POST /v1/users/admin/list` | Nimekirja lugemine `POST`-iga — nimekirioperatsioonid on `GET` |
@@ -57,11 +58,11 @@ Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaa
 
 | Toiming | Soovituslik URI | Selgitus |
 |---------|-----------------|----------|
-| Nimekirja lugemine | `GET /v1/users/admin?search=Mari&page=0&pageSize=20` | Filtrid query paramitena |
-| Üksiku ressursi lugemine | `GET /v1/users/admin/user?id=123` | `id` query paramina, toiming staatilise segmendina |
+| Nimekirja otsing | `GET /v1/users/admin/search/?q=Mari&page=0&pageSize=20` | Eraldi `search` endpoint, `?q=` filtrina |
+| Üksiku ressursi lugemine | `GET /v1/users/admin/?q=123` | `?q=` on de facto standard ID-paramina, ressursinimi ei kordu |
 | Ressursi loomine | `POST /v1/users/admin` | HTTP meetod tähistab loomist |
 | Ressursi uuendamine | `PUT /v1/users/admin/update` | Toiming staatilise segmendina, `id` request body-s |
-| Seosega ressursi lugemine | `GET /v1/user-groups/admin/users?id=456` | `scope` path segmendina, `id` query paramina |
+| Seosega ressursi lugemine | `GET /v1/user-groups/admin/users/?q=456` | `scope` path segmendina, `?q=` query paramina |
 | Ressursi kustutamine | `DELETE /v1/user-groups/user?id=456&userId=789` | Mitu identifikaatorit query paramitena |
 
 ### 2.5 Andmevoo näidis — kasutaja detailvaate avamine
@@ -75,8 +76,8 @@ sequenceDiagram
     participant Q as RESQL
     participant M as DataMapper
 
-    B->>V: GET /v1/users/admin/user?id=abc-123
-    V->>R: proxy → GET/v1/users/admin/user.yml
+    B->>V: GET /v1/users/admin/?q=abc-123
+    V->>R: proxy → GET/v1/users/admin.yml
     R->>T: check-user-authority (JWT küpsis)
     T-->>R: { personalCode, firstName, lastName, organisationId }
     R->>Q: get_user { id: "abc-123", organisation_id: "" }
@@ -133,22 +134,31 @@ Kõik nimekirja-otspunktid toetavad järgmisi query parameid:
 
 | Param | Tüüp | Kirjeldus |
 |-------|------|-----------|
-| `search` | string | Vabatekstotsing |
+| `q` | string | Vabatekstotsing (`/search/` endpoint) või ressursi ID (üksiku ressursi endpoint) |
 | `page` | integer | Lehekülje number (0-põhine) |
 | `pageSize` | integer | Kirjete arv lehel |
 | `sorting` | string | Sortimisväli ja suund (nt `name asc`) |
 
 ### 4.2 Ressursi päringud id järgi
 
-`id` edastatakse alati **query paramina**:
+`id` edastatakse **`?q=` query paramina** — see on de facto standard lühike identifikaatoriparameeter ja väldib ressursinime kordamist URI-s:
 
 ```
-GET /v1/users/admin/user?id=abc-123
-GET /v1/classifiers/classifier?id=42
-GET /v1/logs/log?id=99
+GET /v1/users/admin/?q=abc-123
+GET /v1/classifiers/classifier/?q=42
+GET /v1/logs/log/?q=99
 ```
 
-### 4.3 Kirjutamisoperatsioonid
+### 4.3 Nimekirja otsing
+
+Otsing toimub eraldi `/search/` endpointis `?q=` paramiga:
+
+```
+GET /v1/users/admin/search/?q=Mari&page=0&pageSize=20
+GET /v1/user-groups/admin/search/?q=Põhja&page=0
+```
+
+### 4.4 Kirjutamisoperatsioonid
 
 `id` (uuendatava ressursi identifikaator) edastatakse **request body-s**:
 
@@ -174,7 +184,7 @@ PUT /v1/users/admin/update
 ## 6. Autentimine ja autoriseerimine
 
 - Kõik otspunktid nõuavad JWT küpsist, mille väljastab TIM pärast TARA autentimist.
-- Ruuter kontrollib iga päringu alguses `check-user-authority` templiga kasutaja olemasolu ja aktiivsust.
+- Ruuter kontrollib iga päringu alguses `check-user-authority` templiga kasutaja olemasolut ja aktiivsust.
 - Õigused (`permissions`) on stringikoodid (nt `user.list.admin`, `classifier.read`) — kasutajal peavad olema vajalikud koodid JWT-s.
 - `scope` path segment (`admin` | `local`) määrab, milline DSL fail käivitub ja millised andmed on nähtavad.
 
@@ -245,7 +255,7 @@ sequenceDiagram
     participant T as TIM (JWT)
     participant E as Endpoint YML
 
-    B->>R: GET /v1/users/admin/user?id=123
+    B->>R: GET /v1/users/admin/?q=123
     R->>G: käivita GET/v1/.guard
     G->>G: check_for_cookie
     alt Cookie puudub
@@ -260,7 +270,7 @@ sequenceDiagram
         else TIM kinnitab kasutaja
             T-->>G: { personalCode, firstName, ... }
             G-->>R: 200 success
-            R->>E: käivita GET/v1/users/admin/user.yml
+            R->>E: käivita GET/v1/users/admin.yml
             E-->>R: vastus
             R-->>B: HTTP 200 { user }
         end
@@ -280,8 +290,8 @@ VITE_USE_MOCK=true
 Ruuter resolveerib mock faili lisades tee lõppu `/mock`:
 
 ```
-GET /v1/users/admin  →  GET/v1/users/admin/mock.yml
-GET /v1/users/admin/user?id=1  →  GET/v1/users/admin/user/mock.yml
+GET /v1/users/admin/search/?q=Mari  →  GET/v1/users/admin/search/mock.yml
+GET /v1/users/admin/?q=1  →  GET/v1/users/admin/mock.yml
 ```
 
 ---
