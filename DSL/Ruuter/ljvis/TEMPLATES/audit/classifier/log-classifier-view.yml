@@ -1,0 +1,36 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: classifier view event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: classifier_id
+        type: string
+      - field: classifier_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "Klassifikaator '${incoming.body.classifier_code}' (ID ${incoming.body.classifier_id}) vaatamine"
+    log_content: "{\"classifierId\":\"${incoming.body.classifier_id}\",\"classifierCode\":\"${incoming.body.classifier_code}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "classifier.view"
+    event_category: "classifier_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

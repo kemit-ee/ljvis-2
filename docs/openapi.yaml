@@ -12,7 +12,7 @@ info:
     object convention with totalCount, page, pageSize.
   contact:
     name: TBD
-    email: tbd@example.ee
+    email: sten.viljus@askend.com
 
 servers:
   - url: https://dev.liiklusvalve.ee
@@ -48,6 +48,8 @@ tags:
     description: Permission catalogue lookups.
   - name: logs
     description: Audit log read operations.
+  - name: foreign-violation-forms
+    description: Välisriigi rikkumise andmevorm — create, read, and file management.
 
 paths:
 
@@ -108,28 +110,93 @@ paths:
 
   # ── Classifiers ────────────────────────────────────────────────────
 
-  /v1/classifiers/values/check-code-exists:
-    post:
-      tags: [classifier-values]
-      operationId: postClassifierValuesCheckCodeExists
-      summary: Check whether a value code exists in a classifier.
+  /v1/classifiers:
+    get:
+      tags: [classifiers]
+      operationId: getClassifiers
+      summary: List classifiers with search and pagination.
       description: |
-        Returns a boolean indicating whether the given code already exists
-        within the specified classifier. Used before value creation for
-        uniqueness validation. Requires classifier_value.edit.
+        Paginated classifier list with search across code and name. Default
+        sort by name in Estonian alphabetical order, case-insensitive.
+        Requires classifier.list.
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
+          schema: { type: string }
+      responses:
+        '200':
+          description: Classifier page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminClassifiersListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/classifiers/{id}:
+    get:
+      tags: [classifiers]
+      operationId: getClassifier
+      summary: Get a single classifier header.
+      description: |
+        Returns one classifier header with id, code, current name, and
+        current description from the latest snapshot. Requires classifier.read.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Classifier header.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifierHeader'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    put:
+      tags: [classifiers]
+      operationId: putClassifier
+      summary: Update classifier name and description.
+      description: |
+        Inserts a new name/description state row for the classifier and
+        rebuilds the latest snapshot. Rejects any request that carries a
+        modified code (immutable). Requires classifier.edit.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminClassifierValuesCheckCodeExistsRequest'
+              $ref: '#/components/schemas/AdminClassifiersUpdateRequest'
       responses:
         '200':
-          description: Existence check result.
+          description: Updated classifier header.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminClassifierValuesCheckCodeExistsResponse'
+                $ref: '#/components/schemas/ClassifierHeader'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
@@ -138,15 +205,61 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/classifiers/values/insert:
+  /v1/classifiers/{id}/values:
+    get:
+      tags: [classifier-values]
+      operationId: getClassifierValues
+      summary: List classifier values with pagination.
+      description: |
+        Paginated value list for a given classifier. The activeOnly flag
+        controls whether ended values are included. Sortable by code, name,
+        validFrom, validUntil. Requires classifier.read.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
+          schema: { type: string }
+        - in: query
+          name: activeOnly
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Classifier value page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminClassifierValuesListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
     post:
       tags: [classifier-values]
-      operationId: postClassifierValuesInsert
+      operationId: postClassifierValues
       summary: Add a new value to a classifier.
       description: |
         Creates a classifier value with code, name, and initial validity
         period. Code must be unique within the classifier (pre-INSERT
         check). Requires classifier_value.edit.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -173,10 +286,36 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/classifiers/values/update:
-    post:
+  /v1/classifiers/{id}/values/{valueId}:
+    get:
       tags: [classifier-values]
-      operationId: postClassifierValuesUpdate
+      operationId: getClassifierValue
+      summary: Get a single classifier value by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: path
+          name: valueId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Classifier value detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifierValueDetail'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    put:
+      tags: [classifier-values]
+      operationId: putClassifierValue
       summary: Update a classifier value's validity period.
       description: |
         Inserts a new validity state row with the provided validFrom and
@@ -184,6 +323,15 @@ paths:
         extending (push validUntil into the future), and re-opening an ended
         value (clear validUntil or set it to a future date). Code and name are
         immutable. Requires classifier_value.edit.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: path
+          name: valueId
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -204,150 +352,33 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/classifiers/read/get-values:
+  /v1/classifiers/{id}/values/check-code:
     post:
       tags: [classifier-values]
-      operationId: postClassifierReadGetValues
-      summary: List classifier values with pagination.
+      operationId: postClassifierValuesCheckCode
+      summary: Check whether a value code exists in a classifier.
       description: |
-        Paginated value list for a given classifier. The activeOnly flag
-        controls whether ended values are included. Sortable by code, name,
-        validFrom, validUntil. Requires classifier.read.
+        Returns a boolean indicating whether the given code already exists
+        within the specified classifier. Used before value creation for
+        uniqueness validation. Requires classifier_value.edit.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminClassifierValuesListRequest'
+              $ref: '#/components/schemas/AdminClassifierValuesCheckCodeExistsRequest'
       responses:
         '200':
-          description: Classifier value page.
+          description: Existence check result.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminClassifierValuesListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/classifiers/read/get:
-    post:
-      tags: [classifiers]
-      operationId: postClassifierReadGet
-      summary: Get a single classifier header.
-      description: |
-        Returns one classifier header with id, code, current name, and
-        current description from the latest snapshot. Accepts classifierId
-        or code (exactly one must be provided). Requires classifier.read.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminClassifiersGetRequest'
-      responses:
-        '200':
-          description: Classifier header.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClassifierHeader'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/classifiers/read/list:
-    post:
-      tags: [classifiers]
-      operationId: postClassifierReadList
-      summary: List classifiers with search and pagination.
-      description: |
-        Paginated classifier list with search across code and name. Default
-        sort by name in Estonian alphabetical order, case-insensitive.
-        Requires classifier.list.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminClassifiersListRequest'
-      responses:
-        '200':
-          description: Classifier page.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminClassifiersListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/classifiers/edit/update:
-    post:
-      tags: [classifiers]
-      operationId: postClassifierEditUpdate
-      summary: Update classifier name and description.
-      description: |
-        Inserts a new name/description state row for the classifier and
-        rebuilds the latest snapshot. Rejects any request that carries a
-        modified code (immutable). Requires classifier.edit.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminClassifiersUpdateRequest'
-      responses:
-        '200':
-          description: Updated classifier header.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ClassifierHeader'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/classifiers/read/get-value:
-    post:
-      tags: [classifiers]
-      operationId: postClassifierReadGetValue
-      summary: Get a single classifier value by ID.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [classifierValueId]
-              properties:
-                classifierValueId:
-                  type: string
-      responses:
-        '200':
-          description: Classifier value detail.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ClassifierValueDetail'
+                $ref: '#/components/schemas/AdminClassifierValuesCheckCodeExistsResponse'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
@@ -356,66 +387,6 @@ paths:
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
   # ── Classifier consumer read surface ──────────────────────────────
-
-  /v1/classifiers/values/current:
-    post:
-      tags: [classifiers]
-      operationId: postClassifiersValuesCurrent
-      summary: Get currently-valid values for a classifier.
-      description: |
-        Returns the set of currently-valid values for a given classifier
-        code. "Currently valid" ≡ isValid = true in classifier_value_latest
-        (valid_from ≤ today AND (valid_until IS NULL OR valid_until > today)).
-        Used by every downstream epic that renders a classifier-backed dropdown.
-        Permission code: proposed (see epic_integration_points.md §7 gap 1).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConsumerValuesCurrentRequest'
-      responses:
-        '200':
-          description: Currently-valid values for the requested classifier.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConsumerValuesCurrentResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/classifiers/values/resolve:
-    post:
-      tags: [classifiers]
-      operationId: postClassifiersValuesResolve
-      summary: Validate a classifier code + value code tuple.
-      description: |
-        Validates that a given classifierCode + valueCode tuple refers to a
-        value that exists (currently valid or historically) within that
-        classifier. Used by write paths in consuming epics to verify incoming
-        codes. Separated from values/current because historical business
-        records may legitimately reference ended values (NFR-DATA-14).
-        Permission code: proposed (see epic_integration_points.md §7 gap 1).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConsumerValuesResolveRequest'
-      responses:
-        '200':
-          description: Resolution result with optional value metadata.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConsumerValuesResolveResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
   /v1/classifiers/catalogue:
     get:
@@ -440,10 +411,10 @@ paths:
 
   # ── Organisations & Permissions ───────────────────────────────────
 
-  /v1/organisations/list:
-    post:
+  /v1/organisations:
+    get:
       tags: [organisations]
-      operationId: postOrganisationsList
+      operationId: getOrganisations
       summary: List all organisations.
       description: |
         Returns the full organisation catalogue, sorted by name in Estonian
@@ -464,15 +435,13 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/permissions/list:
-    post:
+  /v1/permissions:
+    get:
       tags: [permissions]
-      operationId: postPermissionsList
+      operationId: getPermissions
       summary: List all permissions.
       description: |
         Returns the immutable permission catalogue (codes + descriptions)
@@ -494,24 +463,62 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  # ── User Groups — admin ────────────────────────────────────────────
+  # ── User Groups ────────────────────────────────────────────────────
 
-  /v1/user-groups/write/insert:
+  /v1/user-groups/{scope}:
+    get:
+      tags: [user-groups-admin]
+      operationId: getUserGroups
+      summary: List user groups (admin or local scope).
+      description: |
+        Paginated user-group list with search across group name and linked
+        organisation names. scope=admin returns all organisations; scope=local
+        returns only groups linked to the caller's organisation.
+        Requires user_group.list.admin OR user_group.list.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
+          schema: { type: string }
+      responses:
+        '200':
+          description: User group page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsListResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
     post:
-      tags: [user-groups-write]
-      operationId: postUserGroupsWriteInsert
+      tags: [user-groups-admin]
+      operationId: postUserGroups
       summary: Create a new user group.
       description: |
         Creates a user group atomically together with its organisation
-        links and permission links. The response includes a server-computed
-        coversAllOrganisations flag derived at read time from the active
-        user_group_organisation rows; the value is not stored on user_group.
-        Requires user_group.create (admin-only).
+        links and permission links. Requires user_group.create (admin-only).
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
       requestBody:
         required: true
         content:
@@ -528,7 +535,6 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
         '422':
           description: Validation error (empty name, no organisations selected, unknown id, etc.).
@@ -539,22 +545,24 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/admin/read/get:
-    post:
+  /v1/user-groups/{scope}/{id}:
+    get:
       tags: [user-groups-admin]
-      operationId: postUserGroupsAdminReadGet
-      summary: Get user group detail (admin).
+      operationId: getUserGroup
+      summary: Get user group detail.
       description: |
         Returns a single user group with its active organisations, active
-        permissions, and current member count. Local account managers see
-        only groups linked to their own organisation. Requires
+        permissions, and current member count. Requires
         user_group.read.admin OR user_group.read.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUserGroupsGetRequest'
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       responses:
         '200':
           description: User group detail.
@@ -566,55 +574,23 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/admin/list:
-    post:
+    put:
       tags: [user-groups-admin]
-      operationId: postUserGroupsAdminList
-      summary: List user groups — admin scope (all organisations).
-      description: |
-        Paginated user-group list with search across group name and linked
-        organisation names. Local account managers receive only groups linked
-        to their own organisation (scope-filtering uses the
-        user_group_organisation snapshot rows; the coversAllOrganisations
-        flag in each row is computed at read time from those rows and is not
-        stored on user_group). Requires user_group.list.admin OR
-        user_group.list.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUserGroupsListRequest'
-      responses:
-        '200':
-          description: User group page.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUserGroupsListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/write/update-name:
-    post:
-      tags: [user-groups-write]
-      operationId: postUserGroupsWriteUpdateName
+      operationId: putUserGroup
       summary: Update user group name.
       description: |
-        Updates one accordion's worth of fields on an existing user group:
-        name, organisation links, or permission codes. Fields set to null are
-        not modified. Organisation and permission changes use INSERT-only state
-        rows (added rows go active, removed rows get a removed state row).
-        Requires user_group.update (admin-only).
+        Updates the name of an existing user group. Requires user_group.update (admin-only).
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -647,21 +623,56 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/write/set-organisations:
-    post:
-      tags: [user-groups-write]
-      operationId: postUserGroupsWriteSetOrganisations
+  /v1/user-groups/{scope}/{id}/organisations:
+    get:
+      tags: [user-groups-admin]
+      operationId: getUserGroupOrganisations
+      summary: Get organisations linked to a user group.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Linked organisations.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganisationItem'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    put:
+      tags: [user-groups-admin]
+      operationId: putUserGroupOrganisations
       summary: Set organisations on a user group.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [id, organisationIds]
+              required: [organisationIds]
               properties:
-                id:
-                  type: string
                 organisationIds:
                   type: array
                   items:
@@ -681,21 +692,56 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/write/set-permissions:
-    post:
-      tags: [user-groups-write]
-      operationId: postUserGroupsWriteSetPermissions
+  /v1/user-groups/{scope}/{id}/permissions:
+    get:
+      tags: [user-groups-admin]
+      operationId: getUserGroupPermissions
+      summary: Get permissions linked to a user group.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Linked permissions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PermissionItem'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    put:
+      tags: [user-groups-admin]
+      operationId: putUserGroupPermissions
       summary: Set permissions on a user group.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [id, permissionIds]
+              required: [permissionIds]
               properties:
-                id:
-                  type: string
                 permissionIds:
                   type: array
                   items:
@@ -715,77 +761,66 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/admin/read/get-organisations:
-    post:
+  /v1/user-groups/{scope}/{id}/users:
+    get:
       tags: [user-groups-admin]
-      operationId: postUserGroupsAdminReadGetOrganisations
-      summary: Get organisations linked to a user group (admin).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [id]
-              properties:
-                id:
-                  type: string
+      operationId: getUserGroupUsers
+      summary: List users belonging to a user group (paginated).
+      description: |
+        Paginated list of active members of a user group. Local account
+        managers see only members from their own organisation.
+        Requires user_group.list_users.admin OR user_group.list_users.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
+          schema: { type: string }
+        - in: query
+          name: search
+          schema: { type: string }
       responses:
         '200':
-          description: Linked organisations.
+          description: Group member page.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OrganisationItem'
+                $ref: '#/components/schemas/AdminUserGroupsUsersListResponse'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/admin/read/get-permissions:
-    post:
+    put:
       tags: [user-groups-admin]
-      operationId: postUserGroupsAdminReadGetPermissions
-      summary: Get permissions linked to a user group (admin).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [id]
-              properties:
-                id:
-                  type: string
-      responses:
-        '200':
-          description: Linked permissions.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PermissionItem'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/write/add-users:
-    post:
-      tags: [user-groups-write]
-      operationId: postUserGroupsWriteAddUsers
+      operationId: putUserGroupUsers
       summary: Add users to a user group.
       description: |
         Binds one or more users to a user group. Each user must be active,
         belong to an organisation that is actively linked to the group, and
         not already be an active member. Requires user_group.add_user (admin-only).
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -813,52 +848,28 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/admin/read/get-users:
-    post:
+  /v1/user-groups/{scope}/{id}/users/{userId}:
+    delete:
       tags: [user-groups-admin]
-      operationId: postUserGroupsAdminReadGetUsers
-      summary: List users belonging to a user group (admin, paginated).
-      description: |
-        Paginated list of active members of a user group. Local account
-        managers see only members from their own organisation. Sortable by
-        status, firstName, lastName, personalCode, organisationName.
-        Requires user_group.list_users.admin OR user_group.list_users.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUserGroupsUsersListRequest'
-      responses:
-        '200':
-          description: Group member page.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUserGroupsUsersListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/write/delete-user:
-    post:
-      tags: [user-groups-write]
-      operationId: postUserGroupsWriteDeleteUser
+      operationId: deleteUserGroupUser
       summary: Remove a user from a user group.
       description: |
         Marks a user's membership in the given group as removed by inserting
         a state row with status=removed (INSERT-only audit trail).
         Requires user_group.remove_user (admin-only).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUserGroupsUsersRemoveRequest'
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+        - in: path
+          name: userId
+          required: true
+          schema: { type: string }
       responses:
         '200':
           description: Membership removed.
@@ -874,10 +885,10 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/user-groups/search/get-available-users:
+  /v1/user-groups/available-users:
     post:
-      tags: [user-groups-write]
-      operationId: postUserGroupsSearchGetAvailableUsers
+      tags: [user-groups-admin]
+      operationId: postUserGroupsAvailableUsers
       summary: Search users eligible to be added to a user group.
       description: |
         Returns users that may be added to the group: organisation actively
@@ -901,224 +912,63 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  # ── User Groups — local ────────────────────────────────────────────
+  # ── Users ──────────────────────────────────────────────────────────
 
-  /v1/user-groups/local/list:
-    post:
-      tags: [user-groups-local]
-      operationId: postUserGroupsLocalList
-      summary: List user groups — local scope (own organisation).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUserGroupsListRequest'
-      responses:
-        '200':
-          description: User group page.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUserGroupsListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/local/read/get:
-    post:
-      tags: [user-groups-local]
-      operationId: postUserGroupsLocalReadGet
-      summary: Get user group detail (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [id]
-              properties:
-                id:
-                  type: string
-      responses:
-        '200':
-          description: User group detail.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUserGroupsGetResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/local/read/get-organisations:
-    post:
-      tags: [user-groups-local]
-      operationId: postUserGroupsLocalReadGetOrganisations
-      summary: Get organisations linked to a user group (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [id]
-              properties:
-                id:
-                  type: string
-      responses:
-        '200':
-          description: Linked organisations.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OrganisationItem'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/local/read/get-permissions:
-    post:
-      tags: [user-groups-local]
-      operationId: postUserGroupsLocalReadGetPermissions
-      summary: Get permissions linked to a user group (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [id]
-              properties:
-                id:
-                  type: string
-      responses:
-        '200':
-          description: Linked permissions.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PermissionItem'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/user-groups/local/read/get-users:
-    post:
-      tags: [user-groups-local]
-      operationId: postUserGroupsLocalReadGetUsers
-      summary: List users belonging to a user group (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUserGroupsUsersListRequest'
-      responses:
-        '200':
-          description: Group member page.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUserGroupsUsersListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  # ── Users — admin ──────────────────────────────────────────────────
-
-  /v1/users/admin/change-organisation:
-    post:
+  /v1/users/{scope}:
+    get:
       tags: [users-admin]
-      operationId: postUsersAdminChangeOrganisation
-      summary: Change a user's organisation.
+      operationId: getUsers
+      summary: List users (admin or local scope).
       description: |
-        Inserts a new user_account_data_state snapshot with the updated
-        organisation_id and removes all active user-group memberships
-        (groups are organisation-scoped). Requires user.edit.admin
-        (admin-only; local account managers cannot change organisations).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersChangeOrganisationRequest'
+        Paginated user list with free-text search over first name and last
+        name. scope=admin covers all organisations; scope=local is own org.
+        Requires user.list.admin OR user.list.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
+          schema: { type: string }
       responses:
         '200':
-          description: Organisation changed; updated user detail.
+          description: User page.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminUsersGetResponse'
+                $ref: '#/components/schemas/AdminUsersListResponse'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/admin/read/check-personal-code-exists:
     post:
       tags: [users-admin]
-      operationId: postUsersAdminReadCheckPersonalCodeExists
-      summary: Check whether a personal code is already registered (admin).
-      description: |
-        Boolean pre-INSERT existence check used before creating a new user
-        to prevent duplicates. Requires user.edit.admin OR user.edit.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersCheckPersonalCodeExistsRequest'
-      responses:
-        '200':
-          description: Existence check result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersCheckPersonalCodeExistsResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/admin/edit/insert:
-    post:
-      tags: [users-admin]
-      operationId: postUsersAdminEditInsert
-      summary: Create a new user account (admin).
+      operationId: postUsers
+      summary: Create a new user account.
       description: |
         Creates an immutable identity row (user_account), an initial
         user_account_data_state snapshot, and an initial active state row.
         Returns the DB-confirmed read-back of the created user. Requires
         user.edit.admin OR user.edit.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
       requestBody:
         required: true
         content:
@@ -1135,7 +985,6 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
         '409':
           description: Conflict — personal code already exists (ERR-409-002).
           content:
@@ -1151,22 +1000,24 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/users/admin/read/get:
-    post:
+  /v1/users/{scope}/{id}:
+    get:
       tags: [users-admin]
-      operationId: postUsersAdminReadGet
-      summary: Get user detail (admin).
+      operationId: getUser
+      summary: Get user detail.
       description: |
         Returns a single user with personal data, organisation, structural
         unit, job title, contact info, access period, current state, and
-        active group memberships. Local account managers see only users from
-        their own organisation. Requires user.read.admin OR user.read.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersGetRequest'
+        active group memberships. Requires user.read.admin OR user.read.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       responses:
         '200':
           description: User detail.
@@ -1178,108 +1029,26 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/admin/list:
-    post:
+    put:
       tags: [users-admin]
-      operationId: postUsersAdminList
-      summary: List users — admin scope (all organisations).
-      description: |
-        Paginated user list with free-text search over first name and last
-        name (OR, case-insensitive, contains). Local account managers
-        receive only users from their own organisation (scope-filtering
-        uses organisationId from JWT). Requires user.list.admin OR
-        user.list.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersListRequest'
-      responses:
-        '200':
-          description: User page.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/admin/read/get-groups:
-    post:
-      tags: [users-admin]
-      operationId: postUsersAdminReadGetGroups
-      summary: Get user group memberships for a user (admin).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [id]
-              properties:
-                id:
-                  type: string
-      responses:
-        '200':
-          description: Active group memberships.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersUserGroupsGetResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/admin/organisations/options:
-    post:
-      tags: [users-admin]
-      operationId: postUsersAdminOrganisationsOptions
-      summary: List organisations available for user create/edit form (admin).
-      description: |
-        Organisation dropdown options for the user form. Admin sees all
-        organisations; local account manager receives only their own
-        (derived from JWT organisationId). Unpaginated — the organisation
-        catalogue is small. Requires user.edit.admin OR user.edit.local.
-      responses:
-        '200':
-          description: Organisation options.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminOrganisationsListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/admin/edit/update:
-    post:
-      tags: [users-admin]
-      operationId: postUsersAdminEditUpdate
-      summary: Update user personal data and access period (admin).
+      operationId: putUser
+      summary: Update user personal data and access period.
       description: |
         Inserts a new user_account_data_state snapshot with updated fields.
         If accessEnd is today or in the past and current state is active,
-        also inserts a pending_deactivation state row. If accessEnd is
-        removed or set to the future and current state is
-        pending_deactivation, restores active state. Requires
+        also inserts a pending_deactivation state row. Requires
         user.edit.admin OR user.edit.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -1307,104 +1076,20 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/users/admin/edit/set-groups:
-    post:
+  /v1/users/{scope}/{id}/groups:
+    get:
       tags: [users-admin]
-      operationId: postUsersAdminEditSetGroups
-      summary: Bulk save user group memberships for a user (admin).
-      description: |
-        Returns the user's active group memberships (userGroupId + display
-        name from the latest user_group_name_state row). Used to pre-select
-        the multiselect dropdown in user detail edit mode. Unpaginated —
-        the per-user membership set is small. Requires user.read.admin OR
-        user.read.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersUserGroupsGetRequest'
-      responses:
-        '200':
-          description: Active memberships.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersUserGroupsGetResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  # ── Users — local ─────────────────────────────────────────────────
-
-  /v1/users/local/list:
-    post:
-      tags: [users-local]
-      operationId: postUsersLocalList
-      summary: List users — local scope (own organisation).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersListRequest'
-      responses:
-        '200':
-          description: User page.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersListResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/local/read/get:
-    post:
-      tags: [users-local]
-      operationId: postUsersLocalReadGet
-      summary: Get user detail (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersGetRequest'
-      responses:
-        '200':
-          description: User detail.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersGetResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/local/read/get-groups:
-    post:
-      tags: [users-local]
-      operationId: postUsersLocalReadGetGroups
-      summary: Get user group memberships for a user (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [id]
-              properties:
-                id:
-                  type: string
+      operationId: getUserGroups2
+      summary: Get user group memberships for a user.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       responses:
         '200':
           description: Active group memberships.
@@ -1418,103 +1103,22 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/local/read/check-personal-code-exists:
-    post:
-      tags: [users-local]
-      operationId: postUsersLocalReadCheckPersonalCodeExists
-      summary: Check whether a personal code is already registered (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersCheckPersonalCodeExistsRequest'
-      responses:
-        '200':
-          description: Existence check result.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersCheckPersonalCodeExistsResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/local/edit/insert:
-    post:
-      tags: [users-local]
-      operationId: postUsersLocalEditInsert
-      summary: Create a new user account (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersCreateRequest'
-      responses:
-        '201':
-          description: User created.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersGetResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '409':
-          description: Conflict — personal code already exists.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '422':
-          description: Validation error.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/local/edit/update:
-    post:
-      tags: [users-local]
-      operationId: postUsersLocalEditUpdate
-      summary: Update user personal data and access period (local).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersUpdateRequest'
-      responses:
-        '200':
-          description: Updated user detail.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersGetResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '422':
-          description: Validation error.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/local/edit/set-groups:
-    post:
-      tags: [users-local]
-      operationId: postUsersLocalEditSetGroups
-      summary: Bulk save user group memberships for a user (local).
+    put:
+      tags: [users-admin]
+      operationId: putUserGroups
+      summary: Bulk save user group memberships for a user.
+      description: |
+        Atomically adds and removes group memberships for a user. Requires
+        user.edit.admin OR user.edit.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
@@ -1538,25 +1142,135 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Validation error — group not linked to user's organisation (ERR-422-013).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  # ── Audit Logs ─────────────────────────────────────────────────────
-
-  /v1/logs/read/list:
-    post:
-      tags: [logs]
-      operationId: postLogsReadList
-      summary: List audit log entries (paginated).
+  /v1/users/{scope}/{id}/organisation:
+    put:
+      tags: [users-admin]
+      operationId: putUserOrganisation
+      summary: Change a user's organisation.
       description: |
-        Paginated audit log list with free-text search over event type,
-        description, and actor name. Requires audit.read.
+        Inserts a new user_account_data_state snapshot with the updated
+        organisation_id and removes all active user-group memberships
+        (groups are organisation-scoped). Requires user.edit.admin
+        (admin-only; local account managers cannot change organisations).
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminUsersListRequest'
+              $ref: '#/components/schemas/AdminUsersChangeOrganisationRequest'
+      responses:
+        '200':
+          description: Organisation changed; updated user detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersGetResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/users/check-personal-code:
+    post:
+      tags: [users-admin]
+      operationId: postUsersCheckPersonalCode
+      summary: Check whether a personal code is already registered.
+      description: |
+        Boolean pre-INSERT existence check used before creating a new user
+        to prevent duplicates. Requires user.edit.admin OR user.edit.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersCheckPersonalCodeExistsRequest'
+      responses:
+        '200':
+          description: Existence check result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersCheckPersonalCodeExistsResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/users/available-groups:
+    post:
+      tags: [users-admin]
+      operationId: postUsersAvailableGroups
+      summary: List user groups available for a user's organisation.
+      description: |
+        Returns groups with an active user_group_organisation link to the
+        user's organisation_id. Used to populate the multiselect dropdown
+        choices in user detail edit mode. Unpaginated. Requires
+        user.edit.admin OR user.edit.local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersUserGroupsAvailableRequest'
+      responses:
+        '200':
+          description: Available groups.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersUserGroupsAvailableResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── Audit Logs ─────────────────────────────────────────────────────
+
+  /v1/logs:
+    get:
+      tags: [logs]
+      operationId: getLogs
+      summary: List audit log entries (paginated).
+      description: |
+        Paginated audit log list with free-text search over event type,
+        description, and actor name. Requires audit.read.
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+        - in: query
+          name: sorting
+          schema: { type: string }
       responses:
         '200':
           description: Audit log page.
@@ -1570,11 +1284,39 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/logs/read/list-csv:
+  /v1/logs/{id}:
+    get:
+      tags: [logs]
+      operationId: getLog
+      summary: Get a single audit log entry.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Audit log entry detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogEntry'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/logs/export:
     post:
       tags: [logs]
-      operationId: postLogsReadListCsv
+      operationId: postLogsExport
       summary: Export audit log entries as CSV.
+      description: |
+        Accepts filter/sort body (same as GET /v1/logs query params) and
+        returns a CSV file. POST used because filter payloads may exceed
+        safe URL length. Requires audit.read.
       requestBody:
         required: true
         content:
@@ -1594,110 +1336,272 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /v1/logs/read/get:
+  # ── Foreign violation forms ─────────────────────────────────
+
+  /api/v1/control-forms/foreign-violation:
     post:
-      tags: [logs]
-      operationId: postLogsReadGet
-      summary: Get a single audit log entry.
+      tags: [foreign-violation-forms]
+      operationId: postForeignViolationForm
+      summary: Create a new foreign violation form.
+      description: |
+        Creates a new form (generates form number `vr-YYYY-NNNNN/V`) and appends
+        the first snapshot row. Previous data is not overwritten on subsequent saves —
+        each PUT adds a new snapshot. Requires `foreign_violation_form.write`.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
+            schema:
+              $ref: '#/components/schemas/ForeignViolationFormSaveRequest'
+      responses:
+        '201':
+          description: Form created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForeignViolationFormSaveResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: Validation error — required fields missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/control-forms/foreign-violation/{formKey}:
+    get:
+      tags: [foreign-violation-forms]
+      operationId: getForeignViolationForm
+      summary: Get the latest snapshot of a foreign violation form.
+      description: |
+        Returns the latest snapshot row for the given form key.
+        Requires `foreign_violation_form.read`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: formKey
+          required: true
+          schema: { type: string }
+          description: Form unique identifier (e.g. `vr-2026-00001%2FV` URL-encoded).
+      responses:
+        '200':
+          description: Form snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForeignViolationFormSnapshot'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    put:
+      tags: [foreign-violation-forms]
+      operationId: putForeignViolationForm
+      summary: Save (update) an existing foreign violation form.
+      description: |
+        Appends a new snapshot row — previous data is not overwritten.
+        Form is editable only while status is `saved`; in `confirmed` or `published`
+        all fields become read-only. Requires `foreign_violation_form.write`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: formKey
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForeignViolationFormSaveRequest'
+      responses:
+        '200':
+          description: Form saved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForeignViolationFormSaveResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: Validation error — required fields missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/control-forms/foreign-violation/{formKey}/files:
+    get:
+      tags: [foreign-violation-forms]
+      operationId: getForeignViolationFormFiles
+      summary: List file attachments for a form.
+      description: |
+        Returns the list of file metadata attached to the given form key.
+        Requires `foreign_violation_form.read`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: formKey
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of file metadata.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileMetadata'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    post:
+      tags: [foreign-violation-forms]
+      operationId: postForeignViolationFormFiles
+      summary: Upload a file attachment to a form snapshot.
+      description: |
+        Uploads a file and attaches its metadata to the form snapshot.
+        File is stored in S3; metadata is stored in `foreign_violation_form.files`.
+        Allowed formats: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx,
+        odt, rtf, msg, eml, txt, zip, ddd. Max size: 10 MB.
+        Requires `foreign_violation_form.write`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: formKey
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
             schema:
               type: object
-              required: [id]
+              required: [file]
               properties:
-                id:
+                file:
                   type: string
+                  format: binary
       responses:
         '200':
-          description: Audit log entry detail.
+          description: File uploaded and metadata saved.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LogEntry'
+                $ref: '#/components/schemas/FileMetadata'
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  # ── User-group assignments (legacy path reference) ──────────────────
-
-  /v1/users/admin/user-groups/available:
-    post:
-      tags: [users-admin]
-      operationId: postUsersAdminUserGroupsAvailable
-      summary: List user groups available for a user's organisation.
-      description: |
-        Returns groups with an active user_group_organisation link to the
-        user's organisation_id. Used to populate the multiselect dropdown
-        choices in user detail edit mode. Unpaginated — the available group
-        set per organisation is small. Requires user.edit.admin OR
-        user.edit.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersUserGroupsAvailableRequest'
-      responses:
-        '200':
-          description: Available groups.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersUserGroupsAvailableResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /v1/users/admin/user-groups/save:
-    post:
-      tags: [users-admin]
-      operationId: postUsersAdminUserGroupsSave
-      summary: Bulk save user group memberships — add + remove (admin).
-      description: |
-        Atomically adds and removes group memberships for a user. Empty
-        added/removed arrays are allowed (no-op, no audit entry). Guard
-        checks user.edit.admin OR user.edit.local; local scope enforced
-        via JWT organisationId. Inactive or pending_deactivation users
-        are rejected with HTTP 409. Requires user.edit.admin OR
-        user.edit.local.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersUserGroupsSaveRequest'
-      responses:
-        '200':
-          description: Updated active memberships.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersUserGroupsSaveResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409':
-          description: Conflict — user inactive (ERR-409-003) or membership already active (ERR-409-001).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '422':
-          description: Validation error — group not linked to user's organisation (ERR-422-013).
+          description: Unsupported file type or file exceeds 10 MB.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/control-forms/foreign-violation/{formKey}/files/{fileId}:
+    get:
+      tags: [foreign-violation-forms]
+      operationId: getForeignViolationFormFile
+      summary: Download a specific file attachment.
+      description: |
+        Returns the binary content of the requested file from S3.
+        Requires `foreign_violation_form.read`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: formKey
+          required: true
+          schema: { type: string }
+        - in: path
+          name: fileId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: File binary content.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/classifiers/violation-types:
+    get:
+      tags: [foreign-violation-forms]
+      operationId: getClassifierViolationTypes
+      summary: Get EU Regulation 1071/2009 violation types grouped by severity.
+      description: |
+        Returns classifier values from `EU_INFRINGEMENT` (153 values) filtered by
+        severity group (MSI, VSI, SI). Requires `classifier.read`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: regulation
+          required: true
+          schema:
+            type: string
+            enum: [1071_2009]
+          description: Regulation code filter.
+      responses:
+        '200':
+          description: Violation types grouped by severity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViolationTypesResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/classifiers/countries:
+    get:
+      tags: [foreign-violation-forms]
+      operationId: getClassifierCountries
+      summary: Get countries classifier.
+      description: |
+        Returns all values from the `countries` classifier.
+        Requires `classifier.read`.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of country values.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClassifierValueSimple'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
@@ -3444,3 +3348,249 @@ components:
             $ref: '#/components/schemas/LogEntry'
         total:
           type: number
+
+    ForeignViolationFormSaveRequest:
+      type: object
+      required: [sanctionCode, recommendedMeasureCode, dataEntryDate, inspectorFirstName, inspectorLastName, inspectorOrganisationId, inspectorUnit, inspectorProfession]
+      properties:
+        formKey:
+          type: string
+          nullable: true
+          description: Existing form key for updates; null for first save.
+        reportingCountryCode:
+          type: string
+          description: Reporting country code from `countries` classifier. Required.
+        reportingAuthorityName:
+          type: string
+          maxLength: 600
+          description: Name of the reporting authority. Required.
+        inspectionDate:
+          type: string
+          format: date
+          description: Date of inspection. Must not be in the future. Required.
+        inspectionTime:
+          type: string
+          nullable: true
+          description: Time of inspection in HH:MM format.
+        inspectionAddressLine1:
+          type: string
+          nullable: true
+          description: Inspection location address (street/settlement).
+        inspectionAddressLine2:
+          type: string
+          nullable: true
+          description: Inspection location address (road/parking).
+        inspectionRegion:
+          type: string
+          nullable: true
+          description: Inspection location region/county (free text, not Estonian dropdown).
+        inspectionCity:
+          type: string
+          nullable: true
+          description: Inspection location city/municipality.
+        inspectionCountryCode:
+          type: string
+          nullable: true
+          description: Inspection country code from `countries` classifier.
+        companyRegCode:
+          type: string
+          nullable: true
+          description: Carrier company registration code.
+        companyName:
+          type: string
+          nullable: true
+          description: Carrier company name.
+        companyCountryCode:
+          type: string
+          nullable: true
+          description: Carrier company country from `countries` classifier.
+        companyAddressLine1:
+          type: string
+          nullable: true
+          description: Carrier company address.
+        companyAddressLine2:
+          type: string
+          nullable: true
+          description: Carrier company address (additional line).
+        companyCity:
+          type: string
+          nullable: true
+          description: Carrier company city.
+        companyPostalCode:
+          type: string
+          nullable: true
+          description: Carrier company postal code.
+        driverFirstName:
+          type: string
+          nullable: true
+          description: Driver first name.
+        driverLastName:
+          type: string
+          nullable: true
+          description: Driver last name.
+        vehicleRegNr:
+          type: string
+          nullable: true
+          description: Vehicle registration number (stored in uppercase).
+        vehicleMake:
+          type: string
+          nullable: true
+          description: Vehicle make.
+        vehicleModel:
+          type: string
+          nullable: true
+          description: Vehicle model.
+        vehicleCountryCode:
+          type: string
+          nullable: true
+          description: Vehicle registration country from `countries` classifier.
+        vehicleVin:
+          type: string
+          maxLength: 17
+          nullable: true
+          description: Vehicle VIN (max 17 characters).
+        vehicleFirstRegistration:
+          type: string
+          format: date
+          nullable: true
+          description: Vehicle first registration date.
+        vehicleBodyType:
+          type: string
+          nullable: true
+          description: Vehicle body type.
+        licenceCopyNumber:
+          type: string
+          nullable: true
+          description: Community licence certified copy number.
+        violationDescription:
+          type: string
+          nullable: true
+          description: Free text description of the violation.
+        minorViolationsCount:
+          type: integer
+          nullable: true
+          description: Number of minor violations detected.
+        sanctionCode:
+          type: string
+          description: |
+            Applied sanction. Required. One of: Korras, Hoiatus, Kabotažzveo ajutine keelamine,
+            Trahv, Liiklemiskeeld, Sõiduki kasutamise takistamine, Muu.
+        sanctionNotes:
+          type: string
+          nullable: true
+          description: Additional sanction notes. Shown only when sanction is not "Korras".
+        violations:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Array of EU Regulation 1071/2009 violation codes (from `EU_INFRINGEMENT` classifier).
+        recommendedMeasureCode:
+          type: string
+          description: |
+            Recommended measure from the other country. Required. One of: Puuduvad, Hoiatus,
+            Kõigi või osa Ühenduse tegevusloa kinnitatud ärakirjade teatud ajaks peatamine,
+            Kõigi või osa Ühenduse tegevusloa kinnitatud ärakirjade kehtetuks tunnistamine,
+            Ühenduse tegevusloa teatud ajaks peatamine, Ühenduse tegevusloa kehtetuks tunnistamine,
+            Juhitunnistuse väljastamisest keeldumine, Juhitunnistuse kehtetuks tunnistamine, Muu.
+        recommendedMeasureNotes:
+          type: string
+          nullable: true
+          description: Required when recommendedMeasureCode is "Muu".
+        notes:
+          type: string
+          nullable: true
+          description: Free text notes.
+        dataEntryDate:
+          type: string
+          format: date
+          description: Data entry date. Defaults to today; editable. Required.
+        inspectorFirstName:
+          type: string
+          description: Inspector first name (pre-filled from user profile). Required.
+        inspectorLastName:
+          type: string
+          description: Inspector last name (pre-filled from user profile). Required.
+        inspectorOrganisationId:
+          type: string
+          description: Inspector organisation (pre-filled from user profile). Required.
+        inspectorUnit:
+          type: string
+          description: Inspector structural unit from `STRUCTURE_UNIT` classifier filtered by organisation. Required.
+        inspectorProfession:
+          type: string
+          description: Inspector job title (pre-filled from user profile). Required.
+
+    ForeignViolationFormSaveResponse:
+      type: object
+      properties:
+        formKey:
+          type: string
+          description: Form unique identifier in format `vr-YYYY-NNNNN/V`.
+        status:
+          type: string
+          enum: [saved, confirmed, published]
+
+    ForeignViolationFormSnapshot:
+      allOf:
+        - $ref: '#/components/schemas/ForeignViolationFormSaveRequest'
+        - type: object
+          properties:
+            formKey:
+              type: string
+              description: Form unique identifier.
+            status:
+              type: string
+              enum: [saved, confirmed, published]
+            createdAt:
+              type: string
+              format: date-time
+            createdBy:
+              type: string
+
+    FileMetadata:
+      type: object
+      properties:
+        fileId:
+          type: string
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+          description: File size in bytes.
+        mimeType:
+          type: string
+        uploadedAt:
+          type: string
+          format: date-time
+        uploadedBy:
+          type: string
+
+    ViolationTypesResponse:
+      type: object
+      properties:
+        MSI:
+          type: array
+          description: Most serious infringements.
+          items:
+            $ref: '#/components/schemas/ClassifierValueSimple'
+        VSI:
+          type: array
+          description: Very serious infringements.
+          items:
+            $ref: '#/components/schemas/ClassifierValueSimple'
+        SI:
+          type: array
+          description: Serious infringements.
+          items:
+            $ref: '#/components/schemas/ClassifierValueSimple'
+
+    ClassifierValueSimple:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Classifier value code.
+        name:
+          type: string
+          description: Human-readable name.

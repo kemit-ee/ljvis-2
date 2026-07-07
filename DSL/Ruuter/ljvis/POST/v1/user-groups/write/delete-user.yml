@@ -25,8 +25,6 @@ extractRequestData:
   assign:
     user_group_id: "${incoming.body.id}"
     user_id: "${incoming.body.userId}"
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
   next: getUserGroup
 
 getUserGroup:
@@ -56,44 +54,19 @@ deleteUser:
       user_group_id: ${user_group_id}
       user_ids: ${user_id}
       status: "removed"
-      created_by: ${actor_personal_code}
+      created_by: "${auth_user.personalcode || ''}"
   result: res
-  next: getRemovedUserPersonalCode
-
-getRemovedUserPersonalCode:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user/get_user"
-    headers:
-      type: json
-    body:
-      id: ${user_id}
-      organisation_id: ""
-  result: personalCodesRes
-  next: buildAuditEvent
-
-buildAuditEvent:
-  assign:
-    removed_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
-    removed_personal_codes_str: ${ (personalCodesRes.response.body ?? []).map(u => "'" + u.personalCode + "'").join(', ') }
-    description: "Kasutajagrupi ${group_name} muutmine: eemaldatud kasutajad: ${removed_personal_codes_str}"
-    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":${removed_personal_codes_json},\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user_group.update"
-      event_category: "user_group_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/user-group/log-user-group-delete-user"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    user_group_id: ${user_group_id}
+    group_name: ${group_name}
+    user_id: ${user_id}
   result: audit_result
   next: returnSuccess
 

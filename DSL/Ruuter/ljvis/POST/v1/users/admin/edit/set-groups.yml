@@ -59,7 +59,7 @@ removeGroups:
 checkAddedGroups:
   switch:
     - condition: "${added_group_ids == ''}"
-      next: getUser
+      next: logAuditEvent
   next: insertGroups
 
 insertGroups:
@@ -74,56 +74,19 @@ insertGroups:
       status: "active"
       created_by: ${created_by}
   result: insertRes
-  next: getUser
-
-getUser:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/user/get_user"
-    headers:
-      type: json
-    body:
-      id: ${user_account_id}
-      organisation_id: ""
-  result: userRes
-  next: buildAuditLog
-
-buildAuditLog:
-  assign:
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
-    first_name: "${userRes.response.body[0].firstName || ''}"
-    last_name: "${userRes.response.body[0].lastName || ''}"
-    personal_code: "${userRes.response.body[0].personalCode || ''}"
-    log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"addedGroupIds\":${added_group_ids_json},\"removedGroupIds\":${removed_group_ids_json}}"
-  next: buildDescription
-
-buildDescription:
-  template: "[#LJVIS_PROJECT_LAYER]/user/build-set-groups-description"
-  requestType: templates
-  body:
-    first_name: ${first_name}
-    last_name: ${last_name}
-    personal_code: ${personal_code}
-    added_group_ids: ${added_group_ids}
-    removed_group_ids: ${removed_group_ids}
-  result: description
   next: logAuditEvent
 
 logAuditEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user.set_groups"
-      event_category: "user_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${description}
-      log_content: ${log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/user/log-user-set-groups"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    user_account_id: ${user_account_id}
+    added_group_ids: ${added_group_ids}
+    removed_group_ids: ${removed_group_ids}
+    added_group_ids_json: ${added_group_ids_json}
+    removed_group_ids_json: ${removed_group_ids_json}
   result: audit_result
   next: returnSuccess
 
