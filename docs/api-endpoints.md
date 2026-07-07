@@ -28,7 +28,7 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 ### Kasutajagrupid
 | Meetod | Tee | Query paramid | Märkus |
 |--------|-----|---------------|--------|
-| GET | `/v1/user-groups/{scope}` | `q`, `logAudit` | grupi detail (`scope`=admin\|local) |
+| GET | `/v1/user-groups/{scope}` | `q` | grupi detail (`scope`=admin\|local) |
 | GET | `/v1/user-groups/{scope}/search` | `q`, `page`, `pageSize`, `sorting` | nimekiri/otsing |
 | POST | `/v1/user-groups` | — | loo uus grupp |
 | PUT | `/v1/user-groups` | — | uuenda nime (id body-s) |
