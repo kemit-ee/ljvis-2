@@ -150,8 +150,3 @@ logAuditEvent:
 returnSuccessResult:
   return: "ok"
   next: end
-
-return_validation_error:
-  status: 422
-  return: "validation failed"
-  next: end

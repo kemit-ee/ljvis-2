@@ -88,7 +88,8 @@ services:
       test: ["CMD-SHELL", "nc -z localhost 8090"]
       interval: 10s
       timeout: 5s
-      retries: 15
+      retries: 18
+      start_period: 45s
     volumes:
       - ./DSL/Resql:/DSL
     networks:
