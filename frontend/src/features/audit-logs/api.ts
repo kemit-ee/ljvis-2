@@ -1,4 +1,4 @@
-import { post } from '../../shared/api/client.ts';
+import { get } from '../../shared/api/client.ts';
 import type {
   ListApiParams,
   PagedResponse,
@@ -6,16 +6,16 @@ import type {
 import type { AuditLog } from '../audit-logs/types.ts';
 
 export const listLogs = (params?: ListApiParams) =>
-  post<PagedResponse<AuditLog>>(
-    '/v1/logs/read/list',
-    params as Record<string, unknown>,
+  get<PagedResponse<AuditLog>>(
+    '/v1/logs',
+    params as Record<string, string>,
   );
 
 export const exportLogs = (params?: ListApiParams) =>
-  post<PagedResponse<AuditLog>>(
-    '/v1/logs/read/list-csv',
-    params as Record<string, unknown>,
+  get<PagedResponse<AuditLog>>(
+    '/v1/logs/export',
+    params as Record<string, string>,
   );
 
 export const getLog = (id: string) =>
-  post<AuditLog[]>('/v1/logs/read/get', { id });
+  get<AuditLog[]>('/v1/logs/log', { id });

@@ -1,0 +1,39 @@
+graph TD
+    User["Kasutaja (ametnik / admin)"]
+
+    subgraph PublicZone["Avalik tsoon (HTTPS :443)"]
+        Frontend["Frontend\nReact + Vite + Nginx\nport 443"]
+    end
+
+    subgraph AppZone["Rakendustsoon (sisemine võrk)"]
+        Ruuter["Ruuter\nAPI gateway + DSL\nport 8086"]
+        RuuterInternal["Ruuter Internal\nSisemised vood\nport 8089"]
+        RESQL["RESQL\nSQL → REST\nport 8090"]
+        DMapper["DMapper\nAndmete transformatsioon\nport 3005"]
+        TIM["TIM\nAutentimine + sessioonid\nport 8085"]
+    end
+
+    subgraph DataZone["Andmetsoon"]
+        DB[("PostgreSQL\nLJVIS DB\nport 5432")]
+        TIMDB[("PostgreSQL\nTIM DB\nport 5432")]
+        Liquibase["Liquibase\nSkeemimigratsioonid"]
+    end
+
+    subgraph External["Välised teenused"]
+        TARA["TARA / OIDC\n(dev: TARA Mock)"]
+    end
+
+    User -->|HTTPS| Frontend
+    Frontend -->|/api/v1/...| Ruuter
+    Frontend -->|/tim/...| TIM
+
+    Ruuter -->|JWT valideerimine| TIM
+    Ruuter -->|SQL päringud| RESQL
+    Ruuter -->|Transformatsioon| DMapper
+    RuuterInternal -->|SQL päringud| RESQL
+
+    RESQL -->|JDBC| DB
+    Liquibase -->|Migratsioonid| DB
+
+    TIM -->|Sessioon| TIMDB
+    TIM -->|OIDC| TARA

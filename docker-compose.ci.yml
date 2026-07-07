@@ -107,6 +107,7 @@ services:
     environment:
       - PORT=3005
       - CONTENT_FOLDER=/data
+      - RATE_LIMIT_PER_MINUTE=100000
     volumes:
       - ./DSL:/data
       - ./DSL/DMapper/ljvis/hbs:/workspace/app/views/ljvis
@@ -127,6 +128,7 @@ services:
     environment:
       - application.cors.allowedOrigins=http://localhost:9086,http://localhost:3001
       - application.httpCodesAllowList=200,201,202,400,401,403,422,500
+      - application.incomingRequests.allowedMethodTypes=POST,GET,PUT,DELETE
       - application.internalRequests.allowedIPs=127.0.0.1
       - application.logging.displayRequestContent=true
       - application.logging.displayResponseContent=true

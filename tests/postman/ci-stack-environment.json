@@ -108,13 +108,13 @@
       "key": "created_local_admin_id",
       "value": "",
       "enabled": true,
-      "description": "ID of local-admin CI user (48001011234) created during scenario"
+      "description": "ID of local-admin CI user (48001011236) created during scenario"
     },
     {
       "key": "cookie_local_ci",
       "value": "",
       "enabled": true,
-      "description": "JWT cookie for local-admin CI user (48001011234)"
+      "description": "JWT cookie for local-admin CI user (48001011236)"
     },
     {
       "key": "local_list_count_before",
@@ -126,6 +126,30 @@
       "value": "",
       "enabled": true,
       "description": "ID of user (48001021234) inserted by local admin during scenario"
+    },
+    {
+      "key": "seeded_classifier_id",
+      "value": "",
+      "enabled": true,
+      "description": "classifier_key of RTK — populated during Classifiers tests setup"
+    },
+    {
+      "key": "seeded_classifier_id_2",
+      "value": "",
+      "enabled": true,
+      "description": "classifier_key of TEST — populated during Classifiers tests setup"
+    },
+    {
+      "key": "seeded_value_id",
+      "value": "",
+      "enabled": true,
+      "description": "classifier_value_key of RTK/EE — populated during Classifiers tests setup"
+    },
+    {
+      "key": "created_value_id",
+      "value": "",
+      "enabled": true,
+      "description": "classifier_value_key of CI_TEST value — populated during Classifiers POST test"
     }
   ],
   "_postman_variable_scope": "environment"
