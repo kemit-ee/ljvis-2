@@ -171,7 +171,6 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-  /v1/classifiers:
     put:
       tags: [classifiers]
       operationId: putClassifier
@@ -481,43 +480,6 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-    post:
-      tags: [user-groups-admin]
-      operationId: postUserGroups
-      summary: Create a new user group.
-      description: |
-        Creates a user group atomically together with its organisation
-        links and permission links. Requires user_group.create (admin-only).
-      parameters:
-        - in: path
-          name: scope
-          required: true
-          schema: { type: string, enum: [admin, local] }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUserGroupsCreateRequest'
-      responses:
-        '201':
-          description: User group created.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUserGroupsCreateResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '422':
-          description: Validation error (empty name, no organisations selected, unknown id, etc.).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
   /v1/user-groups/{scope}/search:
     get:
@@ -560,6 +522,38 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
   /v1/user-groups:
+    post:
+      tags: [user-groups-admin]
+      operationId: postUserGroups
+      summary: Create a new user group.
+      description: |
+        Creates a user group atomically together with its organisation
+        links and permission links. Requires user_group.create (admin-only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUserGroupsCreateRequest'
+      responses:
+        '201':
+          description: User group created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserGroupsCreateResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: Validation error (empty name, no organisations selected, unknown id, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
     put:
       tags: [user-groups-admin]
       operationId: putUserGroup
@@ -951,6 +945,45 @@ paths:
                 $ref: '#/components/schemas/ProblemDetails'
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    put:
+      tags: [users-admin]
+      operationId: putUser
+      summary: Update user personal data and access period.
+      description: |
+        Inserts a new user_account_data_state snapshot with updated fields.
+        id must be included in the request body. Requires
+        user.edit.admin OR user.edit.local.
+      parameters:
+        - in: path
+          name: scope
+          required: true
+          schema: { type: string, enum: [admin, local] }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUsersUpdateRequest'
+      responses:
+        '200':
+          description: Updated user detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUsersGetResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422':
+          description: Validation error (empty required field, invalid email, accessEnd before accessStart, etc.).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
   /v1/users/{scope}/search:
     get:
@@ -989,46 +1022,6 @@ paths:
         '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '500': { $ref: '#/components/responses/InternalServerError' }
-        '503': { $ref: '#/components/responses/ServiceUnavailable' }
-  /v1/users/{scope}:
-    put:
-      tags: [users-admin]
-      operationId: putUser
-      summary: Update user personal data and access period.
-      description: |
-        Inserts a new user_account_data_state snapshot with updated fields.
-        id must be included in the request body. Requires
-        user.edit.admin OR user.edit.local.
-      parameters:
-        - in: path
-          name: scope
-          required: true
-          schema: { type: string, enum: [admin, local] }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUsersUpdateRequest'
-      responses:
-        '200':
-          description: Updated user detail.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminUsersGetResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '422':
-          description: Validation error (empty required field, invalid email, accessEnd before accessStart, etc.).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
@@ -1526,7 +1519,7 @@ components:
             title: "Bad Request"
             status: 400
             detail: "Field 'page' must be a non-negative integer."
-            instance: "/api/v1/admin/user-groups/list"
+            instance: "/v1/user-groups/admin/search"
     Conflict:
       description: Conflict with current resource state.
       content:
@@ -1538,7 +1531,7 @@ components:
             title: "Conflict"
             status: 409
             detail: "User is already an active member of this group."
-            instance: "/api/v1/admin/user-groups/users/add"
+            instance: "/v1/user-groups/users"
     Forbidden:
       description: Insufficient permissions for the requested operation.
       content:
@@ -1550,7 +1543,7 @@ components:
             title: "Forbidden"
             status: 403
             detail: "Missing required permission: user_group.update"
-            instance: "/api/v1/admin/user-groups/update"
+            instance: "/v1/user-groups"
     InternalServerError:
       description: Unexpected server error.
       content:
@@ -1562,7 +1555,7 @@ components:
             title: "Internal Server Error"
             status: 500
             detail: "Database transaction failed; the operation was rolled back."
-            instance: "/api/v1/admin/user-groups/create"
+            instance: "/v1/user-groups"
     NotFound:
       description: Resource not found.
       content:
@@ -1574,7 +1567,7 @@ components:
             title: "Not Found"
             status: 404
             detail: "User group with id 999 does not exist."
-            instance: "/api/v1/admin/user-groups/get"
+            instance: "/v1/user-groups/admin"
     ServiceUnavailable:
       description: Downstream dependency unavailable.
       content:
@@ -1586,7 +1579,7 @@ components:
             title: "Service Unavailable"
             status: 503
             detail: "Audit log service is unreachable; retry later."
-            instance: "/api/v1/admin/user-groups/update"
+            instance: "/v1/user-groups"
     Unauthorized:
       description: Missing or invalid JWT.
       content:
@@ -1598,7 +1591,7 @@ components:
             title: "Unauthorized"
             status: 401
             detail: "JWT is missing or expired."
-            instance: "/api/v1/admin/user-groups/list"
+            instance: "/v1/user-groups/admin/search"
 
   schemas:
 
@@ -2873,7 +2866,7 @@ components:
         title: "Forbidden"
         status: 403
         detail: "Missing required permission: user.edit.admin"
-        instance: "/api/v1/admin/users/update"
+        instance: "/v1/users/admin"
 
     UserDetailGroup:
       type: object

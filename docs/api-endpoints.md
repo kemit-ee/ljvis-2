@@ -22,6 +22,7 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | POST | `/v1/classifiers/value` | — | lisa uus väärtus (classifierId body-s) |
 | GET | `/v1/classifiers/value` | `id`, `valueId` | üksik väärtus |
 | PUT | `/v1/classifiers/value` | — | uuenda kehtivusperioodi (classifierId, classifierValueId body-s) |
+| POST | `/v1/classifiers/check-code` | — | kontrolli, kas väärtuse kood juba eksisteerib (classifierId body-s) |
 | GET | `/v1/classifiers/catalogue` | — | kõik klassifikaatorite koodid |
 
 ### Kasutajagrupid
