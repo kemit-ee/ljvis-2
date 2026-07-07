@@ -29,6 +29,7 @@ newman run "$COL/user-groups.collection.json" -e "$ENV" \
   --reporter-htmlextra-export "$REPORT_DIR/user-groups.html"
 
 newman run "$COL/classifiers.collection.json" -e "$ENV" \
+  --delay-request 600 \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/classifiers.html"
 
