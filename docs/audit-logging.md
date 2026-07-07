@@ -199,7 +199,7 @@ sequenceDiagram
     participant DB as RESQL / DB
     participant DM as DMAPPER
 
-    K->>R: GET /v1/users/admin?search=...&page=...&pageSize=...
+    K->>R: GET /v1/users/admin/search?q=...&page=...&pageSize=...
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
@@ -228,7 +228,7 @@ sequenceDiagram
     participant DB as RESQL / DB
     participant DM as DMAPPER
 
-    K->>R: GET /v1/users/admin/user?id=...
+    K->>R: GET /v1/users/admin?q=...
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
