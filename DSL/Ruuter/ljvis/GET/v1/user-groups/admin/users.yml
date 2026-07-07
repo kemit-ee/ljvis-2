@@ -20,9 +20,9 @@ declaration:
       - field: search
         type: string
         description: "Search by first or last name"
-      - field: userGroupId
+      - field: q
         type: string
-        description: "Filter by user group"
+        description: "User group ID to filter members by"
 
 extractRequestData:
   assign:
@@ -30,7 +30,7 @@ extractRequestData:
     page_size: "${incoming.params.pageSize ?? 20}"
     sorting: "${incoming.params.sorting ?? 'status asc'}"
     search: "${incoming.params.search ?? ''}"
-    user_group_id: ${incoming.params.userGroupId}
+    user_group_id: "${incoming.params.q ?? 0}"
     user_organisation_id: 0
   next: getUsers
 

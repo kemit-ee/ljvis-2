@@ -18,5 +18,7 @@ declaration:
 SELECT DISTINCT ON (ua.user_account_key)
     ua.personal_code
 FROM users.user_account ua
-WHERE ua.user_account_key = ANY(string_to_array(:user_ids, ',')::BIGINT[])
+WHERE ua.user_account_key = ANY(
+    SELECT unnest(string_to_array(:user_ids, ','))::BIGINT
+)
 ORDER BY ua.user_account_key, ua.created_at DESC;

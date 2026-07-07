@@ -8,13 +8,16 @@ declaration:
   namespace: classifiers
   allowlist:
     params:
-      - field: classifierValueId
+      - field: id
+        type: string
+        description: "Classifier ID"
+      - field: valueId
         type: string
         description: "Classifier Value ID"
 
 extractRequestData:
   assign:
-    classifier_value_id: "${incoming.params.classifierValueId}"
+    classifier_value_id: "${incoming.params.valueId}"
   next: getClassifierValue
 
 getClassifierValue:

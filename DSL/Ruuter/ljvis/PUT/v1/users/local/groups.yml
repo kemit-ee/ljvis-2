@@ -99,15 +99,8 @@ buildAuditLog:
   next: buildDescription
 
 buildDescription:
-  template: "[#LJVIS_PROJECT_LAYER]/user/build-set-groups-description"
-  requestType: templates
-  body:
-    first_name: ${first_name}
-    last_name: ${last_name}
-    personal_code: ${personal_code}
-    added_group_ids: ${added_group_ids}
-    removed_group_ids: ${removed_group_ids}
-  result: description
+  assign:
+    description: "Kasutaja ${first_name} ${last_name} (${personal_code}) gruppide muutmine"
   next: logAuditEvent
 
 logAuditEvent:

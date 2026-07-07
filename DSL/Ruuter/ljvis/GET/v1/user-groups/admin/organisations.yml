@@ -8,13 +8,13 @@ declaration:
   namespace: user-groups
   allowlist:
     params:
-      - field: id
+      - field: q
         type: string
-        description: "User group UUID"
+        description: "User group ID"
 
 extractRequestData:
   assign:
-    user_group_id: "${incoming.params.id}"
+    user_group_id: "${incoming.params.q}"
 
 getOrganisations:
   call: http.post
