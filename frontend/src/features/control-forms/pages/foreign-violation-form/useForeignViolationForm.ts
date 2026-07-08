@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import dayjs from 'dayjs';
 import type { ForeignViolationForm } from '../../../control-forms/types';
 import {
   insertForeignViolationForm
@@ -111,14 +110,14 @@ export function useForeignViolationForm(
       recommendedMeasureCode: form?.recommendedMeasureCode ?? 'PUUDUVAD',
       recommendedMeasureNotes: form?.recommendedMeasureNotes ?? '',
       recommendedMeasureGeneralNotes: form?.notes ?? '',
-      violations: form?.violations ?? '[]',
-      dataEntryDate: form?.dataEntryDate ?? dayjs().format('YYYY-MM-DD'),
+      violations: form?.violations ?? [],
+      dataEntryDate: form?.dataEntryDate ?? '',
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId: form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession: form?.inspectorProfession ?? authUser?.jobtitle ?? '',
-      files: form?.files ?? '[]',
+      files: form?.files ?? [],
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -131,8 +130,10 @@ export function useForeignViolationForm(
           inspectionTime: toIsoTime(values.inspectionTime),
           dataEntryDate: toIsoDate(values.dataEntryDate),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
+          violations: Array.isArray(values.violations) ? JSON.stringify(values.violations) : (values.violations ?? '[]'),
+          files: typeof values.files === 'string' ? values.files : JSON.stringify(values.files ?? []),
         };
-        const result = await insertForeignViolationForm(trimmedValues);
+        const result = await insertForeignViolationForm(trimmedValues as unknown as ForeignViolationForm);
         onSaved(result[0]?.id);
       } catch (e) {
         if (

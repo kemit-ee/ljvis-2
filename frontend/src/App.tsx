@@ -18,6 +18,7 @@ import { ClassifierValueEditPage } from './features/classifiers/pages/Classifier
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
 import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDetailPage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
+import { ForeignViolationFormCreatePage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormCreatePage';
 import { ForeignViolationFormPage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 
@@ -59,7 +60,8 @@ function AppRoutes() {
           />
           <Route path="/logs" element={<LogListPage />} />
           <Route path="/logs/:id" element={<LogDetailPage />} />
-          <Route path="/control-forms/foreign-violation" element={<ForeignViolationFormPage />} />
+          <Route path="/control-forms/foreign-violation/new" element={<ForeignViolationFormCreatePage />} />
+          <Route path="/control-forms/foreign-violation/:id" element={<ForeignViolationFormPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
