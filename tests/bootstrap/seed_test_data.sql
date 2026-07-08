@@ -105,4 +105,41 @@ INSERT INTO classifier.classifier (classifier_key, code, name, created_by)
 SELECT nextval('classifier.seq_classifier_key'), 'TEST', 'Test Classifier', 'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TEST');
 
+-- ============================================================
+-- Classifier values — RTK (3 valid + 1 expired for isValid tests)
+-- ============================================================
+INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+SELECT nextval('classifier.seq_classifier_value_key'),
+       (SELECT classifier_key FROM classifier.classifier WHERE code = 'RTK' ORDER BY created_at DESC LIMIT 1),
+       v.code, v.name, v.vf::DATE, v.vu::DATE, 'bootstrap'
+FROM (VALUES
+    ('EE', 'Eesti',             '2024-01-01'::DATE, NULL::DATE),
+    ('LV', 'Läti',              '2024-01-01'::DATE, NULL::DATE),
+    ('LT', 'Leedu',             '2024-01-01'::DATE, NULL::DATE),
+    ('FI', 'Soome (aegunud)',   '2019-01-01'::DATE, '2020-01-01'::DATE)
+) AS v(code, name, vf, vu)
+WHERE NOT EXISTS (
+    SELECT 1 FROM classifier.classifier_value cv2
+    JOIN classifier.classifier c2 ON c2.classifier_key = cv2.classifier_key
+    WHERE c2.code = 'RTK' AND cv2.code = v.code
+);
+
+-- ============================================================
+-- Classifier values — TEST (2 valid + 1 expired)
+-- ============================================================
+INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+SELECT nextval('classifier.seq_classifier_value_key'),
+       (SELECT classifier_key FROM classifier.classifier WHERE code = 'TEST' ORDER BY created_at DESC LIMIT 1),
+       v.code, v.name, v.vf::DATE, v.vu::DATE, 'bootstrap'
+FROM (VALUES
+    ('VALUE_A', 'Testiväärtus A',           '2024-01-01'::DATE, NULL::DATE),
+    ('VALUE_B', 'Testiväärtus B',           '2024-01-01'::DATE, NULL::DATE),
+    ('VALUE_C', 'Testiväärtus C (aegunud)', '2019-01-01'::DATE, '2020-01-01'::DATE)
+) AS v(code, name, vf, vu)
+WHERE NOT EXISTS (
+    SELECT 1 FROM classifier.classifier_value cv2
+    JOIN classifier.classifier c2 ON c2.classifier_key = cv2.classifier_key
+    WHERE c2.code = 'TEST' AND cv2.code = v.code
+);
+
 COMMIT;

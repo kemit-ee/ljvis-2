@@ -11,7 +11,7 @@ Kõik audit sündmused kirjutatakse `audit.audit_event` tabelisse RESQL kaudu (`
 | Väli | Kirjeldus |
 |---|---|
 | `event_type` | Toimingu tüüp (vt loend allpool) |
-| `event_category` | Valdkond: `user_management`, `user_group_management`, `classifier_management` |
+| `event_category` | Valdkond: `user_management`, `user_group_management`, `classifier_management`, `control_form_management` |
 | `actor_name` | Toimingu tegija nimi (hangib JWT-st) |
 | `actor_personal_code` | Toimingu tegija isikukood (hangib JWT-st) |
 | `description` | Inimloetav eestikeelne kirjeldus |
@@ -34,6 +34,9 @@ Kõik audit sündmused kirjutatakse `audit.audit_event` tabelisse RESQL kaudu (`
 | `classifier.view` | `classifier_management` | **Alati** klassifikaatori detailvaate avamisel |
 | `classifier.list.search` | `classifier_management` | **Ainult** kui `search.length >= 3` |
 | `classifier_value.update` | `classifier_management` | **Alati** klassifikaatori väärtuse kehtivuse muutmisel |
+| `control_form.foreign_violation.create` | `control_form_management` | **Alati** uue välisriigi rikkumise vormi loomisel (esmakordne salvestus) |
+| `control_form.foreign_violation.update` | `control_form_management` | **Ainult** kui vähemalt üht välja muudeti (eelmise snapshot'iga võrreldes) |
+| `control_form.foreign_violation.view` | `control_form_management` | **Ainult** kui vaataja erineb vormi loojast |
 
 ---
 
@@ -127,6 +130,28 @@ Ilma otsinguta nimekirjavaatamine logib `user.list.view`, aga mitte eraldi otsin
 }
 ```
 
+**`control_form.foreign_violation.create`**
+```json
+{
+  "formKey": "vr-2026-00001/V"
+}
+```
+
+**`control_form.foreign_violation.update`**
+```json
+{
+  "formKey": "vr-2026-00001/V",
+  "changedFields": ["reporting_country_code", "sanction_code"]
+}
+```
+
+**`control_form.foreign_violation.view`**
+```json
+{
+  "formKey": "vr-2026-00001/V"
+}
+```
+
 ---
 
 ## Andmevoo sequence diagrammid
@@ -141,7 +166,7 @@ sequenceDiagram
     participant DB as RESQL / DB
     participant DM as DMAPPER
 
-    K->>R: POST /v1/users/admin/edit/insert {body}
+    K->>R: POST /v1/users/admin {body}
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user {firstname, lastname, personalcode}
     R->>R: extractRequestData
@@ -174,7 +199,7 @@ sequenceDiagram
     participant DB as RESQL / DB
     participant DM as DMAPPER
 
-    K->>R: POST /v1/users/admin/list {search, page, pageSize}
+    K->>R: GET /v1/users/admin/search?q=...&page=...&pageSize=...
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
@@ -203,7 +228,7 @@ sequenceDiagram
     participant DB as RESQL / DB
     participant DM as DMAPPER
 
-    K->>R: POST /v1/users/admin/read/get {id}
+    K->>R: GET /v1/users/admin?q=...
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
@@ -226,7 +251,7 @@ sequenceDiagram
     participant T as TIM (JWT)
     participant DB as RESQL / DB
 
-    K->>R: POST /v1/user-groups/write/add-users {id, userIds}
+    K->>R: PUT /v1/user-groups/users {id, userIds}
     R->>T: check-user-authority (cookie)
     T-->>R: auth_user
     R->>R: extractRequestData
@@ -251,5 +276,5 @@ sequenceDiagram
 ## Viited
 
 - Audit tabeli definitsioon: `DSL/Liquibase/changelog/20260605100000-initial-audit.sql`
-- Audit lugemise otspunktid: `DSL/Ruuter/ljvis/POST/v1/logs/read/`
-- OpenAPI: `docs/openapi.yaml` — tag `logs`
+- Audit lugemise otspunktid: `DSL/Ruuter/ljvis/GET/v1/logs/`
+- OpenAPI: `docs/openapi.yaml` — tagid `logs`, `foreign-violation-forms`

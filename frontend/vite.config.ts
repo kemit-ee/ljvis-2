@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
         target: 'http://localhost:8086',
         changeOrigin: true,
         rewrite: useMock
-          ? (path) => path.replace(/^\/api\/(.+)\/([^/]+)$/, '/ljvis/$1/mock/$2')
+          ? (path) => path.replace(/^\/api(.+?)(\?.*)?$/, '/ljvis$1/mock$2')
           : (path) => path.replace(/^\/api/, '/ljvis'),
       },
       '/tim': {

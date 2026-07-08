@@ -1,6 +1,6 @@
 {
-  "version": "0.2.2",
-  "generated": "2026-05-13",
+  "version": "0.3.0",
+  "updated": "2026-07-03",
   "errors": [
     {
       "code": "ERR-400-001",
@@ -8,30 +8,30 @@
       "message": "",
       "scenarios": [],
       "occurrences": [
-        { "epic": "02", "task": "openapi", "endpoint": "GET /api/v1/admin/permissions/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/organisations/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/create" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/get" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/update" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/add" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/remove" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/search-eligible" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/change-organisation" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/check-personal-code-exists" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/get" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/organisations/options" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/update" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/check-code-exists" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/create" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/update" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/list" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/get" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/list" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/update" }
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/permissions" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/organisations" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}/user-group" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/user-groups/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/user-groups/users" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}/users" },
+        { "epic": "02", "task": "openapi", "endpoint": "DELETE /v1/user-groups/user" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/user-groups/available-users" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/users/{scope}/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/users/{scope}/check-personal-code" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/users/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/users/{scope}/user" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/users/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/organisations" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/users/{scope}/update" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /v1/classifiers/check-code" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "openapi", "endpoint": "PUT /v1/classifiers/value" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers/values" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "openapi", "endpoint": "PUT /v1/classifiers/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -53,7 +53,7 @@
         "Admin proovib salvestada klassifikaatorit muudetud koodiga, kuid kood on muutmatu pärast loomist."
       ],
       "occurrences": [
-        { "epic": "04", "task": "03", "row": 3, "endpoint": "POST /api/v1/admin/classifiers/update" }
+        { "epic": "04", "task": "03", "row": 3, "endpoint": "PUT /v1/classifiers/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -76,12 +76,12 @@
         "Kehtivuse lõpukuupäev on varasem kui alguskuupäev või sellega võrdne."
       ],
       "occurrences": [
-        { "epic": "04", "task": "03", "row": 4, "endpoint": "POST /api/v1/admin/classifiers/update" },
-        { "epic": "04", "task": "03", "row": 5, "endpoint": "POST /api/v1/admin/classifiers/update" },
-        { "epic": "04", "task": "04", "row": 5, "endpoint": "POST /api/v1/admin/classifier-values/create" },
-        { "epic": "04", "task": "04", "row": 7, "endpoint": "POST /api/v1/admin/classifier-values/create" },
-        { "epic": "04", "task": "04", "row": 8, "endpoint": "POST /api/v1/admin/classifier-values/create" },
-        { "epic": "04", "task": "04", "row": 9, "endpoint": "POST /api/v1/admin/classifier-values/create" }
+        { "epic": "04", "task": "03", "row": 4, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "03", "row": 5, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "04", "row": 5, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 7, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 8, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 9, "endpoint": "POST /v1/classifiers/value" }
       ],
       "logging": {
         "level": "WARN",
@@ -102,20 +102,20 @@
         "JWT-token puudub või on aegunud, kui kasutaja proovib avada mõnda rakenduse kuva."
       ],
       "occurrences": [
-        { "epic": "02", "task": "01", "row": 2, "endpoint": "POST /api/v1/admin/users/list" },
-        { "epic": "02", "task": "02", "row": 1, "endpoint": "POST /api/v1/admin/users/get" },
-        { "epic": "02", "task": "02", "row": 1, "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "02", "row": 1, "endpoint": "POST /api/v1/admin/users/update" },
-        { "epic": "02", "task": "04", "row": 2, "endpoint": "POST /api/v1/admin/user-groups/list" },
-        { "epic": "02", "task": "05", "row": 1, "endpoint": "POST /api/v1/admin/user-groups/create" },
-        { "epic": "02", "task": "06", "row": 1, "endpoint": "POST /api/v1/admin/user-groups/get" },
-        { "epic": "04", "task": "01", "row": 2, "endpoint": "POST /api/v1/admin/classifiers/list" },
-        { "epic": "04", "task": "02", "row": 3, "endpoint": "POST /api/v1/admin/classifiers/get" },
-        { "epic": "04", "task": "02", "row": 3, "endpoint": "POST /api/v1/admin/classifier-values/list" },
-        { "epic": "04", "task": "03", "row": 7, "endpoint": "POST /api/v1/admin/classifiers/update" },
-        { "epic": "04", "task": "04", "row": 10, "endpoint": "POST /api/v1/admin/classifier-values/create" },
-        { "epic": "04", "task": "04", "row": 10, "endpoint": "POST /api/v1/admin/classifier-values/update" },
-        { "epic": "04", "task": "04", "row": 10, "endpoint": "POST /api/v1/admin/classifier-values/check-code-exists" }
+        { "epic": "02", "task": "01", "row": 2, "endpoint": "GET /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 1, "endpoint": "GET /v1/users/admin/user" },
+        { "epic": "02", "task": "02", "row": 1, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 1, "endpoint": "PUT /v1/users/admin/update" },
+        { "epic": "02", "task": "04", "row": 2, "endpoint": "GET /v1/user-groups/admin" },
+        { "epic": "02", "task": "05", "row": 1, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 1, "endpoint": "GET /v1/user-groups/admin/user-group" },
+        { "epic": "04", "task": "01", "row": 2, "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "02", "row": 3, "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "02", "row": 3, "endpoint": "GET /v1/classifiers/values" },
+        { "epic": "04", "task": "03", "row": 7, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "04", "row": 10, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 10, "endpoint": "PUT /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 10, "endpoint": "POST /v1/classifiers/check-code" }
       ],
       "logging": {
         "level": "INFO",
@@ -159,12 +159,12 @@
         "Kasutajal puudub õigus `classifier.read` ja ta üritab klassifikaatori detailvaadet avada."
       ],
       "occurrences": [
-        { "epic": "02", "task": "01", "row": 1, "endpoint": "POST /api/v1/admin/users/list" },
-        { "epic": "02", "task": "04", "row": 1, "endpoint": "POST /api/v1/admin/user-groups/list" },
-        { "epic": "02", "task": "06", "row": 2, "endpoint": "POST /api/v1/admin/user-groups/get" },
-        { "epic": "04", "task": "01", "row": 1, "endpoint": "POST /api/v1/admin/classifiers/list" },
-        { "epic": "04", "task": "02", "row": 1, "endpoint": "POST /api/v1/admin/classifiers/get" },
-        { "epic": "04", "task": "02", "row": 1, "endpoint": "POST /api/v1/admin/classifier-values/list" }
+        { "epic": "02", "task": "01", "row": 1, "endpoint": "GET /v1/users/admin" },
+        { "epic": "02", "task": "04", "row": 1, "endpoint": "GET /v1/user-groups/admin" },
+        { "epic": "02", "task": "06", "row": 2, "endpoint": "GET /v1/user-groups/admin/user-group" },
+        { "epic": "04", "task": "01", "row": 1, "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "02", "row": 1, "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "02", "row": 1, "endpoint": "GET /v1/classifiers/values" }
       ],
       "logging": {
         "level": "WARN",
@@ -185,8 +185,8 @@
         "Kasutaja, kellel puudub õigus `user_group.create`, üritab pöörduda kasutajagrupi loomise teenuse poole."
       ],
       "occurrences": [
-        { "epic": "02", "task": "05", "row": 2, "endpoint": "POST /api/v1/admin/user-groups/create" },
-        { "epic": "02", "task": "05", "row": 3, "endpoint": "POST /api/v1/admin/user-groups/create" }
+        { "epic": "02", "task": "05", "row": 2, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "05", "row": 3, "endpoint": "POST /v1/user-groups" }
       ],
       "logging": {
         "level": "WARN",
@@ -208,9 +208,9 @@
         "Kasutaja, kellel puudub õigus `user_group.add_user` või `user_group.remove_user`, üritab pöörduda kasutaja-haldamise teenuse poole."
       ],
       "occurrences": [
-        { "epic": "02", "task": "06", "row": 3, "endpoint": "POST /api/v1/admin/user-groups/update" },
-        { "epic": "02", "task": "06", "row": 3, "endpoint": "POST /api/v1/admin/user-groups/users/add" },
-        { "epic": "02", "task": "06", "row": 3, "endpoint": "POST /api/v1/admin/user-groups/users/remove" }
+        { "epic": "02", "task": "06", "row": 3, "endpoint": "PUT /v1/user-groups/update" },
+        { "epic": "02", "task": "06", "row": 3, "endpoint": "PUT /v1/user-groups/users" },
+        { "epic": "02", "task": "06", "row": 3, "endpoint": "DELETE /v1/user-groups/user" }
       ],
       "logging": {
         "level": "WARN",
@@ -231,7 +231,7 @@
         "Lokaalne kontohaldur, kellel on õigus `user_group.read.local`, pöördub kasutajagrupile, mis pole tema asutusega aktiivselt seotud — õigus kehtib ainult oma asutusega seotud gruppidele."
       ],
       "occurrences": [
-        { "epic": "02", "task": "06", "row": 4, "endpoint": "POST /api/v1/admin/user-groups/get" }
+        { "epic": "02", "task": "06", "row": 4, "endpoint": "GET /v1/user-groups/admin/user-group" }
       ],
       "logging": {
         "level": "WARN",
@@ -252,8 +252,8 @@
         "Kasutaja, kellel puudub õigus `user.edit.admin` või `user.edit.local`, üritab pöörduda kasutaja loomise või muutmise teenuse poole."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 2, "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "02", "row": 2, "endpoint": "POST /api/v1/admin/users/update" }
+        { "epic": "02", "task": "02", "row": 2, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 2, "endpoint": "PUT /v1/users/admin/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -274,8 +274,8 @@
         "Lokaalne kontohaldur, kellel on õigus `user.read.local`, proovib vaadata teise asutuse kasutaja andmeid — õigus kehtib ainult oma asutuse kasutajatele."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 9, "endpoint": "POST /api/v1/admin/users/get" },
-        { "epic": "02", "task": "02", "row": 9, "endpoint": "POST /api/v1/admin/users/update" }
+        { "epic": "02", "task": "02", "row": 9, "endpoint": "GET /v1/users/admin/user" },
+        { "epic": "02", "task": "02", "row": 9, "endpoint": "PUT /v1/users/admin/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -296,7 +296,7 @@
         "Lokaalne kontohaldur, kellel on õigus `user.edit.local`, proovib muuta kasutaja asutust — asutuse muutmine nõuab õigust `user.edit.admin`."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 10, "endpoint": "POST /api/v1/admin/users/change-organisation" }
+        { "epic": "02", "task": "02", "row": 10, "endpoint": "PUT /v1/users/admin/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -317,7 +317,7 @@
         "Kasutaja, kellel puudub õigus `user.edit.admin` või `user.edit.local`, üritab pöörduda kasutaja kasutajagruppide haldamise teenuse poole."
       ],
       "occurrences": [
-        { "epic": "02", "task": "03", "row": 1, "endpoint": "POST /api/v1/admin/users/user-groups/save" }
+        { "epic": "02", "task": "03", "row": 1, "endpoint": "PUT /v1/users/admin/groups" }
       ],
       "logging": {
         "level": "WARN",
@@ -338,7 +338,7 @@
         "Lokaalne kontohaldur, kellel on õigus `user.edit.local`, proovib muuta teise asutuse kasutaja kasutajagruppe — õigus kehtib ainult oma asutuse kasutajatele."
       ],
       "occurrences": [
-        { "epic": "02", "task": "03", "row": 2, "endpoint": "POST /api/v1/admin/users/user-groups/save" }
+        { "epic": "02", "task": "03", "row": 2, "endpoint": "PUT /v1/users/admin/groups" }
       ],
       "logging": {
         "level": "WARN",
@@ -422,30 +422,30 @@
       "message": "",
       "scenarios": [],
       "occurrences": [
-        { "epic": "02", "task": "openapi", "endpoint": "GET /api/v1/admin/permissions/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/organisations/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/create" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/get" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/update" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/add" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/remove" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/search-eligible" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/change-organisation" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/check-personal-code-exists" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/get" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/list" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/organisations/options" },
-        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/update" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/check-code-exists" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/create" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/update" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/list" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/get" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/list" },
-        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/update" }
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/permissions" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/organisations" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}/user-group" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/user-groups/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/user-groups/users" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}/users" },
+        { "epic": "02", "task": "openapi", "endpoint": "DELETE /v1/user-groups/user" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/user-groups/available-users" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/users/{scope}/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/users/{scope}/check-personal-code" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/users/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/users/{scope}/user" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/users/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/organisations" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/users/{scope}/update" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /v1/classifiers/check-code" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "openapi", "endpoint": "PUT /v1/classifiers/value" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers/values" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "openapi", "endpoint": "PUT /v1/classifiers/update" }
       ],
       "logging": {
         "level": "INFO",
@@ -467,10 +467,10 @@
         "Klassifikaatori väärtust ei leitud esitatud identifikaatori alusel."
       ],
       "occurrences": [
-        { "epic": "04", "task": "02", "row": 2, "endpoint": "POST /api/v1/admin/classifiers/get" },
-        { "epic": "04", "task": "03", "row": 2, "endpoint": "POST /api/v1/admin/classifiers/update" },
-        { "epic": "04", "task": "04", "row": 2, "endpoint": "POST /api/v1/admin/classifier-values/create" },
-        { "epic": "04", "task": "04", "row": 3, "endpoint": "POST /api/v1/admin/classifier-values/update" }
+        { "epic": "04", "task": "02", "row": 2, "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "03", "row": 2, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "04", "row": 2, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 3, "endpoint": "PUT /v1/classifiers/value" }
       ],
       "logging": {
         "level": "INFO",
@@ -491,8 +491,8 @@
         "Admin valib kasutaja detailvaate multiselect rippmenüüst kasutajagrupi, mille liikmelisus on juba aktiivne."
       ],
       "occurrences": [
-        { "epic": "02", "task": "03", "row": 5, "endpoint": "POST /api/v1/admin/users/user-groups/save" },
-        { "epic": "02", "task": "06", "row": 9, "endpoint": "POST /api/v1/admin/user-groups/users/add" }
+        { "epic": "02", "task": "03", "row": 5, "endpoint": "PUT /v1/users/admin/groups" },
+        { "epic": "02", "task": "06", "row": 9, "endpoint": "PUT /v1/user-groups/users" }
       ],
       "logging": {
         "level": "WARN",
@@ -513,7 +513,7 @@
         "Admin proovib luua uut kasutajat isikukoodiga, mis on süsteemis juba registreeritud."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 3, "endpoint": "POST /api/v1/admin/users/create" }
+        { "epic": "02", "task": "02", "row": 3, "endpoint": "POST /v1/users/admin" }
       ],
       "logging": {
         "level": "WARN",
@@ -534,7 +534,7 @@
         "Admin proovib muuta kasutaja kasutajagruppe, kuid kasutaja olek on `pending_deactivation` või `inactive`."
       ],
       "occurrences": [
-        { "epic": "02", "task": "03", "row": 3, "endpoint": "POST /api/v1/admin/users/user-groups/save" }
+        { "epic": "02", "task": "03", "row": 3, "endpoint": "PUT /v1/users/admin/groups" }
       ],
       "logging": {
         "level": "WARN",
@@ -555,7 +555,7 @@
         "Admin proovib lisada klassifikaatorisse väärtust koodiga, mis on selles klassifikaatoris juba kasutusel."
       ],
       "occurrences": [
-        { "epic": "04", "task": "04", "row": 4, "endpoint": "POST /api/v1/admin/classifier-values/create" }
+        { "epic": "04", "task": "04", "row": 4, "endpoint": "POST /v1/classifiers/value" }
       ],
       "logging": {
         "level": "WARN",
@@ -576,7 +576,7 @@
         "Administraator eemaldab akordionist 'Seotud asutused' ühe või mitu asutust ja nende asutustega on seotud aktiivseid grupi liikmeid, kuid confirmMemberRemoval puudub päringust."
       ],
       "occurrences": [
-        { "epic": "02", "task": "06", "row": 15, "endpoint": "POST /api/v1/admin/user-groups/update" }
+        { "epic": "02", "task": "06", "row": 15, "endpoint": "PUT /v1/user-groups/update" }
       ],
       "logging": {
         "level": "INFO",
@@ -601,8 +601,8 @@
         "Admin sisestab akordionil \"Kasutajagrupi andmed\" nimetuseks ainult tühikud ja vajutab Salvesta."
       ],
       "occurrences": [
-        { "epic": "02", "task": "05", "row": 4, "endpoint": "POST /api/v1/admin/user-groups/create" },
-        { "epic": "02", "task": "06", "row": 5, "endpoint": "POST /api/v1/admin/user-groups/update" }
+        { "epic": "02", "task": "05", "row": 4, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 5, "endpoint": "PUT /v1/user-groups/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -624,8 +624,8 @@
         "Admin sisestab akordionil \"Kasutajagrupi andmed\" 51 tähemärki pikkuse nimetuse ja vajutab Salvesta."
       ],
       "occurrences": [
-        { "epic": "02", "task": "05", "row": 5, "endpoint": "POST /api/v1/admin/user-groups/create" },
-        { "epic": "02", "task": "06", "row": 6, "endpoint": "POST /api/v1/admin/user-groups/update" }
+        { "epic": "02", "task": "05", "row": 5, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 6, "endpoint": "PUT /v1/user-groups/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -647,8 +647,8 @@
         "Admin avab akordioni \"Seotud asutused\" muutmisrežiimi, eemaldab kõik märkeruudud ja vajutab Salvesta."
       ],
       "occurrences": [
-        { "epic": "02", "task": "05", "row": 6, "endpoint": "POST /api/v1/admin/user-groups/create" },
-        { "epic": "02", "task": "06", "row": 7, "endpoint": "POST /api/v1/admin/user-groups/update" }
+        { "epic": "02", "task": "05", "row": 6, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 7, "endpoint": "PUT /v1/user-groups/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -669,7 +669,7 @@
         "Modaalist edastatud asutuse või õiguse ID ei vasta ühelegi olemasolevale kataloogi kirjele uue kasutajagrupi loomisel."
       ],
       "occurrences": [
-        { "epic": "02", "task": "05", "row": 7, "endpoint": "POST /api/v1/admin/user-groups/create" }
+        { "epic": "02", "task": "05", "row": 7, "endpoint": "POST /v1/user-groups" }
       ],
       "logging": {
         "level": "WARN",
@@ -690,7 +690,7 @@
         "Akordioni salvestamisel saadetakse asutuse, õiguse või kasutaja ID, mida kataloogis ei eksisteeri."
       ],
       "occurrences": [
-        { "epic": "02", "task": "06", "row": 8, "endpoint": "POST /api/v1/admin/user-groups/update" }
+        { "epic": "02", "task": "06", "row": 8, "endpoint": "PUT /v1/user-groups/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -711,7 +711,7 @@
         "Admin valib modaalist \"Lisa kasutaja gruppi\" kasutaja, kelle asutus pole grupiga aktiivselt seotud."
       ],
       "occurrences": [
-        { "epic": "02", "task": "06", "row": 10, "endpoint": "POST /api/v1/admin/user-groups/users/add" }
+        { "epic": "02", "task": "06", "row": 10, "endpoint": "PUT /v1/user-groups/users" }
       ],
       "logging": {
         "level": "WARN",
@@ -732,7 +732,7 @@
         "Admin valib modaalist \"Lisa kasutaja gruppi\" kasutaja, kelle olek on `pending_deactivation` või `inactive`."
       ],
       "occurrences": [
-        { "epic": "02", "task": "06", "row": 11, "endpoint": "POST /api/v1/admin/user-groups/users/add" }
+        { "epic": "02", "task": "06", "row": 11, "endpoint": "PUT /v1/user-groups/users" }
       ],
       "logging": {
         "level": "WARN",
@@ -753,8 +753,8 @@
         "Admin jätab kasutaja loomisel või muutmisel kohustusliku välja tühjaks ja proovib salvestada."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 4, "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "02", "row": 4, "endpoint": "POST /api/v1/admin/users/update" }
+        { "epic": "02", "task": "02", "row": 4, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 4, "endpoint": "PUT /v1/users/admin/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -775,7 +775,7 @@
         "Admin sisestab uue kasutaja loomisel isikukoodi, mille kontrollsumma ei läbi valideerimist."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 5, "endpoint": "POST /api/v1/admin/users/create" }
+        { "epic": "02", "task": "02", "row": 5, "endpoint": "POST /v1/users/admin" }
       ],
       "logging": {
         "level": "WARN",
@@ -796,8 +796,8 @@
         "Admin sisestab kasutaja loomisel või muutmisel vigase e-posti aadressi mustri ja proovib salvestada."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 6, "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "02", "row": 6, "endpoint": "POST /api/v1/admin/users/update" }
+        { "epic": "02", "task": "02", "row": 6, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 6, "endpoint": "PUT /v1/users/admin/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -818,8 +818,8 @@
         "Admin sisestab kasutaja loomisel või muutmisel telefoninumbri, mis sisaldab muid märke kui numbreid ja tühikuid, ja proovib salvestada."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 7, "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "02", "row": 7, "endpoint": "POST /api/v1/admin/users/update" }
+        { "epic": "02", "task": "02", "row": 7, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 7, "endpoint": "PUT /v1/users/admin/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -840,8 +840,8 @@
         "Admin sisestab kasutaja loomisel või muutmisel ligipääsu lõpukuupäeva, mis on varasem kui alguskuupäev, ja proovib salvestada."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 8, "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "02", "row": 8, "endpoint": "POST /api/v1/admin/users/update" }
+        { "epic": "02", "task": "02", "row": 8, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 8, "endpoint": "PUT /v1/users/admin/update" }
       ],
       "logging": {
         "level": "WARN",
@@ -862,7 +862,7 @@
         "Admin proovib kasutajale määrata kasutajagruppi, mis pole kasutaja praeguse asutusega aktiivselt seotud."
       ],
       "occurrences": [
-        { "epic": "02", "task": "03", "row": 4, "endpoint": "POST /api/v1/admin/users/user-groups/save" }
+        { "epic": "02", "task": "03", "row": 4, "endpoint": "PUT /v1/users/admin/groups" }
       ],
       "logging": {
         "level": "WARN",
@@ -883,11 +883,11 @@
         "Andmebaasi või muu süsteemi viga andmete laadimisel."
       ],
       "occurrences": [
-        { "epic": "02", "task": "01", "row": 3, "endpoint": "POST /api/v1/admin/users/list" },
-        { "epic": "02", "task": "04", "row": 3, "endpoint": "POST /api/v1/admin/user-groups/list" },
-        { "epic": "04", "task": "01", "row": 3, "endpoint": "POST /api/v1/admin/classifiers/list" },
-        { "epic": "04", "task": "02", "row": 4, "endpoint": "POST /api/v1/admin/classifiers/get" },
-        { "epic": "04", "task": "02", "row": 4, "endpoint": "POST /api/v1/admin/classifier-values/list" }
+        { "epic": "02", "task": "01", "row": 3, "endpoint": "GET /v1/users/admin" },
+        { "epic": "02", "task": "04", "row": 3, "endpoint": "GET /v1/user-groups/admin" },
+        { "epic": "04", "task": "01", "row": 3, "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "02", "row": 4, "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "02", "row": 4, "endpoint": "GET /v1/classifiers/values" }
       ],
       "logging": {
         "level": "ERROR",
@@ -910,16 +910,16 @@
         "Andmebaasi tehinguviga salvestamisel; tehing rollback'itakse ja andmeid ei salvestata."
       ],
       "occurrences": [
-        { "epic": "02", "task": "02", "row": 12, "endpoint": "POST /api/v1/admin/users/create" },
-        { "epic": "02", "task": "02", "row": 12, "endpoint": "POST /api/v1/admin/users/update" },
-        { "epic": "02", "task": "03", "row": 6, "endpoint": "POST /api/v1/admin/users/user-groups/save" },
-        { "epic": "02", "task": "05", "row": 8, "endpoint": "POST /api/v1/admin/user-groups/create" },
-        { "epic": "02", "task": "06", "row": 12, "endpoint": "POST /api/v1/admin/user-groups/update" },
-        { "epic": "02", "task": "06", "row": 12, "endpoint": "POST /api/v1/admin/user-groups/users/add" },
-        { "epic": "02", "task": "06", "row": 12, "endpoint": "POST /api/v1/admin/user-groups/users/remove" },
-        { "epic": "04", "task": "03", "row": 6, "endpoint": "POST /api/v1/admin/classifiers/update" },
-        { "epic": "04", "task": "04", "row": 9, "endpoint": "POST /api/v1/admin/classifier-values/create" },
-        { "epic": "04", "task": "04", "row": 9, "endpoint": "POST /api/v1/admin/classifier-values/update" }
+        { "epic": "02", "task": "02", "row": 12, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 12, "endpoint": "PUT /v1/users/admin/update" },
+        { "epic": "02", "task": "03", "row": 6, "endpoint": "PUT /v1/users/admin/groups" },
+        { "epic": "02", "task": "05", "row": 8, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 12, "endpoint": "PUT /v1/user-groups/update" },
+        { "epic": "02", "task": "06", "row": 12, "endpoint": "PUT /v1/user-groups/users" },
+        { "epic": "02", "task": "06", "row": 12, "endpoint": "DELETE /v1/user-groups/user" },
+        { "epic": "04", "task": "03", "row": 6, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "04", "row": 9, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 9, "endpoint": "PUT /v1/classifiers/value" }
       ],
       "logging": {
         "level": "ERROR",
