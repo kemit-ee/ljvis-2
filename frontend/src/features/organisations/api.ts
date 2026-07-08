@@ -1,5 +1,5 @@
-import { post } from '../../shared/api/client';
+import { get } from '../../shared/api/client';
 import type { Organisation } from './types';
 
 export const listOrganisations = () =>
-  post<Organisation[]>('/v1/organisations/list', {});
+  get<Organisation[]>('/v1/organisations');

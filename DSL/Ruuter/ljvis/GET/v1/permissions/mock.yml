@@ -1,0 +1,88 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - id: 1
+          code: "user_group.list.admin"
+          description: "Kasutajagruppide nimekirja vaatamine kõigi asutuste ulatuses"
+        - id: 2
+          code: "user_group.list.local"
+          description: "Kasutajagruppide nimekirja vaatamine ainult oma asutusega seotud gruppidele"
+        - id: 3
+          code: "user_group.read.admin"
+          description: "Kasutajagrupi detailvaate algandmete vaatamine kõigi gruppide ulatuses"
+        - id: 4
+          code: "user_group.read.local"
+          description: "Kasutajagrupi detailvaate algandmete vaatamine ainult oma asutusega seotud gruppidele"
+        - id: 5
+          code: "user_group.create"
+          description: "Uue kasutajagrupi loomine"
+        - id: 6
+          code: "user_group.update"
+          description: "Kasutajagrupi nimetuse, asutuste ja õiguste-seoste muutmine"
+        - id: 7
+          code: "user_group.list_users.admin"
+          description: "Kasutajagrupi liikmete pagineeritud nimekiri kõigi asutuste ulatuses"
+        - id: 8
+          code: "user_group.list_users.local"
+          description: "Kasutajagrupi liikmete pagineeritud nimekiri ainult oma asutuse kasutajatele"
+        - id: 9
+          code: "user_group.search_eligible_users"
+          description: "Gruppi sidumiseks sobivate kasutajate otsimine"
+        - id: 10
+          code: "user_group.add_user"
+          description: "Kasutaja(te) sidumine kasutajagrupiga"
+        - id: 11
+          code: "user_group.remove_user"
+          description: "Kasutaja eemaldamine kasutajagrupist"
+        - id: 12
+          code: "user.list.admin"
+          description: "Kasutajate nimekirja vaatamine kõigi asutuste ulatuses"
+        - id: 13
+          code: "user.list.local"
+          description: "Kasutajate nimekirja vaatamine ainult oma asutuse kasutajatele"
+        - id: 14
+          code: "user.read.admin"
+          description: "Kasutaja andmete vaatamine kõigi asutuste ulatuses"
+        - id: 15
+          code: "user.read.local"
+          description: "Kasutaja andmete vaatamine ainult oma asutuse kasutajatele"
+        - id: 16
+          code: "user.edit.admin"
+          description: "Kasutaja lisamine, vaatamine ja muutmine kõigi asutuste ulatuses"
+        - id: 17
+          code: "user.edit.local"
+          description: "Kasutaja lisamine, vaatamine ja muutmine ainult oma asutuse kasutajatele"
+        - id: 18
+          code: "organisation.list"
+          description: "Asutuste kataloogi laadimine UI valikute jaoks (modaalid, akordionite tabelid)"
+        - id: 19
+          code: "permission.list"
+          description: "Õiguste kataloogi laadimine UI valikute jaoks (kasutatakse ainult muutmisrežiimis)"
+        - id: 20
+          code: "classifier.list"
+          description: "Klassifikaatorite nimekirja detailvaate vaatamine"
+        - id: 21
+          code: "classifier.read"
+          description: "Klassifikaatori detailvaate vaatamine"
+        - id: 22
+          code: "classifier.edit"
+          description: "Klassifikaatori nimetuse ja selgituse muutmine"
+        - id: 23
+          code: "classifier_value.edit"
+          description: "Klassifikaatorile uue väärtuse loomine ja väärtuse kehtivusperioodi muutmine"
+        - id: 24
+          code: "audit.read"
+          description: "Auditilogi kirjete vaatamine, filtreerimine, sorteerimine ja eksportimine CSV-failina"
+        - id: 25
+          code: "foreign_violation_form.write"
+          description: "Välisriigi rikkumise andmevormi vormi loomine, täitmine, salvestamine ja failide üleslaadimine"
+        - id: 26
+          code: "foreign_violation_form.read"
+          description: "Välisriigi rikkumise andmevormi vormi andmete lugemine ja failide allalaadimine"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end

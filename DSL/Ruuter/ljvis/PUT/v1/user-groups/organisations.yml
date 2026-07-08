@@ -1,0 +1,152 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Replace all organisation links for a user group"
+  method: put
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "User group ID"
+      - field: addedOrganisationIds
+        type: array
+        description: "Array of added organisation IDs"
+      - field: removedOrganisationIds
+        type: array
+        description: "Array of removed organisation IDs"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    user_group_id: "${incoming.body.id}"
+    added_organisation_ids: "${(incoming.body.addedOrganisationIds ?? []).join(',')}"
+    removed_organisation_ids: "${(incoming.body.removedOrganisationIds ?? []).join(',')}"
+    added_organisation_ids_json: ${JSON.stringify((incoming.body.addedOrganisationIds ?? []).map(Number))}
+    removed_organisation_ids_json: ${JSON.stringify((incoming.body.removedOrganisationIds ?? []).map(Number))}
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+  next: getUserGroup
+
+getUserGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group"
+    headers:
+      type: json
+    body:
+      id: ${user_group_id}
+      organisation_id: 0
+  result: res
+  next: extractResult
+
+extractResult:
+  assign:
+    group_name: "${res.response.body[0].name || ''}"
+  next: setOrgs
+
+setOrgs:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      added_organisation_ids: ${added_organisation_ids}
+      removed_organisation_ids: ${removed_organisation_ids}
+      created_by: ${actor_personal_code}
+  result: setOrgsRes
+  next: checkRemovedOrgs
+
+checkRemovedOrgs:
+  switch:
+    - condition: "${removed_organisation_ids == ''}"
+      next: returnSuccess
+  next: getCascadeRemovedUsers
+
+getCascadeRemovedUsers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_group_users_by_organisations"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      organisation_ids: ${removed_organisation_ids}
+  result: cascadeUsersRes
+  next: extractCascadeUserIds
+
+extractCascadeUserIds:
+  assign:
+    cascade_user_ids: "${cascadeUsersRes.response.body[0].userIds || ''}"
+  next: checkCascadeUsers
+
+checkCascadeUsers:
+  switch:
+    - condition: "${cascade_user_ids == '' || cascade_user_ids == null}"
+      next: returnSuccess
+  next: removeUsersFromGroup
+
+removeUsersFromGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_users"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      user_ids: ${cascade_user_ids}
+      status: "removed"
+      created_by: ${actor_personal_code}
+  result: removeUsersRes
+  next: getCascadePersonalCodes
+
+getCascadePersonalCodes:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_users_by_ids"
+    headers:
+      type: json
+    body:
+      user_ids: ${cascade_user_ids}
+  result: cascadePersonalCodesRes
+  next: returnSuccess
+
+returnSuccess:
+  assign:
+    cascade_removed_json: "${typeof cascadePersonalCodesRes !== 'undefined' ? JSON.stringify((cascadePersonalCodesRes.response.body ?? []).map(u => u.personalCode)) : '[]'}"
+    cascade_removed_str: "${typeof cascadePersonalCodesRes !== 'undefined' && (cascadePersonalCodesRes.response.body ?? []).length > 0 ? ', kaskaad: ' + (cascadePersonalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ') : ''}"
+    description: "Kasutajagrupi ${group_name} muutmine: organisatsioonid${cascade_removed_str}"
+    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":${added_organisation_ids_json},\"removedOrganisationIds\":${removed_organisation_ids_json},\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":${cascade_removed_json}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user_group.update"
+      event_category: "user_group_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${description}
+      log_content: ${log_content}
+      created_by: ${actor_name}
+  result: audit_result
+  next: returnSuccessResult
+
+returnSuccessResult:
+  return: "ok"
+  next: end
