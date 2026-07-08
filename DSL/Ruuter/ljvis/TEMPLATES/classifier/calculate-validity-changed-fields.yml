@@ -15,7 +15,7 @@ declaration:
       - field: valid_until
         type: string
 
-getClassifierCode:
+getExistingClassifierValue:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier_value"
