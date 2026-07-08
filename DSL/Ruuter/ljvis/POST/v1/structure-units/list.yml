@@ -6,6 +6,16 @@ declaration:
   accepts: json
   returns: json
   namespace: structure-units
+  allowlist:
+    body:
+      - field: organisationId
+        type: number
+        description: "Filter by organisation ID"
+
+extractRequestData:
+  assign:
+    organisationId: ${incoming.body.organisationId}
+  next: getStructureUnits
 
 getStructureUnits:
   call: http.post
@@ -13,7 +23,8 @@ getStructureUnits:
     url: "[#LJVIS_RESQL]/structure-units/list_structure_units"
     headers:
       type: json
-    body: {}
+    body:
+      organisationId: ${organisationId}
   result: res
 
 returnSuccess:

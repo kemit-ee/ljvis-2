@@ -47,7 +47,7 @@ SELECT
     :last_name,
     :organisation_id::BIGINT,
     (SELECT name FROM users.organisation WHERE id = :organisation_id::BIGINT),
-    :structural_unit,
+    NULLIF(:structural_unit, ''),
     :job_title,
     :email,
     CASE WHEN COALESCE(:phone, '') = '' THEN NULL ELSE :phone END,

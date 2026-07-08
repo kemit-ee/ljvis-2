@@ -8,7 +8,9 @@ import {
   insertForeignViolationForm
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
+import type { StructureUnit } from '../../../structure-units/types';
 import { listOrganisations } from '../../../organisations/api';
+import { listStructureUnits } from '../../../structure-units/api';
 import { getSerialNumber } from '../../../control-forms/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
@@ -21,6 +23,7 @@ export function useForeignViolationForm(
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
   const [serialNumber, setSerialNumber] = useState<number>();
   const isEdit = !!form;
 
@@ -33,6 +36,12 @@ export function useForeignViolationForm(
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (authUser?.organisationid) {
+      listStructureUnits(Number(authUser.organisationid)).then(setStructureUnits).catch(console.error);
+    }
+  }, [authUser?.organisationid]);
 
   useEffect(() => {
     getSerialNumber().then(setSerialNumber).catch(console.error);
@@ -54,7 +63,6 @@ export function useForeignViolationForm(
     inspectorFirstName: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorLastName: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorOrganisationId: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    inspectorUnit: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required')),
     files: Yup.string().test('no-invalid-files', t('forms.foreign_violation.filesHelper'), (value) => {
       const filesArray = JSON.parse(value || '[]');
@@ -146,11 +154,10 @@ export function useForeignViolationForm(
       | readonly { value: string; label: string | React.ReactNode }[]
       | null,
   ) => {
-    if (val && !Array.isArray(val) && 'value' in val) {
-      formik.setFieldValue('inspectorOrganisationId', (val as { value: string }).value);
-    } else {
-      formik.setFieldValue('inspectorOrganisationId', '');
-    }
+    const newOrgId = val && !Array.isArray(val) && 'value' in val ? (val as { value: string }).value : '';
+    formik.setFieldValue('inspectorOrganisationId', newOrgId);
+    formik.setFieldValue('inspectorUnit', '');
+    listStructureUnits(Number(newOrgId)).then(setStructureUnits).catch(console.error);
   };
 
   const handleStructuralUnitChange = (
@@ -173,6 +180,7 @@ export function useForeignViolationForm(
     formik,
     isEdit,
     formNumberString,
+    structureUnits,
     orgOptions,
     handleOrgChange,
     handleStructuralUnitChange

@@ -169,16 +169,6 @@ export function UserCreatePage() {
                           ) ?? null
                         }
                         onChange={handleStructuralUnitChange}
-                        required
-                        {...(formik.touched.structuralUnitName &&
-                        formik.errors.structuralUnitName
-                          ? {
-                              helper: {
-                                text: formik.errors.structuralUnitName,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
                       />
                     </div>
                     <TextField

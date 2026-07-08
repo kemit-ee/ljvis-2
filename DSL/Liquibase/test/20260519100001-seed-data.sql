@@ -3,10 +3,15 @@
 -- Seed data (v2 denormalized snapshot model)
 
 -- organisations
-INSERT INTO users.organisation (name, code, created_by) VALUES ('Justiitsministeerium', 'JUM', 'ljvis2');
-INSERT INTO users.organisation (name, code, created_by) VALUES ('Sotsiaalministeerium', 'SOT', 'ljvis2');
-INSERT INTO users.organisation (name, code, created_by) VALUES ('Haridusministeerium', 'HAR', 'ljvis2');
-
+INSERT INTO users.organisation (name, code, created_by)
+VALUES
+    ('Politsei- ja Piirivalveamet',                    'PPA',  'SYSTEM'),
+    ('Tööinspektsioon',                                'TI',   'SYSTEM'),
+    ('Maksu- ja Tolliamet',                            'MTA',  'SYSTEM'),
+    ('Eesti Rahvusvaheliste Autovedajate Assotsiatsioon', 'ERAA', 'SYSTEM'),
+    ('Kliimaministeerium',                             'KLIM', 'SYSTEM'),
+    ('Transpordiamet',                                 'TRAM', 'SYSTEM')
+;
 -- permissions catalogue
 INSERT INTO users.permission (code, description, created_by) VALUES ('user_group.list.admin',          'Kasutajagruppide nimekirja vaatamine kõigi asutuste ulatuses',                             'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('user_group.list.local',          'Kasutajagruppide nimekirja vaatamine ainult oma asutusega seotud gruppidele',              'ljvis2');
@@ -65,7 +70,7 @@ INSERT INTO users.user_account (
 ) VALUES (
     nextval('users.seq_user_account_key'),
     '60001019906', 'Admin', 'Super',
-    1, 'Justiitsministeerium', 'PPA_LOUNA', 'Spetsialist',
+    1, 'Politsei- ja Piirivalveamet', 'PPA_LOUNA', 'Spetsialist',
     'admin.super@just.ee', '56789012', '2026-01-01', 'active', ARRAY[1,2]::BIGINT[], 'ljvis2'
 );
 
@@ -77,7 +82,7 @@ INSERT INTO users.user_account (
 ) VALUES (
     nextval('users.seq_user_account_key'),
     '60001017727', 'Org', 'Admin',
-    2, 'Sotsiaalministeerium', 'PPA_IDA', 'Spetsialist',
+    6, 'Transpordiamet', 'TRAM', 'Spetsialist',
     'org.admin@kollane.ee', '123', '2026-02-02', 'active', ARRAY[2]::BIGINT[], 'ljvis2'
 );
 
@@ -89,6 +94,6 @@ INSERT INTO users.user_account (
 ) VALUES (
     nextval('users.seq_user_account_key'),
     '60001017869', 'Mari', 'Tamm',
-    3, 'Haridusministeerium', 'KLIM_HQ', 'Teadur',
+    5, 'Kliimaministeerium', 'KLIM_HQ', 'Teadur',
     'mari.tamm@roheline.ee', '56789012', '2025-01-01', 'active', '{}'::BIGINT[], 'ljvis2'
 );

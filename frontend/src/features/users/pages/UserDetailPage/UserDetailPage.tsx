@@ -224,7 +224,7 @@ export function UserDetailPage() {
                 structuralUnitName={
                   structuralUnitOptions.find(
                     (o) => o.value === user.structuralUnitName,
-                  )?.label ?? user.structuralUnitName ?? '—'
+                  )?.label || user.structuralUnitName || '—'
                 }
               />
             )}

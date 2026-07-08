@@ -17,7 +17,7 @@ import { DatePicker, TimePicker, Accordion, AccordionItem, AccordionItemHeader, 
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, STRUCTURE_UNIT_OPTIONS, EU_VIOLATION_GROUPS, COUNTRIES } from '../../../../constants/constants';
+import { BREAKPOINTS, EU_VIOLATION_GROUPS, COUNTRIES } from '../../../../constants/constants';
 import dayjs from 'dayjs';
 import styles from './ForeignViolationFormPage.module.css';
 
@@ -71,6 +71,7 @@ export function ForeignViolationFormPage() {
   const {
     formik,
     formNumberString,
+    structureUnits,
     orgOptions,
     handleOrgChange,
     handleStructuralUnitChange,
@@ -845,28 +846,19 @@ export function ForeignViolationFormPage() {
                     <Select
                       id="inspectorUnit"
                       label={t('forms.foreign_violation.inspectorUnit')}
-                      options={STRUCTURE_UNIT_OPTIONS.map((opt) => ({
-                        label: t(opt.labelKey),
-                        value: opt.value,
+                      options={structureUnits.map((opt) => ({
+                        label: opt.name,
+                        value: opt.code,
                       }))}
                       value={
-                        STRUCTURE_UNIT_OPTIONS.map((opt) => ({
-                          label: t(opt.labelKey),
-                          value: opt.value,
+                        structureUnits.map((opt) => ({
+                          label: opt.name,
+                          value: opt.code,
                         })).find(
                           (o) => o.value === formik.values.inspectorUnit,
                         ) ?? null
                       }
                       onChange={handleStructuralUnitChange}
-                      required
-                      {...(formik.touched.inspectorUnit && formik.errors.inspectorUnit
-                          ? {
-                            helper: {
-                              text: formik.errors.inspectorUnit,
-                              type: 'error' as const,
-                            },
-                          }
-                          : {})}
                     />
                     <TextField
                       id="inspectorProfession"

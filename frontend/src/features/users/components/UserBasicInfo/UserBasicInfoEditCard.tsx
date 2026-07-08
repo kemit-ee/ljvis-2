@@ -151,16 +151,6 @@ export function UserBasicInfoEditCard({
               }
               onChange={isLocalAdmin ? undefined : handleStructuralUnitChange}
               disabled={isLocalAdmin}
-              required
-              {...(formik.touched.structuralUnitName &&
-              formik.errors.structuralUnitName
-                ? {
-                    helper: {
-                      text: formik.errors.structuralUnitName,
-                      type: 'error' as const,
-                    },
-                  }
-                : {})}
             />
             <TextField
               id="jobTitleName"
