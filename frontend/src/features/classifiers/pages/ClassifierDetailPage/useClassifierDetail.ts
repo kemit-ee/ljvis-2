@@ -13,6 +13,7 @@ export function useClassifierDetail(id: string | undefined) {
   const [classifierValueSearchInput, setClassifierValueSearchInput] =
     useState('');
   const [loading, setLoading] = useState(true);
+  const [totalRows, setTotalRows] = useState(0);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -40,7 +41,8 @@ export function useClassifierDetail(id: string | undefined) {
         }),
       ]);
       setClassifier(classifiers[0] ?? null);
-      setClassifierValues(values);
+      setClassifierValues(values.content);
+      setTotalRows(values.total);
     } catch (e) {
       console.error('Failed to load classifier', e);
     } finally {
@@ -79,5 +81,6 @@ export function useClassifierDetail(id: string | undefined) {
     setPagination,
     sorting,
     setSorting,
+    totalRows,
   };
 }

@@ -21,7 +21,7 @@ export const getClassifierValues = (params: {
   pageSize?: string;
   sorting?: string;
 }) =>
-  get<ClassifierValue[]>(
+  get<PagedResponse<ClassifierValue>>(
     '/v1/classifiers/values',
     params as Record<string, string>,
   );
