@@ -390,95 +390,10 @@ upload-docs:
 | `ErakorralineYlevaatus` | SOAP / MP4.0 | Erakorralise ülevaatuse registreerimine |
 | `RegisterJobInspection` / `V2` | SOAP / MP4.0 | Töökontrolli registreerimine |
 
-> WSDL: `Ljvis.XTeeService/ljvis.wsdl`
+> WSDL: `XTeeService/ljvis.wsdl`
 
----
 
-### 7.6 XTR (X-tee turvaserver) paigaldus
-
-X-tee turvaserver (Security Server, tuntud ka kui **XTR**) on eraldi VM või baremetal server, mis vahendab kõiki X-tee sõnumeid. See ei ole Kubernetes Pod — see on infra-tasandi komponent, mis paigaldatakse eraldi.
-
-#### 7.6.1 Süsteeminõuded
-
-| Parameeter | Miinimum | Soovituslik |
-|-----------|---------|-------------|
-| OS | Ubuntu 22.04 LTS / RHEL 8+ | Ubuntu 22.04 LTS |
-| CPU | 2 tuuma | 4 tuuma |
-| RAM | 4 GB | 8 GB |
-| Ketas | 20 GB | 100 GB (logid) |
-| Avalik IP | Kohustuslik | — |
-| Pordid (sissetulev) | 5500/tcp, 5577/tcp, 80/tcp, 443/tcp | — |
-| Pordid (väljaminev) | 80/tcp, 443/tcp, 5500/tcp, 5577/tcp | — |
-
-#### 7.6.2 Paigaldussammud
-
-| Samm | Toiming |
-|------|---------|
-| 1 | Registreeru X-tee liikmeks RIA-s (`https://www.ria.ee/et/riigi-infosusteem/xtee.html`) |
-| 2 | Hangi organisatsiooni sertifikaat (autentimis- ja allkirjastamissertifikaat) |
-| 3 | Lisa RIA-le turvaserveri IP-aadress ja domeeninimi |
-| 4 | Installi turvaserveri tarkvara: `sudo apt install xroad-securityserver` (Ubuntu) |
-| 5 | Ava turvaserveri admin UI: `https://<turvaserveri-ip>:4000` |
-| 6 | Lae üles organisatsiooni sertifikaadid ja aktiveeri |
-| 7 | Registreeri turvaserver X-tee keskserveris (RIA kinnitab) |
-| 8 | Lisa LJVIS alamsüsteem (`ljvis`) turvaserverile |
-
-> Detailne paigaldus: [X-tee Security Server Installation Guide](https://docs.x-road.global/Manuals/ig-ss_x-road_v6_security_server_installation_guide.html)
-
-#### 7.6.3 LJVIS alamsüsteemi registreerimine turvaserveris
-
-| Samm | Toiming |
-|------|---------|
-| 1 | Turvaserveri admin UI → **Configuration** → **Security Server Clients** |
-| 2 | **Add Client** → sisesta alamsüsteemi kood: `ljvis` |
-| 3 | Lae üles kliendi sertifikaat ja aktiveeri |
-| 4 | Registreeri RIA-s (nõuab RIA kinnitust, tavaliselt 1–3 tööpäeva) |
-| 5 | Lisa teenused (WSDL-i URL: `https://<ljvis-domeen>/xtee/wsdl` või faili tee) |
-
-#### 7.6.4 LJVIS rakenduse seos turvaserveriga
-
-```
-Ruuter DSL  →  HTTP POST tunneli URL  →  XTR turvaserver  →  X-tee  →  sihtregister
-```
-
-| Komponent | Seadistus |
-|-----------|----------|
-| Ruuter DSL fail | `url` väljal tunneli URL (vt §7.3) |
-| XTR → LJVIS suund | Turvaserver helistab LJVIS-i X-tee teenuste endpointidele (vt §7.5) |
-| LJVIS → XTR suund | Ruuter saadab HTTP POST tunneli URL-ile, XTR vahendab X-tee-sse |
-
-#### 7.6.5 Turvaserveri Kubernetes-integratsiooni võimalused
-
-| Variant | Kirjeldus |
-|---------|-----------|
-| **Eraldi VM (soovituslik)** | XTR töötab klastrist väljaspool eraldi serveril; Ruuter pääseb ligi staatiline IP / domeen kaudu |
-| **Klastri-sisene proxy** | XTR-i ees on K8s `ExternalName` Service, mis viitab turvaserveri IP-le — Ruuteri DSL ei vaja muutmist |
-| **NodePort / LoadBalancer** | Sobimatu — XTR vajab fikseeritud IP-d ja portide avamist, mida K8s LB ei taga hästi |
-
-#### 7.6.6 Vajalikud tulemüüri reeglid
-
-| Allikas | Siht | Port | Suund |
-|---------|------|------|-------|
-| XTR turvaserver | X-tee keskserver (RIA) | 80, 443 | väljaminev |
-| XTR turvaserver | Teised X-tee turvaserverid | 5500, 5577 | mõlemad |
-| Ruuter (K8s klaster) | XTR turvaserver | 80 või 443 | väljaminev |
-| XTR turvaserver | LJVIS rakenduse endpoint | 443 | sissetulev (X-tee teenusepakkuja rolliks) |
-| Internet | XTR turvaserver | 5500, 5577 | sissetulev |
-
-#### 7.6.7 Kontrollnimekiri (X-tee)
-
-- [ ] RIA X-tee liikmelisus on kinnitatud
-- [ ] Organisatsiooni autentimis- ja allkirjastamissertifikaadid on hangitud
-- [ ] XTR turvaserver on paigaldatud ja admin UI kättesaadav
-- [ ] Alamsüsteem `ljvis` on turvaserveris registreeritud ja RIA poolt kinnitatud
-- [ ] Tulemüüri reeglid pordid 5500, 5577 (mõlemas suunas) on avatud
-- [ ] Tunneli URL on Ruuteri DSL failides õige (vt §7.3)
-- [ ] Test: LJVIS saab pärida Rahvastikuregistrist (test-identifikaatoriga)
-- [ ] Test: Välispartner saab pärida LJVIS-ist `IsikuKontroll` teenust
-
----
-
-## 8. Käivitusjärjekord ja sõltuvused
+## 7. Käivitusjärjekord ja sõltuvused
 
 | Järjekord | Teenus | Ootab | Kubernetes mehhanism |
 |-----------|--------|-------|----------------------|
@@ -494,9 +409,9 @@ Ruuter DSL  →  HTTP POST tunneli URL  →  XTR turvaserver  →  X-tee  →  s
 
 ---
 
-## 9. Võrgu ligipääsupiirangud
+## 8. Võrgu ligipääsupiirangud
 
-### 9.1 Avaliku ligipääsu reegel
+### 8.1 Avaliku ligipääsu reegel
 
 | Teenus | Internet → teenus | Lubatud |
 |--------|------------------|---------|
@@ -510,7 +425,7 @@ Ruuter DSL  →  HTTP POST tunneli URL  →  XTR turvaserver  →  X-tee  →  s
 | PostgreSQL LJVIS | ei tohi otse | ❌ |
 | PostgreSQL TIM | ei tohi otse | ❌ |
 
-### 9.2 Sisemine liiklus (klastri sees)
+### 8.2 Sisemine liiklus (klastri sees)
 
 | Allikas | Sihteenus | Lubatud |
 |---------|----------|---------|
@@ -526,7 +441,7 @@ Ruuter DSL  →  HTTP POST tunneli URL  →  XTR turvaserver  →  X-tee  →  s
 
 ---
 
-## 10. Paigalduse kontrollnimekiri
+## 9. Paigalduse kontrollnimekiri
 
 ### Infrastruktuur
 
@@ -562,11 +477,6 @@ Ruuter DSL  →  HTTP POST tunneli URL  →  XTR turvaserver  →  X-tee  →  s
 - [ ] Sisselogimine TARA kaudu toimib
 - [ ] API päringud `/api/v1/classifiers` tagastavad vastuse
 
-### X-tee (kui kasutusel)
-
-Vt §7.6.7 — XTR kontrollnimekiri
-
----
 
 ## Viited
 
