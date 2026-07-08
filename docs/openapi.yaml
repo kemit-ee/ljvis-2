@@ -464,9 +464,6 @@ paths:
           required: true
           schema: { type: string }
           description: User group ID.
-        - in: query
-          name: logAudit
-          schema: { type: boolean }
       responses:
         '200':
           description: User group detail.
