@@ -25,6 +25,9 @@ export function useForeignViolationForm(
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
   const [serialNumber, setSerialNumber] = useState<number>();
+  const [companySearchError, setCompanySearchError] = useState(false);
+  const [vehicleSearchError, setVehicleSearchError] = useState(false);
+  const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
   const isEdit = !!form;
 
   const formNumberString = isEdit && form?.formNumber
@@ -160,6 +163,30 @@ export function useForeignViolationForm(
     listStructureUnits(Number(newOrgId)).then(setStructureUnits).catch(console.error);
   };
 
+  const handleCompanyRegCodeSearch = async () => {
+    setCompanySearchError(false);
+    const result = null;
+    if (!result) setCompanySearchError(true);
+  };
+
+  const handleCompanyNameSearch = async () => {
+    setCompanySearchError(false);
+    const result = null;
+    if (!result) setCompanySearchError(true);
+  };
+
+  const handleVehicleSearch = async () => {
+    setVehicleSearchError(false);
+    const result = null;
+    if (!result) setVehicleSearchError(true);
+  };
+
+  const handleLicenceCopyNumberSearch = async () => {
+    setLicenceCopyNumberError(false);
+    const result = null;
+    if (!result) setLicenceCopyNumberError(true);
+  };
+
   const handleStructuralUnitChange = (
     val:
       | { value: string; label: string | React.ReactNode }
@@ -183,6 +210,16 @@ export function useForeignViolationForm(
     structureUnits,
     orgOptions,
     handleOrgChange,
-    handleStructuralUnitChange
+    handleStructuralUnitChange,
+    companySearchError,
+    setCompanySearchError,
+    vehicleSearchError,
+    setVehicleSearchError,
+    licenceCopyNumberError,
+    setLicenceCopyNumberError,
+    handleCompanyRegCodeSearch,
+    handleCompanyNameSearch,
+    handleVehicleSearch,
+    handleLicenceCopyNumberSearch,
   };
 }

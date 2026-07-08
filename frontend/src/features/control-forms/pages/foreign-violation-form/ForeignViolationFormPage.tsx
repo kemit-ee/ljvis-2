@@ -11,7 +11,8 @@ import {
   Card,
   Text,
   ChoiceGroup,
-  FileDropzone
+  FileDropzone,
+  Alert
 } from '@tedi-design-system/react/tedi';
 import { DatePicker, TimePicker, Accordion, AccordionItem, AccordionItemHeader, AccordionItemContent } from '@tedi-design-system/react/community';
 import { useForeignViolationForm } from './useForeignViolationForm';
@@ -75,6 +76,16 @@ export function ForeignViolationFormPage() {
     orgOptions,
     handleOrgChange,
     handleStructuralUnitChange,
+    companySearchError,
+    setCompanySearchError,
+    vehicleSearchError,
+    setVehicleSearchError,
+    licenceCopyNumberError,
+    setLicenceCopyNumberError,
+    handleCompanyRegCodeSearch,
+    handleCompanyNameSearch,
+    handleVehicleSearch,
+    handleLicenceCopyNumberSearch,
   } = useForeignViolationForm(undefined, handleSaved);
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -282,6 +293,13 @@ export function ForeignViolationFormPage() {
                   <Heading element="h3" className="mb-1">
                     {t('forms.foreign_violation.companyBasicInfo')}
                   </Heading>
+                  {companySearchError && (
+                      <div className="mb-1">
+                        <Alert type="danger" size="small" onClose={() => setCompanySearchError(false)}>
+                          {t('common.noResults')}
+                        </Alert>
+                      </div>
+                  )}
                   <div
                     className={
                       styles[
@@ -300,7 +318,8 @@ export function ForeignViolationFormPage() {
                         />
                       </div>
                       <Button
-                        onClick={() => {}}
+                        type="button"
+                        onClick={handleCompanyRegCodeSearch}
                       >
                         {t('common.search')}
                       </Button>
@@ -316,7 +335,8 @@ export function ForeignViolationFormPage() {
                         />
                       </div>
                       <Button
-                        onClick={() => {}}
+                        type="button"
+                        onClick={handleCompanyNameSearch}
                       >
                         {t('common.search')}
                       </Button>
@@ -406,6 +426,13 @@ export function ForeignViolationFormPage() {
                   <Heading element="h3" className="mb-1">
                     {t('forms.foreign_violation.vehicleBasicInfo')}
                   </Heading>
+                  {vehicleSearchError && (
+                      <div className="mb-1">
+                        <Alert type="danger" size="small" onClose={() => setVehicleSearchError(false)}>
+                          {t('common.noResults')}
+                        </Alert>
+                      </div>
+                  )}
                   <div
                     className={
                       styles[
@@ -425,7 +452,8 @@ export function ForeignViolationFormPage() {
                         />
                       </div>
                       <Button
-                        onClick={() => {}}
+                        type="button"
+                        onClick={handleVehicleSearch}
                       >
                         {t('common.search')}
                       </Button>
@@ -501,6 +529,13 @@ export function ForeignViolationFormPage() {
                   <Heading element="h3" className="mb-1">
                     {t('forms.foreign_violation.licenceCopyBasicInfo')}
                   </Heading>
+                  {licenceCopyNumberError && (
+                      <div className="mb-1">
+                        <Alert type="danger" size="small" onClose={() => setLicenceCopyNumberError(false)}>
+                          {t('common.noResults')}
+                        </Alert>
+                      </div>
+                  )}
                   <div
                     className={
                       styles[
@@ -519,7 +554,8 @@ export function ForeignViolationFormPage() {
                         />
                       </div>
                       <Button
-                        onClick={() => {}}
+                        type="button"
+                        onClick={handleLicenceCopyNumberSearch}
                       >
                         {t('common.search')}
                       </Button>

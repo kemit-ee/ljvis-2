@@ -697,6 +697,7 @@
     "loading": "Laadimine...",
     "error": "Tekkis viga",
     "forbidden": "Teil puudub ligipääs sellele lehele",
+    "noResults": "Päring ei tagastanud ühtegi tulemust",
     "errors": {
       "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
       "networkError": "Ühenduse viga. Kontrollige võrguühendust.",
