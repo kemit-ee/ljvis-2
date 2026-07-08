@@ -13,10 +13,9 @@
 4. [Secrets ja ConfigMap-id](#4-secrets-ja-configmap-id)
 5. [Objektisalv (S3)](#5-objektisalv-s3)
 6. [GitLab CI/CD](#6-gitlab-cicd)
-7. [X-tee seadistus](#7-x-tee-seadistus)
-8. [Käivitusjärjekord ja sõltuvused](#8-käivitusjärjekord-ja-sõltuvused)
-9. [Võrgu ligipääsupiirangud](#9-võrgu-ligipääsupiirangud)
-10. [Paigalduse kontrollnimekiri](#10-paigalduse-kontrollnimekiri)
+7. [Käivitusjärjekord ja sõltuvused](#8-käivitusjärjekord-ja-sõltuvused)
+8. [Võrgu ligipääsupiirangud](#9-võrgu-ligipääsupiirangud)
+9. [Paigalduse kontrollnimekiri](#10-paigalduse-kontrollnimekiri)
 
 ---
 
