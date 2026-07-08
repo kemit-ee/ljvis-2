@@ -11,7 +11,7 @@ export function useClassifierValueDetail(valueId: string | undefined) {
     setLoading(true);
     try {
       const result = await getClassifierValue(valueId);
-      setValue(result[0] ?? null);
+      setValue(result.content[0] ?? null);
     } catch (e) {
       console.error('Failed to load classifier value', e);
     } finally {
