@@ -1,0 +1,39 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Logout — expire JWT cookie via TIM and clear browser cookie"
+  method: post
+  accepts: json
+  returns: json
+  namespace: backoffice
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+
+check_cookie:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: return_clear_cookie
+  next: expire_tim_session
+
+expire_tim_session:
+  call: http.post
+  args:
+    url: "[#LJVIS_TIM]/jwt/blacklist"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: expire_result
+  next: return_clear_cookie
+
+return_clear_cookie:
+  headers:
+    Set-Cookie:
+      customJwtCookie: ""
+      Max-Age: 0
+      Path: /
+      Domain: "[#DOMAIN]"
+      SameSite: "Lax"
+  return: "logged out"
+  next: end

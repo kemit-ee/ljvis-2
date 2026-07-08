@@ -1,0 +1,59 @@
+import { get, post, put } from '../../shared/api/client';
+import type {
+  PagedResponse,
+  ListApiParams,
+} from '../../hooks/usePaginatedList';
+import type { Classifier, ClassifierValue } from './types.ts';
+
+export const listClassifiers = (params?: ListApiParams) =>
+  get<PagedResponse<Classifier>>(
+    '/v1/classifiers',
+    params as Record<string, string>,
+  );
+
+export const getClassifier = (id: string) =>
+  get<Classifier[]>('/v1/classifiers/classifier', { id });
+
+export const getClassifierValues = (params: {
+  classifierId: string;
+  search?: string;
+  page?: string;
+  pageSize?: string;
+  sorting?: string;
+}) =>
+  get<PagedResponse<ClassifierValue>>(
+    '/v1/classifiers/values',
+    params as Record<string, string>,
+  );
+
+export const updateClassifier = (data: {
+  id: string;
+  name: string;
+  description: string;
+}) => put<Classifier[]>('/v1/classifiers', data);
+
+export const insertClassifierValue = (data: {
+  classifierId: string;
+  code: string;
+  name: string;
+  validFrom: string;
+  validUntil: string;
+}) => post<ClassifierValue[]>('/v1/classifiers/value', data);
+
+export const getClassifierValue = (
+  classifierId: string,
+  classifierValueId: string,
+) =>
+  get<ClassifierValue>('/v1/classifiers/value', {
+    id: classifierId,
+    valueId: classifierValueId,
+  });
+
+export const updateClassifierValue = (data: {
+  classifierId: string;
+  classifierValueId: string;
+  code: string;
+  name: string;
+  validFrom: string;
+  validUntil: string;
+}) => put<ClassifierValue[]>('/v1/classifiers/value', data);

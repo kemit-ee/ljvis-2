@@ -1,0 +1,30 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: user list view event (accepts pre-built description and log_content)"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: description
+        type: string
+      - field: log_content
+        type: string
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user.list.view"
+    event_category: "user_management"
+    description: ${incoming.body.description}
+    log_content: ${incoming.body.log_content}
+  result: res
+  next: end

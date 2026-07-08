@@ -1,8 +1,0 @@
-get_list:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/mock_list
-  args:
-    page:     "${incoming.body.page}"
-    pageSize: "${incoming.body.pageSize}"
-    search:   "${incoming.body.search}"
-  result: db_response
-return: "${db_response.response.body}"

@@ -1,0 +1,10 @@
+.phone-field {
+  display: flex;
+  align-items: flex-end;
+}
+.phone-prefix {
+  width: 3.5rem;
+}
+.phone-input {
+  flex: 1;
+}

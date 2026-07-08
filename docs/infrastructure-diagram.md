@@ -49,7 +49,7 @@ graph TD
   - Väline API kiht
   - Avaldatud port: `8086:8086`
   - Kasutab `DSL/Ruuter` vooge
-  - Suhtleb `RESQL` ja `Data Mapper` teenustega
+  - Suhtleb `RESQL`, `Data Mapper` ja `TIM` teenustega
 
 - **Ruuter Internal**
   - Sisemiste voogude API kiht

@@ -1,0 +1,36 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: classifier list search event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: search
+        type: string
+      - field: result_count
+        type: number
+
+buildAudit:
+  assign:
+    description: "Klassifikaatorite nimekiri, otsingutermin '${incoming.body.search}', tulemusi ${incoming.body.result_count}"
+    log_content: "{\"searchTerm\":\"${incoming.body.search}\",\"resultCount\":${incoming.body.result_count}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "classifier.list.search"
+    event_category: "classifier_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

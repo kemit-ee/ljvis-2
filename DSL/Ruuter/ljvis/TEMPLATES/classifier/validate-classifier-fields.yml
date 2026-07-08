@@ -1,0 +1,41 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Validate all required classifier form fields"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: name
+        type: string
+
+check_name:
+  switch:
+    - condition: ${incoming.body.name == null || incoming.body.name == ''}
+      next: return_invalid_name
+  next: return_valid
+
+return_valid:
+  return: "valid"
+  next: end
+
+return_invalid_name:
+  assign:
+    error_field: name
+    error_code: required
+  next: emit_invalid
+
+emit_invalid:
+  assign:
+    field_error:
+      type: VALIDATION_ERROR
+      field: ${error_field}
+      code: ${error_code}
+  next: emit_send
+
+emit_send:
+  status: 422
+  return: ${field_error}
+  next: end

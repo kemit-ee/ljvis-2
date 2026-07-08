@@ -1,0 +1,41 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get groups assigned to a user"
+  method: get
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "User UUID"
+
+extractRequestData:
+  assign:
+    user_id: "${incoming.params.q}"
+
+getUserGroups:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user_groups"
+    headers:
+      type: json
+    body:
+      user_id: ${user_id}
+  result: res
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user_assigned_groups"
+    headers:
+      type: json
+    body:
+      groups: ${res.response.body}
+  result: mapped
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

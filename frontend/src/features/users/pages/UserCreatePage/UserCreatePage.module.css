@@ -1,0 +1,25 @@
+.form-grid-desktop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 80%;
+}
+
+.form-grid-mobile {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+.date-row-desktop {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.date-row-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

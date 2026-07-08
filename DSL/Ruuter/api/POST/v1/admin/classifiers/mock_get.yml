@@ -1,6 +1,0 @@
-get_classifier:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/mock_get
-  args:
-    classifierId: "${incoming.body.classifierId}"
-  result: db_response
-return: "${db_response.response.body}"

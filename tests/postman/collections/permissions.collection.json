@@ -1,0 +1,229 @@
+{
+  "info": {
+    "name": "LJVIS — Permissions",
+    "_postman_id": "ljvis-permissions-v1",
+    "description": "Functional tests for /permissions endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/permissions — no cookie → 403",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/permissions",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "permissions"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without cookie', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/permissions — TARA user not registered in LJVIS → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/permissions",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "permissions"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 for TARA user not registered in LJVIS', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/permissions — shape, content and sort order",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/permissions",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "permissions"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const perms = Array.isArray(body) ? body : (body.response || []);",
+              "pm.test('Response is an array', () => pm.expect(perms).to.be.an('array'));",
+              "pm.test('Exactly 23 seeded permissions', () => pm.expect(perms.length).to.equal(23));",
+              "pm.test('Each permission has id, code and description', () => {",
+              "  perms.forEach(p => {",
+              "    pm.expect(p).to.have.property('id');",
+              "    pm.expect(Number(p.id)).to.be.a('number').and.to.be.above(0);",
+              "    pm.expect(p.code).to.be.a('string').and.to.not.be.empty;",
+              "    pm.expect(p.description).to.be.a('string').and.to.not.be.empty;",
+              "  });",
+              "});",
+              "pm.test('No extra fields exposed (id, code, description only)', () => {",
+              "  const keys = Object.keys(perms[0]).sort();",
+              "  pm.expect(keys).to.deep.equal(['code', 'description', 'id'].sort());",
+              "});",
+              "const codes = perms.map(p => p.code);",
+              "pm.test('All user_group permissions present', () => {",
+              "  ['user_group.list.admin','user_group.list.local','user_group.read.admin','user_group.read.local',",
+              "   'user_group.create','user_group.update','user_group.list_users.admin','user_group.list_users.local',",
+              "   'user_group.search_eligible_users','user_group.add_user','user_group.remove_user'",
+              "  ].forEach(code => pm.expect(codes).to.include(code));",
+              "});",
+              "pm.test('All user permissions present', () => {",
+              "  ['user.list.admin','user.list.local','user.read.admin','user.read.local',",
+              "   'user.edit.admin','user.edit.local'",
+              "  ].forEach(code => pm.expect(codes).to.include(code));",
+              "});",
+              "pm.test('Catalogue permissions present', () => {",
+              "  pm.expect(codes).to.include('organisation.list');",
+              "  pm.expect(codes).to.include('permission.list');",
+              "});",
+              "pm.test('Results are ordered: organisation before permission before user', () => {",
+              "  const iOrg  = codes.indexOf('organisation.list');",
+              "  const iPerm = codes.indexOf('permission.list');",
+              "  const iUser = codes.findIndex(c => c.startsWith('user'));",
+              "  pm.expect(iOrg).to.be.above(-1);",
+              "  pm.expect(iOrg).to.be.below(iPerm, 'organisation.list before permission.list');",
+              "  pm.expect(iPerm).to.be.below(iUser, 'permission.list before user.*');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

@@ -1,9 +1,0 @@
-get_list:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_list
-  args:
-    page:           "${incoming.body.page}"
-    pageSize:       "${incoming.body.pageSize}"
-    search:         "${incoming.body.search}"
-    organisationId: "${incoming.body.organisationId}"
-  result: db_response
-return: "${db_response.response.body}"

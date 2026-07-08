@@ -1,7 +1,0 @@
-check_code:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/mock_check_code_exists
-  args:
-    classifierId: "${incoming.body.classifierId}"
-    code:         "${incoming.body.code}"
-  result: db_response
-return: "${db_response.response.body}"

@@ -1,6 +1,0 @@
-get_group:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/user_group/v1/mock_get
-  args:
-    userGroupId: "${incoming.body.userGroupId}"
-  result: db_response
-return: "${db_response.response.body[0]}"

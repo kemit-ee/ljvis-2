@@ -1,0 +1,26 @@
+:global(#classifiers-values-table) td,
+:global(#classifiers-values-table) th {
+  border-left: 1px solid #e5e7eb;
+}
+
+:global(#classifiers-values-table) td:first-child,
+:global(#classifiers-values-table) th:first-child {
+  border-left: none;
+}
+
+:global(#classifiers-values-table)
+  tr:has(:global(.additional-group-row-marker)) {
+  border-top: none;
+}
+
+:global(#classifiers-values-table)
+  tr:has(:global(.additional-group-row-marker))
+  td:nth-child(6) {
+  border-top: 1px solid #e5e7eb;
+}
+
+:global(#classifiers-values-table) td:last-child,
+:global(#classifiers-values-table) th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}

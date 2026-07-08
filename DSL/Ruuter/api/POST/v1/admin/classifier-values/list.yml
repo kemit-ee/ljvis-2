@@ -1,8 +1,0 @@
-get_list:
-  call: http://[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/list
-  args:
-    classifierId: "${incoming.body.classifierId}"
-    page:         "${incoming.body.page}"
-    pageSize:     "${incoming.body.pageSize}"
-  result: db_response
-return: "${db_response.response.body}"

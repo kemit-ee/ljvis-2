@@ -1,0 +1,21 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      id: "1"
+      name: "Super Admin Group"
+      coversAllOrganisations: true
+      organisations:
+        - id: "b0000001-0000-0000-0000-000000000001"
+          name: "Politsei- ja Piirivalveamet"
+        - id: "b0000001-0000-0000-0000-000000000002"
+          name: "Justiitsministeerium"
+      permissions:
+        - code: "user.list.admin"
+          description: "Kasutajate nimekiri (admin)"
+      userCount: 2
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body}
+  next: end
