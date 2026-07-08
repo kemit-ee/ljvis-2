@@ -296,7 +296,29 @@ GET /v1/users/admin/?q=1  →  GET/v1/users/admin/mock.yml
 
 ---
 
-## 8. Seotud dokumendid
+## 8. DSL YAML valideerimine
+
+Pärast iga Ruuter DSL faili loomist või muutmist käivita valideerimiskäsk repo juurkataloogist:
+
+```bash
+python3 -c "
+import yaml, glob
+for f in glob.glob('DSL/Ruuter/**/*.yml', recursive=True):
+    try: yaml.safe_load(open(f))
+    except yaml.YAMLError as e: print(f'FAIL {f}: {e}')
+"
+```
+
+| Tulemus | Tähendus |
+|---------|---------|
+| Väljund puudub | Kõik failid on süntaktiliselt korrektsed |
+| `FAIL DSL/Ruuter/.../foo.yml: ...` | Selles failis on YAML süntaksiviga — paranda enne commit'i |
+
+> **Kohustuslik:** kõik vead tuleb parandada enne commit'i. CI pipeline lükkab tagasi malformeeritud YAML-i.
+
+---
+
+## 9. Seotud dokumendid
 
 - `docs/openapi.yaml` — täielik API leping
 - `docs/api-endpoints.md` — kõigi otspunktide loend tabelina
