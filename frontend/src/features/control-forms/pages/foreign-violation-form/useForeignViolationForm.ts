@@ -69,7 +69,7 @@ export function useForeignViolationForm(
     inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required')),
     files: Yup.string().test('no-invalid-files', t('forms.foreign_violation.filesHelper'), (value) => {
       const filesArray = JSON.parse(value || '[]');
-      return !filesArray.some((f: any) => f.isValid === false);
+      return !filesArray.some((f: { isValid?: boolean }) => f.isValid === false);
     }),
   });
 

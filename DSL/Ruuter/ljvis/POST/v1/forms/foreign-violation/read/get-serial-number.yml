@@ -5,9 +5,9 @@ declaration:
   method: post
   accepts: json
   returns: json
-  namespace: structure-units
+  namespace: forms
 
-getStructureUnits:
+getSerialNumber:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/forms/foreign-violation/get_serial_number"
