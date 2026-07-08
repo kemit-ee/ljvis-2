@@ -21,15 +21,8 @@ export const listUserGroups = (
   );
 };
 
-export const getUserGroup = (
-  scope: 'admin' | 'local',
-  id: string,
-  logAudit: boolean,
-) =>
-  get<UserGroup[]>(`/v1/user-groups/${scope}`, {
-    q: id,
-    logAudit: String(logAudit),
-  });
+export const getUserGroup = (scope: 'admin' | 'local', id: string) =>
+  get<UserGroup[]>(`/v1/user-groups/${scope}`, { q: id });
 
 export const getUserGroupOrganisations = (
   scope: 'admin' | 'local',

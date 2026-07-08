@@ -71,7 +71,7 @@ export function useUserGroupDetail(id: string | undefined) {
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
       const [g, o, p, u] = await Promise.all([
-        getUserGroup(scope, id, true),
+        getUserGroup(scope, id),
         getUserGroupOrganisations(scope, id),
         getUserGroupPermissions(scope, id),
         getUserGroupUsers(scope, {
