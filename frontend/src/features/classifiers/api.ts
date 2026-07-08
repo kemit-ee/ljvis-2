@@ -44,10 +44,10 @@ export const getClassifierValue = (
   classifierId: string,
   classifierValueId: string,
 ) =>
-  get<ClassifierValue[]>(
-    '/v1/classifiers/value',
-    { id: classifierId, valueId: classifierValueId },
-  );
+  get<ClassifierValue>('/v1/classifiers/value', {
+    id: classifierId,
+    valueId: classifierValueId,
+  });
 
 export const updateClassifierValue = (data: {
   classifierId: string;
