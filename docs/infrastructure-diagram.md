@@ -1,6 +1,6 @@
 # LJVIS2 taristu vaade
 
-See diagramm kirjeldab **praegust lokaalse/dev keskkonna taristut**, lähtudes failist `docker-compose.yml`. Arenduskeskkonna avalik aadress on `https://dev.liiklusvalve.ee/`.
+See diagramm kirjeldab **praegust lokaalse/dev keskkonna taristut**. Arenduskeskkonna avalik aadress on `https://dev.liiklusvalve.ee/`.
 
 ## Taristu diagramm
 
@@ -25,7 +25,6 @@ graph TD
     Frontend -->|/api| Ruuter
     Frontend -->|/tim| TIM
 
-    Ruuter -->|autentimine / sessioon| TIM
     Ruuter -->|DSL päringud| Resql
     Ruuter -->|templating / vormindus| DataMapper
     RuuterInternal -->|sisemised vood| Resql
@@ -132,7 +131,7 @@ graph TD
 ## Märkused
 
 - Kõik teenused on samas Docker võrgus: `ljvisnetwork`
-- `TARA Mock` on kommentaari järgi ainult **local dev / CI** jaoks, mitte productionis
+- `TARA Mock` on ainult **local dev / CI** jaoks, mitte productionis
 - Diagramm ei kirjelda Kubernetes/Helm production paigutust, vaid olemasolevat `docker-compose` põhist taristut
 
 ## AWS production / Kubernetes target taristu
@@ -190,7 +189,6 @@ graph TD
     FrontendPod -->|/api| RuuterPod
     FrontendPod -->|/tim| TIMPod
 
-    RuuterPod -->|autentimine / sessioon| TIMPod
     RuuterPod --> ResqlPod
     RuuterPod --> DataMapperPod
     RuuterInternalPod --> ResqlPod
@@ -306,7 +304,6 @@ graph LR
     FrontendC4 -->|kutsub API-t| RuuterC4
     FrontendC4 -->|autentimine| TIMC4
 
-    RuuterC4 -->|autentimine / sessioon| TIMC4
     RuuterC4 -->|andmepäringud| ResqlC4
     RuuterC4 -->|vastuse transformatsioon| DataMapperC4
     RuuterC4 -->|vajadusel välisteenused| XTEE2
