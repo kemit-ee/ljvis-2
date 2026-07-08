@@ -28,6 +28,10 @@ declaration:
         type: string
       - field: status
         type: string
+      - field: structuralunit
+        type: string
+      - field: jobtitle
+        type: string
       - field: permissions
         type: array
         description: "Array of permission codes from all user groups"
@@ -40,6 +44,8 @@ WITH latest_user AS (
         last_name,
         organisation_id,
         organisation_name,
+        structural_unit,
+        job_title,
         email,
         status,
         user_groups
@@ -62,6 +68,8 @@ SELECT
     u.personal_code AS personalcode,
     u.organisation_id AS organisationid,
     u.organisation_name AS organisationname,
+    u.structural_unit AS structuralunit,
+    u.job_title AS jobtitle,
     u.email,
     u.status,
     COALESCE(

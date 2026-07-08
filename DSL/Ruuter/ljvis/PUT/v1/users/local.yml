@@ -80,7 +80,6 @@ validateUser:
     last_name: ${last_name}
     personal_code: ${personal_code}
     organisation_id: ${organisation_id}
-    structural_unit_id: ${structural_unit}
     job_title_name: ${job_title}
     email: ${email}
     access_start: ${access_start}
