@@ -1,5 +1,5 @@
 export interface AuditLog {
-  id: string;
+  eventId: string;
   eventType: string;
   eventCategory: string;
   actorName?: string;

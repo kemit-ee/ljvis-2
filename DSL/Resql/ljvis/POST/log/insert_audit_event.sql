@@ -7,6 +7,9 @@ declaration:
   returns: json
   allowlist:
     body:
+      - field: event_id
+        type: string
+        description: "ULID (26-char base32 Crockford). If omitted or empty, the DB generates one via audit.generate_ulid()."
       - field: event_type
         type: string
         description: "Type of the event"
@@ -30,10 +33,11 @@ declaration:
         description: "Identifier of the user or process that wrote the record"
   response:
     fields:
-      - field: id
-        type: number
+      - field: event_id
+        type: string
 */
 INSERT INTO audit.audit_event (
+    event_id,
     event_type,
     event_category,
     actor_name,
@@ -42,6 +46,7 @@ INSERT INTO audit.audit_event (
     log_content,
     created_by
 ) VALUES (
+    COALESCE(NULLIF(:event_id, ''), audit.generate_ulid()),
     :event_type,
     :event_category,
     :actor_name,
@@ -51,4 +56,4 @@ INSERT INTO audit.audit_event (
     :description,
     :log_content::json,
     :created_by
-) RETURNING id;
+) RETURNING event_id;

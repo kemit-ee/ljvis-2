@@ -51,7 +51,7 @@ export function LogListPage() {
 
   const handleRowClick = useCallback(
     (row: AuditLog) => {
-      navigate(`/logs/${row.id}`);
+      navigate(`/logs/${row.eventId}`);
     },
     [navigate],
   );
@@ -99,7 +99,7 @@ export function LogListPage() {
           return (
             <div className="cell-center">
               <a
-                href={`/logs/${info.row.original.id}`}
+                href={`/logs/${info.row.original.eventId}`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

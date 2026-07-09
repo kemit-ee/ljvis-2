@@ -21,7 +21,7 @@ declaration:
         description: "Sort column and direction (createdAt, eventType, eventCategory, actorName)"
   response:
     fields:
-      - field: id
+      - field: event_id
         type: string
       - field: event_type
         type: string
@@ -41,7 +41,7 @@ declaration:
         type: number
 */
 SELECT
-    e.id,
+    e.event_id,
     e.event_type,
     e.event_category,
     e.actor_name,
