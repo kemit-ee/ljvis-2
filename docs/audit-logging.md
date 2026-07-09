@@ -10,18 +10,16 @@ All audit events are written to the `audit.audit_event` table via RESQL (`POST [
 
 | Field | Description |
 |---|---|
-| `event_id` | ULID (26-char base32 crockford). Time-ordered, sortable, globally unique. Used as the primary key. |
+| `id` | `BIGSERIAL` primary key. Row insertion order — also defines the hash chain sequence. |
 | `event_type` | Action type (see list below) |
 | `event_category` | Domain: `user_management`, `user_group_management`, `classifier_management`, `control_form_management` |
-| `event_time_server` | `timestamptz`, default `now()`. Server-authoritative timestamp. |
+| `created_at` | `timestamptz`, default `now()`. Server-authoritative timestamp. |
 | `actor_name` | Actor's name (sourced from JWT) |
-| `actor_personal_code_hash` | SHA-256 hash of the actor's personal code, keyed with the audit salt (`sha256(personalCode || audit_salt)`); sourced from JWT. Cleartext personal codes are never stored. |
-| `trace_id` | W3C tracecontext trace id (32-hex), extracted from the `traceparent` header on the originating request. Enables cross-reference with Grafana Tempo / Jaeger. See `rest-api-design-guide.md` §10. |
-| `span_id` | W3C tracecontext span id (16-hex) of the request that produced the event. |
+| `actor_personal_code_hash` | `bytea`. SHA-256 hash of the actor's personal code salted with `app.audit_salt`: `digest(personalCode || audit_salt, 'sha256')`. Computed by RESQL at write time. Cleartext personal codes are never stored. |
 | `description` | Human-readable Estonian description |
-| `log_content` | JSON object with additional data |
+| `log_content` | JSONB object with additional data |
 | `prev_row_hash` | `bytea`. `row_hash` of the previous audit row in insertion order. Written by DB trigger, not by DSL. See "Hash chain integrity" below. |
-| `row_hash` | `bytea`. `sha256(canonical(row) || prev_row_hash)`. Written by DB trigger. |
+| `row_hash` | `bytea`. `sha256(id || event_type || created_at || encode(actor_personal_code_hash,'hex') || log_content || encode(prev_row_hash,'hex'))`. Written by DB trigger. |
 | `created_by` | Same as `actor_name` |
 
 ---
@@ -216,13 +214,11 @@ sequenceDiagram
     DB-->>R: [{user rows}]
     R->>DM: map_users_list {users}
     DM-->>R: {content:[], total:N}
-    R->>DM: map_personal_code_hashes {users}
-    DM-->>R: ["sha256:9f2c...", "sha256:71bf..."]
     alt search.length >= 3
         R->>DB: insert_audit_event {event_type:"user.list.search", searchTerm, resultCount}
         DB-->>R: ok
     end
-    R->>DB: insert_audit_event {event_type:"user.list.view", page, resultCount, displayedPersonalCodeHashes}
+    R->>DB: insert_audit_event {event_type:"user.list.view", page, resultCount}
     DB-->>R: ok
     R-->>K: HTTP 200 {content, total}
 ```
@@ -319,9 +315,9 @@ BEGIN
     FOR UPDATE;
   NEW.prev_row_hash := prev;
   NEW.row_hash := digest(
-    NEW.event_id::text || NEW.event_type ||
-    NEW.event_time_server::text ||
-    coalesce(NEW.actor_personal_code_hash, '') ||
+    NEW.id::text || NEW.event_type ||
+    NEW.created_at::text ||
+    coalesce(encode(NEW.actor_personal_code_hash, 'hex'), '') ||
     NEW.log_content::text ||
     encode(prev, 'hex'),
     'sha256');
@@ -341,7 +337,7 @@ concurrent INSERTs within a transaction — no chain fork.
 
 ### Verification: `GET /v1/logs/verify`
 
-The verifier walks the chain in event_id order and compares each row's
+The verifier walks the chain in `id` order and compares each row's
 stored `row_hash` against a recomputed value. First mismatch → chain
 breach at that row. See `docs/openapi.yaml` `getLogsVerify` for the
 response shape.
@@ -351,18 +347,18 @@ Baseline check query:
 ```sql
 WITH ordered AS (
   SELECT
-    event_id,
+    id,
     row_hash,
     prev_row_hash,
-    LAG(row_hash) OVER (ORDER BY event_id) AS expected_prev
+    LAG(row_hash) OVER (ORDER BY id) AS expected_prev
   FROM audit.audit_event
 )
-SELECT event_id
+SELECT id
 FROM ordered
 WHERE prev_row_hash IS DISTINCT FROM COALESCE(expected_prev, '\x00');
 ```
 
-The first returned `event_id` is the breach location. An empty result
+The first returned `id` is the breach location. An empty result
 set means "chain intact over the checked range."
 
 ### External anchoring (deferred)
