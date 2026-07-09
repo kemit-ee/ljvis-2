@@ -1,38 +1,29 @@
 declaration:
   call: declare
-  version: 0.1
-  description: "Write one audit event to the database (base template)"
+  version: 0.2
+  description: "Write one audit event to the database. Actor data is passed in by the caller (already sourced from JWT). Generates a ULID event_id before the INSERT."
   method: post
   accepts: json
   returns: json
   namespace: service
   allowlist:
-    headers:
-      - field: cookie
-        type: string
     body:
       - field: event_type
         type: string
       - field: event_category
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
         type: string
       - field: description
         type: string
       - field: log_content
         type: string
 
-getActorFromTim:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
-  result: timRes
-  next: buildActorFields
-
-buildActorFields:
+generateEventId:
   assign:
-    actor_name: "${timRes.response.body.firstName || ''} ${timRes.response.body.lastName || ''}"
-    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
   next: logToResql
 
 logToResql:
@@ -42,12 +33,13 @@ logToResql:
     headers:
       type: json
     body:
+      event_id: ${event_id}
       event_type: ${incoming.body.event_type}
       event_category: ${incoming.body.event_category}
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
+      actor_name: ${incoming.body.actor_name}
+      actor_personal_code: ${incoming.body.actor_personal_code}
       description: ${incoming.body.description}
       log_content: ${incoming.body.log_content}
-      created_by: ${actor_name}
+      created_by: ${incoming.body.actor_name}
   result: res
   next: end
