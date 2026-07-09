@@ -10,16 +10,18 @@ All audit events are written to the `audit.audit_event` table via RESQL (`POST [
 
 | Field | Description |
 |---|---|
-| `id` | `BIGSERIAL` primary key. Row insertion order — also defines the hash chain sequence. |
+| `event_id` | ULID (26-char base32 crockford). Time-ordered, sortable, globally unique. Used as the primary key. |
 | `event_type` | Action type (see list below) |
 | `event_category` | Domain: `user_management`, `user_group_management`, `classifier_management`, `control_form_management` |
-| `created_at` | `timestamptz`, default `now()`. Server-authoritative timestamp. |
+| `event_time_server` | `timestamptz`, default `now()`. Server-authoritative timestamp. |
 | `actor_name` | Actor's name (sourced from JWT) |
-| `actor_personal_code_hash` | `bytea`. SHA-256 hash of the actor's personal code salted with `app.audit_salt`: `digest(personalCode || audit_salt, 'sha256')`. Computed by RESQL at write time. Cleartext personal codes are never stored. |
+| `actor_personal_code_hash` | SHA-256 hash of the actor's personal code, keyed with the audit salt (`sha256(personalCode || audit_salt)`); sourced from JWT. Cleartext personal codes are never stored. |
+| `trace_id` | W3C tracecontext trace id (32-hex), extracted from the `traceparent` header on the originating request. Enables cross-reference with Grafana Tempo / Jaeger. See `rest-api-design-guide.md` §10. |
+| `span_id` | W3C tracecontext span id (16-hex) of the request that produced the event. |
 | `description` | Human-readable Estonian description |
-| `log_content` | JSONB object with additional data |
+| `log_content` | JSON object with additional data |
 | `prev_row_hash` | `bytea`. `row_hash` of the previous audit row in insertion order. Written by DB trigger, not by DSL. See "Hash chain integrity" below. |
-| `row_hash` | `bytea`. `sha256(id || event_type || created_at || encode(actor_personal_code_hash,'hex') || log_content || encode(prev_row_hash,'hex'))`. Written by DB trigger. |
+| `row_hash` | `bytea`. `sha256(canonical(row) || prev_row_hash)`. Written by DB trigger. |
 | `created_by` | Same as `actor_name` |
 
 ---
@@ -315,9 +317,9 @@ BEGIN
     FOR UPDATE;
   NEW.prev_row_hash := prev;
   NEW.row_hash := digest(
-    NEW.id::text || NEW.event_type ||
-    NEW.created_at::text ||
-    coalesce(encode(NEW.actor_personal_code_hash, 'hex'), '') ||
+    NEW.event_id::text || NEW.event_type ||
+    NEW.event_time_server::text ||
+    coalesce(NEW.actor_personal_code_hash, '') ||
     NEW.log_content::text ||
     encode(prev, 'hex'),
     'sha256');
@@ -337,7 +339,7 @@ concurrent INSERTs within a transaction — no chain fork.
 
 ### Verification: `GET /v1/logs/verify`
 
-The verifier walks the chain in `id` order and compares each row's
+The verifier walks the chain in event_id order and compares each row's
 stored `row_hash` against a recomputed value. First mismatch → chain
 breach at that row. See `docs/openapi.yaml` `getLogsVerify` for the
 response shape.
@@ -347,18 +349,18 @@ Baseline check query:
 ```sql
 WITH ordered AS (
   SELECT
-    id,
+    event_id,
     row_hash,
     prev_row_hash,
-    LAG(row_hash) OVER (ORDER BY id) AS expected_prev
+    LAG(row_hash) OVER (ORDER BY event_id) AS expected_prev
   FROM audit.audit_event
 )
-SELECT id
+SELECT event_id
 FROM ordered
 WHERE prev_row_hash IS DISTINCT FROM COALESCE(expected_prev, '\x00');
 ```
 
-The first returned `id` is the breach location. An empty result
+The first returned `event_id` is the breach location. An empty result
 set means "chain intact over the checked range."
 
 ### External anchoring (deferred)

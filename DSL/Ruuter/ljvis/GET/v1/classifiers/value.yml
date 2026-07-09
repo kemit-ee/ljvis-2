@@ -29,7 +29,18 @@ getClassifierValue:
     body:
       classifier_value_id: ${classifier_value_id}
   result: res
-  next: mapResponse
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${res.response.body.length > 0}
+      next: mapResponse
+  next: notFound
+
+notFound:
+  status: 404
+  return: "Not found"
+  next: end
 
 mapResponse:
   call: http.post

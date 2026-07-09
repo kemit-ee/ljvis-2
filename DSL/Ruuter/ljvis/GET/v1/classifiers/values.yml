@@ -50,7 +50,7 @@ getClassifierValues:
 mapResponse:
   call: http.post
   args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_classifier_value"
+    url: "[#LJVIS_DMAPPER_HBS]/map_classifier_values"
     headers:
       type: json
     body:

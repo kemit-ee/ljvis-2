@@ -13,8 +13,7 @@ export function useClassifierValueDetail(
     if (!classifierId || !valueId) return;
     setLoading(true);
     try {
-      const result = await getClassifierValue(classifierId, valueId);
-      setValue(result.content[0] ?? null);
+      setValue(await getClassifierValue(classifierId, valueId));
     } catch (e) {
       console.error('Failed to load classifier value', e);
     } finally {
