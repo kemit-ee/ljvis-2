@@ -8,7 +8,7 @@ declaration:
   namespace: user-groups
   allowlist:
     params:
-      - field: id
+      - field: q
         type: string
       - field: userId
         type: string
@@ -23,7 +23,7 @@ get_user_context:
 
 extractRequestData:
   assign:
-    user_group_id: "${incoming.params.id}"
+    user_group_id: "${incoming.params.q}"
     user_id: "${incoming.params.userId}"
     actor_name: "${auth_user.firstname} ${auth_user.lastname}"
     actor_personal_code: ${auth_user.personalcode}

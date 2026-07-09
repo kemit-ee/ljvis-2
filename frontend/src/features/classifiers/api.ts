@@ -12,7 +12,7 @@ export const listClassifiers = (params?: ListApiParams) =>
   );
 
 export const getClassifier = (id: string) =>
-  get<Classifier[]>('/v1/classifiers/classifier', { id });
+  get<Classifier[]>('/v1/classifiers/classifier', { q: id });
 
 export const getClassifierValues = (params: {
   classifierId: string;
@@ -44,10 +44,10 @@ export const getClassifierValue = (
   classifierId: string,
   classifierValueId: string,
 ) =>
-  get<ClassifierValue>('/v1/classifiers/value', {
-    id: classifierId,
-    valueId: classifierValueId,
-  });
+  get<ClassifierValue[]>(
+    '/v1/classifiers/value',
+    { q: classifierId, valueId: classifierValueId },
+  );
 
 export const updateClassifierValue = (data: {
   classifierId: string;
