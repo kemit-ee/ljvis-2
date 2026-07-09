@@ -17,6 +17,8 @@ changelog:
     changes: "EPIC 04 re-validation (tasks 01–04). Removed 2 classifier-endpoint rows not traceable to any task spec (classifiers/check-code-exists, classifiers/create). Fixed classifier-values/check-code-exists and classifier-values/create permissions: classifier.edit OR classifier_value.edit → classifier_value.edit only (Task 04 spec authoritative). Updated classifier.edit description to reflect update-only scope."
   - date: 2026-07-07
     changes: "Regenerated §2 against current openapi.yaml paths (RESTful GET/POST/PUT/DELETE surface). Added operationId column so contract linting can verify the link mechanically. Every row references an operationId that exists in docs/openapi.yaml. Prior /api/v1/admin/* RPC-style paths (which no longer exist in the contract) removed."
+  - date: 2026-07-09
+    changes: "Added audit.read and audit.verify to §1; added getLogsVerify row to §2.5 backing the new GET /v1/logs/verify hash-chain integrity endpoint. See docs/audit-logging.md §Hash chain integrity."
 ---
 
 # Permissions Matrix
@@ -48,6 +50,8 @@ changelog:
 | `classifier`   | `read`                    | `classifier.read`                        | Open a classifier's detail view (header + value list).                                                   |
 | `classifier`   | `edit`                    | `classifier.edit`                        | Update a classifier's header (name, description); code is immutable.                                     |
 | `classifier_value` | `edit`                | `classifier_value.edit`                  | Add classifier values and update their validity period (incl. ending and re-opening validity).           |
+| `audit`        | `read`                    | `audit.read`                             | Read audit log entries and export CSV.                                                                   |
+| `audit`        | `verify`                  | `audit.verify`                           | Walk the audit hash chain and confirm integrity. Privileged reader permission separate from `audit.read`. |
 
 ## 2. API endpoint access matrix
 
@@ -112,6 +116,7 @@ changelog:
 | `/v1/logs`        | GET  | `getLogs`       | `audit.read`   |
 | `/v1/logs/log`    | GET  | `getLog`        | `audit.read`   |
 | `/v1/logs/export` | GET  | `getLogsExport` | `audit.read`   |
+| `/v1/logs/verify` | GET  | `getLogsVerify` | `audit.verify` |
 
 ### 2.6 Foreign violation form
 
