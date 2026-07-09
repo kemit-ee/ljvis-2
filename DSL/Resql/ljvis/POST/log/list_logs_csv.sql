@@ -33,6 +33,10 @@ declaration:
         type: string
       - field: created_by
         type: string
+      - field: trace_id
+        type: string
+      - field: span_id
+        type: string
 */
 SELECT
     e.event_id,
@@ -43,7 +47,9 @@ SELECT
     e.description,
     e.log_content::VARCHAR,
     e.created_at,
-    e.created_by
+    e.created_by,
+    e.trace_id,
+    e.span_id
 FROM audit.audit_event e
 WHERE
     COALESCE(:search, '') = ''

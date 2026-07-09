@@ -66,16 +66,10 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | GET | `/v1/logs/export` | `search`, `page`, `pageSize`, `sorting` | ekspordi CSV |
 
 ### Välisriigi rikkumise andmevorm
-| Meetod | Tee | Õigus |
-|--------|-----|-------|
-| POST | `/api/v1/control-forms/foreign-violation` | `foreign_violation_form.write` |
-| GET | `/api/v1/control-forms/foreign-violation/{formKey}` | `foreign_violation_form.read` |
-| PUT | `/api/v1/control-forms/foreign-violation/{formKey}` | `foreign_violation_form.write` |
-| GET | `/api/v1/control-forms/foreign-violation/{formKey}/files` | `foreign_violation_form.read` |
-| POST | `/api/v1/control-forms/foreign-violation/{formKey}/files` | `foreign_violation_form.write` |
-| GET | `/api/v1/control-forms/foreign-violation/{formKey}/files/{fileId}` | `foreign_violation_form.read` |
-| GET | `/api/v1/classifiers/violation-types?regulation=1071_2009` | `classifier.read` |
-| GET | `/api/v1/classifiers/countries` | `classifier.read` |
+| Meetod | Tee | Märkus |
+|--------|-----|--------|
+| POST | `/v1/control-forms/foreign-violation-form/edit` | loo uus vorm (body: form fields) |
+| POST | `/v1/control-forms/foreign-violation-form/read` | päri vorm (body: `id`) |
 
 ---
 
