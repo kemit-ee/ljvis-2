@@ -45,6 +45,8 @@ CREATE TABLE audit.audit_event (
     log_content                 JSONB           NOT NULL DEFAULT '{}',
     created_at                  TIMESTAMPTZ     NOT NULL DEFAULT now(),
     created_by                  VARCHAR(100)    NOT NULL,
+    trace_id                    TEXT,
+    span_id                     TEXT,
     prev_row_hash               BYTEA           NOT NULL DEFAULT '\x00',
     row_hash                    BYTEA           NOT NULL DEFAULT '\x00',
     CONSTRAINT pk_audit_event PRIMARY KEY (event_id)
@@ -60,6 +62,8 @@ COMMENT ON COLUMN audit.audit_event.description IS 'Short human-readable summary
 COMMENT ON COLUMN audit.audit_event.log_content IS 'Flexible JSONB field for event-specific structured data. Contents depend on event_type. Common keys: targetPersonalCode, targetName, organisationId, scope, searchTerm, displayedPersonalCodes, changedFields, addedGroups, removedGroups.';
 COMMENT ON COLUMN audit.audit_event.created_at IS 'Event timestamp (UTC). The audit log is append-only so this also serves as the business event time; rendered as dd.MM.yyyy HH:mm in the UI.';
 COMMENT ON COLUMN audit.audit_event.created_by IS 'Identifier of the user or process that wrote the record (denormalised text, e.g. "Kaiko Kell" or "SYSTEM").';
+COMMENT ON COLUMN audit.audit_event.trace_id IS 'W3C tracecontext trace id (32 lowercase hex chars) extracted from the traceparent header of the originating HTTP request (format: 00-<trace_id>-<span_id>-<flags>). NULL when no traceparent header was present. Enables cross-reference with Grafana Tempo / Jaeger traces.';
+COMMENT ON COLUMN audit.audit_event.span_id  IS 'W3C tracecontext span id (16 lowercase hex chars) of the request that produced the audit event, extracted from the traceparent header. NULL when no traceparent header was present.';
 COMMENT ON COLUMN audit.audit_event.prev_row_hash IS 'row_hash of the immediately preceding row in insertion order (id-1). First row uses the sentinel value ''\x00''. Written by the audit.chain() BEFORE INSERT trigger.';
 COMMENT ON COLUMN audit.audit_event.row_hash IS 'sha256(event_id || event_type || created_at::text || coalesce(actor_personal_code_hash_hex,'''') || log_content::text || encode(prev_row_hash,''hex'')). Written by the audit.chain() BEFORE INSERT trigger. Any tamper breaks the chain at the following row.';
 
