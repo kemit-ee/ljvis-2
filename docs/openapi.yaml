@@ -59,6 +59,9 @@ paths:
     get:
       tags: [auth]
       operationId: getAuthJwtUserinfo
+      x-permissions:
+        public: true
+        description: 'Valid JWT cookie only; no permission check.'
       summary: Get current user info from JWT cookie.
       description: |
         Returns the authenticated user's profile and permissions list
@@ -92,6 +95,9 @@ paths:
     post:
       tags: [auth]
       operationId: postAuthLogout
+      x-permissions:
+        public: true
+        description: 'Valid JWT cookie only; no permission check.'
       summary: Log out and clear JWT cookie.
       description: Blacklists the TIM session and clears the JWT cookie via Set-Cookie header.
       parameters:
@@ -114,6 +120,8 @@ paths:
     get:
       tags: [classifiers]
       operationId: getClassifiers
+      x-permissions:
+        anyOf: [classifier.list]
       summary: List classifiers with search and pagination.
       description: |
         Paginated classifier list with search across code and name. Default
@@ -149,6 +157,8 @@ paths:
     get:
       tags: [classifiers]
       operationId: getClassifier
+      x-permissions:
+        anyOf: [classifier.read]
       summary: Get a single classifier header.
       description: |
         Returns one classifier header with id, code, current name, and
@@ -174,6 +184,8 @@ paths:
     put:
       tags: [classifiers]
       operationId: putClassifier
+      x-permissions:
+        anyOf: [classifier.edit]
       summary: Update classifier name and description.
       description: |
         Inserts a new name/description state row for the classifier and
@@ -205,6 +217,8 @@ paths:
     get:
       tags: [classifier-values]
       operationId: getClassifierValues
+      x-permissions:
+        anyOf: [classifier.read]
       summary: List classifier values with pagination.
       description: |
         Paginated value list for a given classifier. The activeOnly flag
@@ -247,6 +261,8 @@ paths:
     post:
       tags: [classifier-values]
       operationId: postClassifierValue
+      x-permissions:
+        anyOf: [classifier_value.edit]
       summary: Add a new value to a classifier.
       description: |
         Creates a classifier value with code, name, and initial validity
@@ -282,6 +298,8 @@ paths:
     get:
       tags: [classifier-values]
       operationId: getClassifierValue
+      x-permissions:
+        anyOf: [classifier.read]
       summary: Get a single classifier value by ID.
       parameters:
         - in: query
@@ -308,6 +326,8 @@ paths:
     put:
       tags: [classifier-values]
       operationId: putClassifierValue
+      x-permissions:
+        anyOf: [classifier_value.edit]
       summary: Update a classifier value's validity period.
       description: |
         Inserts a new validity state row with the provided validFrom and
@@ -338,6 +358,8 @@ paths:
     post:
       tags: [classifier-values]
       operationId: postClassifierValuesCheckCode
+      x-permissions:
+        anyOf: [classifier_value.edit]
       summary: Check whether a value code exists in a classifier.
       description: |
         Returns a boolean indicating whether the given code already exists
@@ -369,6 +391,8 @@ paths:
     get:
       tags: [classifiers]
       operationId: getClassifiersCatalogue
+      x-permissions:
+        anyOf: [classifier.list]
       summary: List all classifier codes with their current name.
       description: |
         Parameterless list of all classifier codes in the catalogue plus
@@ -392,6 +416,8 @@ paths:
     get:
       tags: [organisations]
       operationId: getOrganisations
+      x-permissions:
+        anyOf: [organisation.list]
       summary: List all organisations.
       description: |
         Returns the full organisation catalogue, sorted by name in Estonian
@@ -419,6 +445,8 @@ paths:
     get:
       tags: [permissions]
       operationId: getPermissions
+      x-permissions:
+        anyOf: [permission.list]
       summary: List all permissions.
       description: |
         Returns the immutable permission catalogue (codes + descriptions)
@@ -449,6 +477,8 @@ paths:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroup
+      x-permissions:
+        anyOf: [user_group.read.admin, user_group.read.local]
       summary: Get user group detail (admin or local scope).
       description: |
         Returns a single user group with its active organisations, active
@@ -482,6 +512,8 @@ paths:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroups
+      x-permissions:
+        anyOf: [user_group.list.admin, user_group.list.local]
       summary: Search/list user groups (admin or local scope).
       description: |
         Paginated user-group list with search across group name and linked
@@ -522,6 +554,8 @@ paths:
     post:
       tags: [user-groups-admin]
       operationId: postUserGroups
+      x-permissions:
+        anyOf: [user_group.create]
       summary: Create a new user group.
       description: |
         Creates a user group atomically together with its organisation
@@ -554,6 +588,8 @@ paths:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroup
+      x-permissions:
+        anyOf: [user_group.update]
       summary: Update user group name.
       description: |
         Updates the name of an existing user group. id must be included in
@@ -594,6 +630,8 @@ paths:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroupOrganisations
+      x-permissions:
+        anyOf: [user_group.read.admin, user_group.read.local]
       summary: Get organisations linked to a user group.
       parameters:
         - in: path
@@ -624,6 +662,8 @@ paths:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroupOrganisations
+      x-permissions:
+        anyOf: [user_group.update]
       summary: Set organisations on a user group.
       description: id must be included in the request body.
       requestBody:
@@ -659,6 +699,8 @@ paths:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroupPermissions
+      x-permissions:
+        anyOf: [user_group.read.admin, user_group.read.local]
       summary: Get permissions linked to a user group.
       parameters:
         - in: path
@@ -689,6 +731,8 @@ paths:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroupPermissions
+      x-permissions:
+        anyOf: [user_group.update]
       summary: Set permissions on a user group.
       description: id must be included in the request body.
       requestBody:
@@ -724,6 +768,8 @@ paths:
     get:
       tags: [user-groups-admin]
       operationId: getUserGroupUsers
+      x-permissions:
+        anyOf: [user_group.list_users.admin, user_group.list_users.local]
       summary: List users belonging to a user group (paginated).
       description: |
         Paginated list of active members of a user group. Local account
@@ -768,6 +814,8 @@ paths:
     put:
       tags: [user-groups-admin]
       operationId: putUserGroupUsers
+      x-permissions:
+        anyOf: [user_group.add_user]
       summary: Add users to a user group.
       description: |
         Binds one or more users to a user group. id must be included in
@@ -803,6 +851,8 @@ paths:
     delete:
       tags: [user-groups-admin]
       operationId: deleteUserGroupUser
+      x-permissions:
+        anyOf: [user_group.remove_user]
       summary: Remove a user from a user group.
       description: |
         Marks a user's membership in the given group as removed by inserting
@@ -838,6 +888,8 @@ paths:
     post:
       tags: [user-groups-admin]
       operationId: postUserGroupsAvailableUsers
+      x-permissions:
+        anyOf: [user_group.search_eligible_users]
       summary: Search users eligible to be added to a user group.
       description: |
         Returns users that may be added to the group: organisation actively
@@ -870,6 +922,8 @@ paths:
     get:
       tags: [users-admin]
       operationId: getUser
+      x-permissions:
+        anyOf: [user.read.admin, user.read.local]
       summary: Get user detail (admin or local scope).
       description: |
         Returns a single user with personal data, organisation, structural
@@ -901,6 +955,8 @@ paths:
     post:
       tags: [users-admin]
       operationId: postUsers
+      x-permissions:
+        anyOf: [user.edit.admin, user.edit.local]
       summary: Create a new user account.
       description: |
         Creates an immutable identity row (user_account), an initial
@@ -945,6 +1001,8 @@ paths:
     put:
       tags: [users-admin]
       operationId: putUser
+      x-permissions:
+        anyOf: [user.edit.admin, user.edit.local]
       summary: Update user personal data and access period.
       description: |
         Inserts a new user_account_data_state snapshot with updated fields.
@@ -986,6 +1044,8 @@ paths:
     get:
       tags: [users-admin]
       operationId: getUsers
+      x-permissions:
+        anyOf: [user.list.admin, user.list.local]
       summary: Search/list users (admin or local scope).
       description: |
         Paginated user list with free-text search over first name and last
@@ -1026,6 +1086,8 @@ paths:
     get:
       tags: [users-admin]
       operationId: getUserGroups2
+      x-permissions:
+        anyOf: [user.read.admin, user.read.local]
       summary: Get user group memberships for a user.
       parameters:
         - in: path
@@ -1053,6 +1115,8 @@ paths:
     put:
       tags: [users-admin]
       operationId: putUserGroups
+      x-permissions:
+        anyOf: [user.edit.admin, user.edit.local]
       summary: Bulk save user group memberships for a user.
       description: |
         Atomically adds and removes group memberships for a user.
@@ -1099,6 +1163,8 @@ paths:
     post:
       tags: [users-admin]
       operationId: postUsersCheckPersonalCode
+      x-permissions:
+        anyOf: [user.edit.admin, user.edit.local]
       summary: Check whether a personal code is already registered.
       description: |
         Boolean pre-INSERT existence check used before creating a new user
@@ -1134,6 +1200,8 @@ paths:
     get:
       tags: [logs]
       operationId: getLogs
+      x-permissions:
+        anyOf: [audit.read]
       summary: List audit log entries (paginated).
       description: |
         Paginated audit log list with free-text search over event type,
@@ -1168,6 +1236,8 @@ paths:
     get:
       tags: [logs]
       operationId: getLog
+      x-permissions:
+        anyOf: [audit.read]
       summary: Get a single audit log entry.
       parameters:
         - in: query
@@ -1193,6 +1263,8 @@ paths:
     get:
       tags: [logs]
       operationId: getLogsExport
+      x-permissions:
+        anyOf: [audit.read]
       summary: Export audit log entries as CSV.
       description: |
         Accepts filter/sort as query params and returns a CSV file.
@@ -1283,6 +1355,8 @@ paths:
     post:
       tags: [foreign-violation-forms]
       operationId: postForeignViolationForm
+      x-permissions:
+        anyOf: [foreign_violation_form.write]
       summary: Create a new foreign violation form.
       description: |
         Creates a new form (generates form number `vr-YYYY-NNNNN/V`) and appends
@@ -1319,6 +1393,8 @@ paths:
     get:
       tags: [foreign-violation-forms]
       operationId: getForeignViolationForm
+      x-permissions:
+        anyOf: [foreign_violation_form.read]
       summary: Get the latest snapshot of a foreign violation form.
       description: |
         Returns the latest snapshot row for the given form key.
@@ -1346,6 +1422,8 @@ paths:
     put:
       tags: [foreign-violation-forms]
       operationId: putForeignViolationForm
+      x-permissions:
+        anyOf: [foreign_violation_form.write]
       summary: Save (update) an existing foreign violation form.
       description: |
         Appends a new snapshot row — previous data is not overwritten.
@@ -1387,6 +1465,8 @@ paths:
     get:
       tags: [foreign-violation-forms]
       operationId: getForeignViolationFormFiles
+      x-permissions:
+        anyOf: [foreign_violation_form.read]
       summary: List file attachments for a form.
       description: |
         Returns the list of file metadata attached to the given form key.
@@ -1415,6 +1495,8 @@ paths:
     post:
       tags: [foreign-violation-forms]
       operationId: postForeignViolationFormFiles
+      x-permissions:
+        anyOf: [foreign_violation_form.write]
       summary: Upload a file attachment to a form snapshot.
       description: |
         Uploads a file and attaches its metadata to the form snapshot.
@@ -1463,6 +1545,8 @@ paths:
     get:
       tags: [foreign-violation-forms]
       operationId: getForeignViolationFormFile
+      x-permissions:
+        anyOf: [foreign_violation_form.read]
       summary: Download a specific file attachment.
       description: |
         Returns the binary content of the requested file from S3.
@@ -1496,6 +1580,8 @@ paths:
     get:
       tags: [foreign-violation-forms]
       operationId: getClassifierViolationTypes
+      x-permissions:
+        anyOf: [classifier.read]
       summary: Get EU Regulation 1071/2009 violation types grouped by severity.
       description: |
         Returns classifier values from `EU_INFRINGEMENT` (153 values) filtered by
@@ -1526,6 +1612,8 @@ paths:
     get:
       tags: [foreign-violation-forms]
       operationId: getClassifierCountries
+      x-permissions:
+        anyOf: [classifier.read]
       summary: Get countries classifier.
       description: |
         Returns all values from the `countries` classifier.

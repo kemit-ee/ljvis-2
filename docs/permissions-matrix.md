@@ -18,6 +18,7 @@ changelog:
   - date: 2026-07-07
     changes: "Regenerated §2 against current openapi.yaml paths (RESTful GET/POST/PUT/DELETE surface). Added operationId column so contract linting can verify the link mechanically. Every row references an operationId that exists in docs/openapi.yaml. Prior /api/v1/admin/* RPC-style paths (which no longer exist in the contract) removed."
   - date: 2026-07-09
+    changes: "Introduced x-permissions extension in docs/openapi.yaml as the authoritative source of per-operation permission requirements. §2 preamble updated to describe openapi as source of truth. Added scripts/lint-permissions-matrix.sh to enforce three invariants in CI: (a) every operationId has a non-empty x-permissions block, (b) every openapi operationId appears in matrix §2, (c) every matrix §2 operationId exists in openapi."
     changes: "Added audit.read and audit.verify to §1; added getLogsVerify row to §2.5 backing the new GET /v1/logs/verify hash-chain integrity endpoint. See docs/audit-logging.md §Hash chain integrity."
 ---
 
@@ -55,9 +56,25 @@ changelog:
 
 ## 2. API endpoint access matrix
 
-> Each row corresponds to one `docs/openapi.yaml` `operationId`. CI checks
-> both directions: every matrix-row `operationId` must exist in the OpenAPI,
-> and every `operationId` must be covered here.
+> Each row corresponds to one `docs/openapi.yaml` `operationId`. The OpenAPI
+> spec carries the authoritative permission requirement per operation as a
+> non-standard `x-permissions` extension:
+>
+> ```yaml
+> operationId: getUser
+> x-permissions:
+>   anyOf: [user.read.admin, user.read.local]
+> ```
+>
+> This table is a rendered view of that data. Ruuter `.guard` files consume
+> the same `x-permissions` values, so a single edit in `openapi.yaml`
+> updates the contract, the runtime check, and this documentation in one
+> step.
+>
+> CI runs `scripts/lint-permissions-matrix.sh` on every change: every
+> matrix-row `operationId` must exist in the OpenAPI, every `operationId`
+> must be covered here, and every operation must have a non-empty
+> `x-permissions` block.
 
 ### 2.1 User groups
 
