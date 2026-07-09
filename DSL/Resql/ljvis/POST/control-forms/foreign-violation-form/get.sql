@@ -101,6 +101,8 @@ declaration:
         type: string
       - field: status
         type: string
+      - field: created_by
+        type: string
 */
 SELECT
   foreign_violation_form_key AS id,
@@ -146,6 +148,7 @@ SELECT
   inspector_unit,
   inspector_profession,
   files::text,
-  status
+  status,
+  created_by
 FROM forms.foreign_violation_form
 WHERE foreign_violation_form_key = :id;

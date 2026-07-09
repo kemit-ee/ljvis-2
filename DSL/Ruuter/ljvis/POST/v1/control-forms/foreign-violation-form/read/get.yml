@@ -12,9 +12,18 @@ declaration:
         type: number
         description: "Foreign violation form ID"
 
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: getForm
 
 getForm:
@@ -26,6 +35,28 @@ getForm:
     body:
       id: ${id}
   result: res
+  next: extractFormData
+
+extractFormData:
+  assign:
+    form_number: "${res.response.body[0].formNumber}"
+    created_by: "${res.response.body[0].createdBy}"
+  next: checkShouldLog
+
+checkShouldLog:
+  switch:
+    - condition: ${actor_personal_code != created_by}
+      next: logAuditEvent
+  next: mapResponse
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-view"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+  result: audit_result
   next: mapResponse
 
 mapResponse:
