@@ -17,8 +17,10 @@ All audit events are written to the `audit.audit_event` table via RESQL (`POST [
 | `actor_personal_code_hash` | SHA-256 hash of the actor's personal code, keyed with the audit salt: `digest(personalCode \|\| audit_salt, 'sha256')`. Computed by RESQL at INSERT time. Cleartext personal codes are never stored. |
 | `description` | Human-readable Estonian description of the event |
 | `log_content` | JSONB object with event-specific structured data |
-| `created_at` | `timestamptz`, default `now()`. Server-authoritative event timestamp. |
+| `created_at` | `timestamptz`, default `now()`. Server-authoritative event timestamp. Also referred to as `event_time_server` in the API contract — the two names refer to the same column. |
 | `created_by` | Same as `actor_name` |
+| `trace_id` | W3C tracecontext trace id (32 lowercase hex chars) extracted from the `traceparent` header of the originating request. `NULL` when no `traceparent` header was present. Enables cross-reference with Grafana Tempo / Jaeger. |
+| `span_id` | W3C tracecontext span id (16 lowercase hex chars) extracted from the `traceparent` header. `NULL` when absent. |
 | `prev_row_hash` | `bytea`. `row_hash` of the previous row. Written by DB trigger. See "Hash chain integrity" below. |
 | `row_hash` | `bytea`. `sha256(event_id \|\| event_type \|\| created_at::text \|\| actor_personal_code_hash_hex \|\| log_content::text \|\| prev_row_hash_hex)`. Written by DB trigger. |
 
@@ -41,6 +43,9 @@ All audit events are written to the `audit.audit_event` table via RESQL (`POST [
 | `control_form.foreign_violation.create` | `control_form_management` | **Always** when creating a new foreign violation form (first save) |
 | `control_form.foreign_violation.update` | `control_form_management` | **Only** when at least one field changed (compared to the previous snapshot) |
 | `control_form.foreign_violation.view` | `control_form_management` | **Only** when the viewer differs from the form's creator |
+| `authz.denied` | `access_control` | *(planned)* When `.guard` or an endpoint denies access (403). `log_content.requiredPermission`, `log_content.endpoint`. |
+| `authz.scope_violation` | `access_control` | *(planned)* When a local-scope user attempts to access a resource in a different organisation. |
+| `input.rate_limited` | `access_control` | *(planned)* When a request is rejected due to a rate-limit violation (429). |
 
 ---
 
@@ -331,10 +336,24 @@ CREATE TRIGGER audit_event_chain
 `SELECT ... FOR UPDATE` on the single-row `chain_tip` serialises
 concurrent INSERTs within a transaction — no chain fork.
 
-### Verification
+### Verification: `GET /v1/logs/verify`
 
-Baseline SQL check (run directly against DB — no dedicated API endpoint yet):
+The endpoint walks the chain in `event_id` order and compares each row's stored `prev_row_hash` against the previous row's `row_hash`. Requires `audit.verify` permission.
 
+Query parameters (both optional):
+- `from` — start `event_id` (inclusive); omit to start from the genesis row
+- `to` — end `event_id` (inclusive); omit to walk to the current tail
+
+Response shape (see `docs/openapi.yaml` `getLogsVerify`):
+```json
+{ "ok": true, "checked": 15234, "fromEventId": "01J…", "toEventId": "01J…" }
+```
+On breach:
+```json
+{ "ok": false, "checked": 5721, "firstBreachEventId": "01J…", "reason": "prev_row_hash_mismatch", "fromEventId": "01J…", "toEventId": "01J…" }
+```
+
+Baseline SQL equivalent (for direct DB access):
 ```sql
 WITH ordered AS (
   SELECT
@@ -349,8 +368,7 @@ FROM ordered
 WHERE prev_row_hash IS DISTINCT FROM COALESCE(expected_prev, '\x00');
 ```
 
-The first returned `event_id` is the breach location. An empty result
-set means "chain intact over the checked range."
+The first returned `event_id` is the breach location. An empty result set means "chain intact over the checked range."
 
 ### External anchoring (deferred)
 

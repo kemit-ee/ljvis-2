@@ -31,6 +31,12 @@ declaration:
       - field: created_by
         type: string
         description: "Identifier of the user or process that wrote the record"
+      - field: trace_id
+        type: string
+        description: "W3C tracecontext trace id (32-hex) from the originating request traceparent header. NULL if absent."
+      - field: span_id
+        type: string
+        description: "W3C tracecontext span id (16-hex) from the originating request traceparent header. NULL if absent."
   response:
     fields:
       - field: event_id
@@ -44,7 +50,9 @@ INSERT INTO audit.audit_event (
     actor_personal_code_hash,
     description,
     log_content,
-    created_by
+    created_by,
+    trace_id,
+    span_id
 ) VALUES (
     COALESCE(NULLIF(:event_id, ''), audit.generate_ulid()),
     :event_type,
@@ -55,5 +63,7 @@ INSERT INTO audit.audit_event (
          ELSE NULL END,
     :description,
     :log_content::json,
-    :created_by
+    :created_by,
+    NULLIF(:trace_id, ''),
+    NULLIF(:span_id, '')
 ) RETURNING event_id;

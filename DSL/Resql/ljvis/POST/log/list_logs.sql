@@ -37,6 +37,10 @@ declaration:
         type: string
       - field: created_by
         type: string
+      - field: trace_id
+        type: string
+      - field: span_id
+        type: string
       - field: total
         type: number
 */
@@ -49,6 +53,8 @@ SELECT
     e.description,
     e.created_at,
     e.created_by,
+    e.trace_id,
+    e.span_id,
     (COUNT(*) OVER ())::INTEGER AS total
 FROM audit.audit_event e
 WHERE
