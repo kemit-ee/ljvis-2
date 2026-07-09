@@ -35,6 +35,7 @@ function createStatus(accessEnd: string): string {
 export function useUserForm(
   user: User | undefined,
   onSaved: (id?: string) => void,
+  enabled = true,
 ) {
   const { t } = useTranslation();
   const { user: authUser, hasPermission } = useAuth();
@@ -47,8 +48,9 @@ export function useUserForm(
   const isEdit = !!user;
 
   useEffect(() => {
+    if (!enabled) return;
     listOrganisations().then(setOrganisations).catch(console.error);
-  }, []);
+  }, [enabled]);
 
   const initialOrgId = user?.organisationId ?? (isLocalAdmin ? authUser?.organisationid : undefined);
   useEffect(() => {
@@ -58,16 +60,17 @@ export function useUserForm(
   }, [initialOrgId]);
 
   useEffect(() => {
-    if (!authUser) return;
+    if (!enabled || !authUser) return;
     getUserGroups(userScope, authUser.id)
       .then((groups) => {
         if (groups.some((g) => g.name === SUPER_ADMIN_GROUP)) return;
         setIsLocalAdmin(groups.some((g) => g.name === LOCAL_ADMIN_GROUP));
       })
       .catch(console.error);
-  }, [authUser]);
+  }, [enabled, authUser]);
 
   useEffect(() => {
+    if (!enabled) return;
     const params = user?.organisationName
       ? { search: user.organisationName }
       : undefined;
@@ -77,7 +80,7 @@ export function useUserForm(
         setAllGroups(paged.content.map((g) => ({ ...g, id: String(g.id) }))),
       )
       .catch(console.error);
-  }, [user?.organisationName]);
+  }, [enabled, user?.organisationName]);
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required(t('users.validation.required')),

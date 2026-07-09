@@ -369,7 +369,7 @@ export function UserGroupDetailPage() {
           return (
             <div>
               {canRemoveUser && (
-                <>
+                <ModalProvider>
                   <ModalTrigger>
                     <a className="table-link danger-text">
                       {t('common.remove')}
@@ -402,7 +402,7 @@ export function UserGroupDetailPage() {
                       </div>
                     </CardContent>
                   </Modal>
-                </>
+                </ModalProvider>
               )}
             </div>
           );
@@ -417,8 +417,7 @@ export function UserGroupDetailPage() {
   if (!group) return <Text>{t('common.error')}</Text>;
 
   return (
-    <ModalProvider>
-      <div>
+    <div>
         {showNewUserAddedAlert && (
           <div className="mb-1">
             <Alert
@@ -562,7 +561,6 @@ export function UserGroupDetailPage() {
             />
           </Card.Content>
         </Card>
-      </div>
-    </ModalProvider>
+    </div>
   );
 }

@@ -10,11 +10,9 @@ export interface Classifier {
 export interface ClassifierValue {
   classifierId: string;
   classifierValueId: string;
-  classifierCode: string;
   code: string;
   name: string;
   validFrom: string;
   validUntil: string;
-  isValid: boolean;
-  total?: number;
+  isValid?: string;
 }

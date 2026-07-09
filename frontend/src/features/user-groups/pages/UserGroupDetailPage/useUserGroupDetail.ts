@@ -71,7 +71,7 @@ export function useUserGroupDetail(id: string | undefined) {
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
       const [g, o, p, u] = await Promise.all([
-        getUserGroup(scope, id, true),
+        getUserGroup(scope, id),
         getUserGroupOrganisations(scope, id),
         getUserGroupPermissions(scope, id),
         getUserGroupUsers(scope, {
@@ -218,8 +218,8 @@ export function useUserGroupDetail(id: string | undefined) {
   const handleDeleteUser = async (userId: string) => {
     if (!id || !userId) return;
     try {
-      const result = await deleteUserGroupUser(id, userId);
-      console.log('Vastus: ', result);
+      await deleteUserGroupUser(id, userId);
+      await fetchData();
     } catch (e) {
       console.error('Failed to delete user from group', e);
     }

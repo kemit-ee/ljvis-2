@@ -1,0 +1,151 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Create a new user"
+  method: post
+  accepts: json
+  returns: json
+  namespace: users
+  allowlist:
+    body:
+      - field: firstName
+        type: string
+      - field: lastName
+        type: string
+      - field: personalCode
+        type: string
+      - field: organisationId
+        type: string
+      - field: structuralUnitName
+        type: string
+      - field: jobTitleName
+        type: string
+      - field: email
+        type: string
+      - field: phone
+        type: string
+      - field: accessStart
+        type: string
+      - field: accessEnd
+        type: string
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    first_name: "${incoming.body.firstName}"
+    last_name: "${incoming.body.lastName}"
+    personal_code: "${incoming.body.personalCode}"
+    organisation_id: "${incoming.body.organisationId}"
+    structural_unit: "${incoming.body.structuralUnitName}"
+    job_title: "${incoming.body.jobTitleName}"
+    email: "${incoming.body.email}"
+    phone: "${incoming.body.phone ?? ''}"
+    access_start: "${incoming.body.accessStart}"
+    access_end: "${incoming.body.accessEnd ?? ''}"
+    created_by: "${auth_user.personalcode}"
+  next: validateUser
+
+validateUser:
+  template: "[#LJVIS_PROJECT_LAYER]/user/validate-user-fields"
+  requestType: templates
+  body:
+    first_name: ${first_name}
+    last_name: ${last_name}
+    personal_code: ${personal_code}
+    organisation_id: ${organisation_id}
+    job_title_name: ${job_title}
+    email: ${email}
+    access_start: ${access_start}
+  result: field_error
+  next: checkUser
+
+checkUser:
+  switch:
+    - condition: ${field_error != 'valid'}
+      next: propagate_error
+  next: checkPersonalCodeConflict
+
+checkPersonalCodeConflict:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/check_personal_code_conflict"
+    headers:
+      type: json
+    body:
+      personal_code: ${personal_code}
+      id: ""
+  result: conflictRes
+  next: checkConflictResult
+
+checkConflictResult:
+  switch:
+    - condition: ${conflictRes.response.body.length > 0}
+      next: return_conflict
+  next: createUser
+
+createUser:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/insert_user_account"
+    headers:
+      type: json
+    body:
+      personal_code: ${personal_code}
+      first_name: ${first_name}
+      last_name: ${last_name}
+      organisation_id: ${organisation_id}
+      email: ${email}
+      phone: ${phone}
+      structural_unit: ${structural_unit}
+      job_title: ${job_title}
+      access_start: ${access_start}
+      access_end: ${access_end}
+      created_by: ${created_by}
+  result: userRes
+  next: buildAuditLog
+
+buildAuditLog:
+  assign:
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: ${auth_user.personalcode}
+    view_description: "Kasutaja loomine: ${first_name} ${last_name} (${personal_code})"
+    view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"organisationId\":${organisation_id}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_type: "user.create"
+      event_category: "user_management"
+      actor_name: ${actor_name}
+      actor_personal_code: ${actor_personal_code}
+      description: ${view_description}
+      log_content: ${view_log_content}
+      created_by: ${actor_name}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${userRes.response.body}
+  next: end
+
+propagate_error:
+  status: 422
+  return: ${field_error}
+  next: end
+
+return_conflict:
+  status: 409
+  return: "personal code already exists"
+  next: end

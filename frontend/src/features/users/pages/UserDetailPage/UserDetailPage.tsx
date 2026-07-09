@@ -92,7 +92,7 @@ export function UserDetailPage() {
     isLocalAdmin,
     handleOrgChange,
     handleStructuralUnitChange,
-  } = useUserForm(user ?? undefined, handleEditSaved);
+  } = useUserForm(user ?? undefined, handleEditSaved, isEditActive || isGroupEditActive);
 
   const onGroupSaved = () => {
     setIsGroupEditActive(false);

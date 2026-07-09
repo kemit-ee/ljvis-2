@@ -39,7 +39,7 @@ export function useUserGroupAddUser(id: string | undefined) {
         ? `${toSnakeCase(sorting[0].id)} ${sorting[0].desc ? 'desc' : 'asc'}`
         : '';
       const [g, orgs] = await Promise.all([
-        getUserGroup(scope, id, false),
+        getUserGroup(scope, id),
         getUserGroupOrganisations(scope, id),
       ]);
       const organisationIds = orgs.map((o) => o.organisationId).join(',');

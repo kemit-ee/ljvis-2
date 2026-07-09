@@ -57,15 +57,14 @@
     {
       "name": "[Setup] Save org ID",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/organisations/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "organisations", "list"]},
-        "body": {"mode": "raw", "raw": "{}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/organisations?page=1&pageSize=100", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "organisations"], "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "100"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const orgs = Array.isArray(body) ? body : (body.response || []);",
+        "const orgs = Array.isArray(body) ? body : (body.response || body.content || []);",
         "const org = orgs.find(o => o.name === 'Justiitsministeerium');",
         "pm.test('Justiitsministeerium org found', () => pm.expect(org).to.not.be.undefined);",
         "if (org) pm.environment.set('seeded_org_bootstrap_id', String(org.id));"
@@ -74,15 +73,14 @@
     {
       "name": "[Setup] Save permission ID",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/permissions/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "permissions", "list"]},
-        "body": {"mode": "raw", "raw": "{}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/permissions?page=1&pageSize=100", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "permissions"], "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "100"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const perms = Array.isArray(body) ? body : (body.response || []);",
+        "const perms = Array.isArray(body) ? body : (body.response || body.content || []);",
         "const p = perms.find(p => p.code === 'user_group.update');",
         "if (p) pm.environment.set('seeded_permission_id', String(p.id));"
       ]}}]
@@ -90,15 +88,15 @@
     {
       "name": "[Setup] Save seeded super admin group ID and no-group user ID",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "list"]},
-        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/search?page=1&pageSize=20", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "search"], "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const _d = body.response || body; const groups = Array.isArray(_d) ? _d : (_d.content || []);",
+        "const paged = body.content !== undefined ? body : (body.response || {content: [], total: 0});",
+        "const groups = Array.isArray(paged) ? paged : (paged.content || []);",
         "const g = groups.find(g => g.name === 'Super Admin Group');",
         "pm.test('Super Admin Group found', () => pm.expect(g).to.not.be.undefined);",
         "if (g) pm.environment.set('seeded_group_admin_id', String(g.id));"
@@ -107,27 +105,26 @@
     {
       "name": "[Setup] Save seeded user ID (Super Admin)",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "list"]},
-        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/users/admin/search?page=1&pageSize=20", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "users", "admin", "search"], "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
-        "const _d = body.response || body; const users = Array.isArray(_d) ? _d : (_d.content || []);",
+        "const paged = body.content !== undefined ? body : (body.response || {content: [], total: 0});",
+        "const users = Array.isArray(paged) ? paged : (paged.content || []);",
         "const u = users.find(u => u.personalCode === '60001019906');",
         "pm.test('Super Admin found', () => pm.expect(u).to.not.be.undefined);",
         "if (u) pm.environment.set('seeded_no_group_user_id', String(u.id));"
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/admin/list — admin sees all groups",
+      "name": "GET /v1/user-groups/admin/search — admin sees all groups",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "list"]},
-        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/search?page=1&pageSize=20", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "search"], "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -148,24 +145,23 @@
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/admin/list — no permission → 403",
+      "name": "GET /v1/user-groups/admin/search — no permission → 403",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/list", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "list"]},
-        "body": {"mode": "raw", "raw": "{\"page\": 1, \"pageSize\": 20}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/search?page=1&pageSize=20", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "search"], "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 403 for user without permission', () => pm.response.to.have.status(403));"
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/admin/get — admin gets seeded group",
+      "name": "GET /v1/user-groups/admin — admin gets seeded group",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{seeded_group_admin_id}}\"}"}      },
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin?q={{seeded_group_admin_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin"], "query": [{"key": "q", "value": "{{seeded_group_admin_id}}"}]}
+      },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
@@ -179,12 +175,12 @@
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/get-organisations — for seeded group",
+      "name": "GET /v1/user-groups/admin/organisations — for seeded group",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/read/get-organisations", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "read", "get-organisations"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{seeded_group_admin_id}}\"}"}      },
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/organisations?q={{seeded_group_admin_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "organisations"], "query": [{"key": "q", "value": "{{seeded_group_admin_id}}"}]}
+      },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
@@ -194,12 +190,12 @@
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/get-permissions — for seeded group",
+      "name": "GET /v1/user-groups/admin/permissions — for seeded group",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/read/get-permissions", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "read", "get-permissions"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{seeded_group_admin_id}}\"}"}      },
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/permissions?q={{seeded_group_admin_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "permissions"], "query": [{"key": "q", "value": "{{seeded_group_admin_id}}"}]}
+      },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
@@ -209,12 +205,11 @@
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/admin/get-users — for seeded group",
+      "name": "GET /v1/user-groups/admin/users — for seeded group",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/read/get-users", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "read", "get-users"]},
-        "body": {"mode": "raw", "raw": "{\"userGroupId\": \"{{seeded_group_admin_id}}\", \"page\": 1, \"pageSize\": 20}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/users?q={{seeded_group_admin_id}}&page=1&pageSize=20", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "users"], "query": [{"key": "q", "value": "{{seeded_group_admin_id}}"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -225,11 +220,11 @@
       ]}}]
     },
     {
-      "name": "POST /user-groups/insert — no permission → 403",
+      "name": "POST /v1/user-groups — no permission → 403",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/write/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "write", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups"]},
         "body": {"mode": "raw", "raw": "{\"name\":\"Test Group\",\"coversAllOrganisations\":false,\"organisationIds\":[],\"permissionIds\":[]}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -237,11 +232,11 @@
       ]}}]
     },
     {
-      "name": "POST /user-groups/insert — name too long → 422",
+      "name": "POST /v1/user-groups — name too long → 422",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/write/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "write", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups"]},
         "body": {"mode": "raw", "raw": "{\"name\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\",\"coversAllOrganisations\":false,\"organisationIds\":[],\"permissionIds\":[]}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -249,11 +244,11 @@
       ]}}]
     },
     {
-      "name": "POST /user-groups/insert — success",
+      "name": "POST /v1/user-groups — success",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/write/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "write", "insert"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups"]},
         "body": {"mode": "raw", "raw": "{\"name\":\"Test Group CI\",\"coversAllOrganisations\":false,\"organisationIds\":[\"{{seeded_org_bootstrap_id}}\"],\"permissionIds\":[]}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -265,11 +260,11 @@
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/get-available-users — for created group",
+      "name": "POST /v1/user-groups/available-users — for created group",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/search/get-available-users", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "search", "get-available-users"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/available-users", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "available-users"]},
         "body": {"mode": "raw", "raw": "{\"userGroupId\": \"{{created_group_id}}\", \"page\": 1, \"pageSize\": 20}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -280,11 +275,11 @@
       ]}}]
     },
     {
-      "name": "POST /user-groups/update-name — rename created group",
+      "name": "PUT /v1/user-groups — rename created group",
       "request": {
-        "method": "POST",
+        "method": "PUT",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/write/update-name", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "write", "update-name"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups"]},
         "body": {"mode": "raw", "raw": "{\"id\":\"{{created_group_id}}\",\"name\":\"Test Group CI Updated\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -292,11 +287,11 @@
       ]}}]
     },
     {
-      "name": "POST /user-groups/set-organisations — assign org to created group",
+      "name": "PUT /v1/user-groups/organisations — assign org to created group",
       "request": {
-        "method": "POST",
+        "method": "PUT",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/write/set-organisations", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "write", "set-organisations"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/organisations", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "organisations"]},
         "body": {"mode": "raw", "raw": "{\"id\":\"{{created_group_id}}\",\"addedOrganisationIds\":[\"{{seeded_org_bootstrap_id}}\"],\"removedOrganisationIds\":[]}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -304,11 +299,11 @@
       ]}}]
     },
     {
-      "name": "POST /user-groups/set-permissions — add permission to created group",
+      "name": "PUT /v1/user-groups/permissions — add permission to created group",
       "request": {
-        "method": "POST",
+        "method": "PUT",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/write/set-permissions", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "write", "set-permissions"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/permissions", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "permissions"]},
         "body": {"mode": "raw", "raw": "{\"id\":\"{{created_group_id}}\",\"addedPermissionIds\":[\"{{seeded_permission_id}}\"],\"removedPermissionIds\":[]}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -316,11 +311,11 @@
       ]}}]
     },
     {
-      "name": "POST /user-groups/add-users — add seeded user to created group",
+      "name": "PUT /v1/user-groups/users — add seeded user to created group",
       "request": {
-        "method": "POST",
+        "method": "PUT",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/write/add-users", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "write", "add-users"]},
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/users", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "users"]},
         "body": {"mode": "raw", "raw": "{\"id\":\"{{created_group_id}}\",\"userIds\":[\"{{seeded_no_group_user_id}}\"]}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -328,12 +323,11 @@
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/admin/get-users — verify member added",
+      "name": "GET /v1/user-groups/admin/users — verify member added",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/read/get-users", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "read", "get-users"]},
-        "body": {"mode": "raw", "raw": "{\"userGroupId\": \"{{created_group_id}}\", \"page\": 1, \"pageSize\": 20}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/users?q={{created_group_id}}&page=1&pageSize=20", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "users"], "query": [{"key": "q", "value": "{{created_group_id}}"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -344,24 +338,22 @@
       ]}}]
     },
     {
-      "name": "POST /user-groups/delete-user — remove user from group",
+      "name": "DELETE /v1/user-groups/user — remove user from group",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/write/delete-user", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "write", "delete-user"]},
-        "body": {"mode": "raw", "raw": "{\"id\":\"{{created_group_id}}\",\"userId\":\"{{seeded_no_group_user_id}}\"}"}
+        "method": "DELETE",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/user?id={{created_group_id}}&userId={{seeded_no_group_user_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "user"], "query": [{"key": "id", "value": "{{created_group_id}}"}, {"key": "userId", "value": "{{seeded_no_group_user_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));"
       ]}}]
     },
     {
-      "name": "POST /v1/user-groups/admin/get-users — verify member removed",
+      "name": "GET /v1/user-groups/admin/users — verify member removed",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/read/get-users", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "read", "get-users"]},
-        "body": {"mode": "raw", "raw": "{\"userGroupId\": \"{{created_group_id}}\", \"page\": 1, \"pageSize\": 20}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/admin/users?q={{created_group_id}}&page=1&pageSize=20", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "admin", "users"], "query": [{"key": "q", "value": "{{created_group_id}}"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",

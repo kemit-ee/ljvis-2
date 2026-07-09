@@ -1,0 +1,24 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - id: "a0000001-0000-0000-0000-000000000002"
+          firstName: "Kairi"
+          lastName: "Sepp"
+          personalCode: "60001017727"
+          organisationId: "b0000001-0000-0000-0000-000000000002"
+          organisationName: "Justiitsministeerium"
+          email: "kairi.sepp@just.ee"
+          phone: "+372 5000 0002"
+          structuralUnitId: null
+          structuralUnitName: null
+          jobTitleName: null
+          accessStart: "2024-01-01"
+          accessEnd: ""
+          status: "active"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end

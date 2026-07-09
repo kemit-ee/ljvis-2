@@ -1,15 +1,10 @@
-[
-    {{#each classifierValues}}
-    {
-        "classifierId": "{{this.classifierId}}",
-        "classifierValueId": "{{this.classifierValueId}}",
-        "classifierCode": "{{this.classifierCode}}",
-        "code": "{{this.code}}",
-        "name": "{{this.name}}",
-        "validFrom": "{{this.validFrom}}",
-        "validUntil": "{{this.validUntil}}",
-        "isValid": "{{this.isValid}}",
-        "total": "{{this.total}}"
-    }{{#unless @last}},{{/unless}}
-    {{/each}}
-]
+{{#with classifierValues.[0]}}
+{
+    "classifierId": "{{this.classifierId}}",
+    "classifierValueId": "{{this.classifierValueId}}",
+    "code": "{{this.code}}",
+    "name": "{{this.name}}",
+    "validFrom": "{{this.validFrom}}",
+    "validUntil": {{#if this.validUntil}}"{{this.validUntil}}"{{else}}null{{/if}}
+}
+{{/with}}
