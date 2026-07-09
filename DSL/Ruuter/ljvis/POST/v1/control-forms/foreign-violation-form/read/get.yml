@@ -36,6 +36,12 @@ getForm:
     body:
       id: ${id}
   result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
   next: extractFormData
 
 extractFormData:
@@ -73,4 +79,9 @@ mapResponse:
 
 returnSuccess:
   return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "form not found"
   next: end

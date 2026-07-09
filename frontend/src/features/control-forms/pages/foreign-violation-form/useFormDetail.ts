@@ -24,7 +24,7 @@ export function useFormDetail(id: string | undefined) {
     setLoading(true);
     try {
       const result = await getForm(Number(id));
-      setForm(result ?? null);
+      setForm(result);
     } catch (e) {
       console.error('Failed to load form', e);
     } finally {
