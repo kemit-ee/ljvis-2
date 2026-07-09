@@ -42,7 +42,7 @@ Süsteem töötab Docker Compose põhises dev/test keskkonnas ja on kavandatud A
 | Frontend | React + Vite + TypeScript |
 | API gateway | Ruuter (YAML DSL) |
 | SQL kiht | RESQL (SQL failid → REST endpointid) |
-| Andmebaas | PostgreSQL 14 |
+| Andmebaas | PostgreSQL 17 |
 | Skeemihaldus | Liquibase |
 | Autentimine | TIM + TARA (OIDC) |
 | Andmete transformatsioon | DMapper (Handlebars mallid) |
