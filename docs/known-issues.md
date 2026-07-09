@@ -32,7 +32,7 @@ Süsteem käitatakse hetkel **PostgreSQL 17-ga** — see on testitud kalkuleerit
 
 ### Järgmine samm
 
-1. Jälgi Bürokratt upstream repositooriumites (`resql`, `tim`) uuendusi.
+1. Jälgi Buerostack upstream repositooriumites (`resql`, `tim`) uuendusi.
 2. Kontrolli uue versiooni bundled JDBC draiveri versiooni.
 3. Kui JDBC ≥ 42.6 → saab minna PostgreSQL 18 peale.
 
