@@ -22,8 +22,8 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | POST | `/v1/classifiers/value` | — | lisa uus väärtus (classifierId body-s) |
 | GET | `/v1/classifiers/value` | `q`, `valueId` | üksik väärtus |
 | PUT | `/v1/classifiers/value` | — | uuenda kehtivusperioodi (classifierId, classifierValueId body-s) |
-| POST | `/v1/classifiers/check-code` | — | kontrolli, kas väärtuse kood juba eksisteerib (classifierId body-s) |
-| GET | `/v1/classifiers/catalogue` | — | kõik klassifikaatorite koodid |
+| POST | `/v1/classifiers/check-code` | — | *(planeeritud — DSL fail puudub)* |
+| GET | `/v1/classifiers/catalogue` | — | *(planeeritud — DSL fail puudub)* |
 
 ### Kasutajagrupid
 | Meetod | Tee | Query paramid | Märkus |
@@ -62,14 +62,20 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | Meetod | Tee | Query paramid | Märkus |
 |--------|-----|---------------|--------|
 | GET | `/v1/logs` | `search`, `page`, `pageSize`, `sorting` | nimekiri |
-| GET | `/v1/logs/log` | `id` | üksik kirje |
+| GET | `/v1/logs/log` | `q` | üksik kirje |
 | GET | `/v1/logs/export` | `search`, `page`, `pageSize`, `sorting` | ekspordi CSV |
+| GET | `/v1/logs/verify` | `from`, `to` | kontrolli auditilogi ahela terviklust |
+
+### Struktuuriüksused
+| Meetod | Tee | Query paramid | Märkus |
+|--------|-----|---------------|--------|
+| GET | `/v1/structure-units` | `organisationId` | nimekiri, filtreeritav organisatsiooni järgi |
 
 ### Välisriigi rikkumise andmevorm
 | Meetod | Tee | Märkus |
 |--------|-----|--------|
-| POST | `/v1/control-forms/foreign-violation-form/edit` | loo uus vorm (body: form fields) |
-| POST | `/v1/control-forms/foreign-violation-form/read` | päri vorm (body: `id`) |
+| POST | `/v1/control-forms/foreign-violation-form` | loo uus vorm (body: form fields) |
+| GET | `/v1/control-forms/foreign-violation-form` | `?q=<id>` — päri vorm ID järgi |
 
 ---
 
@@ -139,9 +145,21 @@ Mock-otspunktid peegeldavad päris otspunkte. Ruuter otsib mock faili lisades te
 | GET | `/v1/organisations/mock` |
 | GET | `/v1/permissions/mock` |
 
+### Struktuuriüksused
+| Meetod | Tee |
+|--------|-----|
+| GET | `/v1/structure-units/mock` |
+
+### Välisriigi rikkumise andmevorm
+| Meetod | Tee |
+|--------|-----|
+| POST | `/v1/control-forms/foreign-violation-form/mock` |
+| GET | `/v1/control-forms/foreign-violation-form/mock` |
+
 ### Audit logid
 | Meetod | Tee |
 |--------|-----|
 | GET | `/v1/logs/mock` |
 | GET | `/v1/logs/log/mock` |
 | GET | `/v1/logs/export/mock` |
+| GET | `/v1/logs/verify/mock` |
