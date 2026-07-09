@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import dayjs from 'dayjs';
 import type { ForeignViolationForm } from '../../../control-forms/types';
 import {
   insertForeignViolationForm
@@ -10,7 +11,6 @@ import type { Organisation } from '../../../organisations/types';
 import type { StructureUnit } from '../../../structure-units/types';
 import { listOrganisations } from '../../../organisations/api';
 import { listStructureUnits } from '../../../structure-units/api';
-import { getSerialNumber } from '../../../control-forms/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
@@ -23,18 +23,13 @@ export function useForeignViolationForm(
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
-  const [serialNumber, setSerialNumber] = useState<number>();
   const [companySearchError, setCompanySearchError] = useState(false);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
-  const serialNumberFetched = useRef(false);
   const isEdit = !!form;
 
   const formNumberString = isEdit && form?.formNumber
-    ? form.formNumber
-    : serialNumber !== undefined
-      ? `vr-${new Date().getFullYear()}-${String(serialNumber).padStart(5, '0')}/1`
-      : '';
+    ? form.formNumber : '';
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
@@ -45,12 +40,6 @@ export function useForeignViolationForm(
       listStructureUnits(Number(authUser.organisationid)).then(setStructureUnits).catch(console.error);
     }
   }, [authUser?.organisationid]);
-
-  useEffect(() => {
-    if (serialNumberFetched.current) return;
-    serialNumberFetched.current = true;
-    getSerialNumber().then(setSerialNumber).catch(console.error);
-  }, []);
 
   const validationSchema = Yup.object({
     reportingCountryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
@@ -114,13 +103,13 @@ export function useForeignViolationForm(
       recommendedMeasureNotes: form?.recommendedMeasureNotes ?? '',
       recommendedMeasureGeneralNotes: form?.notes ?? '',
       violations: form?.violations ?? [],
-      dataEntryDate: form?.dataEntryDate ?? '',
+      dataEntryDate: form?.dataEntryDate ?? dayjs().format('YYYY-MM-DD'),
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId: form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession: form?.inspectorProfession ?? authUser?.jobtitle ?? '',
-      files: form?.files ?? [],
+      files: form?.files ?? '[]',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -210,7 +199,6 @@ export function useForeignViolationForm(
   return {
     formik,
     isEdit,
-    formNumberString,
     structureUnits,
     orgOptions,
     handleOrgChange,

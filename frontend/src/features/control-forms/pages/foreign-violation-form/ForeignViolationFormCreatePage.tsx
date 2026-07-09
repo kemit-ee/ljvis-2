@@ -71,7 +71,6 @@ export function ForeignViolationFormCreatePage() {
 
   const {
     formik,
-    formNumberString,
     structureUnits,
     orgOptions,
     handleOrgChange,
@@ -95,7 +94,7 @@ export function ForeignViolationFormCreatePage() {
       <form onSubmit={formik.handleSubmit}>
         <div className="card-main">
           <Heading element="h1">
-            {formNumberString}
+            {t('forms.foreign_violation_form')}
           </Heading>
         </div>
 
