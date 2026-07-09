@@ -29,7 +29,7 @@ declaration:
         type: string
       - field: actor_name
         type: string
-      - field: actor_personal_code
+      - field: actor_personal_code_hash
         type: string
       - field: description
         type: string
@@ -45,7 +45,7 @@ SELECT
     e.event_type,
     e.event_category,
     e.actor_name,
-    e.actor_personal_code,
+    encode(e.actor_personal_code_hash, 'hex') AS actor_personal_code_hash,
     e.description,
     e.created_at,
     e.created_by,

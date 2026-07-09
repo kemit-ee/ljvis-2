@@ -38,6 +38,7 @@ getUserGroup:
       id: ${id}
       organisation_id: ${organisation_id}
   result: res
+  next: mapResponse
 
 mapResponse:
   call: http.post

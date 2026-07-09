@@ -94,6 +94,7 @@ mapResponse:
     body:
       classifiers: ${res.response.body}
   result: mapped
+  next: returnSuccess
 
 returnSuccess:
   return: ${mapped.response.body}

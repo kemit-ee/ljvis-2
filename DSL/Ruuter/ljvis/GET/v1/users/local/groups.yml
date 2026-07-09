@@ -15,6 +15,7 @@ declaration:
 extractRequestData:
   assign:
     user_id: "${incoming.params.q}"
+  next: getUserGroups
 
 getUserGroups:
   call: http.post
@@ -25,6 +26,7 @@ getUserGroups:
     body:
       user_id: ${user_id}
   result: res
+  next: mapResponse
 
 mapResponse:
   call: http.post
@@ -35,6 +37,7 @@ mapResponse:
     body:
       groups: ${res.response.body}
   result: mapped
+  next: returnSuccess
 
 returnSuccess:
   return: ${mapped.response.body}

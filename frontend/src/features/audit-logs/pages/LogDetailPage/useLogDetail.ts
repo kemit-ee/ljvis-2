@@ -25,18 +25,8 @@ export function useLogDetail(id: string | undefined) {
   }, [fetchData]);
 
   const actorName = auditLog?.actorName || '';
-  const actorPersonalCode = auditLog?.actorPersonalCode || '';
 
-  let person = '';
-  if (actorName && actorPersonalCode) {
-    person = `${actorName} (${actorPersonalCode})`;
-  } else if (actorPersonalCode) {
-    person = actorPersonalCode;
-  } else if (actorName) {
-    person = actorName;
-  } else {
-    person = '-';
-  }
+  const person = actorName || '-';
 
   const decodedLogContent = decodeHtmlEntities(auditLog?.logContent || '');
 

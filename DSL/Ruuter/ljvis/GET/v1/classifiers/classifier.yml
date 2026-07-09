@@ -8,7 +8,7 @@ declaration:
   namespace: classifiers
   allowlist:
     params:
-      - field: id
+      - field: q
         type: string
         description: "Classifier ID"
 
@@ -22,7 +22,7 @@ get_user_context:
 
 extractRequestData:
   assign:
-    id: "${incoming.params.id}"
+    id: "${incoming.params.q}"
     created_by: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
