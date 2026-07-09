@@ -23,7 +23,7 @@ servers:
     description: Production
 
 security:
-  - bearerAuth: []
+  - cookieAuth: []
 
 tags:
   - name: auth
@@ -1295,6 +1295,60 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
+  /v1/logs/verify:
+    get:
+      tags: [logs]
+      operationId: getLogsVerify
+      x-permissions:
+        anyOf: [audit.verify]
+      summary: Verify the audit-log hash chain.
+      description: |
+        Walks the audit hash chain from `from` (or the genesis row) to
+        `to` (or the current tail) and returns either an "ok" result or
+        the first breach location. See `docs/audit-logging.md` §Hash chain
+        integrity for the invariant.
+
+        Cheap read; no writes. Intended for scheduled integrity monitors
+        and for pentest / audit spot-checks. Requires audit.verify (a
+        privileged reader permission, separate from audit.read).
+      parameters:
+        - in: query
+          name: from
+          schema: { type: string }
+          description: Start event_id (inclusive). Omit to start from the genesis row.
+        - in: query
+          name: to
+          schema: { type: string }
+          description: End event_id (inclusive). Omit to walk to the current tail.
+      responses:
+        '200':
+          description: Verification result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogVerifyResponse'
+              examples:
+                intact:
+                  summary: Chain is intact.
+                  value:
+                    ok: true
+                    checked: 15234
+                    from: "01JAB2C3D4E5F6G7H8J9K0M1N2"
+                    to: "01JAB2C9Z9Z9Z9Z9Z9Z9Z9Z9ZZ"
+                breach:
+                  summary: Chain breach detected.
+                  value:
+                    ok: false
+                    checked: 5721
+                    firstBreachEventId: "01JAB2C7X7X7X7X7X7X7X7X7X7"
+                    reason: prev_row_hash_mismatch
+                    from: "01JAB2C3D4E5F6G7H8J9K0M1N2"
+                    to: "01JAB2C9Z9Z9Z9Z9Z9Z9Z9Z9ZZ"
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
   # ── Foreign violation forms ─────────────────────────────────
 
   /api/v1/control-forms/foreign-violation:
@@ -1309,7 +1363,7 @@ paths:
         the first snapshot row. Previous data is not overwritten on subsequent saves —
         each PUT adds a new snapshot. Requires `foreign_violation_form.write`.
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       requestBody:
         required: true
         content:
@@ -1346,7 +1400,7 @@ paths:
         Returns the latest snapshot row for the given form key.
         Requires `foreign_violation_form.read`.
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: formKey
@@ -1376,7 +1430,7 @@ paths:
         Form is editable only while status is `saved`; in `confirmed` or `published`
         all fields become read-only. Requires `foreign_violation_form.write`.
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: formKey
@@ -1418,7 +1472,7 @@ paths:
         Returns the list of file metadata attached to the given form key.
         Requires `foreign_violation_form.read`.
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: formKey
@@ -1451,7 +1505,7 @@ paths:
         odt, rtf, msg, eml, txt, zip, ddd. Max size: 10 MB.
         Requires `foreign_violation_form.write`.
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: formKey
@@ -1498,7 +1552,7 @@ paths:
         Returns the binary content of the requested file from S3.
         Requires `foreign_violation_form.read`.
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: path
           name: formKey
@@ -1533,7 +1587,7 @@ paths:
         Returns classifier values from `EU_INFRINGEMENT` (153 values) filtered by
         severity group (MSI, VSI, SI). Requires `classifier.read`.
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       parameters:
         - in: query
           name: regulation
@@ -1565,7 +1619,7 @@ paths:
         Returns all values from the `countries` classifier.
         Requires `classifier.read`.
       security:
-        - bearerAuth: []
+        - cookieAuth: []
       responses:
         '200':
           description: List of country values.
@@ -1583,14 +1637,25 @@ paths:
 components:
 
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: customJwtCookie
       description: |
-        JWT issued by TIM after TARA authentication.
+        JWT issued by TIM after TARA authentication, delivered as an
+        HttpOnly, Secure, SameSite=Strict cookie. The cookie is set by
+        TIM's `/tim/authenticate` callback; clients never see or
+        manipulate the raw token.
+
+        Cookie name is deployment-configurable via `CUSTOM_JWT_COOKIE_NAME`
+        (see `docs/admin-deployment-guide.md`). The default is
+        `customJwtCookie`.
+
         Standard RFC 7519 claims: iss, sub, aud, exp, iat, jti.
         Project-specific claims: personalCode, organisationId, permissions[].
+
+        Design guide: `docs/rest-api-design-guide.md` §6.
+        CSRF stance: `docs/rest-api-design-guide.md` §6.2.
 
   responses:
     BadRequest:
@@ -3323,6 +3388,38 @@ components:
             $ref: '#/components/schemas/LogEntry'
         total:
           type: number
+
+    LogVerifyResponse:
+      type: object
+      required: [ok, checked]
+      description: |
+        Result of walking the audit-log hash chain over a range.
+        `ok=true` means every row's `prev_row_hash` matched the previous
+        row's `row_hash`. `ok=false` means the chain broke at
+        `firstBreachEventId` — subsequent rows are not verified.
+      properties:
+        ok:
+          type: boolean
+          description: True if the whole range is intact.
+        checked:
+          type: integer
+          minimum: 0
+          description: Number of rows walked.
+        from:
+          type: string
+          description: First event_id walked (either genesis or client-provided).
+        to:
+          type: string
+          description: Last event_id walked (either tail or client-provided).
+        firstBreachEventId:
+          type: string
+          nullable: true
+          description: On failure, the event_id where the chain broke. Null when ok=true.
+        reason:
+          type: string
+          enum: [prev_row_hash_mismatch, row_hash_recomputed_mismatch, missing_row]
+          nullable: true
+          description: On failure, why the chain broke. Null when ok=true.
 
     ForeignViolationFormSaveRequest:
       type: object
