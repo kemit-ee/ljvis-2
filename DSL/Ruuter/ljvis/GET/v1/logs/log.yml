@@ -26,6 +26,7 @@ getLog:
     body:
       id: ${id}
   result: res
+  next: returnSuccess
 
 returnSuccess:
   return: ${res.response.body}

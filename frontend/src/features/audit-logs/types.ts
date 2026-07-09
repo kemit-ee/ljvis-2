@@ -3,7 +3,7 @@ export interface AuditLog {
   eventType: string;
   eventCategory: string;
   actorName?: string;
-  actorPersonalCode: string;
+  actorPersonalCode?: string;
   description: string;
   logContent?: string;
   createdAt?: string;

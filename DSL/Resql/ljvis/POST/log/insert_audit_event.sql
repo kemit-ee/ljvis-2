@@ -18,7 +18,7 @@ declaration:
         description: "Display name of the actor"
       - field: actor_personal_code
         type: string
-        description: "Personal code of the actor"
+        description: "Cleartext personal code of the actor — hashed to SHA-256 before storage"
       - field: description
         type: string
         description: "Human-readable description of the event"
@@ -37,7 +37,7 @@ INSERT INTO audit.audit_event (
     event_type,
     event_category,
     actor_name,
-    actor_personal_code,
+    actor_personal_code_hash,
     description,
     log_content,
     created_by
@@ -45,7 +45,9 @@ INSERT INTO audit.audit_event (
     :event_type,
     :event_category,
     :actor_name,
-    :actor_personal_code,
+    CASE WHEN :actor_personal_code IS NOT NULL AND :actor_personal_code <> ''
+         THEN digest(:actor_personal_code || current_setting('app.audit_salt', true), 'sha256')
+         ELSE NULL END,
     :description,
     :log_content::json,
     :created_by

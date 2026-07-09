@@ -69,18 +69,7 @@ export function LogListPage() {
         header: t('logs.person'),
         cell: (info) => {
           const actorName = info.row.original.actorName;
-          const actorPersonalCode = info.row.original.actorPersonalCode;
-
-          if (actorName && actorPersonalCode) {
-            return `${actorName} (${actorPersonalCode})`;
-          }
-          if (actorPersonalCode) {
-            return actorPersonalCode;
-          }
-          if (actorName) {
-            return actorName;
-          }
-          return '-';
+          return actorName || '-';
         },
       }),
       columnHelper.accessor('eventCategory', {

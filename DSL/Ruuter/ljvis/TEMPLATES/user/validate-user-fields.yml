@@ -47,12 +47,6 @@ check_organisation_id:
   switch:
     - condition: ${incoming.body.organisation_id == null || incoming.body.organisation_id == ''}
       next: return_invalid_organisation_id
-  next: check_structural_unit_id
-
-check_structural_unit_id:
-  switch:
-    - condition: ${incoming.body.structural_unit_id == null || incoming.body.structural_unit_id == ''}
-      next: return_invalid_structural_unit_id
   next: check_job_title_name
 
 check_job_title_name:

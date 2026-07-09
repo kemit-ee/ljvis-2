@@ -19,18 +19,8 @@ function generateExportFilename(): string {
 
 function formatLogRow(log: AuditLog): string[] {
   const actorName = log.actorName || '';
-  const actorPersonalCode = log.actorPersonalCode || '';
 
-  let person = '';
-  if (actorName && actorPersonalCode) {
-    person = `${actorName} (${actorPersonalCode})`;
-  } else if (actorPersonalCode) {
-    person = actorPersonalCode;
-  } else if (actorName) {
-    person = actorName;
-  } else {
-    person = '-';
-  }
+  const person = actorName || '-';
 
   const decodedLogContent = decodeHtmlEntities(log.logContent || '');
 

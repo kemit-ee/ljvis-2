@@ -342,7 +342,7 @@
       "request": {
         "method": "DELETE",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/user?id={{created_group_id}}&userId={{seeded_no_group_user_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "user"], "query": [{"key": "id", "value": "{{created_group_id}}"}, {"key": "userId", "value": "{{seeded_no_group_user_id}}"}]}
+        "url": {"raw": "{{api_url}}/ljvis/v1/user-groups/user?q={{created_group_id}}&userId={{seeded_no_group_user_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "user-groups", "user"], "query": [{"key": "q", "value": "{{created_group_id}}"}, {"key": "userId", "value": "{{seeded_no_group_user_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));"

@@ -51,6 +51,7 @@ getUsers:
       user_group_id: ${user_group_id}
       organisation_ids: ${organisation_ids}
   result: res
+  next: mapResponse
 
 mapResponse:
   call: http.post
@@ -61,6 +62,7 @@ mapResponse:
     body:
       users: ${res.response.body}
   result: mapped
+  next: returnSuccess
 
 returnSuccess:
   return: ${mapped.response.body}
