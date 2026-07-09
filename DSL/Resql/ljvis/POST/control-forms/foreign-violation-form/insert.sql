@@ -8,8 +8,6 @@ declaration:
   namespace: control-forms
   allowlist:
     body:
-      - field: formNumber
-        type: string
       - field: status
         type: string
       - field: reportingCountryCode
@@ -100,6 +98,8 @@ declaration:
     fields:
       - field: id
         type: number
+      - field: form_number
+        type: string
 */
 INSERT INTO forms.foreign_violation_form (
   foreign_violation_form_key,
@@ -151,7 +151,7 @@ INSERT INTO forms.foreign_violation_form (
 )
 VALUES (
   nextval('forms.seq_foreign_violation_form_key'),
-  :formNumber,
+  'vr-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_foreign_violation_form_key')::text, 5, '0') || '/1',
   1,
   :status,
   :reportingCountryCode,
@@ -197,4 +197,4 @@ VALUES (
   :files::json,
   :created_by
 )
-RETURNING foreign_violation_form_key AS id;
+RETURNING foreign_violation_form_key AS id, form_number;

@@ -37,7 +37,7 @@ export interface ForeignViolationForm {
   minorViolationsCount?: string;
   sanctionCode: string;
   sanctionNotes?: string;
-  violations: string;
+  violations?: string[];
   recommendedMeasureCode: string;
   recommendedMeasureNotes?: string;
   notes?: string;
@@ -47,5 +47,5 @@ export interface ForeignViolationForm {
   inspectorOrganisationId: string;
   inspectorUnit: string;
   inspectorProfession: string;
-  files?: string;
+  files?: { id: string; isLoading: boolean; isValid: boolean }[];
 }

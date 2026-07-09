@@ -8,8 +8,6 @@ declaration:
   namespace: control-forms
   allowlist:
     body:
-      - field: formNumber
-        type: string
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -205,7 +203,13 @@ insertForm:
       status: ${status}
       created_by: ${created_by}
   result: insertRes
+  next: extractResponseData
+
+extractResponseData:
+  assign:
+    form_number: "${insertRes.response.body[0].formNumber || ''}"
   next: logAuditEvent
+
 
 logAuditEvent:
   template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-create"

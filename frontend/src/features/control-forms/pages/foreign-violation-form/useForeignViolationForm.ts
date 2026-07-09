@@ -11,7 +11,6 @@ import type { Organisation } from '../../../organisations/types';
 import type { StructureUnit } from '../../../structure-units/types';
 import { listOrganisations } from '../../../organisations/api';
 import { listStructureUnits } from '../../../structure-units/api';
-import { getSerialNumber } from '../../../control-forms/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
@@ -24,17 +23,13 @@ export function useForeignViolationForm(
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
-  const [serialNumber, setSerialNumber] = useState<number>();
   const [companySearchError, setCompanySearchError] = useState(false);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
   const isEdit = !!form;
 
   const formNumberString = isEdit && form?.formNumber
-    ? form.formNumber
-    : serialNumber !== undefined
-      ? `vr-${new Date().getFullYear()}-${String(serialNumber).padStart(5, '0')}/1`
-      : '';
+    ? form.formNumber : '';
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
@@ -45,10 +40,6 @@ export function useForeignViolationForm(
       listStructureUnits(Number(authUser.organisationid)).then(setStructureUnits).catch(console.error);
     }
   }, [authUser?.organisationid]);
-
-  useEffect(() => {
-    getSerialNumber().then(setSerialNumber).catch(console.error);
-  }, []);
 
   const validationSchema = Yup.object({
     reportingCountryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
@@ -111,7 +102,7 @@ export function useForeignViolationForm(
       recommendedMeasureCode: form?.recommendedMeasureCode ?? 'PUUDUVAD',
       recommendedMeasureNotes: form?.recommendedMeasureNotes ?? '',
       recommendedMeasureGeneralNotes: form?.notes ?? '',
-      violations: form?.violations ?? '[]',
+      violations: form?.violations ?? [],
       dataEntryDate: form?.dataEntryDate ?? dayjs().format('YYYY-MM-DD'),
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
@@ -131,8 +122,10 @@ export function useForeignViolationForm(
           inspectionTime: toIsoTime(values.inspectionTime),
           dataEntryDate: toIsoDate(values.dataEntryDate),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
+          violations: Array.isArray(values.violations) ? JSON.stringify(values.violations) : (values.violations ?? '[]'),
+          files: typeof values.files === 'string' ? values.files : JSON.stringify(values.files ?? []),
         };
-        const result = await insertForeignViolationForm(trimmedValues);
+        const result = await insertForeignViolationForm(trimmedValues as unknown as ForeignViolationForm);
         onSaved(result[0]?.id);
       } catch (e) {
         if (
@@ -206,7 +199,6 @@ export function useForeignViolationForm(
   return {
     formik,
     isEdit,
-    formNumberString,
     structureUnits,
     orgOptions,
     handleOrgChange,
