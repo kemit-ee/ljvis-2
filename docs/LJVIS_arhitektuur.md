@@ -342,14 +342,16 @@ Kõik olulised lugemis- ja kirjutamisoperatsioonid logitakse `audit_event` tabel
 
 | Väli | Kirjeldus |
 |------|-----------|
+| `event_id` | ULID (26 märki, Crockford base32). Primaarvvõti. Genereeritakse `log-audit-event` template'is enne INSERT-i. |
 | `event_type` | Sündmuse tüüp, nt `user.update`, `user_group.create` |
 | `event_category` | Kategooria, nt `user_management` |
 | `actor_name` | Toimingu tegija nimi |
 | `actor_personal_code_hash` | Toimingu tegija isikukoodi SHA-256 räsi (salted) — selgetekstilist isikukoodi ei salvestata |
 | `description` | Inimloetav kirjeldus |
-| `log_content` | JSON detailid (muudetud väljad, ID-d) |
+| `log_content` | JSONB detailid (muudetud väljad, ID-d) |
+| `created_at` | Sündmuse aeg (UTC), serveri poolne timestamp |
 
-Logimine toimub Ruuteri DSL lõpus (`logAuditEvent` samm) pärast edukat andmebaasi kirjutamist.
+Logimine toimub Ruuteri DSL lõpus (`logAuditEvent` samm läbi `TEMPLATES/audit/log-audit-event.yml`) pärast edukat andmebaasi kirjutamist.
 
 Lähemalt: [`docs/audit-logging.md`](audit-logging.md)
 
