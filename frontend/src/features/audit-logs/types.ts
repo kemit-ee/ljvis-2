@@ -8,4 +8,6 @@ export interface AuditLog {
   logContent?: string;
   createdAt?: string;
   createdBy?: string;
+  traceId?: string;
+  spanId?: string;
 }
