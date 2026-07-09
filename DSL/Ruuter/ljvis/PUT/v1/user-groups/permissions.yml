@@ -1,0 +1,105 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Replace all permission links for a user group"
+  method: put
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "User group ID"
+      - field: addedPermissionIds
+        type: array
+        description: "Array of added permission IDs"
+      - field: removedPermissionIds
+        type: array
+        description: "Array of removed permission IDs"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    user_group_id: "${incoming.body.id}"
+    added_permission_ids: "${(incoming.body.addedPermissionIds ?? []).join(',')}"
+    removed_permission_ids: "${(incoming.body.removedPermissionIds ?? []).join(',')}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+  next: getUserGroup
+
+getUserGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group"
+    headers:
+      type: json
+    body:
+      id: ${user_group_id}
+      organisation_id: 0
+  result: res
+  next: extractResult
+
+extractResult:
+  assign:
+    group_name: "${res.response.body[0].name || ''}"
+  next: setPerms
+
+setPerms:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_permissions"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      added_permission_ids: ${added_permission_ids}
+      removed_permission_ids: ${removed_permission_ids}
+      created_by: ${actor_personal_code}
+  result: setPermsRes
+  next: listAllPermissions
+
+listAllPermissions:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/permission/list_permissions"
+    headers:
+      type: json
+    body: {}
+  result: allPermsRes
+  next: returnSuccess
+
+returnSuccess:
+  assign:
+    all_perms: ${JSON.parse(JSON.stringify(allPermsRes.response.body ?? []))}
+    added_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.addedPermissionIds ?? []))}
+    removed_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.removedPermissionIds ?? []))}
+    added_codes: ${JSON.stringify(all_perms.filter(p => added_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
+    removed_codes: ${JSON.stringify(all_perms.filter(p => removed_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
+    description: "Kasutajagrupi ${group_name} muutmine: õigused"
+    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":${added_codes},\"removedPermissionCodes\":${removed_codes},\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  body:
+    event_type: "user_group.update"
+    event_category: "user_group_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: audit_result
+  next: returnSuccessResult
+
+returnSuccessResult:
+  return: "ok"
+  next: end

@@ -1,0 +1,112 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Add new users to user group"
+  method: put
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "User group ID"
+      - field: userIds
+        type: array
+        description: "Array of user IDs"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    user_group_id: "${incoming.body.id}"
+    user_ids: "${(incoming.body.userIds ?? []).join(',')}"
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: ${auth_user.personalcode}
+  next: getUserGroup
+
+getUserGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group"
+    headers:
+      type: json
+    body:
+      id: ${user_group_id}
+      organisation_id: 0
+  result: res
+  next: extractResult
+
+extractResult:
+  assign:
+    group_name: "${res.response.body[0].name || ''}"
+  next: checkUserIds
+
+checkUserIds:
+  switch:
+    - condition: "${user_ids == ''}"
+      next: buildEmptyAuditEvent
+  next: addUsers
+
+addUsers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/set_user_group_users"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+      user_ids: ${user_ids}
+      status: "active"
+      created_by: ${actor_personal_code}
+  result: addRes
+  next: getAddedUserPersonalCodes
+
+getAddedUserPersonalCodes:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_users_by_ids"
+    headers:
+      type: json
+    body:
+      user_ids: ${user_ids}
+  result: personalCodesRes
+  next: buildAuditEvent
+
+buildEmptyAuditEvent:
+  assign:
+    added_personal_codes_json: "[]"
+    description: "Kasutajagrupi ${group_name} muutmine: lisatud kasutajad: "
+    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+buildAuditEvent:
+  assign:
+    added_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
+    added_personal_codes_str: ${ (personalCodesRes.response.body ?? []).map(u => "'" + u.personalCode + "'").join(', ') }
+    description: "Kasutajagrupi ${group_name} muutmine: lisatud kasutajad: ${added_personal_codes_str}"
+    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":${added_personal_codes_json},\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  body:
+    event_type: "user_group.update"
+    event_category: "user_group_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: audit_result
+  next: returnSuccessResult
+
+returnSuccessResult:
+  return: "ok"
+  next: end

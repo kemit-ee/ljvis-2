@@ -1,0 +1,131 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Create a new user group with optional organisations and permissions"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    body:
+      - field: name
+        type: string
+      - field: organisationIds
+        type: array
+        description: "Array of organisation UUIDs"
+      - field: permissionIds
+        type: array
+        description: "Array of permission UUIDs"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    name: "${incoming.body.name}"
+    organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
+    permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
+    created_by: "${auth_user.personalcode}"
+    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
+    actor_personal_code: "${auth_user.personalcode}"
+    selected_org_count: ${(incoming.body.organisationIds ?? []).length}
+  next: validateRequired
+
+validateRequired:
+  switch:
+    - condition: ${name == null || name == ''}
+      next: return_validation_error
+  next: validateNameLength
+
+validateNameLength:
+  switch:
+    - condition: ${name.length > 50}
+      next: return_validation_error
+  next: validateOrganisations
+
+validateOrganisations:
+  switch:
+    - condition: "${organisation_ids == ''}"
+      next: return_validation_error
+  next: createGroup
+
+createGroup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/insert_user_group"
+    headers:
+      type: json
+    body:
+      name: ${name}
+      organisation_ids: ${organisation_ids}
+      permission_ids: ${permission_ids}
+      created_by: ${created_by}
+  result: groupRes
+  next: extractGroupId
+
+extractGroupId:
+  assign:
+    user_group_id: "${groupRes.response.body[0].id}"
+  next: getPermissions
+
+getPermissions:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+  result: permsDataRes
+  next: getOrganisationsCount
+
+getOrganisationsCount:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/organisation/list_organisations"
+    headers:
+      type: json
+    body: {}
+  result: orgsCountRes
+  next: buildAuditEvent
+
+buildAuditEvent:
+  assign:
+    covers_all_organisations: ${selected_org_count === (orgsCountRes.response.body ?? []).length}
+    permission_codes: ${JSON.stringify((permsDataRes.response.body ?? []).map(p => p.code))}
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  body:
+    event_type: "user_group.create"
+    event_category: "user_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: "Kasutajagrupi '${name}' loomine"
+    log_content: "{\"targetGroupId\":${user_group_id},\"groupName\":\"${name}\",\"organisationIds\":[${organisation_ids}],\"permissionCodes\":${permission_codes},\"coversAllOrganisations\":${covers_all_organisations}}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${groupRes.response.body}
+  next: end
+
+return_validation_error:
+  assign:
+    form_error:
+      type: VALIDATION_ERROR
+      field: ~
+      code: validation_failed
+  next: emit_validation_error
+
+emit_validation_error:
+  status: 422
+  return: ${form_error}
+  next: end

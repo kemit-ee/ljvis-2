@@ -1,0 +1,22 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - code: "PPA_LOUNA"
+          name: "Lõuna prefektuur"
+        - code: "PPA_IDA"
+          name: "Ida prefektuur"
+        - code: "PPA_LAANE"
+          name: "Lääne prefektuur"
+        - code: "PPA_POHJA"
+          name: "Põhja prefektuur"
+        - code: "KLIM_HQ"
+          name: "Kliimaministeerium"
+        - code: "TRAM_HQ"
+          name: "Transpordiamet"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end

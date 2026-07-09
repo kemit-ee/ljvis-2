@@ -1,0 +1,55 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: user group set-permissions event — fetches full permissions list to resolve codes"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: user_group_id
+        type: string
+      - field: group_name
+        type: string
+      - field: added_permission_ids_arr
+        type: array
+      - field: removed_permission_ids_arr
+        type: array
+
+fetchAllPermissions:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/permission/list_permissions"
+    headers:
+      type: json
+    body: {}
+  result: allPermsRes
+  next: buildAudit
+
+buildAudit:
+  assign:
+    all_perms: ${JSON.parse(JSON.stringify(allPermsRes.response.body ?? []))}
+    added_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.added_permission_ids_arr ?? []))}
+    removed_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.removed_permission_ids_arr ?? []))}
+    added_codes: ${JSON.stringify(all_perms.filter(p => added_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
+    removed_codes: ${JSON.stringify(all_perms.filter(p => removed_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
+    description: "Kasutajagrupi ${incoming.body.group_name} muutmine: õigused"
+    log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":${added_codes},\"removedPermissionCodes\":${removed_codes},\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user_group.update"
+    event_category: "user_group_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

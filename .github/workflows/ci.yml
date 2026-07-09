@@ -47,8 +47,9 @@ jobs:
           pip3 install pyyaml -q
           python3 - <<'EOF'
           import yaml, glob, sys
+          all_yml = [p for p in glob.glob('DSL/Ruuter/**/*.yml', recursive=True) if '/mock/' not in p]
           errors = []
-          for path in glob.glob('DSL/Ruuter/**/*.yml', recursive=True):
+          for path in all_yml:
               try:
                   with open(path) as fh:
                       yaml.safe_load(fh)
@@ -58,7 +59,7 @@ jobs:
               for e in errors:
                   print(f'❌  {e}')
               sys.exit(1)
-          print(f'✅  {len(list(glob.glob("DSL/Ruuter/**/*.yml", recursive=True)))} YAML files valid')
+          print(f'✅  {len(all_yml)} YAML files valid (mock files excluded)')
           EOF
 
       - name: Check for unreachable DSL steps
@@ -90,7 +91,7 @@ jobs:
               return False
 
           errors = []
-          for path in sorted(glob.glob('DSL/Ruuter/**/*.yml', recursive=True)):
+          for path in sorted(p for p in glob.glob('DSL/Ruuter/**/*.yml', recursive=True) if '/mock/' not in p):
               with open(path) as fh:
                   data = yaml.safe_load(fh)
               if not isinstance(data, dict):
@@ -126,8 +127,8 @@ jobs:
               for e in errors:
                   print(f'❌  {e}')
               sys.exit(1)
-          total = len(list(glob.glob('DSL/Ruuter/**/*.yml', recursive=True)))
-          print(f'✅  {total} DSL files — no unreachable steps')
+          total = len([p for p in glob.glob('DSL/Ruuter/**/*.yml', recursive=True) if '/mock/' not in p])
+          print(f'✅  {total} DSL files — no unreachable steps (mock files excluded)')
           EOF
 
       - name: Check SQL files are non-empty

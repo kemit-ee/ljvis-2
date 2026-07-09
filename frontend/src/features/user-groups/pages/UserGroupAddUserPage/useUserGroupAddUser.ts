@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import type { UserGroup, UserGroupUser } from '../../types';
 import {
@@ -27,9 +27,12 @@ export function useUserGroupAddUser(id: string | undefined) {
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(
     new Set(),
   );
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoading(true);
     try {
       const sortStr = sorting.length
@@ -55,6 +58,7 @@ export function useUserGroupAddUser(id: string | undefined) {
       console.error('Failed to load group', e);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, [id, scope, userSearch, pagination, sorting]);
 

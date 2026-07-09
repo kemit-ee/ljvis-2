@@ -1,0 +1,35 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      content:
+        - id: "a0000001-0000-0000-0000-000000000002"
+          firstName: "Kairi"
+          lastName: "Sepp"
+          personalCode: "60001017727"
+          organisationId: "b0000001-0000-0000-0000-000000000002"
+          organisationName: "Justiitsministeerium"
+          email: "kairi.sepp@just.ee"
+          structuralUnitId: null
+          status: "active"
+          accessStart: "2024-01-01"
+          accessEnd: ""
+          userGroups: ["Local Admin Group"]
+        - id: "a0000001-0000-0000-0000-000000000003"
+          firstName: "Mari"
+          lastName: "Tamm"
+          personalCode: "60001017869"
+          organisationId: "b0000001-0000-0000-0000-000000000002"
+          organisationName: "Justiitsministeerium"
+          email: "mari.tamm@just.ee"
+          structuralUnitId: null
+          status: "active"
+          accessStart: "2024-03-01"
+          accessEnd: ""
+          userGroups: []
+      total: 2
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body}
+  next: end

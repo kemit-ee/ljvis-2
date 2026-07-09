@@ -32,7 +32,9 @@ services:
       - ./DSL/Liquibase/liquibase.properties:/liquibase/liquibase.properties
       - ./DSL/Liquibase/changelog:/liquibase/changelog
       - ./DSL/Liquibase/changelog.yaml:/liquibase/changelog.yaml
-    command: --defaultsFile=/liquibase/liquibase.properties update
+    environment:
+      - AUDIT_SALT=${AUDIT_SALT:-dev-local-audit-salt-change-me-32chars}
+    command: --defaultsFile=/liquibase/liquibase.properties update --changelogParameters.AUDIT_SALT=${AUDIT_SALT:-dev-local-audit-salt-change-me-32chars}
     networks:
       - ljvisnetwork
 
@@ -67,13 +69,14 @@ services:
     environment:
       - application.cors.allowedOrigins=http://localhost:8086,http://localhost:3001,http://localhost:3004,http://localhost:8080
       - application.httpCodesAllowList=200,201,202,400,401,403,500
+      - application.incomingRequests.allowedMethodTypes=POST,GET,PUT,DELETE
       - application.internalRequests.allowedIPs=127.0.0.1
       - application.logging.displayRequestContent=true
       - application.logging.displayResponseContent=true
       - application.logging.printStackTrace=true
       - application.internalRequests.disabled=true
       - server.port=8086
-      - application.externalAuthAllowed=
+      - application.externalAuthAllowed=.*mock.*
     volumes:
       - ./DSL/Ruuter:/DSL
       - ./constants.ini:/app/constants.ini

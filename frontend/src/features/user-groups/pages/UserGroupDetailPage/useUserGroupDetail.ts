@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import type { PaginationState, SortingState } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/useAuth';
@@ -48,20 +48,23 @@ export function useUserGroupDetail(id: string | undefined) {
   const [editName, setEditName] = useState('');
   const [editingOrgs, setEditingOrgs] = useState(false);
   const [allOrgs, setAllOrgs] = useState<Organisation[]>([]);
-  const [selectedOrgIds, setSelectedOrgIds] = useState<Set<string>>(new Set());
-  const [originalOrgIds, setOriginalOrgIds] = useState<Set<string>>(new Set());
+  const [selectedOrgIds, setSelectedOrgIds] = useState<Set<number>>(new Set());
+  const [originalOrgIds, setOriginalOrgIds] = useState<Set<number>>(new Set());
   const [editingPerms, setEditingPerms] = useState(false);
   const [allPerms, setAllPerms] = useState<Permission[]>([]);
-  const [selectedPermIds, setSelectedPermIds] = useState<Set<string>>(
+  const [selectedPermIds, setSelectedPermIds] = useState<Set<number>>(
     new Set(),
   );
-  const [originalPermIds, setOriginalPermIds] = useState<Set<string>>(
+  const [originalPermIds, setOriginalPermIds] = useState<Set<number>>(
     new Set(),
   );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
     if (!id) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoading(true);
     try {
       const sortStr = sorting.length
@@ -88,6 +91,7 @@ export function useUserGroupDetail(id: string | undefined) {
       console.error('Failed to load group', e);
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, [id, scope, userSearch, pagination, sorting]);
 
@@ -115,15 +119,15 @@ export function useUserGroupDetail(id: string | undefined) {
 
   const startEditOrgs = async () => {
     const all = await listOrganisations();
-    setAllOrgs(all.map((o) => ({ ...o, id: String(o.id) })));
-    const currentIds = new Set(orgs.map((o) => String(o.organisationId)));
+    setAllOrgs(all);
+    const currentIds = new Set(orgs.map((o) => Number(o.organisationId)));
     setSelectedOrgIds(currentIds);
     setOriginalOrgIds(currentIds);
     setEditingOrgs(true);
     setOrganisationsError(false);
   };
 
-  const toggleOrg = (orgId: string) => {
+  const toggleOrg = (orgId: number) => {
     setOrganisationsError(false);
     setSelectedOrgIds((prev) => {
       const next = new Set(prev);
@@ -142,10 +146,10 @@ export function useUserGroupDetail(id: string | undefined) {
   };
 
   const saveOrgs = async () => {
-    if (!id) return;
-    if (selectedOrgIds.size == 0) {
+    if (!id) return false;
+    if (selectedOrgIds.size === 0) {
       setOrganisationsError(true);
-      return;
+      return false;
     }
     const removedOrgIds = Array.from(originalOrgIds).filter(
       (oid) => !selectedOrgIds.has(oid),
@@ -155,21 +159,20 @@ export function useUserGroupDetail(id: string | undefined) {
     );
     await setUserGroupOrganisations(id, addedOrgIds, removedOrgIds);
     setEditingOrgs(false);
-    fetchData();
   };
 
   const cancelEditOrgs = () => setEditingOrgs(false);
 
   const startEditPerms = async () => {
     const all = await listPermissions();
-    setAllPerms(all.map((p) => ({ ...p, id: String(p.id) })));
-    const currentIds = new Set(perms.map((p) => String(p.permissionId)));
+    setAllPerms(all);
+    const currentIds = new Set(perms.map((p) => Number(p.permissionId)));
     setSelectedPermIds(currentIds);
     setOriginalPermIds(currentIds);
     setEditingPerms(true);
   };
 
-  const togglePerm = (permId: string) => {
+  const togglePerm = (permId: number) => {
     setSelectedPermIds((prev) => {
       const next = new Set(prev);
       if (next.has(permId)) next.delete(permId);
@@ -195,7 +198,6 @@ export function useUserGroupDetail(id: string | undefined) {
     );
     await setUserGroupPermissions(id, addedPermissionIds, removedPermissionIds);
     setEditingPerms(false);
-    fetchData();
   };
 
   const cancelEditPerms = () => setEditingPerms(false);
@@ -216,9 +218,8 @@ export function useUserGroupDetail(id: string | undefined) {
   const handleDeleteUser = async (userId: string) => {
     if (!id || !userId) return;
     try {
-      const result = await deleteUserGroupUser(id, userId);
-      console.log('Vastus: ', result);
-      fetchData();
+      await deleteUserGroupUser(id, userId);
+      await fetchData();
     } catch (e) {
       console.error('Failed to delete user from group', e);
     }

@@ -302,8 +302,10 @@ Kubernetes init-containerid või `depends_on` ekvivalendid tuleb Helm chart'is v
 | Dokument | Sisu |
 |----------|------|
 | [`docs/LJVIS_arhitektuur.md`](LJVIS_arhitektuur.md) | Süsteemi arhitektuuriülevaade |
-| [`docs/infrastructure-diagram.md`](infrastructure-diagram.md) | Taristu diagrammid (dev + AWS prod + C4) |
+| [`docs/infrastructure-diagram.md`](infrastructure-diagram.md) | Dev + AWS prod + C4 diagrammid |
 | [`docs/infrastructure-access-view.md`](infrastructure-access-view.md) | Ligipääsupiirangud ja võrgutsoonid |
+| [`docs/api-endpoints.md`](api-endpoints.md) | API otspunktide loend |
+| [`docs/openapi.yaml`](openapi.yaml) | OpenAPI spetsifikatsioon |
 | [`docker-compose.yml`](../docker-compose.yml) | Dev-keskkonna teenuste konfiguratsioon |
 | [`constants.ini`](../constants.ini) | Teenuste sisemised URL-id |
 | [`DSL/Liquibase/`](../DSL/Liquibase/) | Andmebaasi migratsioonid |

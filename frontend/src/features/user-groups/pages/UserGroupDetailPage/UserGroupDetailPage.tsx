@@ -119,7 +119,8 @@ export function UserGroupDetailPage() {
   };
 
   const saveOrgs = async () => {
-    await saveOrgsHook();
+    const ok = await saveOrgsHook();
+    if (ok === false) return;
     await refetchUser();
   };
 
@@ -159,7 +160,7 @@ export function UserGroupDetailPage() {
             label={t('common.space')}
             hideLabel
             size="large"
-            value={info.row.original.id}
+            value={String(info.row.original.id)}
             name="organisations"
             checked={selectedOrgIds.has(info.row.original.id)}
             onChange={() => toggleOrg(info.row.original.id)}
@@ -198,7 +199,7 @@ export function UserGroupDetailPage() {
             label={t('common.space')}
             hideLabel
             size="large"
-            value={info.row.original.id}
+            value={String(info.row.original.id)}
             name="permissions"
             checked={selectedPermIds.has(info.row.original.id)}
             onChange={() => togglePerm(info.row.original.id)}
@@ -368,7 +369,7 @@ export function UserGroupDetailPage() {
           return (
             <div>
               {canRemoveUser && (
-                <>
+                <ModalProvider>
                   <ModalTrigger>
                     <a className="table-link danger-text">
                       {t('common.remove')}
@@ -401,7 +402,7 @@ export function UserGroupDetailPage() {
                       </div>
                     </CardContent>
                   </Modal>
-                </>
+                </ModalProvider>
               )}
             </div>
           );
@@ -416,8 +417,7 @@ export function UserGroupDetailPage() {
   if (!group) return <Text>{t('common.error')}</Text>;
 
   return (
-    <ModalProvider>
-      <div>
+    <div>
         {showNewUserAddedAlert && (
           <div className="mb-1">
             <Alert
@@ -561,7 +561,6 @@ export function UserGroupDetailPage() {
             />
           </Card.Content>
         </Card>
-      </div>
-    </ModalProvider>
+    </div>
   );
 }

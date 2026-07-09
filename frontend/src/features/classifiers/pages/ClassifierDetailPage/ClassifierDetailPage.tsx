@@ -68,6 +68,7 @@ export function ClassifierDetailPage() {
     setPagination,
     sorting,
     setSorting,
+    totalRows,
   } = useClassifierDetail(id);
 
   const handleEditSaved = () => {
@@ -83,12 +84,10 @@ export function ClassifierDetailPage() {
 
   const filteredClassifierValues = useMemo(() => {
     if (showOnlyValid) {
-      return classifierValues.filter((cv) => (cv.isValid as any) === 'true');
+      return classifierValues.filter((cv) => cv.isValid === 'true');
     }
     return classifierValues;
   }, [classifierValues, showOnlyValid]);
-
-  const filteredTotalRows = filteredClassifierValues.length;
 
   const handleSaveClick = () => {
     formik.submitForm();
@@ -136,7 +135,7 @@ export function ClassifierDetailPage() {
         header: t('classifiers.status'),
         enableSorting: false,
         cell: (info) => {
-          const s = (info.getValue() as any) === 'true';
+          const s = info.getValue() === 'true';
           const color = s ? 'success' : 'neutral';
           const label = s
             ? t('classifiers.statusActive')
@@ -269,7 +268,7 @@ export function ClassifierDetailPage() {
               data={filteredClassifierValues}
               columns={classifierValueColumns}
               isLoading={loading}
-              totalRows={filteredTotalRows}
+              totalRows={totalRows}
               pagination={pagination}
               onPaginationChange={setPagination}
               sorting={sorting}

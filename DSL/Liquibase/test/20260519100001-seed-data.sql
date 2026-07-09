@@ -3,10 +3,15 @@
 -- Seed data (v2 denormalized snapshot model)
 
 -- organisations
-INSERT INTO users.organisation (name, code, created_by) VALUES ('Justiitsministeerium', 'JUM', 'ljvis2');
-INSERT INTO users.organisation (name, code, created_by) VALUES ('Sotsiaalministeerium', 'SOT', 'ljvis2');
-INSERT INTO users.organisation (name, code, created_by) VALUES ('Haridusministeerium', 'HAR', 'ljvis2');
-
+INSERT INTO users.organisation (name, code, created_by)
+VALUES
+    ('Politsei- ja Piirivalveamet',                    'PPA',  'SYSTEM'),
+    ('Tööinspektsioon',                                'TI',   'SYSTEM'),
+    ('Maksu- ja Tolliamet',                            'MTA',  'SYSTEM'),
+    ('Eesti Rahvusvaheliste Autovedajate Assotsiatsioon', 'ERAA', 'SYSTEM'),
+    ('Kliimaministeerium',                             'KLIM', 'SYSTEM'),
+    ('Transpordiamet',                                 'TRAM', 'SYSTEM')
+;
 -- permissions catalogue
 INSERT INTO users.permission (code, description, created_by) VALUES ('user_group.list.admin',          'Kasutajagruppide nimekirja vaatamine kõigi asutuste ulatuses',                             'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('user_group.list.local',          'Kasutajagruppide nimekirja vaatamine ainult oma asutusega seotud gruppidele',              'ljvis2');
@@ -27,6 +32,13 @@ INSERT INTO users.permission (code, description, created_by) VALUES ('user.edit.
 INSERT INTO users.permission (code, description, created_by) VALUES ('user.edit.local',                'Kasutaja lisamine, vaatamine ja muutmine ainult oma asutuse kasutajatele',                 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('organisation.list',              'Asutuste kataloogi laadimine UI valikute jaoks (modaalid, akordionite tabelid)',           'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('permission.list',                'Õiguste kataloogi laadimine UI valikute jaoks (kasutatakse ainult muutmisrežiimis)',       'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('classifier.list',                'Klassifikaatorite nimekirja detailvaate vaatamine',                                        'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('classifier.read',                'Klassifikaatori detailvaate vaatamine',                                                    'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('classifier.edit',                'Klassifikaatori nimetuse ja selgituse muutmine',                                           'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('classifier_value.edit',          'Klassifikaatorile uue väärtuse loomine ja väärtuse kehtivusperioodi muutmine',             'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('audit.read',                     'Auditilogi kirjete vaatamine, filtreerimine, sorteerimine ja eksportimine CSV-failina',    'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.write',   'Välisriigi rikkumise andmevormi vormi loomine, täitmine, salvestamine ja failide üleslaadimine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.read',    'Välisriigi rikkumise andmevormi vormi andmete lugemine ja failide allalaadimine',          'ljvis2');
 
 -- user_groups — single full snapshot per group (v2: organisations + permissions embedded as JSONB)
 -- user_group_key = 1: Super Admin Group
@@ -50,38 +62,38 @@ VALUES (
 );
 
 -- user_accounts — single full snapshot per user (v2: all fields + user_groups as JSONB array of user_group_key values)
--- user_account_key = 1: Super Admin (38001085718) — member of groups 1 and 2
+-- user_account_key = 1: Super Admin (60001019906) — member of groups 1 and 2
 INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, status, user_groups, created_by
 ) VALUES (
     nextval('users.seq_user_account_key'),
-    '38001085718', 'Admin', 'Super',
-    1, 'Justiitsministeerium', 'LÕUNA PREFEKTUUR', 'Spetsialist',
+    '60001019906', 'Admin', 'Super',
+    1, 'Politsei- ja Piirivalveamet', 'PPA_LOUNA', 'Spetsialist',
     'admin.super@just.ee', '56789012', '2026-01-01', 'active', ARRAY[1,2]::BIGINT[], 'ljvis2'
 );
 
--- user_account_key = 2: Org Admin (48004115799) — member of group 2
+-- user_account_key = 2: Org Admin (60001017727) — member of group 2
 INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, status, user_groups, created_by
 ) VALUES (
     nextval('users.seq_user_account_key'),
-    '48004115799', 'Org', 'Admin',
-    2, 'Sotsiaalministeerium', 'IDA PREFEKTUUR', 'Spetsialist',
+    '60001017727', 'Org', 'Admin',
+    6, 'Transpordiamet', 'TRAM', 'Spetsialist',
     'org.admin@kollane.ee', '123', '2026-02-02', 'active', ARRAY[2]::BIGINT[], 'ljvis2'
 );
 
--- user_account_key = 3: Mari Tamm (39001011234) — no groups
+-- user_account_key = 3: Mari Tamm (60001017869) — no groups
 INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,
     organisation_id, organisation_name, structural_unit, job_title,
     email, phone, access_start, status, user_groups, created_by
 ) VALUES (
     nextval('users.seq_user_account_key'),
-    '39001011234', 'Mari', 'Tamm',
-    3, 'Haridusministeerium', 'KLIM', 'Teadur',
+    '60001017869', 'Mari', 'Tamm',
+    5, 'Kliimaministeerium', 'KLIM_HQ', 'Teadur',
     'mari.tamm@roheline.ee', '56789012', '2025-01-01', 'active', '{}'::BIGINT[], 'ljvis2'
 );

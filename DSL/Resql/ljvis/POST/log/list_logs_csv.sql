@@ -15,7 +15,7 @@ declaration:
         description: "Sort column and direction (createdAt, eventType, eventCategory, actorName)"
   response:
     fields:
-      - field: id
+      - field: event_id
         type: string
       - field: event_type
         type: string
@@ -23,7 +23,7 @@ declaration:
         type: string
       - field: actor_name
         type: string
-      - field: actor_personal_code
+      - field: actor_personal_code_hash
         type: string
       - field: description
         type: string
@@ -35,11 +35,11 @@ declaration:
         type: string
 */
 SELECT
-    e.id,
+    e.event_id,
     e.event_type,
     e.event_category,
     e.actor_name,
-    e.actor_personal_code,
+    encode(e.actor_personal_code_hash, 'hex') AS actor_personal_code_hash,
     e.description,
     e.log_content::VARCHAR,
     e.created_at,

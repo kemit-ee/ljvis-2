@@ -26,6 +26,7 @@ interface UserBasicInfoCardProps {
   canEditUser: boolean;
   isDesktop: boolean;
   onEdit: () => void;
+  structuralUnitName?: string;
 }
 
 export function UserBasicInfoCard({
@@ -33,6 +34,7 @@ export function UserBasicInfoCard({
   canEditUser,
   isDesktop,
   onEdit,
+  structuralUnitName,
 }: UserBasicInfoCardProps) {
   const { t } = useTranslation();
 
@@ -60,7 +62,7 @@ export function UserBasicInfoCard({
             {user.organisationName ?? '—'}
           </Field>
           <Field label={t('users.structuralUnit')}>
-            {user.structuralUnitName ?? '—'}
+            {structuralUnitName ?? '—'}
           </Field>
           <Field label={t('users.jobTitle')}>{user.jobTitleName ?? '—'}</Field>
           <Field label={t('users.email')}>{user.email}</Field>

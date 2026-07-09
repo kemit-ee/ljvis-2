@@ -43,7 +43,9 @@ services:
       context: .
       dockerfile: docker/liquibase/Dockerfile
     restart: "no"
-    command: --defaultsFile=/liquibase/liquibase.properties update
+    environment:
+      - AUDIT_SALT=${AUDIT_SALT:-ci-test-audit-salt-change-me-32chars}
+    command: --defaultsFile=/liquibase/liquibase.properties update --changelogParameters.AUDIT_SALT=${AUDIT_SALT:-ci-test-audit-salt-change-me-32chars}
     depends_on:
       database:
         condition: service_healthy
@@ -88,7 +90,8 @@ services:
       test: ["CMD-SHELL", "nc -z localhost 8090"]
       interval: 10s
       timeout: 5s
-      retries: 15
+      retries: 18
+      start_period: 45s
     volumes:
       - ./DSL/Resql:/DSL
     networks:
@@ -107,6 +110,7 @@ services:
     environment:
       - PORT=3005
       - CONTENT_FOLDER=/data
+      - RATE_LIMIT_PER_MINUTE=100000
     volumes:
       - ./DSL:/data
       - ./DSL/DMapper/ljvis/hbs:/workspace/app/views/ljvis
@@ -127,6 +131,7 @@ services:
     environment:
       - application.cors.allowedOrigins=http://localhost:9086,http://localhost:3001
       - application.httpCodesAllowList=200,201,202,400,401,403,422,500
+      - application.incomingRequests.allowedMethodTypes=POST,GET,PUT,DELETE
       - application.internalRequests.allowedIPs=127.0.0.1
       - application.logging.displayRequestContent=true
       - application.logging.displayResponseContent=true

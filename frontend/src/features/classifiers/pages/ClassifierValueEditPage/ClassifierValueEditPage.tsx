@@ -22,7 +22,7 @@ export function ClassifierValueEditPage() {
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('classifier_value.edit');
 
-  const { value, loading: valueLoading } = useClassifierValueDetail(valueId);
+  const { value, loading: valueLoading } = useClassifierValueDetail(id, valueId);
 
   const handleEditSaved = () => {
     if (id) {

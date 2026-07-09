@@ -1,0 +1,97 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List all classifiers"
+  method: get
+  accepts: json
+  returns: json
+  namespace: classifiers
+  allowlist:
+    params:
+      - field: search
+        type: string
+        description: "Search by classifier code or name"
+      - field: page
+        type: number
+        description: "Page number"
+      - field: pageSize
+        type: number
+        description: "Page size"
+      - field: sorting
+        type: string
+        description: "Sorting"
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    search: "${incoming.params.search ?? ''}"
+    page: "${incoming.params.page ?? 1}"
+    pageSize: "${incoming.params.pageSize ?? 20}"
+    sorting: "${incoming.params.sorting ?? 'name asc'}"
+    created_by: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+  next: getClassifiers
+
+getClassifiers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/list_classifiers"
+    headers:
+      type: json
+    body:
+      search: ${search}
+      page: ${page}
+      pageSize: ${pageSize}
+      sorting: ${sorting}
+  result: res
+  next: checkAuditCondition
+
+checkAuditCondition:
+  assign:
+    should_log_audit: "${search.length >= 3}"
+    result_count: "${res.response.body && res.response.body[0] ? res.response.body[0].total : 0}"
+    description: "Klassifikaatorite nimekiri, otsingutermin '${search}', tulemusi ${result_count}"
+    log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count}}"
+  next: conditionalAudit
+
+conditionalAudit:
+  switch:
+    - condition: ${should_log_audit}
+      next: logAuditEvent
+  next: mapResponse
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  body:
+    event_type: "classifier.list.search"
+    event_category: "classifier_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_classifiers_list"
+    headers:
+      type: json
+    body:
+      classifiers: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

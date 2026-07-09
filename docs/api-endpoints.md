@@ -16,11 +16,11 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | Meetod | Tee | Query paramid | Märkus |
 |--------|-----|---------------|--------|
 | GET | `/v1/classifiers` | `search`, `page`, `pageSize`, `sorting` | nimekiri |
-| GET | `/v1/classifiers/classifier` | `id` | üksik klassifikaator |
+| GET | `/v1/classifiers/classifier` | `q` | üksik klassifikaator |
 | PUT | `/v1/classifiers` | — | uuenda nime/kirjeldust (id request body-s) |
 | GET | `/v1/classifiers/values` | `classifierId`, `search`, `page`, `pageSize`, `sorting` | väärtuste nimekiri |
 | POST | `/v1/classifiers/value` | — | lisa uus väärtus (classifierId body-s) |
-| GET | `/v1/classifiers/value` | `id`, `valueId` | üksik väärtus |
+| GET | `/v1/classifiers/value` | `q`, `valueId` | üksik väärtus |
 | PUT | `/v1/classifiers/value` | — | uuenda kehtivusperioodi (classifierId, classifierValueId body-s) |
 | POST | `/v1/classifiers/check-code` | — | kontrolli, kas väärtuse kood juba eksisteerib (classifierId body-s) |
 | GET | `/v1/classifiers/catalogue` | — | kõik klassifikaatorite koodid |
