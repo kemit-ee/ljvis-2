@@ -10,5 +10,4 @@ declaration:
       - field: serial_number
         type: number
 */
-SELECT COALESCE(MAX(foreign_violation_form_key), 0) + 1 AS serial_number
-FROM forms.foreign_violation_form;
+SELECT nextval('forms.seq_foreign_violation_form_key') AS serial_number;

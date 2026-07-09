@@ -1,6 +1,5 @@
-[
-    {{#each forms}}
-    {
+{{#with forms.[0]}}
+{
         "id": "{{this.id}}",
         "formNumber": "{{this.formNumber}}",
         "reportingCountryCode": "{{this.reportingCountryCode}}",
@@ -45,6 +44,5 @@
         "inspectorProfession": "{{this.inspectorProfession}}",
         "files": {{{this.files}}},
         "status": "{{this.status}}"
-    }{{#unless @last}},{{/unless}}
-    {{/each}}
-]
+}
+{{/with}}

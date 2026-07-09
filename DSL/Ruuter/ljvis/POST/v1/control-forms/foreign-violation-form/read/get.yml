@@ -12,18 +12,19 @@ declaration:
         type: number
         description: "Foreign violation form ID"
 
-get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
   next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
   next: getForm
 
 getForm:

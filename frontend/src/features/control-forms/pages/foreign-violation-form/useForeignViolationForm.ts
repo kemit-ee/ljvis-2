@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -27,6 +27,7 @@ export function useForeignViolationForm(
   const [companySearchError, setCompanySearchError] = useState(false);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
+  const serialNumberFetched = useRef(false);
   const isEdit = !!form;
 
   const formNumberString = isEdit && form?.formNumber
@@ -46,6 +47,8 @@ export function useForeignViolationForm(
   }, [authUser?.organisationid]);
 
   useEffect(() => {
+    if (serialNumberFetched.current) return;
+    serialNumberFetched.current = true;
     getSerialNumber().then(setSerialNumber).catch(console.error);
   }, []);
 
