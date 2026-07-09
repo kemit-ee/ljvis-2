@@ -1,7 +1,7 @@
 services:
   database:
     container_name: database
-    image: postgres:14.1
+    image: postgres:17
     environment:
       - POSTGRES_USER=ljvis
       - POSTGRES_PASSWORD=01234
@@ -146,7 +146,7 @@ services:
 
   tim-postgresql:
     container_name: tim-postgresql
-    image: postgres:14.1
+    image: postgres:17
     environment:
       - POSTGRES_USER=tim
       - POSTGRES_PASSWORD=123

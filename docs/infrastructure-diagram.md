@@ -67,9 +67,11 @@ graph TD
   - Kasutab `DSL` sisu ja Handlebars vaateid
 
 - **Database**
-  - PostgreSQL 14.1
+  - PostgreSQL 17
   - Hosti port: `54321`, konteineri port: `5432`
   - Andmed salvestatakse kausta `./data`
+  > **Versioonipiirang:** Maksimaalselt PG 17 — RESQL ja TIM kasutavad JDBC 42.3.9
+  > (ametlik tugi ≤ PG 15; PG 17 testitud). Vt `admin-deployment-guide.md` §1.4.
 
 - **Liquibase**
   - Skeemi ja algandmete migratsioonid
