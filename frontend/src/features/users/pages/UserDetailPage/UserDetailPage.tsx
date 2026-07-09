@@ -88,19 +88,11 @@ export function UserDetailPage() {
     allGroups,
     formik,
     orgOptions,
+    structuralUnitOptions,
     isLocalAdmin,
     handleOrgChange,
     handleStructuralUnitChange,
   } = useUserForm(user ?? undefined, handleEditSaved, isEditActive || isGroupEditActive);
-
-  const structuralUnits = [
-    { value: 'LÕUNA PREFEKTUUR', label: 'LÕUNA PREFEKTUUR' },
-    { value: 'IDA PREFEKTUUR', label: 'IDA PREFEKTUUR' },
-    { value: 'LÄÄNE PREFEKTUUR', label: 'LÄÄNE PREFEKTUUR' },
-    { value: 'PÕHJA PREFEKTUUR', label: 'PÕHJA PREFEKTUUR' },
-    { value: 'KLIM', label: 'KLIM' },
-    { value: 'TRAM', label: 'TRAM' },
-  ];
 
   const onGroupSaved = () => {
     setIsGroupEditActive(false);
@@ -210,7 +202,7 @@ export function UserDetailPage() {
                 formik={formik}
                 isDesktop={isDesktop}
                 orgOptions={orgOptions}
-                structuralUnits={structuralUnits}
+                structuralUnitOptions={structuralUnitOptions}
                 isLocalAdmin={isLocalAdmin}
                 handleOrgChange={handleOrgChange}
                 handleStructuralUnitChange={handleStructuralUnitChange}
@@ -229,6 +221,11 @@ export function UserDetailPage() {
                 canEditUser={canEditUser}
                 isDesktop={isDesktop}
                 onEdit={() => setIsEditActive(true)}
+                structuralUnitName={
+                  structuralUnitOptions.find(
+                    (o) => o.value === user.structuralUnitName,
+                  )?.label || user.structuralUnitName || '—'
+                }
               />
             )}
           </Col>

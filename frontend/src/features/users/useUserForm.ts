@@ -13,6 +13,8 @@ import type { UserGroup } from '../user-groups/types';
 import { listUserGroups } from '../user-groups/api';
 import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
+import type { StructureUnit } from '../structure-units/types';
+import { listStructureUnits } from '../structure-units/api';
 import { useAuth } from '../auth/AuthContext';
 import { applyValidationError } from '../../shared/api/errors';
 import { hasStatus } from '../../hooks/statusUtils';
@@ -40,6 +42,7 @@ export function useUserForm(
   const scope = hasPermission('user_group.list.admin') ? 'admin' : 'local';
   const userScope = hasPermission('user.edit.admin') ? 'admin' : 'local';
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
   const [isLocalAdmin, setIsLocalAdmin] = useState(false);
   const [allGroups, setAllGroups] = useState<UserGroup[]>([]);
   const isEdit = !!user;
@@ -48,6 +51,13 @@ export function useUserForm(
     if (!enabled) return;
     listOrganisations().then(setOrganisations).catch(console.error);
   }, [enabled]);
+
+  const initialOrgId = user?.organisationId ?? (isLocalAdmin ? authUser?.organisationid : undefined);
+  useEffect(() => {
+    if (initialOrgId) {
+      listStructureUnits(Number(initialOrgId)).then(setStructureUnits).catch(console.error);
+    }
+  }, [initialOrgId]);
 
   useEffect(() => {
     if (!enabled || !authUser) return;
@@ -99,7 +109,6 @@ export function useUserForm(
         },
       ),
     organisationId: Yup.string().required(t('users.validation.required')),
-    structuralUnitName: Yup.string().required(t('users.validation.required')),
     jobTitleName: Yup.string().required(t('users.validation.required')),
     email: Yup.string()
       .required(t('users.validation.required'))
@@ -201,11 +210,10 @@ export function useUserForm(
       | readonly { value: string; label: string | React.ReactNode }[]
       | null,
   ) => {
-    if (val && !Array.isArray(val) && 'value' in val) {
-      formik.setFieldValue('organisationId', (val as { value: string }).value);
-    } else {
-      formik.setFieldValue('organisationId', '');
-    }
+    const newOrgId = val && !Array.isArray(val) && 'value' in val ? (val as { value: string }).value : '';
+    formik.setFieldValue('organisationId', newOrgId);
+    formik.setFieldValue('structuralUnitName', '');
+    listStructureUnits(Number(newOrgId) || undefined).then(setStructureUnits).catch(console.error);
   };
 
   const handleStructuralUnitChange = (
@@ -229,6 +237,10 @@ export function useUserForm(
     formik,
     isEdit,
     orgOptions,
+    structuralUnitOptions: structureUnits.map((u) => ({
+      label: u.name,
+      value: u.code,
+    })),
     handleOrgChange,
     handleStructuralUnitChange,
     isLocalAdmin,

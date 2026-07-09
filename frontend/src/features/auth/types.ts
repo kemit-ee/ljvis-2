@@ -5,6 +5,8 @@ export interface AuthUser {
   personalcode: string;
   organisationid: string;
   organisationname: string;
+  structuralunit: string;
+  jobtitle: string;
   email: string;
   status: string;
   permissions: string | string[];

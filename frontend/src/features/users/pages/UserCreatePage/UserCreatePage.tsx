@@ -30,18 +30,10 @@ export function UserCreatePage() {
     navigate(`/users/${id}`, { state: { justCreated: true } });
   };
 
-  const structuralUnits = [
-    { value: 'LÕUNA PREFEKTUUR', label: 'LÕUNA PREFEKTUUR' },
-    { value: 'IDA PREFEKTUUR', label: 'IDA PREFEKTUUR' },
-    { value: 'LÄÄNE PREFEKTUUR', label: 'LÄÄNE PREFEKTUUR' },
-    { value: 'PÕHJA PREFEKTUUR', label: 'PÕHJA PREFEKTUUR' },
-    { value: 'KLIM', label: 'KLIM' },
-    { value: 'TRAM', label: 'TRAM' },
-  ];
-
   const {
     formik,
     orgOptions,
+    structuralUnitOptions,
     handleOrgChange,
     handleStructuralUnitChange,
     isLocalAdmin,
@@ -170,23 +162,13 @@ export function UserCreatePage() {
                       <Select
                         id="structuralUnitId"
                         label={t('users.structuralUnit')}
-                        options={structuralUnits}
+                        options={structuralUnitOptions}
                         value={
-                          structuralUnits.find(
+                          structuralUnitOptions.find(
                             (o) => o.value === formik.values.structuralUnitName,
                           ) ?? null
                         }
                         onChange={handleStructuralUnitChange}
-                        required
-                        {...(formik.touched.structuralUnitName &&
-                        formik.errors.structuralUnitName
-                          ? {
-                              helper: {
-                                text: formik.errors.structuralUnitName,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
                       />
                     </div>
                     <TextField

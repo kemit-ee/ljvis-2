@@ -32,7 +32,7 @@ export function DesktopPage() {
                 <Dropdown.Item
                   key={form.route}
                   index={index}
-                  onClick={() => navigate(`/control-forms/${form.route}`)}
+                  onClick={() => navigate(`/control-forms/${form.route}/new`)}
                   {...(form.hasParent ? { indent: 2 } : {})}
                 >
                   {t(form.labelKey)}

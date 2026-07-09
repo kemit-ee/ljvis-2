@@ -90,7 +90,7 @@ CREATE TABLE users.user_account (
     last_name           VARCHAR(200)    NOT NULL,
     organisation_id     BIGINT          NOT NULL,
     organisation_name   VARCHAR(500)    NOT NULL,
-    structural_unit     VARCHAR(100)    NOT NULL,
+    structural_unit     VARCHAR(100),
     job_title           VARCHAR(100)    NOT NULL,
     email               VARCHAR(320)    NOT NULL,
     phone               VARCHAR(50),

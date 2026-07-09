@@ -32,3 +32,17 @@ export function toIsoDate(value: unknown): string {
   }
   return String(value);
 }
+
+export function toIsoTime(value: unknown): string {
+  if (!value) return '';
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    '$isDayjsObject' in value
+  ) {
+    const hours = (value as unknown as { hour: () => number }).hour();
+    const minutes = (value as unknown as { minute: () => number }).minute();
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+  }
+  return String(value);
+}

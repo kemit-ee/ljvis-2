@@ -10,12 +10,18 @@ All audit events are written to the `audit.audit_event` table via RESQL (`POST [
 
 | Field | Description |
 |---|---|
+| `event_id` | ULID (26-char base32 crockford). Time-ordered, sortable, globally unique. Used as the primary key. |
 | `event_type` | Action type (see list below) |
 | `event_category` | Domain: `user_management`, `user_group_management`, `classifier_management`, `control_form_management` |
+| `event_time_server` | `timestamptz`, default `now()`. Server-authoritative timestamp. |
 | `actor_name` | Actor's name (sourced from JWT) |
 | `actor_personal_code_hash` | SHA-256 hash of the actor's personal code, keyed with the audit salt (`sha256(personalCode || audit_salt)`); sourced from JWT. Cleartext personal codes are never stored. |
+| `trace_id` | W3C tracecontext trace id (32-hex), extracted from the `traceparent` header on the originating request. Enables cross-reference with Grafana Tempo / Jaeger. See `rest-api-design-guide.md` §10. |
+| `span_id` | W3C tracecontext span id (16-hex) of the request that produced the event. |
 | `description` | Human-readable Estonian description |
 | `log_content` | JSON object with additional data |
+| `prev_row_hash` | `bytea`. `row_hash` of the previous audit row in insertion order. Written by DB trigger, not by DSL. See "Hash chain integrity" below. |
+| `row_hash` | `bytea`. `sha256(canonical(row) || prev_row_hash)`. Written by DB trigger. |
 | `created_by` | Same as `actor_name` |
 
 ---
@@ -273,6 +279,101 @@ sequenceDiagram
     DB-->>R: ok
     R-->>K: HTTP 200 "ok"
 ```
+
+---
+
+## Hash chain integrity
+
+Append-only guarantees "a written row does not change." It does **not**
+guarantee "a written row does not disappear." Row deletion, a stray
+`TRUNCATE`, or a manual `INSERT` with a backdated timestamp are all
+possible for anyone with DB-level access — DBA, break-glass session,
+misconfigured migration. Without tamper-evidence, "was this row ever
+there?" cannot be answered.
+
+**Invariant.** Every row in `audit.audit_event` carries a `row_hash`
+that is `sha256(canonical(row) || prev_row_hash)`, where `prev_row_hash`
+is the previous row's `row_hash`. Any change — insertion, deletion,
+edit — breaks the chain at the following row.
+
+### Implementation: PostgreSQL `BEFORE INSERT` trigger
+
+The chain is written by a database trigger. Application DSL, RESQL
+templates, and manual `psql` sessions all pass through it — there is no
+code path that can insert without extending the chain.
+
+```sql
+CREATE TABLE audit.chain_tip (
+  id       smallint PRIMARY KEY DEFAULT 1,
+  row_hash bytea    NOT NULL     DEFAULT '\x00',
+  CONSTRAINT single_row CHECK (id = 1)
+);
+INSERT INTO audit.chain_tip DEFAULT VALUES;
+
+CREATE FUNCTION audit.chain() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE prev bytea;
+BEGIN
+  SELECT row_hash INTO prev
+    FROM audit.chain_tip
+    WHERE id = 1
+    FOR UPDATE;
+  NEW.prev_row_hash := prev;
+  NEW.row_hash := digest(
+    NEW.event_id::text || NEW.event_type ||
+    NEW.event_time_server::text ||
+    coalesce(NEW.actor_personal_code_hash, '') ||
+    NEW.log_content::text ||
+    encode(prev, 'hex'),
+    'sha256');
+  UPDATE audit.chain_tip
+    SET row_hash = NEW.row_hash
+    WHERE id = 1;
+  RETURN NEW;
+END $$;
+
+CREATE TRIGGER audit_event_chain
+  BEFORE INSERT ON audit.audit_event
+  FOR EACH ROW EXECUTE FUNCTION audit.chain();
+```
+
+`SELECT ... FOR UPDATE` on the single-row `chain_tip` serialises
+concurrent INSERTs within a transaction — no chain fork.
+
+### Verification: `GET /v1/logs/verify`
+
+The verifier walks the chain in event_id order and compares each row's
+stored `row_hash` against a recomputed value. First mismatch → chain
+breach at that row. See `docs/openapi.yaml` `getLogsVerify` for the
+response shape.
+
+Baseline check query:
+
+```sql
+WITH ordered AS (
+  SELECT
+    event_id,
+    row_hash,
+    prev_row_hash,
+    LAG(row_hash) OVER (ORDER BY event_id) AS expected_prev
+  FROM audit.audit_event
+)
+SELECT event_id
+FROM ordered
+WHERE prev_row_hash IS DISTINCT FROM COALESCE(expected_prev, '\x00');
+```
+
+The first returned `event_id` is the breach location. An empty result
+set means "chain intact over the checked range."
+
+### External anchoring (deferred)
+
+The chain proves **continuity**, not **truth**: an attacker who rewrites
+the whole table from time `T` (recomputing hashes as they go) produces
+an intact-looking chain. Rangeguard against this by periodically
+anchoring the current chain tip externally — a WORM-locked S3 object,
+a separate log service, or (for the strictest requirements) a public
+transparency log. Anchoring frequency vs incident-detection-window is a
+policy decision, not encoded here.
 
 ---
 
