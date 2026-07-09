@@ -259,9 +259,17 @@ Kõik kasutajaandmete sisestamise ja muutmise päringud läbivad:
 3. RESQL insert/update — andmebaasi kirjutamine
 4. `log/insert_audit_event` — audit-sündmuse kirjutamine
 
-Vea vorming (422):
+Vea vorming (422) — RFC 7807 Problem Details:
 ```json
-{ "type": "VALIDATION_ERROR", "field": "personalCode", "code": "invalid_estonian_personal_code" }
+{
+  "type": "https://ljvis.kemit.ee/problems/validation-error",
+  "title": "Validation failed",
+  "status": 422,
+  "code": "ERR-422-004",
+  "errors": [
+    { "field": "personalCode", "code": "invalid_estonian_personal_code", "message": "Vigane isikukood" }
+  ]
+}
 ```
 
 Frontend käsitleb automaatselt `applyValidationError` kaudu (`shared/api/errors.ts`).
@@ -284,14 +292,45 @@ Lähemalt: [`docs/db_errorhandling_rules.md`](db_errorhandling_rules.md)
 - Näited: `user.list.admin`, `user_group.update`, `classifier.edit`
 - Scope (`admin`/`local`) jõustab nii õiguse koodi kui ka andmefiltri (organisatsioon)
 
-Guard-fail näide (`GET/v1/users/admin/.guard`):
+Guard-fail näide (`GET/v1/.guard`) — tegelik struktuur:
 ```yaml
-check:
+check_for_cookie:
   switch:
-    - condition: ${u.permissions != null && u.permissions.includes('user.list.admin')}
-      next: allow
-  next: deny
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: guard_fail
+  next: authenticate
+
+authenticate:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority_result
+
+check_authority_result:
+  switch:
+    - condition: ${authority_result !== "false"}
+      next: check_permission
+  next: guard_fail
+
+check_permission:
+  switch:
+    - condition: ${authority_result.permissions.matchesAny(REQUIRED_PERMS)}
+      next: guard_success
+  next: guard_fail
+
+guard_success:
+  return: "success"
+  status: 200
+  next: end
+
+guard_fail:
+  return: "unauthorized"
+  status: 403
+  next: end
 ```
+
+Lähemalt: [`docs/rest-api-design-guide.md §6.4`](rest-api-design-guide.md)
 
 Täielik maatriks: [`docs/permissions-matrix.md`](permissions-matrix.md)
 
@@ -306,7 +345,7 @@ Kõik olulised lugemis- ja kirjutamisoperatsioonid logitakse `audit_event` tabel
 | `event_type` | Sündmuse tüüp, nt `user.update`, `user_group.create` |
 | `event_category` | Kategooria, nt `user_management` |
 | `actor_name` | Toimingu tegija nimi |
-| `actor_personal_code` | Toimingu tegija isikukood |
+| `actor_personal_code_hash` | Toimingu tegija isikukoodi SHA-256 räsi (salted) — selgetekstilist isikukoodi ei salvestata |
 | `description` | Inimloetav kirjeldus |
 | `log_content` | JSON detailid (muudetud väljad, ID-d) |
 
