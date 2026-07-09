@@ -216,13 +216,11 @@ sequenceDiagram
     DB-->>R: [{user rows}]
     R->>DM: map_users_list {users}
     DM-->>R: {content:[], total:N}
-    R->>DM: map_personal_code_hashes {users}
-    DM-->>R: ["sha256:9f2c...", "sha256:71bf..."]
     alt search.length >= 3
         R->>DB: insert_audit_event {event_type:"user.list.search", searchTerm, resultCount}
         DB-->>R: ok
     end
-    R->>DB: insert_audit_event {event_type:"user.list.view", page, resultCount, displayedPersonalCodeHashes}
+    R->>DB: insert_audit_event {event_type:"user.list.view", page, resultCount}
     DB-->>R: ok
     R-->>K: HTTP 200 {content, total}
 ```
