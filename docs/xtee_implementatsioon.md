@@ -17,11 +17,11 @@ X-tee on Eesti riigi infosüsteemi kiht, mille kaudu liikmed (asutused) saavad o
 
 **Milles XTR-i ei vajata:**
 - **Sisemiste teenuste** puhul (nt Ruuter) pole X-tee liidest vaja, neid otse REST-ga välja kutsuda on otstarbekam.
-- **X-tee REST teenuste** puhul (nii tarbimine kui pakkumine) ei ole vaja XTR-i, sest X-tee liige ja LJVIS suudavad REST päringuid otse vahetada turvaserveri kaudu.
-- **X-tee SOAP teenuse pakkumise** puhul ei sobi XTR, sest XTR v3 ei kuula X-tee/SOAP sissepääsu. Selleks tuleks luua eraldi SOAP adapter.
+- **X-tee REST teenuste** puhul (nii tarbimine kui pakkumine) ei ole vaja XTR-i, sest X-tee liige ja LJVIS suudavad REST päringuid vahetada otse turvaserveri kaudu.
+- **X-tee SOAP teenuse pakkumise** puhul ei sobi XTR, sest XTR ei kuula X-tee/SOAP sissepääsu. Selleks tuleks luua eraldi SOAP adapter.
 
 **Milles XTR-i vajatakse:**
-- **X-tee SOAP teenuse tarbimise** puhul, et teisendada REST → SOAP ja vastupidi.
+- **X-tee SOAP teenuse tarbimise** korral, et teisendada REST → SOAP ja vastupidi. Eesmärk on muinasaegse SOAP asemel kasutada lihtsamaid REST päringuid.
 
 Hetkel töötab XTR ühes suunas: **REST klient (Ruuter) → XTR → (turvaserver/teenus)**.
 
@@ -31,7 +31,7 @@ Hetkel töötab XTR ühes suunas: **REST klient (Ruuter) → XTR → (turvaserve
 
 ```mermaid
 flowchart LR
-    A[Ruuter] -->|JSON POST /{provider}/{service}| B[XTRApplication]
+    A[Ruuter] -->|"JSON POST /{provider}/{service}"| B[XTRApplication]
     B --> C[ApiController / XRoadRequestController]
     C --> D[XRoadTemplatesService]
     D --> E[(DSL / YAML mallid)]
@@ -65,7 +65,7 @@ sequenceDiagram
     participant TS as Turvaserver
     participant XT as X-tee teenus
 
-    Klient->>XTR: 1. POST /ar/ettevottegaSeotudIsikud_v1<br/>JSON: {"reg_code": "70006317"}
+    Klient->>XTR: 1. POST /ar/ettevottegaSeotudIsikud_v1 (JSON: reg_code)
     XTR->>XTR: 2. Laadi DSL mall (provider/service)
     XTR->>XTR: 3. Filtreeri parameetrid ja täida Handlebars mall
     XTR->>XTR: 4. Koosta X-tee SOAP envelope
@@ -73,13 +73,13 @@ sequenceDiagram
     TS->>XT: 6. Edasta X-tee päring
     XT-->>TS: 7. SOAP vastus
     TS-->>XTR: 8. SOAP vastus
-    XTR->>XTR: 9. xmlToJson: võta <Body> ja teisenda JSON-iks
+    XTR->>XTR: 9. xmlToJson: võta SOAP Body ja teisenda JSON-iks
     XTR-->>Klient: 10. JSON vastus
 ```
 
 ### 2. REST klient → Sisemine teenus / Ruuter
 
-Kui DSL-is on määratud `service` URL, suunab XTR päringu otse sellele teenusele. Seda saab kasutada näiteks Ruuteri või muu sisemise teenuse poole suunamiseks.
+Kui DSL-is on määratud `service` URL, suunab XTR päringu otse sellele teenusele. Seda saab kasutada näiteks mõne teise Ruuteri või muu sisemise teenuse poole suunamiseks.
 
 ```mermaid
 sequenceDiagram
@@ -87,7 +87,7 @@ sequenceDiagram
     participant XTR as XTR
     participant Ruuter as Ruuter / Sisemine teenus
 
-    Klient->>XTR: 1. POST /{provider}/{service}<br/>JSON parameetrid
+    Klient->>XTR: 1. POST /{provider}/{service} (JSON parameetrid)
     XTR->>XTR: 2. Laadi DSL mall
     XTR->>XTR: 3. Koosta payload (XML/JSON mall)
     XTR->>Ruuter: 4. HTTP {method} päring DSL-is määratud URL-ile
@@ -98,7 +98,7 @@ sequenceDiagram
 
 ### 3. X-tee klient → XTR → Ruuter (kontseptuaalne)
 
-See on võimalik tulevikuvool, kus XTR oleks X-tee teenusepakkuja ja suunaks päringu sisemisse Ruuteri. **Praegune XTR v3 seda ei toeta**, sest tal puudub X-tee/SOAP sissepääsuendpunkt.
+See on võimalik tulevikuvool, kus XTR oleks X-tee teenusepakkuja ja suunaks päringu sisemisse Ruuterisse. **Praegune XTR seda ei toeta**, sest tal puudub X-tee/SOAP sissepääsuendpunkt.
 
 ```mermaid
 sequenceDiagram
