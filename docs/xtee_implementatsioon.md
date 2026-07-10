@@ -184,7 +184,7 @@ application:
     member-code: 70006317
     subsystem-code: byrokratt
 
-  security-server: https://out.test.x-tee.ee:443/
+  security-server: http://kemit-turvaserver/
   xroad-instance: ee-test
 ```
 
