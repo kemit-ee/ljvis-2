@@ -6,15 +6,25 @@
 ALTER TABLE audit.audit_event
     ADD COLUMN IF NOT EXISTS actor_personal_code_hash BYTEA;
 
--- Step 2: Hash any remaining cleartext rows
-UPDATE audit.audit_event
-SET actor_personal_code_hash = digest(
-    actor_personal_code || coalesce(current_setting('app.audit_salt', true), ''),
-    'sha256'
-)
-WHERE actor_personal_code IS NOT NULL
-  AND actor_personal_code <> ''
-  AND actor_personal_code_hash IS NULL;
+-- Step 2: Hash any remaining cleartext rows (only if the cleartext column still exists)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'audit'
+          AND table_name   = 'audit_event'
+          AND column_name  = 'actor_personal_code'
+    ) THEN
+        UPDATE audit.audit_event
+        SET actor_personal_code_hash = digest(
+            actor_personal_code || coalesce(current_setting('app.audit_salt', true), ''),
+            'sha256'
+        )
+        WHERE actor_personal_code IS NOT NULL
+          AND actor_personal_code <> ''
+          AND actor_personal_code_hash IS NULL;
+    END IF;
+END $$;
 
 -- Step 3: Drop the cleartext column
 ALTER TABLE audit.audit_event
