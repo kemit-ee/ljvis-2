@@ -1,4 +1,4 @@
-{{#with classifierValues.[0]}}
+{{#each classifierValues}}{{#if @first}}
 {
     "classifierId": "{{this.classifierId}}",
     "classifierValueId": "{{this.classifierValueId}}",
@@ -7,4 +7,4 @@
     "validFrom": "{{this.validFrom}}",
     "validUntil": {{#if this.validUntil}}"{{this.validUntil}}"{{else}}null{{/if}}
 }
-{{/with}}
+{{/if}}{{/each}}
