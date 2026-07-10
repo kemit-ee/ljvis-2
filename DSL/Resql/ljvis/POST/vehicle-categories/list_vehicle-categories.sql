@@ -1,9 +1,9 @@
 /*
 declaration:
   version: 0.1
-  description: "List of all trailer categories"
+  description: "List all of vehicle categories"
   method: post
-  namespace: trailers
+  namespace: vehicle-categories
   returns: json
   response:
     fields:
@@ -16,5 +16,5 @@ SELECT
     cv.code,
     cv.name
 FROM classifier.classifier_value cv
-WHERE cv.classifier_key = (SELECT classifier_key FROM classifier.classifier WHERE code = 'TRAILER_CATEGORY')
+WHERE cv.classifier_key = (SELECT classifier_key FROM classifier.classifier WHERE code = 'VEHICLE_CATEGORY')
 ORDER BY cv.id;

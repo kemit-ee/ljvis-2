@@ -23,7 +23,7 @@ import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
 import { useCompoundForm } from './useCompoundForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, COUNTRIES, VEHICLE_CATEGORIES } from '../../../../constants/constants';
+import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
 import dayjs from 'dayjs';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
@@ -74,6 +74,7 @@ export function CompoundFormCreatePage() {
     orgOptions,
     roads,
     trailerCategories,
+    vehicleCategories,
     counties,
     citiesParishes,
     handleCountyChange,
@@ -357,8 +358,8 @@ export function CompoundFormCreatePage() {
                     <Select
                       id="vehicleCategoryCode"
                       label={t('forms.compound.vehicleCategory')}
-                      options={VEHICLE_CATEGORIES}
-                      value={VEHICLE_CATEGORIES.find((o) => o.value === formik.values.vehicleCategoryCode) ?? null}
+                      options={(vehicleCategories ?? []).map((c) => ({ value: c.code, label: c.name }))}
+                      value={(vehicleCategories ?? []).map((c) => ({ value: c.code, label: c.name })).find((o) => o.value === formik.values.vehicleCategoryCode) ?? null}
                       onChange={(val) =>
                         formik.setFieldValue(
                           'vehicleCategoryCode',

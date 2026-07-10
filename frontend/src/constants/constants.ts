@@ -447,18 +447,3 @@ export const COUNTRIES = [
   { value: 'ZM', labelKey: 'countries.ZM' },
   { value: 'ZW', labelKey: 'countries.ZW' },
 ];
-
-export const VEHICLE_CATEGORIES = [
-  { value: 'M1', label: 'M1' },
-  { value: 'M2', label: 'M2' },
-  { value: 'M3', label: 'M3' },
-  { value: 'N1', label: 'N1' },
-  { value: 'N2', label: 'N2' },
-  { value: 'N3', label: 'N3' },
-  { value: 'O1', label: 'O1' },
-  { value: 'O2', label: 'O2' },
-  { value: 'O3', label: 'O3' },
-  { value: 'O4', label: 'O4' },
-  { value: 'L', label: 'L' },
-  { value: 'Muu', label: 'Muu' },
-];
