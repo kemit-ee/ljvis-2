@@ -473,25 +473,3 @@ export const TRAILER_CATEGORIES = [
   { value: 'O4', label: 'O4' },
   { value: 'Muu', label: 'Muu' },
 ];
-
-export const ROADS = [
-  { value: '', label: '\u00A0' },
-  { value: '1', label: '1 (Tallinn-Narva)' },
-  { value: '2', label: '2 (Tallinn-Tartu)' },
-  { value: '4', label: '4 (Tallinn-Pärnu)' },
-  { value: '5', label: '5 (Pärnu-Saarde)' },
-  { value: '6', label: '6 (Tallinn-Haapsalu)' },
-  { value: '7', label: '7 (Rakvere-Püssi)' },
-  { value: '8', label: '8 (Tallinn-Paldiski)' },
-  { value: '9', label: '9 (Kuressaare-Kihelkonna)' },
-  { value: '11', label: '11 (Narva-Sillamäe)' },
-  { value: '92', label: '92 (Tallinn-Rädi)' },
-  { value: 'MUU TEE', label: 'MUU TEE' },
-];
-
-export const ROAD_TYPES = [
-  { value: 'riigimaantee', label: 'Riigimaantee' },
-  { value: 'kohalikutee', label: 'Kohalikutee' },
-  { value: 'eratee', label: 'Eratee' },
-  { value: 'muu', label: 'Muu' },
-];

@@ -21,7 +21,7 @@ import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
 import { useCompoundForm } from './useCompoundForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, COUNTRIES, VEHICLE_CATEGORIES, TRAILER_CATEGORIES, ROADS } from '../../../../constants/constants';
+import { BREAKPOINTS, COUNTRIES, VEHICLE_CATEGORIES, TRAILER_CATEGORIES } from '../../../../constants/constants';
 import dayjs from 'dayjs';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
@@ -70,6 +70,7 @@ export function CompoundFormCreatePage() {
     formik,
     structureUnits,
     orgOptions,
+    roads,
     counties,
     citiesParishes,
     handleCountyChange,
@@ -138,12 +139,12 @@ export function CompoundFormCreatePage() {
                     <Select
                       id="road"
                       label={t('forms.compound.road')}
-                      options={ROADS}
-                      value={ROADS.find((o) => o.value === formik.values.road) ?? null}
+                      options={(roads ?? []).map((r) => ({ value: r.code, label: r.name }))}
+                      value={(roads ?? []).map((r) => ({ value: r.code, label: r.name })).find((o) => o.value === formik.values.road) ?? null}
                       onChange={(val) => {
                         const roadValue = val && !Array.isArray(val) ? (val as { value: string }).value : '';
                         formik.setFieldValue('road', roadValue);
-                        if (roadValue === 'MUU TEE') {
+                        if (roadValue === 'muu_tee') {
                           formik.setFieldValue('road_type', 'Kohalik tee');
                         } else if (roadValue) {
                           formik.setFieldValue('road_type', 'Riigimaantee');
@@ -170,7 +171,7 @@ export function CompoundFormCreatePage() {
                           ? { helper: { text: formik.errors.kilometer, type: 'error' as const } }
                           : {})}
                     />
-                    {formik.values.road === 'MUU TEE' ? (
+                    {formik.values.road === 'muu_tee' ? (
                       <TextField
                         id="roadOther"
                         label={t('forms.compound.road_other')}
