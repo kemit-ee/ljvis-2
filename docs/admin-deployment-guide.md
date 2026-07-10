@@ -67,7 +67,7 @@ seni, kuni RESQL ja TIM ei ole uuendatud JDBC draiveriga ≥ 42.6 versioonile.
 |-----------|-------------|-----------------|----------|
 | RESQL `v1.3.4` | `42.3.9` | ≤ PG 15 | PG 17 ✓ |
 | TIM `pre-apha-2.7.1` | `42.3.9` | ≤ PG 15 | PG 17 ✓ |
-| Liquibase `5.0.3` | `42.7.11` | ≤ PG 18 | PG 17 ✓ |
+| Liquibase `4.29.2` | `42.7.11` | ≤ PG 18 | PG 17 ✓ |
 
 Järgmine lubatud upgrade'i samm: uuenda RESQL ja TIM Bürokratt upstream'is
 → kontrolli, et uus versioon kasutab JDBC ≥ 42.6 → seejärel saab minna PG 18 peale.
