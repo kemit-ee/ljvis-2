@@ -39,6 +39,8 @@ INSERT INTO users.permission (code, description, created_by) VALUES ('classifier
 INSERT INTO users.permission (code, description, created_by) VALUES ('audit.read',                     'Auditilogi kirjete vaatamine, filtreerimine, sorteerimine ja eksportimine CSV-failina',    'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.write',   'Välisriigi rikkumise andmevormi vormi loomine, täitmine, salvestamine ja failide üleslaadimine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.read',    'Välisriigi rikkumise andmevormi vormi andmete lugemine ja failide allalaadimine',          'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('compound_form.write',   'Üldosa andmete salvestamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('compound_form.read',    'Üldosa andmete lugemine', 'ljvis2');
 
 -- user_groups — single full snapshot per group (v2: organisations + permissions embedded as JSONB)
 -- user_group_key = 1: Super Admin Group

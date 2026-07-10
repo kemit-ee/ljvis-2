@@ -123,6 +123,10 @@ nav[aria-label='Main navigation'] {
   padding: 0;
 }
 
+.p-1 {
+  padding: 1rem;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }

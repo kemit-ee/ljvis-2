@@ -24,9 +24,9 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     hasParent: false,
     showOnDashboard: true,
   },
-  sp_compound_form: {
-    labelKey: 'forms.sp_compound_form',
-    route: '/sp-compound',
+  compound_form: {
+    labelKey: 'forms.compound_form',
+    route: '/compound',
     hasParent: false,
     showOnDashboard: true,
   },

@@ -20,6 +20,7 @@ import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDeta
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
 import { ForeignViolationFormCreatePage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormCreatePage';
 import { ForeignViolationFormPage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormPage';
+import { CompoundFormCreatePage } from './features/control-forms/pages/compound-form/CompoundFormCreatePage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 
 function AppRoutes() {
@@ -62,6 +63,7 @@ function AppRoutes() {
           <Route path="/logs/:id" element={<LogDetailPage />} />
           <Route path="/control-forms/foreign-violation/new" element={<ForeignViolationFormCreatePage />} />
           <Route path="/control-forms/foreign-violation/:id" element={<ForeignViolationFormPage />} />
+          <Route path="/control-forms/compound/new" element={<CompoundFormCreatePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
