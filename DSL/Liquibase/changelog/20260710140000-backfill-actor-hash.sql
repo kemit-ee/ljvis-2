@@ -1,3 +1,5 @@
+-- liquibase formatted sql
+-- changeset ljvis:20260710140000 ignore:true
 -- Backfill: hash existing cleartext actor_personal_code rows and drop the old column.
 -- Idempotent: ADD COLUMN IF NOT EXISTS / DROP COLUMN IF EXISTS guards allow safe re-run.
 -- Rollback: re-adds actor_personal_code as nullable TEXT (data is NOT restored — take a backup first).
