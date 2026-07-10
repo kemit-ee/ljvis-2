@@ -2,16 +2,28 @@
 
 ## Ülevaade
 
-X-tee on Eesti riigi infosüsteemi kiht, mille kaudu liikmed (asutused) saavad omavahel turvaliselt teenuseid pakkuda ja tarbida. Kõnealune dokument kirjeldab **X-tee adapteri (XTR)** rolli Buerokratti süsteemis.
+X-tee on Eesti riigi infosüsteemi kiht, mille kaudu liikmed (asutused) saavad omavahel turvaliselt teenuseid pakkuda ja tarbida.
 
-**XTR (X-tee Translator)** on Buerokratti teenus, mis pakub X-tee **SOAP**-teenustele REST-liidest. XTR võtab vastu JSON-päringud, laeb vastava DSL-malli, täidab mallis olevad parameetrid, saadab päringu edasi X-tee turvaserverisse ja tagastab vastuse JSON-ina.
+**XTR (X-tee Translator)** on teenus, mis pakub X-tee **SOAP**-teenustele REST-liidest. XTR võtab vastu JSON-päringud, laeb vastava DSL-malli, täidab mallis olevad parameetrid, saadab päringu edasi X-tee turvaserverisse ja tagastab vastuse JSON-ina.
+
+## Kasutusreeglid LJVIS-i jaoks
+
+| Suund | Protokoll | Komponent |
+|-------|-----------|-----------|
+| LJVIS tarbib välist teenust | SOAP | XTR (REST → SOAP) |
+| LJVIS tarbib välist teenust | REST | otse turvaserver ↔ Ruuter |
+| LJVIS pakub teenust | REST | otse turvaserver ↔ Ruuter |
+| LJVIS pakub teenust | SOAP | eraldi SOAP adapter (XTR v3 seda ei toeta) |
 
 **Milles XTR-i ei vajata:**
 - **Sisemiste teenuste** puhul (nt Ruuter) pole X-tee liidest vaja, neid otse REST-ga välja kutsuda on otstarbekam.
-- **X-tee REST teenuste** puhul ei ole vaja XTR-i, sest X-tee liige suudab REST päringuid otse tarbida.
-- **X-tee SOAP teenuste** puhul on XTR vajalik, et teisendada REST → SOAP ja vastupidi.
+- **X-tee REST teenuste** puhul (nii tarbimine kui pakkumine) ei ole vaja XTR-i, sest X-tee liige ja LJVIS suudavad REST päringuid otse vahetada turvaserveri kaudu.
+- **X-tee SOAP teenuse pakkumise** puhul ei sobi XTR, sest XTR v3 ei kuula X-tee/SOAP sissepääsu. Selleks tuleks luua eraldi SOAP adapter.
 
-Hetkel on XTR v3 Alpha-versioonis ja töötab ühes suunas: **REST klient → XTR → (turvaserver/teenus)**.
+**Milles XTR-i vajatakse:**
+- **X-tee SOAP teenuse tarbimise** puhul, et teisendada REST → SOAP ja vastupidi.
+
+Hetkel töötab XTR ühes suunas: **REST klient (Ruuter) → XTR → (turvaserver/teenus)**.
 
 ---
 
@@ -19,7 +31,7 @@ Hetkel on XTR v3 Alpha-versioonis ja töötab ühes suunas: **REST klient → XT
 
 ```mermaid
 flowchart LR
-    A[REST Klient] -->|JSON POST /{provider}/{service}| B[XTRApplication]
+    A[Ruuter] -->|JSON POST /{provider}/{service}| B[XTRApplication]
     B --> C[ApiController / XRoadRequestController]
     C --> D[XRoadTemplatesService]
     D --> E[(DSL / YAML mallid)]
