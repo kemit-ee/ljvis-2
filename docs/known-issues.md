@@ -36,14 +36,7 @@ Süsteem käitatakse hetkel **PostgreSQL 17-ga** — see on testitud kalkuleerit
 2. Kontrolli uue versiooni bundled JDBC draiveri versiooni.
 3. Kui JDBC ≥ 42.6 → saab minna PostgreSQL 18 peale.
 
-### Viited
-
-- `docs/admin-deployment-guide.md` §1.4 — operatiivne kirjeldus
-- `docker/liquibase/Dockerfile` — Liquibase versioon
-- `docker-compose.yml`, `docker-compose.ci.yml` — PostgreSQL versioon
-# Known Issues / Teadaolevad probleemid
-
-## Liquibase 5.0.x — changelog file not found
+## KI-002 Liquibase 5.0.x — changelog file not found
 
 ### Issue
 Liquibase Docker image versions `5.0.3` (and likely other 5.0.x releases) fail to start with:
@@ -73,3 +66,9 @@ With Liquibase 4.29.2, the following configuration works as expected:
 
 ### Next steps
 Re-evaluate Liquibase 5.x compatibility once a newer 5.x release is available or once Liquibase documents the correct way to configure `searchPath`/`changelogFile` in the Docker image. At the time of writing, the 5.0.3 image does not allow a simple changelog file path to work.
+
+### Viited
+
+- `docs/admin-deployment-guide.md` §1.4 — operatiivne kirjeldus
+- `docker/liquibase/Dockerfile` — Liquibase versioon
+- `docker-compose.yml`, `docker-compose.ci.yml` — PostgreSQL versioon
