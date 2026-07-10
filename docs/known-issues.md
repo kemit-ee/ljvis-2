@@ -24,7 +24,7 @@ Süsteem käitatakse hetkel **PostgreSQL 17-ga** — see on testitud kalkuleerit
 |-----------|-------------|-----------------|---------|
 | `resql-ljvis` `v1.3.4` | `42.3.9` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
 | `tim` `pre-apha-2.7.1` | `42.3.9` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
-| `liquibase` `5.0.3` | `42.7.11` (via lpm) | ≤ PostgreSQL 18 | PostgreSQL 17 ✓ |
+| `liquibase` `4.29.2` | `42.7.11` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
 
 ### Piirang
 
@@ -36,36 +36,40 @@ Süsteem käitatakse hetkel **PostgreSQL 17-ga** — see on testitud kalkuleerit
 2. Kontrolli uue versiooni bundled JDBC draiveri versiooni.
 3. Kui JDBC ≥ 42.6 → saab minna PostgreSQL 18 peale.
 
-## KI-002 Liquibase 5.0.x — changelog file not found
+## KI-002 · Liquibase 5.0.x — changelog file not found
 
-### Issue
-Liquibase Docker image versions `5.0.3` (and likely other 5.0.x releases) fail to start with:
+### Kirjeldus
+
+Liquibase Docker image versioonid `5.0.3` (ja tõenäoliselt ka teised 5.0.x väljalasked) ei käivitu ning annavad veateate:
 
 ```
 ChangeLogParseException: /liquibase/changelog.yaml does not exist
 ChangeLogParseException: /ljvis/changelog.yaml does not exist
 ```
 
-even when the changelog file is present via `COPY` in the image or bind-mounted into the container.
+Viga ilmub ka siis, kui `changelog.yaml` on olemas nii image'i `COPY` käsuga lisatud kui ka konteinerisse bind-mount'itud.
 
-### Root cause
-Liquibase 5.0.x Docker image uses `/liquibase/` as its own installation/runtime path. The changelog resource loader in 5.0.x does not resolve `changelog.yaml` correctly from `/liquibase/` or any other container path. The `searchPath` property in `liquibase.properties` is also not applied before the changelog file lookup, so neither absolute paths nor custom directories (`/ljvis/`) help.
+### Põhjus
 
-### Workaround
-Use the latest Liquibase 4.x release that is compatible with the project. As of the current deploy setup, the pinned image is:
+Liquibase 5.0.x Docker image kasutab `/liquibase/` kausta oma installi/runtime teena. 5.0.x changelog resource loader ei suuda `changelog.yaml` õigesti lahendida ei `/liquibase/` ega ka mitte ühestki teisest konteineri teest. Ka `liquibase.properties` failis määratud `searchPath` omadust ei rakendata enne changelog faili otsingut, seega ei aita ei absoluutsed teed ega ka kohandatud kaustad (nt `/ljvis/`).
+
+### Lahendus (workaround)
+
+Kasuta viimast projektiga ühilduvat Liquibase 4.x versiooni. Hetkel kinnitatud image on:
 
 ```dockerfile
 FROM liquibase/liquibase:4.29.2
 ```
 
-With Liquibase 4.29.2, the following configuration works as expected:
+Liquibase 4.29.2-ga töötab järgmine seadistus:
 - `docker/liquibase/Dockerfile`: `COPY DSL/Liquibase/ /liquibase/`
-- `docker-compose.yml` and `docker-compose.ci.yml`: bind-mount `./DSL/Liquibase/` to `/liquibase/`
+- `docker-compose.yml` ja `docker-compose.ci.yml`: bind-mount `./DSL/Liquibase/` → `/liquibase/`
 - `DSL/Liquibase/liquibase.properties`: `changelogFile: changelog.yaml`, `searchPath: /liquibase/`
-- Liquibase command: `--defaultsFile=/liquibase/liquibase.properties update`
+- Liquibase käsk: `--defaultsFile=/liquibase/liquibase.properties update`
 
-### Next steps
-Re-evaluate Liquibase 5.x compatibility once a newer 5.x release is available or once Liquibase documents the correct way to configure `searchPath`/`changelogFile` in the Docker image. At the time of writing, the 5.0.3 image does not allow a simple changelog file path to work.
+### Järgmine samm
+
+Hinda Liquibase 5.x ühilduvust uuesti siis, kui saadaval on uuem 5.x väljalase või kui Liquibase dokumenteerib `searchPath`/`changelogFile` õige seadistamise Docker image'is. Hetkel ei luba 5.0.3 image lihtsat changelog faili teed tööle.
 
 ### Viited
 
