@@ -23,7 +23,7 @@ Süsteem vajab **kahte eraldi PostgreSQL andmebaasi** — need peavad olema kaks
 
 | Parameeter | Väärtus |
 |-----------|---------|
-| Engine | PostgreSQL 14+ |
+| Engine | PostgreSQL 17 |
 | Andmebaasi nimi | `ljvis_db` |
 | Kasutajanimi | `ljvis` |
 | Port | `5432` |
@@ -37,7 +37,7 @@ Algne init-skript: `DSL/Liquibase/init-db.sql` — loob `ljvis_db` andmebaasi ja
 
 | Parameeter | Väärtus |
 |-----------|---------|
-| Engine | PostgreSQL 14+ |
+| Engine | PostgreSQL 17 |
 | Andmebaasi nimi | `tim` |
 | Kasutajanimi | `tim` |
 | Port | `5432` |
@@ -49,6 +49,28 @@ TIM haldab oma skeemi ise — Liquibase seda ei puuduta.
 
 - LJVIS DB ja TIM DB **ei tohi jagada sama PostgreSQL instantsi** turvapiiride tõttu.
 - Mõlemad andmebaasid peavad olema **ainult sisemisest võrgust** (klastri seest) kättesaadavad — mitte avalikust internetist.
+
+### 1.4 PostgreSQL versioonipiirang (JDBC driver ceiling)
+
+Süsteem on testitud ja töötab **PostgreSQL 17-ga**.
+
+**Piirang:** `resql-ljvis` (`ghcr.io/buerokratt/resql:v1.3.4`) ja `tim`
+(`ghcr.io/buerokratt/tim:pre-apha-2.7.1`) kasutavad mõlemad sisseehitatud
+PostgreSQL JDBC draiverit **42.3.9**, mis ametlikult toetab PostgreSQL ≤ 15.
+
+PostgreSQL 17 kasutamine on **kalkuleeritud risk** — JDBC draiver on
+wire-protokolliga tagasiühilduv ja põhioperatsioonid (INSERT/SELECT/UPDATE)
+toimivad testidega kinnitatult. PostgreSQL **18 või uuemat ei tohi kasutada**
+seni, kuni RESQL ja TIM ei ole uuendatud JDBC draiveriga ≥ 42.6 versioonile.
+
+| Komponent | JDBC driver | Ametlik PG tugi | Testitud |
+|-----------|-------------|-----------------|----------|
+| RESQL `v1.3.4` | `42.3.9` | ≤ PG 15 | PG 17 ✓ |
+| TIM `pre-apha-2.7.1` | `42.3.9` | ≤ PG 15 | PG 17 ✓ |
+| Liquibase `4.29.2` | `42.7.11` | ≤ PG 18 | PG 17 ✓ |
+
+Järgmine lubatud upgrade'i samm: uuenda RESQL ja TIM Bürokratt upstream'is
+→ kontrolli, et uus versioon kasutab JDBC ≥ 42.6 → seejärel saab minna PG 18 peale.
 
 ---
 

@@ -317,8 +317,8 @@ BEGIN
   NEW.prev_row_hash := prev;
   NEW.row_hash := digest(
     NEW.event_id::text || NEW.event_type ||
-    NEW.event_time_server::text ||
-    coalesce(NEW.actor_personal_code_hash, '') ||
+    NEW.created_at::text ||
+    coalesce(encode(NEW.actor_personal_code_hash, 'hex'), '') ||
     NEW.log_content::text ||
     encode(prev, 'hex'),
     'sha256');

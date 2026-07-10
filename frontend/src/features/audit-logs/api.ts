@@ -18,4 +18,4 @@ export const exportLogs = (params?: ListApiParams) =>
   );
 
 export const getLog = (id: string) =>
-  get<AuditLog[]>('/v1/logs/log', { id });
+  get<AuditLog[]>('/v1/logs/log', { q: id });

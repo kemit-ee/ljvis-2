@@ -1349,9 +1349,40 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
+  # ── Structure Units ──────────────────────────────────────────
+
+  /api/v1/structure-units:
+    get:
+      tags: [structure-units]
+      operationId: getStructureUnits
+      x-permissions:
+        anyOf: [user.read.admin, user.read.local]
+      summary: List structure units, optionally filtered by organisation.
+      parameters:
+        - in: query
+          name: organisationId
+          schema: { type: string }
+          description: Filter by organisation ID.
+      responses:
+        '200':
+          description: List of structure units.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code: { type: string }
+                    name: { type: string }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
   # ── Foreign violation forms ─────────────────────────────────
 
-  /api/v1/control-forms/foreign-violation:
+  /api/v1/control-forms/foreign-violation-form:
     post:
       tags: [foreign-violation-forms]
       operationId: postForeignViolationForm
@@ -1388,8 +1419,6 @@ paths:
                 $ref: '#/components/schemas/ProblemDetails'
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
-
-  /api/v1/control-forms/foreign-violation/{formKey}:
     get:
       tags: [foreign-violation-forms]
       operationId: getForeignViolationForm
@@ -1402,11 +1431,11 @@ paths:
       security:
         - cookieAuth: []
       parameters:
-        - in: path
-          name: formKey
+        - in: query
+          name: q
           required: true
           schema: { type: string }
-          description: Form unique identifier (e.g. `vr-2026-00001%2FV` URL-encoded).
+          description: Foreign violation form ID.
       responses:
         '200':
           description: Form snapshot.
@@ -1432,8 +1461,8 @@ paths:
       security:
         - cookieAuth: []
       parameters:
-        - in: path
-          name: formKey
+        - in: query
+          name: q
           required: true
           schema: { type: string }
       requestBody:
@@ -1461,7 +1490,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /api/v1/control-forms/foreign-violation/{formKey}/files:
+  /api/v1/control-forms/foreign-violation-form/files:
     get:
       tags: [foreign-violation-forms]
       operationId: getForeignViolationFormFiles
@@ -1541,7 +1570,7 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
-  /api/v1/control-forms/foreign-violation/{formKey}/files/{fileId}:
+  /api/v1/control-forms/foreign-violation-form/files/{fileId}:
     get:
       tags: [foreign-violation-forms]
       operationId: getForeignViolationFormFile

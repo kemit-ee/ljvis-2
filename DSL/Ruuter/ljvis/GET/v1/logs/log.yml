@@ -8,13 +8,13 @@ declaration:
   namespace: logs
   allowlist:
     params:
-      - field: id
+      - field: q
         type: string
         description: "Audit log id"
 
 extractRequestData:
   assign:
-    id: "${incoming.params.id}"
+    id: "${incoming.params.q}"
   next: getLog
 
 getLog:

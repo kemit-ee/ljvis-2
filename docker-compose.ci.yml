@@ -19,7 +19,7 @@ services:
 
   # ── Database ──────────────────────────────────────────────────────────────
   database:
-    image: postgres:14.1
+    image: postgres:17
     environment:
       - POSTGRES_USER=ljvis
       - POSTGRES_PASSWORD=01234
@@ -43,6 +43,10 @@ services:
       context: .
       dockerfile: docker/liquibase/Dockerfile
     restart: "no"
+    volumes:
+      - ./DSL/Liquibase/liquibase.properties:/liquibase/liquibase.properties
+      - ./DSL/Liquibase/changelog:/liquibase/changelog
+      - ./DSL/Liquibase/changelog.yaml:/liquibase/changelog.yaml
     environment:
       - AUDIT_SALT=${AUDIT_SALT:-ci-test-audit-salt-change-me-32chars}
     command: --defaultsFile=/liquibase/liquibase.properties update -DAUDIT_SALT=${AUDIT_SALT:-ci-test-audit-salt-change-me-32chars}
@@ -56,7 +60,7 @@ services:
   # Runs once after migrations, seeds the minimum data required for e2e tests:
   # one organisation, one super-admin user group, and one admin user.
   bootstrap:
-    image: postgres:14.1
+    image: postgres:17
     restart: "no"
     depends_on:
       liquibase:
@@ -196,7 +200,7 @@ services:
       - "9888:8080"
 
   tim-postgresql:
-    image: postgres:14.1
+    image: postgres:17
     environment:
       - POSTGRES_USER=tim
       - POSTGRES_PASSWORD=123
