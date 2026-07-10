@@ -24,7 +24,7 @@ Süsteem käitatakse hetkel **PostgreSQL 17-ga** — see on testitud kalkuleerit
 |-----------|-------------|-----------------|---------|
 | `resql-ljvis` `v1.3.4` | `42.3.9` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
 | `tim` `pre-apha-2.7.1` | `42.3.9` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
-| `liquibase` `4.29.2` | `42.7.11` (via lpm) | ≤ PostgreSQL 18 | PostgreSQL 17 ✓ |
+| `liquibase` `4.29.2` | `42.7.11` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
 
 ### Piirang
 
