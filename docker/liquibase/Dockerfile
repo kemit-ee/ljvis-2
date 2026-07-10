@@ -1,3 +1,3 @@
-FROM liquibase/liquibase:5.0.3
+FROM liquibase/liquibase:4.29.2
 RUN lpm add postgresql --global
-COPY DSL/Liquibase/ /ljvis/
+COPY DSL/Liquibase/ /liquibase/
