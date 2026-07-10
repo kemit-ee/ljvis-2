@@ -70,6 +70,11 @@ export function CompoundFormCreatePage() {
     formik,
     structureUnits,
     orgOptions,
+    counties,
+    citiesParishes,
+    handleCountyChange,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
     handleOrgChange,
     handleStructuralUnitChange,
     companySearchError,
@@ -178,31 +183,39 @@ export function CompoundFormCreatePage() {
                       <div></div>
                     )}
                     <div className={styles[isDesktop ? 'three-col-desktop' : 'three-col-mobile']}>
-                      <TextField
-                        id="county"
-                        label={t('forms.foreign_violation.county')}
-                        value={formik.values.county}
-                        input={{ maxLength: 100 }}
-                        onChange={(v) => formik.setFieldValue('county', v)}
-                      />
-                      <TextField
-                        id="city"
-                        label={t('forms.foreign_violation.city')}
-                        value={formik.values.city}
-                        input={{ maxLength: 100 }}
-                        onChange={(v) => formik.setFieldValue('city', v)}
+                      <Select
+                          id="controlCountryCode"
+                          label={t('forms.foreign_violation.control_country_code')}
+                          options={countries}
+                          value={countries.find((o) => o.value === formik.values.controlCountryCode) ?? null}
+                          onChange={(val) =>
+                              formik.setFieldValue(
+                                  'controlCountryCode',
+                                  val && !Array.isArray(val) ? (val as { value: string }).value : '',
+                              )
+                          }
                       />
                       <Select
-                        id="controlCountryCode"
-                        label={t('forms.foreign_violation.control_country_code')}
-                        options={countries}
-                        value={countries.find((o) => o.value === formik.values.controlCountryCode) ?? null}
-                        onChange={(val) =>
-                          formik.setFieldValue(
-                            'controlCountryCode',
-                            val && !Array.isArray(val) ? (val as { value: string }).value : '',
-                          )
-                        }
+                        id="county"
+                        label={t('forms.foreign_violation.county')}
+                        options={(counties ?? []).map((c) => ({ value: String(c.id), label: c.name }))}
+                        value={(counties ?? []).map((c) => ({ value: String(c.id), label: c.name })).find((o) => o.value === formik.values.county) ?? null}
+                        onChange={(val) => {
+                          const v = val && !Array.isArray(val) ? (val as { value: string }).value : '';
+                          formik.setFieldValue('county', v);
+                          formik.setFieldValue('city', '');
+                          handleCountyChange(v ? Number(v) : undefined);
+                        }}
+                      />
+                      <Select
+                        id="city"
+                        label={t('forms.foreign_violation.city')}
+                        options={(citiesParishes ?? []).map((c) => ({ value: String(c.id), label: c.name }))}
+                        value={(citiesParishes ?? []).map((c) => ({ value: String(c.id), label: c.name })).find((o) => o.value === formik.values.city) ?? null}
+                        onChange={(val) => {
+                          const v = val && !Array.isArray(val) ? (val as { value: string }).value : '';
+                          formik.setFieldValue('city', v);
+                        }}
                       />
                     </div>
                     <Text
@@ -594,21 +607,24 @@ export function CompoundFormCreatePage() {
                         <Select
                           id="companyCounty"
                           label={t('forms.compound.companyCounty')}
-                          options={[]}
-                          value={null}
-                          onChange={(val) =>
-                            formik.setFieldValue(
-                              'companyCounty',
-                              val && !Array.isArray(val) ? (val as { value: string }).value : '',
-                            )
-                          }
+                          options={(counties ?? []).map((c) => ({ value: String(c.id), label: c.name }))}
+                          value={(counties ?? []).map((c) => ({ value: String(c.id), label: c.name })).find((o) => o.value === formik.values.companyCounty) ?? null}
+                          onChange={(val) => {
+                            const v = val && !Array.isArray(val) ? (val as { value: string }).value : '';
+                            formik.setFieldValue('companyCounty', v);
+                            formik.setFieldValue('companyCity', '');
+                            handleCompanyCountyChange(v ? Number(v) : undefined);
+                          }}
                         />
-                        <TextField
+                        <Select
                           id="companyCity"
                           label={t('forms.compound.companyCity')}
-                          value={formik.values.companyCity}
-                          input={{ maxLength: 100 }}
-                          onChange={(v) => formik.setFieldValue('companyCity', v)}
+                          options={(companyCitiesParishes ?? []).map((c) => ({ value: String(c.id), label: c.name }))}
+                          value={(companyCitiesParishes ?? []).map((c) => ({ value: String(c.id), label: c.name })).find((o) => o.value === formik.values.companyCity) ?? null}
+                          onChange={(val) => {
+                            const v = val && !Array.isArray(val) ? (val as { value: string }).value : '';
+                            formik.setFieldValue('companyCity', v);
+                          }}
                         />
                         <TextField
                           id="companyAddressLine1"

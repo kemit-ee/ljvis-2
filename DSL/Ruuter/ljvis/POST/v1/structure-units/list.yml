@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "List all structure units"
+  description: "List of structure units filter by organisation ID"
   method: post
   accepts: json
   returns: json

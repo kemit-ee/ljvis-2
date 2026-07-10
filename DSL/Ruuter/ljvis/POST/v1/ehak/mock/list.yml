@@ -1,0 +1,25 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - id: 1
+          code: "0784"
+          name: "Tallinn"
+        - id: 2
+          code: "0793"
+          name: "Tartu linn"
+        - id: 3
+          code: "0624"
+          name: "Pärnu linn"
+        - id: 4
+          code: "0511"
+          name: "Narva linn"
+        - id: 5
+          code: "0663"
+          name: "Rakvere linn"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end

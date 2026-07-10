@@ -4,12 +4,14 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { Organisation } from '../../../organisations/types';
 import type { StructureUnit } from '../../../structure-units/types';
+import type { CompoundForm } from "../../types";
+import type { Ehak } from '../../../ehak/types';
 import { listOrganisations } from '../../../organisations/api';
 import { listStructureUnits } from '../../../structure-units/api';
+import { listEhakCounties, listEhakCitiesParishes } from '../../../ehak/api';
+import { insertCompoundForm } from "../../api";
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
-import {insertCompoundForm} from "../../api.ts";
-import type {CompoundForm} from "../../types.ts";
 
 export function useCompoundForm(
     form: CompoundForm | undefined,
@@ -19,6 +21,9 @@ export function useCompoundForm(
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
+  const [counties, setCounties] = useState<Ehak[]>([]);
+  const [citiesParishes, setCitiesParishes] = useState<Ehak[]>([]);
+  const [companyCitiesParishes, setCompanyCitiesParishes] = useState<Ehak[]>([]);
   const [companySearchError, setCompanySearchError] = useState(false);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(null);
@@ -26,6 +31,10 @@ export function useCompoundForm(
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    listEhakCounties().then(setCounties).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -53,7 +62,7 @@ export function useCompoundForm(
     initialValues: {
       id: form?.id ?? '',
       formNumber: form?.formNumber ?? '',
-      controlCountryCode: '',
+      controlCountryCode: 'EE',
       address: '',
       road: '',
       roadOther: '',
@@ -145,6 +154,20 @@ export function useCompoundForm(
     listStructureUnits(Number(newOrgId)).then(setStructureUnits).catch(console.error);
   };
 
+  const handleCountyChange = (countyId?: number) => {
+    setCitiesParishes([]);
+    if (countyId) {
+      listEhakCitiesParishes(countyId).then((data) => setCitiesParishes(Array.isArray(data) ? data : [])).catch(console.error);
+    }
+  };
+
+  const handleCompanyCountyChange = (countyId?: number) => {
+    setCompanyCitiesParishes([]);
+    if (countyId) {
+      listEhakCitiesParishes(countyId).then((data) => setCompanyCitiesParishes(Array.isArray(data) ? data : [])).catch(console.error);
+    }
+  };
+
   const handleStructuralUnitChange = (
       val:
           | { value: string; label: string | React.ReactNode }
@@ -189,6 +212,11 @@ export function useCompoundForm(
     formik,
     structureUnits,
     orgOptions,
+    counties,
+    citiesParishes,
+    handleCountyChange,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
     handleOrgChange,
     handleStructuralUnitChange,
     companySearchError,
