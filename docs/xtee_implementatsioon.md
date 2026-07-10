@@ -15,6 +15,8 @@ X-tee on Eesti riigi infosüsteemi kiht, mille kaudu liikmed (asutused) saavad o
 | LJVIS pakub teenust | REST | otse turvaserver ↔ Ruuter |
 | LJVIS pakub teenust | SOAP | eraldi SOAP adapter (XTR v3 seda ei toeta) |
 
+> **Nõue:** Kõik LJVIS-2 poolt pakutavad X-tee teenused peavad olema **REST-põhised**. SOAP teenuste pakkumine ei kuulu hetke lahenduse skoopi.
+
 **Milles XTR-i ei vajata:**
 - **Sisemiste teenuste** puhul (nt Ruuter) pole X-tee liidest vaja, neid otse REST-ga välja kutsuda on otstarbekam.
 - **X-tee REST teenuste** puhul (nii tarbimine kui pakkumine) ei ole vaja XTR-i, sest X-tee liige ja LJVIS suudavad REST päringuid vahetada otse turvaserveri kaudu.
