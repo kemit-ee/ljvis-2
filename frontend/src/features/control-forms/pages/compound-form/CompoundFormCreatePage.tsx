@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { OTHER } from '../../../../constants/constants';
+
 import {
   Button,
   Heading,
@@ -21,7 +23,7 @@ import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
 import { useCompoundForm } from './useCompoundForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, COUNTRIES, VEHICLE_CATEGORIES, TRAILER_CATEGORIES } from '../../../../constants/constants';
+import { BREAKPOINTS, COUNTRIES, VEHICLE_CATEGORIES } from '../../../../constants/constants';
 import dayjs from 'dayjs';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
@@ -71,6 +73,7 @@ export function CompoundFormCreatePage() {
     structureUnits,
     orgOptions,
     roads,
+    trailerCategories,
     counties,
     citiesParishes,
     handleCountyChange,
@@ -144,7 +147,7 @@ export function CompoundFormCreatePage() {
                       onChange={(val) => {
                         const roadValue = val && !Array.isArray(val) ? (val as { value: string }).value : '';
                         formik.setFieldValue('road', roadValue);
-                        if (roadValue === 'muu_tee') {
+                        if (roadValue === OTHER.ROAD) {
                           formik.setFieldValue('road_type', 'Kohalik tee');
                         } else if (roadValue) {
                           formik.setFieldValue('road_type', 'Riigimaantee');
@@ -171,7 +174,7 @@ export function CompoundFormCreatePage() {
                           ? { helper: { text: formik.errors.kilometer, type: 'error' as const } }
                           : {})}
                     />
-                    {formik.values.road === 'muu_tee' ? (
+                    {formik.values.road === OTHER.ROAD ? (
                       <TextField
                         id="roadOther"
                         label={t('forms.compound.road_other')}
@@ -364,7 +367,7 @@ export function CompoundFormCreatePage() {
                       }
                       required
                     />
-                    {formik.values.vehicleCategoryCode === 'Muu' ? (
+                    {formik.values.vehicleCategoryCode === OTHER.VEHICLE_CATEGORY ? (
                         <TextField
                             id="vehicleCategoryOther"
                             label={t('forms.compound.vehicleCategoryOther')}
@@ -508,12 +511,12 @@ export function CompoundFormCreatePage() {
                                 <Select
                                     id={`trailerCategoryCode_${index}`}
                                     label={t('forms.compound.trailerCategory')}
-                                    options={TRAILER_CATEGORIES}
-                                    value={TRAILER_CATEGORIES.find((o) => o.value === trailer.categoryCode) ?? null}
+                                    options={(trailerCategories ?? []).map((c) => ({ value: c.code, label: c.name }))}
+                                    value={(trailerCategories ?? []).map((c) => ({ value: c.code, label: c.name })).find((o) => o.value === trailer.categoryCode) ?? null}
                                     onChange={(val) => updateTrailer(index, 'categoryCode', val && !Array.isArray(val) ? (val as { value: string }).value : '')}
                                     required
                                 />
-                                {trailer.categoryCode === 'Muu' ? (
+                                {trailer.categoryCode === OTHER.TRAILER_CATEGORY ? (
                                     <TextField
                                         id={`trailerCategoryOther_${index}`}
                                         label={t('forms.compound.trailerCategoryOther')}

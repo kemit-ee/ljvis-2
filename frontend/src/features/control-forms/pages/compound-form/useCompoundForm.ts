@@ -7,10 +7,12 @@ import type { StructureUnit } from '../../../structure-units/types';
 import type { CompoundForm } from "../../types";
 import type { Ehak } from '../../../ehak/types';
 import type { Road } from '../../../roads/types';
+import type { TrailerCategory } from '../../../trailer-categories/types';
 import { listOrganisations } from '../../../organisations/api';
 import { listStructureUnits } from '../../../structure-units/api';
 import { listEhakCounties, listEhakCitiesParishes } from '../../../ehak/api';
 import { listRoads } from '../../../roads/api';
+import { listTrailerCategories } from '../../../trailer-categories/api';
 import { insertCompoundForm } from "../../api";
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
@@ -26,6 +28,7 @@ export function useCompoundForm(
   const [counties, setCounties] = useState<Ehak[]>([]);
   const [citiesParishes, setCitiesParishes] = useState<Ehak[]>([]);
   const [roads, setRoads] = useState<Road[]>([]);
+  const [trailerCategories, setTrailerCategories] = useState<TrailerCategory[]>([]);
   const [companyCitiesParishes, setCompanyCitiesParishes] = useState<Ehak[]>([]);
   const [companySearchError, setCompanySearchError] = useState(false);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
@@ -42,6 +45,10 @@ export function useCompoundForm(
 
   useEffect(() => {
     listRoads().then(setRoads).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    listTrailerCategories().then(setTrailerCategories).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -220,6 +227,7 @@ export function useCompoundForm(
     structureUnits,
     orgOptions,
     roads,
+    trailerCategories,
     counties,
     citiesParishes,
     handleCountyChange,

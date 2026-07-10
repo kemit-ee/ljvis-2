@@ -16,14 +16,11 @@ export const DESKTOP = {
   DASHBOARD_EXCLUDED: 'DASHBOARD_EXCLUDED',
 } as const;
 
-export const STRUCTURE_UNIT_OPTIONS = [
-  { value: 'PPA_LOUNA', labelKey: 'structureUnits.prefSouth' },
-  { value: 'PPA_IDA', labelKey: 'structureUnits.prefEast' },
-  { value: 'PPA_LAANE', labelKey: 'structureUnits.prefWest' },
-  { value: 'PPA_POHJA', labelKey: 'structureUnits.prefNorth' },
-  { value: 'KLIM_HQ', labelKey: 'structureUnits.klimHq' },
-  { value: 'TRAM_HQ', labelKey: 'structureUnits.tramHq' },
-];
+export const OTHER = {
+  ROAD: 'muu_tee',
+  TRAILER_CATEGORY: 'OTHER_2012',
+  VEHICLE_CATEGORY: 'OTHER_2012',
+} as const;
 
 export const EU_VIOLATION_GROUPS = [
   {
@@ -463,13 +460,5 @@ export const VEHICLE_CATEGORIES = [
   { value: 'O3', label: 'O3' },
   { value: 'O4', label: 'O4' },
   { value: 'L', label: 'L' },
-  { value: 'Muu', label: 'Muu' },
-];
-
-export const TRAILER_CATEGORIES = [
-  { value: 'O1', label: 'O1' },
-  { value: 'O2', label: 'O2' },
-  { value: 'O3', label: 'O3' },
-  { value: 'O4', label: 'O4' },
   { value: 'Muu', label: 'Muu' },
 ];

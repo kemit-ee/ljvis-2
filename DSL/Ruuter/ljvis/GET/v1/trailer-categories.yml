@@ -1,0 +1,21 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List all trailer categories"
+  method: get
+  accepts: json
+  returns: json
+  namespace: trailer-categories
+
+getRoads:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/trailer-categories/list_trailer-categories"
+    headers:
+      type: json
+    body: {}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
