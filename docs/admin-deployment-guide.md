@@ -69,8 +69,66 @@ seni, kuni RESQL ja TIM ei ole uuendatud JDBC draiveriga ≥ 42.6 versioonile.
 | TIM `pre-apha-2.7.1` | `42.3.9` | ≤ PG 15 | PG 17 ✓ |
 | Liquibase `4.29.2` | `42.7.11` | ≤ PG 18 | PG 17 ✓ |
 
-Järgmine lubatud upgrade'i samm: uuenda RESQL ja TIM Bürokratt upstream'is
+Järgmine lubatud upgrade'i samm: uuenda RESQL ja TIM Buerostack upstream'is
 → kontrolli, et uus versioon kasutab JDBC ≥ 42.6 → seejärel saab minna PG 18 peale.
+
+### 1.5 Liquibase migratsioonide käivitusviis
+
+Kaks konventsiooni Liquibase changeset'ide ja käivitusrea koostamisel.
+Mõlemad on tuvastatud gotcha'd, mille vastu on odavam kirjutada õigesti
+esimesest korrast kui hiljem otsida.
+
+#### 1.5.1 `-D` läheb **enne** alamkäsku (kanonaalne vorm)
+
+Liquibase CLI globaalsed optionid — nende hulgas `-DKEY=VALUE` ja
+`--defaultsFile=…` — kuuluvad **enne** alamkäsku (`update`, `rollback`,
+`status`, …). Sama parameeter alamkäsu järel on käsu-spetsiifiline
+option ja Liquibase versioonist sõltuvalt kas jäetakse maha, tõlgendatakse
+teisiti või (Liquibase 5-s) jäävad täielikult tähelepanuta.
+
+**Kanonaalne vorm (kehtib nii 4.x kui 5.x jaoks):**
+
+```yaml
+# docker-compose.yml
+command: >
+  -DAUDIT_SALT=${AUDIT_SALT}
+  --defaultsFile=/liquibase/liquibase.properties
+  update
+```
+
+`-DKEY=VALUE` läheb enne alamkäsku. Ekvivalentne pikk vorm on
+`--changelog-parameter=KEY=VALUE`.
+
+Sama reegel kehtib nii `docker-compose.yml`-i, `docker-compose.ci.yml`-i
+kui ka Kubernetes Job'is kutsutava käsurea kohta.
+
+#### 1.5.2 `splitStatements="false"` PL/pgSQL kehade jaoks
+
+Liquibase jagab SQL-faili vaikimisi `;`-i järgi eraldi lauseteks. See
+lõhub kõik changeset'id, mille SQL sisaldab PL/pgSQL funktsioonikeha —
+sisemised semikoolonid `BEGIN … END $$;` plokkides tõlgendatakse
+lause-terminaatoritena ja Liquibase rakendab poole funktsiooni
+definitsioonist, siis kukub.
+
+Nõutav alati, kui viidatud SQL-fail sisaldab:
+
+- `CREATE FUNCTION … LANGUAGE plpgsql AS $$ … $$;`
+- Trigger-funktsiooni keha (nt audit-räsi-ahel `audit-logging.md`
+  §Hash chain integrity).
+- Suvalist `DO $$ … $$` plokki.
+
+```xml
+<changeSet id="…" author="…">
+  <sqlFile path="changelog/…-audit-trigger.sql" splitStatements="false" />
+  <rollback>
+    <sqlFile path="changelog/…-rollback.sql" splitStatements="false" />
+  </rollback>
+</changeSet>
+```
+
+Rakenda nii `<sqlFile>`-le kui ka `<rollback>`-i sees olevale
+`<sqlFile>`-le. Vaikselt ebaõnnestuv rollback on halvem kui valjult
+ebaõnnestuv forward.
 
 ---
 
