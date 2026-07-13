@@ -857,11 +857,14 @@ export function CompoundFormCreatePage() {
                           : {})}
                     />
                     <TextField
-                      id="driverPersonalCodeEe"
+                      id="personalCodeEe"
                       label={t('forms.compound.driverPersonalCodeEe')}
                       value={formik.values.drivers[0]?.personalCodeEe ?? ''}
                       input={{ maxLength: 11 }}
                       onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], personalCodeEe: v }; formik.setFieldValue('drivers', u); }}
+                      {...((formik.errors.drivers as any)?.[0]?.personalCodeEe
+                          ? { helper: { text: (formik.errors.drivers as any)[0].personalCodeEe, type: 'error' as const } }
+                          : {})}
                     />
                     <Select
                       id="driverCitizenshipCode"
@@ -921,11 +924,14 @@ export function CompoundFormCreatePage() {
                         onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...emptyDriver(), ...u[1], personalCodeForeign: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <TextField
-                        id="driver2PersonalCodeEe"
+                        id="personalCodeEe"
                         label={t('forms.compound.driverPersonalCodeEe')}
                         value={formik.values.drivers[1]?.personalCodeEe ?? ''}
                         input={{ maxLength: 11 }}
                         onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...emptyDriver(), ...u[1], personalCodeEe: v }; formik.setFieldValue('drivers', u); }}
+                        {...((formik.errors.drivers as any)?.[1]?.personalCodeEe
+                            ? { helper: { text: (formik.errors.drivers as any)[1].personalCodeEe, type: 'error' as const } }
+                            : {})}
                       />
                       <Select
                         id="driver2CitizenshipCode"

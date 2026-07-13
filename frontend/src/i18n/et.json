@@ -609,7 +609,8 @@
         "required": "Kohustuslik väli",
         "minorViolationsCount": "Lubatud kuni kolmekohaline number",
         "api": {
-          "required": "Kohustuslik väli"
+          "required": "Kohustuslik väli",
+          "invalid_personal_code": "Vigane isikukood"
         }
       }
     }

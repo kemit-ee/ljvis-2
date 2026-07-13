@@ -16,6 +16,8 @@ import { listRoads } from '../../../roads/api';
 import { listTrailerCategories } from '../../../trailer-categories/api';
 import { listVehicleCategories } from '../../../vehicle-categories/api';
 import { insertCompoundForm } from "../../api";
+import { ApiError } from '../../../../shared/api/client';
+import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import {OTHER, ROAD} from "../../../../constants/constants.ts";
@@ -233,7 +235,12 @@ export function useCompoundForm(
         const result = await insertCompoundForm(trimmedValues as unknown as CompoundForm);
         onSaved(result[0]?.id);
       } catch (e) {
-        console.error('Save failed', e);
+        if (e instanceof ApiError && typeof e.body === 'string') {
+          e.body = JSON.parse(e.body);
+        }
+        if (!applyValidationError(e, formik.setFieldError, (code) => t(`forms.foreign_violation.validation.api.${code}`))) {
+          console.error('Save failed', e);
+        }
       }
     },
   });

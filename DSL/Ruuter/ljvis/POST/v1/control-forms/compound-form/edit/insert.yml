@@ -152,6 +152,52 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
     created_by: "${auth_user.personalcode}"
+  next: check_driver1_personal_code_not_empty
+
+check_driver1_personal_code_not_empty:
+  switch:
+    - condition: ${driver1_personal_code_ee == null || driver1_personal_code_ee == ''}
+      next: skip_pc1_validation
+  next: validate_driver1_personal_code_format
+
+skip_pc1_validation:
+  assign:
+    pc1_result: valid
+  next: check_driver2_personal_code_not_empty
+
+validate_driver1_personal_code_format:
+  template: "[#LJVIS_PROJECT_LAYER]/validate/estonian-personal-code"
+  requestType: templates
+  body:
+    personal_code: ${driver1_personal_code_ee}
+  result: pc1_result
+  next: check_driver2_personal_code_not_empty
+
+check_driver2_personal_code_not_empty:
+  switch:
+    - condition: ${driver2_personal_code_ee == null || driver2_personal_code_ee == ''}
+      next: skip_pc2_validation
+  next: validate_driver2_personal_code_format
+
+skip_pc2_validation:
+  assign:
+    pc2_result: valid
+  next: check_pc_results
+
+validate_driver2_personal_code_format:
+  template: "[#LJVIS_PROJECT_LAYER]/validate/estonian-personal-code"
+  requestType: templates
+  body:
+    personal_code: ${driver2_personal_code_ee}
+  result: pc2_result
+  next: check_pc_results
+
+check_pc_results:
+  switch:
+    - condition: ${pc1_result != 'valid'}
+      next: propagate_pc1_error
+    - condition: ${pc2_result != 'valid'}
+      next: propagate_pc2_error
   next: insertForm
 
 insertForm:
@@ -227,4 +273,14 @@ logAuditEvent:
 
 returnSuccess:
   return: ${insertRes.response.body}
+  next: end
+
+propagate_pc1_error:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"drivers[0].personalCodeEe","code":"invalid_personal_code"}'
+  next: end
+
+propagate_pc2_error:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"drivers[1].personalCodeEe","code":"invalid_personal_code"}'
   next: end

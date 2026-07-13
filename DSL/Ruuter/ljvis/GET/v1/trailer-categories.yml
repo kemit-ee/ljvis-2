@@ -7,7 +7,7 @@ declaration:
   returns: json
   namespace: trailer-categories
 
-getRoads:
+getTrailerCategories:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/trailer-categories/list_trailer-categories"
