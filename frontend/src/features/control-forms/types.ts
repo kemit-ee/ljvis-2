@@ -50,6 +50,27 @@ export interface ForeignViolationForm {
   files?: { id: string; isLoading: boolean; isValid: boolean }[];
 }
 
+export type Trailer = {
+  regNr: string;
+  countryCode: string;
+  make: string;
+  model: string;
+  vin: string;
+  firstRegistration: string;
+  bodyType: string;
+  categoryCode: string;
+  categoryOther: string;
+};
+
+export type Driver = {
+  personalCodeEe: string;
+  firstName: string;
+  lastName: string;
+  citizenshipCode: string;
+  personalCodeForeign: string;
+  birthDate: string;
+};
+
 export interface CompoundForm {
   id?: string;
   formNumber: string;
@@ -75,10 +96,7 @@ export interface CompoundForm {
   vehicleMileage?: string;
   roadTaxStatus?: string;
   roadTaxNotes?: string;
-  trailers?: { regNr: string; make: string; model: string; countryCode: string; vin: string; firstRegistration: string; bodyType: string; categoryCode: string; categoryOther: string; }[];
-  trailerRegNr?: string;
-  trailerCountryCode?: string;
-  trailerVin?: string;
+  trailers?: Trailer[];
   companyRegCode?: string;
   companyName?: string;
   companyCountryCode?: string;
@@ -89,20 +107,7 @@ export interface CompoundForm {
   companyOwnerFirstName?: string;
   companyOwnerLastName?: string;
   companyActivityLicenceCopyNumber?: string;
-  driverPersonalCodeEe?: string;
-  driverFirstName?: string;
-  driverLastName?: string;
-  driverCitizenshipCode?: string;
-  driverPersonalCodeForeign?: string;
-  driverBirthDate?: string;
-  driverLicenceNr?: string;
-  driverLicenceCountryCode?: string;
-  driver2FirstName?: string;
-  driver2LastName?: string;
-  driver2BirthDate?: string;
-  driver2LicenceNr?: string;
-  driver2LicenceCountryCode?: string;
-  drivers?: { personalCodeEe: string; firstName: string; lastName: string; citizenshipCode: string; personalCodeForeign: string; birthDate: string }[];
+  drivers?: Driver[];
   inspectorFirstName?: string;
   inspectorLastName?: string;
   inspectorOrganisationId?: string;

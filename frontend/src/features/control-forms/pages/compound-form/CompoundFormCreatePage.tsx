@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { OTHER } from '../../../../constants/constants';
 
@@ -20,7 +19,8 @@ import {
   Tabs
 } from '@tedi-design-system/react/tedi';
 import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
-import { useCompoundForm } from './useCompoundForm';
+import { useCompoundForm, emptyTrailer } from './useCompoundForm';
+import type { Trailer } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
@@ -34,30 +34,6 @@ export function CompoundFormCreatePage() {
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
-
-  type Trailer = { regNr: string; countryCode: string; make: string; model: string; vin: string; firstRegistration: string; bodyType: string; categoryCode: string; categoryOther: string; };
-  const emptyTrailer = (): Trailer => ({ regNr: '', countryCode: '', make: '', model: '', vin: '', firstRegistration: '', bodyType: '', categoryCode: '', categoryOther: '' });
-  const [trailers, setTrailers] = useState<Trailer[]>([]);
-
-  type Driver = { personalCodeEe: string; firstName: string; lastName: string; citizenshipCode: string; personalCodeForeign: string; birthDate: string; };
-  const emptyDriver = (): Driver => ({ personalCodeEe: '', firstName: '', lastName: '', citizenshipCode: '', personalCodeForeign: '', birthDate: '' });
-  const [drivers, setDrivers] = useState<Driver[]>([emptyDriver()]);
-
-  const updateTrailer = (index: number, field: keyof Trailer, value: string) => {
-    setTrailers((prev) => prev.map((t, i) => (i === index ? { ...t, [field]: value } : t)));
-  };
-
-  const addTrailer = () => {
-    if (trailers.length < 3) setTrailers((prev) => [...prev, emptyTrailer()]);
-  };
-
-  const removeTrailer = (index: number) => {
-    setTrailers((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const updateDriver = (index: number, field: keyof Driver, value: string) => {
-    setDrivers((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
-  };
 
   const handleSaved = () => {
     navigate('/', { state: { justCreated: true } });
@@ -139,6 +115,14 @@ export function CompoundFormCreatePage() {
                           formik.setFieldValue('road_type', '');
                         }
                       }}
+                      {...(formik.touched.address && formik.errors.address
+                          ? {
+                            helper: {
+                              text: formik.errors.address,
+                              type: 'error' as const,
+                            },
+                          }
+                          : {})}
                     />
                     <Select
                       id="road"
@@ -159,6 +143,14 @@ export function CompoundFormCreatePage() {
                           formik.setFieldValue('address', '');
                         }
                       }}
+                      {...(formik.touched.road && formik.errors.road
+                          ? {
+                            helper: {
+                              text: formik.errors.road,
+                              type: 'error' as const,
+                            },
+                          }
+                          : {})}
                     />
                     <TextField
                         id="kilometer"
@@ -199,6 +191,15 @@ export function CompoundFormCreatePage() {
                                   val && !Array.isArray(val) ? (val as { value: string }).value : '',
                               )
                           }
+                          required
+                          {...(formik.touched.controlCountryCode && formik.errors.controlCountryCode
+                              ? {
+                                helper: {
+                                  text: formik.errors.controlCountryCode,
+                                  type: 'error' as const,
+                                },
+                              }
+                              : {})}
                       />
                       <Select
                         id="county"
@@ -211,6 +212,15 @@ export function CompoundFormCreatePage() {
                           formik.setFieldValue('city', '');
                           handleCountyChange(v ? Number(v) : undefined);
                         }}
+                        required
+                        {...(formik.touched.county && formik.errors.county
+                            ? {
+                              helper: {
+                                text: formik.errors.county,
+                                type: 'error' as const,
+                              },
+                            }
+                            : {})}
                       />
                       <Select
                         id="city"
@@ -298,6 +308,14 @@ export function CompoundFormCreatePage() {
                           input={{ maxLength: 20 }}
                           onChange={(v) => formik.setFieldValue('vehicleRegNr', v.toUpperCase())}
                           required
+                          {...(formik.touched.vehicleRegNr && formik.errors.vehicleRegNr
+                              ? {
+                                helper: {
+                                  text: formik.errors.vehicleRegNr,
+                                  type: 'error' as const,
+                                },
+                              }
+                              : {})}
                         />
                       </div>
                       <Button type="button" onClick={handleVehicleSearch}>
@@ -338,6 +356,14 @@ export function CompoundFormCreatePage() {
                         )
                       }
                       required
+                      {...(formik.touched.vehicleCountryCode && formik.errors.vehicleCountryCode
+                          ? {
+                            helper: {
+                              text: formik.errors.vehicleCountryCode,
+                              type: 'error' as const,
+                            },
+                          }
+                          : {})}
                     />
                     <TextField
                         id="vehicleBodyType"
@@ -367,6 +393,14 @@ export function CompoundFormCreatePage() {
                         )
                       }
                       required
+                      {...(formik.touched.vehicleCategoryCode && formik.errors.vehicleCategoryCode
+                          ? {
+                            helper: {
+                              text: formik.errors.vehicleCategoryCode,
+                              type: 'error' as const,
+                            },
+                          }
+                          : {})}
                     />
                     {formik.values.vehicleCategoryCode === OTHER.VEHICLE_CATEGORY ? (
                         <TextField
@@ -376,6 +410,14 @@ export function CompoundFormCreatePage() {
                             input={{ maxLength: 100 }}
                             onChange={(v) => formik.setFieldValue('vehicleCategoryOther', v)}
                             required
+                            {...(formik.touched.vehicleCategoryOther && formik.errors.vehicleCategoryOther
+                                ? {
+                                  helper: {
+                                    text: formik.errors.vehicleCategoryOther,
+                                    type: 'error' as const,
+                                  },
+                                }
+                                : {})}
                         />
                     ) : (
                         <div></div>
@@ -432,10 +474,10 @@ export function CompoundFormCreatePage() {
                   <Heading element="h3" className="mb-1">
                     {t('forms.compound.trailer')}
                   </Heading>
-                    <Button onClick={addTrailer} disabled={trailers.length >= 3}>
+                    <Button onClick={() => formik.values.trailers.length < 3 && formik.setFieldValue('trailers', [...formik.values.trailers, emptyTrailer()])} disabled={formik.values.trailers.length >= 3}>
                       {t('forms.compound.addTrailer')}
                     </Button>
-                  {trailers.map((trailer, index) => (
+                  {formik.values.trailers.map((trailer: Trailer, index: number) => (
                       <Row className="m-0" key={index}>
                         <Col className="p-0 mt-1">
                           <Card className="mb-1">
@@ -455,8 +497,20 @@ export function CompoundFormCreatePage() {
                                         label={t('forms.compound.trailerRegNr')}
                                         value={trailer.regNr}
                                         input={{ maxLength: 20 }}
-                                        onChange={(v) => updateTrailer(index, 'regNr', v.toUpperCase())}
+                                        onChange={(v) => {
+                                          const updated = [...formik.values.trailers];
+                                          updated[index] = { ...updated[index], regNr: v.toUpperCase() };
+                                          formik.setFieldValue('trailers', updated);
+                                        }}
                                         required
+                                        {...((formik.touched.trailers as any)?.[index]?.regNr && (formik.errors.trailers as any)?.[index]?.regNr
+                                            ? {
+                                              helper: {
+                                                text: (formik.errors.trailers as any)[index].regNr,
+                                                type: 'error' as const,
+                                              },
+                                            }
+                                            : {})}
                                     />
                                   </div>
                                   <Button type="button" onClick={() => handleTrailerSearch(index)}>
@@ -469,43 +523,46 @@ export function CompoundFormCreatePage() {
                                     label={t('forms.compound.trailerMake')}
                                     value={trailer.make}
                                     input={{ maxLength: 100 }}
-                                    onChange={(v) => updateTrailer(index, 'make', v)}
+                                    onChange={(v) => { const u = [...formik.values.trailers]; u[index] = { ...u[index], make: v }; formik.setFieldValue('trailers', u); }}
                                 />
                                 <TextField
                                     id={`trailerModel_${index}`}
                                     label={t('forms.compound.trailerModel')}
                                     value={trailer.model}
                                     input={{ maxLength: 100 }}
-                                    onChange={(v) => updateTrailer(index, 'model', v)}
+                                    onChange={(v) => { const u = [...formik.values.trailers]; u[index] = { ...u[index], model: v }; formik.setFieldValue('trailers', u); }}
                                 />
                                 <TextField
                                     id={`trailerVin_${index}`}
                                     label={t('forms.compound.trailerVin')}
                                     value={trailer.vin}
                                     input={{ maxLength: 17 }}
-                                    onChange={(v) => updateTrailer(index, 'vin', v)}
+                                    onChange={(v) => { const u = [...formik.values.trailers]; u[index] = { ...u[index], vin: v }; formik.setFieldValue('trailers', u); }}
                                 />
                                 <Select
                                     id={`trailerCountryCode_${index}`}
                                     label={t('forms.compound.trailerCountry')}
                                     options={countries}
                                     value={countries.find((o) => o.value === trailer.countryCode) ?? null}
-                                    onChange={(val) => updateTrailer(index, 'countryCode', val && !Array.isArray(val) ? (val as { value: string }).value : '')}
+                                    onChange={(val) => { const u = [...formik.values.trailers]; u[index] = { ...u[index], countryCode: val && !Array.isArray(val) ? (val as { value: string }).value : '' }; formik.setFieldValue('trailers', u); }}
                                     required
+                                    {...((formik.touched.trailers as any)?.[index]?.countryCode && (formik.errors.trailers as any)?.[index]?.countryCode
+                                        ? { helper: { text: (formik.errors.trailers as any)[index].countryCode, type: 'error' as const } }
+                                        : {})}
                                 />
                                 <TextField
                                     id={`trailerBodyType_${index}`}
                                     label={t('forms.compound.trailerBodyType')}
                                     value={trailer.bodyType}
                                     input={{ maxLength: 50 }}
-                                    onChange={(v) => updateTrailer(index, 'bodyType', v)}
+                                    onChange={(v) => { const u = [...formik.values.trailers]; u[index] = { ...u[index], bodyType: v }; formik.setFieldValue('trailers', u); }}
                                 />
                                 <div className={styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']}>
                                   <DatePicker
                                       id={`trailerFirstRegistration_${index}`}
                                       label={t('forms.compound.trailerFirstRegistration')}
                                       value={trailer.firstRegistration ? dayjs(trailer.firstRegistration) : null}
-                                      onChange={(v) => updateTrailer(index, 'firstRegistration', toIsoDate(v))}
+                                      onChange={(v) => { const u = [...formik.values.trailers]; u[index] = { ...u[index], firstRegistration: toIsoDate(v) }; formik.setFieldValue('trailers', u); }}
                                       placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
                                   />
                                 </div>
@@ -514,8 +571,11 @@ export function CompoundFormCreatePage() {
                                     label={t('forms.compound.trailerCategory')}
                                     options={(trailerCategories ?? []).map((c) => ({ value: c.code, label: c.name }))}
                                     value={(trailerCategories ?? []).map((c) => ({ value: c.code, label: c.name })).find((o) => o.value === trailer.categoryCode) ?? null}
-                                    onChange={(val) => updateTrailer(index, 'categoryCode', val && !Array.isArray(val) ? (val as { value: string }).value : '')}
+                                    onChange={(val) => { const u = [...formik.values.trailers]; u[index] = { ...u[index], categoryCode: val && !Array.isArray(val) ? (val as { value: string }).value : '' }; formik.setFieldValue('trailers', u); }}
                                     required
+                                    {...((formik.touched.trailers as any)?.[index]?.categoryCode && (formik.errors.trailers as any)?.[index]?.categoryCode
+                                        ? { helper: { text: (formik.errors.trailers as any)[index].categoryCode, type: 'error' as const } }
+                                        : {})}
                                 />
                                 {trailer.categoryCode === OTHER.TRAILER_CATEGORY ? (
                                     <TextField
@@ -523,14 +583,17 @@ export function CompoundFormCreatePage() {
                                         label={t('forms.compound.trailerCategoryOther')}
                                         value={trailer.categoryOther}
                                         input={{ maxLength: 100 }}
-                                        onChange={(v) => updateTrailer(index, 'categoryOther', v)}
+                                        onChange={(v) => { const u = [...formik.values.trailers]; u[index] = { ...u[index], categoryOther: v }; formik.setFieldValue('trailers', u); }}
                                         required
+                                        {...((formik.touched.trailers as any)?.[index]?.categoryOther && (formik.errors.trailers as any)?.[index]?.categoryOther
+                                            ? { helper: { text: (formik.errors.trailers as any)[index].categoryOther, type: 'error' as const } }
+                                            : {})}
                                     />
                                 ) : (
                                     <div></div>
                                 )}
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }} className={styles['full-span']}>
-                                  <Button type="button" visualType="secondary" onClick={() => removeTrailer(index)}>
+                                  <Button type="button" visualType="secondary" onClick={() => formik.setFieldValue('trailers', formik.values.trailers.filter((_: Trailer, i: number) => i !== index))}>
                                     {t('forms.compound.removeTrailer')}
                                   </Button>
                                 </div>
@@ -582,6 +645,14 @@ export function CompoundFormCreatePage() {
                           input={{ maxLength: 20 }}
                           onChange={(v) => formik.setFieldValue('companyRegCode', v)}
                           required
+                          {...(formik.touched.companyRegCode && formik.errors.companyRegCode
+                              ? {
+                                helper: {
+                                  text: formik.errors.companyRegCode,
+                                  type: 'error' as const,
+                                },
+                              }
+                              : {})}
                         />
                         <TextField
                           id="companyName"
@@ -590,6 +661,14 @@ export function CompoundFormCreatePage() {
                           input={{ maxLength: 300 }}
                           onChange={(v) => formik.setFieldValue('companyName', v)}
                           required
+                          {...(formik.touched.companyName && formik.errors.companyName
+                              ? {
+                                helper: {
+                                  text: formik.errors.companyName,
+                                  type: 'error' as const,
+                                },
+                              }
+                              : {})}
                         />
                         <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}>
                           <Button type="button" onClick={handleCompanySearch}>
@@ -608,6 +687,14 @@ export function CompoundFormCreatePage() {
                             )
                           }
                           required
+                          {...(formik.touched.companyCountryCode && formik.errors.companyCountryCode
+                              ? {
+                                helper: {
+                                  text: formik.errors.companyCountryCode,
+                                  type: 'error' as const,
+                                },
+                              }
+                              : {})}
                         />
                         <Select
                           id="companyCounty"
@@ -722,48 +809,61 @@ export function CompoundFormCreatePage() {
                     <TextField
                       id="driverFirstName"
                       label={t('forms.compound.driverFirstName')}
-                      value={drivers[0]?.firstName ?? ''}
+                      value={formik.values.drivers[0]?.firstName ?? ''}
                       input={{ maxLength: 100 }}
-                      onChange={(v) => updateDriver(0, 'firstName', v)}
+                      onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], firstName: v }; formik.setFieldValue('drivers', u); }}
                       required
+                      {...((formik.touched.drivers as any)?.[0]?.firstName && (formik.errors.drivers as any)?.[0]?.firstName
+                          ? { helper: { text: (formik.errors.drivers as any)[0].firstName, type: 'error' as const } }
+                          : {})}
                     />
                     <TextField
                       id="driverLastName"
                       label={t('forms.compound.driverLastName')}
-                      value={drivers[0]?.lastName ?? ''}
+                      value={formik.values.drivers[0]?.lastName ?? ''}
                       input={{ maxLength: 100 }}
-                      onChange={(v) => updateDriver(0, 'lastName', v)}
+                      onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], lastName: v }; formik.setFieldValue('drivers', u); }}
                       required
+                      {...((formik.touched.drivers as any)?.[0]?.lastName && (formik.errors.drivers as any)?.[0]?.lastName
+                          ? { helper: { text: (formik.errors.drivers as any)[0].lastName, type: 'error' as const } }
+                          : {})}
                     />
                     <TextField
                       id="driverPersonalCodeForeign"
                       label={t('forms.compound.driverPersonalCodeForeign')}
-                      value={drivers[0]?.personalCodeForeign ?? ''}
+                      value={formik.values.drivers[0]?.personalCodeForeign ?? ''}
                       input={{ maxLength: 50 }}
-                      onChange={(v) => updateDriver(0, 'personalCodeForeign', v)}
+                      onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], personalCodeForeign: v }; formik.setFieldValue('drivers', u); }}
                       required
+                      {...((formik.touched.drivers as any)?.[0]?.personalCodeForeign && (formik.errors.drivers as any)?.[0]?.personalCodeForeign
+                          ? { helper: { text: (formik.errors.drivers as any)[0].personalCodeForeign, type: 'error' as const } }
+                          : {})}
                     />
                     <TextField
                       id="driverPersonalCodeEe"
                       label={t('forms.compound.driverPersonalCodeEe')}
-                      value={drivers[0]?.personalCodeEe ?? ''}
+                      value={formik.values.drivers[0]?.personalCodeEe ?? ''}
                       input={{ maxLength: 11 }}
-                      onChange={(v) => updateDriver(0, 'personalCodeEe', v)}
+                      onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], personalCodeEe: v }; formik.setFieldValue('drivers', u); }}
                     />
                     <Select
                       id="driverCitizenshipCode"
                       label={t('forms.compound.driverCitizenshipCode')}
                       options={countries}
-                      value={countries.find((o) => o.value === drivers[0]?.citizenshipCode) ?? null}
-                      onChange={(val) => updateDriver(0, 'citizenshipCode', val && !Array.isArray(val) ? (val as { value: string }).value : '')}
+                      value={countries.find((o) => o.value === formik.values.drivers[0]?.citizenshipCode) ?? null}
+                      onChange={(val) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], citizenshipCode: val && !Array.isArray(val) ? (val as { value: string }).value : '' }; formik.setFieldValue('drivers', u); }}
                     />
                     <div className={styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']}>
                       <DatePicker
                         id="driverBirthDate"
                         label={t('forms.compound.driverBirthDate')}
-                        value={drivers[0]?.birthDate ? dayjs(drivers[0].birthDate) : null}
-                        onChange={(v) => updateDriver(0, 'birthDate', toIsoDate(v))}
+                        value={formik.values.drivers[0]?.birthDate ? dayjs(formik.values.drivers[0].birthDate) : null}
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], birthDate: toIsoDate(v) }; formik.setFieldValue('drivers', u); }}
                         placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
+                        required
+                        {...((formik.touched.drivers as any)?.[0]?.birthDate && (formik.errors.drivers as any)?.[0]?.birthDate
+                            ? { helper: { text: (formik.errors.drivers as any)[0].birthDate, type: 'error' as const } }
+                            : {})}
                       />
                     </div>
                   </div>
@@ -785,48 +885,49 @@ export function CompoundFormCreatePage() {
                       <TextField
                         id="driver2FirstName"
                         label={t('forms.compound.driverFirstName')}
-                        value={drivers[1]?.firstName ?? ''}
+                        value={formik.values.drivers[1]?.firstName ?? ''}
                         input={{ maxLength: 100 }}
-                        onChange={(v) => updateDriver(1, 'firstName', v)}
-                        required
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], firstName: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <TextField
                         id="driver2LastName"
                         label={t('forms.compound.driverLastName')}
-                        value={drivers[1]?.lastName ?? ''}
+                        value={formik.values.drivers[1]?.lastName ?? ''}
                         input={{ maxLength: 100 }}
-                        onChange={(v) => updateDriver(1, 'lastName', v)}
-                        required
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], lastName: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <TextField
                         id="driver2PersonalCodeForeign"
                         label={t('forms.compound.driverPersonalCodeForeign')}
-                        value={drivers[1]?.personalCodeForeign ?? ''}
+                        value={formik.values.drivers[1]?.personalCodeForeign ?? ''}
                         input={{ maxLength: 50 }}
-                        onChange={(v) => updateDriver(1, 'personalCodeForeign', v)}
-                        required
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], personalCodeForeign: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <TextField
                         id="driver2PersonalCodeEe"
                         label={t('forms.compound.driverPersonalCodeEe')}
-                        value={drivers[1]?.personalCodeEe ?? ''}
+                        value={formik.values.drivers[1]?.personalCodeEe ?? ''}
                         input={{ maxLength: 11 }}
-                        onChange={(v) => updateDriver(1, 'personalCodeEe', v)}
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], personalCodeEe: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <Select
                         id="driver2CitizenshipCode"
                         label={t('forms.compound.driverCitizenshipCode')}
                         options={countries}
-                        value={countries.find((o) => o.value === drivers[1]?.citizenshipCode) ?? null}
-                        onChange={(val) => updateDriver(1, 'citizenshipCode', val && !Array.isArray(val) ? (val as { value: string }).value : '')}
+                        value={countries.find((o) => o.value === formik.values.drivers[1]?.citizenshipCode) ?? null}
+                        onChange={(val) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], citizenshipCode: val && !Array.isArray(val) ? (val as { value: string }).value : '' }; formik.setFieldValue('drivers', u); }}
                       />
                       <div className={styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']}>
                         <DatePicker
                           id="driver2BirthDate"
                           label={t('forms.compound.driverBirthDate')}
-                          value={drivers[1]?.birthDate ? dayjs(drivers[1].birthDate) : null}
-                          onChange={(v) => updateDriver(1, 'birthDate', toIsoDate(v))}
+                          value={formik.values.drivers[1]?.birthDate ? dayjs(formik.values.drivers[1].birthDate) : null}
+                          onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], birthDate: toIsoDate(v) }; formik.setFieldValue('drivers', u); }}
                           placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
+                          required
+                          {...((formik.touched.drivers as any)?.[1]?.birthDate && (formik.errors.drivers as any)?.[1]?.birthDate
+                              ? { helper: { text: (formik.errors.drivers as any)[1].birthDate, type: 'error' as const } }
+                              : {})}
                         />
                       </div>
                     </div>
@@ -849,6 +950,7 @@ export function CompoundFormCreatePage() {
                         id="inspectorFirstName"
                         label={t('forms.compound.inspectorFirstName')}
                         value={formik.values.inspectorFirstName}
+                        input={{ maxLength: 100 }}
                         required
                         onChange={(v) => formik.setFieldValue('inspectorFirstName', v)}
                         {...(formik.touched.inspectorFirstName && formik.errors.inspectorFirstName
@@ -864,6 +966,7 @@ export function CompoundFormCreatePage() {
                         id="inspectorLastName"
                         label={t('forms.compound.inspectorLastName')}
                         value={formik.values.inspectorLastName}
+                        input={{ maxLength: 100 }}
                         required
                         onChange={(v) => formik.setFieldValue('inspectorLastName', v)}
                         {...(formik.touched.inspectorLastName && formik.errors.inspectorLastName
@@ -919,6 +1022,14 @@ export function CompoundFormCreatePage() {
                       input={{ maxLength: 150 }}
                       onChange={(v) => formik.setFieldValue('inspectorProfession', v)}
                       required
+                      {...(formik.touched.inspectorProfession && formik.errors.inspectorProfession
+                          ? {
+                            helper: {
+                              text: formik.errors.inspectorProfession,
+                              type: 'error' as const,
+                            },
+                          }
+                          : {})}
                     />
                   </div>
                 </Card.Content>

@@ -4,7 +4,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { Organisation } from '../../../organisations/types';
 import type { StructureUnit } from '../../../structure-units/types';
-import type { CompoundForm } from "../../types";
+import type { CompoundForm, Trailer, Driver } from "../../types";
 import type { Ehak } from '../../../ehak/types';
 import type { Road } from '../../../roads/types';
 import type { TrailerCategory } from '../../../trailer-categories/types';
@@ -18,6 +18,28 @@ import { listVehicleCategories } from '../../../vehicle-categories/api';
 import { insertCompoundForm } from "../../api";
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
+import {OTHER} from "../../../../constants/constants.ts";
+
+export const emptyDriver = (): Driver => ({
+  personalCodeEe: '',
+  firstName: '',
+  lastName: '',
+  citizenshipCode: '',
+  personalCodeForeign: '',
+  birthDate: '',
+});
+
+export const emptyTrailer = (): Trailer => ({
+  regNr: '',
+  countryCode: '',
+  make: '',
+  model: '',
+  vin: '',
+  firstRegistration: '',
+  bodyType: '',
+  categoryCode: '',
+  categoryOther: '',
+});
 
 export function useCompoundForm(
     form: CompoundForm | undefined,
@@ -65,9 +87,11 @@ export function useCompoundForm(
   }, [authUser?.organisationid]);
 
   const validationSchema = Yup.object({
-    controlDate: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    address: Yup.string()
+      .max(300, t('forms.foreign_violation.validation.max_length', { max: 300 })),
+    road: Yup.string(),
     road_other: Yup.string().when('road', {
-      is: 'MUU TEE',
+      is: OTHER.ROAD,
       then: (schema) => schema.required(t('forms.foreign_violation.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
@@ -76,6 +100,64 @@ export function useCompoundForm(
       then: (schema) => schema.required(t('forms.foreign_violation.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
+    controlDate: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    county: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    controlCountryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    controlTime: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    vehicleRegNr: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    vehicleCountryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    vehicleCategoryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    vehicleCategoryOther: Yup.string()
+      .when('vehicleCategoryCode', {
+        is: OTHER.VEHICLE_CATEGORY,
+        then: (schema) => schema.required(t('forms.foreign_violation.validation.required')),
+        otherwise: (schema) => schema.optional(),
+      }),
+    companyRegCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    companyName: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    companyCountryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorFirstName: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorLastName: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorOrganisationId: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    trailers: Yup.array().of(
+      Yup.object({
+        regNr: Yup.string().required(t('forms.foreign_violation.validation.required')),
+        countryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+        categoryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+        categoryOther: Yup.string().when('categoryCode', {
+          is: OTHER.TRAILER_CATEGORY,
+          then: (schema) => schema.required(t('forms.foreign_violation.validation.required')),
+          otherwise: (schema) => schema.optional(),
+        }),
+      })
+    ),
+    drivers: Yup.array().test('drivers-validation', '', function (drivers) {
+      if (!drivers) return true;
+      const req = t('forms.foreign_violation.validation.required');
+      const errors: Yup.ValidationError[] = [];
+      drivers.forEach((driver: any, index: number) => {
+        if (index === 0) {
+          if (!driver?.firstName) errors.push(this.createError({ path: `drivers[${index}].firstName`, message: req }));
+          if (!driver?.lastName) errors.push(this.createError({ path: `drivers[${index}].lastName`, message: req }));
+          if (!driver?.personalCodeForeign) errors.push(this.createError({ path: `drivers[${index}].personalCodeForeign`, message: req }));
+        }
+        if (!driver?.birthDate) errors.push(this.createError({ path: `drivers[${index}].birthDate`, message: req }));
+      });
+      if (errors.length > 0) throw new Yup.ValidationError(errors);
+      return true;
+    }),
+  }).test('address-or-road', t('forms.foreign_violation.validation.required'), function (values) {
+    const { address, road } = values;
+    const hasAddress = !!address;
+    const hasRoad = !!road;
+    if (!hasAddress && !hasRoad) {
+      return this.createError({
+        path: 'address',
+        message: t('forms.foreign_violation.validation.required'),
+      });
+    }
+    return true;
   });
 
   const formik = useFormik({
@@ -105,10 +187,7 @@ export function useCompoundForm(
       vehicleMileage: '',
       roadTaxStatus: 'Ei kohaldu',
       roadTaxNotes: '',
-      trailers: '[]',
-      trailerRegNr: '',
-      trailerCountryCode: '',
-      trailerVin: '',
+      trailers: [] as Trailer[],
       companyRegCode: '',
       companyName: '',
       companyCountryCode: '',
@@ -119,20 +198,7 @@ export function useCompoundForm(
       companyOwnerFirstName: '',
       companyOwnerLastName: '',
       companyActivityLicenceCopyNumber: '',
-      driverPersonalCodeEe: '',
-      driverFirstName: '',
-      driverLastName: '',
-      driverCitizenshipCode: '',
-      driverPersonalCodeForeign: '',
-      driverBirthDate: '',
-      driverLicenceNr: '',
-      driverLicenceCountryCode: '',
-      driver2FirstName: '',
-      driver2LastName: '',
-      driver2BirthDate: '',
-      driver2LicenceNr: '',
-      driver2LicenceCountryCode: '',
-      drivers: '[]',
+      drivers: [emptyDriver()] as Driver[],
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId: form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
