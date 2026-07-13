@@ -1,0 +1,26 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Soft-delete a control form file attachment by ID"
+  method: delete
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "ID of the form_attachment record to delete"
+
+deleteFile:
+  template: "[#LJVIS_PROJECT_LAYER]/files/delete"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: "${incoming.params.q}"
+  result: deleteResult
+
+returnSuccess:
+  return: ${deleteResult}
+  status: 200

@@ -20,5 +20,5 @@ SELECT
     cv.name
 FROM classifier.classifier_value cv
 WHERE cv.classifier_key = (SELECT classifier_key FROM classifier.classifier WHERE code = 'STRUCTURE_UNIT')
-  AND cv.description = (SELECT code FROM users.organisation WHERE id = :organisationId)
+  AND cv.description = (SELECT code FROM users.organisation WHERE id = :organisationId::BIGINT)
 ORDER BY cv.name;

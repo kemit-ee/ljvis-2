@@ -37,7 +37,7 @@ export function useForeignViolationForm(
 
   useEffect(() => {
     if (authUser?.organisationid) {
-      listStructureUnits(Number(authUser.organisationid)).then(setStructureUnits).catch(console.error);
+      listStructureUnits(Number(authUser.organisationid)).then((res) => setStructureUnits(Array.isArray(res) ? res : [])).catch(console.error);
     }
   }, [authUser?.organisationid]);
 
@@ -58,10 +58,6 @@ export function useForeignViolationForm(
     inspectorLastName: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorOrganisationId: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    files: Yup.string().test('no-invalid-files', t('forms.foreign_violation.filesHelper'), (value) => {
-      const filesArray = JSON.parse(value || '[]');
-      return !filesArray.some((f: { isValid?: boolean }) => f.isValid === false);
-    }),
   });
 
   const formik = useFormik({
@@ -109,7 +105,6 @@ export function useForeignViolationForm(
       inspectorOrganisationId: form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession: form?.inspectorProfession ?? authUser?.jobtitle ?? '',
-      files: form?.files ?? '[]',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -123,7 +118,6 @@ export function useForeignViolationForm(
           dataEntryDate: toIsoDate(values.dataEntryDate),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
           violations: Array.isArray(values.violations) ? JSON.stringify(values.violations) : (values.violations ?? '[]'),
-          files: typeof values.files === 'string' ? values.files : JSON.stringify(values.files ?? []),
         };
         const result = await insertForeignViolationForm(trimmedValues as unknown as ForeignViolationForm);
         onSaved(result[0]?.id);
@@ -153,7 +147,7 @@ export function useForeignViolationForm(
     const newOrgId = val && !Array.isArray(val) && 'value' in val ? (val as { value: string }).value : '';
     formik.setFieldValue('inspectorOrganisationId', newOrgId);
     formik.setFieldValue('inspectorUnit', '');
-    listStructureUnits(Number(newOrgId)).then(setStructureUnits).catch(console.error);
+    listStructureUnits(Number(newOrgId)).then((res) => setStructureUnits(Array.isArray(res) ? res : [])).catch(console.error);
   };
 
   const handleCompanyRegCodeSearch = async () => {

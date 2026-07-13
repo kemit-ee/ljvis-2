@@ -12,20 +12,35 @@ import {
   Text,
   ChoiceGroup,
 } from '@tedi-design-system/react/tedi';
-import { DatePicker, TimePicker, Accordion, AccordionItem, AccordionItemHeader, AccordionItemContent } from '@tedi-design-system/react/community';
+import {
+  DatePicker,
+  TimePicker,
+  Accordion,
+  AccordionItem,
+  AccordionItemHeader,
+  AccordionItemContent,
+} from '@tedi-design-system/react/community';
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useFormDetail } from './useFormDetail.ts';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, EU_VIOLATION_GROUPS, COUNTRIES } from '../../../../constants/constants';
+import {
+  BREAKPOINTS,
+  EU_VIOLATION_GROUPS,
+  COUNTRIES,
+} from '../../../../constants/constants';
 import styles from './ForeignViolationFormPage.module.css';
+import { FormFiles } from '../../../../features/forms/components/FormFiles';
 
 export function ForeignViolationFormPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
-  const forbidden = !(hasPermission('foreign_violation_form.read') && hasPermission('classifier.read'));
+  const forbidden = !(
+    hasPermission('foreign_violation_form.read') &&
+    hasPermission('classifier.read')
+  );
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const handleSaved = () => {
@@ -47,35 +62,76 @@ export function ForeignViolationFormPage() {
   })).sort((a, b) => a.label.localeCompare(b.label));
 
   const recommendedMeasureOptions = [
-    { value: 'PUUDUVAD', labelKey: 'forms.foreign_violation.recommendedMeasureMissing' },
-    { value: 'HOIATUS', labelKey: 'forms.foreign_violation.recommendedMeasureWarning' },
-    { value: 'UHENDUSE_TEGEVUSLOA_PEATAMINE', labelKey: 'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseSuspension' },
-    { value: 'UHENDUSE_TEGEVUSLUBA_KEHTETUKS', labelKey: 'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseWithdrawal' },
-    { value: 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE', labelKey: 'forms.foreign_violation.recommendedMeasureActivityLicenseRecordsSuspension' },
-    { value: 'TEGEVUSLUBA_KEHTETUKS', labelKey: 'forms.foreign_violation.recommendedMeasureActivityLicenseWithdrawal' },
-    { value: 'JUHITUNNISTUSEST_KEELDUMINE', labelKey: 'forms.foreign_violation.recommendedMeasureDriverCertificateRefusal' },
-    { value: 'JUHITUNNISTUS_KEHTETUKS', labelKey: 'forms.foreign_violation.recommendedMeasureDriverCertificateWithdrawal' },
-    { value: 'MUU', labelKey: 'forms.foreign_violation.recommendedMeasureOther' },
+    {
+      value: 'PUUDUVAD',
+      labelKey: 'forms.foreign_violation.recommendedMeasureMissing',
+    },
+    {
+      value: 'HOIATUS',
+      labelKey: 'forms.foreign_violation.recommendedMeasureWarning',
+    },
+    {
+      value: 'UHENDUSE_TEGEVUSLOA_PEATAMINE',
+      labelKey:
+        'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseSuspension',
+    },
+    {
+      value: 'UHENDUSE_TEGEVUSLUBA_KEHTETUKS',
+      labelKey:
+        'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseWithdrawal',
+    },
+    {
+      value: 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE',
+      labelKey:
+        'forms.foreign_violation.recommendedMeasureActivityLicenseRecordsSuspension',
+    },
+    {
+      value: 'TEGEVUSLUBA_KEHTETUKS',
+      labelKey:
+        'forms.foreign_violation.recommendedMeasureActivityLicenseWithdrawal',
+    },
+    {
+      value: 'JUHITUNNISTUSEST_KEELDUMINE',
+      labelKey:
+        'forms.foreign_violation.recommendedMeasureDriverCertificateRefusal',
+    },
+    {
+      value: 'JUHITUNNISTUS_KEHTETUKS',
+      labelKey:
+        'forms.foreign_violation.recommendedMeasureDriverCertificateWithdrawal',
+    },
+    {
+      value: 'MUU',
+      labelKey: 'forms.foreign_violation.recommendedMeasureOther',
+    },
   ];
 
   const sanctionOptions = [
     { value: 'KORRAS', labelKey: 'forms.foreign_violation.sanctionKorras' },
     { value: 'HOIATUS', labelKey: 'forms.foreign_violation.sanctionHoiatus' },
-    { value: 'KABOTAAŽVEO AJUTINE KEELAMINE', labelKey: 'forms.foreign_violation.sanctionKabotaaz' },
+    {
+      value: 'KABOTAAŽVEO AJUTINE KEELAMINE',
+      labelKey: 'forms.foreign_violation.sanctionKabotaaz',
+    },
     { value: 'TRAHV', labelKey: 'forms.foreign_violation.sanctionTrahv' },
-    { value: 'LIIKLEMISKEELD', labelKey: 'forms.foreign_violation.sanctionLiiklemiskeeld' },
-    { value: 'SÕIDUKI KASUTAMISE TAKISTAMINE', labelKey: 'forms.foreign_violation.sanctionSoiduk' },
+    {
+      value: 'LIIKLEMISKEELD',
+      labelKey: 'forms.foreign_violation.sanctionLiiklemiskeeld',
+    },
+    {
+      value: 'SÕIDUKI KASUTAMISE TAKISTAMINE',
+      labelKey: 'forms.foreign_violation.sanctionSoiduk',
+    },
     { value: 'MUU', labelKey: 'forms.foreign_violation.sanctionMuu' },
   ];
 
   const { form, loading, toDateValue, toTimeValue } = useFormDetail(id);
   const disabled = true;
 
-  const {
-    formik,
-    structureUnits,
-    orgOptions,
-  } = useForeignViolationForm(undefined, handleSaved);
+  const { formik, structureUnits, orgOptions } = useForeignViolationForm(
+    undefined,
+    handleSaved,
+  );
 
   if (loading && !form) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -85,9 +141,7 @@ export function ForeignViolationFormPage() {
     <div>
       <form onSubmit={formik.handleSubmit}>
         <div className="card-main">
-          <Heading element="h1">
-            {form?.formNumber ?? ''}
-          </Heading>
+          <Heading element="h1">{form?.formNumber ?? ''}</Heading>
         </div>
 
         <div>
@@ -109,7 +163,11 @@ export function ForeignViolationFormPage() {
                       id="reportingCountry"
                       label={t('forms.foreign_violation.reportingCountry')}
                       options={countries}
-                      value={countries.find((o) => o.value === form?.reportingCountryCode) ?? null}
+                      value={
+                        countries.find(
+                          (o) => o.value === form?.reportingCountryCode,
+                        ) ?? null
+                      }
                       disabled={disabled}
                     />
                     <TextField
@@ -131,68 +189,85 @@ export function ForeignViolationFormPage() {
                     {t('forms.foreign_violation.inspectionBasicInfo')}
                   </Heading>
                   <div
-                      className={
-                        styles[
-                            isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                            ]
-                      }
-                      style={{ alignItems: 'start' }}
+                    className={
+                      styles[
+                        isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
+                      ]
+                    }
+                    style={{ alignItems: 'start' }}
                   >
                     <div
-                        className={
-                          styles[
-                              isDesktop ? 'date-row-desktop' : 'date-row-mobile'
-                              ]
-                        }
+                      className={
+                        styles[
+                          isDesktop ? 'date-row-desktop' : 'date-row-mobile'
+                        ]
+                      }
                     >
                       <DatePicker
-                          id="inspectionDate"
-                          label={t('forms.foreign_violation.inspectionDate')}
-                          value={toDateValue(form?.inspectionDate)}
-                          onChange={(v) => formik.setFieldValue('inspectionDate', v)}
-                          disabled={disabled}
+                        id="inspectionDate"
+                        label={t('forms.foreign_violation.inspectionDate')}
+                        value={toDateValue(form?.inspectionDate)}
+                        onChange={(v) =>
+                          formik.setFieldValue('inspectionDate', v)
+                        }
+                        disabled={disabled}
                       />
                       <TimePicker
-                          id="inspectionTime"
-                          label={t('forms.foreign_violation.inspectionTime')}
-                          value={toTimeValue(form?.inspectionDate, form?.inspectionTime)}
-                          onChange={(v) => formik.setFieldValue('inspectionTime', v)}
-                          placeholder={t('forms.foreign_violation.timePickerPlaceholder')}
-                          disabled={disabled}
+                        id="inspectionTime"
+                        label={t('forms.foreign_violation.inspectionTime')}
+                        value={toTimeValue(
+                          form?.inspectionDate,
+                          form?.inspectionTime,
+                        )}
+                        onChange={(v) =>
+                          formik.setFieldValue('inspectionTime', v)
+                        }
+                        placeholder={t(
+                          'forms.foreign_violation.timePickerPlaceholder',
+                        )}
+                        disabled={disabled}
                       />
                     </div>
                     <div></div>
                     <div>
                       <TextField
-                          id="inspectionAddressLine1"
-                          label={t('forms.foreign_violation.inspectionAddressLine1')}
-                          value={form?.inspectionAddressLine1 ?? ''}
-                          disabled={disabled}
+                        id="inspectionAddressLine1"
+                        label={t(
+                          'forms.foreign_violation.inspectionAddressLine1',
+                        )}
+                        value={form?.inspectionAddressLine1 ?? ''}
+                        disabled={disabled}
                       />
                     </div>
                     <TextField
-                        id="inspectionAddressLine2"
-                        label={t('forms.foreign_violation.inspectionAddressLine2')}
-                        value={form?.inspectionAddressLine2 ?? ''}
-                        disabled={disabled}
+                      id="inspectionAddressLine2"
+                      label={t(
+                        'forms.foreign_violation.inspectionAddressLine2',
+                      )}
+                      value={form?.inspectionAddressLine2 ?? ''}
+                      disabled={disabled}
                     />
                     <TextField
-                        id="inspectionRegion"
-                        label={t('forms.foreign_violation.inspectionRegion')}
-                        value={form?.inspectionRegion ?? ''}
-                        disabled={disabled}
+                      id="inspectionRegion"
+                      label={t('forms.foreign_violation.inspectionRegion')}
+                      value={form?.inspectionRegion ?? ''}
+                      disabled={disabled}
                     />
                     <TextField
-                        id="inspectionCity"
-                        label={t('forms.foreign_violation.inspectionCity')}
-                        value={form?.inspectionCity ?? ''}
-                        disabled={disabled}
+                      id="inspectionCity"
+                      label={t('forms.foreign_violation.inspectionCity')}
+                      value={form?.inspectionCity ?? ''}
+                      disabled={disabled}
                     />
                     <Select
                       id="inspectionCountry"
                       label={t('forms.foreign_violation.inspectionCountry')}
                       options={countries}
-                      value={countries.find((o) => o.value === form?.inspectionCountryCode) ?? null}
+                      value={
+                        countries.find(
+                          (o) => o.value === form?.inspectionCountryCode,
+                        ) ?? null
+                      }
                       disabled={disabled}
                     />
                   </div>
@@ -238,7 +313,11 @@ export function ForeignViolationFormPage() {
                       id="companyCountry"
                       label={t('forms.foreign_violation.companyCountry')}
                       options={countries}
-                      value={countries.find((o) => o.value === form?.companyCountryCode) ?? null}
+                      value={
+                        countries.find(
+                          (o) => o.value === form?.companyCountryCode,
+                        ) ?? null
+                      }
                       disabled={disabled}
                     />
                     <TextField
@@ -342,7 +421,11 @@ export function ForeignViolationFormPage() {
                       id="vehicleCountry"
                       label={t('forms.foreign_violation.vehicleCountry')}
                       options={countries}
-                      value={countries.find((o) => o.value === form?.vehicleCountryCode) ?? null}
+                      value={
+                        countries.find(
+                          (o) => o.value === form?.vehicleCountryCode,
+                        ) ?? null
+                      }
                       disabled={disabled}
                     />
                     <TextField
@@ -360,10 +443,16 @@ export function ForeignViolationFormPage() {
                     >
                       <DatePicker
                         id="vehicleFirstRegistration"
-                        label={t('forms.foreign_violation.vehicleFirstRegistration')}
+                        label={t(
+                          'forms.foreign_violation.vehicleFirstRegistration',
+                        )}
                         value={toDateValue(form?.vehicleFirstRegistration)}
-                        onChange={(v) => formik.setFieldValue('vehicleFirstRegistration', v)}
-                        placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
+                        onChange={(v) =>
+                          formik.setFieldValue('vehicleFirstRegistration', v)
+                        }
+                        placeholder={t(
+                          'forms.foreign_violation.datePickerPlaceholder',
+                        )}
                         disabled={disabled}
                       />
                     </div>
@@ -469,7 +558,11 @@ export function ForeignViolationFormPage() {
                     id="sanctionCode"
                     name="sanctionCode"
                     inputType="radio"
-                    label={<strong>{t('forms.foreign_violation.sanctionCode')}</strong>}
+                    label={
+                      <strong>
+                        {t('forms.foreign_violation.sanctionCode')}
+                      </strong>
+                    }
                     value={form?.sanctionCode ?? ''}
                     items={sanctionOptions.map((opt) => ({
                       id: `sanctionCode_${opt.value}`,
@@ -477,8 +570,12 @@ export function ForeignViolationFormPage() {
                       value: opt.value,
                       disabled: disabled,
                     }))}
-                    onChange={(val) => formik.setFieldValue('sanctionCode', Array.isArray(val) ? val[0] : val)}
-
+                    onChange={(val) =>
+                      formik.setFieldValue(
+                        'sanctionCode',
+                        Array.isArray(val) ? val[0] : val,
+                      )
+                    }
                     className="mb-1"
                   />
                   <div
@@ -506,28 +603,35 @@ export function ForeignViolationFormPage() {
                 <Card.Content>
                   <Accordion defaultOpenItem={[]}>
                     <AccordionItem id="eu-violations">
-                      <AccordionItemHeader
-                        closeText=" "
-                        openText=" "
-                      >
-                        <strong>{t('forms.foreign_violation.euViolationsBasicInfo')}</strong>
+                      <AccordionItemHeader closeText=" " openText=" ">
+                        <strong>
+                          {t('forms.foreign_violation.euViolationsBasicInfo')}
+                        </strong>
                       </AccordionItemHeader>
                       <AccordionItemContent>
                         {euViolationGroups.map((group) => (
                           <div key={group.id} className="mb-1">
-                            <Text element="p" modifiers="bold">{group.label}</Text>
+                            <Text element="p" modifiers="bold">
+                              {group.label}
+                            </Text>
                             <ChoiceGroup
                               id={`euViolations_${group.id}`}
                               name={`euViolations_${group.id}`}
                               inputType="checkbox"
                               label=""
-                              value={Array.isArray(form?.violations) ? form.violations : []}
+                              value={
+                                Array.isArray(form?.violations)
+                                  ? form.violations
+                                  : []
+                              }
                               items={group.items.map((item) => ({
                                 id: `euViolation_${item.value}`,
                                 label: item.label,
                                 value: item.value,
                                 disabled: disabled,
-                                defaultChecked: form?.violations?.includes(item.value) ?? false,
+                                defaultChecked:
+                                  form?.violations?.includes(item.value) ??
+                                  false,
                               }))}
                             />
                           </div>
@@ -550,7 +654,11 @@ export function ForeignViolationFormPage() {
                     id="recommendedMeasureCode"
                     name="recommendedMeasureCode"
                     inputType="radio"
-                    label={<strong>{t('forms.foreign_violation.recommendedMeasureCode')}</strong>}
+                    label={
+                      <strong>
+                        {t('forms.foreign_violation.recommendedMeasureCode')}
+                      </strong>
+                    }
                     value={form?.recommendedMeasureCode ?? ''}
                     items={recommendedMeasureOptions.map((opt) => ({
                       id: `recommendedMeasureCode_${opt.value}`,
@@ -558,7 +666,12 @@ export function ForeignViolationFormPage() {
                       value: opt.value,
                       disabled: disabled,
                     }))}
-                    onChange={(val) => formik.setFieldValue('recommendedMeasureCode', Array.isArray(val) ? val[0] : val)}
+                    onChange={(val) =>
+                      formik.setFieldValue(
+                        'recommendedMeasureCode',
+                        Array.isArray(val) ? val[0] : val,
+                      )
+                    }
                     className="mb-1"
                   />
                   {form?.recommendedMeasureCode === 'MUU' && (
@@ -567,7 +680,9 @@ export function ForeignViolationFormPage() {
                     >
                       <TextField
                         id="recommendedMeasureNotes"
-                        label={t('forms.foreign_violation.recommendedMeasureNotes')}
+                        label={t(
+                          'forms.foreign_violation.recommendedMeasureNotes',
+                        )}
                         value={form?.recommendedMeasureNotes ?? ''}
                         className={styles['full-span']}
                         disabled={disabled}
@@ -583,7 +698,9 @@ export function ForeignViolationFormPage() {
                   >
                     <TextArea
                       id="recommendedMeasureGeneralNotes"
-                      label={t('forms.foreign_violation.recommendedMeasureGeneralNotes')}
+                      label={t(
+                        'forms.foreign_violation.recommendedMeasureGeneralNotes',
+                      )}
                       value={form?.notes ?? ''}
                       className={styles['full-span']}
                       disabled={disabled}
@@ -618,8 +735,12 @@ export function ForeignViolationFormPage() {
                         id="dataEntryDate"
                         label={t('forms.foreign_violation.dataEntryDate')}
                         value={toDateValue(form?.dataEntryDate)}
-                        onChange={(v) => formik.setFieldValue('dataEntryDate', v)}
-                        placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
+                        onChange={(v) =>
+                          formik.setFieldValue('dataEntryDate', v)
+                        }
+                        placeholder={t(
+                          'forms.foreign_violation.datePickerPlaceholder',
+                        )}
                         disabled={disabled}
                       />
                     </div>
@@ -660,7 +781,8 @@ export function ForeignViolationFormPage() {
                       options={orgOptions}
                       value={
                         orgOptions.find(
-                          (o) => o.value === String(form?.inspectorOrganisationId),
+                          (o) =>
+                            o.value === String(form?.inspectorOrganisationId),
                         ) ?? null
                       }
                       disabled={disabled}
@@ -673,12 +795,12 @@ export function ForeignViolationFormPage() {
                         value: opt.code,
                       }))}
                       value={
-                        structureUnits.map((opt) => ({
-                          label: opt.name,
-                          value: opt.code,
-                        })).find(
-                          (o) => o.value === form?.inspectorUnit,
-                        ) ?? null
+                        structureUnits
+                          .map((opt) => ({
+                            label: opt.name,
+                            value: opt.code,
+                          }))
+                          .find((o) => o.value === form?.inspectorUnit) ?? null
                       }
                       disabled={disabled}
                     />
@@ -695,20 +817,7 @@ export function ForeignViolationFormPage() {
           </Row>
           <Row className="m-0">
             <Col className="p-0">
-              <Card className="mb-1">
-                <Card.Content>
-                  <Heading element="h3" className="mb-1">
-                    {t('forms.foreign_violation.filesBasicInfo')}
-                  </Heading>
-                  {Array.isArray(form?.files) && form.files.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
-                      {form.files.map((file) => (
-                        <Button key={file.id} iconRight="download" >{file.id}</Button>
-                      ))}
-                    </div>
-                  ) : null}
-                </Card.Content>
-              </Card>
+              <FormFiles formType="foreign-violation-form" formNumber={form.formNumber} />
             </Col>
           </Row>
         </div>
@@ -716,10 +825,7 @@ export function ForeignViolationFormPage() {
         <div className="page-actions">
           {
             <div className="page-actions-buttons">
-              <Button
-                visualType="secondary"
-                onClick={() => navigate('/')}
-              >
+              <Button visualType="secondary" onClick={() => navigate('/')}>
                 {t('common.back')}
               </Button>
             </div>

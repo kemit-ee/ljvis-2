@@ -1,0 +1,22 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Soft-delete a file attachment record in the DB. Expects: id"
+  method: post
+  accepts: json
+  returns: json
+  namespace: templates
+
+deleteFileInDB:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/files/delete_form_attachment"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.id}
+  result: dbResult
+
+returnSuccess:
+  return: ${dbResult.response.body}
+  status: 200

@@ -1,0 +1,55 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Upload a file attachment for a control form to S3 and record it in the DB"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: form_number
+        type: string
+        description: "Logical form number (e.g. vr-2026-12345)"
+      - field: file_name
+        type: string
+        description: "Original file name including extension"
+      - field: file_base64
+        type: string
+        description: "Base64-encoded file content"
+      - field: mimetype
+        type: string
+        description: "MIME type of the file"
+
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    form_type: "foreign-violation-form"
+  next: uploadFile
+
+uploadFile:
+  template: "[#LJVIS_PROJECT_LAYER]/files/upload"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: ${form_type}
+    form_number: ${incoming.body.form_number}
+    file_name: ${incoming.body.file_name}
+    file_base64: ${incoming.body.file_base64}
+    mimetype: ${incoming.body.mimetype}
+    actor_personal_code: ${actor_personal_code}
+  result: uploadResult
+
+returnSuccess:
+  return: ${uploadResult}
+  status: 200

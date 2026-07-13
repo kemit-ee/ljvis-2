@@ -294,7 +294,7 @@
     "sp_trailer_tech_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
     "sp_dangerous_goods_form": "Ohtliku veose veo kontrollvorm",
     "sp_transport_suspended_form": "Autovedu on katkestatud kontrollvorm",
-    "foreign_violation" : {
+    "foreign_violation": {
       "reportingBasicInfo": "Teate saatnud riik ja asutus",
       "reportingCountry": "Teate saatnud riik",
       "reportingAuthority": "Teate saatnud pädeva asutuse nimetus",
@@ -693,6 +693,32 @@
     "data": "Auditikirje andmed",
     "dataTitle": "Auditikirje"
   },
+  "form": {
+    "files": {
+      "title": "Kontrolliga seotud failid",
+      "addBtn": "Lisa manus",
+      "uploadTitle": "Lae fail üles",
+      "uploadBtn": "Lae üles",
+      "limits": "Lubatud tüübid: pdf, jpeg, png, asice, doc, docx. Max suurus: 20MB.",
+      "empty": "Vormile pole faile lisatud.",
+      "col": {
+        "name": "Faili nimi",
+        "uploaded": "Lisatud",
+        "status": "Staatus"
+      },
+      "status": {
+        "active": "Aktiivne",
+        "deleted": "Kustutatud"
+      },
+      "error": {
+        "tooLarge": "Faili suurus ületab 20MB piiri.",
+        "invalidType": "Lubamatu failitüüp. Lubatud: pdf, jpeg, png, asice, doc, docx.",
+        "duplicate": "Sama nimega fail on juba lisatud. Üleslaadides lisatakse uus versioon."
+      },
+      "confirmDeleteTitle": "Kustuta fail",
+      "confirmDelete": "Kas soovid selle faili kustutada?"
+    }
+  },
   "common": {
     "loading": "Laadimine...",
     "error": "Tekkis viga",
@@ -716,6 +742,8 @@
     "close": "Sulge",
     "search": "Otsi",
     "remove": "Eemalda",
+    "cancel": "Tühista",
+    "download": "Laadi alla",
     "space": " "
   },
   "footer": {

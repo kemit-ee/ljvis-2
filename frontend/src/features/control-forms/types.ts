@@ -47,5 +47,4 @@ export interface ForeignViolationForm {
   inspectorOrganisationId: string;
   inspectorUnit: string;
   inspectorProfession: string;
-  files?: { id: string; isLoading: boolean; isValid: boolean }[];
 }
