@@ -88,7 +88,13 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
-      - field: files
+      - field: driver1PersonalCodeEe
+        type: string
+      - field: driver1PersonalCodeForeign
+        type: string
+      - field: driver2PersonalCodeEe
+        type: string
+      - field: driver2PersonalCodeForeign
         type: string
 
 get_user_context:
@@ -136,6 +142,10 @@ extractRequestData:
     company_owner_last_name: "${incoming.body.companyOwnerLastName}"
     company_activity_licence_copy_number: "${incoming.body.companyActivityLicenceCopyNumber}"
     drivers: "${incoming.body.drivers}"
+    driver1_personal_code_ee: "${incoming.body.driver1PersonalCodeEe}"
+    driver1_personal_code_foreign: "${incoming.body.driver1PersonalCodeForeign}"
+    driver2_personal_code_ee: "${incoming.body.driver2PersonalCodeEe}"
+    driver2_personal_code_foreign: "${incoming.body.driver2PersonalCodeForeign}"
     inspector_first_name: "${incoming.body.inspectorFirstName}"
     inspector_last_name: "${incoming.body.inspectorLastName}"
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
@@ -193,6 +203,26 @@ insertForm:
       inspectorProfession: ${inspector_profession}
       created_by: ${created_by}
   result: insertRes
+  next: extractResponseData
+
+extractResponseData:
+  assign:
+    compound_form_key: "${insertRes.response.body[0].id || ''}"
+  next: logAuditEvent
+
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-create"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    compound_form_key: ${compound_form_key}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

@@ -19,7 +19,7 @@ import {
   Tabs
 } from '@tedi-design-system/react/tedi';
 import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
-import { useCompoundForm, emptyTrailer } from './useCompoundForm';
+import { useCompoundForm, emptyTrailer, emptyDriver } from './useCompoundForm';
 import type { Trailer } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -904,42 +904,42 @@ export function CompoundFormCreatePage() {
                         label={t('forms.compound.driverFirstName')}
                         value={formik.values.drivers[1]?.firstName ?? ''}
                         input={{ maxLength: 100 }}
-                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], firstName: v }; formik.setFieldValue('drivers', u); }}
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...emptyDriver(), ...u[1], firstName: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <TextField
                         id="driver2LastName"
                         label={t('forms.compound.driverLastName')}
                         value={formik.values.drivers[1]?.lastName ?? ''}
                         input={{ maxLength: 100 }}
-                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], lastName: v }; formik.setFieldValue('drivers', u); }}
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...emptyDriver(), ...u[1], lastName: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <TextField
                         id="driver2PersonalCodeForeign"
                         label={t('forms.compound.driverPersonalCodeForeign')}
                         value={formik.values.drivers[1]?.personalCodeForeign ?? ''}
                         input={{ maxLength: 50 }}
-                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], personalCodeForeign: v }; formik.setFieldValue('drivers', u); }}
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...emptyDriver(), ...u[1], personalCodeForeign: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <TextField
                         id="driver2PersonalCodeEe"
                         label={t('forms.compound.driverPersonalCodeEe')}
                         value={formik.values.drivers[1]?.personalCodeEe ?? ''}
                         input={{ maxLength: 11 }}
-                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], personalCodeEe: v }; formik.setFieldValue('drivers', u); }}
+                        onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...emptyDriver(), ...u[1], personalCodeEe: v }; formik.setFieldValue('drivers', u); }}
                       />
                       <Select
                         id="driver2CitizenshipCode"
                         label={t('forms.compound.driverCitizenshipCode')}
                         options={countries}
                         value={countries.find((o) => o.value === formik.values.drivers[1]?.citizenshipCode) ?? null}
-                        onChange={(val) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], citizenshipCode: val && !Array.isArray(val) ? (val as { value: string }).value : '' }; formik.setFieldValue('drivers', u); }}
+                        onChange={(val) => { const u = [...formik.values.drivers]; u[1] = { ...emptyDriver(), ...u[1], citizenshipCode: val && !Array.isArray(val) ? (val as { value: string }).value : '' }; formik.setFieldValue('drivers', u); }}
                       />
                       <div className={styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']}>
                         <DatePicker
                           id="driver2BirthDate"
                           label={t('forms.compound.driverBirthDate')}
                           value={formik.values.drivers[1]?.birthDate ? dayjs(formik.values.drivers[1].birthDate) : null}
-                          onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...u[1], birthDate: toIsoDate(v) }; formik.setFieldValue('drivers', u); }}
+                          onChange={(v) => { const u = [...formik.values.drivers]; u[1] = { ...emptyDriver(), ...u[1], birthDate: toIsoDate(v) }; formik.setFieldValue('drivers', u); }}
                           placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
                           required
                           {...((formik.touched.drivers as any)?.[1]?.birthDate && (formik.errors.drivers as any)?.[1]?.birthDate

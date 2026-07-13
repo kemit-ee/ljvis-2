@@ -142,7 +142,9 @@ export function useCompoundForm(
           if (!driver?.lastName) errors.push(this.createError({ path: `drivers[${index}].lastName`, message: req }));
           if (!driver?.personalCodeForeign) errors.push(this.createError({ path: `drivers[${index}].personalCodeForeign`, message: req }));
         }
-        if (!driver?.birthDate) errors.push(this.createError({ path: `drivers[${index}].birthDate`, message: req }));
+        if (index === 1) {
+          if (!driver?.birthDate) errors.push(this.createError({path: `drivers[${index}].birthDate`, message: req}));
+        }
       });
       if (errors.length > 0) throw new Yup.ValidationError(errors);
       return true;
@@ -208,6 +210,8 @@ export function useCompoundForm(
     validationSchema,
     onSubmit: async (values) => {
       try {
+        const driver1 = values.drivers[0];
+        const driver2 = values.drivers[1];
         const trimmedValues = {
           ...values,
           status: 'saved',
@@ -217,10 +221,14 @@ export function useCompoundForm(
           trailers: Array.isArray(values.trailers) ? JSON.stringify(values.trailers) : (values.trailers ?? '[]'),
           drivers: Array.isArray(values.drivers) ? JSON.stringify(values.drivers.map((d) => ({
             ...d,
-            firstName: d.firstName.trim(),
-            lastName: d.lastName.trim(),
+            firstName: d.firstName?.trim(),
+            lastName: d.lastName?.trim(),
             birthDate: toIsoDate(d.birthDate),
           }))) : (values.drivers ?? '[]'),
+          driver1PersonalCodeEe: driver1?.personalCodeEe || '',
+          driver1PersonalCodeForeign: driver1?.personalCodeForeign || '',
+          driver2PersonalCodeEe: driver2?.personalCodeEe || '',
+          driver2PersonalCodeForeign: driver2?.personalCodeForeign || '',
         };
         const result = await insertCompoundForm(trimmedValues as unknown as CompoundForm);
         onSaved(result[0]?.id);
