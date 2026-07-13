@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { OTHER } from '../../../../constants/constants';
+import { OTHER, ROAD } from '../../../../constants/constants';
 
 import {
   Button,
@@ -112,7 +112,7 @@ export function CompoundFormCreatePage() {
                           formik.setFieldValue('road', '');
                           formik.setFieldValue('road_other', '');
                           formik.setFieldValue('kilometer', '');
-                          formik.setFieldValue('road_type', '');
+                          formik.setFieldValue('road_type', ROAD.NATIONAL);
                         }
                       }}
                       {...(formik.touched.address && formik.errors.address
@@ -133,11 +133,11 @@ export function CompoundFormCreatePage() {
                         const roadValue = val && !Array.isArray(val) ? (val as { value: string }).value : '';
                         formik.setFieldValue('road', roadValue);
                         if (roadValue === OTHER.ROAD) {
-                          formik.setFieldValue('road_type', 'Kohalik tee');
+                          formik.setFieldValue('road_type', ROAD.LOCAL);
                         } else if (roadValue) {
-                          formik.setFieldValue('road_type', 'Riigimaantee');
+                          formik.setFieldValue('road_type', ROAD.NATIONAL);
                         } else {
-                          formik.setFieldValue('road_type', 'Riigimaantee');
+                          formik.setFieldValue('road_type', ROAD.NATIONAL);
                         }
                         if (roadValue) {
                           formik.setFieldValue('address', '');
@@ -231,6 +231,7 @@ export function CompoundFormCreatePage() {
                           const v = val && !Array.isArray(val) ? (val as { value: string }).value : '';
                           formik.setFieldValue('city', v);
                         }}
+                        disabled={!formik.values.county}
                       />
                     </div>
                     <Text
@@ -275,6 +276,10 @@ export function CompoundFormCreatePage() {
                         value={formik.values.controlTime ? dayjs(formik.values.controlTime) : null}
                         onChange={(v) => formik.setFieldValue('controlTime', v)}
                         placeholder={t('common.timePickerPlaceholder')}
+                        required
+                        {...(formik.touched.controlTime && formik.errors.controlTime
+                            ? { helper: { text: formik.errors.controlTime, type: 'error' as const } }
+                            : {})}
                       />
                     </div>
                   </div>
@@ -422,6 +427,17 @@ export function CompoundFormCreatePage() {
                     ) : (
                         <div></div>
                     )}
+                    <TextField
+                        id="vehicleMileage"
+                        label={t('forms.compound.vehicleMileage')}
+                        value={formik.values.vehicleMileage}
+                        onChange={(v) => {
+                          const numericValue = v.replace(/\D/g, '');
+                          const parsedValue = parseInt(numericValue, 10) || 0;
+                          formik.setFieldValue('vehicleMileage', String(parsedValue));
+                        }}
+                        input={{maxLength: 8 }}
+                    />
                   </div>
                 </Card.Content>
               </Card>
@@ -717,6 +733,7 @@ export function CompoundFormCreatePage() {
                             const v = val && !Array.isArray(val) ? (val as { value: string }).value : '';
                             formik.setFieldValue('companyCity', v);
                           }}
+                          disabled={!formik.values.companyCounty}
                         />
                         <TextField
                           id="companyAddressLine1"

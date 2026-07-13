@@ -22,6 +22,12 @@ export const OTHER = {
   VEHICLE_CATEGORY: 'OTHER_2012',
 } as const;
 
+export const ROAD = {
+  NATIONAL: 'Riigimaantee',
+  LOCAL: 'Kohalik tee',
+  TAX_STATUS_NOT_APPLICABLE: 'Ei kohaldu'
+} as const;
+
 export const EU_VIOLATION_GROUPS = [
   {
     id: 'msi',

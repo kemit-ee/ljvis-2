@@ -18,7 +18,7 @@ import { listVehicleCategories } from '../../../vehicle-categories/api';
 import { insertCompoundForm } from "../../api";
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
-import {OTHER} from "../../../../constants/constants.ts";
+import {OTHER, ROAD} from "../../../../constants/constants.ts";
 
 export const emptyDriver = (): Driver => ({
   personalCodeEe: '',
@@ -174,7 +174,7 @@ export function useCompoundForm(
       city: '',
       controlDate: '',
       controlTime: '',
-      road_type: 'Riigimaantee',
+      road_type: ROAD.NATIONAL,
       vehicleRegNr: '',
       vehicleMake: '',
       vehicleModel: '',
@@ -185,7 +185,7 @@ export function useCompoundForm(
       vehicleCategoryCode: '',
       vehicleCategoryOther: '',
       vehicleMileage: '',
-      roadTaxStatus: 'Ei kohaldu',
+      roadTaxStatus: ROAD.TAX_STATUS_NOT_APPLICABLE,
       roadTaxNotes: '',
       trailers: [] as Trailer[],
       companyRegCode: '',
@@ -210,11 +210,17 @@ export function useCompoundForm(
       try {
         const trimmedValues = {
           ...values,
+          status: 'saved',
           controlDate: toIsoDate(values.controlDate),
           controlTime: toIsoTime(values.controlTime),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
-          driverBirthDate: toIsoDate(values.driverBirthDate),
-          driver2BirthDate: toIsoDate(values.driver2BirthDate),
+          trailers: Array.isArray(values.trailers) ? JSON.stringify(values.trailers) : (values.trailers ?? '[]'),
+          drivers: Array.isArray(values.drivers) ? JSON.stringify(values.drivers.map((d) => ({
+            ...d,
+            firstName: d.firstName.trim(),
+            lastName: d.lastName.trim(),
+            birthDate: toIsoDate(d.birthDate),
+          }))) : (values.drivers ?? '[]'),
         };
         const result = await insertCompoundForm(trimmedValues as unknown as CompoundForm);
         onSaved(result[0]?.id);
