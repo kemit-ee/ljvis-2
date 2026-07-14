@@ -1,13 +1,13 @@
 declaration:
   call: declare
   version: 0.1
-  description: "List all counties (fixed set)"
+  description: "List of all counties (fixed set)"
   method: get
   accepts: json
   returns: json
-  namespace: ehak
+  namespace: classifiers
 
-getPermissions:
+getCountries:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/ehak/list_counties"

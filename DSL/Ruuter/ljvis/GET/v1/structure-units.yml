@@ -2,19 +2,19 @@ declaration:
   call: declare
   version: 0.1
   description: "List of structure units filter by organisation ID"
-  method: post
+  method: get
   accepts: json
   returns: json
   namespace: structure-units
   allowlist:
-    body:
+    params:
       - field: organisationId
-        type: number
+        type: string
         description: "Filter by organisation ID"
 
 extractRequestData:
   assign:
-    organisationId: ${incoming.body.organisationId}
+    organisationId: ${incoming.params.organisationId}
   next: getStructureUnits
 
 getStructureUnits:

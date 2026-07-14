@@ -37,7 +37,7 @@ export function useForeignViolationForm(
 
   useEffect(() => {
     if (authUser?.organisationid) {
-      listStructureUnits(Number(authUser.organisationid)).then(setStructureUnits).catch(console.error);
+      listStructureUnits(authUser.organisationid).then(setStructureUnits).catch(console.error);
     }
   }, [authUser?.organisationid]);
 
@@ -153,7 +153,7 @@ export function useForeignViolationForm(
     const newOrgId = val && !Array.isArray(val) && 'value' in val ? (val as { value: string }).value : '';
     formik.setFieldValue('inspectorOrganisationId', newOrgId);
     formik.setFieldValue('inspectorUnit', '');
-    listStructureUnits(Number(newOrgId)).then(setStructureUnits).catch(console.error);
+    listStructureUnits(newOrgId).then(setStructureUnits).catch(console.error);
   };
 
   const handleCompanyRegCodeSearch = async () => {
