@@ -16,14 +16,17 @@ export const DESKTOP = {
   DASHBOARD_EXCLUDED: 'DASHBOARD_EXCLUDED',
 } as const;
 
-export const STRUCTURE_UNIT_OPTIONS = [
-  { value: 'PPA_LOUNA', labelKey: 'structureUnits.prefSouth' },
-  { value: 'PPA_IDA', labelKey: 'structureUnits.prefEast' },
-  { value: 'PPA_LAANE', labelKey: 'structureUnits.prefWest' },
-  { value: 'PPA_POHJA', labelKey: 'structureUnits.prefNorth' },
-  { value: 'KLIM_HQ', labelKey: 'structureUnits.klimHq' },
-  { value: 'TRAM_HQ', labelKey: 'structureUnits.tramHq' },
-];
+export const OTHER = {
+  ROAD: 'muu_tee',
+  TRAILER_CATEGORY: 'OTHER_2012',
+  VEHICLE_CATEGORY: 'OTHER_2012',
+} as const;
+
+export const ROAD = {
+  NATIONAL: 'Riigimaantee',
+  LOCAL: 'Kohalik tee',
+  TAX_STATUS_NOT_APPLICABLE: 'Ei kohaldu'
+} as const;
 
 export const EU_VIOLATION_GROUPS = [
   {

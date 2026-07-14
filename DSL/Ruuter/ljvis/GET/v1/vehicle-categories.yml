@@ -1,0 +1,21 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List of all vehicle categories"
+  method: get
+  accepts: json
+  returns: json
+  namespace: vehicle-categories
+
+getVehicleCategories:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/vehicle-categories/list_vehicle-categories"
+    headers:
+      type: json
+    body: {}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

@@ -55,7 +55,7 @@ export function useUserForm(
   const initialOrgId = user?.organisationId ?? (isLocalAdmin ? authUser?.organisationid : undefined);
   useEffect(() => {
     if (initialOrgId) {
-      listStructureUnits(Number(initialOrgId)).then(setStructureUnits).catch(console.error);
+      listStructureUnits(initialOrgId).then(setStructureUnits).catch(console.error);
     }
   }, [initialOrgId]);
 
@@ -213,7 +213,7 @@ export function useUserForm(
     const newOrgId = val && !Array.isArray(val) && 'value' in val ? (val as { value: string }).value : '';
     formik.setFieldValue('organisationId', newOrgId);
     formik.setFieldValue('structuralUnitName', '');
-    listStructureUnits(Number(newOrgId) || undefined).then(setStructureUnits).catch(console.error);
+    listStructureUnits(newOrgId || undefined).then(setStructureUnits).catch(console.error);
   };
 
   const handleStructuralUnitChange = (
