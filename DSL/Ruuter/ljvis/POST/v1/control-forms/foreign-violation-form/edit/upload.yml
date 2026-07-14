@@ -33,6 +33,7 @@ getActorFromTim:
 extractRequestData:
   assign:
     actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
     form_type: "foreign-violation-form"
   next: uploadFile
 
@@ -47,6 +48,7 @@ uploadFile:
     file_name: ${incoming.body.file_name}
     file_base64: ${incoming.body.file_base64}
     mimetype: ${incoming.body.mimetype}
+    actor_name: ${actor_name}
     actor_personal_code: ${actor_personal_code}
   result: uploadResult
 

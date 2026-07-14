@@ -41,6 +41,21 @@ checkPresignResult:
     - condition: ${presignResult.response.statusCode >= 400}
       return: ${presignResult.response.body}
       status: ${presignResult.response.statusCode}
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/files/log-file-download"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: ${incoming.body.form_type}
+    form_number: ${dbResult.response.body[0].formNumber || dbResult.response.body[0].form_number}
+    file_id: ${incoming.body.id}
+    file_name: ${dbResult.response.body[0].fileName || dbResult.response.body[0].file_name}
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+  result: auditResult
   next: returnSuccess
 
 returnSuccess:
