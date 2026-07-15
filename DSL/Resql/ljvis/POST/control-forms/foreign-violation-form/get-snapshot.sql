@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Get foreign violation form by ID"
+  description: "Get a single foreign violation form snapshot by snapshot ID"
   method: post
   accepts: json
   returns: json
@@ -10,7 +10,10 @@ declaration:
     body:
       - field: id
         type: string
-        description: "Foreign violation form UUID"
+        description: "Snapshot ID (primary key)"
+      - field: form_key
+        type: string
+        description: "Foreign violation form key"
   response:
     fields:
       - field: id
@@ -151,6 +154,5 @@ SELECT
   status,
   created_by
 FROM forms.foreign_violation_form
-WHERE foreign_violation_form_key = :id
-ORDER BY created_at DESC
-LIMIT 1;
+WHERE id = :id::BIGINT
+  AND foreign_violation_form_key = :form_key::BIGINT;

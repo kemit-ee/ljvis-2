@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -15,7 +15,7 @@ import { listEhakCounties, listEhakCitiesParishes } from '../../../ehak/api';
 import { listRoads } from '../../../roads/api';
 import { listTrailerCategories } from '../../../trailer-categories/api';
 import { listVehicleCategories } from '../../../vehicle-categories/api';
-import { insertCompoundForm } from "../../api";
+import { insertCompoundForm, updateCompoundForm, confirmCompoundForm } from "../../api";
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
@@ -46,9 +46,23 @@ export const emptyTrailer = (): Trailer => ({
 export function useCompoundForm(
     form: CompoundForm | undefined,
     onSaved: (id?: string) => void,
+    onConfirmed?: () => void,
     ) {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
+  const isEdit = !!form;
+  const pendingConfirm = useRef(false);
+
+  const incrementFormNumber = (formNumber: string): string => {
+    const match = formNumber.match(/^(.+\/)([0-9]+)$/);
+    if (match) {
+      return `${match[1]}${parseInt(match[2], 10) + 1}`;
+    }
+    return `${formNumber}/2`;
+  };
+
+  const formNumberString = isEdit && form?.formNumber ? form.formNumber : '';
+
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
   const [counties, setCounties] = useState<Ehak[]>([]);
@@ -87,6 +101,18 @@ export function useCompoundForm(
       listStructureUnits(authUser.organisationid).then(setStructureUnits).catch(console.error);
     }
   }, [authUser?.organisationid]);
+
+  useEffect(() => {
+    if (form?.county) {
+      listEhakCitiesParishes(Number(form.county)).then((data) => setCitiesParishes(Array.isArray(data) ? data : [])).catch(console.error);
+    }
+  }, [form?.county]);
+
+  useEffect(() => {
+    if (form?.companyCounty) {
+      listEhakCitiesParishes(Number(form.companyCounty)).then((data) => setCompanyCitiesParishes(Array.isArray(data) ? data : [])).catch(console.error);
+    }
+  }, [form?.companyCounty]);
 
   const validationSchema = Yup.object({
     address: Yup.string()
@@ -143,6 +169,7 @@ export function useCompoundForm(
           if (!driver?.firstName) errors.push(this.createError({ path: `drivers[${index}].firstName`, message: req }));
           if (!driver?.lastName) errors.push(this.createError({ path: `drivers[${index}].lastName`, message: req }));
           if (!driver?.personalCodeForeign) errors.push(this.createError({ path: `drivers[${index}].personalCodeForeign`, message: req }));
+          if (!driver?.birthDate) errors.push(this.createError({path: `drivers[${index}].birthDate`, message: req}));
         }
         if (index === 1) {
           if (!driver?.birthDate) errors.push(this.createError({path: `drivers[${index}].birthDate`, message: req}));
@@ -169,40 +196,40 @@ export function useCompoundForm(
     initialValues: {
       id: form?.id ?? '',
       formNumber: form?.formNumber ?? '',
-      controlCountryCode: 'EE',
-      address: '',
-      road: '',
-      roadOther: '',
-      kilometer: '',
-      county: '',
-      city: '',
-      controlDate: '',
-      controlTime: '',
-      road_type: ROAD.NATIONAL,
-      vehicleRegNr: '',
-      vehicleMake: '',
-      vehicleModel: '',
-      vehicleCountryCode: '',
-      vehicleVin: '',
-      vehicleFirstRegistration: '',
-      vehicleBodyType: '',
-      vehicleCategoryCode: '',
-      vehicleCategoryOther: '',
-      vehicleMileage: '',
-      roadTaxStatus: ROAD.TAX_STATUS_NOT_APPLICABLE,
-      roadTaxNotes: '',
-      trailers: [] as Trailer[],
-      companyRegCode: '',
-      companyName: '',
-      companyCountryCode: '',
-      companyCounty: '',
-      companyCity: '',
-      companyAddressLine1: '',
-      companyPostalCode: '',
-      companyOwnerFirstName: '',
-      companyOwnerLastName: '',
-      companyActivityLicenceCopyNumber: '',
-      drivers: [emptyDriver()] as Driver[],
+      controlCountryCode: form?.controlCountryCode ?? 'EE',
+      address: form?.address ?? '',
+      road: form?.road ?? '',
+      roadOther: form?.roadOther ?? '',
+      kilometer: form?.kilometer ?? '',
+      county: form?.county ?? '',
+      city: form?.city ?? '',
+      controlDate: form?.controlDate ?? '',
+      controlTime: form?.controlTime ?? '',
+      road_type: form?.road_type ?? ROAD.NATIONAL,
+      vehicleRegNr: form?.vehicleRegNr ?? '',
+      vehicleMake: form?.vehicleMake ?? '',
+      vehicleModel: form?.vehicleModel ?? '',
+      vehicleCountryCode: form?.vehicleCountryCode ?? '',
+      vehicleVin: form?.vehicleVin ?? '',
+      vehicleFirstRegistration: form?.vehicleFirstRegistration ?? '',
+      vehicleBodyType: form?.vehicleBodyType ?? '',
+      vehicleCategoryCode: form?.vehicleCategoryCode ?? '',
+      vehicleCategoryOther: form?.vehicleCategoryOther ?? '',
+      vehicleMileage: form?.vehicleMileage ?? '',
+      roadTaxStatus: form?.roadTaxStatus ?? ROAD.TAX_STATUS_NOT_APPLICABLE,
+      roadTaxNotes: form?.roadTaxNotes ?? '',
+      trailers: (Array.isArray(form?.trailers) ? form.trailers : typeof form?.trailers === 'string' ? JSON.parse(form.trailers) : []) as Trailer[],
+      companyRegCode: form?.companyRegCode ?? '',
+      companyName: form?.companyName ?? '',
+      companyCountryCode: form?.companyCountryCode ?? '',
+      companyCounty: form?.companyCounty ?? '',
+      companyCity: form?.companyCity ?? '',
+      companyAddressLine1: form?.companyAddressLine1 ?? '',
+      companyPostalCode: form?.companyPostalCode ?? '',
+      companyOwnerFirstName: form?.companyOwnerFirstName ?? '',
+      companyOwnerLastName: form?.companyOwnerLastName ?? '',
+      companyActivityLicenceCopyNumber: form?.companyActivityLicenceCopyNumber ?? '',
+      drivers: (Array.isArray(form?.drivers) ? form.drivers : typeof form?.drivers === 'string' ? JSON.parse(form.drivers) : [emptyDriver()]) as Driver[],
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId: form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
@@ -212,11 +239,17 @@ export function useCompoundForm(
     validationSchema,
     onSubmit: async (values) => {
       try {
+        const isConfirming = pendingConfirm.current;
+        pendingConfirm.current = false;
+        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const nextStatus = isConfirming ? 'confirmed' : isReconfirmedEdit ? 'confirmed' : 'saved';
+        const nextFormNumber = isReconfirmedEdit ? incrementFormNumber(formNumberString) : formNumberString;
         const driver1 = values.drivers[0];
         const driver2 = values.drivers[1];
         const trimmedValues = {
           ...values,
-          status: 'saved',
+          status: nextStatus,
+          formNumber: nextFormNumber,
           controlDate: toIsoDate(values.controlDate),
           controlTime: toIsoTime(values.controlTime),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
@@ -232,8 +265,18 @@ export function useCompoundForm(
           driver2PersonalCodeEe: driver2?.personalCodeEe || '',
           driver2PersonalCodeForeign: driver2?.personalCodeForeign || '',
         };
-        const result = await insertCompoundForm(trimmedValues as unknown as CompoundForm);
-        onSaved(result[0]?.id);
+        if (values.id) {
+          if (isConfirming) {
+            await confirmCompoundForm(trimmedValues as unknown as CompoundForm);
+            onConfirmed?.();
+          } else {
+            await updateCompoundForm(trimmedValues as unknown as CompoundForm);
+            onSaved(values.id);
+          }
+        } else {
+          const result = await insertCompoundForm(trimmedValues as unknown as CompoundForm);
+          onSaved(result[0]?.id);
+        }
       } catch (e) {
         if (e instanceof ApiError && typeof e.body === 'string') {
           e.body = JSON.parse(e.body);
@@ -244,6 +287,11 @@ export function useCompoundForm(
       }
     },
   });
+
+  const triggerConfirm = () => {
+    pendingConfirm.current = true;
+    formik.submitForm();
+  };
 
   const orgOptions = organisations.map((o) => ({
     label: o.name,
@@ -342,5 +390,6 @@ export function useCompoundForm(
     handleVehicleSearch,
     handleTrailerSearch,
     handleMtrSearch,
+    triggerConfirm,
   };
 }

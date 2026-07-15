@@ -29,8 +29,8 @@ export function ForeignViolationFormCreatePage() {
   const forbidden = !(hasPermission('foreign_violation_form.write') && hasPermission('foreign_violation_form.read') && hasPermission('classifier.read'));
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
-  const handleSaved = () => {
-    navigate(`/`, { state: { justCreated: true } });
+  const handleSaved = (id?: string) => {
+    navigate(`/control-forms/foreign-violation/${id}`, { state: { justCreated: true } });
   };
 
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({

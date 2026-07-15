@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import dayjs from 'dayjs';
 import type { ForeignViolationForm } from '../../../control-forms/types';
 import {
-  insertForeignViolationForm
+  insertForeignViolationForm,
+  updateForeignViolationForm,
+  confirmForeignViolationForm,
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
 import type { StructureUnit } from '../../../structure-units/types';
@@ -18,6 +20,7 @@ import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 export function useForeignViolationForm(
   form: ForeignViolationForm | undefined,
   onSaved: (id?: string) => void,
+  onConfirmed?: () => void,
 ) {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
@@ -27,6 +30,15 @@ export function useForeignViolationForm(
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
   const isEdit = !!form;
+  const pendingConfirm = useRef(false);
+
+  const incrementFormNumber = (formNumber: string): string => {
+    const match = formNumber.match(/^(.+\/)([0-9]+)$/);
+    if (match) {
+      return `${match[1]}${parseInt(match[2], 10) + 1}`;
+    }
+    return `${formNumber}/2`;
+  };
 
   const formNumberString = isEdit && form?.formNumber
     ? form.formNumber : '';
@@ -58,8 +70,8 @@ export function useForeignViolationForm(
     inspectorLastName: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorOrganisationId: Yup.string().required(t('forms.foreign_violation.validation.required')),
     inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    files: Yup.string().test('no-invalid-files', t('forms.foreign_violation.filesHelper'), (value) => {
-      const filesArray = JSON.parse(value || '[]');
+    files: Yup.mixed().test('no-invalid-files', t('forms.foreign_violation.filesHelper'), (value) => {
+      const filesArray = Array.isArray(value) ? value : JSON.parse(typeof value === 'string' ? value || '[]' : '[]');
       return !filesArray.some((f: { isValid?: boolean }) => f.isValid === false);
     }),
   });
@@ -114,10 +126,15 @@ export function useForeignViolationForm(
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
       try {
+        const isConfirming = pendingConfirm.current;
+        pendingConfirm.current = false;
+        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const nextStatus = isConfirming ? 'confirmed' : isReconfirmedEdit ? 'confirmed' : 'saved';
+        const nextFormNumber = isReconfirmedEdit ? incrementFormNumber(formNumberString) : formNumberString;
         const trimmedValues = {
           ...values,
-          status: 'saved',
-          formNumber: formNumberString,
+          status: nextStatus,
+          formNumber: nextFormNumber,
           inspectionDate: toIsoDate(values.inspectionDate),
           inspectionTime: toIsoTime(values.inspectionTime),
           dataEntryDate: toIsoDate(values.dataEntryDate),
@@ -125,8 +142,17 @@ export function useForeignViolationForm(
           violations: Array.isArray(values.violations) ? JSON.stringify(values.violations) : (values.violations ?? '[]'),
           files: typeof values.files === 'string' ? values.files : JSON.stringify(values.files ?? []),
         };
-        const result = await insertForeignViolationForm(trimmedValues as unknown as ForeignViolationForm);
-        onSaved(result[0]?.id);
+        const payload = { ...trimmedValues, id: form?.id } as unknown as ForeignViolationForm;
+        const result = isEdit
+          ? isConfirming
+            ? await confirmForeignViolationForm(payload)
+            : await updateForeignViolationForm(payload)
+          : await insertForeignViolationForm(trimmedValues as unknown as ForeignViolationForm);
+        if (isConfirming && onConfirmed) {
+          onConfirmed();
+        } else {
+          onSaved(result[0]?.id);
+        }
       } catch (e) {
         if (
           !applyValidationError(e, setFieldError, (code) =>
@@ -196,9 +222,15 @@ export function useForeignViolationForm(
     }
   };
 
+  const triggerConfirm = () => {
+    pendingConfirm.current = true;
+    formik.submitForm();
+  };
+
   return {
     formik,
     isEdit,
+    triggerConfirm,
     structureUnits,
     orgOptions,
     handleOrgChange,

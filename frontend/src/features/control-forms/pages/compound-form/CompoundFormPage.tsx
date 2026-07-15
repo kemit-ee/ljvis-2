@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert } from '@tedi-design-system/react/tedi';
-import { useForeignViolationForm } from './useForeignViolationForm';
-import { useFormDetail } from './useFormDetail.ts';
+import { useCompoundForm } from './useCompoundForm';
+import { useCompoundFormDetail } from './useCompoundFormDetail';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
-import { deleteForeignViolationForm, getForeignViolationFormSnapshot } from '../../api';
-import { ForeignViolationFormViewCard } from '../../../control-forms/components/ForeignViolationForm/ForeignViolationFormViewCard';
-import { ForeignViolationFormEditCard } from '../../../control-forms/components/ForeignViolationForm/ForeignViolationFormEditCard';
+import { deleteCompoundForm, getCompoundFormSnapshot } from '../../api';
+import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
+import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 
-export function ForeignViolationFormPage() {
+export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -29,15 +29,20 @@ export function ForeignViolationFormPage() {
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
 
-  const { form, loading, toDateValue, toTimeValue, refetch } = useFormDetail(snapshotId ? undefined : id);
-  const [snapshot, setSnapshot] = useState<import('../../types').ForeignViolationForm | null>(null);
+  const { form, loading, toDateValue, toTimeValue, refetch } = useCompoundFormDetail(snapshotId ? undefined : id);
+  const [snapshot, setSnapshot] = useState<import('../../types').CompoundForm | null>(null);
   const [snapshotLoading, setSnapshotLoading] = useState(!!snapshotId);
 
   useEffect(() => {
     if (!snapshotId) return;
     setSnapshotLoading(true);
-    getForeignViolationFormSnapshot(snapshotId, id!)
-      .then((res) => setSnapshot(Array.isArray(res) ? res[0] : res))
+    getCompoundFormSnapshot(snapshotId, id!)
+      .then((res) => {
+        const data = Array.isArray(res) ? res[0] : res;
+        setSnapshot(data);
+        if (data?.county) handleCountyChange(Number(data.county));
+        if (data?.companyCounty) handleCompanyCountyChange(Number(data.companyCounty));
+      })
       .catch(console.error)
       .finally(() => setSnapshotLoading(false));
   }, [snapshotId]);
@@ -70,26 +75,36 @@ export function ForeignViolationFormPage() {
     formik,
     structureUnits,
     orgOptions,
+    roads,
+    trailerCategories,
+    vehicleCategories,
+    counties,
+    citiesParishes,
+    handleCountyChange,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
     handleOrgChange,
     handleStructuralUnitChange,
     companySearchError,
     setCompanySearchError,
     vehicleSearchError,
     setVehicleSearchError,
-    licenceCopyNumberError,
-    setLicenceCopyNumberError,
-    handleCompanyRegCodeSearch,
-    handleCompanyNameSearch,
+    trailerSearchError,
+    setTrailerSearchError,
+    mtrSearchError,
+    setMtrSearchError,
+    handleCompanySearch,
     handleVehicleSearch,
-    handleLicenceCopyNumberSearch,
+    handleTrailerSearch,
+    handleMtrSearch,
     triggerConfirm,
-  } = useForeignViolationForm(form ?? undefined, handleEditSaved, handleConfirmed);
+  } = useCompoundForm(form ?? undefined, handleEditSaved, handleConfirmed);
 
   const handleDelete = async () => {
     if (!id) return;
     try {
-      await deleteForeignViolationForm(id);
-      navigate(`/`, { state: { justCreated: true } });
+      await deleteCompoundForm(id);
+      navigate('/', { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);
     }
@@ -101,20 +116,26 @@ export function ForeignViolationFormPage() {
     if (!snapshot) return <Text>{t('common.error')}</Text>;
     return (
       <div>
-        <Button visualType="link" onClick={() => navigate(`/control-forms/foreign-violation/${id}`)} iconLeft="arrow_back">
+        <Button visualType="link" onClick={() => navigate(`/control-forms/compound/${id}`)} iconLeft="arrow_back">
           {t('common.back')}
         </Button>
-        <ForeignViolationFormViewCard
+        <CompoundFormViewCard
           form={snapshot}
           isDesktop={isDesktop}
-          canEdit={false}
           orgOptions={orgOptions}
           structureUnits={structureUnits}
-          toDateValue={toDateValue}
-          toTimeValue={toTimeValue}
+          roads={roads as { code: string; name: string }[]}
+          trailerCategories={trailerCategories as { code: string; name: string }[]}
+          vehicleCategories={vehicleCategories as { code: string; name: string }[]}
+          counties={counties as { id: number; name: string }[]}
+          citiesParishes={citiesParishes as { id: number; name: string }[]}
+          companyCitiesParishes={companyCitiesParishes as { id: number; name: string }[]}
+          canEdit={false}
           onEdit={() => {}}
           isSnapshot
-          formType={FORM_TYPE.FOREIGN_VIOLATION}
+          toDateValue={toDateValue}
+          toTimeValue={toTimeValue}
+          formType={FORM_TYPE.COMPOUND}
         />
       </div>
     );
@@ -123,6 +144,18 @@ export function ForeignViolationFormPage() {
   if (loading && !form) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
   if (!form) return <Text>{t('common.error')}</Text>;
+
+  const sharedProps = {
+    isDesktop,
+    orgOptions,
+    structureUnits,
+    roads: roads as { code: string; name: string }[],
+    trailerCategories: trailerCategories as { code: string; name: string }[],
+    vehicleCategories: vehicleCategories as { code: string; name: string }[],
+    counties: counties as { id: number; name: string }[],
+    citiesParishes: citiesParishes as { id: number; name: string }[],
+    companyCitiesParishes: companyCitiesParishes as { id: number; name: string }[],
+  };
 
   return (
     <div>
@@ -142,44 +175,44 @@ export function ForeignViolationFormPage() {
       </Button>
 
       {isEditActive ? (
-        <ForeignViolationFormEditCard
+        <CompoundFormEditCard
           formik={formik}
-          isDesktop={isDesktop}
-          orgOptions={orgOptions}
-          structureUnits={structureUnits}
+          {...sharedProps}
           canConfirm={canConfirm}
           canDelete={canDelete}
           companySearchError={companySearchError}
           setCompanySearchError={setCompanySearchError}
           vehicleSearchError={vehicleSearchError}
           setVehicleSearchError={setVehicleSearchError}
-          licenceCopyNumberError={licenceCopyNumberError}
-          setLicenceCopyNumberError={setLicenceCopyNumberError}
+          trailerSearchError={trailerSearchError}
+          setTrailerSearchError={setTrailerSearchError}
+          mtrSearchError={mtrSearchError}
+          setMtrSearchError={setMtrSearchError}
           handleOrgChange={handleOrgChange}
           handleStructuralUnitChange={handleStructuralUnitChange}
-          handleCompanyRegCodeSearch={handleCompanyRegCodeSearch}
-          handleCompanyNameSearch={handleCompanyNameSearch}
+          handleCountyChange={handleCountyChange}
+          handleCompanyCountyChange={handleCompanyCountyChange}
+          handleCompanySearch={handleCompanySearch}
           handleVehicleSearch={handleVehicleSearch}
-          handleLicenceCopyNumberSearch={handleLicenceCopyNumberSearch}
+          handleTrailerSearch={handleTrailerSearch}
+          handleMtrSearch={handleMtrSearch}
           onCancel={() => {
             formik.resetForm();
             setIsEditActive(false);
           }}
           onConfirm={triggerConfirm}
           onDelete={handleDelete}
-          formType={FORM_TYPE.FOREIGN_VIOLATION}
+          formType={FORM_TYPE.COMPOUND}
         />
       ) : (
-        <ForeignViolationFormViewCard
+        <CompoundFormViewCard
           form={form}
-          isDesktop={isDesktop}
+          {...sharedProps}
           canEdit={canEdit}
-          orgOptions={orgOptions}
-          structureUnits={structureUnits}
+          onEdit={() => setIsEditActive(true)}
           toDateValue={toDateValue}
           toTimeValue={toTimeValue}
-          onEdit={() => setIsEditActive(true)}
-          formType={FORM_TYPE.FOREIGN_VIOLATION}
+          formType={FORM_TYPE.COMPOUND}
         />
       )}
     </div>

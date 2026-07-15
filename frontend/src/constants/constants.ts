@@ -2,6 +2,11 @@ export const BREAKPOINTS = {
   DESKTOP: 992,
 } as const;
 
+export const FORM_TYPE = {
+  FOREIGN_VIOLATION: 'foreign-violation-form',
+  COMPOUND: 'compound-form',
+} as const;
+
 export const PERMISSIONS = {
   USER_LIST_ADMIN: 'user.list.admin',
   USER_LIST_LOCAL: 'user.list.local',
@@ -453,3 +458,10 @@ export const COUNTRIES = [
   { value: 'ZM', labelKey: 'countries.ZM' },
   { value: 'ZW', labelKey: 'countries.ZW' },
 ];
+
+export const FORM_STATUS_KEY: Record<string, string> = {
+  saved: 'forms.foreign_violation.statusSaved',
+  confirmed: 'forms.foreign_violation.statusConfirmed',
+  published: 'forms.foreign_violation.statusPublished',
+  deleted: 'forms.foreign_violation.statusDeleted',
+};

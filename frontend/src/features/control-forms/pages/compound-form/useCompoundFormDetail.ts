@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
-import dayjs, { type Dayjs } from 'dayjs';
-import type { ForeignViolationForm } from '../../types';
-import { getForm } from '../../api';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
+import type { CompoundForm } from '../../types';
+import { getCompoundForm } from '../../api';
 
 const toDateValue = (date?: string): Dayjs | null =>
   date ? dayjs(date) : null;
@@ -12,8 +13,8 @@ const toTimeValue = (date?: string, time?: string): Dayjs | null => {
   return dayjs(`1970-01-01T${time}`);
 };
 
-export function useFormDetail(id: string | undefined) {
-  const [form, setForm] = useState<ForeignViolationForm | null>(null);
+export function useCompoundFormDetail(id: string | undefined) {
+  const [form, setForm] = useState<CompoundForm | null>(null);
   const [loading, setLoading] = useState(true);
   const isFetching = useRef(false);
 
@@ -23,10 +24,10 @@ export function useFormDetail(id: string | undefined) {
     isFetching.current = true;
     setLoading(true);
     try {
-      const result = await getForm(Number(id));
+      const result = await getCompoundForm(Number(id));
       setForm(result);
     } catch (e) {
-      console.error('Failed to load form', e);
+      console.error('Failed to load compound form', e);
     } finally {
       setLoading(false);
       isFetching.current = false;

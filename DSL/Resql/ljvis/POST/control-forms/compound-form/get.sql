@@ -1,13 +1,22 @@
 /*
 declaration:
   version: 0.1
-  description: "Insert compound form"
+  description: "Get compound form by ID"
   method: post
   accepts: json
   returns: json
   namespace: control-forms
   allowlist:
     body:
+      - field: id
+        type: string
+        description: "Compound form key"
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: formNumber
+        type: string
       - field: status
         type: string
       - field: controlDate
@@ -90,16 +99,10 @@ declaration:
         type: string
       - field: created_by
         type: string
-  response:
-    fields:
-      - field: id
-        type: number
 */
-INSERT INTO forms.compound_form (
-  compound_form_key,
+SELECT
+  compound_form_key AS id,
   form_number,
-  control_year,
-  template_version,
   status,
   control_date,
   control_time,
@@ -113,11 +116,6 @@ INSERT INTO forms.compound_form (
   road_type,
   road_tax_status,
   road_tax_notes,
-  inspector_first_name,
-  inspector_last_name,
-  inspector_organisation_id,
-  inspector_unit,
-  inspector_profession,
   vehicle_reg_nr,
   vehicle_make,
   vehicle_model,
@@ -128,7 +126,7 @@ INSERT INTO forms.compound_form (
   vehicle_category_code,
   vehicle_category_other,
   vehicle_mileage,
-  trailers,
+  trailers::text AS trailers,
   company_reg_code,
   company_name,
   company_country_code,
@@ -139,54 +137,14 @@ INSERT INTO forms.compound_form (
   company_owner_first_name,
   company_owner_last_name,
   company_activity_licence_copy_number,
-  drivers,
+  drivers::text AS drivers,
+  inspector_first_name,
+  inspector_last_name,
+  inspector_organisation_id,
+  inspector_unit,
+  inspector_profession,
   created_by
-)
-VALUES (
-  nextval('forms.seq_compound_form_key'),
-  'koond-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_compound_form_key')::text, 5, '0') || '/1',
-  EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER,
-  1,
-  :status,
-  :controlDate::DATE,
-  :controlTime::TIME,
-  :controlCountryCode,
-  :county,
-  NULLIF(:city, ''),
-  NULLIF(:road, ''),
-  NULLIF(:roadOther, ''),
-  NULLIF(:kilometer, '')::INTEGER,
-  NULLIF(:address, ''),
-  NULLIF(:road_type, ''),
-  NULLIF(:roadTaxStatus, ''),
-  NULLIF(:roadTaxNotes, ''),
-  :inspectorFirstName,
-  :inspectorLastName,
-  :inspectorOrganisationId,
-  :inspectorUnit,
-  :inspectorProfession,
-  :vehicleRegNr,
-  NULLIF(:vehicleMake, ''),
-  NULLIF(:vehicleModel, ''),
-  :vehicleCountryCode,
-  NULLIF(:vehicleVin, ''),
-  NULLIF(:vehicleFirstRegistration, '')::DATE,
-  NULLIF(:vehicleBodyType, ''),
-  :vehicleCategoryCode,
-  NULLIF(:vehicleCategoryOther, ''),
-  NULLIF(:vehicleMileage, '')::INTEGER,
-  COALESCE(NULLIF(:trailers, '')::jsonb, '[]'::jsonb),
-  :companyRegCode,
-  :companyName,
-  :companyCountryCode,
-  NULLIF(:companyCounty, ''),
-  NULLIF(:companyCity, ''),
-  NULLIF(:companyAddressLine1, ''),
-  NULLIF(:companyPostalCode, ''),
-  NULLIF(:companyOwnerFirstName, ''),
-  NULLIF(:companyOwnerLastName, ''),
-  NULLIF(:companyActivityLicenceCopyNumber, ''),
-  COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
-  :created_by
-)
-RETURNING compound_form_key AS id;
+FROM forms.compound_form
+WHERE compound_form_key = :id::BIGINT
+ORDER BY created_at DESC
+LIMIT 1;

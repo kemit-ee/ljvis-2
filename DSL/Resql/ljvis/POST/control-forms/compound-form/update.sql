@@ -1,13 +1,17 @@
 /*
 declaration:
   version: 0.1
-  description: "Insert compound form"
+  description: "Update compound form — insert new snapshot with updated data"
   method: post
   accepts: json
   returns: json
   namespace: control-forms
   allowlist:
     body:
+      - field: key
+        type: string
+      - field: formNumber
+        type: string
       - field: status
         type: string
       - field: controlDate
@@ -94,7 +98,16 @@ declaration:
     fields:
       - field: id
         type: number
+      - field: formNumber
+        type: string
 */
+WITH latest AS (
+  SELECT form_number, template_version, control_year
+  FROM forms.compound_form
+  WHERE compound_form_key = :key::BIGINT
+  ORDER BY created_at DESC
+  LIMIT 1
+)
 INSERT INTO forms.compound_form (
   compound_form_key,
   form_number,
@@ -142,11 +155,11 @@ INSERT INTO forms.compound_form (
   drivers,
   created_by
 )
-VALUES (
-  nextval('forms.seq_compound_form_key'),
-  'koond-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_compound_form_key')::text, 5, '0') || '/1',
-  EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER,
-  1,
+SELECT
+  :key::BIGINT,
+  :formNumber,
+  l.control_year,
+  l.template_version,
   :status,
   :controlDate::DATE,
   :controlTime::TIME,
@@ -188,5 +201,5 @@ VALUES (
   NULLIF(:companyActivityLicenceCopyNumber, ''),
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
   :created_by
-)
-RETURNING compound_form_key AS id;
+FROM latest l
+RETURNING compound_form_key AS id, form_number AS "formNumber";

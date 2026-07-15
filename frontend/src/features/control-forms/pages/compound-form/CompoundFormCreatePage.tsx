@@ -35,8 +35,8 @@ export function CompoundFormCreatePage() {
   const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
-  const handleSaved = () => {
-    navigate('/', { state: { justCreated: true } });
+  const handleSaved = (id?: string) => {
+    navigate(`/control-forms/compound/${id}`, { state: { justCreated: true } });
   };
 
   const countries = COUNTRIES.map((country) => ({
