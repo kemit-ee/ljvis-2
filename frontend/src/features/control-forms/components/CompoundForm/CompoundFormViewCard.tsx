@@ -291,27 +291,29 @@ export function CompoundFormViewCard({
       </Card>
 
       {/* Juht */}
-      {drivers.length > 0 && (
-        <Card className="mb-1">
+      {drivers.map((driver, index) => (
+        <Card key={index} className="mb-1">
           <Card.Content>
-            <Heading element="h3" className="mb-1">{t('forms.compound.driver')}</Heading>
+            <Heading element="h3" className="mb-1">
+              {drivers.length > 1 ? `${t('forms.compound.driver')} ${index + 1}` : t('forms.compound.driver')}
+            </Heading>
             <div className={gridClass} style={{ alignItems: 'start' }}>
-              <TextField id="driverFirstName" label={t('forms.compound.driverFirstName')} value={drivers[0]?.firstName ?? ''} disabled={disabled} />
-              <TextField id="driverLastName" label={t('forms.compound.driverLastName')} value={drivers[0]?.lastName ?? ''} disabled={disabled} />
-              <TextField id="driverPersonalCodeForeign" label={t('forms.compound.driverPersonalCodeForeign')} value={drivers[0]?.personalCodeForeign ?? ''} disabled={disabled} />
-              <TextField id="driverPersonalCodeEe" label={t('forms.compound.driverPersonalCodeEe')} value={drivers[0]?.personalCodeEe ?? ''} disabled={disabled} />
+              <TextField id={`driverFirstName_${index}`} label={t('forms.compound.driverFirstName')} value={driver.firstName ?? ''} disabled={disabled} />
+              <TextField id={`driverLastName_${index}`} label={t('forms.compound.driverLastName')} value={driver.lastName ?? ''} disabled={disabled} />
+              <TextField id={`driverPersonalCodeForeign_${index}`} label={t('forms.compound.driverPersonalCodeForeign')} value={driver.personalCodeForeign ?? ''} disabled={disabled} />
+              <TextField id={`driverPersonalCodeEe_${index}`} label={t('forms.compound.driverPersonalCodeEe')} value={driver.personalCodeEe ?? ''} disabled={disabled} />
               <Select
-                id="driverCitizenshipCode"
+                id={`driverCitizenshipCode_${index}`}
                 label={t('forms.compound.driverCitizenshipCode')}
                 options={countries}
-                value={countries.find((o) => o.value === drivers[0]?.citizenshipCode) ?? null}
+                value={countries.find((o) => o.value === driver.citizenshipCode) ?? null}
                 disabled={disabled}
               />
               <div className={styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']}>
                 <DatePicker
-                  id="driverBirthDate"
+                  id={`driverBirthDate_${index}`}
                   label={t('forms.compound.driverBirthDate')}
-                  value={toDateValue(drivers[0]?.birthDate)}
+                  value={toDateValue(driver.birthDate)}
                   onChange={() => {}}
                   placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
                   disabled={disabled}
@@ -320,7 +322,7 @@ export function CompoundFormViewCard({
             </div>
           </Card.Content>
         </Card>
-      )}
+      ))}
 
       {/* Inspektor */}
       <Card className="mb-1">

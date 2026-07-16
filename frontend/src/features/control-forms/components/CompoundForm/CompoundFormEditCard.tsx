@@ -550,66 +550,70 @@ export function CompoundFormEditCard({
       </Card>
 
       {/* Juht */}
-      <Card className="mb-1">
-        <Card.Content>
-          <Heading element="h3" className="mb-1">{t('forms.compound.driver')}</Heading>
-          <div className={gridClass} style={{ alignItems: 'start' }}>
-            <TextField
-              id="driverFirstName"
-              label={t('forms.compound.driverFirstName')}
-              value={formik.values.drivers[0]?.firstName ?? ''}
-              input={{ maxLength: 100 }}
-              onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], firstName: v }; formik.setFieldValue('drivers', u); }}
-              required
-              {...((formik.touched.drivers as any)?.[0]?.firstName && (formik.errors.drivers as any)?.[0]?.firstName ? { helper: { text: (formik.errors.drivers as any)[0].firstName, type: 'error' as const } } : {})}
-            />
-            <TextField
-              id="driverLastName"
-              label={t('forms.compound.driverLastName')}
-              value={formik.values.drivers[0]?.lastName ?? ''}
-              input={{ maxLength: 100 }}
-              onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], lastName: v }; formik.setFieldValue('drivers', u); }}
-              required
-              {...((formik.touched.drivers as any)?.[0]?.lastName && (formik.errors.drivers as any)?.[0]?.lastName ? { helper: { text: (formik.errors.drivers as any)[0].lastName, type: 'error' as const } } : {})}
-            />
-            <TextField
-              id="driverPersonalCodeForeign"
-              label={t('forms.compound.driverPersonalCodeForeign')}
-              value={formik.values.drivers[0]?.personalCodeForeign ?? ''}
-              input={{ maxLength: 50 }}
-              onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], personalCodeForeign: v }; formik.setFieldValue('drivers', u); }}
-              required
-              {...((formik.touched.drivers as any)?.[0]?.personalCodeForeign && (formik.errors.drivers as any)?.[0]?.personalCodeForeign ? { helper: { text: (formik.errors.drivers as any)[0].personalCodeForeign, type: 'error' as const } } : {})}
-            />
-            <TextField
-              id="personalCodeEe"
-              label={t('forms.compound.driverPersonalCodeEe')}
-              value={formik.values.drivers[0]?.personalCodeEe ?? ''}
-              input={{ maxLength: 11 }}
-              onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], personalCodeEe: v }; formik.setFieldValue('drivers', u); }}
-              {...((formik.errors.drivers as any)?.[0]?.personalCodeEe ? { helper: { text: (formik.errors.drivers as any)[0].personalCodeEe, type: 'error' as const } } : {})}
-            />
-            <Select
-              id="driverCitizenshipCode"
-              label={t('forms.compound.driverCitizenshipCode')}
-              options={countries}
-              value={countries.find((o) => o.value === formik.values.drivers[0]?.citizenshipCode) ?? null}
-              onChange={(val) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], citizenshipCode: val && !Array.isArray(val) ? (val as { value: string }).value : '' }; formik.setFieldValue('drivers', u); }}
-            />
-            <div className={styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']}>
-              <DatePicker
-                id="driverBirthDate"
-                label={t('forms.compound.driverBirthDate')}
-                value={formik.values.drivers[0]?.birthDate ? dayjs(formik.values.drivers[0].birthDate) : null}
-                onChange={(v) => { const u = [...formik.values.drivers]; u[0] = { ...u[0], birthDate: toIsoDate(v) }; formik.setFieldValue('drivers', u); }}
-                placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
-                required
-                {...((formik.touched.drivers as any)?.[0]?.birthDate && (formik.errors.drivers as any)?.[0]?.birthDate ? { helper: { text: (formik.errors.drivers as any)[0].birthDate, type: 'error' as const } } : {})}
+      {formik.values.drivers.map((_driver: any, index: number) => (
+        <Card key={index} className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {formik.values.drivers.length > 1 ? `${t('forms.compound.driver')} ${index + 1}` : t('forms.compound.driver')}
+            </Heading>
+            <div className={gridClass} style={{ alignItems: 'start' }}>
+              <TextField
+                id={`driverFirstName_${index}`}
+                label={t('forms.compound.driverFirstName')}
+                value={formik.values.drivers[index]?.firstName ?? ''}
+                input={{ maxLength: 100 }}
+                onChange={(v) => { const u = [...formik.values.drivers]; u[index] = { ...u[index], firstName: v }; formik.setFieldValue('drivers', u); }}
+                required={index === 0}
+                {...((formik.touched.drivers as any)?.[index]?.firstName && (formik.errors.drivers as any)?.[index]?.firstName ? { helper: { text: (formik.errors.drivers as any)[index].firstName, type: 'error' as const } } : {})}
               />
+              <TextField
+                id={`driverLastName_${index}`}
+                label={t('forms.compound.driverLastName')}
+                value={formik.values.drivers[index]?.lastName ?? ''}
+                input={{ maxLength: 100 }}
+                onChange={(v) => { const u = [...formik.values.drivers]; u[index] = { ...u[index], lastName: v }; formik.setFieldValue('drivers', u); }}
+                required={index === 0}
+                {...((formik.touched.drivers as any)?.[index]?.lastName && (formik.errors.drivers as any)?.[index]?.lastName ? { helper: { text: (formik.errors.drivers as any)[index].lastName, type: 'error' as const } } : {})}
+              />
+              <TextField
+                id={`driverPersonalCodeForeign_${index}`}
+                label={t('forms.compound.driverPersonalCodeForeign')}
+                value={formik.values.drivers[index]?.personalCodeForeign ?? ''}
+                input={{ maxLength: 50 }}
+                onChange={(v) => { const u = [...formik.values.drivers]; u[index] = { ...u[index], personalCodeForeign: v }; formik.setFieldValue('drivers', u); }}
+                required={index === 0}
+                {...((formik.touched.drivers as any)?.[index]?.personalCodeForeign && (formik.errors.drivers as any)?.[index]?.personalCodeForeign ? { helper: { text: (formik.errors.drivers as any)[index].personalCodeForeign, type: 'error' as const } } : {})}
+              />
+              <TextField
+                id={`driverPersonalCodeEe_${index}`}
+                label={t('forms.compound.driverPersonalCodeEe')}
+                value={formik.values.drivers[index]?.personalCodeEe ?? ''}
+                input={{ maxLength: 11 }}
+                onChange={(v) => { const u = [...formik.values.drivers]; u[index] = { ...u[index], personalCodeEe: v }; formik.setFieldValue('drivers', u); }}
+                {...((formik.errors.drivers as any)?.[index]?.personalCodeEe ? { helper: { text: (formik.errors.drivers as any)[index].personalCodeEe, type: 'error' as const } } : {})}
+              />
+              <Select
+                id={`driverCitizenshipCode_${index}`}
+                label={t('forms.compound.driverCitizenshipCode')}
+                options={countries}
+                value={countries.find((o) => o.value === formik.values.drivers[index]?.citizenshipCode) ?? null}
+                onChange={(val) => { const u = [...formik.values.drivers]; u[index] = { ...u[index], citizenshipCode: val && !Array.isArray(val) ? (val as { value: string }).value : '' }; formik.setFieldValue('drivers', u); }}
+              />
+              <div className={styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']}>
+                <DatePicker
+                  id={`driverBirthDate_${index}`}
+                  label={t('forms.compound.driverBirthDate')}
+                  value={formik.values.drivers[index]?.birthDate ? dayjs(formik.values.drivers[index].birthDate) : null}
+                  onChange={(v) => { const u = [...formik.values.drivers]; u[index] = { ...u[index], birthDate: toIsoDate(v) }; formik.setFieldValue('drivers', u); }}
+                  placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
+                  required={index === 0}
+                  {...((formik.touched.drivers as any)?.[index]?.birthDate && (formik.errors.drivers as any)?.[index]?.birthDate ? { helper: { text: (formik.errors.drivers as any)[index].birthDate, type: 'error' as const } } : {})}
+                />
+              </div>
             </div>
-          </div>
-        </Card.Content>
-      </Card>
+          </Card.Content>
+        </Card>
+      ))}
 
       {/* Inspektor */}
       <Card className="mb-1">
