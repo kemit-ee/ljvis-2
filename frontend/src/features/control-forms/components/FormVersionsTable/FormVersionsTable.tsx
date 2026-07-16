@@ -67,8 +67,6 @@ export function FormVersionsTable({
         id: 'open',
         header: '',
         cell: (info) => {
-          if (info.row.index === info.table.getRowModel().rows.length - 1)
-            return null;
           const formPath = formType.replace(/-form$/, '');
           return (
             <Link

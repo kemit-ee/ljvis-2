@@ -154,6 +154,58 @@ extractRequestData:
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     created_by: "${auth_user.personalcode}"
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "[#LJVIS_PROJECT_LAYER]/form/foreign-violation/calculate-foreign-violation-changed-fields"
+  requestType: templates
+  body:
+    form_id: ${key}
+    reporting_country_code: ${reporting_country_code}
+    reporting_authority: ${reporting_authority}
+    inspection_country_code: ${inspection_country_code}
+    inspection_date: ${inspection_date}
+    inspection_time: ${inspection_time}
+    inspection_address_line1: ${inspection_address_line1}
+    inspection_address_line2: ${inspection_address_line2}
+    inspection_region: ${inspection_region}
+    inspection_city: ${inspection_city}
+    company_reg_code: ${company_reg_code}
+    company_name: ${company_name}
+    company_country_code: ${company_country_code}
+    company_address_line1: ${company_address_line1}
+    company_address_line2: ${company_address_line2}
+    company_city: ${company_city}
+    company_postal_code: ${company_postal_code}
+    driver_first_name: ${driver_first_name}
+    driver_last_name: ${driver_last_name}
+    vehicle_reg_nr: ${vehicle_reg_nr}
+    vehicle_make: ${vehicle_make}
+    vehicle_model: ${vehicle_model}
+    vehicle_country_code: ${vehicle_country_code}
+    vehicle_vin: ${vehicle_vin}
+    vehicle_first_registration: ${vehicle_first_registration}
+    vehicle_body_type: ${vehicle_body_type}
+    licence_copy_number: ${licence_copy_number}
+    violation_description: ${violation_description}
+    minor_violations_count: ${minor_violations_count}
+    sanction_code: ${sanction_code}
+    sanction_notes: ${sanction_notes}
+    recommended_measure_code: ${recommended_measure_code}
+    recommended_measure_notes: ${recommended_measure_notes}
+    recommended_measure_general_notes: ${recommended_measure_general_notes}
+    inspector_first_name: ${inspector_first_name}
+    inspector_last_name: ${inspector_last_name}
+    inspector_organisation_id: ${inspector_organisation_id}
+    inspector_unit: ${inspector_unit}
+    inspector_profession: ${inspector_profession}
+  result: changedFieldsResult
+  next: extractResult
+
+extractResult:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+    changed_fields_result: ${parsed_result.changed_fields}
   next: updateForm
 
 updateForm:
@@ -214,17 +266,35 @@ updateForm:
 extractResponseData:
   assign:
     form_number: "${insertRes.response.body[0].formNumber || ''}"
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: ${status === 'confirmed'}
+      next: logAuditEventLocked
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-update"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    changed_fields: ${changed_fields_result}
+  result: audit_result
   next: returnSuccess
 
-#logAuditEvent:
-#  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-create"
-#  requestType: templates
-#  headers:
-#    cookie: ${incoming.headers.cookie}
-#  body:
-#    form_number: ${form_number}
-#  result: audit_result
-#  next: returnSuccess
+logAuditEventLocked:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-update-locked"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    changed_fields: ${changed_fields_result}
+  result: audit_result
+  next: returnSuccess
 
 returnSuccess:
   return: ${insertRes.response.body}

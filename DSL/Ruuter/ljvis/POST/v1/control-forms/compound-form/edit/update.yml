@@ -262,6 +262,20 @@ updateForm:
 extractResponseData:
   assign:
     compound_form_key: "${updateRes.response.body[0].id || ''}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-create-update"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    compound_form_key: ${compound_form_key}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:
