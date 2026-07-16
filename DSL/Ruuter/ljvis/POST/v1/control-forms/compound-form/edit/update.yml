@@ -158,6 +158,59 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
     created_by: "${auth_user.personalcode}"
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "[#LJVIS_PROJECT_LAYER]/form/compound-form/calculate-compound-changed-fields"
+  requestType: templates
+  body:
+    form_id: ${key}
+    control_date: ${control_date}
+    control_time: ${control_time}
+    control_country_code: ${control_country_code}
+    county: ${county}
+    city: ${city}
+    road: ${road}
+    road_other: ${road_other}
+    kilometer: ${kilometer}
+    address: ${address}
+    road_type: ${road_type}
+    road_tax_status: ${road_tax_status}
+    road_tax_notes: ${road_tax_notes}
+    vehicle_reg_nr: ${vehicle_reg_nr}
+    vehicle_make: ${vehicle_make}
+    vehicle_model: ${vehicle_model}
+    vehicle_country_code: ${vehicle_country_code}
+    vehicle_vin: ${vehicle_vin}
+    vehicle_first_registration: ${vehicle_first_registration}
+    vehicle_body_type: ${vehicle_body_type}
+    vehicle_category_code: ${vehicle_category_code}
+    vehicle_category_other: ${vehicle_category_other}
+    vehicle_mileage: ${vehicle_mileage}
+    trailers: ${trailers}
+    drivers: ${drivers}
+    company_reg_code: ${company_reg_code}
+    company_name: ${company_name}
+    company_country_code: ${company_country_code}
+    company_county: ${company_county}
+    company_city: ${company_city}
+    company_address_line1: ${company_address_line1}
+    company_postal_code: ${company_postal_code}
+    company_owner_first_name: ${company_owner_first_name}
+    company_owner_last_name: ${company_owner_last_name}
+    company_activity_licence_copy_number: ${company_activity_licence_copy_number}
+    inspector_first_name: ${inspector_first_name}
+    inspector_last_name: ${inspector_last_name}
+    inspector_organisation_id: ${inspector_organisation_id}
+    inspector_unit: ${inspector_unit}
+    inspector_profession: ${inspector_profession}
+  result: changedFieldsResult
+  next: extractResult
+
+extractResult:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+    changed_fields_result: ${parsed_result.changed_fields}
   next: check_driver1_personal_code_not_empty
 
 check_driver1_personal_code_not_empty:
@@ -262,6 +315,12 @@ updateForm:
 extractResponseData:
   assign:
     compound_form_key: "${updateRes.response.body[0].id || ''}"
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: ${status === 'confirmed'}
+      next: logAuditEventLocked
   next: logAuditEvent
 
 logAuditEvent:
@@ -275,6 +334,18 @@ logAuditEvent:
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+  result: audit_result
+  next: returnSuccess
+
+logAuditEventLocked:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-update-locked"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    status: ${status}
+    changed_fields: ${changed_fields_result}
   result: audit_result
   next: returnSuccess
 

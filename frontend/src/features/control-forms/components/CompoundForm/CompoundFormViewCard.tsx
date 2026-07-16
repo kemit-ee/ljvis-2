@@ -6,6 +6,7 @@ import {
   Select,
   Tabs,
   TextField,
+    Text
 } from '@tedi-design-system/react/tedi';
 import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
 import type { CompoundForm, Trailer, Driver } from '../../types';
@@ -174,6 +175,9 @@ export function CompoundFormViewCard({
                     disabled={disabled}
                   />
                 </div>
+                <Text id="road_type">
+                  Tee liik: {form.road_type}
+                </Text>
               </div>
             </Card.Content>
           </Card>

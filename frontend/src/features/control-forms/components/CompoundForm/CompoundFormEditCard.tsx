@@ -4,6 +4,7 @@ import {
   Card,
   Heading,
   TextField,
+  Text,
   Select,
   Alert,
   ChoiceGroup,
@@ -299,6 +300,9 @@ export function CompoundFormEditCard({
                     disabled={!formik.values.county}
                   />
                 </div>
+                <Text id="road_type">
+                  Tee liik: {formik.values.road_type}
+                </Text>
               </div>
             </Card.Content>
           </Card>

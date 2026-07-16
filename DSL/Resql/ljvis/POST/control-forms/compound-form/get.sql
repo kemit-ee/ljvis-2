@@ -37,7 +37,7 @@ declaration:
         type: string
       - field: address
         type: string
-      - field: road_type
+      - field: roadType
         type: string
       - field: roadTaxStatus
         type: string
