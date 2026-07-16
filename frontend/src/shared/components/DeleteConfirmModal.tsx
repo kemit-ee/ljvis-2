@@ -1,6 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Text } from '@tedi-design-system/react/tedi';
-import { Modal, ModalCloser, ModalProvider, ModalTrigger, CardContent } from '@tedi-design-system/react/community';
+import {
+  Modal,
+  ModalCloser,
+  ModalProvider,
+  ModalTrigger,
+  CardContent,
+} from '@tedi-design-system/react/community';
 
 interface DeleteConfirmModalProps {
   onDelete: () => void;
@@ -26,9 +32,7 @@ export function DeleteConfirmModal({ onDelete }: DeleteConfirmModalProps) {
           </div>
           <div className="modal-actions">
             <ModalCloser>
-              <Button visualType="secondary">
-                {t('common.cancel')}
-              </Button>
+              <Button visualType="secondary">{t('common.cancel')}</Button>
             </ModalCloser>
             <ModalCloser>
               <Button color="danger" onClick={onDelete}>

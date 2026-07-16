@@ -380,7 +380,7 @@
     "sp_trailer_tech_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
     "sp_dangerous_goods_form": "Ohtliku veose veo kontrollvorm",
     "sp_transport_suspended_form": "Autovedu on katkestatud kontrollvorm",
-    "foreign_violation" : {
+    "foreign_violation": {
       "reportingBasicInfo": "Teate saatnud riik ja asutus",
       "reportingCountry": "Teate saatnud riik",
       "reportingAuthority": "Teate saatnud pädeva asutuse nimetus",

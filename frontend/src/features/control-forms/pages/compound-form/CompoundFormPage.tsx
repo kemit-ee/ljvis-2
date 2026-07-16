@@ -19,7 +19,11 @@ export function CompoundFormPage() {
   const { hasPermission } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
-  const forbidden = !((hasPermission('compound_form.read') || hasPermission('control_form.view_unpublished')) && hasPermission('classifier.read'));
+  const forbidden = !(
+    (hasPermission('compound_form.read') ||
+      hasPermission('control_form.view_unpublished')) &&
+    hasPermission('classifier.read')
+  );
 
   const [isEditActive, setIsEditActive] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
@@ -29,8 +33,11 @@ export function CompoundFormPage() {
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
 
-  const { form, loading, toDateValue, toTimeValue, refetch } = useCompoundFormDetail(snapshotId ? undefined : id);
-  const [snapshot, setSnapshot] = useState<import('../../types').CompoundForm | null>(null);
+  const { form, loading, toDateValue, toTimeValue, refetch } =
+    useCompoundFormDetail(snapshotId ? undefined : id);
+  const [snapshot, setSnapshot] = useState<
+    import('../../types').CompoundForm | null
+  >(null);
   const [snapshotLoading, setSnapshotLoading] = useState(!!snapshotId);
 
   useEffect(() => {
@@ -41,7 +48,8 @@ export function CompoundFormPage() {
         const data = Array.isArray(res) ? res[0] : res;
         setSnapshot(data);
         if (data?.county) handleCountyChange(Number(data.county));
-        if (data?.companyCounty) handleCompanyCountyChange(Number(data.companyCounty));
+        if (data?.companyCounty)
+          handleCompanyCountyChange(Number(data.companyCounty));
       })
       .catch(console.error)
       .finally(() => setSnapshotLoading(false));
@@ -53,9 +61,15 @@ export function CompoundFormPage() {
     }
   }, [form?.status]);
 
-  const canEdit = hasPermission('foreign_violation_form.write') && form?.status !== 'deleted';
-  const canDelete = hasPermission('control_form.delete') && form?.status !== 'deleted';
-  const canConfirm = hasPermission('foreign_violation_form.write') && hasPermission('control_form.view_unpublished') && form?.status !== 'deleted' && form?.status !== 'confirmed';
+  const canEdit =
+    hasPermission('foreign_violation_form.write') && form?.status !== 'deleted';
+  const canDelete =
+    hasPermission('control_form.delete') && form?.status !== 'deleted';
+  const canConfirm =
+    hasPermission('foreign_violation_form.write') &&
+    hasPermission('control_form.view_unpublished') &&
+    form?.status !== 'deleted' &&
+    form?.status !== 'confirmed';
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');
@@ -116,7 +130,11 @@ export function CompoundFormPage() {
     if (!snapshot) return <Text>{t('common.error')}</Text>;
     return (
       <div>
-        <Button visualType="link" onClick={() => navigate(`/control-forms/compound/${id}`)} iconLeft="arrow_back">
+        <Button
+          visualType="link"
+          onClick={() => navigate(`/control-forms/compound/${id}`)}
+          iconLeft="arrow_back"
+        >
           {t('common.back')}
         </Button>
         <CompoundFormViewCard
@@ -125,11 +143,17 @@ export function CompoundFormPage() {
           orgOptions={orgOptions}
           structureUnits={structureUnits}
           roads={roads as { code: string; name: string }[]}
-          trailerCategories={trailerCategories as { code: string; name: string }[]}
-          vehicleCategories={vehicleCategories as { code: string; name: string }[]}
+          trailerCategories={
+            trailerCategories as { code: string; name: string }[]
+          }
+          vehicleCategories={
+            vehicleCategories as { code: string; name: string }[]
+          }
           counties={counties as { id: number; name: string }[]}
           citiesParishes={citiesParishes as { id: number; name: string }[]}
-          companyCitiesParishes={companyCitiesParishes as { id: number; name: string }[]}
+          companyCitiesParishes={
+            companyCitiesParishes as { id: number; name: string }[]
+          }
           canEdit={false}
           onEdit={() => {}}
           isSnapshot
@@ -154,23 +178,42 @@ export function CompoundFormPage() {
     vehicleCategories: vehicleCategories as { code: string; name: string }[],
     counties: counties as { id: number; name: string }[],
     citiesParishes: citiesParishes as { id: number; name: string }[],
-    companyCitiesParishes: companyCitiesParishes as { id: number; name: string }[],
+    companyCitiesParishes: companyCitiesParishes as {
+      id: number;
+      name: string;
+    }[],
   };
 
   return (
     <div>
       {showSavedAlert && (
-        <Alert icon="check_circle" className="mb-1" onClose={() => setShowSavedAlert(false)} type="success" size="small">
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowSavedAlert(false)}
+          type="success"
+          size="small"
+        >
           {t('forms.savedNote')}
         </Alert>
       )}
       {showConfirmedAlert && (
-        <Alert icon="check_circle" className="mb-1" onClose={() => setShowConfirmedAlert(false)} type="success" size="small">
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowConfirmedAlert(false)}
+          type="success"
+          size="small"
+        >
           {t('forms.confirmedNote')}
         </Alert>
       )}
 
-      <Button visualType="link" onClick={() => navigate('/')} iconLeft="arrow_back">
+      <Button
+        visualType="link"
+        onClick={() => navigate('/')}
+        iconLeft="arrow_back"
+      >
         {t('common.back')}
       </Button>
 

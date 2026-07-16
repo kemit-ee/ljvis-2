@@ -17,12 +17,17 @@ interface FormVersionsTableProps {
 
 const columnHelper = createColumnHelper<FormSnapshot>();
 
-export function FormVersionsTable({ formId, formType }: FormVersionsTableProps) {
+export function FormVersionsTable({
+  formId,
+  formType,
+}: FormVersionsTableProps) {
   const { t } = useTranslation();
   const [snapshots, setSnapshots] = useState<FormSnapshot[]>([]);
 
   useEffect(() => {
-    getFormSnapshots(formId, formType).then((res) => setSnapshots(Array.isArray(res) ? res : [])).catch(console.error);
+    getFormSnapshots(formId, formType)
+      .then((res) => setSnapshots(Array.isArray(res) ? res : []))
+      .catch(console.error);
   }, [formId]);
 
   const columns = useMemo(
@@ -62,7 +67,8 @@ export function FormVersionsTable({ formId, formType }: FormVersionsTableProps) 
         id: 'open',
         header: '',
         cell: (info) => {
-          if (info.row.index === info.table.getRowModel().rows.length - 1) return null;
+          if (info.row.index === info.table.getRowModel().rows.length - 1)
+            return null;
           const formPath = formType.replace(/-form$/, '');
           return (
             <Link

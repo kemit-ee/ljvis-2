@@ -40,8 +40,7 @@ export function useForeignViolationForm(
     return `${formNumber}/2`;
   };
 
-  const formNumberString = isEdit && form?.formNumber
-    ? form.formNumber : '';
+  const formNumberString = isEdit && form?.formNumber ? form.formNumber : '';
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
@@ -49,31 +48,64 @@ export function useForeignViolationForm(
 
   useEffect(() => {
     if (authUser?.organisationid) {
-      listStructureUnits(authUser.organisationid).then(setStructureUnits).catch(console.error);
+      listStructureUnits(authUser.organisationid)
+        .then(setStructureUnits)
+        .catch(console.error);
     }
   }, [authUser?.organisationid]);
 
   const validationSchema = Yup.object({
-    reportingCountryCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    reportingAuthority: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    inspectionDate: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    sanctionCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    recommendedMeasureCode: Yup.string().required(t('forms.foreign_violation.validation.required')),
+    reportingCountryCode: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    reportingAuthority: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    inspectionDate: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    sanctionCode: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    recommendedMeasureCode: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
     recommendedMeasureNotes: Yup.string().when('recommendedMeasureCode', {
       is: 'MUU',
       then: (schema) => schema.required(t('users.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
-    minorViolationsCount: Yup.string().matches(/^\d{0,3}$/, t('forms.foreign_violation.validation.minorViolationsCount')),
-    dataEntryDate: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    inspectorFirstName: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    inspectorLastName: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    inspectorOrganisationId: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    inspectorProfession: Yup.string().required(t('forms.foreign_violation.validation.required')),
-    files: Yup.mixed().test('no-invalid-files', t('forms.foreign_violation.filesHelper'), (value) => {
-      const filesArray = Array.isArray(value) ? value : JSON.parse(typeof value === 'string' ? value || '[]' : '[]');
-      return !filesArray.some((f: { isValid?: boolean }) => f.isValid === false);
-    }),
+    minorViolationsCount: Yup.string().matches(
+      /^\d{0,3}$/,
+      t('forms.foreign_violation.validation.minorViolationsCount'),
+    ),
+    dataEntryDate: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    inspectorFirstName: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    inspectorLastName: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    inspectorOrganisationId: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    inspectorProfession: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    files: Yup.mixed().test(
+      'no-invalid-files',
+      t('forms.foreign_violation.filesHelper'),
+      (value) => {
+        const filesArray = Array.isArray(value)
+          ? value
+          : JSON.parse(typeof value === 'string' ? value || '[]' : '[]');
+        return !filesArray.some(
+          (f: { isValid?: boolean }) => f.isValid === false,
+        );
+      },
+    ),
   });
 
   const formik = useFormik({
@@ -118,9 +150,11 @@ export function useForeignViolationForm(
       dataEntryDate: form?.dataEntryDate ?? dayjs().format('YYYY-MM-DD'),
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
-      inspectorOrganisationId: form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
+      inspectorOrganisationId:
+        form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
-      inspectorProfession: form?.inspectorProfession ?? authUser?.jobtitle ?? '',
+      inspectorProfession:
+        form?.inspectorProfession ?? authUser?.jobtitle ?? '',
       files: form?.files ?? '[]',
     },
     validationSchema,
@@ -129,8 +163,14 @@ export function useForeignViolationForm(
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
         const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
-        const nextStatus = isConfirming ? 'confirmed' : isReconfirmedEdit ? 'confirmed' : 'saved';
-        const nextFormNumber = isReconfirmedEdit ? incrementFormNumber(formNumberString) : formNumberString;
+        const nextStatus = isConfirming
+          ? 'confirmed'
+          : isReconfirmedEdit
+            ? 'confirmed'
+            : 'saved';
+        const nextFormNumber = isReconfirmedEdit
+          ? incrementFormNumber(formNumberString)
+          : formNumberString;
         const trimmedValues = {
           ...values,
           status: nextStatus,
@@ -139,15 +179,25 @@ export function useForeignViolationForm(
           inspectionTime: toIsoTime(values.inspectionTime),
           dataEntryDate: toIsoDate(values.dataEntryDate),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
-          violations: Array.isArray(values.violations) ? JSON.stringify(values.violations) : (values.violations ?? '[]'),
-          files: typeof values.files === 'string' ? values.files : JSON.stringify(values.files ?? []),
+          violations: Array.isArray(values.violations)
+            ? JSON.stringify(values.violations)
+            : (values.violations ?? '[]'),
+          files:
+            typeof values.files === 'string'
+              ? values.files
+              : JSON.stringify(values.files ?? []),
         };
-        const payload = { ...trimmedValues, id: form?.id } as unknown as ForeignViolationForm;
+        const payload = {
+          ...trimmedValues,
+          id: form?.id,
+        } as unknown as ForeignViolationForm;
         const result = isEdit
           ? isConfirming
             ? await confirmForeignViolationForm(payload)
             : await updateForeignViolationForm(payload)
-          : await insertForeignViolationForm(trimmedValues as unknown as ForeignViolationForm);
+          : await insertForeignViolationForm(
+              trimmedValues as unknown as ForeignViolationForm,
+            );
         if (isConfirming && onConfirmed) {
           onConfirmed();
         } else {
@@ -176,7 +226,10 @@ export function useForeignViolationForm(
       | readonly { value: string; label: string | React.ReactNode }[]
       | null,
   ) => {
-    const newOrgId = val && !Array.isArray(val) && 'value' in val ? (val as { value: string }).value : '';
+    const newOrgId =
+      val && !Array.isArray(val) && 'value' in val
+        ? (val as { value: string }).value
+        : '';
     formik.setFieldValue('inspectorOrganisationId', newOrgId);
     formik.setFieldValue('inspectorUnit', '');
     listStructureUnits(newOrgId).then(setStructureUnits).catch(console.error);
@@ -213,10 +266,7 @@ export function useForeignViolationForm(
       | null,
   ) => {
     if (val && !Array.isArray(val) && 'value' in val) {
-      formik.setFieldValue(
-        'inspectorUnit',
-        (val as { value: string }).value,
-      );
+      formik.setFieldValue('inspectorUnit', (val as { value: string }).value);
     } else {
       formik.setFieldValue('inspectorUnit', '');
     }

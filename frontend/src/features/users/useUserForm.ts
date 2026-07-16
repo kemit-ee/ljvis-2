@@ -52,10 +52,14 @@ export function useUserForm(
     listOrganisations().then(setOrganisations).catch(console.error);
   }, [enabled]);
 
-  const initialOrgId = user?.organisationId ?? (isLocalAdmin ? authUser?.organisationid : undefined);
+  const initialOrgId =
+    user?.organisationId ??
+    (isLocalAdmin ? authUser?.organisationid : undefined);
   useEffect(() => {
     if (initialOrgId) {
-      listStructureUnits(initialOrgId).then(setStructureUnits).catch(console.error);
+      listStructureUnits(initialOrgId)
+        .then(setStructureUnits)
+        .catch(console.error);
     }
   }, [initialOrgId]);
 
@@ -210,10 +214,15 @@ export function useUserForm(
       | readonly { value: string; label: string | React.ReactNode }[]
       | null,
   ) => {
-    const newOrgId = val && !Array.isArray(val) && 'value' in val ? (val as { value: string }).value : '';
+    const newOrgId =
+      val && !Array.isArray(val) && 'value' in val
+        ? (val as { value: string }).value
+        : '';
     formik.setFieldValue('organisationId', newOrgId);
     formik.setFieldValue('structuralUnitName', '');
-    listStructureUnits(newOrgId || undefined).then(setStructureUnits).catch(console.error);
+    listStructureUnits(newOrgId || undefined)
+      .then(setStructureUnits)
+      .catch(console.error);
   };
 
   const handleStructuralUnitChange = (

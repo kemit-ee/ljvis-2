@@ -21,7 +21,10 @@ const buildAvailableForms = (permissions: string[]): ControlForm[] =>
 export function useDesktop() {
   const { permissions, loading } = useAuth();
 
-  const availableForms = useMemo(() => buildAvailableForms(permissions), [permissions]);
+  const availableForms = useMemo(
+    () => buildAvailableForms(permissions),
+    [permissions],
+  );
 
   return {
     loading,

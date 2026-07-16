@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { LabelProvider, PrintingProvider } from '@tedi-design-system/react/tedi';
+import {
+  LabelProvider,
+  PrintingProvider,
+} from '@tedi-design-system/react/tedi';
 import type { ReactNode } from 'react';
 
 export type TediLocale = 'et' | 'en';

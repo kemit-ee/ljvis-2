@@ -62,12 +62,30 @@ function AppRoutes() {
           />
           <Route path="/logs" element={<LogListPage />} />
           <Route path="/logs/:id" element={<LogDetailPage />} />
-          <Route path="/control-forms/foreign-violation/new" element={<ForeignViolationFormCreatePage />} />
-          <Route path="/control-forms/foreign-violation/:id" element={<ForeignViolationFormPage />} />
-          <Route path="/control-forms/foreign-violation/:id/:snapshotId" element={<ForeignViolationFormPage />} />
-          <Route path="/control-forms/compound/new" element={<CompoundFormCreatePage />} />
-          <Route path="/control-forms/compound/:id" element={<CompoundFormPage />} />
-          <Route path="/control-forms/compound/:id/:snapshotId" element={<CompoundFormPage />} />
+          <Route
+            path="/control-forms/foreign-violation/new"
+            element={<ForeignViolationFormCreatePage />}
+          />
+          <Route
+            path="/control-forms/foreign-violation/:id"
+            element={<ForeignViolationFormPage />}
+          />
+          <Route
+            path="/control-forms/foreign-violation/:id/:snapshotId"
+            element={<ForeignViolationFormPage />}
+          />
+          <Route
+            path="/control-forms/compound/new"
+            element={<CompoundFormCreatePage />}
+          />
+          <Route
+            path="/control-forms/compound/:id"
+            element={<CompoundFormPage />}
+          />
+          <Route
+            path="/control-forms/compound/:id/:snapshotId"
+            element={<CompoundFormPage />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
