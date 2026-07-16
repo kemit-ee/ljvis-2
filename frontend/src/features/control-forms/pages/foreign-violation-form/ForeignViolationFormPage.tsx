@@ -188,6 +188,8 @@ export function ForeignViolationFormPage() {
           isDesktop={isDesktop}
           orgOptions={orgOptions}
           structureUnits={structureUnits}
+          toDateValue={toDateValue}
+          toTimeValue={toTimeValue}
           canConfirm={canConfirm}
           canDelete={canDelete}
           companySearchError={companySearchError}

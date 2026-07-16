@@ -154,6 +154,17 @@ extractRequestData:
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     created_by: "${auth_user.personalcode}"
+  next: getOldStatus
+
+getOldStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
+    headers:
+      type: json
+    body:
+      id: ${key}
+  result: oldFormRes
   next: confirmForm
 
 confirmForm:
@@ -214,17 +225,21 @@ confirmForm:
 extractResponseData:
   assign:
     form_number: "${insertRes.response.body[0].formNumber || ''}"
-  next: returnSuccess
+    old_status: "${oldFormRes.response.body[0].status || 'saved'}"
+    new_status: ${status}
+  next: logAuditEvent
 
-#logAuditEvent:
-#  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-create"
-#  requestType: templates
-#  headers:
-#    cookie: ${incoming.headers.cookie}
-#  body:
-#    form_number: ${form_number}
-#  result: audit_result
-#  next: returnSuccess
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-confirm"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    old_status: ${old_status}
+    new_status: ${new_status}
+  result: audit_result
+  next: returnSuccess
 
 returnSuccess:
   return: ${insertRes.response.body}

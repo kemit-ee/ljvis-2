@@ -26,7 +26,6 @@ import {
   COUNTRIES,
 } from '../../../../constants/constants';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
-import dayjs from 'dayjs';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 
 interface ForeignViolationEditFormValues {
@@ -80,6 +79,8 @@ interface ForeignViolationFormEditCardProps {
   isDesktop: boolean;
   orgOptions: { label: string; value: string }[];
   structureUnits: { code: string; name: string }[];
+  toDateValue: (date?: string) => import('dayjs').Dayjs | null;
+  toTimeValue: (date?: string, time?: string) => import('dayjs').Dayjs | null;
   canConfirm: boolean;
   canDelete: boolean;
   companySearchError: boolean;
@@ -115,6 +116,8 @@ export function ForeignViolationFormEditCard({
   isDesktop,
   orgOptions,
   structureUnits,
+  toDateValue,
+  toTimeValue,
   canConfirm,
   canDelete,
   companySearchError,
@@ -301,11 +304,7 @@ export function ForeignViolationFormEditCard({
                 id="inspectionDate"
                 label={t('forms.foreign_violation.inspectionDate')}
                 disableFuture
-                value={
-                  formik.values.inspectionDate
-                    ? dayjs(formik.values.inspectionDate)
-                    : null
-                }
+                value={toDateValue(formik.values.inspectionDate)}
                 onChange={(v) => formik.setFieldValue('inspectionDate', v)}
                 placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
                 required
@@ -322,11 +321,7 @@ export function ForeignViolationFormEditCard({
               <TimePicker
                 id="inspectionTime"
                 label={t('forms.foreign_violation.inspectionTime')}
-                value={
-                  formik.values.inspectionTime
-                    ? dayjs(formik.values.inspectionTime)
-                    : null
-                }
+                value={toTimeValue(formik.values.inspectionDate, formik.values.inspectionTime)}
                 onChange={(v) => formik.setFieldValue('inspectionTime', v)}
                 placeholder={t('forms.foreign_violation.timePickerPlaceholder')}
                 {...(formik.touched.inspectionTime &&
@@ -607,11 +602,7 @@ export function ForeignViolationFormEditCard({
               <DatePicker
                 id="vehicleFirstRegistration"
                 label={t('forms.foreign_violation.vehicleFirstRegistration')}
-                value={
-                  formik.values.vehicleFirstRegistration
-                    ? dayjs(formik.values.vehicleFirstRegistration)
-                    : null
-                }
+                value={toDateValue(formik.values.vehicleFirstRegistration)}
                 onChange={(v) =>
                   formik.setFieldValue('vehicleFirstRegistration', v)
                 }
@@ -901,11 +892,7 @@ export function ForeignViolationFormEditCard({
               <DatePicker
                 id="dataEntryDate"
                 label={t('forms.foreign_violation.dataEntryDate')}
-                value={
-                  formik.values.dataEntryDate
-                    ? dayjs(formik.values.dataEntryDate)
-                    : null
-                }
+                value={toDateValue(formik.values.dataEntryDate)}
                 onChange={(v) => formik.setFieldValue('dataEntryDate', v)}
                 placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
                 required
