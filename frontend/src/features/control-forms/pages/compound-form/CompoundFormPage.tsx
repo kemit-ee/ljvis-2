@@ -115,9 +115,9 @@ export function CompoundFormPage() {
   } = useCompoundForm(form ?? undefined, handleEditSaved, handleConfirmed);
 
   const handleDelete = async () => {
-    if (!id) return;
+    if (!id || !form) return;
     try {
-      await deleteCompoundForm(id);
+      await deleteCompoundForm(id, form.formNumber, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);

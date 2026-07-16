@@ -10,6 +10,10 @@ declaration:
     body:
       - field: id
         type: string
+      - field: form_number
+        type: string
+      - field: old_status
+        type: string
 
 get_user_context:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -22,6 +26,8 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
+    form_number: "${incoming.body.form_number}"
+    old_status: "${incoming.body.old_status}"
     status: "deleted"
     created_by: "${auth_user.personalcode}"
   next: deleteForm
@@ -37,6 +43,17 @@ deleteForm:
       status: ${status}
       created_by: ${created_by}
   result: deleteRes
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/log-form-delete"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    old_status: ${old_status}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

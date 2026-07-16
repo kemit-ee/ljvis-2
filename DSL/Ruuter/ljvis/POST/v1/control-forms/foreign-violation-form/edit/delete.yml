@@ -10,6 +10,10 @@ declaration:
     body:
       - field: id
         type: string
+      - field: form_number
+        type: string
+      - field: old_status
+        type: string
 
 get_user_context:
   template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
@@ -22,11 +26,13 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
+    form_number: "${incoming.body.form_number}"
+    old_status: "${incoming.body.old_status}"
     status: "deleted"
     created_by: "${auth_user.personalcode}"
-  next: insertForm
+  next: deleteForm
 
-insertForm:
+deleteForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/delete"
@@ -36,24 +42,20 @@ insertForm:
       id: ${id}
       status: ${status}
       created_by: ${created_by}
-  result: insertRes
-  next: extractResponseData
+  result: deleteRes
+  next: logAuditEvent
 
-extractResponseData:
-  assign:
-    form_number: "${insertRes.response.body[0].formNumber || ''}"
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/log-form-delete"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    old_status: ${old_status}
+  result: audit_result
   next: returnSuccess
 
-#logAuditEvent:
-#  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-create"
-#  requestType: templates
-#  headers:
-#    cookie: ${incoming.headers.cookie}
-#  body:
-#    form_number: ${form_number}
-#  result: audit_result
-#  next: returnSuccess
-
 returnSuccess:
-  return: ${insertRes.response.body}
+  return: ${deleteRes.response.body}
   next: end

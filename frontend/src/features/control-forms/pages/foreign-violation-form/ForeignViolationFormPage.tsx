@@ -107,9 +107,9 @@ export function ForeignViolationFormPage() {
   );
 
   const handleDelete = async () => {
-    if (!id) return;
+    if (!id || !form) return;
     try {
-      await deleteForeignViolationForm(id);
+      await deleteForeignViolationForm(id, form.formNumber, form.status ?? '');
       navigate(`/`, { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);
