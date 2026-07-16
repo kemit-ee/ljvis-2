@@ -4,6 +4,7 @@ import {
   Card,
   Heading,
   Select,
+  Tabs,
   TextField,
 } from '@tedi-design-system/react/tedi';
 import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
@@ -81,6 +82,12 @@ export function CompoundFormViewCard({
           <Heading element="h1">{(form.formNumber ?? '').split('/')[0]}</Heading>
         </div>
       </div>
+
+      <Tabs defaultValue="tab-1">
+        <Tabs.List aria-label={t('forms.compound_form')}>
+          <Tabs.Trigger id="tab-1">{t('forms.compound.generalPart')}</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content id="tab-1" className="p-1">
 
       {/* Kontrolli koht */}
       <Card className="mb-1">
@@ -352,8 +359,11 @@ export function CompoundFormViewCard({
 
       {form.id && <FormVersionsTable formId={form.id} formType={formType} />}
 
+        </Tabs.Content>
+      </Tabs>
+
       {!isSnapshot && (
-        <div className="page-actions">
+        <div className="page-actions mt-1">
           <div className="page-actions-buttons">
             {canEdit && (
               <Button iconLeft="edit" visualType="secondary" type="button" onClick={onEdit}>
