@@ -17,7 +17,7 @@ interface Props {
 
 export function DriveRestFormCreatePage({ type: _type }: Props) {
   const { t } = useTranslation();
-  const { cargoCabotageViolations, passengerCabotageViolations } =
+  const { cargoCabotageViolations, passengerCabotageViolations, transportClasses: transportClassItems } =
     useDriveRestForm();
 
   const [transportType, setTransportType] = useState('');
@@ -32,49 +32,6 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
   const [proceedingType, setProceedingType] = useState('');
   const [proceedingReferenceNumber, setProceedingReferenceNumber] =
     useState('');
-
-  const TRANSPORT_CLASSES = [
-    {
-      id: 'class_domestic',
-      value: 'DOMESTIC',
-      labelKey: 'forms.sp_form.classDomestic',
-    },
-    {
-      id: 'class_eu_eea_ch',
-      value: 'EU_EEA_CH',
-      labelKey: 'forms.sp_form.classEuEeaCh',
-    },
-    {
-      id: 'class_international_3rd',
-      value: 'INTERNATIONAL_3RD',
-      labelKey: 'forms.sp_form.classInternational3rd',
-    },
-    {
-      id: 'class_cabotage',
-      value: 'CABOTAGE',
-      labelKey: 'forms.sp_form.classCabotage',
-    },
-    {
-      id: 'class_passenger_regular',
-      value: 'PASSENGER_REGULAR',
-      labelKey: 'forms.sp_form.classPassengerRegular',
-    },
-    {
-      id: 'class_passenger_occasional',
-      value: 'PASSENGER_OCCASIONAL',
-      labelKey: 'forms.sp_form.classPassengerOccasional',
-    },
-    {
-      id: 'class_passenger_special',
-      value: 'PASSENGER_SPECIAL',
-      labelKey: 'forms.sp_form.classPassengerSpecial',
-    },
-    {
-      id: 'class_atp_perishable',
-      value: 'ATP_PERISHABLE',
-      labelKey: 'forms.sp_form.classAtpPerishable',
-    },
-  ];
 
   const hasCabotage = transportClasses.includes('CABOTAGE');
 
@@ -200,69 +157,57 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
               <Heading element="h3" className="mb-1">
                 {t('forms.sp_form.cargoClass')}
               </Heading>
-              <ChoiceGroup
-                id="transportClassesBefore"
-                className={styles['choice-item-gap']}
-                label=""
-                name="transportClasses"
-                inputType="checkbox"
-                value={transportClasses}
-                onChange={(val) => {
-                  const newVal = val as string[];
-                  setTransportClasses((prev) => {
-                    const afterItems = TRANSPORT_CLASSES.slice(4).map(
-                      (c) => c.value,
-                    );
-                    const kept = prev.filter((v) => afterItems.includes(v));
-                    return [...new Set([...newVal, ...kept])];
-                  });
-                  if (!newVal.includes('CABOTAGE')) {
-                    setCabotageViolations([]);
-                  }
-                }}
-                items={TRANSPORT_CLASSES.slice(0, 4).map((cls) => ({
-                  id: cls.id,
-                  value: cls.value,
-                  label: t(cls.labelKey),
-                }))}
-              />
-              {hasCabotage && cabotageSubItems.length > 0 && (
-                <div style={{ paddingLeft: '1.5rem' }}>
-                  <ChoiceGroup
-                    id="cabotageViolations"
-                    className={styles['choice-item-gap']}
-                    label=""
-                    name="cabotageViolations"
-                    inputType="checkbox"
-                    value={cabotageViolations}
-                    onChange={(val) => setCabotageViolations(val as string[])}
-                    items={cabotageSubItems}
-                  />
-                </div>
-              )}
-              <ChoiceGroup
-                id="transportClassesAfter"
-                className={styles['choice-item-gap']}
-                label=""
-                name="transportClasses"
-                inputType="checkbox"
-                value={transportClasses}
-                onChange={(val) => {
-                  const newVal = val as string[];
-                  setTransportClasses((prev) => {
-                    const beforeItems = TRANSPORT_CLASSES.slice(0, 4).map(
-                      (c) => c.value,
-                    );
-                    const kept = prev.filter((v) => beforeItems.includes(v));
-                    return [...new Set([...kept, ...newVal])];
-                  });
-                }}
-                items={TRANSPORT_CLASSES.slice(4).map((cls) => ({
-                  id: cls.id,
-                  value: cls.value,
-                  label: t(cls.labelKey),
-                }))}
-              />
+              {(() => {
+                const cabotageIdx = transportClassItems.findIndex((c) => c.code === 'CABOTAGE');
+                const beforeCabotage = cabotageIdx >= 0 ? transportClassItems.slice(0, cabotageIdx + 1) : transportClassItems;
+                const afterCabotage = cabotageIdx >= 0 ? transportClassItems.slice(cabotageIdx + 1) : [];
+                const toItems = (list: typeof transportClassItems) =>
+                  list.map((cls) => ({ id: cls.code, value: cls.code, label: cls.name }));
+                const handleChange = (val: string[] ) => {
+                  setTransportClasses(val);
+                  if (!val.includes('CABOTAGE')) setCabotageViolations([]);
+                };
+                return (
+                  <>
+                    <ChoiceGroup
+                      id="transportClassesBefore"
+                      className={styles['choice-item-gap']}
+                      label=""
+                      name="transportClasses"
+                      inputType="checkbox"
+                      value={transportClasses}
+                      onChange={(val) => handleChange(val as string[])}
+                      items={toItems(beforeCabotage)}
+                    />
+                    {hasCabotage && cabotageSubItems.length > 0 && (
+                      <div style={{ paddingLeft: '1.5rem' }}>
+                        <ChoiceGroup
+                          id="cabotageViolations"
+                          className={styles['choice-item-gap']}
+                          label=""
+                          name="cabotageViolations"
+                          inputType="checkbox"
+                          value={cabotageViolations}
+                          onChange={(val) => setCabotageViolations(val as string[])}
+                          items={cabotageSubItems}
+                        />
+                      </div>
+                    )}
+                    {afterCabotage.length > 0 && (
+                      <ChoiceGroup
+                        id="transportClassesAfter"
+                        className={styles['choice-item-gap']}
+                        label=""
+                        name="transportClasses"
+                        inputType="checkbox"
+                        value={transportClasses}
+                        onChange={(val) => handleChange(val as string[])}
+                        items={toItems(afterCabotage)}
+                      />
+                    )}
+                  </>
+                );
+              })()}
             </Card.Content>
           </Card>
         </Col>

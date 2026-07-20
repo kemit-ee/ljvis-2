@@ -20,5 +20,11 @@ export function useDriveRestForm() {
     [classifierValues],
   );
 
-  return { cargoCabotageViolations, passengerCabotageViolations };
+  const transportClasses = useMemo(
+    () =>
+      classifierValues.filter((v) => v.classifierCode === 'TRANSPORT_CLASS'),
+    [classifierValues],
+  );
+
+  return { cargoCabotageViolations, passengerCabotageViolations, transportClasses };
 }
