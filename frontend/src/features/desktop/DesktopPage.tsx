@@ -7,6 +7,7 @@ import {
   Dropdown,
 } from '@tedi-design-system/react/tedi';
 import { useDesktop } from './useDesktop.ts';
+import { FORM_CONFIG } from '../control-forms/formRoutes.ts';
 
 export function DesktopPage() {
   const { t } = useTranslation();
@@ -32,7 +33,15 @@ export function DesktopPage() {
                 <Dropdown.Item
                   key={form.route}
                   index={index}
-                  onClick={() => navigate(`/control-forms/${form.route}/new`)}
+                  onClick={() => {
+                    if (form.parentKey && FORM_CONFIG[form.parentKey]) {
+                      const parentRoute = FORM_CONFIG[form.parentKey].route;
+                      const query = form.typeParam ? `?type=${form.typeParam}` : '';
+                      navigate(`/control-forms${parentRoute}/new${query}`);
+                    } else {
+                      navigate(`/control-forms${form.route}/new`);
+                    }
+                  }}
                   {...(form.hasParent ? { indent: 2 } : {})}
                 >
                   {t(form.labelKey)}

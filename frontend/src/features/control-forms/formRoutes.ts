@@ -3,6 +3,8 @@ export interface FormConfig {
   route: string;
   hasParent: boolean;
   showOnDashboard: boolean;
+  parentKey?: string;
+  typeParam?: string;
 }
 
 export const FORM_CONFIG: Record<string, FormConfig> = {
@@ -41,12 +43,16 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     route: '/sp-driver',
     hasParent: true,
     showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'driver',
   },
   sp_teammate_form: {
     labelKey: 'forms.sp_teammate_form',
     route: '/sp-teammate',
     hasParent: true,
     showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'teammate',
   },
   sp_vehicle_tech_form: {
     labelKey: 'forms.sp_vehicle_tech_form',

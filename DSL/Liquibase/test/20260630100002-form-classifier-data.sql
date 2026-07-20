@@ -579,3 +579,83 @@ DO $$
             END LOOP;
 
     END $$;
+
+DO $$
+    DECLARE
+        v_created_by    VARCHAR(100) := 'system';
+        v_clf_key       BIGINT;
+        v_rec           RECORD;
+    BEGIN
+
+        INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
+        VALUES (
+                   nextval('classifier.seq_classifier_key'),
+                   'CARGO_CABOTAGE_VIOLATION',
+                   'Veoseveo kabotaažrikkumised',
+                   'Veoseveo kabotaažrikkumiste klassifikaator — määrus (EÜ) nr 1072/2009',
+                   v_created_by
+               )
+        RETURNING classifier_key INTO v_clf_key;
+
+        FOR v_rec IN
+            SELECT * FROM (VALUES
+                               ('VSI869', 'Kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele (määruse (EÜ) nr 1072/2009 artikli 8 lõige 2)', 'VSI'),
+                               ('VSI870', 'Kabotaažvedude tegemine samas liikmesriigis 4 päeva jooksul pärast viimase seadusliku kabotaažveo lõppu selles liikmesriigis (määruse (EÜ) nr 1072/2009 artikli 8 lõige 2a)', 'VSI'),
+                               ('VSI871', 'Vedaja ei suuda esitada selgeid tõendeid eelnenud rahvusvahelise veo ja/või iga järgneva teostatud kabotaažveo kohta ja/või kõigi tehtud vedude kohta juhul, kui sõiduk on vastuvõtvas liikmesriigis viibinud 4 päeva enne rahvusvahelist vedu, ning esitada need tõendid teel toimuva kontrolli vältel (määruse (EÜ) nr 1072/2009 artikli 8 lõiked 3 ja 4)', 'VSI')
+                          ) AS t(code, name, description)
+            LOOP
+                INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, description, created_by)
+                VALUES (
+                           nextval('classifier.seq_classifier_value_key'),
+                           v_clf_key,
+                           v_rec.code,
+                           v_rec.name,
+                           CURRENT_DATE,
+                           NULL,
+                           v_rec.description,
+                           v_created_by
+                       );
+            END LOOP;
+
+        IF (SELECT count(*) FROM classifier.classifier_value WHERE classifier_key = v_clf_key) <> 3
+        THEN
+            RAISE EXCEPTION 'CARGO_CABOTAGE_VIOLATION value count mismatch: expected 3, got %',
+                (SELECT count(*) FROM classifier.classifier_value WHERE classifier_key = v_clf_key);
+        END IF;
+
+        INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
+        VALUES (
+                   nextval('classifier.seq_classifier_key'),
+                   'PASSENGER_CABOTAGE_VIOLATION',
+                   'Sõitjateveo kabotaažrikkumised',
+                   'Sõitjateveo kabotaažrikkumiste klassifikaator — määrus (EÜ) nr 1073/2009',
+                   v_created_by
+               )
+        RETURNING classifier_key INTO v_clf_key;
+
+        FOR v_rec IN
+            SELECT * FROM (VALUES
+                               ('VSI872', 'Kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele (määruse (EÜ) nr 1073/2009 artikkel 16)', 'VSI'),
+                               ('VSI873', 'Sõidukis ei ole või ei ole kontrollima volitatud ametniku nõudmisel võimalik esitada kabotaažvedudeks vajalikke kontrolldokumente (juhuvedude sõiduleht või eriotstarbeliste liinivedude korral vedaja ja veo korraldaja vahel sõlmitud leping või selle tõestatud koopia) (määruse (EÜ) nr 1073/2009 artikkel 17)', 'VSI')
+                          ) AS t(code, name, description)
+            LOOP
+                INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, description, created_by)
+                VALUES (
+                           nextval('classifier.seq_classifier_value_key'),
+                           v_clf_key,
+                           v_rec.code,
+                           v_rec.name,
+                           CURRENT_DATE,
+                           NULL,
+                           v_rec.description,
+                           v_created_by
+                       );
+            END LOOP;
+
+        IF (SELECT count(*) FROM classifier.classifier_value WHERE classifier_key = v_clf_key) <> 2
+        THEN
+            RAISE EXCEPTION 'PASSENGER_CABOTAGE_VIOLATION value count mismatch: expected 2, got %',
+                (SELECT count(*) FROM classifier.classifier_value WHERE classifier_key = v_clf_key);
+        END IF;
+
+    END $$;

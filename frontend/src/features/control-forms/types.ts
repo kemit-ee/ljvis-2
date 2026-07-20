@@ -11,6 +11,8 @@ export interface ControlForm {
   labelKey: string;
   route: string;
   hasParent: boolean;
+  parentKey?: string;
+  typeParam?: string;
 }
 
 export interface ForeignViolationForm {

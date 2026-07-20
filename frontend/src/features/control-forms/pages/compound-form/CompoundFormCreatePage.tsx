@@ -1,9 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { OTHER, ROAD } from '../../../../constants/constants';
 
 import {
   Button,
+  ClosingButton,
   Heading,
   TextField,
   Select,
@@ -17,6 +19,7 @@ import {
   Tooltip,
   InfoButton,
   Tabs,
+  Dropdown,
 } from '@tedi-design-system/react/tedi';
 import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
 import { useCompoundForm, emptyTrailer, emptyDriver } from './useCompoundForm';
@@ -27,10 +30,64 @@ import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
 import dayjs from 'dayjs';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
+import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
 
 export function CompoundFormCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get('type');
+
+  const ROUTE_TO_TAB: Record<
+    string,
+    { tabId: string; type: string; labelKey: string }
+  > = {
+    '/sp-driver': {
+      tabId: 'tab-sp-driver',
+      type: 'driver',
+      labelKey: 'forms.driver_drive_rest_form',
+    },
+    '/sp-teammate': {
+      tabId: 'tab-sp-teammate',
+      type: 'teammate',
+      labelKey: 'forms.teammate_drive_rest_form',
+    },
+  };
+
+  const initialTab =
+    type && ROUTE_TO_TAB[`/sp-${type}`]
+      ? ROUTE_TO_TAB[`/sp-${type}`].tabId
+      : null;
+
+  const [activeTab, setActiveTab] = useState(initialTab ?? 'tab-1');
+  const [openTabs, setOpenTabs] = useState<string[]>(
+    initialTab ? [initialTab] : [],
+  );
+
+  const removeTab = (tabId: string) => {
+    setOpenTabs((prev) => prev.filter((t) => t !== tabId));
+    setActiveTab('tab-1');
+  };
+
+  const addTab = (route: string) => {
+    const tabDef = ROUTE_TO_TAB[route];
+    if (!tabDef) return;
+    if (!openTabs.includes(tabDef.tabId)) {
+      setOpenTabs((prev) => [...prev, tabDef.tabId]);
+    }
+    setActiveTab(tabDef.tabId);
+  };
+
+  const tabLabels: Record<string, string> = {
+    'tab-1': t('forms.compound_form'),
+    ...Object.values(ROUTE_TO_TAB).reduce(
+      (acc, { tabId, labelKey }) => ({ ...acc, [tabId]: t(labelKey) }),
+      {} as Record<string, string>,
+    ),
+  };
+
+  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
+
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -70,7 +127,40 @@ export function CompoundFormCreatePage() {
     mtrSearchError,
     setMtrSearchError,
     handleMtrSearch,
+    availableForms,
   } = useCompoundForm(undefined, handleSaved);
+
+  const addableForms = (availableForms ?? []).filter(
+    (form) =>
+      !ROUTE_TO_TAB[form.route] ||
+      !openTabs.includes(ROUTE_TO_TAB[form.route].tabId),
+  );
+
+  const addFormDropdown =
+    availableForms && availableForms.length > 0 ? (
+      <Dropdown width="max-content">
+        <Dropdown.Trigger>
+          <Button
+            iconRight="keyboard_arrow_down"
+            visualType="secondary"
+            disabled={addableForms.length === 0}
+          >
+            {t('desktop.addForm')}
+          </Button>
+        </Dropdown.Trigger>
+        <Dropdown.Content>
+          {addableForms.map((form, index) => (
+            <Dropdown.Item
+              key={form.route}
+              index={index}
+              onClick={() => addTab(form.route)}
+            >
+              {t(form.labelKey)}
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Content>
+      </Dropdown>
+    ) : null;
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
@@ -81,14 +171,38 @@ export function CompoundFormCreatePage() {
     <div>
       <form onSubmit={formik.handleSubmit}>
         <div className="card-main">
-          <Heading element="h1">{t('forms.compound_form')}</Heading>
+          <Heading element="h1">{headingLabel}</Heading>
+          {!isDesktop && addFormDropdown}
         </div>
 
-        <Tabs defaultValue="tab-1">
+        <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List aria-label={t('forms.compound_form')}>
             <Tabs.Trigger id="tab-1">
               {t('forms.compound.generalPart')}
             </Tabs.Trigger>
+            {openTabs.map((tabId) => (
+              <Tabs.Trigger key={tabId} id={tabId}>
+                {tabLabels[tabId]}
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeTab(tabId);
+                  }}
+                />
+              </Tabs.Trigger>
+            ))}
+            {isDesktop && addFormDropdown && (
+              <div
+                style={{
+                  marginLeft: 'auto',
+                  alignSelf: 'center',
+                  marginRight: '1rem',
+                }}
+              >
+                {addFormDropdown}
+              </div>
+            )}
           </Tabs.List>
           <Tabs.Content id="tab-1" className="p-1">
             <div>
@@ -1757,6 +1871,13 @@ export function CompoundFormCreatePage() {
               </Row>
             </div>
           </Tabs.Content>
+          {Object.values(ROUTE_TO_TAB).map(({ tabId, type: tabType }) =>
+            openTabs.includes(tabId) ? (
+              <Tabs.Content key={tabId} id={tabId} className="p-1">
+                <DriveRestFormCreatePage type={tabType} />
+              </Tabs.Content>
+            ) : null,
+          )}
         </Tabs>
 
         <div className="page-actions mt-1">
