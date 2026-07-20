@@ -283,6 +283,17 @@
     "addForm": "+ Lisa"
   },
   "forms": {
+    "savedNote": "Vorm on salvestatud",
+    "confirmedNote": "Vorm on kinnitatud",
+    "versions": {
+      "title": "Versioonid",
+      "version": "Versioon",
+      "modified": "Muudetud",
+      "user": "Kasutaja",
+      "organisation": "Asutus",
+      "status": "Staatus",
+      "open": "Ava link"
+    },
     "foreign_violation_form": "Välisriigis teostatud autoveoalase kontrolli kontrollkaart",
     "ti_kontrollkaart_form": "Tööinspektsiooni kontrollkaart",
     "reputation_noncompliance_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
@@ -369,7 +380,7 @@
     "sp_trailer_tech_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
     "sp_dangerous_goods_form": "Ohtliku veose veo kontrollvorm",
     "sp_transport_suspended_form": "Autovedu on katkestatud kontrollvorm",
-    "foreign_violation" : {
+    "foreign_violation": {
       "reportingBasicInfo": "Teate saatnud riik ja asutus",
       "reportingCountry": "Teate saatnud riik",
       "reportingAuthority": "Teate saatnud pädeva asutuse nimetus",
@@ -605,6 +616,10 @@
       "filesBasicInfo": "Failid",
       "filesBoxInfo": "Kukuta failid siia või klõpsa valimiseks",
       "filesHelper": "Lubatud formaadid: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maksimaalne failisuurus 10 MB.",
+      "statusSaved": "Salvestatud",
+      "statusConfirmed": "Kinnitatud",
+      "statusPublished": "Avalikustatud",
+      "statusDeleted": "Kustutatud",
       "validation": {
         "required": "Kohustuslik väli",
         "minorViolationsCount": "Lubatud kuni kolmekohaline number",
@@ -774,6 +789,9 @@
   },
   "common": {
     "save": "Salvesta",
+    "confirm": "Kinnita",
+    "delete": "Kustuta",
+    "edit": "Muuda",
     "cancel": "Tühista",
     "loading": "Laadimine...",
     "error": "Tekkis viga",
@@ -799,7 +817,9 @@
     "close": "Sulge",
     "search": "Otsi",
     "remove": "Eemalda",
-    "space": " "
+    "space": " ",
+    "deleteConfirmTitle": "Koondvormi kustutamine",
+    "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?"
   },
   "footer": {
     "help": "Abi",

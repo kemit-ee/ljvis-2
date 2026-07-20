@@ -1,3 +1,12 @@
+export interface FormSnapshot {
+  snapshotId: number;
+  version: number;
+  status: string;
+  createdAt: string;
+  createdBy: string;
+  orgName: string;
+}
+
 export interface ControlForm {
   labelKey: string;
   route: string;
@@ -7,6 +16,7 @@ export interface ControlForm {
 export interface ForeignViolationForm {
   id?: string;
   formNumber: string;
+  status?: string;
   reportingCountryCode: string;
   reportingAuthority: string;
   inspectionCountryCode?: string;
@@ -74,6 +84,7 @@ export type Driver = {
 export interface CompoundForm {
   id?: string;
   formNumber: string;
+  status?: string;
   controlCountryCode?: string;
   address?: string;
   road?: string;

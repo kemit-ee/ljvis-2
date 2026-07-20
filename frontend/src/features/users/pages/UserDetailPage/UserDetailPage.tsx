@@ -92,7 +92,11 @@ export function UserDetailPage() {
     isLocalAdmin,
     handleOrgChange,
     handleStructuralUnitChange,
-  } = useUserForm(user ?? undefined, handleEditSaved, isEditActive || isGroupEditActive);
+  } = useUserForm(
+    user ?? undefined,
+    handleEditSaved,
+    isEditActive || isGroupEditActive,
+  );
 
   const onGroupSaved = () => {
     setIsGroupEditActive(false);
@@ -224,7 +228,9 @@ export function UserDetailPage() {
                 structuralUnitName={
                   structuralUnitOptions.find(
                     (o) => o.value === user.structuralUnitName,
-                  )?.label || user.structuralUnitName || '—'
+                  )?.label ||
+                  user.structuralUnitName ||
+                  '—'
                 }
               />
             )}

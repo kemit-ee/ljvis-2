@@ -10,7 +10,7 @@ declaration:
     body:
       - field: id
         type: string
-        description: "Foreign violation form UUID"
+        description: "Foreign violation form ID"
   response:
     fields:
       - field: id
@@ -151,4 +151,6 @@ SELECT
   status,
   created_by
 FROM forms.foreign_violation_form
-WHERE foreign_violation_form_key = :id;
+WHERE foreign_violation_form_key = :id::BIGINT
+ORDER BY created_at DESC
+LIMIT 1;

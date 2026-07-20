@@ -258,7 +258,7 @@ extractResponseData:
 
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-create"
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-create-update"
   requestType: templates
   headers:
     cookie: ${incoming.headers.cookie}

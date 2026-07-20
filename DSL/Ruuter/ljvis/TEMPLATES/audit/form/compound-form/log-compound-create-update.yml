@@ -39,7 +39,7 @@ buildDriver2Part:
 
 buildAudit:
   assign:
-    description: "Üldosa salvestatud, koondvormi võti=${incoming.body.compound_form_key}, juhi isikukood: ${driver1_code}${driver2_part}"
+    description: "Üldosa salvestatud, koondvormi võti: ${incoming.body.compound_form_key}, juhi isikukood: ${driver1_code}${driver2_part}"
     log_content: "{\"compoundFormKey\":\"${incoming.body.compound_form_key}\",\"driver1PersonalCodeEe\":\"${driver1_ee}\",\"driver1PersonalCodeForeign\":\"${driver1_foreign}\"${log_content_driver2_part}}"
   next: logAuditEvent
 

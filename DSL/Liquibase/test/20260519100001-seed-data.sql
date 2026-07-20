@@ -41,6 +41,9 @@ INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_vi
 INSERT INTO users.permission (code, description, created_by) VALUES ('foreign_violation_form.read',    'Välisriigi rikkumise andmevormi vormi andmete lugemine ja failide allalaadimine',          'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('compound_form.write',   'Üldosa andmete salvestamine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('compound_form.read',    'Üldosa andmete lugemine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('control_form.edit_locked',    'Lukustatud (kinnitatud või avalikustatud) koondvormi üldosa ja kõigi alamvormide andmete muutmine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('control_form.delete',    'Koondvormi kustutamine koos kõigi alamvormidega', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('control_form.view_unpublished',    'Avaldamata (salvestatud/kinnitatud) koondvormide vaatamine muu isku poolt, kui vormi looja/kinnitaja', 'ljvis2');
 
 -- user_groups — single full snapshot per group (v2: organisations + permissions embedded as JSONB)
 -- user_group_key = 1: Super Admin Group

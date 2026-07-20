@@ -21,6 +21,7 @@ import { LoginPage } from './features/auth/LoginPage/LoginPage';
 import { ForeignViolationFormCreatePage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormCreatePage';
 import { ForeignViolationFormPage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormPage';
 import { CompoundFormCreatePage } from './features/control-forms/pages/compound-form/CompoundFormCreatePage';
+import { CompoundFormPage } from './features/control-forms/pages/compound-form/CompoundFormPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 
 function AppRoutes() {
@@ -61,9 +62,30 @@ function AppRoutes() {
           />
           <Route path="/logs" element={<LogListPage />} />
           <Route path="/logs/:id" element={<LogDetailPage />} />
-          <Route path="/control-forms/foreign-violation/new" element={<ForeignViolationFormCreatePage />} />
-          <Route path="/control-forms/foreign-violation/:id" element={<ForeignViolationFormPage />} />
-          <Route path="/control-forms/compound/new" element={<CompoundFormCreatePage />} />
+          <Route
+            path="/control-forms/foreign-violation/new"
+            element={<ForeignViolationFormCreatePage />}
+          />
+          <Route
+            path="/control-forms/foreign-violation/:id"
+            element={<ForeignViolationFormPage />}
+          />
+          <Route
+            path="/control-forms/foreign-violation/:id/:snapshotId"
+            element={<ForeignViolationFormPage />}
+          />
+          <Route
+            path="/control-forms/compound/new"
+            element={<CompoundFormCreatePage />}
+          />
+          <Route
+            path="/control-forms/compound/:id"
+            element={<CompoundFormPage />}
+          />
+          <Route
+            path="/control-forms/compound/:id/:snapshotId"
+            element={<CompoundFormPage />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

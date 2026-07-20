@@ -7,10 +7,10 @@ import type { User, UserListItem, UserGroupAssignment } from './types';
 
 export const listUsers = (scope: 'admin' | 'local', params: ListApiParams) => {
   const { search, ...rest } = params;
-  return get<PagedResponse<UserListItem>>(
-    `/v1/users/${scope}/search`,
-    { ...rest, ...(search !== undefined && { q: search }) } as Record<string, string>,
-  );
+  return get<PagedResponse<UserListItem>>(`/v1/users/${scope}/search`, {
+    ...rest,
+    ...(search !== undefined && { q: search }),
+  } as Record<string, string>);
 };
 
 export const getUser = (scope: 'admin' | 'local', id: string) =>

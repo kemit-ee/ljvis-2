@@ -144,7 +144,7 @@ INSERT INTO forms.compound_form (
 )
 VALUES (
   nextval('forms.seq_compound_form_key'),
-  'koond-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_compound_form_key')::text, 5, '0'),
+  'koond-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_compound_form_key')::text, 5, '0') || '/1',
   EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER,
   1,
   :status,
