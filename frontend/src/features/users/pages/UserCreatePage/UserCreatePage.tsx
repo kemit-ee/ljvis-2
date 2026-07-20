@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
+  DateField,
   Heading,
   TextField,
   Select,
@@ -10,13 +11,12 @@ import {
   Card,
   Text,
 } from '@tedi-design-system/react/tedi';
-import { DatePicker } from '@tedi-design-system/react/community';
 import { useUserForm } from '../../useUserForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { PhoneField } from '../../components/PhoneField/PhoneField';
-import dayjs from 'dayjs';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './UserCreatePage.module.css';
 
 export function UserCreatePage() {
@@ -243,45 +243,53 @@ export function UserCreatePage() {
                         ]
                       }
                     >
-                      <DatePicker
+                      <DateField
                         id="accessStart"
                         label={t('users.accessStart')}
-                        value={
+                        selected={
                           formik.values.accessStart
-                            ? dayjs(formik.values.accessStart)
-                            : null
+                            ? new Date(formik.values.accessStart)
+                            : undefined
                         }
-                        onChange={(v) => formik.setFieldValue('accessStart', v)}
-                        placeholder={t('users.datePickerPlaceholder')}
+                        onSelect={(v) =>
+                          formik.setFieldValue('accessStart', toIsoDate(v))
+                        }
+                        placeholder={t('common.dateFieldPlaceholder')}
                         required
-                        {...(formik.touched.accessStart &&
-                        formik.errors.accessStart
-                          ? {
-                              helper: {
-                                text: formik.errors.accessStart,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
+                        inputProps={
+                          formik.touched.accessStart &&
+                          formik.errors.accessStart
+                            ? {
+                                helper: {
+                                  text: formik.errors.accessStart,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : undefined
+                        }
                       />
-                      <DatePicker
+                      <DateField
                         id="accessEnd"
                         label={t('users.accessEnd')}
-                        value={
+                        selected={
                           formik.values.accessEnd
-                            ? dayjs(formik.values.accessEnd)
-                            : null
+                            ? new Date(formik.values.accessEnd)
+                            : undefined
                         }
-                        onChange={(v) => formik.setFieldValue('accessEnd', v)}
-                        placeholder={t('users.datePickerPlaceholder')}
-                        {...(formik.touched.accessEnd && formik.errors.accessEnd
-                          ? {
-                              helper: {
-                                text: formik.errors.accessEnd,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
+                        onSelect={(v) =>
+                          formik.setFieldValue('accessEnd', toIsoDate(v))
+                        }
+                        placeholder={t('common.dateFieldPlaceholder')}
+                        inputProps={
+                          formik.touched.accessEnd && formik.errors.accessEnd
+                            ? {
+                                helper: {
+                                  text: formik.errors.accessEnd,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : undefined
+                        }
                       />
                     </div>
                   </div>
