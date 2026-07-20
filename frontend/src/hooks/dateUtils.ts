@@ -21,6 +21,12 @@ export function formatDateTime(value: string | null | undefined): string {
 
 export function toIsoDate(value: unknown): string {
   if (!value) return '';
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
   if (
     typeof value === 'object' &&
     value !== null &&
@@ -35,6 +41,11 @@ export function toIsoDate(value: unknown): string {
 
 export function toIsoTime(value: unknown): string {
   if (!value) return '';
+  if (value instanceof Date) {
+    const hours = String(value.getHours()).padStart(2, '0');
+    const minutes = String(value.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}:00`;
+  }
   if (
     typeof value === 'object' &&
     value !== null &&

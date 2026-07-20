@@ -33,7 +33,7 @@ export function CompoundFormPage() {
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
 
-  const { form, loading, toDateValue, toTimeValue, refetch } =
+  const { form, loading, refetch } =
     useCompoundFormDetail(snapshotId ? undefined : id);
   const [snapshot, setSnapshot] = useState<
     import('../../types').CompoundForm | null
@@ -157,8 +157,6 @@ export function CompoundFormPage() {
           canEdit={false}
           onEdit={() => {}}
           isSnapshot
-          toDateValue={toDateValue}
-          toTimeValue={toTimeValue}
           formType={FORM_TYPE.COMPOUND}
         />
       </div>
@@ -253,8 +251,6 @@ export function CompoundFormPage() {
           {...sharedProps}
           canEdit={canEdit}
           onEdit={() => setIsEditActive(true)}
-          toDateValue={toDateValue}
-          toTimeValue={toTimeValue}
           formType={FORM_TYPE.COMPOUND}
         />
       )}

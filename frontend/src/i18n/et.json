@@ -413,8 +413,6 @@
       "inspectorProfession": "Ametinimetus"
     },
     "admin_procedure_form": "Haldusmenetlus seoses raskete autoveoalaste rikkumistega",
-    "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
-    "sp_teammate_form": "Meeskonna liikme sõidu- ja puhkeaja kontrollvorm",
     "sp_vehicle_tech_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
     "sp_trailer_tech_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
     "sp_dangerous_goods_form": "Ohtliku veose veo kontrollvorm",
@@ -426,8 +424,6 @@
       "inspectionBasicInfo": "Rikkumise avastamise aeg ja koht",
       "inspectionDate": "Kontrolli kuupäev",
       "inspectionTime": "Kontrolli kellaaeg",
-      "datePickerPlaceholder": "PP.KK.AAAA",
-      "timePickerPlaceholder": "HH.MM",
       "inspectionAddressLine1": "Asula / Tänav / Maja nr",
       "inspectionAddressLine2": "Maantee / Parkla",
       "inspectionRegion": "Maakond",
@@ -714,7 +710,6 @@
     "noGroups": "Kasutaja ei ole seotud ühegi kasutajagrupiga",
     "basicInfo": "Isikuandmed",
     "access": "Ligipääs",
-    "datePickerPlaceholder": "PP.KK.AAAA",
     "validation": {
       "required": "Kohustuslik väli",
       "email": "Vigane e-posti formaat",
@@ -836,8 +831,8 @@
     "error": "Tekkis viga",
     "forbidden": "Teil puudub ligipääs sellele lehele",
     "noResults": "Päring ei tagastanud ühtegi tulemust",
-    "datePickerPlaceholder": "PP.KK.AAAA",
-    "timePickerPlaceholder": "HH.MM",
+    "dateFieldPlaceholder": "PP.KK.AAAA",
+    "timeFieldPlaceholder": "HH.MM",
     "errors": {
       "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
       "networkError": "Ühenduse viga. Kontrollige võrguühendust.",

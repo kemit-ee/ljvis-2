@@ -11,8 +11,8 @@ import {
   deleteForeignViolationForm,
   getForeignViolationFormSnapshot,
 } from '../../api';
-import { ForeignViolationFormViewCard } from '../../../control-forms/components/ForeignViolationForm/ForeignViolationFormViewCard';
-import { ForeignViolationFormEditCard } from '../../../control-forms/components/ForeignViolationForm/ForeignViolationFormEditCard';
+import { ForeignViolationFormViewCard } from '../../components/ForeignViolationForm/ForeignViolationFormViewCard.tsx';
+import { ForeignViolationFormEditCard } from '../../components/ForeignViolationForm/ForeignViolationFormEditCard.tsx';
 
 export function ForeignViolationFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -36,7 +36,7 @@ export function ForeignViolationFormPage() {
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
 
-  const { form, loading, toDateValue, toTimeValue, refetch } = useFormDetail(
+  const { form, loading, refetch } = useFormDetail(
     snapshotId ? undefined : id,
   );
   const [snapshot, setSnapshot] = useState<
@@ -135,8 +135,6 @@ export function ForeignViolationFormPage() {
           canEdit={false}
           orgOptions={orgOptions}
           structureUnits={structureUnits}
-          toDateValue={toDateValue}
-          toTimeValue={toTimeValue}
           onEdit={() => {}}
           isSnapshot
           formType={FORM_TYPE.FOREIGN_VIOLATION}
@@ -188,8 +186,6 @@ export function ForeignViolationFormPage() {
           isDesktop={isDesktop}
           orgOptions={orgOptions}
           structureUnits={structureUnits}
-          toDateValue={toDateValue}
-          toTimeValue={toTimeValue}
           canConfirm={canConfirm}
           canDelete={canDelete}
           companySearchError={companySearchError}
@@ -219,8 +215,6 @@ export function ForeignViolationFormPage() {
           canEdit={canEdit}
           orgOptions={orgOptions}
           structureUnits={structureUnits}
-          toDateValue={toDateValue}
-          toTimeValue={toTimeValue}
           onEdit={() => setIsEditActive(true)}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
         />

@@ -20,14 +20,14 @@ import {
   InfoButton,
   Tabs,
   Dropdown,
+  DateField,
+  TimeField
 } from '@tedi-design-system/react/tedi';
-import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
 import { useCompoundForm, emptyTrailer, emptyDriver } from './useCompoundForm';
 import type { Trailer } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
-import dayjs from 'dayjs';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
 import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
@@ -445,52 +445,55 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <DatePicker
+                          <DateField
                             id="controlDate"
                             label={t('forms.compound.controlDate')}
                             disableFuture
-                            value={
+                            selected={
                               formik.values.controlDate
-                                ? dayjs(formik.values.controlDate)
-                                : null
+                                ? new Date(formik.values.controlDate)
+                                : undefined
                             }
-                            onChange={(v) =>
-                              formik.setFieldValue('controlDate', v)
+                            onSelect={(v) =>
+                              formik.setFieldValue('controlDate', toIsoDate(v))
                             }
-                            placeholder={t('common.datePickerPlaceholder')}
+                            placeholder={t('common.dateFieldPlaceholder')}
                             required
-                            {...(formik.touched.controlDate &&
-                            formik.errors.controlDate
-                              ? {
-                                  helper: {
-                                    text: formik.errors.controlDate,
-                                    type: 'error' as const,
-                                  },
-                                }
-                              : {})}
+                            inputProps={
+                              formik.touched.controlDate &&
+                              formik.errors.controlDate
+                                ? {
+                                    helper: {
+                                      text: formik.errors.controlDate,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : undefined
+                            }
                           />
-                          <TimePicker
+                          <TimeField
                             id="controlTime"
                             label={t('forms.compound.controlTime')}
-                            value={
-                              formik.values.controlTime
-                                ? dayjs(formik.values.controlTime)
-                                : null
-                            }
+                            value={formik.values.controlTime?.slice(0, 5) ?? undefined}
                             onChange={(v) =>
-                              formik.setFieldValue('controlTime', v)
+                              formik.setFieldValue(
+                                'controlTime',
+                                v ? (v.length === 5 ? `${v}:00` : v) : '',
+                              )
                             }
-                            placeholder={t('common.timePickerPlaceholder')}
+                            placeholder={t('common.timeFieldPlaceholder')}
                             required
-                            {...(formik.touched.controlTime &&
-                            formik.errors.controlTime
-                              ? {
-                                  helper: {
-                                    text: formik.errors.controlTime,
-                                    type: 'error' as const,
-                                  },
-                                }
-                              : {})}
+                            inputProps={
+                              formik.touched.controlTime &&
+                              formik.errors.controlTime
+                                ? {
+                                    helper: {
+                                      text: formik.errors.controlTime,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : undefined
+                            }
                           />
                         </div>
                       </div>
@@ -626,22 +629,24 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <DatePicker
+                          <DateField
                             id="vehicleFirstRegistration"
                             label={t('forms.compound.vehicleFirstRegistration')}
-                            value={
+                            selected={
                               formik.values.vehicleFirstRegistration
-                                ? dayjs(formik.values.vehicleFirstRegistration)
-                                : null
+                                ? new Date(
+                                    formik.values.vehicleFirstRegistration,
+                                  )
+                                : undefined
                             }
-                            onChange={(v) =>
+                            onSelect={(v) =>
                               formik.setFieldValue(
                                 'vehicleFirstRegistration',
-                                v,
+                                toIsoDate(v),
                               )
                             }
                             placeholder={t(
-                              'forms.foreign_violation.datePickerPlaceholder',
+                              'common.dateFieldPlaceholder',
                             )}
                           />
                         </div>
@@ -967,17 +972,19 @@ export function CompoundFormCreatePage() {
                                         ]
                                       }
                                     >
-                                      <DatePicker
+                                      <DateField
                                         id={`trailerFirstRegistration_${index}`}
                                         label={t(
                                           'forms.compound.trailerFirstRegistration',
                                         )}
-                                        value={
+                                        selected={
                                           trailer.firstRegistration
-                                            ? dayjs(trailer.firstRegistration)
-                                            : null
+                                            ? new Date(
+                                                trailer.firstRegistration,
+                                              )
+                                            : undefined
                                         }
-                                        onChange={(v) => {
+                                        onSelect={(v) => {
                                           const u = [...formik.values.trailers];
                                           u[index] = {
                                             ...u[index],
@@ -986,7 +993,7 @@ export function CompoundFormCreatePage() {
                                           formik.setFieldValue('trailers', u);
                                         }}
                                         placeholder={t(
-                                          'forms.foreign_violation.datePickerPlaceholder',
+                                          'common.dateFieldPlaceholder',
                                         )}
                                       />
                                     </div>
@@ -1554,34 +1561,34 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <DatePicker
+                          <DateField
                             id="driverBirthDate"
                             label={t('forms.compound.driverBirthDate')}
-                            value={
+                            selected={
                               formik.values.drivers[0]?.birthDate
-                                ? dayjs(formik.values.drivers[0].birthDate)
-                                : null
+                                ? new Date(formik.values.drivers[0].birthDate)
+                                : undefined
                             }
-                            onChange={(v) => {
+                            onSelect={(v) => {
                               const u = [...formik.values.drivers];
                               u[0] = { ...u[0], birthDate: toIsoDate(v) };
                               formik.setFieldValue('drivers', u);
                             }}
-                            placeholder={t(
-                              'forms.foreign_violation.datePickerPlaceholder',
-                            )}
+                            placeholder={t('common.dateFieldPlaceholder')}
                             required
-                            {...((formik.touched.drivers as any)?.[0]
-                              ?.birthDate &&
-                            (formik.errors.drivers as any)?.[0]?.birthDate
-                              ? {
-                                  helper: {
-                                    text: (formik.errors.drivers as any)[0]
-                                      .birthDate,
-                                    type: 'error' as const,
-                                  },
-                                }
-                              : {})}
+                            inputProps={
+                              (formik.touched.drivers as any)?.[0]
+                                ?.birthDate &&
+                              (formik.errors.drivers as any)?.[0]?.birthDate
+                                ? {
+                                    helper: {
+                                      text: (formik.errors.drivers as any)[0]
+                                        .birthDate,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : undefined
+                            }
                           />
                         </div>
                       </div>
@@ -1709,15 +1716,15 @@ export function CompoundFormCreatePage() {
                               ]
                             }
                           >
-                            <DatePicker
+                            <DateField
                               id="driver2BirthDate"
                               label={t('forms.compound.driverBirthDate')}
-                              value={
+                              selected={
                                 formik.values.drivers[1]?.birthDate
-                                  ? dayjs(formik.values.drivers[1].birthDate)
-                                  : null
+                                  ? new Date(formik.values.drivers[1].birthDate)
+                                  : undefined
                               }
-                              onChange={(v) => {
+                              onSelect={(v) => {
                                 const u = [...formik.values.drivers];
                                 u[1] = {
                                   ...emptyDriver(),
@@ -1726,9 +1733,7 @@ export function CompoundFormCreatePage() {
                                 };
                                 formik.setFieldValue('drivers', u);
                               }}
-                              placeholder={t(
-                                'forms.foreign_violation.datePickerPlaceholder',
-                              )}
+                              placeholder={t('common.dateFieldPlaceholder')}
                               required
                               {...((formik.touched.drivers as any)?.[1]
                                 ?.birthDate &&

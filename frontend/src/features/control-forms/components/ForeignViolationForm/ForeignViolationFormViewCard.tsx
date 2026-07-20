@@ -8,10 +8,10 @@ import {
   TextField,
   TextArea,
   ChoiceGroup,
+  DateField,
+  TimeField,
 } from '@tedi-design-system/react/tedi';
 import {
-  DatePicker,
-  TimePicker,
   Accordion,
   AccordionItem,
   AccordionItemHeader,
@@ -31,8 +31,6 @@ interface ForeignViolationFormViewCardProps {
   canEdit: boolean;
   orgOptions: { label: string; value: string }[];
   structureUnits: { code: string; name: string }[];
-  toDateValue: (date?: string) => import('dayjs').Dayjs | null;
-  toTimeValue: (date?: string, time?: string) => import('dayjs').Dayjs | null;
   onEdit: () => void;
   canDelete?: boolean;
   onDelete?: () => void;
@@ -46,8 +44,6 @@ export function ForeignViolationFormViewCard({
   canEdit,
   orgOptions,
   structureUnits,
-  toDateValue,
-  toTimeValue,
   onEdit,
   isSnapshot,
   formType,
@@ -188,19 +184,18 @@ export function ForeignViolationFormViewCard({
                 styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="inspectionDate"
                 label={t('forms.foreign_violation.inspectionDate')}
-                value={toDateValue(form.inspectionDate)}
-                onChange={() => {}}
-                disabled={disabled}
+                selected={form.inspectionDate ? new Date(form.inspectionDate) : undefined}
+                placeholder={t('common.dateFieldPlaceholder')}
+                inputProps={{ disabled }}
               />
-              <TimePicker
+              <TimeField
                 id="inspectionTime"
                 label={t('forms.foreign_violation.inspectionTime')}
-                value={toTimeValue(form.inspectionDate, form.inspectionTime)}
-                onChange={() => {}}
-                placeholder={t('forms.foreign_violation.timePickerPlaceholder')}
+                value={form.inspectionTime?.slice(0, 5) ?? undefined}
+                placeholder={t('common.timeFieldPlaceholder')}
                 disabled={disabled}
               />
             </div>
@@ -379,13 +374,12 @@ export function ForeignViolationFormViewCard({
                 styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="vehicleFirstRegistration"
                 label={t('forms.foreign_violation.vehicleFirstRegistration')}
-                value={toDateValue(form.vehicleFirstRegistration)}
-                onChange={() => {}}
-                placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
-                disabled={disabled}
+                selected={form.vehicleFirstRegistration ? new Date(form.vehicleFirstRegistration) : undefined}
+                placeholder={t('common.dateFieldPlaceholder')}
+                inputProps={{ disabled }}
               />
             </div>
             <TextField
@@ -605,13 +599,12 @@ export function ForeignViolationFormViewCard({
                 styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="dataEntryDate"
                 label={t('forms.foreign_violation.dataEntryDate')}
-                value={toDateValue(form.dataEntryDate)}
-                onChange={() => {}}
-                placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
-                disabled={disabled}
+                selected={form.dataEntryDate ? new Date(form.dataEntryDate) : undefined}
+                placeholder={t('common.dateFieldPlaceholder')}
+                inputProps={{ disabled }}
               />
             </div>
           </div>

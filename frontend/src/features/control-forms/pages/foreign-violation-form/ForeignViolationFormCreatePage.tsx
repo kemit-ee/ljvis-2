@@ -13,10 +13,11 @@ import {
   ChoiceGroup,
   FileDropzone,
   Alert,
+  DateField,
+  TimeField,
 } from '@tedi-design-system/react/tedi';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 import {
-  DatePicker,
-  TimePicker,
   Accordion,
   AccordionItem,
   AccordionItemHeader,
@@ -30,7 +31,6 @@ import {
   EU_VIOLATION_GROUPS,
   COUNTRIES,
 } from '../../../../constants/constants';
-import dayjs from 'dayjs';
 import styles from './ForeignViolationFormPage.module.css';
 
 export function ForeignViolationFormCreatePage() {
@@ -244,55 +244,54 @@ export function ForeignViolationFormCreatePage() {
                         ]
                       }
                     >
-                      <DatePicker
+                      <DateField
                         id="inspectionDate"
                         label={t('forms.foreign_violation.inspectionDate')}
                         disableFuture
-                        value={
+                        selected={
                           formik.values.inspectionDate
-                            ? dayjs(formik.values.inspectionDate)
-                            : null
+                            ? new Date(formik.values.inspectionDate)
+                            : undefined
                         }
-                        onChange={(v) =>
-                          formik.setFieldValue('inspectionDate', v)
+                        onSelect={(v) =>
+                          formik.setFieldValue('inspectionDate', toIsoDate(v))
                         }
-                        placeholder={t(
-                          'forms.foreign_violation.datePickerPlaceholder',
-                        )}
+                        placeholder={t('common.dateFieldPlaceholder')}
                         required
-                        {...(formik.touched.inspectionDate &&
-                        formik.errors.inspectionDate
-                          ? {
-                              helper: {
-                                text: formik.errors.inspectionDate,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
+                        inputProps={
+                          formik.touched.inspectionDate &&
+                          formik.errors.inspectionDate
+                            ? {
+                                helper: {
+                                  text: formik.errors.inspectionDate,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : undefined
+                        }
                       />
-                      <TimePicker
+                      <TimeField
                         id="inspectionTime"
                         label={t('forms.foreign_violation.inspectionTime')}
-                        value={
-                          formik.values.inspectionTime
-                            ? dayjs(formik.values.inspectionTime)
-                            : null
-                        }
+                        value={formik.values.inspectionTime?.slice(0, 5) ?? undefined}
                         onChange={(v) =>
-                          formik.setFieldValue('inspectionTime', v)
+                          formik.setFieldValue(
+                            'inspectionTime',
+                            v ? (v.length === 5 ? `${v}:00` : v) : '',
+                          )
                         }
-                        placeholder={t(
-                          'forms.foreign_violation.timePickerPlaceholder',
-                        )}
-                        {...(formik.touched.inspectionTime &&
-                        formik.errors.inspectionTime
-                          ? {
-                              helper: {
-                                text: formik.errors.inspectionTime,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
+                        placeholder={t('common.timeFieldPlaceholder')}
+                        inputProps={
+                          formik.touched.inspectionTime &&
+                          formik.errors.inspectionTime
+                            ? {
+                                helper: {
+                                  text: formik.errors.inspectionTime,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : undefined
+                        }
                       />
                     </div>
                     <div></div>
@@ -625,22 +624,23 @@ export function ForeignViolationFormCreatePage() {
                         ]
                       }
                     >
-                      <DatePicker
+                      <DateField
                         id="vehicleFirstRegistration"
                         label={t(
                           'forms.foreign_violation.vehicleFirstRegistration',
                         )}
-                        value={
+                        selected={
                           formik.values.vehicleFirstRegistration
-                            ? dayjs(formik.values.vehicleFirstRegistration)
-                            : null
+                            ? new Date(formik.values.vehicleFirstRegistration)
+                            : undefined
                         }
-                        onChange={(v) =>
-                          formik.setFieldValue('vehicleFirstRegistration', v)
+                        onSelect={(v) =>
+                          formik.setFieldValue(
+                            'vehicleFirstRegistration',
+                            toIsoDate(v),
+                          )
                         }
-                        placeholder={t(
-                          'forms.foreign_violation.datePickerPlaceholder',
-                        )}
+                        placeholder={t('common.dateFieldPlaceholder')}
                       />
                     </div>
                     <TextField
@@ -976,30 +976,30 @@ export function ForeignViolationFormCreatePage() {
                         ]
                       }
                     >
-                      <DatePicker
+                      <DateField
                         id="dataEntryDate"
                         label={t('forms.foreign_violation.dataEntryDate')}
-                        value={
+                        selected={
                           formik.values.dataEntryDate
-                            ? dayjs(formik.values.dataEntryDate)
-                            : null
+                            ? new Date(formik.values.dataEntryDate)
+                            : undefined
                         }
-                        onChange={(v) =>
-                          formik.setFieldValue('dataEntryDate', v)
+                        onSelect={(v) =>
+                          formik.setFieldValue('dataEntryDate', toIsoDate(v))
                         }
-                        placeholder={t(
-                          'forms.foreign_violation.datePickerPlaceholder',
-                        )}
+                        placeholder={t('common.dateFieldPlaceholder')}
                         required
-                        {...(formik.touched.dataEntryDate &&
-                        formik.errors.dataEntryDate
-                          ? {
-                              helper: {
-                                text: formik.errors.dataEntryDate,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
+                        inputProps={
+                          formik.touched.dataEntryDate &&
+                          formik.errors.dataEntryDate
+                            ? {
+                                helper: {
+                                  text: formik.errors.dataEntryDate,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : undefined
+                        }
                       />
                     </div>
                   </div>
