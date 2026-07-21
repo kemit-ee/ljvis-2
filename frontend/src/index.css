@@ -31,6 +31,10 @@ nav[aria-label='Main navigation'] {
   margin-bottom: 1rem;
 }
 
+.mb-05 {
+  margin-bottom: 0.5rem;
+}
+
 .mt-05 {
   margin-top: 0.5rem;
 }
@@ -87,7 +91,6 @@ nav[aria-label='Main navigation'] {
 }
 
 .table-link {
-  color: primary;
   cursor: pointer;
   text-decoration: none;
 }
@@ -171,5 +174,18 @@ nav[aria-label='Main navigation'] {
 .org-perm-list-card-content {
   display: flex;
   align-items: center;
+  gap: 1rem;
+}
+
+.pos-relative {
+  position: relative;
+}
+
+.pos-rel-left {
+  position: relative;
+  left: 0.25rem;
+}
+
+.gap-1 {
   gap: 1rem;
 }

@@ -1,0 +1,64 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.25rem;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    min-width: 380px;
+    padding: 0.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.dropdownButton {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.4rem 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    color: #111827;
+}
+
+.noResults {
+    padding: 0.5rem;
+    color: #6b7280;
+}
+
+.emptyState {
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 1.5rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+.entriesContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cardContent {
+    padding: 1rem !important;
+}
+
+.entryRow {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    align-items: center;
+    gap: 1rem;
+}

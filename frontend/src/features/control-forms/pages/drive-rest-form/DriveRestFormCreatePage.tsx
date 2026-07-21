@@ -9,7 +9,15 @@ import {
   Card,
   ChoiceGroup,
   TextField,
+  Text,
+  Separator,
+  Accordion,
+  AccordionItem,
+  AccordionItemContent,
+  AccordionItemHeader
 } from '@tedi-design-system/react/tedi';
+import { DocRightCheckSection } from '../../components/DriveRestForm/DocRightCheckSection';
+import { DocRightOtherSection } from '../../components/DriveRestForm/DocRightOtherSection';
 
 interface Props {
   type: string;
@@ -17,8 +25,12 @@ interface Props {
 
 export function DriveRestFormCreatePage({ type: _type }: Props) {
   const { t } = useTranslation();
-  const { cargoCabotageViolations, passengerCabotageViolations, transportClasses: transportClassItems } =
-    useDriveRestForm();
+  const {
+    cargoCabotageViolations,
+    passengerCabotageViolations,
+    transportClasses: transportClassItems,
+    docRightChecks,
+  } = useDriveRestForm();
 
   const [transportType, setTransportType] = useState('');
   const [transportEmptyRun, setTransportEmptyRun] = useState<string[]>([]);
@@ -40,14 +52,42 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
       ? cargoCabotageViolations.map((v) => ({
           id: v.code,
           value: v.code,
-          label: v.name,
+          label: (
+            <Text>
+              <strong>{v.description}</strong>
+              <Separator
+                axis="vertical"
+                color="secondary"
+                display="inline"
+                dotSize="small"
+                element="span"
+                spacing={0.3}
+                variant="dot-only"
+              />
+              {v.name}
+            </Text>
+          ),
         }))
       : []),
     ...(transportType === 'Sõitjatevedu'
       ? passengerCabotageViolations.map((v) => ({
           id: v.code,
           value: v.code,
-          label: v.name,
+          label: (
+            <Text>
+              <strong>{v.description}</strong>
+              <Separator
+                axis="vertical"
+                color="secondary"
+                display="inline"
+                dotSize="small"
+                element="span"
+                spacing={0.3}
+                variant="dot-only"
+              />
+              {v.name}
+            </Text>
+          ),
         }))
       : []),
   ];
@@ -158,12 +198,24 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                 {t('forms.sp_form.cargoClass')}
               </Heading>
               {(() => {
-                const cabotageIdx = transportClassItems.findIndex((c) => c.code === 'CABOTAGE');
-                const beforeCabotage = cabotageIdx >= 0 ? transportClassItems.slice(0, cabotageIdx + 1) : transportClassItems;
-                const afterCabotage = cabotageIdx >= 0 ? transportClassItems.slice(cabotageIdx + 1) : [];
+                const cabotageIdx = transportClassItems.findIndex(
+                  (c) => c.code === 'CABOTAGE',
+                );
+                const beforeCabotage =
+                  cabotageIdx >= 0
+                    ? transportClassItems.slice(0, cabotageIdx + 1)
+                    : transportClassItems;
+                const afterCabotage =
+                  cabotageIdx >= 0
+                    ? transportClassItems.slice(cabotageIdx + 1)
+                    : [];
                 const toItems = (list: typeof transportClassItems) =>
-                  list.map((cls) => ({ id: cls.code, value: cls.code, label: cls.name }));
-                const handleChange = (val: string[] ) => {
+                  list.map((cls) => ({
+                    id: cls.code,
+                    value: cls.code,
+                    label: cls.name,
+                  }));
+                const handleChange = (val: string[]) => {
                   setTransportClasses(val);
                   if (!val.includes('CABOTAGE')) setCabotageViolations([]);
                 };
@@ -188,7 +240,9 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                           name="cabotageViolations"
                           inputType="checkbox"
                           value={cabotageViolations}
-                          onChange={(val) => setCabotageViolations(val as string[])}
+                          onChange={(val) =>
+                            setCabotageViolations(val as string[])
+                          }
                           items={cabotageSubItems}
                         />
                       </div>
@@ -287,11 +341,6 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                   <>
                     {(() => {
                       const PROCEEDING_TYPES = [
-                        {
-                          id: 'proceeding_none',
-                          value: 'NONE',
-                          label: t('forms.sp_form.proceedingTypeNone'),
-                        },
                         {
                           id: 'proceeding_lyhi',
                           value: 'LYHI',
@@ -395,6 +444,41 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
           </Card>
         </Col>
       </Row>
+      {/* Plokk: Dokumendi või õiguse kontroll */}
+      {controlResult !== '' && controlResult !== 'KORRAS' && (
+        <div style={{ overflow: 'visible' }}>
+          <Accordion>
+            <AccordionItem id="doc-right-check">
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t(
+                      'forms.docRightCheck.blockTitle',
+                      'Dokumendi või õiguse kontroll',
+                    )}
+                  </Heading>
+                }
+              />
+              <AccordionItemContent>
+                <div style={{ marginBottom: '1.5rem', overflow: 'visible' }}>
+                  <DocRightCheckSection docRightChecks={docRightChecks} />
+                </div>
+                <div>
+                  <Text modifiers="bold">
+                    {t(
+                      'forms.docRightCheck.otherDocuments',
+                      'Muud dokumendid',
+                    )}
+                  </Text>
+                  <div className="mt-1">
+                    <DocRightOtherSection transportType={transportType} />
+                  </div>
+                </div>
+              </AccordionItemContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
     </div>
   );
 }

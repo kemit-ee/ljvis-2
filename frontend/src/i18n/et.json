@@ -331,7 +331,6 @@
       "controlResultAutovedu": "Autovedu on katkestatud",
       "controlResultAlustati": "Alustati väärteomentlust",
       "proceedingType": "Menetluse liik",
-      "proceedingTypeNone": "Menetlust ei alustata",
       "proceedingTypeLyhi": "Lühimenetlus",
       "proceedingTypeKiir": "Kiirmenetlus",
       "proceedingTypeYld": "Üldmenetlus",

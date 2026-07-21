@@ -1,0 +1,121 @@
+.doc-right-check-modal-wrapper {
+    max-width: 1400px !important;
+    width: 95vw !important;
+}
+
+.doc-right-check-modal :global(.tedi-modal) {
+    max-width: 1400px !important;
+    width: 95vw !important;
+}
+
+.doc-right-check-modal :global(.tedi-modal-content) {
+    max-width: 1400px !important;
+    width: 95vw !important;
+}
+
+.trigger-button {
+    display: none;
+}
+
+.modal-body-wrapper {
+    overflow-y: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-row {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.table-cell-name {
+    padding: 0.75rem 0.5rem;
+    width: 70%;
+    vertical-align: middle;
+}
+
+.table-cell-dropdown {
+    padding: 0.75rem 0.5rem;
+    width: 30%;
+    vertical-align: middle;
+    position: relative;
+}
+
+.dropdown-wrapper {
+    position: relative;
+}
+
+.dropdown-trigger-button {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+
+    color: #111827;
+    text-align: left;
+}
+
+.dropdown-trigger-button:disabled {
+    cursor: default;
+}
+
+.dropdown-trigger-button.is-default {
+    color: #6b7280;
+}
+
+.dropdown-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.dropdown-arrow {
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    line-height: 2;
+}
+
+.severity {
+    margin-right: 0.25rem;
+}
+
+.clear-button-container {
+    border-top: 1px solid #e5e7eb;
+    padding: 0.4rem 0.75rem;
+}
+
+.clear-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #374151;
+    font-size: 1rem;
+}

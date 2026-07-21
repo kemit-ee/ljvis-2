@@ -26,5 +26,12 @@ export function useDriveRestForm() {
     [classifierValues],
   );
 
-  return { cargoCabotageViolations, passengerCabotageViolations, transportClasses };
+
+  const docRightChecks = useMemo(
+    () =>
+      classifierValues.filter((v) => v.classifierCode === 'DOC_RIGHT_CHECK'),
+    [classifierValues],
+  );
+
+  return { cargoCabotageViolations, passengerCabotageViolations, transportClasses, docRightChecks };
 }
