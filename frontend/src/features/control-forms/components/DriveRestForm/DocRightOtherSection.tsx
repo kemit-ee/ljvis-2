@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -8,63 +8,24 @@ import {
   ChoiceGroup,
 } from '@tedi-design-system/react/tedi';
 import styles from './DocRightOtherSection.module.css';
+import type { ClassifierValueData } from '../../../classifier-values/types';
 
 type Visibility = 'BOTH' | 'CARGO' | 'PASSENGER';
 type ResultValue = 'EI_KONTROLLITUD' | 'NOUETEKOHANE' | 'PUUDUB';
 
-interface OtherDocument {
-  id: number;
-  name: string;
-  visibility: Visibility;
-}
+const CODE_TO_VISIBILITY: Record<string, Visibility> = {
+  MOOTORSOIDUKI_LEPING: 'BOTH',
+  SOIDUKIJUHI_TOO_LEPING: 'BOTH',
+  VEOSE_DOKUMENDID: 'CARGO',
+  SUUREMOOTMELISE_VEOSE_ERILUBA: 'CARGO',
+  LIINIVEO_SOIDUPLAAN: 'PASSENGER',
+  OMAKULUL_VEOSEVEO_VASTAVUS: 'CARGO',
+  OMAKULUL_SOITJATEVEO_VASTAVUS: 'PASSENGER',
+};
 
-const OTHER_DOCUMENTS: OtherDocument[] = [
-  {
-    id: 1,
-    name: 'Mootorsõiduki kasutusleping või sellest lepingust osapoolte kinnitatud väljavõte, kui lepingu andmed ei ole kantud MTR-i',
-    visibility: 'BOTH',
-  },
-  {
-    id: 2,
-    name: 'Mootorsõidukijuhi töö- või võlaõiguslik leping või sellest lepingust osapoolte kinnitatud väljavõte (riigisisesel veoseveol ei pea kaasas olema, kontroll TÖR-st)',
-    visibility: 'BOTH',
-  },
-  {
-    id: 3,
-    name: 'Veose saatedokument',
-    visibility: 'CARGO',
-  },
-  {
-    id: 4,
-    name: 'Raske- või suurveose eriluba',
-    visibility: 'CARGO',
-  },
-  {
-    id: 5,
-    name: 'Liiniveo sõiduplaan',
-    visibility: 'PASSENGER',
-  },
-  {
-    id: 6,
-    name: 'Oma kulul korraldataval veoseveol dokumendid, mis tõendavad oma kulul veoseveo nõuetele vastavust',
-    visibility: 'CARGO',
-  },
-  {
-    id: 7,
-    name: 'Oma kulul korraldataval sõitjateveol dokumendid, mis tõendavad oma kulul sõitjateveo nõuetele vastavust (näiteks oma kulul sõitjateveo sertifikaat)',
-    visibility: 'PASSENGER',
-  },
-  {
-    id: 8,
-    name: 'Autojuht teostab vedu, mille osas rakendub Eestisse lähetamise nõue (lähetusdeklaratsiooni kontroll)',
-    visibility: 'BOTH',
-  },
-  {
-    id: 9,
-    name: 'Autojuht oli eelnevalt teostanud veo, mille osas rakendus Eestisse lähetamise nõue (lähetusdeklaratsiooni kontroll)',
-    visibility: 'BOTH',
-  },
-];
+function getVisibility(code: string): Visibility {
+  return CODE_TO_VISIBILITY[code] ?? 'BOTH';
+}
 
 interface RowState {
   result: ResultValue;
@@ -74,48 +35,61 @@ interface RowState {
 
 interface Props {
   transportType: string;
+  docRightOtherDocs: ClassifierValueData[];
 }
 
-export function DocRightOtherSection({ transportType }: Props) {
+export function DocRightOtherSection({
+  transportType,
+  docRightOtherDocs,
+}: Props) {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<Record<number, RowState>>(() => {
-    const init: Record<number, RowState> = {};
-    OTHER_DOCUMENTS.forEach((doc) => {
-      init[doc.id] = {
-        result: 'EI_KONTROLLITUD',
-        remarkOpen: false,
-        remark: '',
-      };
-    });
-    return init;
-  });
+  const [rows, setRows] = useState<Record<number, RowState>>({});
 
-  const visibleDocs = OTHER_DOCUMENTS.filter((doc) => {
-    if (doc.visibility === 'BOTH') return true;
-    if (doc.visibility === 'CARGO') return transportType === 'Veosevedu';
-    if (doc.visibility === 'PASSENGER') return transportType === 'Sõitjatevedu';
-    return true;
-  });
+  const visibleDocs = useMemo(
+    () =>
+      docRightOtherDocs.filter((doc) => {
+        const visibility = getVisibility(doc.code);
+        if (visibility === 'BOTH') return true;
+        if (visibility === 'CARGO') return transportType === 'Veosevedu';
+        if (visibility === 'PASSENGER')
+          return transportType === 'Sõitjatevedu';
+        return true;
+      }),
+    [docRightOtherDocs, transportType],
+  );
+
+  const getRow = (prev: Record<number, RowState>, id: number) =>
+    prev[id] ?? {
+      result: 'EI_KONTROLLITUD' as ResultValue,
+      remarkOpen: false,
+      remark: '',
+    };
 
   const setResult = (id: number, result: ResultValue) => {
-    setRows((prev) => ({ ...prev, [id]: { ...prev[id], result } }));
-  };
-
-  const toggleRemark = (id: number) => {
     setRows((prev) => ({
       ...prev,
-      [id]: { ...prev[id], remarkOpen: !prev[id].remarkOpen },
+      [id]: { ...getRow(prev, id), result },
     }));
   };
 
+  const toggleRemark = (id: number) => {
+    setRows((prev) => {
+      const row = getRow(prev, id);
+      return { ...prev, [id]: { ...row, remarkOpen: !row.remarkOpen } };
+    });
+  };
+
   const setRemark = (id: number, remark: string) => {
-    setRows((prev) => ({ ...prev, [id]: { ...prev[id], remark } }));
+    setRows((prev) => ({
+      ...prev,
+      [id]: { ...getRow(prev, id), remark },
+    }));
   };
 
   const clearRemark = (id: number) => {
     setRows((prev) => ({
       ...prev,
-      [id]: { ...prev[id], remark: '', remarkOpen: false },
+      [id]: { ...getRow(prev, id), remark: '', remarkOpen: false },
     }));
   };
 
@@ -134,25 +108,30 @@ export function DocRightOtherSection({ transportType }: Props) {
   return (
     <div className={styles.container}>
       {visibleDocs.map((doc) => {
-        const state = rows[doc.id];
+        const id = doc.classifierValueKey;
+        const state = rows[id] ?? {
+          result: 'EI_KONTROLLITUD',
+          remarkOpen: false,
+          remark: '',
+        };
         return (
-          <Card key={doc.id}>
+          <Card key={id}>
             <Card.Content>
               <div className={styles.row}>
                 <div className={styles.docName}>
                   <Text>{doc.name}</Text>
                 </div>
                 <ChoiceGroup
-                  id={`doc-result-${doc.id}`}
+                  id={`doc-result-${id}`}
                   label=""
-                  name={`doc-result-${doc.id}`}
+                  name={`doc-result-${id}`}
                   inputType="radio"
                   direction="row"
                   value={state.result}
-                  onChange={(val) => setResult(doc.id, val as ResultValue)}
+                  onChange={(val) => setResult(id, val as ResultValue)}
                   className="gap-1"
                   items={RESULT_OPTIONS.map((opt) => ({
-                    id: `${doc.id}-${opt.value}`,
+                    id: `${id}-${opt.value}`,
                     value: opt.value,
                     label: opt.label,
                   }))}
@@ -162,7 +141,7 @@ export function DocRightOtherSection({ transportType }: Props) {
                     icon="comment"
                     id="commentOther"
                     visualType="neutral"
-                    onClick={() => toggleRemark(doc.id)}
+                    onClick={() => toggleRemark(id)}
                     size="small"
                   >
                     {t('forms.otherDocs.addRemark', 'Lisa märkus')}
@@ -173,11 +152,11 @@ export function DocRightOtherSection({ transportType }: Props) {
             {state.remarkOpen && (
               <div className={styles.remarkRow}>
                 <TextField
-                  id={`remark-${doc.id}`}
+                  id={`remark-${id}`}
                   label=""
                   placeholder={t('forms.otherDocs.remarkPlaceholder', 'Märkus')}
                   value={state.remark}
-                  onChange={(val) => setRemark(doc.id, val as string)}
+                  onChange={(val) => setRemark(id, val as string)}
                 />
                 <Button
                   icon="delete"
@@ -185,7 +164,7 @@ export function DocRightOtherSection({ transportType }: Props) {
                   visualType="neutral"
                   color="danger"
                   size="small"
-                  onClick={() => clearRemark(doc.id)}
+                  onClick={() => clearRemark(id)}
                 >
                   {t('common.remove', 'Eemalda')}
                 </Button>

@@ -33,5 +33,17 @@ export function useDriveRestForm() {
     [classifierValues],
   );
 
-  return { cargoCabotageViolations, passengerCabotageViolations, transportClasses, docRightChecks };
+  const docRightOtherDocs = useMemo(
+    () =>
+      classifierValues.filter((v) => v.classifierCode === 'OTHER_DOCUMENTS'),
+    [classifierValues],
+  );
+
+  return {
+    cargoCabotageViolations,
+    passengerCabotageViolations,
+    transportClasses,
+    docRightChecks,
+    docRightOtherDocs,
+  };
 }

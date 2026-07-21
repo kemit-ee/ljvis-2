@@ -30,6 +30,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
     passengerCabotageViolations,
     transportClasses: transportClassItems,
     docRightChecks,
+    docRightOtherDocs,
   } = useDriveRestForm();
 
   const [transportType, setTransportType] = useState('');
@@ -471,7 +472,10 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                     )}
                   </Text>
                   <div className="mt-1">
-                    <DocRightOtherSection transportType={transportType} />
+                    <DocRightOtherSection
+                      transportType={transportType}
+                      docRightOtherDocs={docRightOtherDocs}
+                    />
                   </div>
                 </div>
               </AccordionItemContent>

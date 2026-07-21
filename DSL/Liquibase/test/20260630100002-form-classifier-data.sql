@@ -1147,3 +1147,85 @@ DO $$
             END LOOP;
 
     END $$;
+
+DO $$
+    DECLARE
+        v_created_by    VARCHAR(100) := 'system';
+        v_clf_key       BIGINT;       -- classifier_key for TACHOGRAPH_TYPES
+        v_rec           RECORD;
+    BEGIN
+
+        INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
+        VALUES (
+                   nextval('classifier.seq_classifier_key'),
+                   'TACHOGRAPH_TYPES',
+                   'Sõidumeeriku liik',
+                   'Sõidumeeriku liigid — PPA SP kontrollkaart, sõidu- ja puhkeaja nõuete täitmine',
+                   v_created_by
+               )
+        RETURNING classifier_key INTO v_clf_key;
+
+        FOR v_rec IN
+            SELECT * FROM (VALUES
+                               ('ANALOGUE', 'Analoogsõidumeerik (1986, teenuse korral ka varem)'),
+                               ('DIGITAL',  'Digitaalne sõidumeerik (01.05.2006)'),
+                               ('SMART_1',  'Arukas sõidumeerik SMART 1 (15.06.2019)'),
+                               ('SMART_2',  'Arukas sõidumeerik SMART 2 (21.08.2023)'),
+                               ('MISSING',  'Sõidumeerik puudub (on nõutav)')
+                          ) AS t(code, name)
+            LOOP
+                INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+                VALUES (
+                           nextval('classifier.seq_classifier_value_key'),
+                           v_clf_key,
+                           v_rec.code,
+                           v_rec.name,
+                           CURRENT_DATE,
+                           NULL,
+                           v_created_by
+                       );
+            END LOOP;
+
+    END $$;
+
+DO $$
+    DECLARE
+        v_created_by    VARCHAR(100) := 'system';
+        v_clf_key       BIGINT;       -- classifier_key for OTHER_DOCUMENTS
+        v_rec           RECORD;
+    BEGIN
+
+        INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
+        VALUES (
+                   nextval('classifier.seq_classifier_key'),
+                   'OTHER_DOCUMENTS',
+                   'Muud dokumendid',
+                   'Muud dokumendid — PPA Autojuht SP kontrollkaart §5',
+                   v_created_by
+               )
+        RETURNING classifier_key INTO v_clf_key;
+
+        FOR v_rec IN
+            SELECT * FROM (VALUES
+                               ('MOOTORSOIDUKI_LEPING',            'Mootorsõiduki kasutusleping (kui andmed ei ole kantud MTR-i)'),
+                               ('SOIDUKIJUHI_TOO_LEPING',          'Mootorsõidukijuhi töö- või võlaõiguslik leping (riigisisesel veoseveol kontroll TÖR-st)'),
+                               ('VEOSE_DOKUMENDID',                'Veose saatedokument'),
+                               ('SUUREMOOTMELISE_VEOSE_ERILUBA',   'Raske- või suurveose eriluba'),
+                               ('LIINIVEO_SOIDUPLAAN',             'Liiniveo sõiduplaan'),
+                               ('OMAKULUL_VEOSEVEO_VASTAVUS',      'Oma kulul veoseveol nõuetele vastavuse tõendavad dokumendid'),
+                               ('OMAKULUL_SOITJATEVEO_VASTAVUS',   'Oma kulul sõitjateveol nõuetele vastavuse tõendavad dokumendid (nt sertifikaat)')
+                          ) AS t(code, name)
+            LOOP
+                INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+                VALUES (
+                           nextval('classifier.seq_classifier_value_key'),
+                           v_clf_key,
+                           v_rec.code,
+                           v_rec.name,
+                           CURRENT_DATE,
+                           NULL,
+                           v_created_by
+                       );
+            END LOOP;
+
+    END $$;
