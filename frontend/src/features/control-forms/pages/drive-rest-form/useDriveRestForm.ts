@@ -51,6 +51,11 @@ export function useDriveRestForm() {
     [classifierValues],
   );
 
+  const massDimensions = useMemo(
+    () => classifierValues.filter((v) => v.classifierCode === 'MASS_DIMENSION'),
+    [classifierValues],
+  );
+
   return {
     cargoCabotageViolations,
     passengerCabotageViolations,
@@ -59,5 +64,6 @@ export function useDriveRestForm() {
     docRightOtherDocs,
     tachographTypes,
     drivingViolations,
+    massDimensions,
   };
 }

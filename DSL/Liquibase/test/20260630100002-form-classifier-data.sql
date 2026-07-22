@@ -1229,3 +1229,72 @@ DO $$
             END LOOP;
 
     END $$;
+
+DO $$
+    DECLARE
+        v_created_by    VARCHAR(100) := 'system';
+        v_clf_key       BIGINT;       -- classifier_key for MASS_DIMENSION
+        v_rec           RECORD;
+    BEGIN
+
+        INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
+        VALUES (
+                   nextval('classifier.seq_classifier_key'),
+                   'MASS_DIMENSION',
+                   'Sõiduki massi ja mõõtmete kontroll',
+                   'Sõiduki massi ja mõõtmete rikkumiste klassifikaator',
+                   v_created_by
+               )
+        RETURNING classifier_key INTO v_clf_key;
+
+        FOR v_rec IN
+            SELECT * FROM (VALUES
+                               ('MASS_N3',       'Ületatakse suurimat lubatud massi N3-kategooria sõidukiga',  'Mass'),
+                               ('MASS_N2',       'Ületatakse suurimat lubatud massi N2-kategooria sõidukiga',  'Mass'),
+                               ('PIKKUS',        'Ületatakse suurimat lubatud pikkust',                        'Pikkus'),
+                               ('LAIUS',         'Ületatakse suurimat lubatud laiust',                         'Laius'),
+                               ('KORGUS',        'Kõrgus',                                                     NULL),
+                               ('TELJEKOORMUS',  'Teljekoormus',                                               NULL)
+                          ) AS t(code, name, description)
+            LOOP
+                INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, parent_key, description, created_by)
+                VALUES (nextval('classifier.seq_classifier_value_key'), v_clf_key, v_rec.code, v_rec.name, CURRENT_DATE, NULL, NULL, v_rec.description, v_created_by);
+            END LOOP;
+
+        FOR v_rec IN
+            SELECT * FROM (VALUES
+                               -- Mass N3
+                               ('SI922',            '5% ≤ ... < 10%',           'SI',   'MASS_N3'),
+                               ('VSI843',           '10% ≤ ... < 20%',          'VSI',  'MASS_N3'),
+                               ('MSI701',           '20% ≤ ...',                'MSI',  'MASS_N3'),
+                               -- Mass N2
+                               ('SI923',            '5% ≤ ... < 15%',           'SI',   'MASS_N2'),
+                               ('VSI844',           '15% ≤ ... < 25%',          'VSI',  'MASS_N2'),
+                               ('MSI702',           '25% ≤ ...',                'MSI',  'MASS_N2'),
+                               -- Pikkus
+                               ('SI924',            '2% < ... < 20%',           'SI',   'PIKKUS'),
+                               ('VSI845',           '20% ≤ ...',                'VSI',  'PIKKUS'),
+                               -- Laius
+                               ('SI925',            '2,65 ≤ ... < 3,10 m',      'SI',   'LAIUS'),
+                               ('VSI846',           '3,10 m ≤ ...',             'VSI',  'LAIUS'),
+                               -- Kõrgus (no severity code)
+                               ('KORGUS_01',        'Ei vasta nõuetele',        NULL,   'KORGUS'),
+                               -- Teljekoormus (no severity code)
+                               ('TELJEKOORMUS_01',  'Ei vasta nõuetele',        NULL,   'TELJEKOORMUS')
+                          ) AS t(code, name, severity, parent_code)
+            LOOP
+                INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, parent_key, description, created_by)
+                VALUES (
+                           nextval('classifier.seq_classifier_value_key'),
+                           v_clf_key,
+                           v_rec.code,
+                           v_rec.name,
+                           CURRENT_DATE,
+                           NULL,
+                           (SELECT classifier_value_key FROM classifier.classifier_value WHERE classifier_key = v_clf_key AND code = v_rec.parent_code ORDER BY created_at DESC LIMIT 1),
+                           v_rec.severity,
+                           v_created_by
+                       );
+            END LOOP;
+
+    END $$;
