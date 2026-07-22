@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Search, Card, Separator } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
@@ -22,6 +23,8 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
     useState<ClassifierValueData | null>(null);
   const modalRef = useRef<{ open: () => void }>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, position: 'bottom' as 'bottom' | 'top' });
 
   const level1Items = useMemo(
     () => checks.filter((v) => !v.parentKey),
@@ -119,6 +122,37 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (dropdownOpen) {
+        setDropdownOpen(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [dropdownOpen]);
+
+  useEffect(() => {
+    if (dropdownOpen && buttonRef.current) {
+      setTimeout(() => {
+        const rect = buttonRef.current?.getBoundingClientRect();
+        if (rect) {
+          const dropdownHeight = dropdownRef.current?.offsetHeight || 0;
+          const dropdownWidth = dropdownRef.current?.offsetWidth || 0;
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const positionBottom = spaceBelow >= dropdownHeight;
+          const top = positionBottom ? rect.bottom + 4 : rect.top - dropdownHeight - 4;
+          
+          setDropdownPosition({
+            top,
+            left: rect.right - dropdownWidth,
+            position: positionBottom ? 'bottom' : 'top',
+          });
+        }
+      }, 0);
+    }
+  }, [dropdownOpen]);
+
   return (
     <div>
       <div className={styles.header}>
@@ -135,6 +169,7 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
         </Text>
         <div className="pos-relative">
           <Button
+            ref={buttonRef}
             type="button"
             visualType="secondary"
             onClick={() => {
@@ -144,8 +179,17 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
           >
             {t('forms.drive_rest.add', '+ Lisa')} ▾
           </Button>
-          {dropdownOpen && (
-            <div ref={dropdownRef} className={styles.dropdown}>
+          {dropdownOpen &&
+            createPortal(
+              <div
+                ref={dropdownRef}
+                className={styles.dropdown}
+                style={{
+                  top: `${dropdownPosition.top}px`,
+                  left: `${dropdownPosition.left}px`,
+                  position: 'fixed',
+                }}
+              >
               <div className="mb-05">
                 <Search
                   id="doc-right-check-search"
@@ -188,8 +232,9 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
                   </Text>
                 </div>
               )}
-            </div>
-          )}
+            </div>,
+              document.body,
+            )}
         </div>
       </div>
 
