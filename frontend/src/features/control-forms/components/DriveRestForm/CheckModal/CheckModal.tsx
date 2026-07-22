@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Text,
+  TextArea,
   Modal,
   Alert,
   Separator,
@@ -26,37 +27,42 @@ export interface DocRightCheckEntry {
   level3Code: string;
   level3Name: string;
   severity: string;
+  note?: string;
 }
 
 interface Props {
-  level1Item: ClassifierValueData;
+  level1Item: ClassifierValueData | null;
+  level1Items: ClassifierValueData[];
   level2Items: ClassifierValueData[];
   level3Items: ClassifierValueData[];
   existingEntries: DocRightCheckEntry[];
   onConfirm: (entries: DocRightCheckEntry[]) => void;
   triggerLabel?: string;
   modalRef?: React.RefObject<{ open: () => void }>;
-  isDocCheck: boolean;
+  type: 'docCheck' | 'drivingViolation' | 'massDimension';
 }
 
 interface DropdownState {
   open: boolean;
   selected: string[];
+  note?: string;
 }
 
 export function CheckModal({
   level1Item,
+  level1Items,
   level2Items,
   level3Items,
   existingEntries,
   onConfirm,
   triggerLabel,
   modalRef,
-  isDocCheck,
+  type,
 }: Props) {
   const { t } = useTranslation();
   const [dropdowns, setDropdowns] = useState<Record<string, DropdownState>>({});
   const [showValidation, setValidationError] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -70,13 +76,36 @@ export function CheckModal({
 
   const myLevel2 = useMemo(
     () =>
-      level2Items.filter((v) => v.parentKey === level1Item.classifierValueKey),
-    [level2Items, level1Item.classifierValueKey],
+      level1Item
+        ? level2Items.filter((v) => v.parentKey === level1Item.classifierValueKey)
+        : level2Items,
+    [level2Items, level1Item],
+  );
+
+  const myLevel1 = useMemo(
+    () => level1Item ? [level1Item] : level1Items,
+    [level1Item, level1Items],
   );
 
   const groupedLevel2 = useMemo(() => {
-    if (isDocCheck) {
+    if (type === 'docCheck') {
       return { '': myLevel2 };
+    }
+    if (type === 'massDimension') {
+      const groups: Record<string, typeof myLevel2> = {};
+      const ungrouped: typeof myLevel2 = [];
+      myLevel2.forEach((l2) => {
+        const description = l2.description;
+        if (!description) {
+          ungrouped.push(l2);
+        } else {
+          if (!groups[description]) {
+            groups[description] = [];
+          }
+          groups[description].push(l2);
+        }
+      });
+      return { ...groups, '': ungrouped };
     }
     const groups: Record<string, typeof myLevel2> = {};
     myLevel2.forEach((l2) => {
@@ -87,7 +116,7 @@ export function CheckModal({
       groups[description].push(l2);
     });
     return groups;
-  }, [myLevel2, isDocCheck]);
+  }, [myLevel2, type]);
 
   const getLevel3ForLevel2 = (l2ClassifierValueKey: number) =>
     level3Items.filter((v) => v.parentKey === l2ClassifierValueKey);
@@ -97,7 +126,7 @@ export function CheckModal({
     l2List.forEach((l2) => {
       const existingForL2 = existingEntries
         .filter(
-          (e) => e.level1Code === level1Item.code && e.level2Code === l2.code,
+          (e) => (type === 'massDimension' || level1Item?.code === e.level1Code) && e.level2Code === l2.code,
         )
         .map((e) => e.level3Code);
       init[l2.code] = { open: false, selected: existingForL2 };
@@ -108,7 +137,7 @@ export function CheckModal({
   useEffect(() => {
     setDropdowns(buildDropdowns(myLevel2));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level1Item.code]);
+  }, [level1Item?.code, type === 'massDimension' ? existingEntries : undefined]);
 
   const toggleDropdown = (l2Code: string) => {
     setDropdowns((prev) => ({
@@ -119,6 +148,15 @@ export function CheckModal({
 
   const toggleLevel3 = (l2Code: string, l3Code: string) => {
     setDropdowns((prev) => {
+      if (type === 'massDimension') {
+        // For massDimension, checkboxes are mutually exclusive within each level 1 row
+        // Allow unchecking if the same item is clicked
+        const current = prev[l2Code]?.selected ?? [];
+        if (current.includes(l3Code)) {
+          return { ...prev, [l2Code]: { ...prev[l2Code], selected: [] } };
+        }
+        return { ...prev, [l2Code]: { ...prev[l2Code], selected: [l3Code] } };
+      }
       const current = prev[l2Code]?.selected ?? [];
       const updated = current.includes(l3Code)
         ? current.filter((c) => c !== l3Code)
@@ -152,28 +190,77 @@ export function CheckModal({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (!isModalOpen && type === 'massDimension') {
+      // Clear notes for unchecked items when modal is closed
+      setDropdowns((prev) => {
+        const updated = { ...prev };
+        myLevel1.forEach((l1) => {
+          const l2Items = level2Items.filter((v) => v.parentKey === l1.classifierValueKey);
+          l2Items.forEach((l2) => {
+            const state = updated[l2.code];
+            if (state && !state.selected.includes(l2.code) && state.note) {
+              updated[l2.code] = { ...state, note: '' };
+            }
+          });
+        });
+        return updated;
+      });
+    }
+  }, [isModalOpen, type, myLevel1, level2Items]);
+
   const handleConfirm = () => {
     const entries: DocRightCheckEntry[] = [];
-    myLevel2.forEach((l2) => {
-      const selected = dropdowns[l2.code]?.selected ?? [];
-      selected.forEach((l3Code) => {
-        const l3 = level3Items.find(
-          (v) => v.code === l3Code && v.parentKey === l2.classifierValueKey,
-        );
-        if (l3) {
-          entries.push({
-            level1Code: level1Item.code,
-            level1Name: level1Item.name,
-            level2Code: l2.code,
-            level2Name: l2.name,
-            level2Description: l2.description ?? '',
-            level3Code: l3.code,
-            level3Name: l3.name,
-            severity: l3.description ?? '',
-          });
-        }
+    if (type === 'massDimension') {
+      // For massDimension, iterate over level2Items filtered by each level1
+      myLevel1.forEach((l1) => {
+        const l2Items = level2Items.filter((v) => v.parentKey === l1.classifierValueKey);
+        l2Items.forEach((l2) => {
+          const selected = dropdowns[l2.code]?.selected ?? [];
+          const note = dropdowns[l2.code]?.note;
+          if (selected.length > 0) {
+            entries.push({
+              level1Code: l1.code,
+              level1Name: l1.name,
+              level2Code: l2.code,
+              level2Name: l2.name,
+              level2Description: l2.description ?? '',
+              level3Code: l2.code,
+              level3Name: l2.name,
+              severity: l2.description ?? '',
+              note: note,
+            });
+          }
+        });
       });
-    });
+    } else {
+      // For other types, iterate over myLevel2
+      myLevel2.forEach((l2) => {
+        const selected = dropdowns[l2.code]?.selected ?? [];
+        const note = dropdowns[l2.code]?.note;
+        selected.forEach((l3Code) => {
+          const l3 = level3Items.find(
+            (v) => v.code === l3Code && v.parentKey === l2.classifierValueKey,
+          );
+          if (l3) {
+            const level1 = myLevel1.find((l1) => l1.classifierValueKey === l2.parentKey);
+            if (level1) {
+              entries.push({
+                level1Code: level1.code,
+                level1Name: level1.name,
+                level2Code: l2.code,
+                level2Name: l2.name,
+                level2Description: l2.description ?? '',
+                level3Code: l3.code,
+                level3Name: l3.name,
+                severity: l3.description ?? '',
+                note: note,
+              });
+            }
+          }
+        });
+      });
+    }
 
     if (entries.length === 0) {
       setValidationError(true);
@@ -181,6 +268,7 @@ export function CheckModal({
     }
 
     onConfirm(entries);
+    setIsModalOpen(false);
   };
 
   const getDropdownLabel = (l2Code: string) => {
@@ -193,7 +281,7 @@ export function CheckModal({
           (v) => v.code === code && v.parentKey === l2?.classifierValueKey,
         );
         if (!l3) return code;
-        return !isDocCheck && l3.description ? (
+        return type !== 'docCheck' && l3.description ? (
           <span key={code} style={{ display: 'inline' }}>
             <strong>{l3.description}</strong>
             <Separator
@@ -221,7 +309,7 @@ export function CheckModal({
   };
 
   return (
-    <Modal key={level1Item.code}>
+    <Modal key={level1Item?.code || 'massDimension'} open={isModalOpen} onToggle={setIsModalOpen}>
       <Modal.Trigger>
         <Button ref={triggerRef} className={styles['trigger-button']}>
           {triggerLabel}
@@ -231,7 +319,7 @@ export function CheckModal({
         width="xl"
         className={styles['doc-right-check-modal-wrapper']}
       >
-        <Modal.Header title={level1Item.name} closeButton />
+        <Modal.Header title={type === 'massDimension' ? t('forms.massDimension.modalTitle', 'Andmed sõiduki massi ja mõõtmete kohta') : level1Item?.name} closeButton />
         <Modal.Body>
           <div
             className={styles['modal-body-wrapper']}
@@ -253,7 +341,7 @@ export function CheckModal({
             )}
             <table className={styles.table}>
               <tbody>
-                {isDocCheck
+                {type === 'docCheck'
                   ? myLevel2.map((l2) => {
                       const l3Options = getLevel3ForLevel2(
                         l2.classifierValueKey,
@@ -287,136 +375,234 @@ export function CheckModal({
                         </tr>
                       );
                     })
-                  : Object.entries(groupedLevel2).map(
-                      ([description, items]) => (
-                        <>
-                          {description && (
-                            <tr
-                              key={`header-${description}`}
-                              className={styles['table-row']}
-                            >
+                  : type === 'massDimension'
+                    ? myLevel1.map((l1) => {
+                        const l2Items = level2Items.filter((v) => v.parentKey === l1.classifierValueKey);
+                        return (
+                          <React.Fragment key={l1.code}>
+                            <tr className={styles['table-row']}>
                               <td className={styles['table-cell-name']}>
-                                <Text modifiers="h4">{description}</Text>
+                                <Text modifiers="h4">{l1.name}</Text>
                               </td>
-                              <td
-                                className={styles['table-cell-dropdown']}
-                              ></td>
+                              <td className={styles['table-cell-dropdown']}></td>
                             </tr>
-                          )}
-                          {items.map((l2, itemIndex) => {
-                            const l3Options = getLevel3ForLevel2(
-                              l2.classifierValueKey,
-                            );
-                            const state = dropdowns[l2.code] ?? {
-                              open: false,
-                              selected: [],
-                            };
-                            const label = getDropdownLabel(l2.code);
-                            const isDefault = state.selected.length === 0;
-                            const isLastItem = itemIndex === items.length - 1;
-                            return (
+                            {l2Items.map((l2, itemIndex) => {
+                              const state = dropdowns[l2.code] ?? {
+                                open: false,
+                                selected: [],
+                                note: '',
+                              };
+                              const isLastItem = itemIndex === l2Items.length - 1;
+                              const hasNote = !l2.description; // Kõrgus, Teljekoormus have notes
+                              return (
+                                <tr
+                                  key={l2.code}
+                                  className={
+                                    isLastItem
+                                      ? styles['table-row-last']
+                                      : styles['table-row']
+                                  }
+                                >
+                                  <td className={styles['table-cell-name']}>
+                                    {/* Hide name for massDimension as it's shown in checkbox label */}
+                                  </td>
+                                  <td className={styles['table-cell-dropdown']}>
+                                    <div>
+                                      <Checkbox
+                                        id={`check-${l2.code}`}
+                                        name={`check-${l2.code}`}
+                                        value={l2.code}
+                                        checked={state.selected.includes(
+                                          l2.code,
+                                        )}
+                                        onChange={() =>
+                                          toggleLevel3(l2.code, l2.code)
+                                        }
+                                        label={
+                                          <Text>
+                                            {l2.description && (
+                                              <>
+                                                <strong>
+                                                  {l2.description}
+                                                </strong>
+                                                <Separator
+                                                  axis="vertical"
+                                                  color="secondary"
+                                                  display="inline"
+                                                  dotSize="small"
+                                                  element="span"
+                                                  spacing={0.3}
+                                                  variant="dot-only"
+                                                />
+                                              </>
+                                            )}
+                                            {l2.name}
+                                          </Text>
+                                        }
+                                      />
+                                      {hasNote && (
+                                        <div className="mt-05">
+                                          <TextArea
+                                            autoGrow
+                                            id="auto-grow"
+                                            maxRows={10}
+                                            minRows={2}
+                                            maxHeight="100px"
+                                            placeholder={t(
+                                              'common.note',
+                                              'Märkus',
+                                            )}
+                                            value={state.note || ''}
+                                            onChange={(value) =>
+                                              setDropdowns((prev) => ({
+                                                ...prev,
+                                                [l2.code]: {
+                                                  ...prev[l2.code],
+                                                  note: value,
+                                                },
+                                              }))
+                                            }
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </React.Fragment>
+                        );
+                      })
+                    : Object.entries(groupedLevel2).map(
+                        ([description, items]) => (
+                          <React.Fragment key={description}>
+                            {description && (
                               <tr
-                                key={l2.code}
-                                className={
-                                  isLastItem
-                                    ? styles['table-row-last']
-                                    : styles['table-row']
-                                }
+                                key={`header-${description}`}
+                                className={styles['table-row']}
                               >
                                 <td className={styles['table-cell-name']}>
-                                  <div className={styles['indented-name']}>
-                                    <Text>{l2.name}</Text>
-                                  </div>
+                                  <Text modifiers="h4">{description}</Text>
                                 </td>
-                                <td className={styles['table-cell-dropdown']}>
-                                  <div
-                                    ref={(el) => {
-                                      dropdownRefs.current[l2.code] = el;
-                                    }}
-                                    className={styles['dropdown-wrapper']}
-                                  >
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        l3Options.length > 0 &&
-                                        toggleDropdown(l2.code)
-                                      }
-                                      disabled={l3Options.length === 0}
-                                      className={`${styles['dropdown-trigger-button']} ${isDefault ? styles['is-default'] : ''}`}
-                                    >
-                                      <span
-                                        className={styles['dropdown-label']}
-                                      >
-                                        {label}
-                                      </span>
-                                      <span
-                                        className={styles['dropdown-arrow']}
-                                      >
-                                        ▾
-                                      </span>
-                                    </button>
-                                    {state.open && (
-                                      <div className={styles['dropdown-menu']}>
-                                        {l3Options.map((l3) => (
-                                          <div
-                                            key={l3.code}
-                                            className={styles['dropdown-item']}
-                                          >
-                                            <Checkbox
-                                              id={`check-${l2.code}-${l3.code}`}
-                                              name={`check-${l2.code}-${l3.code}`}
-                                              value={l3.code}
-                                              checked={state.selected.includes(
-                                                l3.code,
-                                              )}
-                                              onChange={() =>
-                                                toggleLevel3(l2.code, l3.code)
-                                              }
-                                              label={
-                                                <Text>
-                                                  <strong>
-                                                    {l3.description}
-                                                  </strong>
-                                                  <Separator
-                                                    axis="vertical"
-                                                    color="secondary"
-                                                    display="inline"
-                                                    dotSize="small"
-                                                    element="span"
-                                                    spacing={0.3}
-                                                    variant="dot-only"
-                                                  />
-                                                  {l3.name}
-                                                </Text>
-                                              }
-                                            />
-                                          </div>
-                                        ))}
-                                        <div
-                                          className={
-                                            styles['clear-button-container']
-                                          }
-                                        >
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              clearDropdown(l2.code)
-                                            }
-                                            className={styles['clear-button']}
-                                          >
-                                            {t('common.remove', 'Eemalda')}
-                                          </button>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                </td>
+                                <td
+                                  className={styles['table-cell-dropdown']}
+                                ></td>
                               </tr>
-                            );
-                          })}
-                        </>
-                      ),
-                    )}
+                            )}
+                            {items.map((l2, itemIndex) => {
+                              const l3Options = getLevel3ForLevel2(
+                                l2.classifierValueKey,
+                              );
+                              const state = dropdowns[l2.code] ?? {
+                                open: false,
+                                selected: [],
+                              };
+                              const label = getDropdownLabel(l2.code);
+                              const isDefault = state.selected.length === 0;
+                              const isLastItem = itemIndex === items.length - 1;
+                              return (
+                                <tr
+                                  key={l2.code}
+                                  className={
+                                    isLastItem
+                                      ? styles['table-row-last']
+                                      : styles['table-row']
+                                  }
+                                >
+                                  <td className={styles['table-cell-name']}>
+                                    <div className={styles['indented-name']}>
+                                      <Text>{l2.name}</Text>
+                                    </div>
+                                  </td>
+                                  <td className={styles['table-cell-dropdown']}>
+                                    <div
+                                      ref={(el) => {
+                                        dropdownRefs.current[l2.code] = el;
+                                      }}
+                                      className={styles['dropdown-wrapper']}
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          l3Options.length > 0 &&
+                                          toggleDropdown(l2.code)
+                                        }
+                                        disabled={l3Options.length === 0}
+                                        className={`${styles['dropdown-trigger-button']} ${isDefault ? styles['is-default'] : ''}`}
+                                      >
+                                        <span
+                                          className={styles['dropdown-label']}
+                                        >
+                                          {label}
+                                        </span>
+                                        <span
+                                          className={styles['dropdown-arrow']}
+                                        >
+                                          ▾
+                                        </span>
+                                      </button>
+                                      {state.open && (
+                                        <div className={styles['dropdown-menu']}>
+                                          {l3Options.map((l3) => (
+                                            <div
+                                              key={l3.code}
+                                              className={styles['dropdown-item']}
+                                            >
+                                              <Checkbox
+                                                id={`check-${l2.code}-${l3.code}`}
+                                                name={`check-${l2.code}-${l3.code}`}
+                                                value={l3.code}
+                                                checked={state.selected.includes(
+                                                  l3.code,
+                                                )}
+                                                onChange={() =>
+                                                  toggleLevel3(l2.code, l3.code)
+                                                }
+                                                label={
+                                                  <Text>
+                                                    <strong>
+                                                      {l3.description}
+                                                    </strong>
+                                                    <Separator
+                                                      axis="vertical"
+                                                      color="secondary"
+                                                      display="inline"
+                                                      dotSize="small"
+                                                      element="span"
+                                                      spacing={0.3}
+                                                      variant="dot-only"
+                                                    />
+                                                    {l3.name}
+                                                  </Text>
+                                                }
+                                              />
+                                            </div>
+                                          ))}
+                                          <div
+                                            className={
+                                              styles['clear-button-container']
+                                            }
+                                          >
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                clearDropdown(l2.code)
+                                              }
+                                              className={styles['clear-button']}
+                                            >
+                                              {t('common.remove', 'Eemalda')}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </React.Fragment>
+                        ),
+                      )}
               </tbody>
             </table>
           </div>

@@ -11,10 +11,10 @@ import styles from './ModalResultSection.module.css';
 
 interface Props {
   checks: ClassifierValueData[];
-  isDocCheck: boolean;
+  type: 'docCheck' | 'drivingViolation' | 'massDimension';
 }
 
-export function ModalResultSection({ checks, isDocCheck }: Props) {
+export function ModalResultSection({ checks, type }: Props) {
   const { t } = useTranslation();
   const [entries, setEntries] = useState<DocRightCheckEntry[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -39,15 +39,16 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
       ),
     [checks, level1Items],
   );
-  const level3Items = useMemo(
-    () =>
-      checks.filter(
-        (v) =>
-          v.parentKey &&
-          level2Items.some((l2) => l2.classifierValueKey === v.parentKey),
-      ),
-    [checks, level2Items],
-  );
+  const level3Items = useMemo(() => {
+    if (type === 'massDimension') {
+      return [];
+    }
+    return checks.filter(
+      (v) =>
+        v.parentKey &&
+        level2Items.some((l2) => l2.classifierValueKey === v.parentKey),
+    );
+  }, [checks, level2Items, type]);
 
   const filteredLevel1 = useMemo(() => {
     if (!search.trim()) return level1Items;
@@ -60,7 +61,7 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
   }, [search, level1Items]);
 
   const groupedLevel1 = useMemo(() => {
-    if (isDocCheck) {
+    if (type === 'docCheck') {
       return { '': filteredLevel1 };
     }
     const groups: Record<string, typeof level1Items> = {};
@@ -72,10 +73,13 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
       groups[description].push(l1);
     });
     return groups;
-  }, [filteredLevel1, isDocCheck]);
+  }, [filteredLevel1, type]);
 
   const handleConfirm = (newEntries: DocRightCheckEntry[]) => {
     setEntries((prev) => {
+      if (type === 'massDimension') {
+        return [...newEntries];
+      }
       const otherEntries = prev.filter(
         (e) => e.level1Code !== newEntries[0]?.level1Code,
       );
@@ -157,15 +161,20 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
     <div>
       <div className={styles.header}>
         <Text modifiers="bold">
-          {isDocCheck
+          {type === 'docCheck'
             ? t(
                 'forms.drive_rest.sectionTitle',
                 'Dokumendi või õiguse kontroll',
               )
-            : t(
-                'forms.drive_rest.violationSectionTitle',
-                'Sõidu- ja puhkeaja nõuete rikkumised',
-              )}
+            : type === 'massDimension'
+              ? t(
+                  'forms.massDimension.sectionTitle',
+                  'Andmed sõiduki massi ja mõõtmete kohta',
+                )
+              : t(
+                  'forms.drive_rest.violationSectionTitle',
+                  'Sõidu- ja puhkeaja nõuete rikkumised',
+                )}
         </Text>
         <div className="pos-relative">
           <Button
@@ -173,11 +182,19 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
             type="button"
             visualType="secondary"
             onClick={() => {
-              setDropdownOpen((v) => !v);
-              setSearch('');
+              if (type === 'massDimension') {
+                setSelectedLevel1(null);
+                setTimeout(() => {
+                  modalRef.current?.open();
+                }, 100);
+              } else {
+                setDropdownOpen((v) => !v);
+                setSearch('');
+              }
             }}
           >
-            {t('forms.drive_rest.add', '+ Lisa')} ▾
+            {t('forms.drive_rest.add', '+ Lisa')}{' '}
+            {type !== 'massDimension' && '▾'}
           </Button>
           {dropdownOpen &&
             createPortal(
@@ -190,49 +207,49 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
                   position: 'fixed',
                 }}
               >
-              <div className="mb-05">
-                <Search
-                  id="doc-right-check-search"
-                  value={search}
-                  onChange={setSearch}
-                  placeholder={t('common.search', 'Otsi')}
-                />
-              </div>
-              {Object.entries(groupedLevel1).map(([description, items]) => (
-                <div key={description}>
-                  {!isDocCheck && description && (
-                    <div className={styles.groupHeader}>{description}</div>
-                  )}
-                  {items.map((l1) => (
-                    <button
-                      key={l1.code}
-                      type="button"
-                      onClick={() => {
-                        setSelectedLevel1(l1);
-                        setDropdownOpen(false);
-                        setSearch('');
-                        setTimeout(() => {
-                          modalRef.current?.open();
-                        }, 100);
-                      }}
-                      className={styles.dropdownButton}
-                    >
-                      {l1.name}
-                    </button>
-                  ))}
+                <div className="mb-05">
+                  <Search
+                    id="doc-right-check-search"
+                    value={search}
+                    onChange={setSearch}
+                    placeholder={t('common.search', 'Otsi')}
+                  />
                 </div>
-              ))}
-              {filteredLevel1.length === 0 && (
-                <div className={styles.noResults}>
-                  <Text>
-                    {t(
-                      'common.noResults',
-                      'Päring ei tagastanud ühtegi tulemust',
+                {Object.entries(groupedLevel1).map(([description, items]) => (
+                  <div key={description}>
+                    {type !== 'docCheck' && description && (
+                      <div className={styles.groupHeader}>{description}</div>
                     )}
-                  </Text>
-                </div>
-              )}
-            </div>,
+                    {items.map((l1) => (
+                      <button
+                        key={l1.code}
+                        type="button"
+                        onClick={() => {
+                          setSelectedLevel1(l1);
+                          setDropdownOpen(false);
+                          setSearch('');
+                          setTimeout(() => {
+                            modalRef.current?.open();
+                          }, 100);
+                        }}
+                        className={styles.dropdownButton}
+                      >
+                        {l1.name}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+                {filteredLevel1.length === 0 && (
+                  <div className={styles.noResults}>
+                    <Text>
+                      {t(
+                        'common.noResults',
+                        'Päring ei tagastanud ühtegi tulemust',
+                      )}
+                    </Text>
+                  </div>
+                )}
+              </div>,
               document.body,
             )}
         </div>
@@ -242,12 +259,26 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
         <CheckModal
           key={selectedLevel1.code}
           level1Item={selectedLevel1}
+          level1Items={level1Items}
           level2Items={level2Items}
           level3Items={level3Items}
           existingEntries={entries}
           onConfirm={handleConfirm}
           modalRef={modalRef}
-          isDocCheck={isDocCheck}
+          type={type}
+        />
+      )}
+      {type === 'massDimension' && !selectedLevel1 && (
+        <CheckModal
+          key="massDimension-all"
+          level1Item={null}
+          level1Items={level1Items}
+          level2Items={level2Items}
+          level3Items={level3Items}
+          existingEntries={entries}
+          onConfirm={handleConfirm}
+          modalRef={modalRef}
+          type={type}
         />
       )}
 
@@ -259,10 +290,10 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
         <div className={styles.entriesContainer}>
           {Object.values(groupedEntries).map((group) => (
             <div key={group.name}>
-              {!isDocCheck && group.entries.length > 0 && (
+              {group.entries.length > 0 && (
                 <div className="mb-1">
                   <strong>
-                    ({group.description}) - {group.name}
+                    {type === 'massDimension' ? group.description : group.name}
                   </strong>
                 </div>
               )}
@@ -272,10 +303,29 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
                     <Card.Content className={styles.cardContent}>
                       <div
                         className={
-                          isDocCheck ? styles.entryRowDoc : styles.entryRow
+                          type === 'docCheck'
+                            ? styles.entryRowDoc
+                            : type === 'massDimension'
+                              ? styles.entryRowMassDimension
+                              : styles.entryRow
                         }
                       >
-                        {!isDocCheck ? (
+                        {type === 'massDimension' ? (
+                          <>
+                            <Text>{entry.level1Name}</Text>
+                            <Text>{entry.level2Name}</Text>
+                            {entry.severity != "" ? (
+                              <Text>{entry.level2Code}</Text>
+                            ) : (
+                              <div></div>
+                            )}
+                            {entry.note ? (
+                              <Text>{entry.note}</Text>
+                            ) : (
+                              <div></div>
+                            )}
+                          </>
+                        ) : type !== 'docCheck' ? (
                           <>
                             <Text>{entry.level2Description}</Text>
                             <Text>{entry.level2Name}</Text>
@@ -296,7 +346,7 @@ export function ModalResultSection({ checks, isDocCheck }: Props) {
                         ) : (
                           <>
                             <Text>{entry.level2Name}</Text>
-                            <Text>{entry.level3Name}</Text>
+                            <Text>{entry.level3Code}</Text>
                           </>
                         )}
                         <div className="pos-rel-left">

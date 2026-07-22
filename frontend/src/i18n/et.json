@@ -677,6 +677,14 @@
       "checkedDaysCount": "Kontrollitud päevade arv",
       "workDaysCount": "nendest tööpäevi",
       "otherActivityDaysCount": "nendest päevade arv juhi muu tegevuse kui sõiduki juhtimise kohta"
+    },
+    "massDimension": {
+      "sectionTitle": "Andmed sõiduki massi ja mõõtmete kohta",
+      "modalTitle": "Andmed sõiduki massi ja mõõtmete kohta",
+      "violationType": "Rikkumise liik",
+      "range": "Vahemik",
+      "violationCode": "Rikkumise kood",
+      "note": "Märkus"
     }
   },
   "structureUnits": {
@@ -865,6 +873,7 @@
     "close": "Sulge",
     "search": "Otsi",
     "remove": "Eemalda",
+    "note": "Märkus",
     "space": " ",
     "deleteConfirmTitle": "Koondvormi kustutamine",
     "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?"

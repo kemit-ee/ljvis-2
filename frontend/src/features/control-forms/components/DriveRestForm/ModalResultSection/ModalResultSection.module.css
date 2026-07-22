@@ -68,3 +68,10 @@
     align-items: center;
     gap: 1rem;
 }
+
+.entryRowMassDimension {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 0.5fr 1fr auto;
+    align-items: center;
+    gap: 0.5rem 1rem;
+}

@@ -23,7 +23,7 @@ interface Props {
   type: string;
 }
 
-export function DriveRestFormCreatePage({ type: _type }: Props) {
+export function DriveRestFormCreatePage({ type: type }: Props) {
   const { t } = useTranslation();
   const {
     cargoCabotageViolations,
@@ -33,6 +33,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
     docRightOtherDocs,
     tachographTypes,
     drivingViolations,
+    massDimensions,
   } = useDriveRestForm();
 
   const [transportType, setTransportType] = useState('');
@@ -472,7 +473,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                 <div className={styles['modal-margin']}>
                   <ModalResultSection
                     checks={docRightChecks}
-                    isDocCheck={true}
+                    type="docCheck"
                   />
                 </div>
                 <div>
@@ -495,7 +496,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
       {controlResult !== '' && controlResult !== 'KORRAS' && (
         <div className={`${styles['overflow-visible']} mb-1`}>
           <Accordion>
-            <AccordionItem id="doc-right-check">
+            <AccordionItem id="drive-rest-violations">
               <AccordionItemHeader
                 title={
                   <Heading modifiers="h3" color="primary">
@@ -620,7 +621,34 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                 <div className={styles['overflow-visible']}>
                   <ModalResultSection
                     checks={drivingViolations}
-                    isDocCheck={false}
+                    type="drivingViolation"
+                  />
+                </div>
+              </AccordionItemContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
+      {/* Plokk: Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta ainult autojuhile */}
+      {controlResult !== '' && controlResult !== 'KORRAS' && type === 'driver' && (
+        <div className={`${styles['overflow-visible']} mb-1`}>
+          <Accordion>
+            <AccordionItem id="mass-dimension-violations">
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t(
+                      'forms.massDimension.blockTitle',
+                      'Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta',
+                    )}
+                  </Heading>
+                }
+              />
+              <AccordionItemContent>
+                <div className={styles['overflow-visible']}>
+                  <ModalResultSection
+                    checks={massDimensions}
+                    type="massDimension"
                   />
                 </div>
               </AccordionItemContent>
