@@ -16,7 +16,7 @@ import {
   AccordionItemContent,
   AccordionItemHeader
 } from '@tedi-design-system/react/tedi';
-import { DocRightCheckSection } from '../../components/DriveRestForm/DocRightCheckSection';
+import { ModalResultSection } from '../../components/DriveRestForm/ModalResultSection/ModalResultSection.tsx';
 import { DocRightOtherSection } from '../../components/DriveRestForm/DocRightOtherSection';
 
 interface Props {
@@ -31,6 +31,8 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
     transportClasses: transportClassItems,
     docRightChecks,
     docRightOtherDocs,
+    tachographTypes,
+    drivingViolations,
   } = useDriveRestForm();
 
   const [transportType, setTransportType] = useState('');
@@ -45,6 +47,18 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
   const [proceedingType, setProceedingType] = useState('');
   const [proceedingReferenceNumber, setProceedingReferenceNumber] =
     useState('');
+  const [applicability, setApplicability] = useState('');
+  const [tachographType, setTachographType] = useState('');
+  const [checkedDaysCount, setCheckedDaysCount] = useState('');
+  const [workDaysCount, setWorkDaysCount] = useState('');
+  const [otherActivityDaysCount, setOtherActivityDaysCount] = useState('');
+
+  const handleTachographTypeChange = (val: string) => {
+    setTachographType(val);
+    if (val) {
+      setApplicability('RAKENDATAKSE');
+    }
+  };
 
   const hasCabotage = transportClasses.includes('CABOTAGE');
 
@@ -108,7 +122,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                 label={
                   <strong>
                     {t('forms.sp_form.transportType')}{' '}
-                    <span style={{ color: 'var(--color-danger, #c1413b)' }}>
+                    <span className={styles['required-star']}>
                       *
                     </span>
                   </strong>
@@ -233,7 +247,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                       items={toItems(beforeCabotage)}
                     />
                     {hasCabotage && cabotageSubItems.length > 0 && (
-                      <div style={{ paddingLeft: '1.5rem' }}>
+                      <div className={styles['cabotage-indent']}>
                         <ChoiceGroup
                           id="cabotageViolations"
                           className={styles['choice-item-gap']}
@@ -280,7 +294,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                 label={
                   <strong>
                     {t('forms.sp_form.controlResultLabel')}{' '}
-                    <span style={{ color: 'var(--color-danger, #c1413b)' }}>
+                    <span className={styles['required-star']}>
                       *
                     </span>
                   </strong>
@@ -383,13 +397,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                           {proceedingType !== '' &&
                             proceedingType !== 'NONE' && (
                               <>
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '1rem',
-                                  }}
-                                >
+                                <div className={styles['proceeding-row']}>
                                   <ChoiceGroup
                                     id="proceedingTypeSelected"
                                     className={styles['choice-item-gap']}
@@ -403,7 +411,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                                     }}
                                     items={[PROCEEDING_TYPES[labelIdx]]}
                                   />
-                                  <div style={{ width: '30%' }}>
+                                  <div className={styles['proceeding-width']}>
                                     <TextField
                                       id="proceedingReferenceNumber"
                                       label=""
@@ -447,7 +455,7 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
       </Row>
       {/* Plokk: Dokumendi või õiguse kontroll */}
       {controlResult !== '' && controlResult !== 'KORRAS' && (
-        <div style={{ overflow: 'visible' }}>
+        <div className={`${styles['overflow-visible']} mb-1`}>
           <Accordion>
             <AccordionItem id="doc-right-check">
               <AccordionItemHeader
@@ -461,15 +469,15 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                 }
               />
               <AccordionItemContent>
-                <div style={{ marginBottom: '1.5rem', overflow: 'visible' }}>
-                  <DocRightCheckSection docRightChecks={docRightChecks} />
+                <div className={styles['modal-margin']}>
+                  <ModalResultSection
+                    checks={docRightChecks}
+                    isDocCheck={true}
+                  />
                 </div>
                 <div>
                   <Text modifiers="bold">
-                    {t(
-                      'forms.docRightCheck.otherDocuments',
-                      'Muud dokumendid',
-                    )}
+                    {t('forms.docRightCheck.otherDocuments', 'Muud dokumendid')}
                   </Text>
                   <div className="mt-1">
                     <DocRightOtherSection
@@ -477,6 +485,143 @@ export function DriveRestFormCreatePage({ type: _type }: Props) {
                       docRightOtherDocs={docRightOtherDocs}
                     />
                   </div>
+                </div>
+              </AccordionItemContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
+      {/* Plokk: Sõidu- ja puhkeaja nõuete täitmine */}
+      {controlResult !== '' && controlResult !== 'KORRAS' && (
+        <div className={`${styles['overflow-visible']} mb-1`}>
+          <Accordion>
+            <AccordionItem id="doc-right-check">
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t(
+                      'forms.restCheck.blockTitle',
+                      'Sõidu- ja puhkeaja nõuete täitmine',
+                    )}
+                  </Heading>
+                }
+              />
+              <AccordionItemContent>
+                <div>
+                  <ChoiceGroup
+                    id="applicability"
+                    label=""
+                    name="applicability"
+                    inputType="radio"
+                    direction="row"
+                    value={applicability}
+                    onChange={(val) => setApplicability(val as string)}
+                    className="mb-1"
+                    items={[
+                      {
+                        id: 'applicability_applied',
+                        value: 'RAKENDATAKSE',
+                        label: t(
+                          'forms.sp_form.applicabilityApplied',
+                          'Rakendatakse',
+                        ),
+                      },
+                      {
+                        id: 'applicability_not_applied',
+                        value: 'EI_RAKENDATA',
+                        label: t(
+                          'forms.sp_form.applicabilityNotApplied',
+                          'Ei rakendata',
+                        ),
+                      },
+                      {
+                        id: 'applicability_not_checked',
+                        value: 'EI_KONTROLLITUD',
+                        label: t(
+                          'forms.sp_form.applicabilityNotChecked',
+                          'Ei kontrollitud',
+                        ),
+                      },
+                    ]}
+                  />
+                  {applicability === 'RAKENDATAKSE' && (
+                    <ChoiceGroup
+                      id="tachographTypeCode"
+                      label={
+                        <strong>
+                          {t('forms.sp_form.tachograph_type_code')}{' '}
+                          <span className={styles['required-star']}>
+                            *
+                          </span>
+                        </strong>
+                      }
+                      name="tachographTypeCode"
+                      inputType="radio"
+                      direction="row"
+                      value={tachographType}
+                      onChange={(val) =>
+                        handleTachographTypeChange(val as string)
+                      }
+                      className="mb-1"
+                      required
+                      items={tachographTypes.map((v) => ({
+                        id: `tachograph_${v.code}`,
+                        value: v.code,
+                        label: v.name,
+                      }))}
+                    />
+                  )}
+                </div>
+                <div className={styles['days-row']}>
+                  <Text>{t('forms.drive_rest.checkedDaysCount')}</Text>
+                  <TextField
+                    className={styles['days-number']}
+                    id="checkedDaysCount"
+                    label=""
+                    value={checkedDaysCount.toString()}
+                    placeholder={t('Nr *')}
+                    onChange={(v) => {
+                      const numericValue = v.replace(/\D/g, '');
+                      const parsedValue = parseInt(numericValue, 10) || 0;
+                      setCheckedDaysCount(String(parsedValue));
+                    }}
+                    input={{ maxLength: 3 }}
+                  />
+                  <Text>{t('forms.drive_rest.workDaysCount')}</Text>
+                  <TextField
+                    className={styles['days-number']}
+                    id="workDaysCount"
+                    label=""
+                    value={workDaysCount.toString()}
+                    placeholder={t('Nr *')}
+                    onChange={(v) => {
+                      const numericValue = v.replace(/\D/g, '');
+                      const parsedValue = parseInt(numericValue, 10) || 0;
+                      setWorkDaysCount(String(parsedValue));
+                    }}
+                    input={{ maxLength: 3 }}
+                  />
+                  <Text>{t('forms.drive_rest.otherActivityDaysCount')}</Text>
+                  <TextField
+                    className={styles['days-number']}
+                    id="otherActivityDaysCount"
+                    label=""
+                    value={otherActivityDaysCount.toString()}
+                    placeholder={t('Nr')}
+                    onChange={(v) => {
+                      const numericValue = v.replace(/\D/g, '');
+                      const parsedValue = parseInt(numericValue, 10) || 0;
+                      setOtherActivityDaysCount(String(parsedValue));
+                    }}
+                    input={{ maxLength: 3 }}
+                  />
+                </div>
+
+                <div className={styles['overflow-visible']}>
+                  <ModalResultSection
+                    checks={drivingViolations}
+                    isDocCheck={false}
+                  />
                 </div>
               </AccordionItemContent>
             </AccordionItem>

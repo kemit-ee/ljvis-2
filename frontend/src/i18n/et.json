@@ -334,7 +334,12 @@
       "proceedingTypeLyhi": "Lühimenetlus",
       "proceedingTypeKiir": "Kiirmenetlus",
       "proceedingTypeYld": "Üldmenetlus",
-      "proceedingReferenceNumberPlaceholder": "Viitenumber"
+      "proceedingReferenceNumberPlaceholder": "Viitenumber",
+      "sp_applicability": "Rakendamine",
+      "tachograph_type_code": "Sõidumeeriku liik",
+      "applicabilityApplied": "Rakendatakse",
+      "applicabilityNotApplied": "Ei rakendata",
+      "applicabilityNotChecked": "Ei kontrollitud"
     },
     "compound": {
       "generalPart": "Üldosa",
@@ -662,6 +667,16 @@
           "invalid_personal_code": "Vigane isikukood"
         }
       }
+    },
+    "drive_rest": {
+      "sectionTitle": "Dokumendi või õiguse kontroll",
+      "violationSectionTitle": "Sõidu- ja puhkeaja nõuete rikkumised",
+      "add": "+ Lisa",
+      "empty": "Sisu puudub",
+      "selectAtLeastOne": "Valige vähemalt üks rikkumine.",
+      "checkedDaysCount": "Kontrollitud päevade arv",
+      "workDaysCount": "nendest tööpäevi",
+      "otherActivityDaysCount": "nendest päevade arv juhi muu tegevuse kui sõiduki juhtimise kohta"
     }
   },
   "structureUnits": {

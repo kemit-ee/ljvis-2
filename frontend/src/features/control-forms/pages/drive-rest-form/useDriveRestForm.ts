@@ -39,11 +39,25 @@ export function useDriveRestForm() {
     [classifierValues],
   );
 
+  const tachographTypes = useMemo(
+    () =>
+      classifierValues.filter((v) => v.classifierCode === 'TACHOGRAPH_TYPES'),
+    [classifierValues],
+  );
+
+  const drivingViolations = useMemo(
+    () =>
+      classifierValues.filter((v) => v.classifierCode === 'DRIVING_VIOLATION'),
+    [classifierValues],
+  );
+
   return {
     cargoCabotageViolations,
     passengerCabotageViolations,
     transportClasses,
     docRightChecks,
     docRightOtherDocs,
+    tachographTypes,
+    drivingViolations,
   };
 }

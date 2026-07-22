@@ -12,6 +12,7 @@ import {
   Modal,
   Alert,
   Separator,
+  Checkbox,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
 import styles from './CheckModal.module.css';
@@ -21,6 +22,7 @@ export interface DocRightCheckEntry {
   level1Name: string;
   level2Code: string;
   level2Name: string;
+  level2Description: string;
   level3Code: string;
   level3Name: string;
   severity: string;
@@ -71,6 +73,21 @@ export function CheckModal({
       level2Items.filter((v) => v.parentKey === level1Item.classifierValueKey),
     [level2Items, level1Item.classifierValueKey],
   );
+
+  const groupedLevel2 = useMemo(() => {
+    if (isDocCheck) {
+      return { '': myLevel2 };
+    }
+    const groups: Record<string, typeof myLevel2> = {};
+    myLevel2.forEach((l2) => {
+      const description = l2.description || 'Muud';
+      if (!groups[description]) {
+        groups[description] = [];
+      }
+      groups[description].push(l2);
+    });
+    return groups;
+  }, [myLevel2, isDocCheck]);
 
   const getLevel3ForLevel2 = (l2ClassifierValueKey: number) =>
     level3Items.filter((v) => v.parentKey === l2ClassifierValueKey);
@@ -149,6 +166,7 @@ export function CheckModal({
             level1Name: level1Item.name,
             level2Code: l2.code,
             level2Name: l2.name,
+            level2Description: l2.description ?? '',
             level3Code: l3.code,
             level3Name: l3.name,
             severity: l3.description ?? '',
@@ -176,8 +194,8 @@ export function CheckModal({
         );
         if (!l3) return code;
         return !isDocCheck && l3.description ? (
-          <Text key={code}>
-            <strong>{l3.name}</strong>
+          <span key={code} style={{ display: 'inline' }}>
+            <strong>{l3.description}</strong>
             <Separator
               axis="vertical"
               color="secondary"
@@ -187,8 +205,8 @@ export function CheckModal({
               spacing={0.3}
               variant="dot-only"
             />
-            {l3.description}
-          </Text>
+            {l3.name}
+          </span>
         ) : (
           l3.name
         );
@@ -217,16 +235,7 @@ export function CheckModal({
         <Modal.Body>
           <div
             className={styles['modal-body-wrapper']}
-            style={{
-              minHeight:
-                myLevel2.length === 1
-                  ? '20vh'
-                  : myLevel2.length === 2
-                    ? '25vh'
-                    : myLevel2.length === 3
-                      ? '35vh'
-                      : '25vh',
-            }}
+
           >
             {showValidation && (
               <div className="mb-1">
@@ -236,7 +245,7 @@ export function CheckModal({
                   onClose={() => setValidationError(false)}
                 >
                   {t(
-                    'forms.docRightCheck.selectAtLeastOne',
+                    'forms.drive_rest.selectAtLeastOne',
                     'Valige vähemalt üks rikkumine.',
                   )}
                 </Alert>
@@ -244,90 +253,170 @@ export function CheckModal({
             )}
             <table className={styles.table}>
               <tbody>
-                {myLevel2.map((l2) => {
-                  const l3Options = getLevel3ForLevel2(l2.classifierValueKey);
-                  const state = dropdowns[l2.code] ?? {
-                    open: false,
-                    selected: [],
-                  };
-                  const label = getDropdownLabel(l2.code);
-                  const isDefault = state.selected.length === 0;
-                  return (
-                    <tr key={l2.code} className={styles['table-row']}>
-                      <td className={styles['table-cell-name']}>
-                        <Text>{l2.name}</Text>
-                      </td>
-                      <td className={styles['table-cell-dropdown']}>
-                        <div
-                          ref={(el) => {
-                            dropdownRefs.current[l2.code] = el;
-                          }}
-                          className={styles['dropdown-wrapper']}
-                        >
-                          <button
-                            type="button"
-                            onClick={() =>
-                              l3Options.length > 0 && toggleDropdown(l2.code)
-                            }
-                            disabled={l3Options.length === 0}
-                            className={`${styles['dropdown-trigger-button']} ${isDefault ? styles['is-default'] : ''}`}
-                          >
-                            <span className={styles['dropdown-label']}>
-                              {label}
-                            </span>
-                            <span className={styles['dropdown-arrow']}>▾</span>
-                          </button>
-                          {state.open && (
-                            <div className={styles['dropdown-menu']}>
+                {isDocCheck
+                  ? myLevel2.map((l2) => {
+                      const l3Options = getLevel3ForLevel2(
+                        l2.classifierValueKey,
+                      );
+                      const state = dropdowns[l2.code] ?? {
+                        open: false,
+                        selected: [],
+                      };
+                      return (
+                        <tr key={l2.code} className={styles['table-row']}>
+                          <td className={styles['table-cell-name']}>
+                            <Text>{l2.name}</Text>
+                          </td>
+                          <td className={styles['table-cell-dropdown']}>
+                            <div>
                               {l3Options.map((l3) => (
-                                <label
+                                <Checkbox
                                   key={l3.code}
-                                  className={styles['dropdown-item']}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={state.selected.includes(l3.code)}
-                                    onChange={() =>
-                                      toggleLevel3(l2.code, l3.code)
-                                    }
-                                  />
-                                  <span>
-                                    {isDocCheck ? (
-                                      <strong>{l3.name}</strong>
-                                    ) : (
-                                      <Text>
-                                        <strong>{l3.name}</strong>
-                                        <Separator
-                                          axis="vertical"
-                                          color="secondary"
-                                          display="inline"
-                                          dotSize="small"
-                                          element="span"
-                                          spacing={0.3}
-                                          variant="dot-only"
-                                        />
-                                        {l3.description}
-                                      </Text>
-                                    )}
-                                  </span>
-                                </label>
+                                  id={`check-${l2.code}-${l3.code}`}
+                                  name={`check-${l2.code}-${l3.code}`}
+                                  value={l3.code}
+                                  checked={state.selected.includes(l3.code)}
+                                  onChange={() =>
+                                    toggleLevel3(l2.code, l3.code)
+                                  }
+                                  label={<strong>{l3.name}</strong>}
+                                />
                               ))}
-                              <div className={styles['clear-button-container']}>
-                                <button
-                                  type="button"
-                                  onClick={() => clearDropdown(l2.code)}
-                                  className={styles['clear-button']}
-                                >
-                                  {t('common.remove', 'Eemalda')}
-                                </button>
-                              </div>
                             </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  : Object.entries(groupedLevel2).map(
+                      ([description, items]) => (
+                        <>
+                          {description && (
+                            <tr
+                              key={`header-${description}`}
+                              className={styles['table-row']}
+                            >
+                              <td className={styles['table-cell-name']}>
+                                <Text modifiers="h4">{description}</Text>
+                              </td>
+                              <td
+                                className={styles['table-cell-dropdown']}
+                              ></td>
+                            </tr>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                          {items.map((l2, itemIndex) => {
+                            const l3Options = getLevel3ForLevel2(
+                              l2.classifierValueKey,
+                            );
+                            const state = dropdowns[l2.code] ?? {
+                              open: false,
+                              selected: [],
+                            };
+                            const label = getDropdownLabel(l2.code);
+                            const isDefault = state.selected.length === 0;
+                            const isLastItem = itemIndex === items.length - 1;
+                            return (
+                              <tr
+                                key={l2.code}
+                                className={
+                                  isLastItem
+                                    ? styles['table-row-last']
+                                    : styles['table-row']
+                                }
+                              >
+                                <td className={styles['table-cell-name']}>
+                                  <div className={styles['indented-name']}>
+                                    <Text>{l2.name}</Text>
+                                  </div>
+                                </td>
+                                <td className={styles['table-cell-dropdown']}>
+                                  <div
+                                    ref={(el) => {
+                                      dropdownRefs.current[l2.code] = el;
+                                    }}
+                                    className={styles['dropdown-wrapper']}
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        l3Options.length > 0 &&
+                                        toggleDropdown(l2.code)
+                                      }
+                                      disabled={l3Options.length === 0}
+                                      className={`${styles['dropdown-trigger-button']} ${isDefault ? styles['is-default'] : ''}`}
+                                    >
+                                      <span
+                                        className={styles['dropdown-label']}
+                                      >
+                                        {label}
+                                      </span>
+                                      <span
+                                        className={styles['dropdown-arrow']}
+                                      >
+                                        ▾
+                                      </span>
+                                    </button>
+                                    {state.open && (
+                                      <div className={styles['dropdown-menu']}>
+                                        {l3Options.map((l3) => (
+                                          <div
+                                            key={l3.code}
+                                            className={styles['dropdown-item']}
+                                          >
+                                            <Checkbox
+                                              id={`check-${l2.code}-${l3.code}`}
+                                              name={`check-${l2.code}-${l3.code}`}
+                                              value={l3.code}
+                                              checked={state.selected.includes(
+                                                l3.code,
+                                              )}
+                                              onChange={() =>
+                                                toggleLevel3(l2.code, l3.code)
+                                              }
+                                              label={
+                                                <Text>
+                                                  <strong>
+                                                    {l3.description}
+                                                  </strong>
+                                                  <Separator
+                                                    axis="vertical"
+                                                    color="secondary"
+                                                    display="inline"
+                                                    dotSize="small"
+                                                    element="span"
+                                                    spacing={0.3}
+                                                    variant="dot-only"
+                                                  />
+                                                  {l3.name}
+                                                </Text>
+                                              }
+                                            />
+                                          </div>
+                                        ))}
+                                        <div
+                                          className={
+                                            styles['clear-button-container']
+                                          }
+                                        >
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              clearDropdown(l2.code)
+                                            }
+                                            className={styles['clear-button']}
+                                          >
+                                            {t('common.remove', 'Eemalda')}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </>
+                      ),
+                    )}
               </tbody>
             </table>
           </div>
@@ -339,7 +428,7 @@ export function CheckModal({
             </Button>
           </Modal.Closer>
           <Button type="button" onClick={handleConfirm}>
-            {t('forms.docRightCheck.select', 'Vali')}
+            {t('common.select', 'Vali')}
           </Button>
         </Modal.Footer>
       </Modal.Content>

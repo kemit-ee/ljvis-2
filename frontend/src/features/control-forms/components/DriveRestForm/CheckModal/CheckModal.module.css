@@ -30,6 +30,10 @@
     border-bottom: 1px solid #e5e7eb;
 }
 
+.table-row-last {
+    border-bottom: none;
+}
+
 .table-cell-name {
     padding: 0.75rem 0.5rem;
     width: 70%;
@@ -39,6 +43,7 @@
 .table-cell-dropdown {
     padding: 0.75rem 0.5rem;
     width: 30%;
+    max-width: 100px;
     vertical-align: middle;
     position: relative;
 }
@@ -119,3 +124,4 @@
     color: #374151;
     font-size: 1rem;
 }
+

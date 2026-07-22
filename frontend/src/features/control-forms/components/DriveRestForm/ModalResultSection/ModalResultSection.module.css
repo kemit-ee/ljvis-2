@@ -25,17 +25,20 @@
     display: block;
     width: 100%;
     text-align: left;
-    padding: 0.4rem 0.5rem;
+    padding: 0.4rem 0.5rem 0.4rem 2rem;
     background: none;
     border: none;
     cursor: pointer;
-    font-weight: 600;
-    color: #111827;
 }
 
 .noResults {
     padding: 0.5rem;
     color: #6b7280;
+}
+
+.groupHeader {
+    padding: 0.4rem 0.5rem;
+    cursor: default;
 }
 
 .emptyState {
@@ -56,9 +59,16 @@
     padding: 1rem !important;
 }
 
-.entryRow {
+.entryRowDoc {
     display: grid;
     grid-template-columns: 2fr 1fr auto;
+    align-items: center;
+    gap: 1rem;
+}
+
+.entryRow {
+    display: grid;
+    grid-template-columns: 0.5fr 3fr 1fr auto;
     align-items: center;
     gap: 1rem;
 }
