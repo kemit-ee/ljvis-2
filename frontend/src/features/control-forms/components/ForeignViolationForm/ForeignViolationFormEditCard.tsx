@@ -759,9 +759,8 @@ export function ForeignViolationFormEditCard({
               id="sanctionNotes"
               label={t('forms.foreign_violation.sanctionNotes')}
               value={formik.values.sanctionNotes}
-              placeholder={t(
-                'forms.foreign_violation.sanctionNotesPlaceholder',
-              )}
+              placeholder={t('common.enterNotesPlaceholder')}
+              maxHeight="8rem"
               onChange={(v) => formik.setFieldValue('sanctionNotes', v)}
               className={styles['full-span']}
             />
@@ -876,9 +875,8 @@ export function ForeignViolationFormEditCard({
                 'forms.foreign_violation.recommendedMeasureGeneralNotes',
               )}
               value={formik.values.recommendedMeasureGeneralNotes}
-              placeholder={t(
-                'forms.foreign_violation.recommendedMeasureGeneralNotesPlaceholder',
-              )}
+              placeholder={t('common.enterNotesPlaceholder')}
+              maxHeight="8rem"
               onChange={(v) =>
                 formik.setFieldValue('recommendedMeasureGeneralNotes', v)
               }

@@ -273,7 +273,9 @@ export function ForeignViolationFormCreatePage() {
                       <TimeField
                         id="inspectionTime"
                         label={t('forms.foreign_violation.inspectionTime')}
-                        value={formik.values.inspectionTime?.slice(0, 5) ?? undefined}
+                        value={
+                          formik.values.inspectionTime?.slice(0, 5) ?? undefined
+                        }
                         onChange={(v) =>
                           formik.setFieldValue(
                             'inspectionTime',
@@ -812,9 +814,8 @@ export function ForeignViolationFormCreatePage() {
                       id="sanctionNotes"
                       label={t('forms.foreign_violation.sanctionNotes')}
                       value={formik.values.sanctionNotes}
-                      placeholder={t(
-                        'forms.foreign_violation.sanctionNotesPlaceholder',
-                      )}
+                      placeholder={t('common.enterNotesPlaceholder')}
+                      maxHeight="8rem"
                       onChange={(v) => formik.setFieldValue('sanctionNotes', v)}
                       className={styles['full-span']}
                     />
@@ -939,9 +940,8 @@ export function ForeignViolationFormCreatePage() {
                         'forms.foreign_violation.recommendedMeasureGeneralNotes',
                       )}
                       value={formik.values.recommendedMeasureGeneralNotes}
-                      placeholder={t(
-                        'forms.foreign_violation.recommendedMeasureGeneralNotesPlaceholder',
-                      )}
+                      placeholder={t('common.enterNotesPlaceholder')}
+                      maxHeight="8rem"
                       onChange={(v) =>
                         formik.setFieldValue(
                           'recommendedMeasureGeneralNotes',

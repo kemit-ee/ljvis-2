@@ -14,10 +14,13 @@ import {
   Accordion,
   AccordionItem,
   AccordionItemContent,
-  AccordionItemHeader
+  AccordionItemHeader,
+  TextArea,
 } from '@tedi-design-system/react/tedi';
 import { ModalResultSection } from '../../components/DriveRestForm/ModalResultSection/ModalResultSection.tsx';
 import { DocRightOtherSection } from '../../components/DriveRestForm/DocRightOtherSection';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
+import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 interface Props {
   type: string;
@@ -36,6 +39,8 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
     massDimensions,
   } = useDriveRestForm();
 
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+
   const [transportType, setTransportType] = useState('');
   const [transportEmptyRun, setTransportEmptyRun] = useState<string[]>([]);
   const [transportNature, setTransportNature] = useState('');
@@ -53,6 +58,7 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
   const [checkedDaysCount, setCheckedDaysCount] = useState('');
   const [workDaysCount, setWorkDaysCount] = useState('');
   const [otherActivityDaysCount, setOtherActivityDaysCount] = useState('');
+  const [notes, setNotes] = useState('');
 
   const handleTachographTypeChange = (val: string) => {
     setTachographType(val);
@@ -123,9 +129,7 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
                 label={
                   <strong>
                     {t('forms.sp_form.transportType')}{' '}
-                    <span className={styles['required-star']}>
-                      *
-                    </span>
+                    <span className={styles['required-star']}>*</span>
                   </strong>
                 }
                 name="transportType"
@@ -295,9 +299,7 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
                 label={
                   <strong>
                     {t('forms.sp_form.controlResultLabel')}{' '}
-                    <span className={styles['required-star']}>
-                      *
-                    </span>
+                    <span className={styles['required-star']}>*</span>
                   </strong>
                 }
                 name="controlResult"
@@ -471,10 +473,7 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
               />
               <AccordionItemContent>
                 <div className={styles['modal-margin']}>
-                  <ModalResultSection
-                    checks={docRightChecks}
-                    type="docCheck"
-                  />
+                  <ModalResultSection checks={docRightChecks} type="docCheck" />
                 </div>
                 <div>
                   <Text modifiers="bold">
@@ -551,9 +550,7 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
                       label={
                         <strong>
                           {t('forms.sp_form.tachograph_type_code')}{' '}
-                          <span className={styles['required-star']}>
-                            *
-                          </span>
+                          <span className={styles['required-star']}>*</span>
                         </strong>
                       }
                       name="tachographTypeCode"
@@ -630,31 +627,52 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
         </div>
       )}
       {/* Plokk: Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta ainult autojuhile */}
-      {controlResult !== '' && controlResult !== 'KORRAS' && type === 'driver' && (
-        <div className={`${styles['overflow-visible']} mb-1`}>
-          <Accordion>
-            <AccordionItem id="mass-dimension-violations">
-              <AccordionItemHeader
-                title={
-                  <Heading modifiers="h3" color="primary">
-                    {t(
-                      'forms.massDimension.blockTitle',
-                      'Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta',
-                    )}
-                  </Heading>
-                }
+      {controlResult !== '' &&
+        controlResult !== 'KORRAS' &&
+        type === 'driver' && (
+          <div className={`${styles['overflow-visible']} mb-1`}>
+            <Accordion>
+              <AccordionItem id="mass-dimension-violations">
+                <AccordionItemHeader
+                  title={
+                    <Heading modifiers="h3" color="primary">
+                      {t(
+                        'forms.massDimension.blockTitle',
+                        'Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta',
+                      )}
+                    </Heading>
+                  }
+                />
+                <AccordionItemContent>
+                  <div className={styles['overflow-visible']}>
+                    <ModalResultSection
+                      checks={massDimensions}
+                      type="massDimension"
+                    />
+                  </div>
+                </AccordionItemContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        )}
+      {controlResult !== '' && controlResult !== 'KORRAS' && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.sp_form.notes')}
+            </Heading>
+            <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
+              <TextArea
+                id="sanctionNotes"
+                label=""
+                value={notes}
+                placeholder={t('common.enterNotesPlaceholder')}
+                onChange={(val) => setNotes(val as string)}
+                maxHeight="8rem"
               />
-              <AccordionItemContent>
-                <div className={styles['overflow-visible']}>
-                  <ModalResultSection
-                    checks={massDimensions}
-                    type="massDimension"
-                  />
-                </div>
-              </AccordionItemContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
+            </div>
+          </Card.Content>
+        </Card>
       )}
     </div>
   );

@@ -339,7 +339,8 @@
       "tachograph_type_code": "Sõidumeeriku liik",
       "applicabilityApplied": "Rakendatakse",
       "applicabilityNotApplied": "Ei rakendata",
-      "applicabilityNotChecked": "Ei kontrollitud"
+      "applicabilityNotChecked": "Ei kontrollitud",
+      "notes": "Märkused"
     },
     "compound": {
       "generalPart": "Üldosa",
@@ -466,7 +467,6 @@
       "sanctionBasicInfo": "Rakendatud sanktsioon",
       "sanctionCode": "Rakendatud sanktsioon",
       "sanctionNotes": "Sanktsiooni märkused",
-      "sanctionNotesPlaceholder": "Sisestage märkused...",
       "sanctionKorras": "Korras",
       "sanctionHoiatus": "Hoiatus",
       "sanctionKabotaaz": "Kabotaažveo ajutine keelamine",
@@ -634,7 +634,6 @@
       "recommendedMeasureCode": "Meetmed",
       "recommendedMeasureNotes": "Soovitatud meetme täpsustus",
       "recommendedMeasureGeneralNotes": "Märkused",
-      "recommendedMeasureGeneralNotesPlaceholder": "Sisestage märkused...",
       "recommendedMeasureMissing": "Puuduvad",
       "recommendedMeasureWarning": "Hoiatus",
       "recommendedMeasureAssociationActivityLicenseSuspension": "Kõigi või osa ühenduse tegevusloa kinnitatud ärakirjade teatud ajaks peatamine",
@@ -874,6 +873,7 @@
     "search": "Otsi",
     "remove": "Eemalda",
     "note": "Märkus",
+    "enterNotesPlaceholder": "Sisestage märkused...",
     "space": " ",
     "deleteConfirmTitle": "Koondvormi kustutamine",
     "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?"
