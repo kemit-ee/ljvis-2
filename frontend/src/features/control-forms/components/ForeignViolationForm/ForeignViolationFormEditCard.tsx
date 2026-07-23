@@ -12,14 +12,12 @@ import {
   Alert,
   DateField,
   TimeField,
-} from '@tedi-design-system/react/tedi';
-import { toIsoDate } from '../../../../hooks/dateUtils';
-import {
   Accordion,
   AccordionItem,
   AccordionItemHeader,
   AccordionItemContent,
-} from '@tedi-design-system/react/community';
+} from '@tedi-design-system/react/tedi';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 import type { FormikProps } from 'formik';
 import {
@@ -770,13 +768,15 @@ export function ForeignViolationFormEditCard({
 
       <Card className="mb-1">
         <Card.Content>
-          <Accordion defaultOpenItem={[]}>
+          <Accordion>
             <AccordionItem id="eu-violations">
-              <AccordionItemHeader closeText=" " openText=" ">
-                <strong>
-                  {t('forms.foreign_violation.euViolationsBasicInfo')}
-                </strong>
-              </AccordionItemHeader>
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t('forms.foreign_violation.euViolationsBasicInfo')}
+                  </Heading>
+                }
+              />
               <AccordionItemContent>
                 {euViolationGroups.map((group) => (
                   <div key={group.id} className="mb-1">

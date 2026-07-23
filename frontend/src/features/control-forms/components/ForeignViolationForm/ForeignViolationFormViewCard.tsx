@@ -10,13 +10,11 @@ import {
   ChoiceGroup,
   DateField,
   TimeField,
-} from '@tedi-design-system/react/tedi';
-import {
   Accordion,
   AccordionItem,
   AccordionItemHeader,
   AccordionItemContent,
-} from '@tedi-design-system/react/community';
+} from '@tedi-design-system/react/tedi';
 import type { ForeignViolationForm } from '../../types';
 import {
   EU_VIOLATION_GROUPS,
@@ -491,13 +489,15 @@ export function ForeignViolationFormViewCard({
 
       <Card className="mb-1">
         <Card.Content>
-          <Accordion defaultOpenItem={[]}>
+          <Accordion>
             <AccordionItem id="eu-violations">
-              <AccordionItemHeader closeText=" " openText=" ">
-                <strong>
-                  {t('forms.foreign_violation.euViolationsBasicInfo')}
-                </strong>
-              </AccordionItemHeader>
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t('forms.foreign_violation.euViolationsBasicInfo')}
+                  </Heading>
+                }
+              />
               <AccordionItemContent>
                 {euViolationGroups.map((group) => (
                   <div key={group.id} className="mb-1">

@@ -210,6 +210,7 @@ export function ForeignViolationFormPage() {
         />
       ) : (
         <ForeignViolationFormViewCard
+          key={`${form.id}-${JSON.stringify(form.violations)}`}
           form={form}
           isDesktop={isDesktop}
           canEdit={canEdit}
