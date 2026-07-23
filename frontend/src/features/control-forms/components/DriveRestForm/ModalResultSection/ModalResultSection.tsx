@@ -1,7 +1,14 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Text, Search, Card, Separator } from '@tedi-design-system/react/tedi';
+import {
+  Button,
+  Text,
+  Search,
+  Card,
+  Separator,
+  Heading,
+} from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
 import {
   CheckModal,
@@ -160,7 +167,7 @@ export function ModalResultSection({ checks, type }: Props) {
   return (
     <div>
       <div className={styles.header}>
-        <Text modifiers="bold">
+        <Heading element="h5" modifiers="bold">
           {type === 'docCheck'
             ? t(
                 'forms.drive_rest.sectionTitle',
@@ -175,7 +182,7 @@ export function ModalResultSection({ checks, type }: Props) {
                   'forms.drive_rest.violationSectionTitle',
                   'Sõidu- ja puhkeaja nõuete rikkumised',
                 )}
-        </Text>
+        </Heading>
         <div className="pos-relative">
           <Button
             ref={buttonRef}
@@ -193,8 +200,7 @@ export function ModalResultSection({ checks, type }: Props) {
               }
             }}
           >
-            {t('forms.drive_rest.add', '+ Lisa')}{' '}
-            {type !== 'massDimension' && '▾'}
+            {t('common.add', '+ Lisa')} {type !== 'massDimension' && '▾'}
           </Button>
           {dropdownOpen &&
             createPortal(
@@ -314,7 +320,7 @@ export function ModalResultSection({ checks, type }: Props) {
                           <>
                             <Text>{entry.level1Name}</Text>
                             <Text>{entry.level2Name}</Text>
-                            {entry.severity != "" ? (
+                            {entry.severity != '' ? (
                               <Text>{entry.level2Code}</Text>
                             ) : (
                               <div></div>

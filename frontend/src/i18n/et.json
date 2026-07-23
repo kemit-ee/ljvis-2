@@ -670,7 +670,6 @@
     "drive_rest": {
       "sectionTitle": "Dokumendi või õiguse kontroll",
       "violationSectionTitle": "Sõidu- ja puhkeaja nõuete rikkumised",
-      "add": "+ Lisa",
       "empty": "Sisu puudub",
       "selectAtLeastOne": "Valige vähemalt üks rikkumine.",
       "checkedDaysCount": "Kontrollitud päevade arv",
@@ -843,6 +842,7 @@
     "dataTitle": "Auditikirje"
   },
   "common": {
+    "add": "+ Lisa",
     "save": "Salvesta",
     "confirm": "Kinnita",
     "delete": "Kustuta",
