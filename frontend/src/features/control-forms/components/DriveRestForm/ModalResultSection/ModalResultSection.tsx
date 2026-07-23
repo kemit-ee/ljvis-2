@@ -10,10 +10,9 @@ import {
   Heading,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
-import {
-  CheckModal,
-  type DocRightCheckEntry,
-} from '../CheckModal/CheckModal.tsx';
+import { MassDimensionModal, type DocRightCheckEntry } from '../CheckModal/MassDimensionModal';
+import { DocCheckModal } from '../CheckModal/DocCheckModal';
+import { DrivingViolationModal } from '../CheckModal/DrivingViolationModal';
 import styles from './ModalResultSection.module.css';
 
 interface Props {
@@ -28,7 +27,7 @@ export function ModalResultSection({ checks, type }: Props) {
   const [search, setSearch] = useState('');
   const [selectedLevel1, setSelectedLevel1] =
     useState<ClassifierValueData | null>(null);
-  const modalRef = useRef<{ open: () => void }>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, position: 'bottom' as 'bottom' | 'top' });
@@ -188,19 +187,18 @@ export function ModalResultSection({ checks, type }: Props) {
             ref={buttonRef}
             type="button"
             visualType="secondary"
+            iconRight={type !== 'massDimension' ? 'keyboard_arrow_down' : undefined}
             onClick={() => {
               if (type === 'massDimension') {
                 setSelectedLevel1(null);
-                setTimeout(() => {
-                  modalRef.current?.open();
-                }, 100);
+                setIsModalOpen(true);
               } else {
                 setDropdownOpen((v) => !v);
                 setSearch('');
               }
             }}
           >
-            {t('common.add', '+ Lisa')} {type !== 'massDimension' && '▾'}
+            {t('common.add', '+ Lisa')} {type !== 'massDimension'}
           </Button>
           {dropdownOpen &&
             createPortal(
@@ -234,9 +232,7 @@ export function ModalResultSection({ checks, type }: Props) {
                           setSelectedLevel1(l1);
                           setDropdownOpen(false);
                           setSearch('');
-                          setTimeout(() => {
-                            modalRef.current?.open();
-                          }, 100);
+                          setIsModalOpen(true);
                         }}
                         className={styles.dropdownButton}
                       >
@@ -261,30 +257,37 @@ export function ModalResultSection({ checks, type }: Props) {
         </div>
       </div>
 
-      {selectedLevel1 && (
-        <CheckModal
-          key={selectedLevel1.code}
+      {type === 'massDimension' && (
+        <MassDimensionModal
+          level1Items={level1Items}
+          level2Items={level2Items}
+          existingEntries={entries}
+          onConfirm={handleConfirm}
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
+        />
+      )}
+      {selectedLevel1 && type === 'docCheck' && (
+        <DocCheckModal
+          level1Item={selectedLevel1}
+          level2Items={level2Items}
+          level3Items={level3Items}
+          existingEntries={entries}
+          onConfirm={handleConfirm}
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
+        />
+      )}
+      {selectedLevel1 && type === 'drivingViolation' && (
+        <DrivingViolationModal
           level1Item={selectedLevel1}
           level1Items={level1Items}
           level2Items={level2Items}
           level3Items={level3Items}
           existingEntries={entries}
           onConfirm={handleConfirm}
-          modalRef={modalRef}
-          type={type}
-        />
-      )}
-      {type === 'massDimension' && !selectedLevel1 && (
-        <CheckModal
-          key="massDimension-all"
-          level1Item={null}
-          level1Items={level1Items}
-          level2Items={level2Items}
-          level3Items={level3Items}
-          existingEntries={entries}
-          onConfirm={handleConfirm}
-          modalRef={modalRef}
-          type={type}
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
         />
       )}
 

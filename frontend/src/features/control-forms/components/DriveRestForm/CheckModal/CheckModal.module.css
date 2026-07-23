@@ -13,10 +13,6 @@
     width: 95vw !important;
 }
 
-.trigger-button {
-    display: none;
-}
-
 .modal-body-wrapper {
     overflow-y: auto;
 }
