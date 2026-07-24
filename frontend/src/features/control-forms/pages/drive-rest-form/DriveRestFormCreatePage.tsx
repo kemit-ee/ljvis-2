@@ -118,8 +118,6 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
       : []),
   ];
 
-  const gridClass = isDesktop ? 'form-grid-desktop' : 'form-grid-mobile';
-
   return (
     <div>
       {/* Plokk: Veoliik ja veoklass */}
@@ -685,7 +683,7 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
               <Heading element="h3" className="mb-1">
                 {t('forms.drive_rest.atpTitle')}
               </Heading>
-              <div className={gridClass}>
+              <div>
                 <ChoiceGroup
                   id="atpViolationFound"
                   label={
