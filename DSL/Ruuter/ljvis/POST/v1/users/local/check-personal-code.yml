@@ -19,6 +19,7 @@ extractRequestData:
   assign:
     personal_code: "${incoming.body.personalCode}"
     id: "${incoming.body.id ?? ''}"
+  next: checkConflict
 
 checkConflict:
   call: http.post

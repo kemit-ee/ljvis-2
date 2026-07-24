@@ -8,8 +8,9 @@ import {
   TextArea,
   Text,
   ChoiceGroup,
-  FileDropzone,
   Alert,
+  Row,
+  Col,
 } from '@tedi-design-system/react/tedi';
 import {
   DatePicker,
@@ -27,6 +28,7 @@ import {
 } from '../../../../constants/constants';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
+import { FormFiles } from '../../../forms/components/FormFiles.tsx';
 
 interface ForeignViolationEditFormValues {
   id: string;
@@ -71,7 +73,6 @@ interface ForeignViolationEditFormValues {
   inspectorOrganisationId: string;
   inspectorUnit: string;
   inspectorProfession: string;
-  files: string | { id: string; isLoading: boolean; isValid: boolean }[];
 }
 
 interface ForeignViolationFormEditCardProps {
@@ -321,7 +322,10 @@ export function ForeignViolationFormEditCard({
               <TimePicker
                 id="inspectionTime"
                 label={t('forms.foreign_violation.inspectionTime')}
-                value={toTimeValue(formik.values.inspectionDate, formik.values.inspectionTime)}
+                value={toTimeValue(
+                  formik.values.inspectionDate,
+                  formik.values.inspectionTime,
+                )}
                 onChange={(v) => formik.setFieldValue('inspectionTime', v)}
                 placeholder={t('forms.foreign_violation.timePickerPlaceholder')}
                 {...(formik.touched.inspectionTime &&
@@ -1008,30 +1012,14 @@ export function ForeignViolationFormEditCard({
         </Card.Content>
       </Card>
 
-      <Card className="mb-1">
-        <Card.Content>
-          <Heading element="h3" className="mb-1">
-            {t('forms.foreign_violation.filesBasicInfo')}
-          </Heading>
-          <FileDropzone
-            id="files"
-            name="file-dropzone"
-            label={t('forms.foreign_violation.filesBoxInfo')}
-            onChange={(files) =>
-              formik.setFieldValue('files', JSON.stringify(files))
-            }
-            maxSize={10}
-            helper={
-              typeof formik.errors.files === 'string'
-                ? { text: formik.errors.files, type: 'error' as const }
-                : { text: t('forms.foreign_violation.filesHelper') }
-            }
-            multiple
-            accept=".jpg,.jpeg,.png,.gif,.bmp,.tif,.tiff,.pdf,.doc,.docx,.xls,.xlsx,.odt,.rtf,.msg,.eml,.txt,.zip,.ddd"
-            validateIndividually
+      <Row className="m-0">
+        <Col className="p-0">
+          <FormFiles
+            formType="foreign-violation-form"
+            formNumber={formik.values.formNumber}
           />
-        </Card.Content>
-      </Card>
+        </Col>
+      </Row>
 
       {formik.values.id && (
         <FormVersionsTable formId={formik.values.id} formType={formType} />

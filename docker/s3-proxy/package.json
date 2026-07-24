@@ -1,0 +1,11 @@
+{
+  "name": "s3-proxy",
+  "version": "1.0.0",
+  "description": "Internal S3/R2 upload proxy — signs AWS Sig V4 requests server-side",
+  "main": "server.js",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/s3-request-presigner": "^3.600.0",
+    "express": "^4.19.2"
+  }
+}

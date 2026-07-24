@@ -155,7 +155,6 @@ export function useForeignViolationForm(
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession:
         form?.inspectorProfession ?? authUser?.jobtitle ?? '',
-      files: form?.files ?? '[]',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -182,10 +181,6 @@ export function useForeignViolationForm(
           violations: Array.isArray(values.violations)
             ? JSON.stringify(values.violations)
             : (values.violations ?? '[]'),
-          files:
-            typeof values.files === 'string'
-              ? values.files
-              : JSON.stringify(values.files ?? []),
         };
         const payload = {
           ...trimmedValues,

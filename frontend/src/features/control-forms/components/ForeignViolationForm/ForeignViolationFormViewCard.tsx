@@ -8,6 +8,8 @@ import {
   TextField,
   TextArea,
   ChoiceGroup,
+  Row,
+  Col,
 } from '@tedi-design-system/react/tedi';
 import {
   DatePicker,
@@ -24,6 +26,7 @@ import {
 } from '../../../../constants/constants';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
+import { FormFiles } from '../../../forms/components/FormFiles.tsx';
 
 interface ForeignViolationFormViewCardProps {
   form: ForeignViolationForm;
@@ -675,29 +678,14 @@ export function ForeignViolationFormViewCard({
         </Card.Content>
       </Card>
 
-      {Array.isArray(form.files) && form.files.length > 0 && (
-        <Card className="mb-1">
-          <Card.Content>
-            <Heading element="h3" className="mb-1">
-              {t('forms.foreign_violation.filesBasicInfo')}
-            </Heading>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5rem',
-                alignItems: 'flex-start',
-              }}
-            >
-              {form.files.map((file) => (
-                <Button key={file.id} iconRight="download">
-                  {file.id}
-                </Button>
-              ))}
-            </div>
-          </Card.Content>
-        </Card>
-      )}
+      <Row className="m-0">
+        <Col className="p-0">
+          <FormFiles
+            formType="foreign-violation-form"
+            formNumber={form.formNumber}
+          />
+        </Col>
+      </Row>
 
       {form.id && <FormVersionsTable formId={form.id} formType={formType} />}
 

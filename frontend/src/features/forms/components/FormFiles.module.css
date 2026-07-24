@@ -1,0 +1,65 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tableHeadRow {
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.th {
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.thActions {
+  padding: 0.5rem 0.75rem;
+}
+
+.tableRow {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tdName {
+  padding: 0.6rem 0.75rem;
+  word-break: break-word;
+  max-width: 300px;
+}
+
+.tdDate {
+  padding: 0.6rem 0.75rem;
+  white-space: nowrap;
+  color: #6b7280;
+}
+
+.tdStatus {
+  padding: 0.6rem 0.75rem;
+}
+
+.tdActions {
+  padding: 0.6rem 0.75rem;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.uploadInputWrapper {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}

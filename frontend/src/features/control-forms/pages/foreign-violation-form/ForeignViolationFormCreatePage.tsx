@@ -11,7 +11,6 @@ import {
   Card,
   Text,
   ChoiceGroup,
-  FileDropzone,
   Alert,
 } from '@tedi-design-system/react/tedi';
 import {
@@ -1118,34 +1117,6 @@ export function ForeignViolationFormCreatePage() {
                         : {})}
                     />
                   </div>
-                </Card.Content>
-              </Card>
-            </Col>
-          </Row>
-          <Row className="m-0">
-            <Col className="p-0">
-              <Card className="mb-1">
-                <Card.Content>
-                  <Heading element="h3" className="mb-1">
-                    {t('forms.foreign_violation.filesBasicInfo')}
-                  </Heading>
-                  <FileDropzone
-                    id="files"
-                    name="file-dropzone"
-                    label={t('forms.foreign_violation.filesBoxInfo')}
-                    onChange={(files) =>
-                      formik.setFieldValue('files', JSON.stringify(files))
-                    }
-                    maxSize={10}
-                    helper={
-                      typeof formik.errors.files === 'string'
-                        ? { text: formik.errors.files, type: 'error' as const }
-                        : { text: t('forms.foreign_violation.filesHelper') }
-                    }
-                    multiple
-                    accept=".jpg,.jpeg,.png,.gif,.bmp,.tif,.tiff,.pdf,.doc,.docx,.xls,.xlsx,.odt,.rtf,.msg,.eml,.txt,.zip,.ddd"
-                    validateIndividually
-                  />
                 </Card.Content>
               </Card>
             </Col>

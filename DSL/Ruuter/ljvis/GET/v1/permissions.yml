@@ -15,6 +15,7 @@ getPermissions:
       type: json
     body: {}
   result: res
+  next: returnSuccess
 
 returnSuccess:
   return: ${res.response.body}

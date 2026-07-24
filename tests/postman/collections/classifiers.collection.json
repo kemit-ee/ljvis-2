@@ -247,10 +247,10 @@
         "method": "GET",
         "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/classifier?id={{seeded_classifier_id}}",
+          "raw": "{{api_url}}/ljvis/v1/classifiers/classifier?q={{seeded_classifier_id}}",
           "host": ["{{api_url}}"],
           "path": ["ljvis", "v1", "classifiers", "classifier"],
-          "query": [{"key": "id", "value": "{{seeded_classifier_id}}"}]
+          "query": [{"key": "q", "value": "{{seeded_classifier_id}}"}]
         }
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -263,10 +263,10 @@
         "method": "GET",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/classifier?id={{seeded_classifier_id}}",
+          "raw": "{{api_url}}/ljvis/v1/classifiers/classifier?q={{seeded_classifier_id}}",
           "host": ["{{api_url}}"],
           "path": ["ljvis", "v1", "classifiers", "classifier"],
-          "query": [{"key": "id", "value": "{{seeded_classifier_id}}"}]
+          "query": [{"key": "q", "value": "{{seeded_classifier_id}}"}]
         }
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -414,10 +414,10 @@
         "method": "GET",
         "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/value?id={{seeded_classifier_id}}&valueId={{seeded_value_id}}",
+          "raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{seeded_value_id}}",
           "host": ["{{api_url}}"],
           "path": ["ljvis", "v1", "classifiers", "value"],
-          "query": [{"key": "id", "value": "{{seeded_classifier_id}}"}, {"key": "valueId", "value": "{{seeded_value_id}}"}]
+          "query": [{"key": "q", "value": "{{seeded_classifier_id}}"}, {"key": "valueId", "value": "{{seeded_value_id}}"}]
         }
       },
       "event": [{"listen": "test", "script": {"exec": [
@@ -430,10 +430,10 @@
         "method": "GET",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/value?id={{seeded_classifier_id}}&valueId={{seeded_value_id}}",
+          "raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{seeded_value_id}}",
           "host": ["{{api_url}}"],
           "path": ["ljvis", "v1", "classifiers", "value"],
-          "query": [{"key": "id", "value": "{{seeded_classifier_id}}"}, {"key": "valueId", "value": "{{seeded_value_id}}"}]
+          "query": [{"key": "q", "value": "{{seeded_classifier_id}}"}, {"key": "valueId", "value": "{{seeded_value_id}}"}]
         }
       },
       "event": [{"listen": "test", "script": {"exec": [

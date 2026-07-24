@@ -787,6 +787,32 @@
     "data": "Auditikirje andmed",
     "dataTitle": "Auditikirje"
   },
+  "form": {
+    "files": {
+      "title": "Kontrolliga seotud failid",
+      "addBtn": "Lisa manus",
+      "uploadTitle": "Lae fail üles",
+      "uploadBtn": "Lae üles",
+      "limits": "Lubatud tüübid: pdf, jpeg, png, asice, doc, docx. Max suurus: 20MB.",
+      "empty": "Vormile pole faile lisatud.",
+      "col": {
+        "name": "Faili nimi",
+        "uploaded": "Lisatud",
+        "status": "Staatus"
+      },
+      "status": {
+        "active": "Aktiivne",
+        "deleted": "Kustutatud"
+      },
+      "error": {
+        "tooLarge": "Faili suurus ületab 20MB piiri.",
+        "invalidType": "Lubamatu failitüüp. Lubatud: pdf, jpeg, png, asice, doc, docx.",
+        "duplicate": "Sama nimega fail on juba lisatud. Üleslaadides lisatakse uus versioon."
+      },
+      "confirmDeleteTitle": "Kustuta fail",
+      "confirmDelete": "Kas soovid selle faili kustutada?"
+    }
+  },
   "common": {
     "save": "Salvesta",
     "confirm": "Kinnita",
@@ -819,7 +845,8 @@
     "remove": "Eemalda",
     "space": " ",
     "deleteConfirmTitle": "Koondvormi kustutamine",
-    "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?"
+    "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?",
+    "download": "Laadi alla"
   },
   "footer": {
     "help": "Abi",

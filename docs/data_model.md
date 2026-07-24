@@ -943,7 +943,7 @@ CREATE INDEX idx_ugl_organisations_gin ON user_group_latest USING GIN (organisat
 -- EPIC_04 BEGIN
 -- ============================================================
 -- EPIC 04 \u2014 Klassifikaatorite haldamine \u2014 DDL
--- Database: PostgreSQL 14+
+-- Database: PostgreSQL 17+
 -- Pattern: INSERT-only (no UPDATE / DELETE / JOIN)
 -- ============================================================
 

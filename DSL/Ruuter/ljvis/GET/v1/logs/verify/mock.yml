@@ -1,0 +1,13 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      ok: true
+      checked: 0
+      from: ""
+      to: ""
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body}
+  next: end

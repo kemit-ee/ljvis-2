@@ -24,6 +24,7 @@ tim-db/
 .actrc
 
 .ai
+.devin
 
 # Task/test documentation (local only)
 TASK-*.md

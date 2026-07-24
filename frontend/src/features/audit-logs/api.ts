@@ -14,4 +14,5 @@ export const exportLogs = (params?: ListApiParams) =>
     params as Record<string, string>,
   );
 
-export const getLog = (id: string) => get<AuditLog[]>('/v1/logs/log', { id });
+export const getLog = (id: string) =>
+  get<AuditLog[]>('/v1/logs/log', { q: id });
