@@ -59,6 +59,10 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
   const [workDaysCount, setWorkDaysCount] = useState('');
   const [otherActivityDaysCount, setOtherActivityDaysCount] = useState('');
   const [notes, setNotes] = useState('');
+  const [atpViolationFound, setAtpViolationFound] = useState('');
+  const [atpViolationDescription, setAtpViolationDescription] = useState('');
+  const [enforcedDecision, setEnforcedDecision] = useState('');
+  const [proceedingTerminationBasis, setProceedingTerminationBasis] = useState('');
 
   const handleTachographTypeChange = (val: string) => {
     setTachographType(val);
@@ -113,6 +117,8 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
         }))
       : []),
   ];
+
+  const gridClass = isDesktop ? 'form-grid-desktop' : 'form-grid-mobile';
 
   return (
     <div>
@@ -380,73 +386,89 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
                       );
                       return (
                         <>
-                          <ChoiceGroup
-                            id="proceedingTypePart1"
-                            className={styles['choice-item-gap']}
-                            label={t('forms.sp_form.proceedingType')}
-                            name="proceedingType"
-                            inputType="radio"
-                            value={proceedingType}
-                            onChange={(val) => {
-                              setProceedingType(val as string);
-                              setProceedingReferenceNumber('');
-                            }}
-                            items={
-                              labelIdx <= 0
-                                ? PROCEEDING_TYPES
-                                : PROCEEDING_TYPES.slice(0, labelIdx)
-                            }
-                          />
-                          {proceedingType !== '' &&
-                            proceedingType !== 'NONE' && (
-                              <>
-                                <div className={styles['proceeding-row']}>
-                                  <ChoiceGroup
-                                    id="proceedingTypeSelected"
-                                    className={styles['choice-item-gap']}
+                          {proceedingType === '' && (
+                            <ChoiceGroup
+                              id="proceedingTypePart0"
+                              className={styles['choice-item-gap']}
+                              label={t('forms.sp_form.proceedingType')}
+                              name="proceedingType"
+                              inputType="radio"
+                              value={proceedingType}
+                              onChange={(val) => {
+                                setProceedingType(val as string);
+                                setProceedingReferenceNumber('');
+                              }}
+                              items={PROCEEDING_TYPES}
+                            />
+                          )}
+                          {proceedingType !== '' && labelIdx > 0 && (
+                            <ChoiceGroup
+                              id="proceedingTypePart1"
+                              className={styles['choice-item-gap']}
+                              label={t('forms.sp_form.proceedingType')}
+                              name="proceedingType"
+                              inputType="radio"
+                              value={proceedingType}
+                              onChange={(val) => {
+                                setProceedingType(val as string);
+                                setProceedingReferenceNumber('');
+                              }}
+                              items={PROCEEDING_TYPES.slice(0, labelIdx)}
+                            />
+                          )}
+                          {proceedingType !== '' && (
+                            <>
+                              <div className={styles['proceeding-row']}>
+                                <ChoiceGroup
+                                  id="proceedingTypeSelected"
+                                  className={styles['choice-item-gap']}
+                                  label={
+                                    labelIdx === 0
+                                      ? t('forms.sp_form.proceedingType')
+                                      : ''
+                                  }
+                                  name="proceedingType"
+                                  inputType="radio"
+                                  value={proceedingType}
+                                  onChange={(val) => {
+                                    setProceedingType(val as string);
+                                    setProceedingReferenceNumber('');
+                                  }}
+                                  items={[PROCEEDING_TYPES[labelIdx]]}
+                                />
+                                <div className={styles['proceeding-width']}>
+                                  <TextField
+                                    id="proceedingReferenceNumber"
                                     label=""
-                                    name="proceedingType"
-                                    inputType="radio"
-                                    value={proceedingType}
-                                    onChange={(val) => {
-                                      setProceedingType(val as string);
-                                      setProceedingReferenceNumber('');
-                                    }}
-                                    items={[PROCEEDING_TYPES[labelIdx]]}
+                                    value={proceedingReferenceNumber}
+                                    placeholder={t(
+                                      'forms.sp_form.proceedingReferenceNumberPlaceholder',
+                                    )}
+                                    onChange={(val) =>
+                                      setProceedingReferenceNumber(
+                                        val as string,
+                                      )
+                                    }
                                   />
-                                  <div className={styles['proceeding-width']}>
-                                    <TextField
-                                      id="proceedingReferenceNumber"
-                                      label=""
-                                      value={proceedingReferenceNumber}
-                                      placeholder={t(
-                                        'forms.sp_form.proceedingReferenceNumberPlaceholder',
-                                      )}
-                                      onChange={(val) =>
-                                        setProceedingReferenceNumber(
-                                          val as string,
-                                        )
-                                      }
-                                    />
-                                  </div>
                                 </div>
-                                {labelIdx < PROCEEDING_TYPES.length - 1 && (
-                                  <ChoiceGroup
-                                    id="proceedingTypePart2"
-                                    className={styles['choice-item-gap']}
-                                    label=""
-                                    name="proceedingType"
-                                    inputType="radio"
-                                    value={proceedingType}
-                                    onChange={(val) => {
-                                      setProceedingType(val as string);
-                                      setProceedingReferenceNumber('');
-                                    }}
-                                    items={PROCEEDING_TYPES.slice(labelIdx + 1)}
-                                  />
-                                )}
-                              </>
-                            )}
+                              </div>
+                              {labelIdx < PROCEEDING_TYPES.length - 1 && (
+                                <ChoiceGroup
+                                  id="proceedingTypePart2"
+                                  className={styles['choice-item-gap']}
+                                  label=""
+                                  name="proceedingType"
+                                  inputType="radio"
+                                  value={proceedingType}
+                                  onChange={(val) => {
+                                    setProceedingType(val as string);
+                                    setProceedingReferenceNumber('');
+                                  }}
+                                  items={PROCEEDING_TYPES.slice(labelIdx + 1)}
+                                />
+                              )}
+                            </>
+                          )}
                         </>
                       );
                     })()}
@@ -655,6 +677,69 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
             </Accordion>
           </div>
         )}
+      {/* Plokk: ATP kokkuleppe nõuete kontroll */}
+      <Row className="m-0">
+        <Col className="p-0">
+          <Card className="mb-1">
+            <Card.Content>
+              <Heading element="h3" className="mb-1">
+                {t('forms.drive_rest.atpTitle')}
+              </Heading>
+              <div className={gridClass}>
+                <ChoiceGroup
+                  id="atpViolationFound"
+                  label={
+                    <strong>{t('forms.sp_form.atpViolationFound')}</strong>
+                  }
+                  name="roadTaxStatus"
+                  inputType="radio"
+                  direction="row"
+                  value={atpViolationFound}
+                  className="mb-1"
+                  onChange={(val) => {
+                    setAtpViolationFound(val as string);
+                    if (val !== 'Jah') {
+                      setAtpViolationDescription('');
+                    }
+                  }}
+                  items={[
+                    {
+                      id: 'atp_violation_yes',
+                      value: 'Jah',
+                      label: t('common.yes'),
+                    },
+                    {
+                      id: 'atp_violation_no',
+                      value: 'Ei',
+                      label: t('common.no'),
+                    },
+                  ]}
+                />
+                <div></div>
+                {atpViolationFound === 'Jah' && (
+                  <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
+                    <TextArea
+                      id="atpViolationDescription"
+                      maxHeight="8rem"
+                      label={
+                        <strong>
+                          {t('forms.sp_form.atpViolationDescription')}{' '}
+                          <span className={styles['required-star']}>*</span>
+                        </strong>
+                      }
+                      value={atpViolationDescription}
+                      input={{ maxLength: 4000 }}
+                      placeholder={t('forms.sp_form.atpDescriptionPlaceholder')}
+                      onChange={(v) => setAtpViolationDescription(v as string)}
+                    />
+                  </div>
+                )}
+              </div>
+            </Card.Content>
+          </Card>
+        </Col>
+      </Row>
+      {/* Plokk: Märkused */}
       {controlResult !== '' && controlResult !== 'KORRAS' && (
         <Card className="mb-1">
           <Card.Content>
@@ -673,6 +758,40 @@ export function DriveRestFormCreatePage({ type: type }: Props) {
             </div>
           </Card.Content>
         </Card>
+      )}
+      {/* Plokk: Andmevahetuskihi päringuga sisestatavad andmed (X-tee) */}
+      {false && (
+        <Row className="m-0">
+          <Col className="p-0">
+            <Card className="mb-1">
+              <Card.Content>
+                <Heading element="h3" className="mb-1">
+                  {t('forms.sp_form.xteeDataTitle')}
+                </Heading>
+                <div
+                  className={
+                    isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
+                  }
+                >
+                  <TextField
+                    id="enforcedDecision"
+                    label={t('forms.sp_form.enforcedDecision')}
+                    value={enforcedDecision}
+                    input={{ maxLength: 400 }}
+                    onChange={(v) => setEnforcedDecision(v as string)}
+                  />
+                  <TextField
+                    id="proceedingTerminationBasis"
+                    label={t('forms.sp_form.proceedingTerminationBasis')}
+                    value={proceedingTerminationBasis}
+                    input={{ maxLength: 400 }}
+                    onChange={(v) => setProceedingTerminationBasis(v as string)}
+                  />
+                </div>
+              </Card.Content>
+            </Card>
+          </Col>
+        </Row>
       )}
     </div>
   );

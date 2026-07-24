@@ -340,7 +340,13 @@
       "applicabilityApplied": "Rakendatakse",
       "applicabilityNotApplied": "Ei rakendata",
       "applicabilityNotChecked": "Ei kontrollitud",
-      "notes": "Märkused"
+      "notes": "Märkused",
+      "atpViolationFound": "ATP rikkumine tuvastatud",
+      "atpViolationDescription": "ATP rikkumise kirjeldus",
+      "atpDescriptionPlaceholder": "Sisestage kirjeldus...",
+      "enforcedDecision": "Jõustunud otsus",
+      "proceedingTerminationBasis": "Menetluse lõpetamise alus",
+      "xteeDataTitle": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)"
     },
     "compound": {
       "generalPart": "Üldosa",
@@ -668,6 +674,7 @@
       }
     },
     "drive_rest": {
+      "atpTitle": "ATP kokkuleppe nõuete kontroll",
       "sectionTitle": "Dokumendi või õiguse kontroll",
       "violationSectionTitle": "Sõidu- ja puhkeaja nõuete rikkumised",
       "empty": "Sisu puudub",

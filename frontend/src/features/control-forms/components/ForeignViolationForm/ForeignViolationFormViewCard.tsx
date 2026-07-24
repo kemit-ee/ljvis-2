@@ -143,7 +143,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <Select
@@ -173,7 +173,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
             style={{ alignItems: 'start' }}
           >
@@ -243,7 +243,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -303,7 +303,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -329,7 +329,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
             style={{ alignItems: 'start' }}
           >
@@ -397,7 +397,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -417,7 +417,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -438,7 +438,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -473,7 +473,7 @@ export function ForeignViolationFormViewCard({
           />
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -555,7 +555,7 @@ export function ForeignViolationFormViewCard({
           />
           {form.recommendedMeasureCode === 'MUU' && (
             <div
-              className={`${styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']} mb-1`}
+              className={`${isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'} mb-1`}
             >
               <TextField
                 id="recommendedMeasureNotes"
@@ -568,7 +568,7 @@ export function ForeignViolationFormViewCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -591,7 +591,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <div
@@ -618,7 +618,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField

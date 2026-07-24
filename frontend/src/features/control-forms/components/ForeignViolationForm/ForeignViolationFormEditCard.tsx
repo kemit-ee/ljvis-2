@@ -227,7 +227,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <Select
@@ -286,7 +286,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
             style={{ alignItems: 'start' }}
           >
@@ -416,7 +416,7 @@ export function ForeignViolationFormEditCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <div className={styles['select-row']}>
@@ -504,7 +504,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -543,7 +543,7 @@ export function ForeignViolationFormEditCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
             style={{ alignItems: 'start' }}
           >
@@ -650,7 +650,7 @@ export function ForeignViolationFormEditCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <div className={styles['select-row']}>
@@ -678,7 +678,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -702,7 +702,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -750,7 +750,7 @@ export function ForeignViolationFormEditCard({
           />
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -841,7 +841,7 @@ export function ForeignViolationFormEditCard({
           />
           {formik.values.recommendedMeasureCode === 'MUU' && (
             <div
-              className={`${styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']} mb-1`}
+              className={`${isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'} mb-1`}
             >
               <TextField
                 id="recommendedMeasureNotes"
@@ -866,7 +866,7 @@ export function ForeignViolationFormEditCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -893,7 +893,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <div
@@ -937,7 +937,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField

@@ -158,6 +158,20 @@ nav[aria-label='Main navigation'] {
   margin-top: 1rem;
 }
 
+.form-grid-desktop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 80%;
+}
+
+.form-grid-mobile {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
 .org-perm-list {
   list-style: none;
   padding: 0;

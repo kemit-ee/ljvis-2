@@ -163,9 +163,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <Select
@@ -229,9 +227,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                     style={{ alignItems: 'start' }}
                   >
@@ -399,9 +395,7 @@ export function ForeignViolationFormCreatePage() {
                   )}
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <div className={styles['select-row']}>
@@ -505,9 +499,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextField
@@ -553,9 +545,7 @@ export function ForeignViolationFormCreatePage() {
                   )}
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                     style={{ alignItems: 'start' }}
                   >
@@ -677,9 +667,7 @@ export function ForeignViolationFormCreatePage() {
                   )}
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <div className={styles['select-row']}>
@@ -715,9 +703,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextArea
@@ -746,9 +732,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextField
@@ -803,9 +787,7 @@ export function ForeignViolationFormCreatePage() {
                   />
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextArea
@@ -902,7 +884,7 @@ export function ForeignViolationFormCreatePage() {
                   />
                   {formik.values.recommendedMeasureCode === 'MUU' && (
                     <div
-                      className={`${styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']} mb-1`}
+                      className={`${isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'} mb-1`}
                     >
                       <TextField
                         id="recommendedMeasureNotes"
@@ -929,9 +911,7 @@ export function ForeignViolationFormCreatePage() {
                   )}
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextArea
@@ -964,9 +944,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <div
@@ -1016,9 +994,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextField

@@ -58,9 +58,7 @@ export function UserCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextField
@@ -129,9 +127,7 @@ export function UserCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                     style={{ alignItems: 'start' }}
                   >
@@ -231,9 +227,7 @@ export function UserCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <div
