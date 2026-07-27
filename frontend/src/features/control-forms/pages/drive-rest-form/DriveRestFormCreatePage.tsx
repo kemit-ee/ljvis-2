@@ -60,7 +60,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       tachographTypes,
       drivingViolations,
       massDimensions,
-    } = useDriveRestForm(undefined, handleSaved);
+    } = useDriveRestForm(undefined, handleSaved, type as 'driver' | 'teammate');
 
     const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
@@ -315,7 +315,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
                           onChange={(val) => handleChange(val as string[])}
                           items={toItems(beforeCabotage)}
                         />
-                        {hasCabotage && cabotageSubItems.length > 0 && (
+                        {hasCabotage && type=== 'driver' && cabotageSubItems.length > 0 && (
                           <div className={styles['cabotage-indent']}>
                             <ChoiceGroup
                               id="cabotageViolations"

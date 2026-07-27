@@ -9,6 +9,7 @@ import { insertDriveRestForm } from '../../api';
 export function useDriveRestForm(
   form: DriveRestForm | undefined,
   onSaved: (id?: string) => void,
+  type: 'driver' | 'teammate' = 'driver',
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
@@ -261,7 +262,7 @@ export function useDriveRestForm(
           // }
         } else {
           const result = await insertDriveRestForm(
-            'driver',
+            type,
             trimmedValues as unknown as DriveRestForm,
           );
           onSaved(result[0]?.id);
