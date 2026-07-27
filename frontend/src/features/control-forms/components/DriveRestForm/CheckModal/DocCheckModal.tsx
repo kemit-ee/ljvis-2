@@ -8,15 +8,15 @@ import {
   Checkbox,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
+import type { CheckEntry } from '../../../types.ts';
 import styles from './CheckModal.module.css';
-import { type DocRightCheckEntry } from './MassDimensionModal';
 
 interface Props {
   level1Item: ClassifierValueData | null;
   level2Items: ClassifierValueData[];
   level3Items: ClassifierValueData[];
-  existingEntries: DocRightCheckEntry[];
-  onConfirm: (entries: DocRightCheckEntry[]) => void;
+  existingEntries: CheckEntry[];
+  onConfirm: (entries: CheckEntry[]) => void;
   isModalOpen: boolean;
   setIsModalOpen: (open: boolean) => void;
 }
@@ -78,7 +78,7 @@ export function DocCheckModal({
   };
 
   const handleConfirm = () => {
-    const entries: DocRightCheckEntry[] = [];
+    const entries: CheckEntry[] = [];
     myLevel2.forEach((l2) => {
       const selected = dropdowns[l2.code]?.selected ?? [];
       selected.forEach((l3Code) => {
@@ -95,6 +95,10 @@ export function DocCheckModal({
             level3Code: l3.code,
             level3Name: l3.name,
             severity: l3.description ?? '',
+            documentCode: l2.code,
+            documentName: l2.name,
+            severityCode: l3.name,
+            violationCode: l3.code,
           });
         }
       });

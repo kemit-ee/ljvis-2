@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -9,6 +9,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import styles from './DocRightOtherSection.module.css';
 import type { ClassifierValueData } from '../../../classifier-values/types';
+import type { OtherDocument } from '../../types';
 
 type Visibility = 'BOTH' | 'CARGO' | 'PASSENGER';
 type ResultValue = 'EI_KONTROLLITUD' | 'NOUETEKOHANE' | 'PUUDUB';
@@ -23,27 +24,36 @@ const CODE_TO_VISIBILITY: Record<string, Visibility> = {
   OMAKULUL_SOITJATEVEO_VASTAVUS: 'PASSENGER',
 };
 
-function getVisibility(code: string): Visibility {
+export function getVisibility(code: string): Visibility {
   return CODE_TO_VISIBILITY[code] ?? 'BOTH';
-}
-
-interface RowState {
-  result: ResultValue;
-  remarkOpen: boolean;
-  remark: string;
 }
 
 interface Props {
   transportType: string;
   docRightOtherDocs: ClassifierValueData[];
+  otherDocuments: OtherDocument[];
+  setFieldValue: (field: string, value: any) => void;
 }
 
 export function DocRightOtherSection({
   transportType,
   docRightOtherDocs,
+  otherDocuments,
+  setFieldValue,
 }: Props) {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<Record<number, RowState>>({});
+  const [remarkOpenStates, setRemarkOpenStates] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    const filteredDocs = (otherDocuments as OtherDocument[]).filter((doc) => {
+      const visibility = CODE_TO_VISIBILITY[doc.documentCode] ?? 'BOTH';
+      if (visibility === 'BOTH') return true;
+      if (visibility === 'CARGO') return transportType === 'Veosevedu';
+      if (visibility === 'PASSENGER') return transportType === 'Sõitjatevedu';
+      return true;
+    });
+    setFieldValue('otherDocuments', filteredDocs);
+  }, [transportType, setFieldValue]);
 
   const visibleDocs = useMemo(
     () =>
@@ -58,38 +68,94 @@ export function DocRightOtherSection({
     [docRightOtherDocs, transportType],
   );
 
-  const getRow = (prev: Record<number, RowState>, id: number) =>
-    prev[id] ?? {
+  const getRow = (id: number) => {
+    const existing = (otherDocuments as OtherDocument[]).find(
+      (doc) => doc.documentCode === docRightOtherDocs.find((d) => d.classifierValueKey === id)?.code
+    );
+    return existing ?? {
+      documentCode: docRightOtherDocs.find((d) => d.classifierValueKey === id)?.code || '',
+      documentName: docRightOtherDocs.find((d) => d.classifierValueKey === id)?.name || '',
       result: 'EI_KONTROLLITUD' as ResultValue,
-      remarkOpen: false,
-      remark: '',
+      notes: '',
     };
+  };
 
   const setResult = (id: number, result: ResultValue) => {
-    setRows((prev) => ({
-      ...prev,
-      [id]: { ...getRow(prev, id), result },
-    }));
+    const doc = docRightOtherDocs.find((d) => d.classifierValueKey === id);
+    if (!doc) return;
+
+    const currentDocs = otherDocuments as OtherDocument[];
+    const existingIndex = currentDocs.findIndex((d) => d.documentCode === doc.code);
+
+    const newDoc: OtherDocument = {
+      documentCode: doc.code,
+      documentName: doc.name,
+      result,
+      notes: existingIndex >= 0 ? currentDocs[existingIndex].notes : '',
+    };
+
+    let updatedDocs: OtherDocument[];
+    if (existingIndex >= 0) {
+      updatedDocs = [...currentDocs];
+      updatedDocs[existingIndex] = newDoc;
+    } else {
+      updatedDocs = [...currentDocs, newDoc];
+    }
+
+    setFieldValue('otherDocuments', updatedDocs);
   };
 
   const toggleRemark = (id: number) => {
-    setRows((prev) => {
-      const row = getRow(prev, id);
-      return { ...prev, [id]: { ...row, remarkOpen: !row.remarkOpen } };
-    });
-  };
-
-  const setRemark = (id: number, remark: string) => {
-    setRows((prev) => ({
+    setRemarkOpenStates((prev) => ({
       ...prev,
-      [id]: { ...getRow(prev, id), remark },
+      [id]: !prev[id],
     }));
   };
 
+  const setRemark = (id: number, notes: string) => {
+    const doc = docRightOtherDocs.find((d) => d.classifierValueKey === id);
+    if (!doc) return;
+
+    const currentDocs = otherDocuments as OtherDocument[];
+    const existingIndex = currentDocs.findIndex((d) => d.documentCode === doc.code);
+
+    const newDoc: OtherDocument = {
+      documentCode: doc.code,
+      documentName: doc.name,
+      result: existingIndex >= 0 ? currentDocs[existingIndex].result : 'EI_KONTROLLITUD',
+      notes,
+    };
+
+    let updatedDocs: OtherDocument[];
+    if (existingIndex >= 0) {
+      updatedDocs = [...currentDocs];
+      updatedDocs[existingIndex] = newDoc;
+    } else {
+      updatedDocs = [...currentDocs, newDoc];
+    }
+
+    setFieldValue('otherDocuments', updatedDocs);
+  };
+
   const clearRemark = (id: number) => {
-    setRows((prev) => ({
+    const doc = docRightOtherDocs.find((d) => d.classifierValueKey === id);
+    if (!doc) return;
+
+    const currentDocs = otherDocuments as OtherDocument[];
+    const existingIndex = currentDocs.findIndex((d) => d.documentCode === doc.code);
+
+    if (existingIndex >= 0) {
+      const updatedDocs = [...currentDocs];
+      updatedDocs[existingIndex] = {
+        ...updatedDocs[existingIndex],
+        notes: '',
+      };
+      setFieldValue('otherDocuments', updatedDocs);
+    }
+
+    setRemarkOpenStates((prev) => ({
       ...prev,
-      [id]: { ...getRow(prev, id), remark: '', remarkOpen: false },
+      [id]: false,
     }));
   };
 
@@ -109,11 +175,8 @@ export function DocRightOtherSection({
     <div className={styles.container}>
       {visibleDocs.map((doc) => {
         const id = doc.classifierValueKey;
-        const state = rows[id] ?? {
-          result: 'EI_KONTROLLITUD',
-          remarkOpen: false,
-          remark: '',
-        };
+        const row = getRow(id);
+        const remarkOpen = remarkOpenStates[id] || false;
         return (
           <Card key={id}>
             <Card.Content>
@@ -127,7 +190,7 @@ export function DocRightOtherSection({
                   name={`doc-result-${id}`}
                   inputType="radio"
                   direction="row"
-                  value={state.result}
+                  value={row.result}
                   onChange={(val) => setResult(id, val as ResultValue)}
                   className="gap-1"
                   items={RESULT_OPTIONS.map((opt) => ({
@@ -149,13 +212,13 @@ export function DocRightOtherSection({
                 </div>
               </div>
             </Card.Content>
-            {state.remarkOpen && (
+            {remarkOpen && (
               <div className={styles.remarkRow}>
                 <TextField
                   id={`remark-${id}`}
                   label=""
                   placeholder={t('forms.otherDocs.remarkPlaceholder', 'Märkus')}
-                  value={state.remark}
+                  value={row.notes}
                   onChange={(val) => setRemark(id, val as string)}
                 />
                 <Button

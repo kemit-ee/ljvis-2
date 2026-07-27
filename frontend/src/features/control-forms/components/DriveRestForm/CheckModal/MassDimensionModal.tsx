@@ -10,25 +10,14 @@ import {
   Checkbox,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
+import type { CheckEntry } from '../../../types.ts';
 import styles from './CheckModal.module.css';
-
-export interface DocRightCheckEntry {
-  level1Code: string;
-  level1Name: string;
-  level2Code: string;
-  level2Name: string;
-  level2Description: string;
-  level3Code: string;
-  level3Name: string;
-  severity: string;
-  note?: string;
-}
 
 interface Props {
   level1Items: ClassifierValueData[];
   level2Items: ClassifierValueData[];
-  existingEntries: DocRightCheckEntry[];
-  onConfirm: (entries: DocRightCheckEntry[]) => void;
+  existingEntries: CheckEntry[];
+  onConfirm: (entries: CheckEntry[]) => void;
   isModalOpen: boolean;
   setIsModalOpen: (open: boolean) => void;
 }
@@ -161,7 +150,7 @@ export function MassDimensionModal({
   }, [isModalOpen, level1Items, level2Items]);
 
   const handleConfirm = () => {
-    const entries: DocRightCheckEntry[] = [];
+    const entries: CheckEntry[] = [];
     level1Items.forEach((l1) => {
       const l2Items = level2Items.filter(
         (v) => v.parentKey === l1.classifierValueKey,
@@ -399,7 +388,7 @@ export function MassDimensionModal({
                           };
                           const isLastItem = itemIndex === l2Items.length - 1;
                           return (
-                            <>
+                            <React.Fragment key={l2.code}>
                               <tr className={styles['table-row']}>
                                 <td className={styles['table-cell-name']}>
                                   <Text modifiers="h4">{l1.name}</Text>
@@ -474,7 +463,7 @@ export function MassDimensionModal({
                                   </div>
                                 </td>
                               </tr>
-                            </>
+                            </React.Fragment>
                           );
                         })
                       )}

@@ -9,16 +9,16 @@ import {
   Checkbox,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
+import type { CheckEntry } from '../../../types.ts';
 import styles from './CheckModal.module.css';
-import { type DocRightCheckEntry } from './MassDimensionModal';
 
 interface Props {
   level1Item: ClassifierValueData | null;
   level1Items: ClassifierValueData[];
   level2Items: ClassifierValueData[];
   level3Items: ClassifierValueData[];
-  existingEntries: DocRightCheckEntry[];
-  onConfirm: (entries: DocRightCheckEntry[]) => void;
+  existingEntries: CheckEntry[];
+  onConfirm: (entries: CheckEntry[]) => void;
   isModalOpen: boolean;
   setIsModalOpen: (open: boolean) => void;
 }
@@ -127,7 +127,7 @@ export function DrivingViolationModal({
   }, []);
 
   const handleConfirm = () => {
-    const entries: DocRightCheckEntry[] = [];
+    const entries: CheckEntry[] = [];
     myLevel2.forEach((l2) => {
       const selected = dropdowns[l2.code]?.selected ?? [];
       selected.forEach((l3Code) => {

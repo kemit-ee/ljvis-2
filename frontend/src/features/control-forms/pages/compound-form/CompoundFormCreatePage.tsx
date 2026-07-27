@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { OTHER, ROAD } from '../../../../constants/constants';
@@ -92,6 +93,13 @@ export function CompoundFormCreatePage() {
   const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
+  const formRefs = useRef<Record<string, React.RefObject<any>>>({});
+  Object.values(ROUTE_TO_TAB).forEach(({ tabId }) => {
+    if (!formRefs.current[tabId]) {
+      formRefs.current[tabId] = React.createRef<any>();
+    }
+  });
+
   const handleSaved = (id?: string) => {
     navigate(`/control-forms/compound/${id}`, { state: { justCreated: true } });
   };
@@ -169,43 +177,43 @@ export function CompoundFormCreatePage() {
 
   return (
     <div>
-      <form onSubmit={formik.handleSubmit}>
-        <div className="card-main">
-          <Heading element="h1">{headingLabel}</Heading>
-          {!isDesktop && addFormDropdown}
-        </div>
+      <div className="card-main">
+        <Heading element="h1">{headingLabel}</Heading>
+        {!isDesktop && addFormDropdown}
+      </div>
 
-        <Tabs value={activeTab} onChange={setActiveTab}>
-          <Tabs.List aria-label={t('forms.compound_form')}>
-            <Tabs.Trigger id="tab-1">
-              {t('forms.compound.generalPart')}
-            </Tabs.Trigger>
-            {openTabs.map((tabId) => (
-              <Tabs.Trigger key={tabId} id={tabId}>
-                {tabLabels[tabId]}
-                <ClosingButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeTab(tabId);
-                  }}
-                />
-              </Tabs.Trigger>
-            ))}
-            {isDesktop && addFormDropdown && (
-              <div
-                style={{
-                  marginLeft: 'auto',
-                  alignSelf: 'center',
-                  marginRight: '1rem',
+      <Tabs value={activeTab} onChange={setActiveTab}>
+        <Tabs.List aria-label={t('forms.compound_form')}>
+          <Tabs.Trigger id="tab-1">
+            {t('forms.compound.generalPart')}
+          </Tabs.Trigger>
+          {openTabs.map((tabId) => (
+            <Tabs.Trigger key={tabId} id={tabId}>
+              {tabLabels[tabId]}
+              <ClosingButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeTab(tabId);
                 }}
-              >
-                {addFormDropdown}
-              </div>
-            )}
-          </Tabs.List>
-          <Tabs.Content id="tab-1" className="p-1">
-            <div>
+              />
+            </Tabs.Trigger>
+          ))}
+          {isDesktop && addFormDropdown && (
+            <div
+              style={{
+                marginLeft: 'auto',
+                alignSelf: 'center',
+                marginRight: '1rem',
+              }}
+            >
+              {addFormDropdown}
+            </div>
+          )}
+        </Tabs.List>
+        <Tabs.Content id="tab-1" className="p-1">
+          <div>
+            <form onSubmit={formik.handleSubmit}>
               {/* Plokk: Kontrolli koht */}
               <Row className="m-0">
                 <Col className="p-0">
@@ -474,7 +482,10 @@ export function CompoundFormCreatePage() {
                           <TimeField
                             id="controlTime"
                             label={t('forms.compound.controlTime')}
-                            value={formik.values.controlTime?.slice(0, 5) ?? undefined}
+                            value={
+                              formik.values.controlTime?.slice(0, 5) ??
+                              undefined
+                            }
                             onChange={(v) =>
                               formik.setFieldValue(
                                 'controlTime',
@@ -645,9 +656,7 @@ export function CompoundFormCreatePage() {
                                 toIsoDate(v),
                               )
                             }
-                            placeholder={t(
-                              'common.dateFieldPlaceholder',
-                            )}
+                            placeholder={t('common.dateFieldPlaceholder')}
                           />
                         </div>
                         <Select
@@ -1577,8 +1586,7 @@ export function CompoundFormCreatePage() {
                             placeholder={t('common.dateFieldPlaceholder')}
                             required
                             inputProps={
-                              (formik.touched.drivers as any)?.[0]
-                                ?.birthDate &&
+                              (formik.touched.drivers as any)?.[0]?.birthDate &&
                               (formik.errors.drivers as any)?.[0]?.birthDate
                                 ? {
                                     helper: {
@@ -1874,26 +1882,37 @@ export function CompoundFormCreatePage() {
                   </Card>
                 </Col>
               </Row>
-            </div>
-          </Tabs.Content>
-          {Object.values(ROUTE_TO_TAB).map(({ tabId, type: tabType }) =>
-            openTabs.includes(tabId) ? (
-              <Tabs.Content key={tabId} id={tabId} className="p-1">
-                <DriveRestFormCreatePage type={tabType} />
-              </Tabs.Content>
-            ) : null,
-          )}
-        </Tabs>
-
-        <div className="page-actions mt-1">
-          <div className="page-actions-buttons">
-            <Button visualType="secondary" onClick={() => navigate('/')}>
-              {t('common.back')}
-            </Button>
-            <Button type="submit">{t('common.save')}</Button>
+            </form>
           </div>
+        </Tabs.Content>
+        {Object.values(ROUTE_TO_TAB).map(({ tabId, type: tabType }) =>
+          openTabs.includes(tabId) ? (
+            <Tabs.Content key={tabId} id={tabId} className="p-1">
+              <DriveRestFormCreatePage type={tabType} ref={formRefs.current[tabId]} />
+            </Tabs.Content>
+          ) : null,
+        )}
+      </Tabs>
+
+      <div className="page-actions mt-1">
+        <div className="page-actions-buttons">
+          <Button visualType="secondary" onClick={() => navigate('/')}>
+            {t('common.back')}
+          </Button>
+          <Button type="submit" onClick={() => {
+            if (activeTab === 'tab-1') {
+              formik.handleSubmit();
+            } else {
+              const activeTabFormRef = formRefs.current[activeTab]?.current;
+              if (activeTabFormRef && activeTabFormRef.handleSubmit) {
+                activeTabFormRef.handleSubmit();
+              } else {
+                console.log('No handleSubmit method found on tab form');
+              }
+            }
+          }}>{t('common.save')}</Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

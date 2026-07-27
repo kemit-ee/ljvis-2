@@ -10,7 +10,8 @@ import {
   Heading,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
-import { MassDimensionModal, type DocRightCheckEntry } from '../CheckModal/MassDimensionModal';
+import type { CheckEntry } from '../../../types.ts';
+import { MassDimensionModal } from '../CheckModal/MassDimensionModal';
 import { DocCheckModal } from '../CheckModal/DocCheckModal';
 import { DrivingViolationModal } from '../CheckModal/DrivingViolationModal';
 import styles from './ModalResultSection.module.css';
@@ -18,15 +19,18 @@ import styles from './ModalResultSection.module.css';
 interface Props {
   checks: ClassifierValueData[];
   type: 'docCheck' | 'drivingViolation' | 'massDimension';
+  setFieldValue?: (field: string, value: any) => void;
+  fieldName?: string;
 }
 
-export function ModalResultSection({ checks, type }: Props) {
+export function ModalResultSection({ checks, type, setFieldValue, fieldName }: Props) {
   const { t } = useTranslation();
-  const [entries, setEntries] = useState<DocRightCheckEntry[]>([]);
+  const [entries, setEntries] = useState<CheckEntry[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedLevel1, setSelectedLevel1] =
     useState<ClassifierValueData | null>(null);
+  const [selectedDirective, setSelectedDirective] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -81,17 +85,22 @@ export function ModalResultSection({ checks, type }: Props) {
     return groups;
   }, [filteredLevel1, type]);
 
-  const handleConfirm = (newEntries: DocRightCheckEntry[]) => {
+  const handleConfirm = (newEntries: CheckEntry[]) => {
     setEntries((prev) => {
+      const entriesWithDirective = newEntries.map((e) => ({
+        ...e,
+        articleDirective: selectedDirective,
+      }));
       if (type === 'massDimension') {
-        return [...newEntries];
+        return [...entriesWithDirective];
       }
       const otherEntries = prev.filter(
         (e) => e.level1Code !== newEntries[0]?.level1Code,
       );
-      return [...otherEntries, ...newEntries];
+      return [...otherEntries, ...entriesWithDirective];
     });
     setSelectedLevel1(null);
+    setSelectedDirective('');
     setDropdownOpen(false);
     setSearch('');
   };
@@ -100,18 +109,65 @@ export function ModalResultSection({ checks, type }: Props) {
     setEntries((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  useEffect(() => {
+    if (setFieldValue) {
+      if (type === 'drivingViolation') {
+        const directiveToFieldMap: Record<string, string> = {
+          '561/2006': 'violations5612006',
+          '165/2014': 'violations1652014',
+          '2002/15': 'violations200215',
+          '593/2008': 'violations5932008',
+          '2020/1057': 'violations20201057',
+        };
+
+        const groupedViolations: Record<string, any[]> = {};
+        entries.forEach((e) => {
+          let fieldName: string | undefined;
+          for (const [key, field] of Object.entries(directiveToFieldMap)) {
+            if (e.articleDirective?.includes(key)) {
+              fieldName = field;
+              break;
+            }
+          }
+          if (fieldName) {
+            if (!groupedViolations[fieldName]) {
+              groupedViolations[fieldName] = [];
+            }
+            groupedViolations[fieldName].push({
+              violationCode: e.level3Code,
+              severityCode: e.severity,
+              isDetected: 'true',
+            });
+          }
+        });
+
+        Object.keys(groupedViolations).forEach((field) => {
+          setFieldValue(field, groupedViolations[field]);
+        });
+
+        Object.values(directiveToFieldMap).forEach((field) => {
+          if (!groupedViolations[field]) {
+            setFieldValue(field, []);
+          }
+        });
+      } else if (fieldName) {
+        setFieldValue(fieldName, entries);
+      }
+    }
+  }, [entries, setFieldValue, fieldName, type]);
+
   const groupedEntries = useMemo(() => {
     const groups: Record<
       string,
-      { name: string; description: string; entries: (DocRightCheckEntry & { idx: number })[] }
+      { name: string; description: string; entries: (CheckEntry & { idx: number })[] }
     > = {};
     entries.forEach((e, idx) => {
       if (!groups[e.level1Code]) {
         const level1Item = level1Items.find((l1) => l1.code === e.level1Code);
-        groups[e.level1Code] = { 
-          name: e.level1Name, 
-          description: level1Item?.description || '', 
-          entries: [] 
+        groups[e.level1Code] = {
+          name: e.level1Name,
+          description: level1Item?.description || '',
+          entries: []
         };
       }
       groups[e.level1Code].entries.push({ ...e, idx });
@@ -230,6 +286,7 @@ export function ModalResultSection({ checks, type }: Props) {
                         type="button"
                         onClick={() => {
                           setSelectedLevel1(l1);
+                          setSelectedDirective(description);
                           setDropdownOpen(false);
                           setSearch('');
                           setIsModalOpen(true);

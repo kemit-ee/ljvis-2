@@ -346,7 +346,11 @@
       "atpDescriptionPlaceholder": "Sisestage kirjeldus...",
       "enforcedDecision": "Jõustunud otsus",
       "proceedingTerminationBasis": "Menetluse lõpetamise alus",
-      "xteeDataTitle": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)"
+      "xteeDataTitle": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
+      "validation": {
+        "required": "Kohustuslik väli",
+        "workDaysCountMax": "Tööpäevade arv ei tohi ületada kontrollitud päevade arvu"
+      }
     },
     "compound": {
       "generalPart": "Üldosa",
