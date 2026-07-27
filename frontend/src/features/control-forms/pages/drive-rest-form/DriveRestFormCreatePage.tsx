@@ -1,6 +1,6 @@
 import { useDriveRestForm } from './useDriveRestForm';
 import { useTranslation } from 'react-i18next';
-import { useRef, forwardRef, useImperativeHandle } from 'react';
+import { useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styles from './DriveRestFormPage.module.css';
 import {
   Heading,
@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface Props {
   type: string;
+  initialData?: any;
 }
 
 interface DriveRestFormRef {
@@ -34,7 +35,7 @@ interface DriveRestFormRef {
 }
 
 export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
-  ({ type: type }, ref) => {
+  ({ type: type, initialData }, ref) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const formRef = useRef<HTMLFormElement>(null);
@@ -43,6 +44,14 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       formElement: formRef.current as HTMLFormElement,
       handleSubmit: () => {
         formik.handleSubmit();
+      },
+      getFormData: () => {
+        return formik.values;
+      },
+      setFormData: (data: any) => {
+        Object.keys(data).forEach((key) => {
+          formik.setFieldValue(key, data[key]);
+        });
       },
     }));
 
@@ -60,9 +69,18 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       tachographTypes,
       drivingViolations,
       massDimensions,
-    } = useDriveRestForm(undefined, handleSaved, type as 'driver' | 'teammate');
+    } = useDriveRestForm(initialData, handleSaved, type as 'driver' | 'teammate');
 
     const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+
+    // Restore form data when initialData changes (tab switch)
+    useEffect(() => {
+      if (initialData && formik) {
+        Object.keys(initialData).forEach((key) => {
+          formik.setFieldValue(key, initialData[key]);
+        });
+      }
+    }, [initialData]);
 
     const handleTachographTypeChange = (val: string) => {
       formik.setFieldValue('tachographTypeCode', val);

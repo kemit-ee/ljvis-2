@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -67,6 +67,7 @@ export function CompoundFormCreatePage() {
 
   const removeTab = (tabId: string) => {
     setOpenTabs((prev) => prev.filter((t) => t !== tabId));
+    delete savedFormData.current[tabId];
     setActiveTab('tab-1');
   };
 
@@ -76,7 +77,7 @@ export function CompoundFormCreatePage() {
     if (!openTabs.includes(tabDef.tabId)) {
       setOpenTabs((prev) => [...prev, tabDef.tabId]);
     }
-    setActiveTab(tabDef.tabId);
+    handleTabChange(tabDef.tabId);
   };
 
   const tabLabels: Record<string, string> = {
@@ -94,6 +95,7 @@ export function CompoundFormCreatePage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const formRefs = useRef<Record<string, React.RefObject<any>>>({});
+  const savedFormData = useRef<Record<string, any>>({});
   Object.values(ROUTE_TO_TAB).forEach(({ tabId }) => {
     if (!formRefs.current[tabId]) {
       formRefs.current[tabId] = React.createRef<any>();
@@ -103,6 +105,27 @@ export function CompoundFormCreatePage() {
   const handleSaved = (id?: string) => {
     navigate(`/control-forms/compound/${id}`, { state: { justCreated: true } });
   };
+
+  const handleTabChange = (newTab: string) => {
+    if (activeTab !== 'tab-1' && formRefs.current[activeTab]?.current) {
+      savedFormData.current[activeTab] = formRefs.current[activeTab].current.getFormData?.();
+    }
+    // Restore new tab form data immediately
+    if (newTab !== 'tab-1' && savedFormData.current[newTab]) {
+      setTimeout(() => {
+        if (formRefs.current[newTab]?.current) {
+          formRefs.current[newTab].current.setFormData?.(savedFormData.current[newTab]);
+        }
+      }, 0);
+    }
+    setActiveTab(newTab);
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'tab-1' && formRefs.current[activeTab]?.current && savedFormData.current[activeTab]) {
+      formRefs.current[activeTab].current.setFormData?.(savedFormData.current[activeTab]);
+    }
+  }, [activeTab]);
 
   const countries = COUNTRIES.map((country) => ({
     ...country,
@@ -182,7 +205,7 @@ export function CompoundFormCreatePage() {
         {!isDesktop && addFormDropdown}
       </div>
 
-      <Tabs value={activeTab} onChange={setActiveTab}>
+      <Tabs value={activeTab} onChange={handleTabChange}>
         <Tabs.List aria-label={t('forms.compound_form')}>
           <Tabs.Trigger id="tab-1">
             {t('forms.compound.generalPart')}
@@ -190,13 +213,15 @@ export function CompoundFormCreatePage() {
           {openTabs.map((tabId) => (
             <Tabs.Trigger key={tabId} id={tabId}>
               {tabLabels[tabId]}
-              <ClosingButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeTab(tabId);
-                }}
-              />
+              {openTabs.length > 1 && (
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeTab(tabId);
+                  }}
+                />
+              )}
             </Tabs.Trigger>
           ))}
           {isDesktop && addFormDropdown && (
@@ -1888,7 +1913,9 @@ export function CompoundFormCreatePage() {
         {Object.values(ROUTE_TO_TAB).map(({ tabId, type: tabType }) =>
           openTabs.includes(tabId) ? (
             <Tabs.Content key={tabId} id={tabId} className="p-1">
-              <DriveRestFormCreatePage type={tabType} ref={formRefs.current[tabId]} />
+              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+                <DriveRestFormCreatePage type={tabType} ref={formRefs.current[tabId]} />
+              </div>
             </Tabs.Content>
           ) : null,
         )}
