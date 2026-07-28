@@ -820,6 +820,15 @@
     "download": "Download",
     "space": " "
   },
+  "xroad": {
+    "companyPicker": {
+      "title": "Select carrier",
+      "select": "Select"
+    },
+    "associatedPersons": {
+      "title": "Authorised representatives"
+    }
+  },
   "footer": {
     "help": "Help",
     "department": "COMING",

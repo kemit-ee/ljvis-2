@@ -223,6 +223,25 @@ services:
     mem_limit: "128M"
 
 
+  xtr:
+    container_name: xtr
+    image: ghcr.io/buerokratt/xtr:v3.1.16
+    platform: linux/amd64
+    environment:
+      - server.port=8080
+      - application.dslPath=/DSL
+      - application.ssl.keystore-password=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
+      - application.security-server=${XROAD_SECURITY_SERVER:-}
+      - application.xroad-instance=${XROAD_INSTANCE:-ee-test}
+    volumes:
+      - ./DSL/xtr:/DSL
+    ports:
+      - 9010:8080
+    networks:
+      - ljvisnetwork
+    cpus: "0.5"
+    mem_limit: "512M"
+
   frontend:
     container_name: frontend
     build:
