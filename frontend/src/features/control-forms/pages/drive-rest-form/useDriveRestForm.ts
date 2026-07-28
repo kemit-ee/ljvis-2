@@ -25,7 +25,7 @@ export function createDriveRestValidationSchema(
       t('forms.sp_form.validation.required'),
     ),
     proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => proceedingType !== undefined,
+      is: (proceedingType: string) => !!proceedingType,
       then: (schema) =>
         schema.required(t('forms.sp_form.validation.required')),
       otherwise: (schema) => schema.optional(),

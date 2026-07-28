@@ -30,6 +30,8 @@ interface Props {
   initialData?: DriveRestForm;
   compoundFormKey?: number;
   onSaved?: (id?: string) => void;
+  initialValidate?: boolean;
+  onValuesChange?: (values: Partial<DriveRestForm>) => void;
 }
 
 interface DriveRestFormRef {
@@ -42,7 +44,7 @@ interface DriveRestFormRef {
 }
 
 export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
-  ({ type: type, initialData, compoundFormKey, onSaved }, ref) => {
+  ({ type: type, initialData, compoundFormKey, onSaved, initialValidate, onValuesChange }, ref) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const formRef = useRef<HTMLFormElement>(null);
@@ -99,6 +101,33 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
     useEffect(() => {
       formik.validateForm();
     }, [formik.values]);
+
+    // Keep the parent's snapshot of this tab's data always up to date so
+    // saving from another tab never validates stale/outdated values.
+    // Skip the very first run (initial mount, before restored data has
+    // been applied) so we don't overwrite the saved snapshot with the
+    // form's default empty values.
+    const hasMountedRef = useRef(false);
+    useEffect(() => {
+      if (!hasMountedRef.current) {
+        hasMountedRef.current = true;
+        return;
+      }
+      onValuesChange?.(formik.values);
+    }, [formik.values]);
+
+    // If this tab was already validated before (e.g. via a save attempt
+    // while it was inactive/unmounted), mark all fields as touched as soon
+    // as it mounts so inline error messages show up immediately
+    useEffect(() => {
+      if (initialValidate) {
+        const touched: Record<string, boolean> = {};
+        Object.keys(formik.values).forEach(key => {
+          touched[key] = true;
+        });
+        formik.setTouched(touched);
+      }
+    }, []);
 
     const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 

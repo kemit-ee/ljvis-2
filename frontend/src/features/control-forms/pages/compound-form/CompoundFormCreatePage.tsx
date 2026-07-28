@@ -151,24 +151,22 @@ export function CompoundFormCreatePage() {
     formik.setTouched(touched);
     await formik.validateForm();
 
-    // Validate all drive-rest forms
+    // Validate all drive-rest forms against the shared schema using the
+    // saved snapshot — this guarantees the same result regardless of
+    // whether a tab is currently mounted (active) or not
     const driveRestSchema = createDriveRestValidationSchema(t);
     const newTabErrors: Record<string, boolean> = {};
     for (const tabId of openTabs) {
-      const formRef = formRefs.current[tabId]?.current;
-      if (formRef?.validateForm) {
-        formRef.validateForm();
-        // Wait a bit for validation to complete
-        await new Promise(resolve => setTimeout(resolve, 50));
-        newTabErrors[tabId] = formRef.hasErrors ? formRef.hasErrors() : false;
-      } else {
-        // Inactive tabs are unmounted (no ref) — validate their saved data
-        // against the shared schema so hidden tabs also report errors
-        newTabErrors[tabId] = !(await driveRestSchema
-          .isValid(savedFormData.current[tabId] ?? {}));
-      }
+      newTabErrors[tabId] = !(await driveRestSchema
+        .isValid(savedFormData.current[tabId] ?? {}));
     }
     setTabErrors(newTabErrors);
+
+    // If a drive-rest tab is currently mounted, also trigger its own
+    // validation so inline field error messages show up immediately
+    if (activeTab !== 'tab-1') {
+      formRefs.current[activeTab]?.current?.validateForm?.();
+    }
 
     // Mark the main form and all currently open sub-forms as validated
     setValidatedTabs((prev) => {
@@ -2051,7 +2049,9 @@ export function CompoundFormCreatePage() {
           openTabs.includes(tabId) ? (
             <Tabs.Content key={tabId} id={tabId} className="p-1">
               <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
-                <DriveRestFormCreatePage type={tabType} compoundFormKey={compoundFormId ?? undefined} ref={(ref) => {
+                <DriveRestFormCreatePage type={tabType} compoundFormKey={compoundFormId ?? undefined} initialValidate={validatedTabs.has(tabId)} onValuesChange={(values) => {
+                  savedFormData.current[tabId] = values;
+                }} ref={(ref) => {
                   formRefs.current[tabId].current = ref;
                 }} onSaved={(id) => {
                   if (id) {
