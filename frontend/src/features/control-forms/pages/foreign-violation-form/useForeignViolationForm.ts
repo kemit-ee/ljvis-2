@@ -17,7 +17,7 @@ import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { getAssociatedPersons } from '../../../xroad/api';
-import type { XRoadCompany, XRoadAssociatedPerson } from '../../../xroad/types';
+import type { XRoadAssociatedPerson } from '../../../xroad/types';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 
 export function useForeignViolationForm(
@@ -31,8 +31,11 @@ export function useForeignViolationForm(
   const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
-  const [associatedPersons, setAssociatedPersons] = useState<XRoadAssociatedPerson[]>([]);
-  const [associatedPersonsLoading, setAssociatedPersonsLoading] = useState(false);
+  const [associatedPersons, setAssociatedPersons] = useState<
+    XRoadAssociatedPerson[]
+  >([]);
+  const [associatedPersonsLoading, setAssociatedPersonsLoading] =
+    useState(false);
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
 
@@ -260,7 +263,8 @@ export function useForeignViolationForm(
     },
   });
 
-  const handleCompanyRegCodeSearch = () => searchByRegCode(formik.values.companyRegCode);
+  const handleCompanyRegCodeSearch = () =>
+    searchByRegCode(formik.values.companyRegCode);
   const handleCompanyNameSearch = () => searchByName(formik.values.companyName);
 
   const handleVehicleSearch = async () => {
