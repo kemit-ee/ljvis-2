@@ -2,11 +2,16 @@ name: Grawlr Security Scan
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main, dev]
 
 jobs:
   grawlr-security:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     env:
       GRAWLR_API_URL: https://api.grawlr.com
@@ -71,7 +76,7 @@ jobs:
           echo "Grawlr scan queued successfully."
           echo "Run: ${run_id}"
 
-          - name: Wait for Grawlr scan
+      - name: Wait for Grawlr scan
         id: wait_grawlr
         shell: bash
         env:
@@ -171,7 +176,8 @@ jobs:
 
           echo "Grawlr did not complete within the configured polling period."
           exit 1
-          - name: Apply Grawlr security gate
+
+      - name: Apply Grawlr security gate
         shell: bash
         env:
           GRAWLR_SCORE: ${{ steps.wait_grawlr.outputs.score }}
@@ -205,26 +211,28 @@ jobs:
           fi
 
           echo "Grawlr security gate passed."
-          - name: Add Grawlr result to job summary
-            if: always() && steps.wait_grawlr.outputs.tests != ''
-            shell: bash
-            run: |
-              {
-                echo "## Grawlr Security Scan"
-                echo ""
-                echo "Score: ${{ steps.wait_grawlr.outputs.score }}"
-                echo ""
-                echo "Tests: ${{ steps.wait_grawlr.outputs.tests }}"
-                echo ""
-                echo "Blocked: ${{ steps.wait_grawlr.outputs.blocked }}"
-                echo ""
-                echo "Failed: ${{ steps.wait_grawlr.outputs.failed }}"
-              } >> "${GITHUB_STEP_SUMMARY}"
-          - name: Upload Grawlr result
-            if: always()
-            uses: actions/upload-artifact@v4
-            with:
-              name: grawlr-security-result
-              path: grawlr-result.json
-              if-no-files-found: warn
-              retention-days: 14
+
+      - name: Add Grawlr result to job summary
+        if: always() && steps.wait_grawlr.outputs.tests != ''
+        shell: bash
+        run: |
+          {
+            echo "## Grawlr Security Scan"
+            echo ""
+            echo "Score: ${{ steps.wait_grawlr.outputs.score }}"
+            echo ""
+            echo "Tests: ${{ steps.wait_grawlr.outputs.tests }}"
+            echo ""
+            echo "Blocked: ${{ steps.wait_grawlr.outputs.blocked }}"
+            echo ""
+            echo "Failed: ${{ steps.wait_grawlr.outputs.failed }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload Grawlr result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grawlr-security-result
+          path: grawlr-result.json
+          if-no-files-found: warn
+          retention-days: 14
