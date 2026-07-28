@@ -14,6 +14,43 @@ import type {
 } from '../../types';
 import { insertDriveRestForm } from '../../api';
 
+export function createDriveRestValidationSchema(
+  t: (key: string) => string,
+) {
+  return Yup.object({
+    transportType: Yup.string().required(
+      t('forms.sp_form.validation.required'),
+    ),
+    resultType: Yup.string().required(
+      t('forms.sp_form.validation.required'),
+    ),
+    proceedingReferenceNumber: Yup.string().when('proceedingType', {
+      is: (proceedingType: string) => proceedingType !== undefined,
+      then: (schema) =>
+        schema.required(t('forms.sp_form.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    atpViolationDescription: Yup.string().when('atpViolationFound', {
+      is: 'Jah',
+      then: (schema) =>
+        schema.required(t('forms.sp_form.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    checkedDaysCount: Yup.string(),
+    workDaysCount: Yup.string().test(
+      'workDaysCountMax',
+      t('forms.sp_form.validation.workDaysCountMax'),
+      function (value) {
+        if (!value) return true;
+        const workDays = parseInt(value, 10);
+        const checkedDays = parseInt(this.parent.checkedDaysCount || '', 10);
+        if (isNaN(checkedDays)) return false;
+        return workDays <= checkedDays;
+      },
+    ),
+  });
+}
+
 export function useDriveRestForm(
   form: DriveRestForm | undefined,
   onSaved: (id?: string) => void,
@@ -76,38 +113,7 @@ export function useDriveRestForm(
     [classifierValues],
   );
 
-  const validationSchema = Yup.object({
-    transportType: Yup.string().required(
-      t('forms.sp_form.validation.required'),
-    ),
-    resultType: Yup.string().required(
-      t('forms.sp_form.validation.required'),
-    ),
-    proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => proceedingType !== undefined,
-      then: (schema) =>
-        schema.required(t('forms.sp_form.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
-    atpViolationDescription: Yup.string().when('atpViolationFound', {
-      is: 'Jah',
-      then: (schema) =>
-        schema.required(t('forms.sp_form.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
-    checkedDaysCount: Yup.string(),
-    workDaysCount: Yup.string().test(
-      'workDaysCountMax',
-      t('forms.sp_form.validation.workDaysCountMax'),
-      function (value) {
-        if (!value) return true;
-        const workDays = parseInt(value, 10);
-        const checkedDays = parseInt(this.parent.checkedDaysCount || '', 10);
-        if (isNaN(checkedDays)) return false;
-        return workDays <= checkedDays;
-      },
-    ),
-  });
+  const validationSchema = createDriveRestValidationSchema(t);
 
   const formik = useFormik({
     enableReinitialize: true,

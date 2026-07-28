@@ -38,6 +38,7 @@ import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
 import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
+import { createDriveRestValidationSchema } from '../drive-rest-form/useDriveRestForm';
 
 interface FormRef {
   handleSubmit?: () => void;
@@ -81,11 +82,23 @@ export function CompoundFormCreatePage() {
   const [compoundFormId, setCompoundFormId] = useState<number | null>(null);
   const [savedDriveRestForms, setSavedDriveRestForms] = useState<Set<string>>(new Set());
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
-  const [validationAttempted, setValidationAttempted] = useState(false);
+  // Track which tabs have actually been validated by save/validateAllForms.
+  // Newly added empty tabs should not show an error indicator until then.
+  const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
 
   const removeTab = (tabId: string) => {
     setOpenTabs((prev) => prev.filter((t) => t !== tabId));
     delete savedFormData.current[tabId];
+    setTabErrors((prev) => {
+      const next = { ...prev };
+      delete next[tabId];
+      return next;
+    });
+    setValidatedTabs((prev) => {
+      const next = new Set(prev);
+      next.delete(tabId);
+      return next;
+    });
     setActiveTab('tab-1');
   };
 
@@ -94,6 +107,9 @@ export function CompoundFormCreatePage() {
     if (!tabDef) return;
     if (!openTabs.includes(tabDef.tabId)) {
       setOpenTabs((prev) => [...prev, tabDef.tabId]);
+      // A brand-new empty form should not show an error indicator
+      // until the user actually tries to save
+      setTabErrors((prev) => ({ ...prev, [tabDef.tabId]: false }));
     }
     handleTabChange(tabDef.tabId);
   };
@@ -127,9 +143,6 @@ export function CompoundFormCreatePage() {
   };
 
   const validateAllForms = async (): Promise<boolean> => {
-    // Mark validation as attempted to show errors
-    setValidationAttempted(true);
-
     // Validate compound form (tab-1) - mark all fields as touched to show errors
     const touched: Record<string, boolean> = {};
     Object.keys(formik.values).forEach(key => {
@@ -139,6 +152,7 @@ export function CompoundFormCreatePage() {
     await formik.validateForm();
 
     // Validate all drive-rest forms
+    const driveRestSchema = createDriveRestValidationSchema(t);
     const newTabErrors: Record<string, boolean> = {};
     for (const tabId of openTabs) {
       const formRef = formRefs.current[tabId]?.current;
@@ -148,11 +162,21 @@ export function CompoundFormCreatePage() {
         await new Promise(resolve => setTimeout(resolve, 50));
         newTabErrors[tabId] = formRef.hasErrors ? formRef.hasErrors() : false;
       } else {
-        // If form ref is not available, mark as having errors to be safe
-        newTabErrors[tabId] = false;
+        // Inactive tabs are unmounted (no ref) — validate their saved data
+        // against the shared schema so hidden tabs also report errors
+        newTabErrors[tabId] = !(await driveRestSchema
+          .isValid(savedFormData.current[tabId] ?? {}));
       }
     }
     setTabErrors(newTabErrors);
+
+    // Mark the main form and all currently open sub-forms as validated
+    setValidatedTabs((prev) => {
+      const next = new Set(prev);
+      next.add('tab-1');
+      openTabs.forEach((tabId) => next.add(tabId));
+      return next;
+    });
 
     // Check if any form has errors
     const compoundFormHasErrors = Object.keys(formik.errors).length > 0;
@@ -162,12 +186,15 @@ export function CompoundFormCreatePage() {
   };
 
   const hasTabErrors = (tabId: string) => {
+    // Only show an error indicator for tabs that have been explicitly validated
+    if (!validatedTabs.has(tabId)) {
+      return false;
+    }
     if (tabId === 'tab-1') {
-      // Show errors only if validation has been attempted
-      return validationAttempted && Object.keys(formik.errors).length > 0;
+      return Object.keys(formik.errors).length > 0;
     }
     // For drive-rest forms, use tabErrors state which is updated by validateAllForms
-    return validationAttempted && (tabErrors[tabId] ?? false);
+    return tabErrors[tabId] ?? false;
   };
 
   const handleTabChange = (newTab: string) => {
@@ -227,15 +254,27 @@ export function CompoundFormCreatePage() {
 
   // Update tab errors from refs (safe to access refs in useEffect)
   useEffect(() => {
-    const newTabErrors: Record<string, boolean> = {};
-    Object.values(ROUTE_TO_TAB).forEach(({ tabId }) => {
-      if (openTabs.includes(tabId)) {
-        const formRef = formRefs.current[tabId]?.current;
-        newTabErrors[tabId] = formRef?.hasErrors ? formRef.hasErrors() : false;
-      }
+    setTabErrors((prev) => {
+      const newTabErrors: Record<string, boolean> = {};
+      Object.values(ROUTE_TO_TAB).forEach(({ tabId }) => {
+        if (openTabs.includes(tabId)) {
+          // Only update the error state for tabs that have already been
+          // validated; otherwise keep the previous value (false for new tabs)
+          if (validatedTabs.has(tabId)) {
+            const formRef = formRefs.current[tabId]?.current;
+            // Unmounted (inactive) tabs have no ref — keep their previous
+            // error state instead of resetting it
+            newTabErrors[tabId] = formRef?.hasErrors
+              ? formRef.hasErrors()
+              : (prev[tabId] ?? false);
+          } else {
+            newTabErrors[tabId] = prev[tabId] ?? false;
+          }
+        }
+      });
+      return newTabErrors;
     });
-    setTabErrors(newTabErrors);
-  }, [openTabs, formik.values]);
+  }, [openTabs, formik.values, validatedTabs]);
 
   // Trigger validation for compound form on mount and value changes
   useEffect(() => {
