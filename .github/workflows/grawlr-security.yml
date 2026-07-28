@@ -1,0 +1,230 @@
+name: Grawlr Security Scan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  grawlr-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      GRAWLR_API_URL: https://api.grawlr.com
+      GRAWLR_TARGET: ${{ vars.GRAWLR_TARGET }}
+
+    steps:
+      - name: Start Grawlr security scan
+        id: start_grawlr
+        shell: bash
+        env:
+          GRAWLR_API_KEY: ${{ secrets.GRAWLR_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          response_file=$(mktemp)
+          trap 'rm -f "${response_file}"' EXIT
+
+          http_code=$(curl \
+            --silent \
+            --show-error \
+            --output "${response_file}" \
+            --write-out "%{http_code}" \
+            --request POST \
+            --url "${GRAWLR_API_URL}/ci/v1/runs" \
+            --header "Authorization: Bearer ${GRAWLR_API_KEY}" \
+            --header "Content-Type: application/json" \
+            --header "Accept: application/json" \
+            --data "$(jq -n \
+              --arg target "${GRAWLR_TARGET}" \
+              '{target: $target}')")
+
+          response=$(cat "${response_file}")
+
+          if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
+            echo "Grawlr returned HTTP ${http_code}."
+            echo "${response}"
+            exit 1
+          fi
+
+          envelope_status=$(jq -r '.status // empty' <<< "${response}")
+
+          if [ "${envelope_status}" != "OK" ]; then
+            error_message=$(jq -r '.payload // "Unknown Grawlr error"' <<< "${response}")
+            echo "Grawlr rejected the request: ${error_message}"
+            exit 1
+          fi
+
+          run_id=$(jq -r '.payload.run // empty' <<< "${response}")
+          run_status=$(jq -r '.payload.status // empty' <<< "${response}")
+
+          if [ -z "${run_id}" ]; then
+            echo "Grawlr did not return a run identifier."
+            exit 1
+          fi
+
+          if [ "${run_status}" != "PENDING" ]; then
+            echo "Unexpected initial Grawlr status: ${run_status}"
+            exit 1
+          fi
+
+          echo "run=${run_id}" >> "${GITHUB_OUTPUT}"
+          echo "Grawlr scan queued successfully."
+          echo "Run: ${run_id}"
+
+          - name: Wait for Grawlr scan
+        id: wait_grawlr
+        shell: bash
+        env:
+          GRAWLR_API_KEY: ${{ secrets.GRAWLR_API_KEY }}
+          GRAWLR_RUN: ${{ steps.start_grawlr.outputs.run }}
+        run: |
+          set -euo pipefail
+
+          max_attempts=30
+          polling_interval=30
+
+          for attempt in $(seq 1 "${max_attempts}"); do
+            echo "Checking Grawlr run ${GRAWLR_RUN}."
+            echo "Polling attempt ${attempt}/${max_attempts}."
+
+            response_file=$(mktemp)
+
+            http_code=$(curl \
+              --silent \
+              --show-error \
+              --output "${response_file}" \
+              --write-out "%{http_code}" \
+              --request GET \
+              --url "${GRAWLR_API_URL}/ci/v1/runs/${GRAWLR_RUN}" \
+              --header "Authorization: Bearer ${GRAWLR_API_KEY}" \
+              --header "Accept: application/json")
+
+            response=$(cat "${response_file}")
+            rm -f "${response_file}"
+
+            if [ "${http_code}" -lt 200 ] || [ "${http_code}" -ge 300 ]; then
+              echo "Grawlr returned HTTP ${http_code} while polling."
+              echo "${response}"
+              exit 1
+            fi
+
+            envelope_status=$(jq -r '.status // empty' <<< "${response}")
+
+            if [ "${envelope_status}" != "OK" ]; then
+              error_message=$(jq -r '.payload // "Unknown Grawlr error"' <<< "${response}")
+              echo "Could not retrieve the Grawlr run: ${error_message}"
+              exit 1
+            fi
+
+            run_status=$(jq -r '.payload.status // empty' <<< "${response}")
+            echo "Current Grawlr status: ${run_status}"
+
+            case "${run_status}" in
+              PENDING|RUNNING)
+                sleep "${polling_interval}"
+                ;;
+
+              COMPLETED)
+                echo "${response}" > grawlr-result.json
+
+                score=$(jq -r '.payload.score' <<< "${response}")
+                tests=$(jq -r '.payload.tests' <<< "${response}")
+                passed=$(jq -r '.payload.passed' <<< "${response}")
+                failed=$(jq -r '.payload.failed' <<< "${response}")
+                blocked=$(jq -r '.payload.blocked' <<< "${response}")
+
+                echo "score=${score}" >> "${GITHUB_OUTPUT}"
+                echo "tests=${tests}" >> "${GITHUB_OUTPUT}"
+                echo "passed=${passed}" >> "${GITHUB_OUTPUT}"
+                echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
+                echo "blocked=${blocked}" >> "${GITHUB_OUTPUT}"
+
+                echo "Grawlr scan completed."
+                echo "Score: ${score}"
+                echo "Tests: ${tests}"
+                echo "Blocked: ${blocked}"
+                echo "Failed: ${failed}"
+                exit 0
+                ;;
+
+              FAILED)
+                echo "${response}" > grawlr-result.json
+                error_code=$(jq -r '.payload.error // "scan_execution_failed"' <<< "${response}")
+
+                echo "Grawlr could not execute the scan."
+                echo "Execution error: ${error_code}"
+                exit 1
+                ;;
+
+              CANCELLED)
+                echo "${response}" > grawlr-result.json
+                echo "The Grawlr scan was cancelled."
+                exit 1
+                ;;
+
+              *)
+                echo "Unexpected Grawlr run status: ${run_status}"
+                exit 1
+                ;;
+            esac
+          done
+
+          echo "Grawlr did not complete within the configured polling period."
+          exit 1
+          - name: Apply Grawlr security gate
+        shell: bash
+        env:
+          GRAWLR_SCORE: ${{ steps.wait_grawlr.outputs.score }}
+          GRAWLR_FAILED: ${{ steps.wait_grawlr.outputs.failed }}
+          MAX_FAILED_TESTS: "5"
+          MIN_SECURITY_SCORE: "80"
+        run: |
+          set -euo pipefail
+
+          echo "Applying Grawlr pipeline policy."
+          echo "Security score: ${GRAWLR_SCORE}"
+          echo "Failed tests: ${GRAWLR_FAILED}"
+          echo "Minimum score: ${MIN_SECURITY_SCORE}"
+          echo "Maximum failed tests: ${MAX_FAILED_TESTS}"
+
+          if [ "${GRAWLR_FAILED}" -gt "${MAX_FAILED_TESTS}" ]; then
+            echo "Security gate failed."
+            echo "Grawlr found ${GRAWLR_FAILED} successful attacks."
+            echo "The configured maximum is ${MAX_FAILED_TESTS}."
+            exit 1
+          fi
+
+          if ! awk \
+            -v score="${GRAWLR_SCORE}" \
+            -v minimum="${MIN_SECURITY_SCORE}" \
+            'BEGIN { exit !(score >= minimum) }'
+          then
+            echo "Security gate failed."
+            echo "Grawlr score ${GRAWLR_SCORE} is below ${MIN_SECURITY_SCORE}."
+            exit 1
+          fi
+
+          echo "Grawlr security gate passed."
+          - name: Add Grawlr result to job summary
+            if: always() && steps.wait_grawlr.outputs.tests != ''
+            shell: bash
+            run: |
+              {
+                echo "## Grawlr Security Scan"
+                echo ""
+                echo "Score: ${{ steps.wait_grawlr.outputs.score }}"
+                echo ""
+                echo "Tests: ${{ steps.wait_grawlr.outputs.tests }}"
+                echo ""
+                echo "Blocked: ${{ steps.wait_grawlr.outputs.blocked }}"
+                echo ""
+                echo "Failed: ${{ steps.wait_grawlr.outputs.failed }}"
+              } >> "${GITHUB_STEP_SUMMARY}"
+          - name: Upload Grawlr result
+            if: always()
+            uses: actions/upload-artifact@v4
+            with:
+              name: grawlr-security-result
+              path: grawlr-result.json
+              if-no-files-found: warn
+              retention-days: 14
