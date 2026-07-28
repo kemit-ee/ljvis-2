@@ -28,6 +28,8 @@ import { useNavigate } from 'react-router-dom';
 interface Props {
   type: string;
   initialData?: DriveRestForm;
+  compoundFormKey?: number;
+  onSaved?: (id?: string) => void;
 }
 
 interface DriveRestFormRef {
@@ -35,10 +37,12 @@ interface DriveRestFormRef {
   handleSubmit: () => void;
   getFormData?: () => Partial<DriveRestForm>;
   setFormData?: (data: Partial<DriveRestForm>) => void;
+  hasErrors: () => boolean;
+  validateForm?: () => void;
 }
 
 export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
-  ({ type: type, initialData }, ref) => {
+  ({ type: type, initialData, compoundFormKey, onSaved }, ref) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const formRef = useRef<HTMLFormElement>(null);
@@ -56,10 +60,27 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
           formik.setFieldValue(key, data[key]);
         });
       },
+      hasErrors: () => {
+        // Show errors only if form has been submitted or fields have been touched
+        return Object.keys(formik.errors).length > 0;
+      },
+      validateForm: () => {
+        // Mark all fields as touched to show errors
+        const touched: Record<string, boolean> = {};
+        Object.keys(formik.values).forEach(key => {
+          touched[key] = true;
+        });
+        formik.setTouched(touched);
+        formik.validateForm();
+      },
     }));
 
-    const handleSaved = () => {
-      navigate(`/`, { state: { justCreated: true } });
+    const handleSaved = (id?: string) => {
+      if (onSaved) {
+        onSaved(id);
+      } else {
+        navigate(`/`, { state: { justCreated: true } });
+      }
     };
 
     const {
@@ -72,7 +93,12 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       tachographTypes,
       drivingViolations,
       massDimensions,
-    } = useDriveRestForm(initialData, handleSaved, type as 'driver' | 'teammate');
+    } = useDriveRestForm(initialData, handleSaved, type as 'driver' | 'teammate', compoundFormKey);
+
+    // Trigger validation on mount and value changes
+    useEffect(() => {
+      formik.validateForm();
+    }, [formik.values]);
 
     const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 

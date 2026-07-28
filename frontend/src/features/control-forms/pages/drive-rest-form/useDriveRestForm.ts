@@ -17,7 +17,8 @@ import { insertDriveRestForm } from '../../api';
 export function useDriveRestForm(
   form: DriveRestForm | undefined,
   onSaved: (id?: string) => void,
-  type: 'driver' | 'teammate' = 'driver',
+  type: 'driver' | 'teammate',
+  compoundFormKey?: number,
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
@@ -112,7 +113,7 @@ export function useDriveRestForm(
     enableReinitialize: true,
     initialValues: {
       id: form?.id ?? '',
-      compoundFormKey: form?.compoundFormKey ?? 1,
+      compoundFormKey: form?.compoundFormKey ?? compoundFormKey,
       subFormNumber: form?.subFormNumber ?? '',
       status: form?.status ?? 'saved',
       selectionStatus: form?.selectionStatus ?? 'active',

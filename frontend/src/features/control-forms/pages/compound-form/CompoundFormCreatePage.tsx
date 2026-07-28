@@ -22,7 +22,8 @@ import {
   Tabs,
   Dropdown,
   DateField,
-  TimeField
+  TimeField,
+  StatusIndicator,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm, emptyTrailer } from './useCompoundForm';
 import type { Trailer, DriveRestForm, Driver } from '../../types';
@@ -42,6 +43,8 @@ interface FormRef {
   handleSubmit?: () => void;
   getFormData?: () => Partial<DriveRestForm>;
   setFormData?: (data: Partial<DriveRestForm>) => void;
+  hasErrors?: () => boolean;
+  validateForm?: () => void;
 }
 
 export function CompoundFormCreatePage() {
@@ -75,6 +78,10 @@ export function CompoundFormCreatePage() {
   const [openTabs, setOpenTabs] = useState<string[]>(
     initialTab ? [initialTab] : [],
   );
+  const [compoundFormId, setCompoundFormId] = useState<number | null>(null);
+  const [savedDriveRestForms, setSavedDriveRestForms] = useState<Set<string>>(new Set());
+  const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
+  const [validationAttempted, setValidationAttempted] = useState(false);
 
   const removeTab = (tabId: string) => {
     setOpenTabs((prev) => prev.filter((t) => t !== tabId));
@@ -114,7 +121,53 @@ export function CompoundFormCreatePage() {
   const savedFormData = useRef<Record<string, Partial<DriveRestForm>>>({});
 
   const handleSaved = (id?: string) => {
-    navigate(`/control-forms/compound/${id}`, { state: { justCreated: true } });
+    if (id) {
+      setCompoundFormId(Number(id));
+    }
+  };
+
+  const validateAllForms = async (): Promise<boolean> => {
+    // Mark validation as attempted to show errors
+    setValidationAttempted(true);
+
+    // Validate compound form (tab-1) - mark all fields as touched to show errors
+    const touched: Record<string, boolean> = {};
+    Object.keys(formik.values).forEach(key => {
+      touched[key] = true;
+    });
+    formik.setTouched(touched);
+    await formik.validateForm();
+
+    // Validate all drive-rest forms
+    const newTabErrors: Record<string, boolean> = {};
+    for (const tabId of openTabs) {
+      const formRef = formRefs.current[tabId]?.current;
+      if (formRef?.validateForm) {
+        formRef.validateForm();
+        // Wait a bit for validation to complete
+        await new Promise(resolve => setTimeout(resolve, 50));
+        newTabErrors[tabId] = formRef.hasErrors ? formRef.hasErrors() : false;
+      } else {
+        // If form ref is not available, mark as having errors to be safe
+        newTabErrors[tabId] = false;
+      }
+    }
+    setTabErrors(newTabErrors);
+
+    // Check if any form has errors
+    const compoundFormHasErrors = Object.keys(formik.errors).length > 0;
+    const anyTabHasErrors = Object.values(newTabErrors).some(hasError => hasError);
+
+    return !compoundFormHasErrors && !anyTabHasErrors;
+  };
+
+  const hasTabErrors = (tabId: string) => {
+    if (tabId === 'tab-1') {
+      // Show errors only if validation has been attempted
+      return validationAttempted && Object.keys(formik.errors).length > 0;
+    }
+    // For drive-rest forms, use tabErrors state which is updated by validateAllForms
+    return validationAttempted && (tabErrors[tabId] ?? false);
   };
 
   const handleTabChange = (newTab: string) => {
@@ -172,6 +225,23 @@ export function CompoundFormCreatePage() {
     availableForms,
   } = useCompoundForm(undefined, handleSaved);
 
+  // Update tab errors from refs (safe to access refs in useEffect)
+  useEffect(() => {
+    const newTabErrors: Record<string, boolean> = {};
+    Object.values(ROUTE_TO_TAB).forEach(({ tabId }) => {
+      if (openTabs.includes(tabId)) {
+        const formRef = formRefs.current[tabId]?.current;
+        newTabErrors[tabId] = formRef?.hasErrors ? formRef.hasErrors() : false;
+      }
+    });
+    setTabErrors(newTabErrors);
+  }, [openTabs, formik.values]);
+
+  // Trigger validation for compound form on mount and value changes
+  useEffect(() => {
+    formik.validateForm();
+  }, [formik.values]);
+
   const addableForms = (availableForms ?? []).filter(
     (form) =>
       !ROUTE_TO_TAB[form.route] ||
@@ -219,11 +289,25 @@ export function CompoundFormCreatePage() {
       <Tabs value={activeTab} onChange={handleTabChange}>
         <Tabs.List aria-label={t('forms.compound_form')}>
           <Tabs.Trigger id="tab-1">
-            {t('forms.compound.generalPart')}
+            <span
+              style={{
+                position: 'relative',
+              }}
+            >
+              {t('forms.compound.generalPart')}
+              {hasTabErrors('tab-1') && <StatusIndicator type="danger" position="top-right" />}
+            </span>
           </Tabs.Trigger>
           {openTabs.map((tabId) => (
             <Tabs.Trigger key={tabId} id={tabId}>
-              {tabLabels[tabId]}
+              <span
+                style={{
+                  position: 'relative',
+                }}
+              >
+                {tabLabels[tabId]}
+                {hasTabErrors(tabId) && <StatusIndicator type="danger" position="top-right" />}
+              </span>
               {openTabs.length > 1 && (
                 <ClosingButton
                   size="small"
@@ -1928,8 +2012,14 @@ export function CompoundFormCreatePage() {
           openTabs.includes(tabId) ? (
             <Tabs.Content key={tabId} id={tabId} className="p-1">
               <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
-                <DriveRestFormCreatePage type={tabType} ref={(ref) => {
+                <DriveRestFormCreatePage type={tabType} compoundFormKey={compoundFormId ?? undefined} ref={(ref) => {
                   formRefs.current[tabId].current = ref;
+                }} onSaved={(id) => {
+                  if (id) {
+                    setSavedDriveRestForms((prev) =>
+                        new Set(prev).add(tabId),
+                    );
+                  }
                 }} />
               </div>
             </Tabs.Content>
@@ -1942,18 +2032,64 @@ export function CompoundFormCreatePage() {
           <Button visualType="secondary" onClick={() => navigate('/')}>
             {t('common.back')}
           </Button>
-          <Button type="submit" onClick={() => {
-            if (activeTab === 'tab-1') {
-              formik.handleSubmit();
-            } else {
-              const activeTabFormRef = formRefs.current[activeTab]?.current;
-              if (activeTabFormRef && activeTabFormRef.handleSubmit) {
-                activeTabFormRef.handleSubmit();
-              } else {
-                console.log('No handleSubmit method found on tab form');
+          <Button
+            type="submit"
+            disabled={openTabs.length < 1}
+            onClick={async () => {
+              // Step 1: Validate all forms (compound form and all drive-rest forms on all tabs)
+              const isValid = await validateAllForms();
+
+              // Step 2: If validation fails, block saving and show errors
+              if (!isValid) {
+                return;
               }
-            }
-          }}>{t('common.save')}</Button>
+
+              // Step 3: Save compound form
+              formik.handleSubmit();
+
+              // Step 4: Wait for compoundFormId to be set
+              const waitForCompoundFormId = () => {
+                return new Promise<number>((resolve) => {
+                  const check = () => {
+                    if (compoundFormId) {
+                      resolve(compoundFormId);
+                    } else {
+                      setTimeout(check, 100);
+                    }
+                  };
+                  check();
+                });
+              };
+
+              const id = await waitForCompoundFormId();
+
+              // Step 5: Save all drive-rest forms sequentially
+              for (const tabId of openTabs) {
+                const tabFormRef = formRefs.current[tabId]?.current;
+                if (tabFormRef && tabFormRef.handleSubmit) {
+                  tabFormRef.handleSubmit();
+                  // Wait for this form to be saved
+                  await new Promise<void>((resolve) => {
+                    const check = () => {
+                      if (savedDriveRestForms.has(tabId)) {
+                        resolve();
+                      } else {
+                        setTimeout(check, 100);
+                      }
+                    };
+                    check();
+                  });
+                }
+              }
+
+              // Step 6: Navigate (will be updated based on user info)
+              navigate(`/control-forms/compound/${id}`, {
+                state: { justCreated: true },
+              });
+            }}
+          >
+            {t('common.save')}
+          </Button>
         </div>
       </div>
     </div>
