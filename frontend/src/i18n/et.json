@@ -848,6 +848,15 @@
     "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?",
     "download": "Laadi alla"
   },
+  "xroad": {
+    "companyPicker": {
+      "title": "Vali vedaja",
+      "select": "Vali"
+    },
+    "associatedPersons": {
+      "title": "Esindusõiguslikud isikud"
+    }
+  },
   "footer": {
     "help": "Abi",
     "department": "Kliimaministeerium",

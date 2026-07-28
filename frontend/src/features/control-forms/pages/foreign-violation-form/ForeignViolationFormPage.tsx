@@ -99,6 +99,11 @@ export function ForeignViolationFormPage() {
     handleCompanyNameSearch,
     handleVehicleSearch,
     handleLicenceCopyNumberSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
+    associatedPersons,
+    associatedPersonsLoading,
     triggerConfirm,
   } = useForeignViolationForm(
     form ?? undefined,
@@ -204,6 +209,11 @@ export function ForeignViolationFormPage() {
           handleCompanyNameSearch={handleCompanyNameSearch}
           handleVehicleSearch={handleVehicleSearch}
           handleLicenceCopyNumberSearch={handleLicenceCopyNumberSearch}
+          companyPickerResults={companyPickerResults}
+          onCompanyPicked={onCompanyPicked}
+          closeCompanyPicker={closeCompanyPicker}
+          associatedPersons={associatedPersons}
+          associatedPersonsLoading={associatedPersonsLoading}
           onCancel={() => {
             formik.resetForm();
             setIsEditActive(false);

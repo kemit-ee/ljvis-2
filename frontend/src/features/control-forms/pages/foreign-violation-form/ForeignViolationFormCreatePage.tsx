@@ -22,6 +22,7 @@ import {
   AccordionItemContent,
 } from '@tedi-design-system/react/community';
 import { useForeignViolationForm } from './useForeignViolationForm';
+import { CompanyPickerModal } from '../../components/CompanyPickerModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import {
@@ -143,12 +144,24 @@ export function ForeignViolationFormCreatePage() {
     handleCompanyNameSearch,
     handleVehicleSearch,
     handleLicenceCopyNumberSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
+    associatedPersons,
+    associatedPersonsLoading,
   } = useForeignViolationForm(undefined, handleSaved);
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
   return (
     <div>
+      {companyPickerResults.length > 0 && (
+        <CompanyPickerModal
+          companies={companyPickerResults}
+          onSelect={onCompanyPicked}
+          onClose={closeCompanyPicker}
+        />
+      )}
       <form onSubmit={formik.handleSubmit}>
         <div className="card-main">
           <Heading element="h1">{t('forms.foreign_violation_form')}</Heading>
@@ -492,6 +505,26 @@ export function ForeignViolationFormCreatePage() {
                       }
                     />
                   </div>
+                  {associatedPersonsLoading && (
+                    <div className="mt-1">
+                      <Text>{t('common.loading')}</Text>
+                    </div>
+                  )}
+                  {!associatedPersonsLoading && associatedPersons.length > 0 && (
+                    <div className="mt-1">
+                      <Text element="p"><strong>{t('xroad.associatedPersons.title')}</strong></Text>
+                      {associatedPersons
+                        .filter((p) => !p.endDate)
+                        .map((p, i) => (
+                          <Text key={i} element="p">
+                            {p.firstName
+                              ? `${p.firstName} ${p.nameOrBusinessName}`
+                              : p.nameOrBusinessName}
+                            {' — '}{p.roleText}
+                          </Text>
+                        ))}
+                    </div>
+                  )}
                 </Card.Content>
               </Card>
             </Col>
