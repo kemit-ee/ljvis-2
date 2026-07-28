@@ -16,10 +16,16 @@ import { DocCheckModal } from '../CheckModal/DocCheckModal';
 import { DrivingViolationModal } from '../CheckModal/DrivingViolationModal';
 import styles from './ModalResultSection.module.css';
 
+interface ViolationEntry {
+  violationCode: string;
+  severityCode: string;
+  isDetected: string;
+}
+
 interface Props {
   checks: ClassifierValueData[];
   type: 'docCheck' | 'drivingViolation' | 'massDimension';
-  setFieldValue?: (field: string, value: any) => void;
+  setFieldValue?: (field: string, value: unknown) => void;
   fieldName?: string;
 }
 
@@ -120,7 +126,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName }: P
           '2020/1057': 'violations20201057',
         };
 
-        const groupedViolations: Record<string, any[]> = {};
+        const groupedViolations: Record<string, ViolationEntry[]> = {};
         entries.forEach((e) => {
           let fieldName: string | undefined;
           for (const [key, field] of Object.entries(directiveToFieldMap)) {
@@ -364,8 +370,8 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName }: P
                 </div>
               )}
               {group.entries.map((entry) => (
-                <div className="mb-1">
-                  <Card key={entry.idx}>
+                <div key={entry.idx} className="mb-1">
+                  <Card>
                     <Card.Content className={styles.cardContent}>
                       <div
                         className={

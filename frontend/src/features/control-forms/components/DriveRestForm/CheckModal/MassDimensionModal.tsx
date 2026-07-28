@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -37,11 +37,11 @@ export function MassDimensionModal({
   setIsModalOpen,
 }: Props) {
   const { t } = useTranslation();
-  const [dropdowns, setDropdowns] = useState<Record<string, DropdownState>>({});
   const [showValidation, setValidationError] = useState(false);
   const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const isInitializedRef = useRef(false);
 
-  const buildDropdowns = () => {
+  const initialDropdowns = useMemo(() => {
     const init: Record<string, DropdownState> = {};
     level1Items.forEach((l1) => {
       const l2Items = level2Items.filter(
@@ -63,11 +63,17 @@ export function MassDimensionModal({
       });
     });
     return init;
-  };
+  }, [existingEntries, level1Items, level2Items]);
+
+  const [dropdowns, setDropdowns] = useState<Record<string, DropdownState>>(initialDropdowns);
 
   useEffect(() => {
-    setDropdowns(buildDropdowns());
-  }, [existingEntries, level1Items, level2Items]);
+    if (!isInitializedRef.current) {
+      isInitializedRef.current = true;
+      return;
+    }
+    setDropdowns(initialDropdowns);
+  }, [initialDropdowns]);
 
   const toggleDropdown = (l2Code: string) => {
     setDropdowns((prev) => ({

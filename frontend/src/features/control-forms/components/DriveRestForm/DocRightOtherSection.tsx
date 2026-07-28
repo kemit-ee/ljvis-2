@@ -32,7 +32,7 @@ interface Props {
   transportType: string;
   docRightOtherDocs: ClassifierValueData[];
   otherDocuments: OtherDocument[];
-  setFieldValue: (field: string, value: any) => void;
+  setFieldValue: (field: string, value: unknown) => void;
 }
 
 export function DocRightOtherSection({

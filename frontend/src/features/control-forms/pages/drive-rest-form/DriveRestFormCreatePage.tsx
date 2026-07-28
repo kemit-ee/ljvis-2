@@ -2,6 +2,7 @@ import { useDriveRestForm } from './useDriveRestForm';
 import { useTranslation } from 'react-i18next';
 import { useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import styles from './DriveRestFormPage.module.css';
+import type { DriveRestForm } from '../../types';
 import {
   Heading,
   Row,
@@ -26,12 +27,14 @@ import { useNavigate } from 'react-router-dom';
 
 interface Props {
   type: string;
-  initialData?: any;
+  initialData?: DriveRestForm;
 }
 
 interface DriveRestFormRef {
   formElement: HTMLFormElement;
   handleSubmit: () => void;
+  getFormData?: () => Partial<DriveRestForm>;
+  setFormData?: (data: Partial<DriveRestForm>) => void;
 }
 
 export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
@@ -48,8 +51,8 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       getFormData: () => {
         return formik.values;
       },
-      setFormData: (data: any) => {
-        Object.keys(data).forEach((key) => {
+      setFormData: (data: Partial<DriveRestForm>) => {
+        (Object.keys(data) as Array<keyof DriveRestForm>).forEach((key) => {
           formik.setFieldValue(key, data[key]);
         });
       },
@@ -76,7 +79,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
     // Restore form data when initialData changes (tab switch)
     useEffect(() => {
       if (initialData && formik) {
-        Object.keys(initialData).forEach((key) => {
+        (Object.keys(initialData) as Array<keyof DriveRestForm>).forEach((key) => {
           formik.setFieldValue(key, initialData[key]);
         });
       }
@@ -971,7 +974,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
               </Card>
             )}
           {/* Plokk: Andmevahetuskihi päringuga sisestatavad andmed (X-tee) */}
-          {false && (
+          {/* {false && (
             <Row className="m-0">
               <Col className="p-0">
                 <Card className="mb-1">
@@ -1013,9 +1016,11 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
                 </Card>
               </Col>
             </Row>
-          )}
+          )} */}
         </div>
       </form>
     );
   },
 );
+
+DriveRestFormCreatePage.displayName = 'DriveRestFormCreatePage';

@@ -3,7 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../../auth/AuthContext';
-import type { DriveRestForm } from '../../types';
+import type {
+  DriveRestForm,
+  TransportClass,
+  CabotageViolation,
+  DocumentCheck,
+  OtherDocument,
+  Violation,
+  MassDimensionMeasurement,
+} from '../../types';
 import { insertDriveRestForm } from '../../api';
 
 export function useDriveRestForm(
@@ -116,12 +124,12 @@ export function useDriveRestForm(
         ? form.transportClasses
         : typeof form?.transportClasses === 'string'
           ? JSON.parse(form.transportClasses)
-          : []) as any[],
+          : []) as TransportClass[],
       cabotageViolations: (Array.isArray(form?.cabotageViolations)
         ? form.cabotageViolations
         : typeof form?.cabotageViolations === 'string'
           ? JSON.parse(form.cabotageViolations)
-          : []) as any[],
+          : []) as CabotageViolation[],
       resultType: form?.resultType ?? '',
       proceedingType: form?.proceedingType ?? '',
       proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
@@ -129,12 +137,12 @@ export function useDriveRestForm(
         ? form.documentChecks
         : typeof form?.documentChecks === 'string'
           ? JSON.parse(form.documentChecks)
-          : []) as any[],
+          : []) as DocumentCheck[],
       otherDocuments: (Array.isArray(form?.otherDocuments)
         ? form.otherDocuments
         : typeof form?.otherDocuments === 'string'
           ? JSON.parse(form.otherDocuments)
-          : []) as any[],
+          : []) as OtherDocument[],
       spApplicability: form?.spApplicability ?? '',
       tachographTypeCode: form?.tachographTypeCode ?? '',
       tachographDataNotDownloaded: form?.tachographDataNotDownloaded ?? false,
@@ -145,45 +153,45 @@ export function useDriveRestForm(
         ? form.violations5612006
         : typeof form?.violations5612006 === 'string'
           ? JSON.parse(form.violations5612006)
-          : []) as any[],
+          : []) as Violation[],
       violations1652014: (Array.isArray(form?.violations1652014)
         ? form.violations1652014
         : typeof form?.violations1652014 === 'string'
           ? JSON.parse(form.violations1652014)
-          : []) as any[],
+          : []) as Violation[],
       violations200215: (Array.isArray(form?.violations200215)
         ? form.violations200215
         : typeof form?.violations200215 === 'string'
           ? JSON.parse(form.violations200215)
-          : []) as any[],
+          : []) as Violation[],
       violations5932008: (Array.isArray(form?.violations5932008)
         ? form.violations5932008
         : typeof form?.violations5932008 === 'string'
           ? JSON.parse(form.violations5932008)
-          : []) as any[],
+          : []) as Violation[],
       violations20201057: (Array.isArray(form?.violations20201057)
         ? form.violations20201057
         : typeof form?.violations20201057 === 'string'
           ? JSON.parse(form.violations20201057)
-          : []) as any[],
+          : []) as Violation[],
       massDimensionNonCompliant: form?.massDimensionNonCompliant ?? false,
       massDimensionMeasurements: (Array.isArray(form?.massDimensionMeasurements)
         ? form.massDimensionMeasurements
         : typeof form?.massDimensionMeasurements === 'string'
           ? JSON.parse(form.massDimensionMeasurements)
-          : []) as any[],
+          : []) as MassDimensionMeasurement[],
       atpViolationFound: form?.atpViolationFound ?? '',
       atpViolationDescription: form?.atpViolationDescription ?? '',
       erruPoints: (Array.isArray(form?.erruPoints)
         ? form.erruPoints
         : typeof form?.erruPoints === 'string'
           ? JSON.parse(form.erruPoints)
-          : []) as any[],
+          : []) as string[],
       files: (Array.isArray(form?.files)
         ? form.files
         : typeof form?.files === 'string'
           ? JSON.parse(form.files)
-          : []) as any[],
+          : []) as string[],
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
       notes: form?.notes ?? '',
@@ -199,7 +207,7 @@ export function useDriveRestForm(
         const nextStatus = isConfirming ? 'confirmed' : 'saved';
 
         const filteredOtherDocuments = Array.isArray(values.otherDocuments)
-          ? (values.otherDocuments as any[]).filter(
+          ? (values.otherDocuments as OtherDocument[]).filter(
               (doc) => doc.result === 'NOUETEKOHANE' || doc.result === 'PUUDUB'
             )
           : [];
@@ -215,7 +223,7 @@ export function useDriveRestForm(
             : (values.cabotageViolations ?? '[]'),
           documentChecks: Array.isArray(values.documentChecks)
             ? JSON.stringify(
-                (values.documentChecks as any[]).map((e) => ({
+                (values.documentChecks as DocumentCheck[]).map((e) => ({
                   documentCode: e.documentCode || e.level2Code,
                   documentName: e.documentName || e.level2Name,
                   severityCode: e.severityCode || e.level3Name,

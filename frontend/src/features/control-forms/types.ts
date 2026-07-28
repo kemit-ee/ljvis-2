@@ -183,6 +183,10 @@ export type DocumentCheck = {
   documentName: string;
   severityCode: string;
   violationCode: string;
+  level2Code?: string;
+  level2Name?: string;
+  level3Code?: string;
+  level3Name?: string;
 };
 
 export type OtherDocument = {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -36,7 +36,6 @@ export function DocCheckModal({
   setIsModalOpen,
 }: Props) {
   const { t } = useTranslation();
-  const [dropdowns, setDropdowns] = useState<Record<string, DropdownState>>({});
   const [showValidation, setValidationError] = useState(false);
 
   const myLevel2 = useMemo(
@@ -49,7 +48,7 @@ export function DocCheckModal({
     [level2Items, level1Item],
   );
 
-  const buildDropdowns = () => {
+  const initialDropdowns = useMemo(() => {
     const init: Record<string, DropdownState> = {};
     myLevel2.forEach((l2) => {
       const existingForL2 = existingEntries
@@ -60,11 +59,9 @@ export function DocCheckModal({
       init[l2.code] = { open: false, selected: existingForL2 };
     });
     return init;
-  };
+  }, [level1Item?.code, existingEntries, myLevel2]);
 
-  useEffect(() => {
-    setDropdowns(buildDropdowns());
-  }, [level1Item?.code, existingEntries, level2Items, level3Items]);
+  const [dropdowns, setDropdowns] = useState<Record<string, DropdownState>>(initialDropdowns);
 
   const toggleLevel3 = (l2Code: string, l3Code: string) => {
     setDropdowns((prev) => {

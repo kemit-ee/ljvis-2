@@ -6,12 +6,6 @@ import type {
   DriveRestForm,
 } from './types';
 
-export const getSerialNumber = () =>
-  post<number>(
-    '/v1/control-forms/foreign-violation-form/read/get-serial-number',
-    {},
-  );
-
 export const getForm = (id: number) =>
   post<ForeignViolationForm>(
     `/v1/control-forms/foreign-violation-form/read/get`,

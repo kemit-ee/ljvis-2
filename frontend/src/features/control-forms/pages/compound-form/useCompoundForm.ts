@@ -227,7 +227,7 @@ export function useCompoundForm(
       if (!drivers) return true;
       const req = t('forms.foreign_violation.validation.required');
       const errors: Yup.ValidationError[] = [];
-      drivers.forEach((driver: any, index: number) => {
+      drivers.forEach((driver: Driver, index: number) => {
         if (index === 0) {
           if (!driver?.firstName)
             errors.push(

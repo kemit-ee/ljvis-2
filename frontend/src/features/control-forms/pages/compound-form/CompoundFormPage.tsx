@@ -41,21 +41,6 @@ export function CompoundFormPage() {
   const [snapshotLoading, setSnapshotLoading] = useState(!!snapshotId);
 
   useEffect(() => {
-    if (!snapshotId) return;
-    setSnapshotLoading(true);
-    getCompoundFormSnapshot(snapshotId, id!)
-      .then((res) => {
-        const data = Array.isArray(res) ? res[0] : res;
-        setSnapshot(data);
-        if (data?.county) handleCountyChange(Number(data.county));
-        if (data?.companyCounty)
-          handleCompanyCountyChange(Number(data.companyCounty));
-      })
-      .catch(console.error)
-      .finally(() => setSnapshotLoading(false));
-  }, [snapshotId]);
-
-  useEffect(() => {
     if (form?.status === 'saved') {
       setIsEditActive(true);
     }
@@ -113,6 +98,21 @@ export function CompoundFormPage() {
     handleMtrSearch,
     triggerConfirm,
   } = useCompoundForm(form ?? undefined, handleEditSaved, handleConfirmed);
+
+  useEffect(() => {
+    if (!snapshotId) return;
+    setSnapshotLoading(true);
+    getCompoundFormSnapshot(snapshotId, id!)
+      .then((res) => {
+        const data = Array.isArray(res) ? res[0] : res;
+        setSnapshot(data);
+        if (data?.county) handleCountyChange(Number(data.county));
+        if (data?.companyCounty)
+          handleCompanyCountyChange(Number(data.companyCounty));
+      })
+      .catch(console.error)
+      .finally(() => setSnapshotLoading(false));
+  }, [snapshotId, handleCountyChange, handleCompanyCountyChange]);
 
   const handleDelete = async () => {
     if (!id || !form) return;

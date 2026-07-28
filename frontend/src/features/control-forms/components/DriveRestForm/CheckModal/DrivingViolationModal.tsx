@@ -67,7 +67,7 @@ export function DrivingViolationModal({
     return groups;
   }, [myLevel2]);
 
-  const buildDropdowns = () => {
+  const initialDropdowns = useMemo(() => {
     const init: Record<string, DropdownState> = {};
     myLevel2.forEach((l2) => {
       const existingForL2 = existingEntries
@@ -78,11 +78,18 @@ export function DrivingViolationModal({
       init[l2.code] = { open: false, selected: existingForL2 };
     });
     return init;
-  };
+  }, [level1Item?.code, existingEntries, myLevel2]);
 
   useEffect(() => {
-    setDropdowns(buildDropdowns());
-  }, [level1Item?.code, existingEntries, level2Items, level3Items]);
+    setDropdowns((prev) => {
+      const hasChanged = myLevel2.some(
+        (l2) =>
+          JSON.stringify(prev[l2.code]?.selected) !==
+          JSON.stringify(initialDropdowns[l2.code].selected),
+      );
+      return hasChanged ? initialDropdowns : prev;
+    });
+  }, [initialDropdowns, myLevel2]);
 
   const toggleDropdown = (l2Code: string) => {
     setDropdowns((prev) => ({
