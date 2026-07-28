@@ -12,15 +12,14 @@ import {
   Text,
   ChoiceGroup,
   Alert,
-} from '@tedi-design-system/react/tedi';
-import {
-  DatePicker,
-  TimePicker,
+  DateField,
+  TimeField,
   Accordion,
   AccordionItem,
   AccordionItemHeader,
   AccordionItemContent,
-} from '@tedi-design-system/react/community';
+} from '@tedi-design-system/react/tedi';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { CompanyPickerModal } from '../../components/CompanyPickerModal';
 import { useAuth } from '../../../auth/AuthContext';
@@ -30,7 +29,6 @@ import {
   EU_VIOLATION_GROUPS,
   COUNTRIES,
 } from '../../../../constants/constants';
-import dayjs from 'dayjs';
 import styles from './ForeignViolationFormPage.module.css';
 
 export function ForeignViolationFormCreatePage() {
@@ -177,9 +175,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <Select
@@ -243,9 +239,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                     style={{ alignItems: 'start' }}
                   >
@@ -256,55 +250,56 @@ export function ForeignViolationFormCreatePage() {
                         ]
                       }
                     >
-                      <DatePicker
+                      <DateField
                         id="inspectionDate"
                         label={t('forms.foreign_violation.inspectionDate')}
                         disableFuture
-                        value={
+                        selected={
                           formik.values.inspectionDate
-                            ? dayjs(formik.values.inspectionDate)
-                            : null
+                            ? new Date(formik.values.inspectionDate)
+                            : undefined
                         }
-                        onChange={(v) =>
-                          formik.setFieldValue('inspectionDate', v)
+                        onSelect={(v) =>
+                          formik.setFieldValue('inspectionDate', toIsoDate(v))
                         }
-                        placeholder={t(
-                          'forms.foreign_violation.datePickerPlaceholder',
-                        )}
+                        placeholder={t('common.dateFieldPlaceholder')}
                         required
-                        {...(formik.touched.inspectionDate &&
-                        formik.errors.inspectionDate
-                          ? {
-                              helper: {
-                                text: formik.errors.inspectionDate,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
+                        inputProps={
+                          formik.touched.inspectionDate &&
+                          formik.errors.inspectionDate
+                            ? {
+                                helper: {
+                                  text: formik.errors.inspectionDate,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : undefined
+                        }
                       />
-                      <TimePicker
+                      <TimeField
                         id="inspectionTime"
                         label={t('forms.foreign_violation.inspectionTime')}
                         value={
-                          formik.values.inspectionTime
-                            ? dayjs(formik.values.inspectionTime)
-                            : null
+                          formik.values.inspectionTime?.slice(0, 5) ?? undefined
                         }
                         onChange={(v) =>
-                          formik.setFieldValue('inspectionTime', v)
+                          formik.setFieldValue(
+                            'inspectionTime',
+                            v ? (v.length === 5 ? `${v}:00` : v) : '',
+                          )
                         }
-                        placeholder={t(
-                          'forms.foreign_violation.timePickerPlaceholder',
-                        )}
-                        {...(formik.touched.inspectionTime &&
-                        formik.errors.inspectionTime
-                          ? {
-                              helper: {
-                                text: formik.errors.inspectionTime,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
+                        placeholder={t('common.timeFieldPlaceholder')}
+                        inputProps={
+                          formik.touched.inspectionTime &&
+                          formik.errors.inspectionTime
+                            ? {
+                                helper: {
+                                  text: formik.errors.inspectionTime,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : undefined
+                        }
                       />
                     </div>
                     <div></div>
@@ -412,9 +407,7 @@ export function ForeignViolationFormCreatePage() {
                   )}
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <div className={styles['select-row']}>
@@ -538,9 +531,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextField
@@ -586,9 +577,7 @@ export function ForeignViolationFormCreatePage() {
                   )}
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                     style={{ alignItems: 'start' }}
                   >
@@ -657,22 +646,23 @@ export function ForeignViolationFormCreatePage() {
                         ]
                       }
                     >
-                      <DatePicker
+                      <DateField
                         id="vehicleFirstRegistration"
                         label={t(
                           'forms.foreign_violation.vehicleFirstRegistration',
                         )}
-                        value={
+                        selected={
                           formik.values.vehicleFirstRegistration
-                            ? dayjs(formik.values.vehicleFirstRegistration)
-                            : null
+                            ? new Date(formik.values.vehicleFirstRegistration)
+                            : undefined
                         }
-                        onChange={(v) =>
-                          formik.setFieldValue('vehicleFirstRegistration', v)
+                        onSelect={(v) =>
+                          formik.setFieldValue(
+                            'vehicleFirstRegistration',
+                            toIsoDate(v),
+                          )
                         }
-                        placeholder={t(
-                          'forms.foreign_violation.datePickerPlaceholder',
-                        )}
+                        placeholder={t('common.dateFieldPlaceholder')}
                       />
                     </div>
                     <TextField
@@ -709,9 +699,7 @@ export function ForeignViolationFormCreatePage() {
                   )}
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <div className={styles['select-row']}>
@@ -747,9 +735,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextArea
@@ -778,9 +764,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextField
@@ -835,18 +819,15 @@ export function ForeignViolationFormCreatePage() {
                   />
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextArea
                       id="sanctionNotes"
                       label={t('forms.foreign_violation.sanctionNotes')}
                       value={formik.values.sanctionNotes}
-                      placeholder={t(
-                        'forms.foreign_violation.sanctionNotesPlaceholder',
-                      )}
+                      placeholder={t('common.enterNotesPlaceholder')}
+                      maxHeight="8rem"
                       onChange={(v) => formik.setFieldValue('sanctionNotes', v)}
                       className={styles['full-span']}
                     />
@@ -859,13 +840,15 @@ export function ForeignViolationFormCreatePage() {
             <Col className="p-0">
               <Card className="mb-1">
                 <Card.Content>
-                  <Accordion defaultOpenItem={[]}>
+                  <Accordion>
                     <AccordionItem id="eu-violations">
-                      <AccordionItemHeader closeText=" " openText=" ">
-                        <strong>
-                          {t('forms.foreign_violation.euViolationsBasicInfo')}
-                        </strong>
-                      </AccordionItemHeader>
+                      <AccordionItemHeader
+                        title={
+                          <Heading modifiers="h3" color="primary">
+                            {t('forms.foreign_violation.euViolationsBasicInfo')}
+                          </Heading>
+                        }
+                      />
                       <AccordionItemContent>
                         {euViolationGroups.map((group) => (
                           <div key={group.id} className="mb-1">
@@ -933,7 +916,7 @@ export function ForeignViolationFormCreatePage() {
                   />
                   {formik.values.recommendedMeasureCode === 'MUU' && (
                     <div
-                      className={`${styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']} mb-1`}
+                      className={`${isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'} mb-1`}
                     >
                       <TextField
                         id="recommendedMeasureNotes"
@@ -960,9 +943,7 @@ export function ForeignViolationFormCreatePage() {
                   )}
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextArea
@@ -971,9 +952,8 @@ export function ForeignViolationFormCreatePage() {
                         'forms.foreign_violation.recommendedMeasureGeneralNotes',
                       )}
                       value={formik.values.recommendedMeasureGeneralNotes}
-                      placeholder={t(
-                        'forms.foreign_violation.recommendedMeasureGeneralNotesPlaceholder',
-                      )}
+                      placeholder={t('common.enterNotesPlaceholder')}
+                      maxHeight="8rem"
                       onChange={(v) =>
                         formik.setFieldValue(
                           'recommendedMeasureGeneralNotes',
@@ -996,9 +976,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <div
@@ -1008,30 +986,30 @@ export function ForeignViolationFormCreatePage() {
                         ]
                       }
                     >
-                      <DatePicker
+                      <DateField
                         id="dataEntryDate"
                         label={t('forms.foreign_violation.dataEntryDate')}
-                        value={
+                        selected={
                           formik.values.dataEntryDate
-                            ? dayjs(formik.values.dataEntryDate)
-                            : null
+                            ? new Date(formik.values.dataEntryDate)
+                            : undefined
                         }
-                        onChange={(v) =>
-                          formik.setFieldValue('dataEntryDate', v)
+                        onSelect={(v) =>
+                          formik.setFieldValue('dataEntryDate', toIsoDate(v))
                         }
-                        placeholder={t(
-                          'forms.foreign_violation.datePickerPlaceholder',
-                        )}
+                        placeholder={t('common.dateFieldPlaceholder')}
                         required
-                        {...(formik.touched.dataEntryDate &&
-                        formik.errors.dataEntryDate
-                          ? {
-                              helper: {
-                                text: formik.errors.dataEntryDate,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
+                        inputProps={
+                          formik.touched.dataEntryDate &&
+                          formik.errors.dataEntryDate
+                            ? {
+                                helper: {
+                                  text: formik.errors.dataEntryDate,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : undefined
+                        }
                       />
                     </div>
                   </div>
@@ -1048,9 +1026,7 @@ export function ForeignViolationFormCreatePage() {
                   </Heading>
                   <div
                     className={
-                      styles[
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
-                      ]
                     }
                   >
                     <TextField

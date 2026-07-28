@@ -1,11 +1,10 @@
 import { post, get } from '../../shared/api/client';
-import type { ForeignViolationForm, CompoundForm, FormSnapshot } from './types';
-
-export const getSerialNumber = () =>
-  post<number>(
-    '/v1/control-forms/foreign-violation-form/read/get-serial-number',
-    {},
-  );
+import type {
+  ForeignViolationForm,
+  CompoundForm,
+  FormSnapshot,
+  DriveRestForm,
+} from './types';
 
 export const getForm = (id: number) =>
   post<ForeignViolationForm>(
@@ -87,3 +86,9 @@ export const getCompoundFormSnapshot = (id: string, formKey: string) =>
     id,
     formKey,
   });
+
+export const insertDriveRestForm = (scope: 'driver' | 'teammate', data: DriveRestForm) =>
+  post<DriveRestForm[]>(
+    `/v1/control-forms/drive-rest-form/${scope}/edit/insert`,
+    data as unknown as Record<string, unknown>,
+  );

@@ -44,6 +44,11 @@ INSERT INTO users.permission (code, description, created_by) VALUES ('compound_f
 INSERT INTO users.permission (code, description, created_by) VALUES ('control_form.edit_locked',    'Lukustatud (kinnitatud või avalikustatud) koondvormi üldosa ja kõigi alamvormide andmete muutmine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('control_form.delete',    'Koondvormi kustutamine koos kõigi alamvormidega', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('control_form.view_unpublished',    'Avaldamata (salvestatud/kinnitatud) koondvormide vaatamine muu isku poolt, kui vormi looja/kinnitaja', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('sp_driver_form.write',    'Autojuhi sõidu- ja puhkeaja alamvormi täitmine ja salvestamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('sp_driver_form.read',    'Autojuhi sõidu- ja puhkeaja alamvormi andmete lugemine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('sp_teammate_form.write',    'Meeskonnaliikme sõidu- ja puhkeaja alamvormi täitmine ja salvestamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('sp_teammate_form.read',    'Meeskonnaliikme sõidu- ja puhkeaja alamvormi andmete lugemine', 'ljvis2');
+
 
 -- user_groups — single full snapshot per group (v2: organisations + permissions embedded as JSONB)
 -- user_group_key = 1: Super Admin Group

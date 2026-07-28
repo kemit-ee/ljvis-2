@@ -8,17 +8,15 @@ import {
   TextField,
   TextArea,
   ChoiceGroup,
-  Row,
-  Col,
-} from '@tedi-design-system/react/tedi';
-import {
-  DatePicker,
-  TimePicker,
+  DateField,
+  TimeField,
   Accordion,
   AccordionItem,
   AccordionItemHeader,
   AccordionItemContent,
-} from '@tedi-design-system/react/community';
+  Row,
+  Col,
+} from '@tedi-design-system/react/tedi';
 import type { ForeignViolationForm } from '../../types';
 import {
   EU_VIOLATION_GROUPS,
@@ -34,8 +32,6 @@ interface ForeignViolationFormViewCardProps {
   canEdit: boolean;
   orgOptions: { label: string; value: string }[];
   structureUnits: { code: string; name: string }[];
-  toDateValue: (date?: string) => import('dayjs').Dayjs | null;
-  toTimeValue: (date?: string, time?: string) => import('dayjs').Dayjs | null;
   onEdit: () => void;
   canDelete?: boolean;
   onDelete?: () => void;
@@ -49,8 +45,6 @@ export function ForeignViolationFormViewCard({
   canEdit,
   orgOptions,
   structureUnits,
-  toDateValue,
-  toTimeValue,
   onEdit,
   isSnapshot,
   formType,
@@ -152,7 +146,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <Select
@@ -182,7 +176,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
             style={{ alignItems: 'start' }}
           >
@@ -191,19 +185,18 @@ export function ForeignViolationFormViewCard({
                 styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="inspectionDate"
                 label={t('forms.foreign_violation.inspectionDate')}
-                value={toDateValue(form.inspectionDate)}
-                onChange={() => {}}
-                disabled={disabled}
+                selected={form.inspectionDate ? new Date(form.inspectionDate) : undefined}
+                placeholder={t('common.dateFieldPlaceholder')}
+                inputProps={{ disabled }}
               />
-              <TimePicker
+              <TimeField
                 id="inspectionTime"
                 label={t('forms.foreign_violation.inspectionTime')}
-                value={toTimeValue(form.inspectionDate, form.inspectionTime)}
-                onChange={() => {}}
-                placeholder={t('forms.foreign_violation.timePickerPlaceholder')}
+                value={form.inspectionTime?.slice(0, 5) ?? undefined}
+                placeholder={t('common.timeFieldPlaceholder')}
                 disabled={disabled}
               />
             </div>
@@ -253,7 +246,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -313,7 +306,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -339,7 +332,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
             style={{ alignItems: 'start' }}
           >
@@ -382,13 +375,12 @@ export function ForeignViolationFormViewCard({
                 styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="vehicleFirstRegistration"
                 label={t('forms.foreign_violation.vehicleFirstRegistration')}
-                value={toDateValue(form.vehicleFirstRegistration)}
-                onChange={() => {}}
-                placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
-                disabled={disabled}
+                selected={form.vehicleFirstRegistration ? new Date(form.vehicleFirstRegistration) : undefined}
+                placeholder={t('common.dateFieldPlaceholder')}
+                inputProps={{ disabled }}
               />
             </div>
             <TextField
@@ -408,7 +400,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -428,7 +420,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -449,7 +441,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -484,7 +476,7 @@ export function ForeignViolationFormViewCard({
           />
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -500,13 +492,15 @@ export function ForeignViolationFormViewCard({
 
       <Card className="mb-1">
         <Card.Content>
-          <Accordion defaultOpenItem={[]}>
+          <Accordion>
             <AccordionItem id="eu-violations">
-              <AccordionItemHeader closeText=" " openText=" ">
-                <strong>
-                  {t('forms.foreign_violation.euViolationsBasicInfo')}
-                </strong>
-              </AccordionItemHeader>
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t('forms.foreign_violation.euViolationsBasicInfo')}
+                  </Heading>
+                }
+              />
               <AccordionItemContent>
                 {euViolationGroups.map((group) => (
                   <div key={group.id} className="mb-1">
@@ -564,7 +558,7 @@ export function ForeignViolationFormViewCard({
           />
           {form.recommendedMeasureCode === 'MUU' && (
             <div
-              className={`${styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']} mb-1`}
+              className={`${isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'} mb-1`}
             >
               <TextField
                 id="recommendedMeasureNotes"
@@ -577,7 +571,7 @@ export function ForeignViolationFormViewCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -600,7 +594,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <div
@@ -608,13 +602,12 @@ export function ForeignViolationFormViewCard({
                 styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="dataEntryDate"
                 label={t('forms.foreign_violation.dataEntryDate')}
-                value={toDateValue(form.dataEntryDate)}
-                onChange={() => {}}
-                placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
-                disabled={disabled}
+                selected={form.dataEntryDate ? new Date(form.dataEntryDate) : undefined}
+                placeholder={t('common.dateFieldPlaceholder')}
+                inputProps={{ disabled }}
               />
             </div>
           </div>
@@ -628,7 +621,7 @@ export function ForeignViolationFormViewCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField

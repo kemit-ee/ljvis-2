@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
+  DateField,
   Heading,
   TextField,
   Text,
@@ -9,23 +10,96 @@ import {
   Alert,
   ChoiceGroup,
   TextArea,
+  TimeField,
   Tooltip,
   InfoButton,
   Tabs,
 } from '@tedi-design-system/react/tedi';
-import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
 import type { FormikProps } from 'formik';
-import type { Trailer } from '../../types';
+import type { Trailer, Driver } from '../../types';
 import { COUNTRIES, OTHER, ROAD } from '../../../../constants/constants';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
-import dayjs from 'dayjs';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
 
+interface CompoundFormValues {
+  id: string;
+  formNumber: string;
+  controlCountryCode: string;
+  address: string;
+  road: string;
+  roadOther: string;
+  kilometer: string;
+  county: string;
+  city: string;
+  controlDate: string;
+  controlTime: string;
+  road_type: string;
+  vehicleRegNr: string;
+  vehicleMake: string;
+  vehicleModel: string;
+  vehicleCountryCode: string;
+  vehicleVin: string;
+  vehicleFirstRegistration: string;
+  vehicleBodyType: string;
+  vehicleCategoryCode: string;
+  vehicleCategoryOther: string;
+  vehicleMileage: string;
+  roadTaxStatus: string;
+  roadTaxNotes: string;
+  trailers: Trailer[];
+  companyRegCode: string;
+  companyName: string;
+  companyCountryCode: string;
+  companyCounty: string;
+  companyCity: string;
+  companyAddressLine1: string;
+  companyPostalCode: string;
+  companyOwnerFirstName: string;
+  companyOwnerLastName: string;
+  companyActivityLicenceCopyNumber: string;
+  drivers: Driver[];
+  inspectorFirstName: string;
+  inspectorLastName: string;
+  inspectorOrganisationId: string;
+  inspectorUnit: string;
+  inspectorProfession: string;
+}
+
+interface TrailerTouched {
+  regNr?: boolean;
+  countryCode?: boolean;
+  categoryCode?: boolean;
+  categoryOther?: boolean;
+}
+
+interface TrailerErrors {
+  regNr?: string;
+  countryCode?: string;
+  categoryCode?: string;
+  categoryOther?: string;
+}
+
+interface DriverTouched {
+  firstName?: boolean;
+  lastName?: boolean;
+  personalCodeForeign?: boolean;
+  personalCodeEe?: boolean;
+  birthDate?: boolean;
+}
+
+interface DriverErrors {
+  firstName?: string;
+  lastName?: string;
+  personalCodeForeign?: string;
+  personalCodeEe?: string;
+  birthDate?: string;
+}
+
 interface CompoundFormEditCardProps {
-  formik: FormikProps<any>;
+  formik: FormikProps<CompoundFormValues>;
   isDesktop: boolean;
   orgOptions: { label: string; value: string }[];
   structureUnits: { code: string; name: string }[];
@@ -45,8 +119,18 @@ interface CompoundFormEditCardProps {
   setTrailerSearchError: (v: number | null) => void;
   mtrSearchError: boolean;
   setMtrSearchError: (v: boolean) => void;
-  handleOrgChange: (val: any) => void;
-  handleStructuralUnitChange: (val: any) => void;
+  handleOrgChange: (
+    val:
+      | { value: string; label: string | React.ReactNode }
+      | readonly { value: string; label: string | React.ReactNode }[]
+      | null,
+  ) => void;
+  handleStructuralUnitChange: (
+    val:
+      | { value: string; label: string | React.ReactNode }
+      | readonly { value: string; label: string | React.ReactNode }[]
+      | null,
+  ) => void;
   handleCountyChange: (countyId?: number) => void;
   handleCompanyCountyChange: (countyId?: number) => void;
   handleCompanySearch: () => void;
@@ -319,46 +403,53 @@ export function CompoundFormEditCard({
                     styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
                   }
                 >
-                  <DatePicker
+                  <DateField
                     id="controlDate"
                     label={t('forms.compound.controlDate')}
                     disableFuture
-                    value={
+                    selected={
                       formik.values.controlDate
-                        ? dayjs(formik.values.controlDate)
-                        : null
+                        ? new Date(formik.values.controlDate)
+                        : undefined
                     }
-                    onChange={(v) => formik.setFieldValue('controlDate', v)}
-                    placeholder={t('common.datePickerPlaceholder')}
+                    onSelect={(v) =>
+                      formik.setFieldValue('controlDate', toIsoDate(v))
+                    }
+                    placeholder={t('common.dateFieldPlaceholder')}
                     required
-                    {...(formik.touched.controlDate && formik.errors.controlDate
-                      ? {
-                          helper: {
-                            text: formik.errors.controlDate as string,
-                            type: 'error' as const,
-                          },
-                        }
-                      : {})}
+                    inputProps={
+                      formik.touched.controlDate && formik.errors.controlDate
+                        ? {
+                            helper: {
+                              text: formik.errors.controlDate as string,
+                              type: 'error' as const,
+                            },
+                          }
+                        : undefined
+                    }
                   />
-                  <TimePicker
+                  <TimeField
                     id="controlTime"
                     label={t('forms.compound.controlTime')}
-                    value={
-                      formik.values.controlTime
-                        ? dayjs(`1970-01-01T${formik.values.controlTime}`)
-                        : null
+                    value={formik.values.controlTime?.slice(0, 5) ?? undefined}
+                    onChange={(v) =>
+                      formik.setFieldValue(
+                        'controlTime',
+                        v ? (v.length === 5 ? `${v}:00` : v) : '',
+                      )
                     }
-                    onChange={(v) => formik.setFieldValue('controlTime', v)}
-                    placeholder={t('common.timePickerPlaceholder')}
+                    placeholder={t('common.timeFieldPlaceholder')}
                     required
-                    {...(formik.touched.controlTime && formik.errors.controlTime
-                      ? {
-                          helper: {
-                            text: formik.errors.controlTime as string,
-                            type: 'error' as const,
-                          },
-                        }
-                      : {})}
+                    inputProps={
+                      formik.touched.controlTime && formik.errors.controlTime
+                        ? {
+                            helper: {
+                              text: formik.errors.controlTime as string,
+                              type: 'error' as const,
+                            },
+                          }
+                        : undefined
+                    }
                   />
                 </div>
               </div>
@@ -473,20 +564,21 @@ export function CompoundFormEditCard({
                     ]
                   }
                 >
-                  <DatePicker
+                  <DateField
                     id="vehicleFirstRegistration"
                     label={t('forms.compound.vehicleFirstRegistration')}
-                    value={
+                    selected={
                       formik.values.vehicleFirstRegistration
-                        ? dayjs(formik.values.vehicleFirstRegistration)
-                        : null
+                        ? new Date(formik.values.vehicleFirstRegistration)
+                        : undefined
                     }
-                    onChange={(v) =>
-                      formik.setFieldValue('vehicleFirstRegistration', v)
+                    onSelect={(v) =>
+                      formik.setFieldValue(
+                        'vehicleFirstRegistration',
+                        toIsoDate(v),
+                      )
                     }
-                    placeholder={t(
-                      'forms.foreign_violation.datePickerPlaceholder',
-                    )}
+                    placeholder={t('common.dateFieldPlaceholder')}
                   />
                 </div>
                 <Select
@@ -657,12 +749,13 @@ export function CompoundFormEditCard({
                               formik.setFieldValue('trailers', u);
                             }}
                             required
-                            {...((formik.touched.trailers as any)?.[index]
-                              ?.regNr &&
-                            (formik.errors.trailers as any)?.[index]?.regNr
+                            {...((formik.touched.trailers as TrailerTouched[])
+                              ?.[index]?.regNr &&
+                            (formik.errors.trailers as TrailerErrors[])
+                              ?.[index]?.regNr
                               ? {
                                   helper: {
-                                    text: (formik.errors.trailers as any)[index]
+                                    text: (formik.errors.trailers as TrailerErrors[])[index]
                                       .regNr,
                                     type: 'error' as const,
                                   },
@@ -732,12 +825,13 @@ export function CompoundFormEditCard({
                           formik.setFieldValue('trailers', u);
                         }}
                         required
-                        {...((formik.touched.trailers as any)?.[index]
-                          ?.countryCode &&
-                        (formik.errors.trailers as any)?.[index]?.countryCode
+                        {...((formik.touched.trailers as TrailerTouched[])
+                          ?.[index]?.countryCode &&
+                        (formik.errors.trailers as TrailerErrors[])
+                          ?.[index]?.countryCode
                           ? {
                               helper: {
-                                text: (formik.errors.trailers as any)[index]
+                                text: (formik.errors.trailers as TrailerErrors[])[index]
                                   .countryCode,
                                 type: 'error' as const,
                               },
@@ -764,15 +858,15 @@ export function CompoundFormEditCard({
                           ]
                         }
                       >
-                        <DatePicker
+                        <DateField
                           id={`trailerFirstRegistration_${index}`}
                           label={t('forms.compound.trailerFirstRegistration')}
-                          value={
+                          selected={
                             trailer.firstRegistration
-                              ? dayjs(trailer.firstRegistration)
-                              : null
+                              ? new Date(trailer.firstRegistration)
+                              : undefined
                           }
-                          onChange={(v) => {
+                          onSelect={(v) => {
                             const u = [...formik.values.trailers];
                             u[index] = {
                               ...u[index],
@@ -780,9 +874,7 @@ export function CompoundFormEditCard({
                             };
                             formik.setFieldValue('trailers', u);
                           }}
-                          placeholder={t(
-                            'forms.foreign_violation.datePickerPlaceholder',
-                          )}
+                          placeholder={t('common.dateFieldPlaceholder')}
                         />
                       </div>
                       <Select
@@ -810,12 +902,13 @@ export function CompoundFormEditCard({
                           formik.setFieldValue('trailers', u);
                         }}
                         required
-                        {...((formik.touched.trailers as any)?.[index]
-                          ?.categoryCode &&
-                        (formik.errors.trailers as any)?.[index]?.categoryCode
+                        {...((formik.touched.trailers as TrailerTouched[])
+                          ?.[index]?.categoryCode &&
+                        (formik.errors.trailers as TrailerErrors[])
+                          ?.[index]?.categoryCode
                           ? {
                               helper: {
-                                text: (formik.errors.trailers as any)[index]
+                                text: (formik.errors.trailers as TrailerErrors[])[index]
                                   .categoryCode,
                                 type: 'error' as const,
                               },
@@ -834,13 +927,13 @@ export function CompoundFormEditCard({
                             formik.setFieldValue('trailers', u);
                           }}
                           required
-                          {...((formik.touched.trailers as any)?.[index]
-                            ?.categoryOther &&
-                          (formik.errors.trailers as any)?.[index]
-                            ?.categoryOther
+                          {...((formik.touched.trailers as TrailerTouched[])
+                            ?.[index]?.categoryOther &&
+                          (formik.errors.trailers as TrailerErrors[])
+                            ?.[index]?.categoryOther
                             ? {
                                 helper: {
-                                  text: (formik.errors.trailers as any)[index]
+                                  text: (formik.errors.trailers as TrailerErrors[])[index]
                                     .categoryOther,
                                   type: 'error' as const,
                                 },
@@ -1155,7 +1248,7 @@ export function CompoundFormEditCard({
           </Card>
 
           {/* Juht */}
-          {formik.values.drivers.map((_driver: any, index: number) => (
+          {formik.values.drivers.map((_driver: Driver, index: number) => (
             <Card key={index} className="mb-1">
               <Card.Content>
                 <Heading element="h3" className="mb-1">
@@ -1175,11 +1268,13 @@ export function CompoundFormEditCard({
                       formik.setFieldValue('drivers', u);
                     }}
                     required={index === 0}
-                    {...((formik.touched.drivers as any)?.[index]?.firstName &&
-                    (formik.errors.drivers as any)?.[index]?.firstName
+                    {...((formik.touched.drivers as DriverTouched[])
+                      ?.[index]?.firstName &&
+                    (formik.errors.drivers as DriverErrors[])
+                      ?.[index]?.firstName
                       ? {
                           helper: {
-                            text: (formik.errors.drivers as any)[index]
+                            text: (formik.errors.drivers as DriverErrors[])[index]
                               .firstName,
                             type: 'error' as const,
                           },
@@ -1197,11 +1292,13 @@ export function CompoundFormEditCard({
                       formik.setFieldValue('drivers', u);
                     }}
                     required={index === 0}
-                    {...((formik.touched.drivers as any)?.[index]?.lastName &&
-                    (formik.errors.drivers as any)?.[index]?.lastName
+                    {...((formik.touched.drivers as DriverTouched[])
+                      ?.[index]?.lastName &&
+                    (formik.errors.drivers as DriverErrors[])
+                      ?.[index]?.lastName
                       ? {
                           helper: {
-                            text: (formik.errors.drivers as any)[index]
+                            text: (formik.errors.drivers as DriverErrors[])[index]
                               .lastName,
                             type: 'error' as const,
                           },
@@ -1221,12 +1318,13 @@ export function CompoundFormEditCard({
                       formik.setFieldValue('drivers', u);
                     }}
                     required={index === 0}
-                    {...((formik.touched.drivers as any)?.[index]
-                      ?.personalCodeForeign &&
-                    (formik.errors.drivers as any)?.[index]?.personalCodeForeign
+                    {...((formik.touched.drivers as DriverTouched[])
+                      ?.[index]?.personalCodeForeign &&
+                    (formik.errors.drivers as DriverErrors[])
+                      ?.[index]?.personalCodeForeign
                       ? {
                           helper: {
-                            text: (formik.errors.drivers as any)[index]
+                            text: (formik.errors.drivers as DriverErrors[])[index]
                               .personalCodeForeign,
                             type: 'error' as const,
                           },
@@ -1243,10 +1341,11 @@ export function CompoundFormEditCard({
                       u[index] = { ...u[index], personalCodeEe: v };
                       formik.setFieldValue('drivers', u);
                     }}
-                    {...((formik.errors.drivers as any)?.[index]?.personalCodeEe
+                    {...((formik.errors.drivers as DriverErrors[])
+                      ?.[index]?.personalCodeEe
                       ? {
                           helper: {
-                            text: (formik.errors.drivers as any)[index]
+                            text: (formik.errors.drivers as DriverErrors[])[index]
                               .personalCodeEe,
                             type: 'error' as const,
                           },
@@ -1283,34 +1382,35 @@ export function CompoundFormEditCard({
                       ]
                     }
                   >
-                    <DatePicker
+                    <DateField
                       id={`driverBirthDate_${index}`}
                       label={t('forms.compound.driverBirthDate')}
-                      value={
+                      selected={
                         formik.values.drivers[index]?.birthDate
-                          ? dayjs(formik.values.drivers[index].birthDate)
-                          : null
+                          ? new Date(formik.values.drivers[index].birthDate)
+                          : undefined
                       }
-                      onChange={(v) => {
+                      onSelect={(v) => {
                         const u = [...formik.values.drivers];
                         u[index] = { ...u[index], birthDate: toIsoDate(v) };
                         formik.setFieldValue('drivers', u);
                       }}
-                      placeholder={t(
-                        'forms.foreign_violation.datePickerPlaceholder',
-                      )}
+                      placeholder={t('common.dateFieldPlaceholder')}
                       required={index === 0}
-                      {...((formik.touched.drivers as any)?.[index]
-                        ?.birthDate &&
-                      (formik.errors.drivers as any)?.[index]?.birthDate
-                        ? {
-                            helper: {
-                              text: (formik.errors.drivers as any)[index]
-                                .birthDate,
-                              type: 'error' as const,
-                            },
-                          }
-                        : {})}
+                      inputProps={
+                        (formik.touched.drivers as DriverTouched[])
+                          ?.[index]?.birthDate &&
+                        (formik.errors.drivers as DriverErrors[])
+                          ?.[index]?.birthDate
+                          ? {
+                              helper: {
+                                text: (formik.errors.drivers as DriverErrors[])[index]
+                                  .birthDate,
+                                type: 'error' as const,
+                              },
+                            }
+                          : undefined
+                      }
                     />
                   </div>
                 </div>

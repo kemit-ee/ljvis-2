@@ -1,0 +1,54 @@
+.width-80 {
+    width: 80%;
+}
+
+.width-100 {
+    width: 100%;
+}
+
+.choice-item-gap label {
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.days-number {
+    width: 5%;
+    min-width: 80px;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.required-star {
+    color: var(--color-danger, #c1413b);
+}
+
+.cabotage-indent {
+    padding-left: 1.5rem;
+}
+
+.proceeding-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.proceeding-width {
+    width: 30%;
+}
+
+.overflow-visible {
+    overflow: visible;
+}
+
+.modal-margin {
+    margin-bottom: 1.5rem;
+    overflow: visible;
+}
+
+.days-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 0.5rem;
+    margin-bottom: 1rem;
+}

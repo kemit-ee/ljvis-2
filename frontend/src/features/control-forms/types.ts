@@ -11,6 +11,8 @@ export interface ControlForm {
   labelKey: string;
   route: string;
   hasParent: boolean;
+  parentKey?: string;
+  typeParam?: string;
 }
 
 export interface ForeignViolationForm {
@@ -124,3 +126,102 @@ export interface CompoundForm {
   inspectorUnit?: string;
   inspectorProfession?: string;
 }
+
+export interface DriveRestForm {
+  id?: string;
+  compoundFormKey?: number;
+  subFormNumber?: string;
+  templateVersion?: number;
+  status?: string;
+  selectionStatus?: string;
+  transportType?: string;
+  transportEmptyRun?: boolean;
+  transportNature?: string;
+  transportNatureExempt?: boolean;
+  transportClasses?: TransportClass[];
+  cabotageViolations?: CabotageViolation[];
+  resultType?: string;
+  proceedingType?: string;
+  proceedingReferenceNumber?: string;
+  documentChecks?: DocumentCheck[];
+  otherDocuments?: OtherDocument[];
+  spApplicability?: string;
+  tachographTypeCode?: string;
+  tachographDataNotDownloaded?: boolean;
+  checkedDaysCount?: string;
+  workDaysCount?: string;
+  otherActivityDaysCount?: string;
+  violations5612006?: Violation[];
+  violations1652014?: Violation[];
+  violations200215?: Violation[];
+  violations5932008?: Violation[];
+  violations20201057?: Violation[];
+  massDimensionNonCompliant?: boolean;
+  massDimensionMeasurements?: MassDimensionMeasurement[];
+  atpViolationFound?: string;
+  atpViolationDescription?: string;
+  erruPoints?: string[];
+  files?: string[];
+  enforcementDecision?: string;
+  proceedingClosureBasis?: string;
+  notes?: string;
+}
+
+export type TransportClass = {
+  classCode: string;
+  className: string;
+};
+
+export type CabotageViolation = {
+  violationCode: string;
+  severityCode: string;
+};
+
+export type DocumentCheck = {
+  documentCode: string;
+  documentName: string;
+  severityCode: string;
+  violationCode: string;
+  level2Code?: string;
+  level2Name?: string;
+  level3Code?: string;
+  level3Name?: string;
+};
+
+export type OtherDocument = {
+  documentCode: string;
+  documentName: string;
+  result: string;
+  notes: string;
+};
+
+export type Violation = {
+  violationCode: string;
+  severityCode: string;
+  isDetected: string;
+};
+
+export interface CheckEntry {
+  level1Code: string;
+  level1Name: string;
+  level2Code: string;
+  level2Name: string;
+  level2Description: string;
+  level3Code: string;
+  level3Name: string;
+  severity: string;
+  note?: string;
+  documentCode?: string;
+  documentName?: string;
+  severityCode?: string;
+  violationCode?: string;
+  articleDirective?: string;
+}
+
+export type MassDimensionMeasurement = {
+  measurementType: string;
+  axleNumber: string;
+  actualValue: string;
+  allowedValue: string;
+  excessValue: string;
+};

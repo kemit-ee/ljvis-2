@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { Organisation } from '../../../organisations/types';
 import type { StructureUnit } from '../../../structure-units/types';
-import type { CompoundForm, Trailer, Driver } from '../../types';
+import type {CompoundForm, Trailer, Driver, ControlForm} from '../../types';
 import type { Ehak } from '../../../ehak/types';
 import type { Road } from '../../../roads/types';
 import type { TrailerCategory } from '../../../trailer-categories/types';
@@ -26,6 +26,7 @@ import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
+import { FORM_CONFIG } from "../../formRoutes.ts";
 
 export const emptyDriver = (): Driver => ({
   personalCodeEe: '',
@@ -54,9 +55,12 @@ export function useCompoundForm(
   onConfirmed?: () => void,
 ) {
   const { t } = useTranslation();
-  const { user: authUser } = useAuth();
+  const { user: authUser, permissions } = useAuth();
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
+
+  const WRITE_SUFFIX = '.write';
+  const FORM_SP_PREFIX = 'sp_';
 
   const incrementFormNumber = (formNumber: string): string => {
     const match = formNumber.match(/^(.+\/)([0-9]+)$/);
@@ -223,7 +227,7 @@ export function useCompoundForm(
       if (!drivers) return true;
       const req = t('forms.foreign_violation.validation.required');
       const errors: Yup.ValidationError[] = [];
-      drivers.forEach((driver: any, index: number) => {
+      drivers.forEach((driver: Driver, index: number) => {
         if (index === 0) {
           if (!driver?.firstName)
             errors.push(
@@ -502,6 +506,22 @@ export function useCompoundForm(
     if (!result) setMtrSearchError(true);
   };
 
+  const buildAvailableForms = (permissions: string[]): ControlForm[] =>
+      permissions
+          .filter((p) => p.startsWith(FORM_SP_PREFIX))
+          .map((p) => p.replace(WRITE_SUFFIX, ''))
+          .filter((key) => !!FORM_CONFIG[key])
+          .map((key) => ({
+            labelKey: FORM_CONFIG[key].labelKey,
+            route: FORM_CONFIG[key].route,
+            hasParent: FORM_CONFIG[key].hasParent,
+          }));
+
+  const availableForms = useMemo(
+      () => buildAvailableForms(permissions),
+      [permissions],
+  );
+
   return {
     formik,
     structureUnits,
@@ -529,5 +549,6 @@ export function useCompoundForm(
     handleTrailerSearch,
     handleMtrSearch,
     triggerConfirm,
+    availableForms,
   };
 }

@@ -1,9 +1,12 @@
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import React from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { OTHER, ROAD } from '../../../../constants/constants';
 
 import {
   Button,
+  ClosingButton,
   Heading,
   TextField,
   Select,
@@ -17,27 +20,123 @@ import {
   Tooltip,
   InfoButton,
   Tabs,
+  Dropdown,
+  DateField,
+  TimeField
 } from '@tedi-design-system/react/tedi';
-import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
-import { useCompoundForm, emptyTrailer, emptyDriver } from './useCompoundForm';
-import type { Trailer } from '../../types';
+import { useCompoundForm, emptyTrailer } from './useCompoundForm';
+import type { Trailer, DriveRestForm, Driver } from '../../types';
+
+type TrailerTouched = (Partial<Record<keyof Trailer, boolean>> | undefined)[];
+type TrailerErrors = (Partial<Record<keyof Trailer, string>> | undefined)[];
+type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
+type DriverErrors = (Partial<Record<keyof Driver, string>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
-import dayjs from 'dayjs';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
+import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
+
+interface FormRef {
+  handleSubmit?: () => void;
+  getFormData?: () => Partial<DriveRestForm>;
+  setFormData?: (data: Partial<DriveRestForm>) => void;
+}
 
 export function CompoundFormCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get('type');
+
+  const ROUTE_TO_TAB: Record<
+    string,
+    { tabId: string; type: string; labelKey: string }
+  > = {
+    '/sp-driver': {
+      tabId: 'tab-sp-driver',
+      type: 'driver',
+      labelKey: 'forms.driver_drive_rest_form',
+    },
+    '/sp-teammate': {
+      tabId: 'tab-sp-teammate',
+      type: 'teammate',
+      labelKey: 'forms.teammate_drive_rest_form',
+    },
+  };
+
+  const initialTab =
+    type && ROUTE_TO_TAB[`/sp-${type}`]
+      ? ROUTE_TO_TAB[`/sp-${type}`].tabId
+      : null;
+
+  const [activeTab, setActiveTab] = useState(initialTab ?? 'tab-1');
+  const [openTabs, setOpenTabs] = useState<string[]>(
+    initialTab ? [initialTab] : [],
+  );
+
+  const removeTab = (tabId: string) => {
+    setOpenTabs((prev) => prev.filter((t) => t !== tabId));
+    delete savedFormData.current[tabId];
+    setActiveTab('tab-1');
+  };
+
+  const addTab = (route: string) => {
+    const tabDef = ROUTE_TO_TAB[route];
+    if (!tabDef) return;
+    if (!openTabs.includes(tabDef.tabId)) {
+      setOpenTabs((prev) => [...prev, tabDef.tabId]);
+    }
+    handleTabChange(tabDef.tabId);
+  };
+
+  const tabLabels: Record<string, string> = {
+    'tab-1': t('forms.compound_form'),
+    ...Object.values(ROUTE_TO_TAB).reduce(
+      (acc, { tabId, labelKey }) => ({ ...acc, [tabId]: t(labelKey) }),
+      {} as Record<string, string>,
+    ),
+  };
+
+  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
+
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
+  const formRefs = useRef<Record<string, React.MutableRefObject<FormRef | null>>>(
+    Object.values(ROUTE_TO_TAB).reduce((acc, { tabId }) => {
+      acc[tabId] = React.createRef<FormRef>();
+      return acc;
+    }, {} as Record<string, React.RefObject<FormRef>>)
+  );
+  const savedFormData = useRef<Record<string, Partial<DriveRestForm>>>({});
+
   const handleSaved = (id?: string) => {
     navigate(`/control-forms/compound/${id}`, { state: { justCreated: true } });
   };
+
+  const handleTabChange = (newTab: string) => {
+    if (activeTab !== 'tab-1' && formRefs.current[activeTab]?.current) {
+      savedFormData.current[activeTab] = formRefs.current[activeTab].current.getFormData?.() ?? {};
+    }
+    // Restore new tab form data immediately
+    if (newTab !== 'tab-1' && savedFormData.current[newTab]) {
+      setTimeout(() => {
+        if (formRefs.current[newTab]?.current) {
+          formRefs.current[newTab].current.setFormData?.(savedFormData.current[newTab]);
+        }
+      }, 0);
+    }
+    setActiveTab(newTab);
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'tab-1' && formRefs.current[activeTab]?.current && savedFormData.current[activeTab]) {
+      formRefs.current[activeTab].current.setFormData?.(savedFormData.current[activeTab]);
+    }
+  }, [activeTab]);
 
   const countries = COUNTRIES.map((country) => ({
     ...country,
@@ -70,7 +169,40 @@ export function CompoundFormCreatePage() {
     mtrSearchError,
     setMtrSearchError,
     handleMtrSearch,
+    availableForms,
   } = useCompoundForm(undefined, handleSaved);
+
+  const addableForms = (availableForms ?? []).filter(
+    (form) =>
+      !ROUTE_TO_TAB[form.route] ||
+      !openTabs.includes(ROUTE_TO_TAB[form.route].tabId),
+  );
+
+  const addFormDropdown =
+    availableForms && availableForms.length > 0 ? (
+      <Dropdown width="max-content">
+        <Dropdown.Trigger>
+          <Button
+            iconRight="keyboard_arrow_down"
+            visualType="secondary"
+            disabled={addableForms.length === 0}
+          >
+            {t('desktop.addForm')}
+          </Button>
+        </Dropdown.Trigger>
+        <Dropdown.Content>
+          {addableForms.map((form, index) => (
+            <Dropdown.Item
+              key={form.route}
+              index={index}
+              onClick={() => addTab(form.route)}
+            >
+              {t(form.labelKey)}
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Content>
+      </Dropdown>
+    ) : null;
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
@@ -79,19 +211,45 @@ export function CompoundFormCreatePage() {
 
   return (
     <div>
-      <form onSubmit={formik.handleSubmit}>
-        <div className="card-main">
-          <Heading element="h1">{t('forms.compound_form')}</Heading>
-        </div>
+      <div className="card-main">
+        <Heading element="h1">{headingLabel}</Heading>
+        {!isDesktop && addFormDropdown}
+      </div>
 
-        <Tabs defaultValue="tab-1">
-          <Tabs.List aria-label={t('forms.compound_form')}>
-            <Tabs.Trigger id="tab-1">
-              {t('forms.compound.generalPart')}
+      <Tabs value={activeTab} onChange={handleTabChange}>
+        <Tabs.List aria-label={t('forms.compound_form')}>
+          <Tabs.Trigger id="tab-1">
+            {t('forms.compound.generalPart')}
+          </Tabs.Trigger>
+          {openTabs.map((tabId) => (
+            <Tabs.Trigger key={tabId} id={tabId}>
+              {tabLabels[tabId]}
+              {openTabs.length > 1 && (
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeTab(tabId);
+                  }}
+                />
+              )}
             </Tabs.Trigger>
-          </Tabs.List>
-          <Tabs.Content id="tab-1" className="p-1">
-            <div>
+          ))}
+          {isDesktop && addFormDropdown && (
+            <div
+              style={{
+                marginLeft: 'auto',
+                alignSelf: 'center',
+                marginRight: '1rem',
+              }}
+            >
+              {addFormDropdown}
+            </div>
+          )}
+        </Tabs.List>
+        <Tabs.Content id="tab-1" className="p-1">
+          <div>
+            <form onSubmit={formik.handleSubmit}>
               {/* Plokk: Kontrolli koht */}
               <Row className="m-0">
                 <Col className="p-0">
@@ -331,52 +489,58 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <DatePicker
+                          <DateField
                             id="controlDate"
                             label={t('forms.compound.controlDate')}
                             disableFuture
-                            value={
+                            selected={
                               formik.values.controlDate
-                                ? dayjs(formik.values.controlDate)
-                                : null
+                                ? new Date(formik.values.controlDate)
+                                : undefined
                             }
-                            onChange={(v) =>
-                              formik.setFieldValue('controlDate', v)
+                            onSelect={(v) =>
+                              formik.setFieldValue('controlDate', toIsoDate(v))
                             }
-                            placeholder={t('common.datePickerPlaceholder')}
+                            placeholder={t('common.dateFieldPlaceholder')}
                             required
-                            {...(formik.touched.controlDate &&
-                            formik.errors.controlDate
-                              ? {
-                                  helper: {
-                                    text: formik.errors.controlDate,
-                                    type: 'error' as const,
-                                  },
-                                }
-                              : {})}
+                            inputProps={
+                              formik.touched.controlDate &&
+                              formik.errors.controlDate
+                                ? {
+                                    helper: {
+                                      text: formik.errors.controlDate,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : undefined
+                            }
                           />
-                          <TimePicker
+                          <TimeField
                             id="controlTime"
                             label={t('forms.compound.controlTime')}
                             value={
-                              formik.values.controlTime
-                                ? dayjs(formik.values.controlTime)
-                                : null
+                              formik.values.controlTime?.slice(0, 5) ??
+                              undefined
                             }
                             onChange={(v) =>
-                              formik.setFieldValue('controlTime', v)
+                              formik.setFieldValue(
+                                'controlTime',
+                                v ? (v.length === 5 ? `${v}:00` : v) : '',
+                              )
                             }
-                            placeholder={t('common.timePickerPlaceholder')}
+                            placeholder={t('common.timeFieldPlaceholder')}
                             required
-                            {...(formik.touched.controlTime &&
-                            formik.errors.controlTime
-                              ? {
-                                  helper: {
-                                    text: formik.errors.controlTime,
-                                    type: 'error' as const,
-                                  },
-                                }
-                              : {})}
+                            inputProps={
+                              formik.touched.controlTime &&
+                              formik.errors.controlTime
+                                ? {
+                                    helper: {
+                                      text: formik.errors.controlTime,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : undefined
+                            }
                           />
                         </div>
                       </div>
@@ -512,23 +676,23 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <DatePicker
+                          <DateField
                             id="vehicleFirstRegistration"
                             label={t('forms.compound.vehicleFirstRegistration')}
-                            value={
+                            selected={
                               formik.values.vehicleFirstRegistration
-                                ? dayjs(formik.values.vehicleFirstRegistration)
-                                : null
+                                ? new Date(
+                                    formik.values.vehicleFirstRegistration,
+                                  )
+                                : undefined
                             }
-                            onChange={(v) =>
+                            onSelect={(v) =>
                               formik.setFieldValue(
                                 'vehicleFirstRegistration',
-                                v,
+                                toIsoDate(v),
                               )
                             }
-                            placeholder={t(
-                              'forms.foreign_violation.datePickerPlaceholder',
-                            )}
+                            placeholder={t('common.dateFieldPlaceholder')}
                           />
                         </div>
                         <Select
@@ -734,17 +898,17 @@ export function CompoundFormCreatePage() {
                                           }}
                                           required
                                           {...((
-                                            formik.touched.trailers as any
+                                            formik.touched.trailers as TrailerTouched
                                           )?.[index]?.regNr &&
-                                          (formik.errors.trailers as any)?.[
+                                          (formik.errors.trailers as TrailerErrors)?.[
                                             index
                                           ]?.regNr
                                             ? {
                                                 helper: {
                                                   text: (
                                                     formik.errors
-                                                      .trailers as any
-                                                  )[index].regNr,
+                                                      .trailers as TrailerErrors
+                                                  )?.[index]?.regNr,
                                                   type: 'error' as const,
                                                 },
                                               }
@@ -816,16 +980,16 @@ export function CompoundFormCreatePage() {
                                         formik.setFieldValue('trailers', u);
                                       }}
                                       required
-                                      {...((formik.touched.trailers as any)?.[
+                                      {...((formik.touched.trailers as TrailerTouched)?.[
                                         index
                                       ]?.countryCode &&
-                                      (formik.errors.trailers as any)?.[index]
+                                      (formik.errors.trailers as TrailerErrors)?.[index]
                                         ?.countryCode
                                         ? {
                                             helper: {
                                               text: (
-                                                formik.errors.trailers as any
-                                              )[index].countryCode,
+                                                formik.errors.trailers as TrailerErrors
+                                              )?.[index]?.countryCode,
                                               type: 'error' as const,
                                             },
                                           }
@@ -853,17 +1017,19 @@ export function CompoundFormCreatePage() {
                                         ]
                                       }
                                     >
-                                      <DatePicker
+                                      <DateField
                                         id={`trailerFirstRegistration_${index}`}
                                         label={t(
                                           'forms.compound.trailerFirstRegistration',
                                         )}
-                                        value={
+                                        selected={
                                           trailer.firstRegistration
-                                            ? dayjs(trailer.firstRegistration)
-                                            : null
+                                            ? new Date(
+                                                trailer.firstRegistration,
+                                              )
+                                            : undefined
                                         }
-                                        onChange={(v) => {
+                                        onSelect={(v) => {
                                           const u = [...formik.values.trailers];
                                           u[index] = {
                                             ...u[index],
@@ -872,7 +1038,7 @@ export function CompoundFormCreatePage() {
                                           formik.setFieldValue('trailers', u);
                                         }}
                                         placeholder={t(
-                                          'forms.foreign_violation.datePickerPlaceholder',
+                                          'common.dateFieldPlaceholder',
                                         )}
                                       />
                                     </div>
@@ -910,16 +1076,16 @@ export function CompoundFormCreatePage() {
                                         formik.setFieldValue('trailers', u);
                                       }}
                                       required
-                                      {...((formik.touched.trailers as any)?.[
+                                      {...((formik.touched.trailers as TrailerTouched)?.[
                                         index
                                       ]?.categoryCode &&
-                                      (formik.errors.trailers as any)?.[index]
+                                      (formik.errors.trailers as TrailerErrors)?.[index]
                                         ?.categoryCode
                                         ? {
                                             helper: {
                                               text: (
-                                                formik.errors.trailers as any
-                                              )[index].categoryCode,
+                                                formik.errors.trailers as TrailerErrors
+                                              )[index]?.categoryCode,
                                               type: 'error' as const,
                                             },
                                           }
@@ -943,16 +1109,16 @@ export function CompoundFormCreatePage() {
                                           formik.setFieldValue('trailers', u);
                                         }}
                                         required
-                                        {...((formik.touched.trailers as any)?.[
+                                        {...((formik.touched.trailers as TrailerTouched)?.[
                                           index
                                         ]?.categoryOther &&
-                                        (formik.errors.trailers as any)?.[index]
+                                        (formik.errors.trailers as TrailerErrors)?.[index]
                                           ?.categoryOther
                                           ? {
                                               helper: {
                                                 text: (
-                                                  formik.errors.trailers as any
-                                                )[index].categoryOther,
+                                                  formik.errors.trailers as TrailerErrors
+                                                )?.[index]?.categoryOther,
                                                 type: 'error' as const,
                                               },
                                             }
@@ -1327,13 +1493,14 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers as any)?.[0]
+                          {...((formik.touched.drivers?.[0] as { firstName?: boolean } | undefined)
                             ?.firstName &&
-                          (formik.errors.drivers as any)?.[0]?.firstName
+                          (formik.errors.drivers?.[0] as { firstName?: string } | undefined)
+                            ?.firstName
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as any)[0]
-                                    .firstName,
+                                  text: (formik.errors.drivers?.[0] as { firstName?: string } | undefined)
+                                    ?.firstName,
                                   type: 'error' as const,
                                 },
                               }
@@ -1350,12 +1517,12 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers as any)?.[0]?.lastName &&
-                          (formik.errors.drivers as any)?.[0]?.lastName
+                          {...((formik.touched.drivers as DriverTouched)?.[0]?.lastName &&
+                          (formik.errors.drivers as DriverErrors)?.[0]?.lastName
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as any)[0]
-                                    .lastName,
+                                  text: (formik.errors.drivers as DriverErrors)[0]
+                                    ?.lastName,
                                   type: 'error' as const,
                                 },
                               }
@@ -1374,14 +1541,14 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers as any)?.[0]
+                          {...((formik.touched.drivers as DriverTouched)?.[0]
                             ?.personalCodeForeign &&
-                          (formik.errors.drivers as any)?.[0]
+                          (formik.errors.drivers as DriverErrors)?.[0]
                             ?.personalCodeForeign
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as any)[0]
-                                    .personalCodeForeign,
+                                  text: (formik.errors.drivers as DriverErrors)?.[0]
+                                    ?.personalCodeForeign,
                                   type: 'error' as const,
                                 },
                               }
@@ -1397,12 +1564,12 @@ export function CompoundFormCreatePage() {
                             u[0] = { ...u[0], personalCodeEe: v };
                             formik.setFieldValue('drivers', u);
                           }}
-                          {...((formik.errors.drivers as any)?.[0]
+                          {...((formik.errors.drivers as DriverErrors)?.[0]
                             ?.personalCodeEe
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as any)[0]
-                                    .personalCodeEe,
+                                  text: (formik.errors.drivers as DriverErrors)[0]
+                                    ?.personalCodeEe,
                                   type: 'error' as const,
                                 },
                               }
@@ -1440,34 +1607,33 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <DatePicker
+                          <DateField
                             id="driverBirthDate"
                             label={t('forms.compound.driverBirthDate')}
-                            value={
+                            selected={
                               formik.values.drivers[0]?.birthDate
-                                ? dayjs(formik.values.drivers[0].birthDate)
-                                : null
+                                ? new Date(formik.values.drivers[0].birthDate)
+                                : undefined
                             }
-                            onChange={(v) => {
+                            onSelect={(v) => {
                               const u = [...formik.values.drivers];
                               u[0] = { ...u[0], birthDate: toIsoDate(v) };
                               formik.setFieldValue('drivers', u);
                             }}
-                            placeholder={t(
-                              'forms.foreign_violation.datePickerPlaceholder',
-                            )}
+                            placeholder={t('common.dateFieldPlaceholder')}
                             required
-                            {...((formik.touched.drivers as any)?.[0]
-                              ?.birthDate &&
-                            (formik.errors.drivers as any)?.[0]?.birthDate
-                              ? {
-                                  helper: {
-                                    text: (formik.errors.drivers as any)[0]
-                                      .birthDate,
-                                    type: 'error' as const,
-                                  },
-                                }
-                              : {})}
+                            inputProps={
+                              (formik.touched.drivers as DriverTouched)?.[0]?.birthDate &&
+                              (formik.errors.drivers as DriverErrors)?.[0]?.birthDate
+                                ? {
+                                    helper: {
+                                      text: (formik.errors.drivers as DriverErrors)?.[0]
+                                        ?.birthDate,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : undefined
+                            }
                           />
                         </div>
                       </div>
@@ -1477,6 +1643,7 @@ export function CompoundFormCreatePage() {
               </Row>
 
               {/* Plokk: Teise juhi / meeskonna liikme andmed */}
+              {/*
               {false && (
                 <Row className="m-0">
                   <Col className="p-0">
@@ -1551,11 +1718,11 @@ export function CompoundFormCreatePage() {
                               };
                               formik.setFieldValue('drivers', u);
                             }}
-                            {...((formik.errors.drivers as any)?.[1]
+                            {...((formik.errors.drivers as DriverErrors)?.[1]
                               ?.personalCodeEe
                               ? {
                                   helper: {
-                                    text: (formik.errors.drivers as any)[1]
+                                    text: (formik.errors.drivers as DriverErrors)[1]
                                       .personalCodeEe,
                                     type: 'error' as const,
                                   },
@@ -1595,15 +1762,15 @@ export function CompoundFormCreatePage() {
                               ]
                             }
                           >
-                            <DatePicker
+                            <DateField
                               id="driver2BirthDate"
                               label={t('forms.compound.driverBirthDate')}
-                              value={
+                              selected={
                                 formik.values.drivers[1]?.birthDate
-                                  ? dayjs(formik.values.drivers[1].birthDate)
-                                  : null
+                                  ? new Date(formik.values.drivers[1].birthDate)
+                                  : undefined
                               }
-                              onChange={(v) => {
+                              onSelect={(v) => {
                                 const u = [...formik.values.drivers];
                                 u[1] = {
                                   ...emptyDriver(),
@@ -1612,16 +1779,14 @@ export function CompoundFormCreatePage() {
                                 };
                                 formik.setFieldValue('drivers', u);
                               }}
-                              placeholder={t(
-                                'forms.foreign_violation.datePickerPlaceholder',
-                              )}
+                              placeholder={t('common.dateFieldPlaceholder')}
                               required
-                              {...((formik.touched.drivers as any)?.[1]
+                              {...((formik.touched.drivers as DriverTouched)?.[1]
                                 ?.birthDate &&
-                              (formik.errors.drivers as any)?.[1]?.birthDate
+                              (formik.errors.drivers as DriverErrors)?.[1]?.birthDate
                                 ? {
                                     helper: {
-                                      text: (formik.errors.drivers as any)[1]
+                                      text: (formik.errors.drivers as DriverErrors)[1]
                                         .birthDate,
                                       type: 'error' as const,
                                     },
@@ -1635,6 +1800,7 @@ export function CompoundFormCreatePage() {
                   </Col>
                 </Row>
               )}
+              */}
 
               {/* Plokk: Sõidukit kontrollinud ametiisiku andmed */}
               <Row className="m-0">
@@ -1755,19 +1921,41 @@ export function CompoundFormCreatePage() {
                   </Card>
                 </Col>
               </Row>
-            </div>
-          </Tabs.Content>
-        </Tabs>
-
-        <div className="page-actions mt-1">
-          <div className="page-actions-buttons">
-            <Button visualType="secondary" onClick={() => navigate('/')}>
-              {t('common.back')}
-            </Button>
-            <Button type="submit">{t('common.save')}</Button>
+            </form>
           </div>
+        </Tabs.Content>
+        {Object.values(ROUTE_TO_TAB).map(({ tabId, type: tabType }) =>
+          openTabs.includes(tabId) ? (
+            <Tabs.Content key={tabId} id={tabId} className="p-1">
+              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+                <DriveRestFormCreatePage type={tabType} ref={(ref) => {
+                  formRefs.current[tabId].current = ref;
+                }} />
+              </div>
+            </Tabs.Content>
+          ) : null,
+        )}
+      </Tabs>
+
+      <div className="page-actions mt-1">
+        <div className="page-actions-buttons">
+          <Button visualType="secondary" onClick={() => navigate('/')}>
+            {t('common.back')}
+          </Button>
+          <Button type="submit" onClick={() => {
+            if (activeTab === 'tab-1') {
+              formik.handleSubmit();
+            } else {
+              const activeTabFormRef = formRefs.current[activeTab]?.current;
+              if (activeTabFormRef && activeTabFormRef.handleSubmit) {
+                activeTabFormRef.handleSubmit();
+              } else {
+                console.log('No handleSubmit method found on tab form');
+              }
+            }
+          }}>{t('common.save')}</Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

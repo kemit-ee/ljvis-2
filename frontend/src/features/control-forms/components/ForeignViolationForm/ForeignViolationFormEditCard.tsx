@@ -9,17 +9,16 @@ import {
   Text,
   ChoiceGroup,
   Alert,
-  Row,
-  Col,
-} from '@tedi-design-system/react/tedi';
-import {
-  DatePicker,
-  TimePicker,
+  DateField,
+  TimeField,
   Accordion,
   AccordionItem,
   AccordionItemHeader,
   AccordionItemContent,
-} from '@tedi-design-system/react/community';
+  Row,
+  Col,
+} from '@tedi-design-system/react/tedi';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 import { CompanyPickerModal } from '../CompanyPickerModal';
 import type { FormikProps } from 'formik';
@@ -82,8 +81,6 @@ interface ForeignViolationFormEditCardProps {
   isDesktop: boolean;
   orgOptions: { label: string; value: string }[];
   structureUnits: { code: string; name: string }[];
-  toDateValue: (date?: string) => import('dayjs').Dayjs | null;
-  toTimeValue: (date?: string, time?: string) => import('dayjs').Dayjs | null;
   canConfirm: boolean;
   canDelete: boolean;
   companySearchError: boolean;
@@ -124,8 +121,6 @@ export function ForeignViolationFormEditCard({
   isDesktop,
   orgOptions,
   structureUnits,
-  toDateValue,
-  toTimeValue,
   canConfirm,
   canDelete,
   companySearchError,
@@ -252,7 +247,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <Select
@@ -311,7 +306,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
             style={{ alignItems: 'start' }}
           >
@@ -320,42 +315,52 @@ export function ForeignViolationFormEditCard({
                 styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="inspectionDate"
                 label={t('forms.foreign_violation.inspectionDate')}
                 disableFuture
-                value={toDateValue(formik.values.inspectionDate)}
-                onChange={(v) => formik.setFieldValue('inspectionDate', v)}
-                placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
+                selected={
+                  formik.values.inspectionDate
+                    ? new Date(formik.values.inspectionDate)
+                    : undefined
+                }
+                onSelect={(v) =>
+                  formik.setFieldValue('inspectionDate', toIsoDate(v))
+                }
+                placeholder={t('common.dateFieldPlaceholder')}
                 required
-                {...(formik.touched.inspectionDate &&
-                formik.errors.inspectionDate
-                  ? {
-                      helper: {
-                        text: formik.errors.inspectionDate,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
+                inputProps={
+                  formik.touched.inspectionDate && formik.errors.inspectionDate
+                    ? {
+                        helper: {
+                          text: formik.errors.inspectionDate,
+                          type: 'error' as const,
+                        },
+                      }
+                    : undefined
+                }
               />
-              <TimePicker
+              <TimeField
                 id="inspectionTime"
                 label={t('forms.foreign_violation.inspectionTime')}
-                value={toTimeValue(
-                  formik.values.inspectionDate,
-                  formik.values.inspectionTime,
-                )}
-                onChange={(v) => formik.setFieldValue('inspectionTime', v)}
-                placeholder={t('forms.foreign_violation.timePickerPlaceholder')}
-                {...(formik.touched.inspectionTime &&
-                formik.errors.inspectionTime
-                  ? {
-                      helper: {
-                        text: formik.errors.inspectionTime,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
+                value={formik.values.inspectionTime?.slice(0, 5) ?? undefined}
+                onChange={(v) =>
+                  formik.setFieldValue(
+                    'inspectionTime',
+                    v ? (v.length === 5 ? `${v}:00` : v) : '',
+                  )
+                }
+                placeholder={t('common.timeFieldPlaceholder')}
+                inputProps={
+                  formik.touched.inspectionTime && formik.errors.inspectionTime
+                    ? {
+                        helper: {
+                          text: formik.errors.inspectionTime,
+                          type: 'error' as const,
+                        },
+                      }
+                    : undefined
+                }
               />
             </div>
             <div />
@@ -431,7 +436,7 @@ export function ForeignViolationFormEditCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <div className={styles['select-row']}>
@@ -539,7 +544,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -578,7 +583,7 @@ export function ForeignViolationFormEditCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
             style={{ alignItems: 'start' }}
           >
@@ -642,14 +647,18 @@ export function ForeignViolationFormEditCard({
                 styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="vehicleFirstRegistration"
                 label={t('forms.foreign_violation.vehicleFirstRegistration')}
-                value={toDateValue(formik.values.vehicleFirstRegistration)}
-                onChange={(v) =>
-                  formik.setFieldValue('vehicleFirstRegistration', v)
+                selected={
+                  formik.values.vehicleFirstRegistration
+                    ? new Date(formik.values.vehicleFirstRegistration)
+                    : undefined
                 }
-                placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
+                onSelect={(v) =>
+                  formik.setFieldValue('vehicleFirstRegistration', toIsoDate(v))
+                }
+                placeholder={t('common.dateFieldPlaceholder')}
               />
             </div>
             <TextField
@@ -681,7 +690,7 @@ export function ForeignViolationFormEditCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <div className={styles['select-row']}>
@@ -709,7 +718,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -733,7 +742,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField
@@ -781,16 +790,15 @@ export function ForeignViolationFormEditCard({
           />
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
               id="sanctionNotes"
               label={t('forms.foreign_violation.sanctionNotes')}
               value={formik.values.sanctionNotes}
-              placeholder={t(
-                'forms.foreign_violation.sanctionNotesPlaceholder',
-              )}
+              placeholder={t('common.enterNotesPlaceholder')}
+              maxHeight="8rem"
               onChange={(v) => formik.setFieldValue('sanctionNotes', v)}
               className={styles['full-span']}
             />
@@ -800,13 +808,15 @@ export function ForeignViolationFormEditCard({
 
       <Card className="mb-1">
         <Card.Content>
-          <Accordion defaultOpenItem={[]}>
+          <Accordion>
             <AccordionItem id="eu-violations">
-              <AccordionItemHeader closeText=" " openText=" ">
-                <strong>
-                  {t('forms.foreign_violation.euViolationsBasicInfo')}
-                </strong>
-              </AccordionItemHeader>
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t('forms.foreign_violation.euViolationsBasicInfo')}
+                  </Heading>
+                }
+              />
               <AccordionItemContent>
                 {euViolationGroups.map((group) => (
                   <div key={group.id} className="mb-1">
@@ -871,7 +881,7 @@ export function ForeignViolationFormEditCard({
           />
           {formik.values.recommendedMeasureCode === 'MUU' && (
             <div
-              className={`${styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']} mb-1`}
+              className={`${isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'} mb-1`}
             >
               <TextField
                 id="recommendedMeasureNotes"
@@ -896,7 +906,7 @@ export function ForeignViolationFormEditCard({
           )}
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextArea
@@ -905,9 +915,8 @@ export function ForeignViolationFormEditCard({
                 'forms.foreign_violation.recommendedMeasureGeneralNotes',
               )}
               value={formik.values.recommendedMeasureGeneralNotes}
-              placeholder={t(
-                'forms.foreign_violation.recommendedMeasureGeneralNotesPlaceholder',
-              )}
+              placeholder={t('common.enterNotesPlaceholder')}
+              maxHeight="8rem"
               onChange={(v) =>
                 formik.setFieldValue('recommendedMeasureGeneralNotes', v)
               }
@@ -924,7 +933,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <div
@@ -932,21 +941,29 @@ export function ForeignViolationFormEditCard({
                 styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="dataEntryDate"
                 label={t('forms.foreign_violation.dataEntryDate')}
-                value={toDateValue(formik.values.dataEntryDate)}
-                onChange={(v) => formik.setFieldValue('dataEntryDate', v)}
-                placeholder={t('forms.foreign_violation.datePickerPlaceholder')}
+                selected={
+                  formik.values.dataEntryDate
+                    ? new Date(formik.values.dataEntryDate)
+                    : undefined
+                }
+                onSelect={(v) =>
+                  formik.setFieldValue('dataEntryDate', toIsoDate(v))
+                }
+                placeholder={t('common.dateFieldPlaceholder')}
                 required
-                {...(formik.touched.dataEntryDate && formik.errors.dataEntryDate
-                  ? {
-                      helper: {
-                        text: formik.errors.dataEntryDate,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
+                inputProps={
+                  formik.touched.dataEntryDate && formik.errors.dataEntryDate
+                    ? {
+                        helper: {
+                          text: formik.errors.dataEntryDate,
+                          type: 'error' as const,
+                        },
+                      }
+                    : undefined
+                }
               />
             </div>
           </div>
@@ -960,7 +977,7 @@ export function ForeignViolationFormEditCard({
           </Heading>
           <div
             className={
-              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
             }
           >
             <TextField

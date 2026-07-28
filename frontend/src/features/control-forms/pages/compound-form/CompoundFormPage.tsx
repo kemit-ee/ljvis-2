@@ -33,27 +33,12 @@ export function CompoundFormPage() {
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
 
-  const { form, loading, toDateValue, toTimeValue, refetch } =
+  const { form, loading, refetch } =
     useCompoundFormDetail(snapshotId ? undefined : id);
   const [snapshot, setSnapshot] = useState<
     import('../../types').CompoundForm | null
   >(null);
   const [snapshotLoading, setSnapshotLoading] = useState(!!snapshotId);
-
-  useEffect(() => {
-    if (!snapshotId) return;
-    setSnapshotLoading(true);
-    getCompoundFormSnapshot(snapshotId, id!)
-      .then((res) => {
-        const data = Array.isArray(res) ? res[0] : res;
-        setSnapshot(data);
-        if (data?.county) handleCountyChange(Number(data.county));
-        if (data?.companyCounty)
-          handleCompanyCountyChange(Number(data.companyCounty));
-      })
-      .catch(console.error)
-      .finally(() => setSnapshotLoading(false));
-  }, [snapshotId]);
 
   useEffect(() => {
     if (form?.status === 'saved') {
@@ -114,6 +99,21 @@ export function CompoundFormPage() {
     triggerConfirm,
   } = useCompoundForm(form ?? undefined, handleEditSaved, handleConfirmed);
 
+  useEffect(() => {
+    if (!snapshotId) return;
+    setSnapshotLoading(true);
+    getCompoundFormSnapshot(snapshotId, id!)
+      .then((res) => {
+        const data = Array.isArray(res) ? res[0] : res;
+        setSnapshot(data);
+        if (data?.county) handleCountyChange(Number(data.county));
+        if (data?.companyCounty)
+          handleCompanyCountyChange(Number(data.companyCounty));
+      })
+      .catch(console.error)
+      .finally(() => setSnapshotLoading(false));
+  }, [snapshotId, handleCountyChange, handleCompanyCountyChange]);
+
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
@@ -157,8 +157,6 @@ export function CompoundFormPage() {
           canEdit={false}
           onEdit={() => {}}
           isSnapshot
-          toDateValue={toDateValue}
-          toTimeValue={toTimeValue}
           formType={FORM_TYPE.COMPOUND}
         />
       </div>
@@ -253,8 +251,6 @@ export function CompoundFormPage() {
           {...sharedProps}
           canEdit={canEdit}
           onEdit={() => setIsEditActive(true)}
-          toDateValue={toDateValue}
-          toTimeValue={toTimeValue}
           formType={FORM_TYPE.COMPOUND}
         />
       )}

@@ -2,18 +2,18 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
+  DateField,
   Heading,
   Select,
   Tabs,
+  Text,
   TextField,
-    Text
+  TimeField,
 } from '@tedi-design-system/react/tedi';
-import { DatePicker, TimePicker } from '@tedi-design-system/react/community';
 import type { CompoundForm, Trailer, Driver } from '../../types';
 import { COUNTRIES } from '../../../../constants/constants';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
-import type { Dayjs } from 'dayjs';
 
 interface CompoundFormViewCardProps {
   form: CompoundForm;
@@ -32,8 +32,6 @@ interface CompoundFormViewCardProps {
   onDelete?: () => void;
   isSnapshot?: boolean;
   formType: string;
-  toDateValue: (date?: string) => Dayjs | null;
-  toTimeValue: (date?: string, time?: string) => Dayjs | null;
 }
 
 export function CompoundFormViewCard({
@@ -51,8 +49,6 @@ export function CompoundFormViewCard({
   onEdit,
   isSnapshot,
   formType,
-  toDateValue,
-  toTimeValue,
 }: CompoundFormViewCardProps) {
   const { t } = useTranslation();
 
@@ -175,9 +171,7 @@ export function CompoundFormViewCard({
                     disabled={disabled}
                   />
                 </div>
-                <Text id="road_type">
-                  Tee liik: {form.road_type}
-                </Text>
+                <Text id="road_type">Tee liik: {form.road_type}</Text>
               </div>
             </Card.Content>
           </Card>
@@ -194,20 +188,20 @@ export function CompoundFormViewCard({
                     styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
                   }
                 >
-                  <DatePicker
+                  <DateField
                     id="controlDate"
                     label={t('forms.compound.controlDate')}
-                    value={toDateValue(form.controlDate)}
-                    onChange={() => {}}
-                    placeholder={t('common.datePickerPlaceholder')}
-                    disabled={disabled}
+                    selected={
+                      form.controlDate ? new Date(form.controlDate) : undefined
+                    }
+                    placeholder={t('common.dateFieldPlaceholder')}
+                    inputProps={{ disabled }}
                   />
-                  <TimePicker
+                  <TimeField
                     id="controlTime"
                     label={t('forms.compound.controlTime')}
-                    value={toTimeValue(form.controlDate, form.controlTime)}
-                    onChange={() => {}}
-                    placeholder={t('common.timePickerPlaceholder')}
+                    value={form.controlTime?.slice(0, 5) ?? undefined}
+                    placeholder={t('common.timeFieldPlaceholder')}
                     disabled={disabled}
                   />
                 </div>
@@ -271,15 +265,16 @@ export function CompoundFormViewCard({
                     ]
                   }
                 >
-                  <DatePicker
+                  <DateField
                     id="vehicleFirstRegistration"
                     label={t('forms.compound.vehicleFirstRegistration')}
-                    value={toDateValue(form.vehicleFirstRegistration)}
-                    onChange={() => {}}
-                    placeholder={t(
-                      'forms.foreign_violation.datePickerPlaceholder',
-                    )}
-                    disabled={disabled}
+                    selected={
+                      form.vehicleFirstRegistration
+                        ? new Date(form.vehicleFirstRegistration)
+                        : undefined
+                    }
+                    placeholder={t('common.dateFieldPlaceholder')}
+                    inputProps={{ disabled }}
                   />
                 </div>
                 <Select
@@ -401,15 +396,16 @@ export function CompoundFormViewCard({
                             ]
                           }
                         >
-                          <DatePicker
+                          <DateField
                             id={`trailerFirstRegistration_${index}`}
                             label={t('forms.compound.trailerFirstRegistration')}
-                            value={toDateValue(trailer.firstRegistration)}
-                            onChange={() => {}}
-                            placeholder={t(
-                              'forms.foreign_violation.datePickerPlaceholder',
-                            )}
-                            disabled={disabled}
+                            selected={
+                              trailer.firstRegistration
+                                ? new Date(trailer.firstRegistration)
+                                : undefined
+                            }
+                            placeholder={t('common.dateFieldPlaceholder')}
+                            inputProps={{ disabled }}
                           />
                         </div>
                         <Select
@@ -584,15 +580,16 @@ export function CompoundFormViewCard({
                       ]
                     }
                   >
-                    <DatePicker
+                    <DateField
                       id={`driverBirthDate_${index}`}
                       label={t('forms.compound.driverBirthDate')}
-                      value={toDateValue(driver.birthDate)}
-                      onChange={() => {}}
-                      placeholder={t(
-                        'forms.foreign_violation.datePickerPlaceholder',
-                      )}
-                      disabled={disabled}
+                      selected={
+                        driver.birthDate
+                          ? new Date(driver.birthDate)
+                          : undefined
+                      }
+                      placeholder={t('common.dateFieldPlaceholder')}
+                      inputProps={{ disabled }}
                     />
                   </div>
                 </div>
