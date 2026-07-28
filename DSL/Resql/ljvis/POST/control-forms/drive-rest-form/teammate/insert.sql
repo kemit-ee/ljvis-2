@@ -117,7 +117,7 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   notes,
                                   created_by)
 VALUES (nextval('forms.seq_sp_teammate_form_key'),
-        :compoundFormKey::INTEGER,
+        :compoundFormKey::BIGINT,
         'sp-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' ||
         LPAD(currval('forms.seq_sp_teammate_form_key')::text, 5, '0') || '/1',
         1,
