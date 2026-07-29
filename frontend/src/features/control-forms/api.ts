@@ -7,16 +7,11 @@ import type {
 } from './types';
 
 export const getForm = (id: number) =>
-  post<ForeignViolationForm>(
-    `/v1/control-forms/foreign-violation-form/read/get`,
-    { id },
-  );
+    get<ForeignViolationForm>('/v1/control-forms/foreign-violation-form', { q: String(id) });
 
-export const insertForeignViolationForm = (data: ForeignViolationForm) =>
-  post<ForeignViolationForm[]>(
-    `/v1/control-forms/foreign-violation-form/edit/insert`,
-    data as unknown as Record<string, unknown>,
-  );
+export const insertForeignViolationForm = (
+  data: ForeignViolationForm,
+) => post<ForeignViolationForm[]>('/v1/control-forms/foreign-violation-form', data as unknown as Record<string, unknown>);
 
 export const updateForeignViolationForm = (data: ForeignViolationForm) =>
   post<ForeignViolationForm[]>(
