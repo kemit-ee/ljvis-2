@@ -102,26 +102,34 @@ export function ViolationPickerModal({
   const [selectedKey, setSelectedKey] = useState<number | null>(null);
   const [quantity, setQuantity] = useState('1');
 
+  // Only currently-valid (non-expired) classifier values may be selected for
+  // a new violation entry; already-recorded (possibly since-expired) values
+  // are still rendered correctly elsewhere via the unfiltered classifier list.
+  const validClassifiers = useMemo(
+    () => violationClassifiers.filter((c) => c.isValid !== false),
+    [violationClassifiers],
+  );
+
   const itemsByKey = useMemo(() => {
     const map = new Map<number, ClassifierEntry>();
-    violationClassifiers.forEach((c) => map.set(c.classifierValueKey, c));
+    validClassifiers.forEach((c) => map.set(c.classifierValueKey, c));
     return map;
-  }, [violationClassifiers]);
+  }, [validClassifiers]);
 
   const childrenMap = useMemo(() => {
     const map = new Map<number, ClassifierEntry[]>();
-    violationClassifiers.forEach((c) => {
+    validClassifiers.forEach((c) => {
       if (c.parentKey === null) return;
       const list = map.get(c.parentKey) ?? [];
       list.push(c);
       map.set(c.parentKey, list);
     });
     return map;
-  }, [violationClassifiers]);
+  }, [validClassifiers]);
 
   const rootItems = useMemo(
-    () => violationClassifiers.filter((c) => c.parentKey === null),
-    [violationClassifiers],
+    () => validClassifiers.filter((c) => c.parentKey === null),
+    [validClassifiers],
   );
 
   const toggleExpand = (key: number) => {
@@ -153,9 +161,9 @@ export function ViolationPickerModal({
     if (!canAdd) return;
     const [l1, l2, l3] = selectedChain;
     onAdd({
-      level1ValueKey: l1.code,
-      level2ValueKey: l2.code,
-      level3ValueKey: l3?.code,
+      level1ValueKey: l1.classifierValueKey,
+      level2ValueKey: l2.classifierValueKey,
+      level3ValueKey: l3?.classifierValueKey,
       quantity: parseInt(quantity, 10) || 1,
     });
     onClose();

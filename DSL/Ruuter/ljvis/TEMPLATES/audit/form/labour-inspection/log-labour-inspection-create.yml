@@ -13,11 +13,14 @@ declaration:
     body:
       - field: form_number
         type: string
+      - field: version
+        type: string
 
 buildAudit:
   assign:
-    description: "Loodi Tööinspektsiooni kontrollakt ${incoming.body.form_number}"
-    log_content: "{\"formNumber\":\"${incoming.body.form_number}\"}"
+    form_number_display: "${incoming.body.form_number}/${incoming.body.version || 1}"
+    description: "Loodi Tööinspektsiooni kontrollakt ${form_number_display}"
+    log_content: "{\"formNumber\":\"${form_number_display}\"}"
   next: logAuditEvent
 
 logAuditEvent:

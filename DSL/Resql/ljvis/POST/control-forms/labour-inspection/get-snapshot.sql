@@ -20,6 +20,8 @@ declaration:
         type: string
       - field: form_number
         type: string
+      - field: version
+        type: number
       - field: status
         type: string
       - field: inspector_name
@@ -62,6 +64,7 @@ declaration:
 SELECT
   id,
   form_number,
+  version,
   status,
   inspector_name,
   inspection_date,

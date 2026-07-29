@@ -100,7 +100,7 @@ export function LabourInspectionFormPage() {
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
-      await deleteLabourInspectionForm(id, form.formNumber ?? '', form.status ?? '');
+      await deleteLabourInspectionForm(id, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);
@@ -121,7 +121,11 @@ export function LabourInspectionFormPage() {
           {t('common.back')}
         </Button>
         <div className="card-main">
-          <Heading element="h1">{t('forms.labour_inspection_form')}</Heading>
+          <Heading element="h1">
+            {snapshot.formNumber
+              ? `${snapshot.formNumber}/${snapshot.version ?? 1}`
+              : t('forms.labour_inspection_form')}
+          </Heading>
         </div>
         <LabourInspectionFormFields
           formik={{
@@ -183,7 +187,11 @@ export function LabourInspectionFormPage() {
       </Button>
 
       <div className="card-main">
-        <Heading element="h1">{t('forms.labour_inspection_form')}</Heading>
+        <Heading element="h1">
+          {form.formNumber
+            ? `${form.formNumber}/${form.version ?? 1}`
+            : t('forms.labour_inspection_form')}
+        </Heading>
       </div>
 
       <form onSubmit={formik.handleSubmit}>

@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) — single unified save endpoint, branches internally on presence of id"
+  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input — see extractRequestData / validateRequired / updateForm."
   method: post
   accepts: json
   returns: json
@@ -9,10 +9,6 @@ declaration:
   allowlist:
     body:
       - field: id
-        type: string
-      - field: formNumber
-        type: string
-      - field: status
         type: string
       - field: inspectorName
         type: string
@@ -54,8 +50,6 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    form_number: "${incoming.body.formNumber}"
-    status: "${incoming.body.status || 'saved'}"
     inspector_name: "${incoming.body.inspectorName}"
     inspection_date: "${incoming.body.inspectionDate}"
     inspection_type: "${incoming.body.inspectionType}"
@@ -71,13 +65,23 @@ extractRequestData:
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber}"
     violations: "${incoming.body.violations}"
     created_by: "${auth_user.personalcode}"
+  next: validateRequired
+
+validateRequired:
+  switch:
+    - condition: ${!inspector_name || inspector_name.trim() === ''}
+      next: returnInspectorNameRequiredError
+    - condition: ${!inspection_date || inspection_date.trim() === ''}
+      next: returnInspectionDateRequiredError
+    - condition: ${new Date(inspection_date) > new Date()}
+      next: returnInspectionDateFutureError
   next: checkIsCreate
 
 checkIsCreate:
   switch:
     - condition: ${id == null || id === ''}
       next: insertForm
-  next: calculateChangedFields
+  next: getCurrentFormForStatus
 
 insertForm:
   call: http.post
@@ -86,7 +90,7 @@ insertForm:
     headers:
       type: json
     body:
-      status: ${status}
+      status: saved
       inspectorName: ${inspector_name}
       inspectionDate: ${inspection_date}
       inspectionType: ${inspection_type}
@@ -103,11 +107,6 @@ insertForm:
       violations: ${violations}
       created_by: ${created_by}
   result: saveRes
-  next: logCreateAuditEvent
-
-logCreateAuditEvent:
-  assign:
-    new_form_number: "${saveRes.response.body[0].formNumber || ''}"
   next: logCreate
 
 logCreate:
@@ -116,9 +115,26 @@ logCreate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    form_number: ${new_form_number}
+    form_number: ${saveRes.response.body[0].formNumber}
+    version: ${saveRes.response.body[0].version}
   result: audit_result
   next: returnSuccess
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: extractCurrentStatus
+
+extractCurrentStatus:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: calculateChangedFields
 
 calculateChangedFields:
   template: "[#LJVIS_PROJECT_LAYER]/form/labour-inspection/calculate-labour-inspection-changed-fields"
@@ -156,8 +172,7 @@ updateForm:
       type: json
     body:
       key: ${id}
-      formNumber: ${form_number}
-      status: ${status}
+      status: ${current_status}
       inspectorName: ${inspector_name}
       inspectionDate: ${inspection_date}
       inspectionType: ${inspection_type}
@@ -174,11 +189,6 @@ updateForm:
       violations: ${violations}
       created_by: ${created_by}
   result: saveRes
-  next: extractUpdateResponseData
-
-extractUpdateResponseData:
-  assign:
-    updated_form_number: "${saveRes.response.body[0].formNumber || ''}"
   next: logUpdate
 
 logUpdate:
@@ -187,11 +197,27 @@ logUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    form_number: ${updated_form_number}
+    form_number: ${saveRes.response.body[0].formNumber}
+    version: ${saveRes.response.body[0].version}
     changed_fields: ${changed_fields_result}
   result: audit_result
   next: returnSuccess
 
 returnSuccess:
   return: ${saveRes.response.body}
+  next: end
+
+returnInspectorNameRequiredError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorName","code":"required"}'
+  next: end
+
+returnInspectionDateRequiredError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionDate","code":"required"}'
+  next: end
+
+returnInspectionDateFutureError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionDate","code":"future_date_not_allowed"}'
   next: end

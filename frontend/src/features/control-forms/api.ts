@@ -114,14 +114,10 @@ export const confirmLabourInspectionForm = (data: LabourInspectionForm) =>
     data as unknown as Record<string, unknown>,
   );
 
-export const deleteLabourInspectionForm = (
-  id: string,
-  form_number: string,
-  old_status: string,
-) =>
+export const deleteLabourInspectionForm = (id: string, old_status: string) =>
   post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/delete`,
-    { id, form_number, old_status },
+    { id, old_status },
   );
 
 export const getLabourInspectionFormSnapshot = (id: string, formKey: string) =>

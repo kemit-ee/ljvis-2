@@ -7,7 +7,7 @@ interface ControlsMatrixTableProps {
   rows: ControlsMatrixRow[];
   transportTypes: ClassifierEntry[];
   readOnly?: boolean;
-  onAddRow: (transportClass: string) => void;
+  onAddRow: (transportClass: number) => void;
   onUpdateRow: (index: number, patch: Partial<ControlsMatrixRow>) => void;
   onRemoveRow: (index: number) => void;
 }
@@ -52,11 +52,14 @@ export function ControlsMatrixTable({
 }: ControlsMatrixTableProps) {
   const { t } = useTranslation();
 
-  const labelFor = (code: string) =>
-    transportTypes.find((tt) => tt.code === code)?.name ?? code;
+  const labelFor = (key: number) =>
+    transportTypes.find((tt) => tt.classifierValueKey === key)?.name ??
+    String(key);
 
   const availableToAdd = transportTypes.filter(
-    (tt) => !rows.some((r) => r.transportClass === tt.code),
+    (tt) =>
+      tt.isValid !== false &&
+      !rows.some((r) => r.transportClass === tt.classifierValueKey),
   );
 
   return (
@@ -139,13 +142,13 @@ export function ControlsMatrixTable({
             id="add-controls-matrix-row"
             label={t('forms.labour_inspection.controlsMatrix.addRow')}
             options={availableToAdd.map((tt) => ({
-              value: tt.code,
+              value: String(tt.classifierValueKey),
               label: tt.name,
             }))}
             value={null}
             onChange={(val) => {
               if (val && !Array.isArray(val)) {
-                onAddRow((val as { value: string }).value);
+                onAddRow(Number((val as { value: string }).value));
               }
             }}
           />

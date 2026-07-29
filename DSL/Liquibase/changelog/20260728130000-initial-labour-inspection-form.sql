@@ -9,7 +9,8 @@ CREATE TABLE forms.labour_inspection_form (
     -- ── Identity & lifecycle ────────────────────────────────
     id                              BIGSERIAL       NOT NULL,
     labour_inspection_form_key     BIGINT          NOT NULL,
-    form_number                    VARCHAR(30)     NOT NULL,
+    form_number                    VARCHAR(20)     NOT NULL,
+    version                        INTEGER         NOT NULL DEFAULT 1,
     status                         VARCHAR(50)     NOT NULL,
     -- ── Kontrolli põhiandmed ────────────────────────────────
                                       inspector_name                  VARCHAR(200)    NOT NULL,
@@ -45,7 +46,8 @@ CREATE TABLE forms.labour_inspection_form (
 COMMENT ON TABLE  forms.labour_inspection_form IS 'INSERT-only snapshot of a Labour Inspectorate control act (Tööinspektsiooni kontrollakt). Every change appends a complete new row. Current state = DISTINCT ON (labour_inspection_form_key) ORDER BY labour_inspection_form_key, created_at DESC. Independent form — no parent compound form is created or referenced.';
 COMMENT ON COLUMN forms.labour_inspection_form.id IS 'Per-row physical primary key.';
 COMMENT ON COLUMN forms.labour_inspection_form.labour_inspection_form_key IS 'Stable logical identity of the act (from forms.seq_labour_inspection_form_key). All snapshot rows of one act share this value. NOT unique.';
-COMMENT ON COLUMN forms.labour_inspection_form.form_number IS 'Act number, format ti-AAAA-NNNNN/V. V (version) increments on every re-save after the act reaches status=confirmed. Logically immutable core (ti-AAAA-NNNNN) across snapshots; uniqueness enforced at orchestration layer.';
+COMMENT ON COLUMN forms.labour_inspection_form.form_number IS 'Act number core, format ti-AAAA-NNNNN. Logically immutable across all snapshots of the act; uniqueness enforced at orchestration layer. Displayed to the user joined with version as ti-AAAA-NNNNN/V (see version column) — never stores the /V suffix itself.';
+COMMENT ON COLUMN forms.labour_inspection_form.version IS 'Display version (the /V suffix of the act number). Starts at 1; increments by 1 on every re-save after the act reaches status=confirmed. Carried forward unchanged on every other re-save.';
 COMMENT ON COLUMN forms.labour_inspection_form.status IS 'Lifecycle status: saved, confirmed, deleted. deleted is a final, irreversible soft-delete; deleted rows are hidden from search/view and retained for audit only.';
 COMMENT ON COLUMN forms.labour_inspection_form.inspector_name IS 'Name of the inspector who performed the control (kontrolli läbiviimise eest vastutav isik); free text, max 200 characters.';
 COMMENT ON COLUMN forms.labour_inspection_form.inspection_date IS 'Date the inspection was performed; must not be in the future (validated FE and backend).';

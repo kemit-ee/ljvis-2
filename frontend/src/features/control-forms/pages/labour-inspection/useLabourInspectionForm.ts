@@ -11,7 +11,7 @@ import { saveLabourInspectionForm, confirmLabourInspectionForm } from '../../api
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 
-const emptyMatrixRow = (transportClass: string): ControlsMatrixRow => ({
+const emptyMatrixRow = (transportClass: number): ControlsMatrixRow => ({
   transportClass,
   analogRecorderDrivers: 0,
   digitalRecorderDrivers: 0,
@@ -43,12 +43,18 @@ export function useLabourInspectionForm(
   );
 
   const validationSchema = Yup.object({
-    inspectorName: Yup.string().required(
+    inspectorName: Yup.string().test(
+      'required-non-blank',
       t('forms.labour_inspection.validation.required'),
+      (value) => !!value && value.trim() !== '',
     ),
-    inspectionDate: Yup.string().required(
-      t('forms.labour_inspection.validation.required'),
-    ),
+    inspectionDate: Yup.string()
+      .required(t('forms.labour_inspection.validation.required'))
+      .test(
+        'not-future',
+        t('forms.labour_inspection.validation.api.future_date_not_allowed'),
+        (value) => !value || new Date(value) <= new Date(),
+      ),
     inspectionType: Yup.string().required(
       t('forms.labour_inspection.validation.required'),
     ),
@@ -65,6 +71,7 @@ export function useLabourInspectionForm(
     initialValues: {
       id: form?.id ?? '',
       formNumber: form?.formNumber ?? '',
+      version: form?.version ?? 1,
       inspectorName: form?.inspectorName ?? '',
       inspectionDate: form?.inspectionDate ?? '',
       inspectionType: form?.inspectionType ?? 'passenger',
@@ -121,7 +128,7 @@ export function useLabourInspectionForm(
     formik.submitForm();
   };
 
-  const addMatrixRow = (transportClass: string) => {
+  const addMatrixRow = (transportClass: number) => {
     const current = formik.values.controlsMatrix ?? [];
     if (current.some((r) => r.transportClass === transportClass)) return;
     formik.setFieldValue('controlsMatrix', [

@@ -10,8 +10,6 @@ declaration:
     body:
       - field: id
         type: string
-      - field: form_number
-        type: string
       - field: old_status
         type: string
 
@@ -21,12 +19,17 @@ get_user_context:
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
-  next: extractRequestData
+  next: checkDeletePermission
+
+checkDeletePermission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('control_form.delete')}
+      next: extractRequestData
+  next: returnForbidden
 
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    form_number: "${incoming.body.form_number}"
     old_status: "${incoming.body.old_status}"
     status: "deleted"
     created_by: "${auth_user.personalcode}"
@@ -51,11 +54,16 @@ logAuditEvent:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    form_number: ${form_number}
+    form_number: "${deleteRes.response.body[0].formNumber}/${deleteRes.response.body[0].version || 1}"
     old_status: ${old_status}
   result: audit_result
   next: returnSuccess
 
 returnSuccess:
   return: ${deleteRes.response.body}
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "forbidden"
   next: end

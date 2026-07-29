@@ -9,9 +9,8 @@ import {
   Card,
   Text,
   Checkbox,
+  DateField,
 } from '@tedi-design-system/react/tedi';
-import { DatePicker } from '@tedi-design-system/react/community';
-import dayjs from 'dayjs';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { formatDate } from '../../../../hooks/dateUtils';
 import type { ControlsMatrixRow, ViolationEntry } from '../../types';
@@ -27,6 +26,7 @@ export const INSPECTION_TYPES = [
 interface LabourInspectionFormValues {
   id: string;
   formNumber: string;
+  version: number;
   inspectorName: string;
   inspectionDate: string;
   inspectionType: string;
@@ -49,7 +49,7 @@ interface LabourInspectionFormFieldsProps {
   readOnly: boolean;
   transportTypes: ClassifierEntry[];
   violationClassifiers: ClassifierEntry[];
-  addMatrixRow: (transportClass: string) => void;
+  addMatrixRow: (transportClass: number) => void;
   updateMatrixRow: (index: number, patch: Partial<ControlsMatrixRow>) => void;
   removeMatrixRow: (index: number) => void;
   addViolation: (violation: ViolationEntry) => void;
@@ -71,8 +71,9 @@ export function LabourInspectionFormFields({
   const { t } = useTranslation();
   const [showViolationPicker, setShowViolationPicker] = useState(false);
 
-  const violationLabel = (code: string) =>
-    violationClassifiers.find((v) => v.code === code)?.name ?? code;
+  const violationLabel = (key: number) =>
+    violationClassifiers.find((v) => v.classifierValueKey === key)?.name ??
+    String(key);
 
   const inspectionTypeLabel =
     INSPECTION_TYPES.find((it) => it.value === formik.values.inspectionType)
@@ -128,17 +129,30 @@ export function LabourInspectionFormFields({
                   ? { helper: { text: formik.errors.inspectorName as string, type: 'error' as const } }
                   : {})}
               />
-              <DatePicker
+              <DateField
                 id="inspectionDate"
                 label={t('forms.labour_inspection.inspectionDate')}
-                value={formik.values.inspectionDate ? dayjs(formik.values.inspectionDate) : null}
-                onChange={(v) =>
+                disableFuture
+                required
+                selected={
+                  formik.values.inspectionDate
+                    ? new Date(formik.values.inspectionDate)
+                    : undefined
+                }
+                onSelect={(v) =>
                   formik.setFieldValue('inspectionDate', toIsoDate(v))
                 }
-                maxDate={dayjs()}
-                {...(formik.touched.inspectionDate && formik.errors.inspectionDate
-                  ? { helper: { text: formik.errors.inspectionDate as string, type: 'error' as const } }
-                  : {})}
+                placeholder={t('common.dateFieldPlaceholder')}
+                inputProps={
+                  formik.touched.inspectionDate && formik.errors.inspectionDate
+                    ? {
+                        helper: {
+                          text: formik.errors.inspectionDate as string,
+                          type: 'error' as const,
+                        },
+                      }
+                    : undefined
+                }
               />
               <Select
                 id="inspectionType"

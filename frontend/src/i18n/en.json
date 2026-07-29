@@ -314,7 +314,9 @@
       "validation": {
         "required": "Required field",
         "api": {
-          "violations_present_requires_e_toimik_publish": "An act with violations cannot be confirmed here — publishing is done via e-toimik."
+          "violations_present_requires_e_toimik_publish": "An act with violations cannot be confirmed here — publishing is done via e-toimik.",
+          "required": "Required field",
+          "future_date_not_allowed": "Date cannot be in the future"
         }
       }
     },

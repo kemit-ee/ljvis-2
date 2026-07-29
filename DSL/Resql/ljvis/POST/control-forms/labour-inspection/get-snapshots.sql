@@ -16,7 +16,7 @@ declaration:
       - field: snapshot_id
         type: number
       - field: version
-        type: string
+        type: number
       - field: status
         type: string
       - field: created_at
@@ -28,7 +28,7 @@ WITH ranked AS (
   SELECT
     id,
     labour_inspection_form_key,
-    form_number,
+    version,
     status,
     created_at,
     created_by,
@@ -43,7 +43,7 @@ filtered AS (
   SELECT
     id AS snapshot_id,
     labour_inspection_form_key,
-    form_number,
+    version,
     status,
     created_at,
     created_by
@@ -52,7 +52,7 @@ filtered AS (
 )
 SELECT
   snapshot_id,
-  SPLIT_PART(form_number, '/', 2)::integer AS version,
+  version,
   status,
   created_at,
   (SELECT first_name || ' ' || last_name FROM users.user_account WHERE user_account.personal_code = created_by ORDER BY user_account.id DESC LIMIT 1) AS created_by,

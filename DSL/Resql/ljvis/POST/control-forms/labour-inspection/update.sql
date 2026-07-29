@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row; also used by confirm/re-save"
+  description: "Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row; also used by confirm/re-save. version is always computed server-side from the latest existing snapshot (never trusts client input): carried forward unchanged while status=saved, incremented by 1 once the act has reached status=confirmed — see COMMENT on forms.labour_inspection_form.version."
   method: post
   accepts: json
   returns: json
@@ -9,8 +9,6 @@ declaration:
   allowlist:
     body:
       - field: key
-        type: string
-      - field: formNumber
         type: string
       - field: status
         type: string
@@ -50,10 +48,13 @@ declaration:
         type: number
       - field: form_number
         type: string
+      - field: version
+        type: number
 */
 INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
   form_number,
+  version,
   status,
   inspector_name,
   inspection_date,
@@ -73,7 +74,20 @@ INSERT INTO forms.labour_inspection_form (
 )
 VALUES (
   :key::BIGINT,
-  :formNumber,
+  (
+    SELECT form_number
+    FROM forms.labour_inspection_form
+    WHERE labour_inspection_form_key = :key::BIGINT
+    ORDER BY created_at DESC
+    LIMIT 1
+  ),
+  (
+    SELECT CASE WHEN status = 'confirmed' THEN version + 1 ELSE version END
+    FROM forms.labour_inspection_form
+    WHERE labour_inspection_form_key = :key::BIGINT
+    ORDER BY created_at DESC
+    LIMIT 1
+  ),
   :status,
   :inspectorName,
   :inspectionDate::DATE,
@@ -91,4 +105,4 @@ VALUES (
   COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
   :created_by
 )
-RETURNING labour_inspection_form_key AS id, form_number;
+RETURNING labour_inspection_form_key AS id, form_number, version;

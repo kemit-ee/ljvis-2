@@ -13,14 +13,17 @@ declaration:
     body:
       - field: form_number
         type: string
+      - field: version
+        type: string
       - field: changed_fields
         type: string
 
 buildAudit:
   assign:
+    form_number_display: "${incoming.body.form_number}/${incoming.body.version || 1}"
     changed_fields_json: ${JSON.stringify(incoming.body.changed_fields)}
-    description: "Muudeti Tööinspektsiooni kontrollakti ${incoming.body.form_number}, muudetud väljad: ${changed_fields_json}"
-    log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"changedFields\":${changed_fields_json}}"
+    description: "Muudeti Tööinspektsiooni kontrollakti ${form_number_display}, muudetud väljad: ${changed_fields_json}"
+    log_content: "{\"formNumber\":\"${form_number_display}\",\"changedFields\":${changed_fields_json}}"
   next: logAuditEvent
 
 logAuditEvent:

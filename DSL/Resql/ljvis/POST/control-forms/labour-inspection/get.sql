@@ -17,6 +17,8 @@ declaration:
         type: string
       - field: form_number
         type: string
+      - field: version
+        type: number
       - field: status
         type: string
       - field: inspector_name
@@ -59,6 +61,7 @@ declaration:
 SELECT
   labour_inspection_form_key AS id,
   form_number,
+  version,
   status,
   inspector_name,
   inspection_date,

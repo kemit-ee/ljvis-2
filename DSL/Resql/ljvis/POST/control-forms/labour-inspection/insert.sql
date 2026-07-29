@@ -46,10 +46,13 @@ declaration:
         type: number
       - field: form_number
         type: string
+      - field: version
+        type: number
 */
 INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
   form_number,
+  version,
   status,
   inspector_name,
   inspection_date,
@@ -69,7 +72,8 @@ INSERT INTO forms.labour_inspection_form (
 )
 VALUES (
   nextval('forms.seq_labour_inspection_form_key'),
-  'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_labour_inspection_form_key')::text, 5, '0') || '/1',
+  'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_labour_inspection_form_key')::text, 5, '0'),
+  1,
   :status,
   :inspectorName,
   :inspectionDate::DATE,
@@ -87,4 +91,4 @@ VALUES (
   COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
   :created_by
 )
-RETURNING labour_inspection_form_key AS id, form_number;
+RETURNING labour_inspection_form_key AS id, form_number, version;

@@ -1,5 +1,6 @@
 export interface ControlsMatrixRow {
-  transportClass: string;
+  /** classifier_value_key of a TRANSPORT_TYPE classifier value. */
+  transportClass: number;
   analogRecorderDrivers?: number;
   digitalRecorderDrivers?: number;
   smartRecorderDrivers?: number;
@@ -9,15 +10,19 @@ export interface ControlsMatrixRow {
 }
 
 export interface ViolationEntry {
-  level1ValueKey: string;
-  level2ValueKey: string;
-  level3ValueKey?: string;
+  /** classifier_value_key values within the DRIVING_VIOLATION classifier. */
+  level1ValueKey: number;
+  level2ValueKey: number;
+  level3ValueKey?: number;
   quantity: number;
 }
 
 export interface LabourInspectionForm {
   id?: string;
+  /** Immutable core act number, format ti-AAAA-NNNNN (no /V suffix — see `version`). */
   formNumber?: string;
+  /** The /V display suffix of the act number; join as `${formNumber}/${version}` for display. */
+  version?: number;
   status?: string;
   inspectorName: string;
   inspectionDate: string;

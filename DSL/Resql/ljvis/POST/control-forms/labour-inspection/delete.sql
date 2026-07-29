@@ -20,11 +20,14 @@ declaration:
         type: number
       - field: form_number
         type: string
+      - field: version
+        type: number
 */
 WITH latest AS (
   SELECT DISTINCT ON (labour_inspection_form_key)
     labour_inspection_form_key,
     form_number,
+    version,
     inspector_name,
     inspection_date,
     external_inspection_id,
@@ -49,6 +52,7 @@ WITH latest AS (
 INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
   form_number,
+  version,
   status,
   inspector_name,
   inspection_date,
@@ -72,6 +76,7 @@ INSERT INTO forms.labour_inspection_form (
 SELECT
   l.labour_inspection_form_key,
   l.form_number,
+  l.version,
   :status,
   l.inspector_name,
   l.inspection_date,
@@ -92,4 +97,4 @@ SELECT
   l.violations,
   :created_by
 FROM latest l
-RETURNING labour_inspection_form_key AS id, form_number;
+RETURNING labour_inspection_form_key AS id, form_number, version;

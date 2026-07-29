@@ -1,7 +1,12 @@
 -- liquibase formatted sql
 -- changeset ljvis:20260728140000 ignore:true splitStatements:false
 --
--- Seeds two classifiers used by the Labour Inspectorate control act (labour_inspection_form):
+-- Test/dev-only seed: two classifiers used by the Labour Inspectorate control act
+-- (labour_inspection_form, LJVIS-75). Classifier VALUE data is seeded exclusively via
+-- DSL/Liquibase/test/ (plain-SQL, applied in dev/CI only) — never via the production
+-- changelog/ — consistent with the rest of the project's classifier data (see e.g.
+-- 20260630100002-form-classifier-data.sql). In production, classifier values are entered
+-- via the "Classifier value management" functionality, not via Liquibase migrations.
 --
 -- 1. DRIVING_VIOLATION — 3-level hierarchy per LJVIS-75 analysis §4 "Rikkumised":
 --      level 1 (parent_key NULL)   = regulation category group (e.g. "Sõiduajad")
@@ -12,8 +17,8 @@
 --    illustrative level-3 examples ("MI · 9h < ... < 10h", "SI · 10h ... < 11h") and does not
 --    provide the full severity/range table (MSI/VSI/SI/MI bands) for every one of the 27
 --    level-2 legal-basis entries below. Fabricating a full legally-binding severity table
---    without that source data would risk seeding incorrect compliance data. This migration
---    therefore seeds exactly ONE clearly-marked PLACEHOLDER level-3 leaf per level-2 entry so
+--    without that source data would risk seeding incorrect compliance data. This seed
+--    therefore adds exactly ONE clearly-marked PLACEHOLDER level-3 leaf per level-2 entry so
 --    the hierarchy, UI, and violations JSONB shape are fully exercisable in dev/test. The real
 --    severity/range table (e.g. sourced from the ERRU severity classification under
 --    Commission Implementing Regulation (EU) 2016/403) MUST replace these placeholder leaves
@@ -53,6 +58,10 @@ DECLARE
         'direktiiv 2002/15/EÜ|Salvestused|DIR200215_RECORDS|Artikkel 9'
     ];
 BEGIN
+    IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'DRIVING_VIOLATION') THEN
+        RETURN;
+    END IF;
+
     -- ── 1. DRIVING_VIOLATION classifier ──────────────────────────────────
     INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
     VALUES (
@@ -104,7 +113,7 @@ BEGIN
             )
             RETURNING classifier_value_key INTO v_l2_key;
 
-            -- PLACEHOLDER level-3 leaf — see migration header comment. Replace before go-live.
+            -- PLACEHOLDER level-3 leaf — see file header comment. Replace before go-live.
             INSERT INTO classifier.classifier_value (
                 classifier_value_key, classifier_key, code, name, description, parent_key, valid_from, created_by
             )
@@ -113,7 +122,7 @@ BEGIN
                 v_driving_violation_classifier_key,
                 v_l1_code || '_L2_' || v_l2_idx || '_L3_PLACEHOLDER',
                 'MI · PLACEHOLDER — asenda tegeliku raskusastme vahemikuga',
-                'PLACEHOLDER level-3 leaf; real severity/range table not present in source analysis document.',
+                'PLACEHOLDER level-3 leaf; test/dev-only, real severity/range table not present in source analysis document.',
                 v_l2_key,
                 CURRENT_DATE,
                 'ljvis2'
