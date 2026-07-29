@@ -31,6 +31,207 @@ Muutub **mitte midagi** — URL-id, HTTP meetodid ja vastuse formaadid jäävad 
 
 ---
 
+## Kohe teha — konkreetsed sammud LJVIS üleviimiseks
+
+Need on **ainsad muudatused** mida on vaja teha enne kui Rust Ruuter töötab. DSL failid ise **ei muutu**.
+
+### Samm 1 — `docker/ruuter/Dockerfile`
+
+**Praegu:**
+```dockerfile
+FROM ghcr.io/buerokratt/ruuter:v2.2.1
+COPY DSL/Ruuter/ljvis /DSL/ljvis
+```
+
+**Pärast:**
+```dockerfile
+FROM turnerrainer/ruuter:rc
+COPY DSL/Ruuter/ljvis /app/DSL/ljvis
+COPY constants.ini /app/constants.ini
+COPY ruuter.yaml /app/ruuter.yaml
+```
+
+> Muutused: image → `turnerrainer/ruuter:rc`, sihtkausta `/DSL` → `/app/DSL`.
+
+---
+
+### Samm 2 — `docker/ruuter-internal/Dockerfile`
+
+**Praegu:**
+```dockerfile
+FROM ghcr.io/buerokratt/ruuter:v2.2.1
+COPY DSL/Ruuter.internal/ljvis /DSL/ljvis
+```
+
+**Pärast:**
+```dockerfile
+FROM turnerrainer/ruuter:rc
+COPY DSL/Ruuter.internal/ljvis /app/DSL/ljvis
+COPY constants.ini /app/constants.ini
+COPY ruuter.yaml /app/ruuter.yaml
+```
+
+---
+
+### Samm 3 — `docker-compose.yml` — `ruuter` teenus
+
+**Praegu:**
+```yaml
+ruuter:
+  build:
+    context: .
+    dockerfile: docker/ruuter/Dockerfile
+  platform: linux/amd64
+  environment:
+    - application.cors.allowedOrigins=http://localhost:8086,...
+    - application.httpCodesAllowList=200,201,202,400,401,403,500
+    - application.incomingRequests.allowedMethodTypes=POST,GET,PUT,DELETE
+    - application.internalRequests.allowedIPs=127.0.0.1
+    - application.logging.displayRequestContent=true
+    - application.logging.displayResponseContent=true
+    - application.logging.printStackTrace=true
+    - application.internalRequests.disabled=true
+    - server.port=8086
+    - application.externalAuthAllowed=.*mock.*
+  volumes:
+    - ./DSL/Ruuter:/DSL
+    - ./constants.ini:/app/constants.ini
+  ports:
+    - 8086:8086
+```
+
+**Pärast:**
+```yaml
+ruuter:
+  build:
+    context: .
+    dockerfile: docker/ruuter/Dockerfile
+  environment:
+    - RUST_LOG=info
+  volumes:
+    - ./DSL/Ruuter/ljvis:/app/DSL/ljvis:ro
+    - ./constants.ini:/app/constants.ini:ro
+    - ./ruuter.yaml:/app/ruuter.yaml:ro
+  ports:
+    - 8086:8080
+  networks:
+    - ljvisnetwork
+  cpus: "0.5"
+  mem_limit: "512M"
+```
+
+> Muutused:
+> - `platform: linux/amd64` eemaldada — Rust image on multi-arch
+> - Kõik `application.*` env muutujad **eemaldada** — need on Spring Boot spetsiifilised
+> - `RUST_LOG=info` lisada
+> - Mount `./DSL/Ruuter:/DSL` → `./DSL/Ruuter/ljvis:/app/DSL/ljvis:ro`
+> - Port `8086:8086` → `8086:8080` (Rust Ruuteri siseport on alati 8080)
+> - Konfiguratsioon läheb `ruuter.yaml`-sse (vt Samm 5)
+
+---
+
+### Samm 4 — `docker-compose.yml` — `ruuter-internal` teenus
+
+**Praegu:**
+```yaml
+ruuter-internal:
+  build:
+    context: .
+    dockerfile: docker/ruuter-internal/Dockerfile
+  platform: linux/amd64
+  environment:
+    - application.cors.allowedOrigins=...
+    - application.httpCodesAllowList=200,201,202,400,401,403,500
+    - application.internalRequests.allowedIPs=127.0.0.1
+    - application.logging.displayRequestContent=true
+    - ...
+    - server.port=8089
+  volumes:
+    - ./DSL/Ruuter.internal:/DSL
+    - ./constants.ini:/app/constants.ini
+  ports:
+    - 8089:8089
+```
+
+**Pärast:**
+```yaml
+ruuter-internal:
+  build:
+    context: .
+    dockerfile: docker/ruuter-internal/Dockerfile
+  environment:
+    - RUST_LOG=info
+  volumes:
+    - ./DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro
+    - ./constants.ini:/app/constants.ini:ro
+    - ./ruuter-internal.yaml:/app/ruuter.yaml:ro
+  ports:
+    - 8089:8080
+  networks:
+    - ljvisnetwork
+  cpus: "0.5"
+  mem_limit: "512M"
+```
+
+---
+
+### Samm 5 — Loo `ruuter.yaml` (uus fail)
+
+Loo projekti juurkausta `ruuter.yaml`. See **asendab** kõik `application.*` env muutujad:
+
+```yaml
+# ruuter.yaml
+config_path: /app/DSL
+port: 8080
+http_request_timeout: 15000
+
+cors:
+  allowed_origins:
+    - "http://localhost:8086"
+    - "http://localhost:3001"
+    - "http://localhost:3004"
+    - "http://localhost:8080"
+  allow_credentials: false
+
+incoming_requests:
+  allowed_method_types: [GET, POST, PUT, DELETE, OPTIONS]
+
+internal_requests:
+  disabled: false
+  block_private_networks: false   # vajalik Docker võrgus teenuste vahel
+  allowed_urls: []
+  allowed_ips: []
+
+http_codes_allow_list: [200, 201, 202, 400, 401, 403, 500]
+
+logging:
+  display_request_content: true
+  display_response_content: true
+  print_stack_trace: true
+  meaningful_errors: true
+
+dsl:
+  allow_dsl_reloading: false
+```
+
+> `block_private_networks: false` on vajalik kuna Resql, TIM jt teenused asuvad Docker sisevõrgus (privaatsed IP-d). Alternatiiv on `unix_socket_map` kasutamine.
+
+---
+
+### Muudatuste kokkuvõte — failid mida tuleb puudutada
+
+| Fail | Muudatus |
+|------|----------|
+| `docker/ruuter/Dockerfile` | Image + COPY sihtkausta muutus |
+| `docker/ruuter-internal/Dockerfile` | Image + COPY sihtkausta muutus |
+| `docker-compose.yml` | `ruuter` + `ruuter-internal` teenuste env + volumes + port |
+| `ruuter.yaml` | **Uus fail** — asendab Spring Boot env muutujad |
+| `ruuter-internal.yaml` | **Uus fail** — `ruuter-internal` jaoks eraldi konfig (vajadusel) |
+
+**DSL failid ei muutu** (`DSL/Ruuter/ljvis/**/*.yml`, `constants.ini`, `.guard` failid).
+
+---
+
 ## Arhitektuur
 
 ### Java Ruuter
@@ -39,7 +240,7 @@ Muutub **mitte midagi** — URL-id, HTTP meetodid ja vastuse formaadid jäävad 
 flowchart LR
     Client -->|HTTP| SpringBoot[Spring Boot]
     SpringBoot --> YAMLLoader[DSL Loader]
-    YAMLLoader --> StepEngine[Step Engine\nJava]
+    YAMLLoader --> StepEngine["Step Engine Java"]
     StepEngine -->|http.post| Upstream
     SpringBoot --> AppYML[application.yml]
     SpringBoot --> ConstIni[constants.ini]
