@@ -51,14 +51,14 @@ flowchart LR
 flowchart LR
     Client -->|HTTP / WS| Axum[Axum HTTP Server]
     Axum --> GuardChain[Guard Chain]
-    GuardChain -->|pass| StepEngine[Step Engine\nRust + JS]
-    GuardChain -->|fail ≥400| Client
-    StepEngine -->|http.*| HttpClient[HttpClient\nmTLS / UDS / TCP]
-    StepEngine -->|template:| DSLTree[(DSL Tree\nArcSwap)]
-    StepEngine -->|state.*| StateStore[StateStore\nin-process KV]
+    GuardChain -->|pass| StepEngine["Step Engine Rust+JS"]
+    GuardChain -->|fail 400+| Client
+    StepEngine -->|http.*| HttpClient["HttpClient (mTLS/UDS/TCP)"]
+    StepEngine -->|template:| DSLTree[("DSL Tree ArcSwap")]
+    StepEngine -->|state.*| StateStore["StateStore in-process KV"]
     StepEngine -->|ws_send| WsRegistry[WS Registry]
-    Axum --> OpenAPI[/_/openapi.json\nauto-generated]
-    DSLTree --> DslLoader[DslLoader\nboot + hot-reload]
+    Axum --> OpenAPI["GET /_/openapi.json"]
+    DSLTree --> DslLoader["DslLoader boot+hot-reload"]
     DslLoader --> ConstIni[constants.ini]
     DslLoader --> RuuterYAML[ruuter.yaml]
 
@@ -87,9 +87,9 @@ sequenceDiagram
     C->>R: HTTP request
     R->>R: Leia DSL faili põhjal DSL
     R->>G: Käivita kõik applicable guard-id (prefix match)
-    alt Guard tagastab ≥400
+    alt Guard tagastab 400+
         G-->>C: 401 / 403 / ...
-    else Guard tagastab <400
+    else Guard tagastab alla 400
         G->>E: Käivita peamine DSL
         loop Iga step
             E->>E: assign / switch / log / template
@@ -378,8 +378,8 @@ DSL/ljvis/POST/
 
 ```mermaid
 flowchart LR
-    Req[POST /ljvis/v1/admin/delete] --> G1[POST/.guard.yml\nkontrollib autentimist]
-    G1 -->|pass| G2[POST/v1/admin.guard.yml\nkontrollib rolli]
+    Req["POST /ljvis/v1/admin/delete"] --> G1["POST/.guard.yml kontrollib autentimist"]
+    G1 -->|pass| G2["POST/v1/admin.guard.yml kontrollib rolli"]
     G2 -->|pass| DSL[delete.yml käivitub]
     G1 -->|fail| R1[401 Unauthorized]
     G2 -->|fail| R2[403 Forbidden]
