@@ -1,545 +1,1381 @@
 {
-  "info": {
-    "name": "LJVIS — Classifiers",
-    "_postman_id": "ljvis-classifiers-v1",
-    "description": "Functional tests for all /classifiers endpoints. Seed: RTK (4 values: EE/LV/LT valid, FI expired) + TEST (3 values: VALUE_A/VALUE_B valid, VALUE_C expired). Self-contained: authenticates and resolves IDs in Setup steps.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "[Auth] Login — Super Admin",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
-        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_admin}}\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
-        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
-        "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
-      ]}}]
-    },
-    {
-      "name": "[Auth] Login — No-perm User",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
-        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_user}}\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
-        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
-        "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
-      ]}}]
-    },
-    {
-      "name": "[Setup] Save classifier IDs",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=50",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "50"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Setup: classifier list returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var content = (body && body.response && body.response.content) ? body.response.content : [];",
-        "pm.test('Setup: at least 2 classifiers seeded', () => pm.expect(content.length).to.be.at.least(2));",
-        "var rtk = content.find(c => c.code === 'RTK');",
-        "var test_ = content.find(c => c.code === 'TEST');",
-        "pm.test('Setup: RTK classifier present', () => pm.expect(rtk, 'RTK not found').to.not.be.undefined);",
-        "pm.test('Setup: TEST classifier present', () => pm.expect(test_, 'TEST not found').to.not.be.undefined);",
-        "if (rtk)   pm.environment.set('seeded_classifier_id',   String(rtk.id));",
-        "if (test_) pm.environment.set('seeded_classifier_id_2', String(test_.id));"
-      ]}}]
-    },
-    {
-      "name": "[Setup] Save seeded value ID (RTK/EE)",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=50",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "values"],
-          "query": [{"key": "classifierId", "value": "{{seeded_classifier_id}}"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "50"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Setup: values list returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var values = (body && body.response && Array.isArray(body.response)) ? body.response : [];",
-        "var ee = values.find(v => v.code === 'EE');",
-        "pm.test('Setup: EE value present in RTK', () => pm.expect(ee, 'EE not found').to.not.be.undefined);",
-        "if (ee) pm.environment.set('seeded_value_id', String(ee.classifierValueId));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers — no permission → 403",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers — list shape, total and sort order",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response) ? body.response : body;",
-        "pm.test('Body has content array and total', () => {",
-        "  pm.expect(Array.isArray(data.content)).to.be.true;",
-        "  pm.expect(data.total).to.be.a('number');",
-        "});",
-        "pm.test('Total equals 2 (seeded: RTK + TEST)', () => pm.expect(data.total).to.eql(2));",
-        "pm.test('Each item has id, code, name, description', () => {",
-        "  data.content.forEach(c => {",
-        "    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
-        "    pm.expect(c.code).to.be.a('string').and.not.empty;",
-        "    pm.expect(c.name).to.be.a('string').and.not.empty;",
-        "  });",
-        "});",
-        "pm.test('Sorted name asc — RTK before TEST', () => {",
-        "  const codes = data.content.map(c => c.code);",
-        "  pm.expect(codes.indexOf('RTK')).to.be.below(codes.indexOf('TEST'));",
-        "});"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers — search by code 'RTK' → 1 result",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?search=RTK&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers"],
-          "query": [{"key": "search", "value": "RTK"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response) ? body.response : body;",
-        "pm.test('Exactly 1 result for RTK code', () => pm.expect(data.total).to.eql(1));",
-        "pm.test('Result code is RTK', () => pm.expect(data.content[0].code).to.eql('RTK'));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers — search by name 'Riikide' (triggers audit log)",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?search=Riikide&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers"],
-          "query": [{"key": "search", "value": "Riikide"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response) ? body.response : body;",
-        "pm.test('At least 1 result for name search', () => pm.expect(data.total).to.be.at.least(1));",
-        "pm.test('RTK classifier found by name', () => {",
-        "  const found = data.content.some(c => c.code === 'RTK');",
-        "  pm.expect(found).to.be.true;",
-        "});"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers — sort code asc → RTK before TEST",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers"],
-          "query": [{"key": "sorting", "value": "code asc"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response) ? body.response : body;",
-        "pm.test('Sorted code asc: RTK before TEST', () => {",
-        "  const codes = data.content.map(c => c.code);",
-        "  pm.expect(codes.indexOf('RTK')).to.be.below(codes.indexOf('TEST'));",
-        "});"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers — sort code desc → TEST before RTK",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+desc&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers"],
-          "query": [{"key": "sorting", "value": "code desc"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response) ? body.response : body;",
-        "pm.test('Sorted code desc: TEST before RTK', () => {",
-        "  const codes = data.content.map(c => c.code);",
-        "  pm.expect(codes.indexOf('TEST')).to.be.below(codes.indexOf('RTK'));",
-        "});"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=2",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=1",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers"],
-          "query": [{"key": "page", "value": "1"}, {"key": "pageSize", "value": "1"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response) ? body.response : body;",
-        "pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-        "pm.test('Total is still 2', () => pm.expect(data.total).to.eql(2));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/classifier — no permission → 403",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/classifier?q={{seeded_classifier_id}}",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "classifier"],
-          "query": [{"key": "q", "value": "{{seeded_classifier_id}}"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/classifier — get RTK by id",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/classifier?q={{seeded_classifier_id}}",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "classifier"],
-          "query": [{"key": "q", "value": "{{seeded_classifier_id}}"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response) ? body.response : body;",
-        "var item = Array.isArray(data) ? data[0] : data;",
-        "pm.test('Returns RTK classifier', () => pm.expect(item.code).to.eql('RTK'));",
-        "pm.test('Has name field', () => pm.expect(item.name).to.be.a('string').and.not.empty);"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/values — no permission → 403",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "values"],
-          "query": [{"key": "classifierId", "value": "{{seeded_classifier_id}}"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/values — RTK has 4 values (3 valid + 1 expired)",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "values"],
-          "query": [{"key": "classifierId", "value": "{{seeded_classifier_id}}"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response && Array.isArray(body.response)) ? body.response : (Array.isArray(body) ? body : []);",
-        "pm.test('Response is array', () => pm.expect(Array.isArray(data)).to.be.true);",
-        "pm.test('Total equals 4', () => pm.expect(parseInt(data[0].total)).to.eql(4));",
-        "pm.test('Each value has classifierValueId, code, name, isValid, classifierId', () => {",
-        "  data.forEach(v => {",
-        "    pm.expect(v).to.include.keys('classifierValueId', 'code', 'name', 'isValid', 'classifierId');",
-        "  });",
-        "});",
-        "pm.test('3 valid and 1 expired value', () => {",
-        "  const valid = data.filter(v => v.isValid === 'true').length;",
-        "  const expired = data.filter(v => v.isValid === 'false').length;",
-        "  pm.expect(valid).to.eql(3);",
-        "  pm.expect(expired).to.eql(1);",
-        "});"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/values — default sort: valid values first (isValid desc)",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "values"],
-          "query": [{"key": "classifierId", "value": "{{seeded_classifier_id}}"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response && Array.isArray(body.response)) ? body.response : (Array.isArray(body) ? body : []);",
-        "pm.test('First item is valid (isValid desc default sort)', () => {",
-        "  pm.expect(data[0].isValid).to.eql('true');",
-        "});",
-        "pm.test('Last item is expired', () => {",
-        "  pm.expect(data[data.length - 1].isValid).to.eql('false');",
-        "});"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/values — search 'Eesti' → 1 result (EE)",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&search=Eesti&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "values"],
-          "query": [{"key": "classifierId", "value": "{{seeded_classifier_id}}"}, {"key": "search", "value": "Eesti"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response && Array.isArray(body.response)) ? body.response : (Array.isArray(body) ? body : []);",
-        "pm.test('Exactly 1 result for Eesti', () => pm.expect(parseInt(data[0].total)).to.eql(1));",
-        "pm.test('Result code is EE', () => pm.expect(data[0].code).to.eql('EE'));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/values — sort code asc → EE first",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&sorting=code+asc&page=1&pageSize=20",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "values"],
-          "query": [{"key": "classifierId", "value": "{{seeded_classifier_id}}"}, {"key": "sorting", "value": "code asc"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "20"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response && Array.isArray(body.response)) ? body.response : (Array.isArray(body) ? body : []);",
-        "pm.test('First value code is EE (code asc)', () => pm.expect(data[0].code).to.eql('EE'));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/values — pagination pageSize=2 returns 2 items, total=4",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=2",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "values"],
-          "query": [{"key": "classifierId", "value": "{{seeded_classifier_id}}"}, {"key": "page", "value": "1"}, {"key": "pageSize", "value": "2"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var data = (body && body.response && Array.isArray(body.response)) ? body.response : (Array.isArray(body) ? body : []);",
-        "pm.test('Page has exactly 2 items', () => pm.expect(data.length).to.eql(2));",
-        "pm.test('Total is still 4', () => pm.expect(parseInt(data[0].total)).to.eql(4));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/value — no permission → 403",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{seeded_value_id}}",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "value"],
-          "query": [{"key": "q", "value": "{{seeded_classifier_id}}"}, {"key": "valueId", "value": "{{seeded_value_id}}"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
-      ]}}]
-    },
-    {
-      "name": "GET /v1/classifiers/value — get single RTK/EE value",
-      "request": {
-        "method": "GET",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{seeded_value_id}}",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "classifiers", "value"],
-          "query": [{"key": "q", "value": "{{seeded_classifier_id}}"}, {"key": "valueId", "value": "{{seeded_value_id}}"}]
-        }
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var item = (body && body.response) ? body.response : body;",
-        "pm.test('Code is EE', () => pm.expect(item.code).to.eql('EE'));",
-        "pm.test('Has classifierId and classifierValueId', () => {",
-        "  pm.expect(item.classifierValueId).to.not.be.undefined;",
-        "  pm.expect(item.classifierId).to.not.be.undefined;",
-        "});",
-        "pm.test('Has validFrom', () => pm.expect(item.validFrom).to.not.be.undefined);"
-      ]}}]
-    },
-    {
-      "name": "PUT /v1/classifiers — no permission → 403",
-      "request": {
-        "method": "PUT",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers"]},
-        "body": {"mode": "raw", "raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"Test Classifier\", \"description\": \"\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
-      ]}}]
-    },
-    {
-      "name": "PUT /v1/classifiers — empty name → 422",
-      "request": {
-        "method": "PUT",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers"]},
-        "body": {"mode": "raw", "raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"\", \"description\": \"desc\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 422 for empty name', () => pm.response.to.have.status(422));"
-      ]}}]
-    },
-    {
-      "name": "PUT /v1/classifiers — update TEST description → 200, verify change",
-      "request": {
-        "method": "PUT",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers"]},
-        "body": {"mode": "raw", "raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"Test Classifier\", \"description\": \"Updated by CI test\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
-      ]}}]
-    },
-    {
-      "name": "POST /v1/classifiers/value — no permission → 403",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/value", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "value"]},
-        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"code\": \"CI_TEST\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
-      ]}}]
-    },
-    {
-      "name": "POST /v1/classifiers/value — create CI_TEST value under RTK → 200",
-      "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/value", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "value"]},
-        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"code\": \"CI_TEST\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-        "var body = pm.response.json();",
-        "var raw = (body && body.response) ? body.response : body;",
-        "var arr = Array.isArray(raw) ? raw : [];",
-        "pm.test('Response contains new value id', () => {",
-        "  pm.expect(arr.length).to.be.at.least(1);",
-        "  pm.expect(arr[0]).to.have.property('id');",
-        "});",
-        "if (arr.length > 0 && arr[0] && arr[0].id) pm.environment.set('created_value_id', String(arr[0].id));"
-      ]}}]
-    },
-    {
-      "name": "PUT /v1/classifiers/value — no permission → 403",
-      "request": {
-        "method": "PUT",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/value", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "value"]},
-        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_value_id}}\", \"code\": \"CI_TEST\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
-      ]}}]
-    },
-    {
-      "name": "PUT /v1/classifiers/value — update CI_TEST validity → 200",
-      "request": {
-        "method": "PUT",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/classifiers/value", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "classifiers", "value"]},
-        "body": {"mode": "raw", "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_value_id}}\", \"code\": \"CI_TEST\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"2099-12-31\"}"}
-      },
-      "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
-      ]}}]
-    }
-  ],
-  "variable": []
+	"info": {
+		"name": "LJVIS — Classifiers",
+		"_postman_id": "ljvis-classifiers-v1",
+		"description": "Functional tests for all /classifiers endpoints. Seed: RTK (4 values: EE/LV/LT valid, FI expired) + TEST (3 values: VALUE_A/VALUE_B valid, VALUE_C expired). Self-contained: authenticates and resolves IDs in Setup steps.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "[Auth] Login — Super Admin",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"auth",
+						"dev",
+						"dev-login"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+							"pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+							"pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "[Auth] Login — No-perm User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"auth",
+						"dev",
+						"dev-login"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"personalCode\": \"{{pc_user}}\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+							"pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+							"pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "[Setup] Save classifier IDs",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=50",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "50"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Setup: classifier list returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var content = (body && body.response && body.response.content) ? body.response.content : [];",
+							"pm.test('Setup: at least 2 classifiers seeded', () => pm.expect(content.length).to.be.at.least(2));",
+							"var rtk = content.find(c => c.code === 'RTK');",
+							"var test_ = content.find(c => c.code === 'TEST');",
+							"pm.test('Setup: RTK classifier present', () => pm.expect(rtk, 'RTK not found').to.not.be.undefined);",
+							"pm.test('Setup: TEST classifier present', () => pm.expect(test_, 'TEST not found').to.not.be.undefined);",
+							"if (rtk)   pm.environment.set('seeded_classifier_id',   String(rtk.id));",
+							"if (test_) pm.environment.set('seeded_classifier_id_2', String(test_.id));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "[Setup] Save seeded value ID (RTK/EE)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=50",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"values"
+					],
+					"query": [
+						{
+							"key": "classifierId",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "50"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Setup: values list returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var resp = (body && body.response) ? body.response : body;",
+							"var values = (resp && resp.content) ? resp.content : [];",
+							"var ee = values.find(v => v.code === 'EE');",
+							"pm.test('Setup: EE value present in RTK', () => pm.expect(ee, 'EE not found').to.not.be.undefined);",
+							"if (ee) pm.environment.set('seeded_value_id', String(ee.classifierValueId));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers — no permission → 403",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_noperm}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers — list shape, total and sort order",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var data = (body && body.response) ? body.response : body;",
+							"pm.test('Body has content array and total', () => {",
+							"  pm.expect(Array.isArray(data.content)).to.be.true;",
+							"  pm.expect(data.total).to.be.a('number');",
+							"});",
+							"pm.test('Total equals 2 (seeded: RTK + TEST)', () => pm.expect(data.total).to.eql(2));",
+							"pm.test('Each item has id, code, name, description', () => {",
+							"  data.content.forEach(c => {",
+							"    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
+							"    pm.expect(c.code).to.be.a('string').and.not.empty;",
+							"    pm.expect(c.name).to.be.a('string').and.not.empty;",
+							"  });",
+							"});",
+							"pm.test('Sorted name asc — RTK before TEST', () => {",
+							"  const codes = data.content.map(c => c.code);",
+							"  pm.expect(codes.indexOf('RTK')).to.be.below(codes.indexOf('TEST'));",
+							"});"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers — search by code 'RTK' → 1 result",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers?search=RTK&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					],
+					"query": [
+						{
+							"key": "search",
+							"value": "RTK"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var data = (body && body.response) ? body.response : body;",
+							"pm.test('Exactly 1 result for RTK code', () => pm.expect(data.total).to.eql(1));",
+							"pm.test('Result code is RTK', () => pm.expect(data.content[0].code).to.eql('RTK'));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers — search by name 'Riikide' (triggers audit log)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers?search=Riikide&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					],
+					"query": [
+						{
+							"key": "search",
+							"value": "Riikide"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var data = (body && body.response) ? body.response : body;",
+							"pm.test('At least 1 result for name search', () => pm.expect(data.total).to.be.at.least(1));",
+							"pm.test('RTK classifier found by name', () => {",
+							"  const found = data.content.some(c => c.code === 'RTK');",
+							"  pm.expect(found).to.be.true;",
+							"});"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers — sort code asc → RTK before TEST",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					],
+					"query": [
+						{
+							"key": "sorting",
+							"value": "code asc"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var data = (body && body.response) ? body.response : body;",
+							"pm.test('Sorted code asc: RTK before TEST', () => {",
+							"  const codes = data.content.map(c => c.code);",
+							"  pm.expect(codes.indexOf('RTK')).to.be.below(codes.indexOf('TEST'));",
+							"});"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers — sort code desc → TEST before RTK",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+desc&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					],
+					"query": [
+						{
+							"key": "sorting",
+							"value": "code desc"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var data = (body && body.response) ? body.response : body;",
+							"pm.test('Sorted code desc: TEST before RTK', () => {",
+							"  const codes = data.content.map(c => c.code);",
+							"  pm.expect(codes.indexOf('TEST')).to.be.below(codes.indexOf('RTK'));",
+							"});"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=2",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=1",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var data = (body && body.response) ? body.response : body;",
+							"pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
+							"pm.test('Total is still 2', () => pm.expect(data.total).to.eql(2));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/classifier — no permission → 403",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_noperm}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/classifier?q={{seeded_classifier_id}}",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"classifier"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "{{seeded_classifier_id}}"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/classifier — get RTK by id",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/classifier?q={{seeded_classifier_id}}",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"classifier"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "{{seeded_classifier_id}}"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var data = (body && body.response) ? body.response : body;",
+							"var item = Array.isArray(data) ? data[0] : data;",
+							"pm.test('Returns RTK classifier', () => pm.expect(item.code).to.eql('RTK'));",
+							"pm.test('Has name field', () => pm.expect(item.name).to.be.a('string').and.not.empty);"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/values — no permission → 403",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_noperm}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"values"
+					],
+					"query": [
+						{
+							"key": "classifierId",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/values — RTK has 4 values (3 valid + 1 expired)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"values"
+					],
+					"query": [
+						{
+							"key": "classifierId",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var resp = (body && body.response) ? body.response : body;",
+							"var data = resp.content || [];",
+							"var total = resp.total || 0;",
+							"pm.test('Response has content array', () => pm.expect(Array.isArray(data)).to.be.true);",
+							"pm.test('Total equals 4', () => pm.expect(parseInt(total)).to.eql(4));",
+							"pm.test('Each value has classifierValueId, code, name, isValid, classifierId', () => {",
+							"  data.forEach(v => {",
+							"    pm.expect(v).to.include.keys('classifierValueId', 'code', 'name', 'isValid', 'classifierId');",
+							"  });",
+							"});",
+							"pm.test('3 valid and 1 expired value', () => {",
+							"  const valid = data.filter(v => v.isValid === 'true').length;",
+							"  const expired = data.filter(v => v.isValid === 'false').length;",
+							"  pm.expect(valid).to.eql(3);",
+							"  pm.expect(expired).to.eql(1);",
+							"});"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/values — default sort: valid values first (isValid desc)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"values"
+					],
+					"query": [
+						{
+							"key": "classifierId",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var resp = (body && body.response) ? body.response : body;",
+							"var data = resp.content || [];",
+							"pm.test('First item is valid (isValid desc default sort)', () => {",
+							"  pm.expect(data[0].isValid).to.eql('true');",
+							"});",
+							"pm.test('Last item is expired', () => {",
+							"  pm.expect(data[data.length - 1].isValid).to.eql('false');",
+							"});"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/values — search 'Eesti' → 1 result (EE)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&search=Eesti&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"values"
+					],
+					"query": [
+						{
+							"key": "classifierId",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "search",
+							"value": "Eesti"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var resp = (body && body.response) ? body.response : body;",
+							"var data = resp.content || [];",
+							"var total = resp.total || 0;",
+							"pm.test('Exactly 1 result for Eesti', () => pm.expect(parseInt(total)).to.eql(1));",
+							"pm.test('Result code is EE', () => pm.expect(data[0].code).to.eql('EE'));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/values — sort code asc → EE first",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&sorting=code+asc&page=1&pageSize=20",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"values"
+					],
+					"query": [
+						{
+							"key": "classifierId",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "sorting",
+							"value": "code asc"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var resp = (body && body.response) ? body.response : body;",
+							"var data = resp.content || [];",
+							"pm.test('First value code is EE (code asc)', () => pm.expect(data[0].code).to.eql('EE'));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/values — pagination pageSize=2 returns 2 items, total=4",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=2",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"values"
+					],
+					"query": [
+						{
+							"key": "classifierId",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var resp = (body && body.response) ? body.response : body;",
+							"var data = resp.content || [];",
+							"var total = resp.total || 0;",
+							"pm.test('Page has exactly 2 items', () => pm.expect(data.length).to.eql(2));",
+							"pm.test('Total is still 4', () => pm.expect(parseInt(total)).to.eql(4));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/value — no permission → 403",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_noperm}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{seeded_value_id}}",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"value"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "valueId",
+							"value": "{{seeded_value_id}}"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "GET /v1/classifiers/value — get single RTK/EE value",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{seeded_value_id}}",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"value"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "{{seeded_classifier_id}}"
+						},
+						{
+							"key": "valueId",
+							"value": "{{seeded_value_id}}"
+						}
+					]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var item = (body && body.response) ? body.response : body;",
+							"pm.test('Code is EE', () => pm.expect(item.code).to.eql('EE'));",
+							"pm.test('Has classifierId and classifierValueId', () => {",
+							"  pm.expect(item.classifierValueId).to.not.be.undefined;",
+							"  pm.expect(item.classifierId).to.not.be.undefined;",
+							"});",
+							"pm.test('Has validFrom', () => pm.expect(item.validFrom).to.not.be.undefined);"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "PUT /v1/classifiers — no permission → 403",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_noperm}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"Test Classifier\", \"description\": \"\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "PUT /v1/classifiers — empty name → 422",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"\", \"description\": \"desc\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 422 for empty name', () => pm.response.to.have.status(422));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "PUT /v1/classifiers — update TEST description → 200, verify change",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"Test Classifier\", \"description\": \"Updated by CI test\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "POST /v1/classifiers/value — no permission → 403",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_noperm}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/value",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"value"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"code\": \"TEST_CI\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "POST /v1/classifiers/value — create TEST_CI value under RTK → 200",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/value",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"value"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"code\": \"TEST_CI\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));",
+							"var body = pm.response.json();",
+							"var raw = (body && body.response) ? body.response : body;",
+							"var arr = Array.isArray(raw) ? raw : [];",
+							"pm.test('Response contains new value id', () => {",
+							"  pm.expect(arr.length).to.be.at.least(1);",
+							"  pm.expect(arr[0]).to.have.property('id');",
+							"});",
+							"if (arr.length > 0 && arr[0] && arr[0].id) pm.environment.set('created_value_id', String(arr[0].id));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "PUT /v1/classifiers/value — no permission → 403",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_noperm}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/value",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"value"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_value_id}}\", \"code\": \"TEST_CI\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "PUT /v1/classifiers/value — update TEST_CI validity → 200",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Cookie",
+						"value": "{{cookie_admin}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{api_url}}/ljvis/v1/classifiers/value",
+					"host": [
+						"{{api_url}}"
+					],
+					"path": [
+						"ljvis",
+						"v1",
+						"classifiers",
+						"value"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_value_id}}\", \"code\": \"TEST_CI\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"2099-12-31\"}"
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Returns 200', () => pm.response.to.have.status(200));"
+						]
+					}
+				}
+			]
+		}
+	],
+	"variable": []
 }
