@@ -9,7 +9,10 @@ const FORM_WRITE_SUFFIX = '_form.write';
 const COMPOUND_FORM_KEY = 'compound_form';
 const SP_PREFIX = 'sp_';
 
-const omitKey = ({ key: _omit, ...rest }: ControlForm & { key: string }): ControlForm => rest;
+const omitKey = (form: ControlForm & { key: string }): ControlForm => {
+  const { key: _, ...rest } = form; // eslint-disable-line @typescript-eslint/no-unused-vars
+  return rest;
+};
 
 const buildAvailableForms = (permissions: string[]): ControlForm[] => {
   const forms = permissions
