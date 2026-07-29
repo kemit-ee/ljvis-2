@@ -4,7 +4,9 @@
 
 X-tee on Eesti riigi infosüsteemi kiht, mille kaudu liikmed (asutused) saavad omavahel turvaliselt teenuseid pakkuda ja tarbida.
 
-**XTR (X-tee Translator)** on teenus, mis pakub X-tee **SOAP**-teenustele REST-liidest. XTR võtab vastu JSON-päringud, laeb vastava DSL-malli, täidab mallis olevad parameetrid, saadab päringu edasi X-tee turvaserverisse ja tagastab vastuse JSON-ina.
+**XTR (X-tee Translator)** on Rust-põhine teenus, mis pakub X-tee **SOAP**-teenustele REST-liidest. XTR võtab vastu JSON-päringud, laeb vastava DSL-malli, täidab mallis olevad parameetrid (sh X-tee päised automaatselt), saadab päringu mTLS kaudu X-tee turvaserverisse ja tagastab SOAP vastuse JSON-ina.
+
+Image: `turnerrainer/xtr:rc`
 
 ## Kasutusreeglid LJVIS-i jaoks
 
