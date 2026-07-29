@@ -9,6 +9,8 @@ const FORM_WRITE_SUFFIX = '_form.write';
 const COMPOUND_FORM_KEY = 'compound_form';
 const SP_PREFIX = 'sp_';
 
+const omitKey = ({ key: _omit, ...rest }: ControlForm & { key: string }): ControlForm => rest;
+
 const buildAvailableForms = (permissions: string[]): ControlForm[] => {
   const forms = permissions
     .filter((p) => p.endsWith(FORM_WRITE_SUFFIX))
@@ -27,18 +29,17 @@ const buildAvailableForms = (permissions: string[]): ControlForm[] => {
   const hasCompound = forms.some((f) => f.key === COMPOUND_FORM_KEY);
 
   if (!hasCompound) {
-    return forms.map(({ key: _key, ...rest }) => rest);
+    return forms.map(omitKey);
   }
 
   const result: ControlForm[] = [];
   for (const form of forms) {
     if (form.key.startsWith(SP_PREFIX)) continue;
-    const { key: _key, ...rest } = form;
-    result.push(rest);
+    result.push(omitKey(form));
     if (form.key === COMPOUND_FORM_KEY) {
       forms
         .filter((f) => f.key.startsWith(SP_PREFIX))
-        .forEach(({ key: _k, ...spRest }) => result.push(spRest));
+        .forEach((f) => result.push(omitKey(f)));
     }
   }
   return result;
