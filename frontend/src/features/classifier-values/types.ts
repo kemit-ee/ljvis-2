@@ -4,6 +4,9 @@ export interface ClassifierValueData {
   code: string;
   name: string;
   nameEn?: string;
-  parentKey?: number;
+  parentKey: number | null;
   description?: string;
+  validFrom?: string;
+  validUntil?: string | null;
+  isValid?: boolean;
 }

@@ -48,7 +48,8 @@ INSERT INTO users.permission (code, description, created_by) VALUES ('sp_driver_
 INSERT INTO users.permission (code, description, created_by) VALUES ('sp_driver_form.read',    'Autojuhi sõidu- ja puhkeaja alamvormi andmete lugemine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('sp_teammate_form.write',    'Meeskonnaliikme sõidu- ja puhkeaja alamvormi täitmine ja salvestamine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('sp_teammate_form.read',    'Meeskonnaliikme sõidu- ja puhkeaja alamvormi andmete lugemine', 'ljvis2');
-
+INSERT INTO users.permission (code, description, created_by) VALUES ('labour_inspection_form.write',   'Tööinspektsiooni kontrollakti loomine, täitmine, salvestamine ja kinnitamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('labour_inspection_form.read',    'Tööinspektsiooni kontrollakti andmete lugemine', 'ljvis2');
 
 -- user_groups — single full snapshot per group (v2: organisations + permissions embedded as JSONB)
 -- user_group_key = 1: Super Admin Group
@@ -57,7 +58,7 @@ VALUES (
     nextval('users.seq_user_group_key'),
     'Super Admin Group',
     ARRAY[1, 2, 3]::BIGINT[],
-    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list']::TEXT[],
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.read','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete']::TEXT[],
     'ljvis2'
 );
 

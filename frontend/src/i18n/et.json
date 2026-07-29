@@ -295,7 +295,49 @@
       "open": "Ava link"
     },
     "foreign_violation_form": "Välisriigis teostatud autoveoalase kontrolli kontrollkaart",
-    "ti_kontrollkaart_form": "Tööinspektsiooni kontrollkaart",
+    "labour_inspection_form": "Tööinspektsiooni kontrollkaart",
+    "labour_inspection": {
+      "generalSection": "Üldandmed",
+      "inspectorName": "Kontrolli läbiviija nimi",
+      "inspectionDate": "Kontrolli kuupäev",
+      "inspectionType": "Kontrolli liik",
+      "inspectionTypePassenger": "Sõitjate vedu",
+      "inspectionTypeCargo": "Veose vedu",
+      "companyName": "Ettevõtte nimi",
+      "companyRegCode": "Registrikood",
+      "vehicleCount": "Sõidukite arv",
+      "totalDriversCount": "Kontrollitud juhtide arv",
+      "controlsMatrix": {
+        "title": "Kontrollimised",
+        "transportClass": "Veoliik",
+        "analogRecorderDrivers": "Analoogsalvestiga juhid",
+        "digitalRecorderDrivers": "Digitaalsalvestiga juhid",
+        "smartRecorderDrivers": "Nutisalvestiga juhid",
+        "analogRecorderWorkDays": "Analoogsalvestiga tööpäevad",
+        "digitalRecorderWorkDays": "Digitaalsalvestiga tööpäevad",
+        "smartRecorderWorkDays": "Nutisalvestiga tööpäevad",
+        "addRow": "Lisa veoliik"
+      },
+      "prescriptionSection": "Ettekirjutus",
+      "prescriptionComposed": "Ettekirjutus koostatud",
+      "punishmentSection": "Väärteomenetlus",
+      "punishedPersonIdCode": "Karistatud isiku isikukood",
+      "punishedPersonFirstName": "Karistatud isiku eesnimi",
+      "punishedPersonLastName": "Karistatud isiku perekonnanimi",
+      "proceedingReferenceNumber": "Väärteomenetluse viitenumber",
+      "violations": {
+        "title": "Rikkumised",
+        "pickerTitle": "Vali rikkumine",
+        "quantity": "Kogus",
+        "add": "Lisa rikkumine"
+      },
+      "validation": {
+        "required": "Kohustuslik väli",
+        "api": {
+          "violations_present_requires_e_toimik_publish": "Rikkumistega akti ei saa siin kinnitada — avaldamine toimub e-toimiku kaudu."
+        }
+      }
+    },
     "reputation_noncompliance_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
     "compound_form": "Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart",
     "driver_drive_rest_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",

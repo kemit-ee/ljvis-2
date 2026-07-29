@@ -1,3 +1,44 @@
+export interface ControlsMatrixRow {
+  transportClass: string;
+  analogRecorderDrivers?: number;
+  digitalRecorderDrivers?: number;
+  smartRecorderDrivers?: number;
+  analogRecorderWorkDays?: number;
+  digitalRecorderWorkDays?: number;
+  smartRecorderWorkDays?: number;
+}
+
+export interface ViolationEntry {
+  level1ValueKey: string;
+  level2ValueKey: string;
+  level3ValueKey?: string;
+  quantity: number;
+}
+
+export interface LabourInspectionForm {
+  id?: string;
+  formNumber?: string;
+  status?: string;
+  inspectorName: string;
+  inspectionDate: string;
+  externalInspectionId?: string;
+  inspectionType: string;
+  companyName: string;
+  companyRegCode: string;
+  vehicleCount?: string;
+  totalDriversCount?: string;
+  controlsMatrix?: ControlsMatrixRow[];
+  prescriptionComposed?: boolean;
+  punishedPersonIdCode?: string;
+  punishedPersonFirstName?: string;
+  punishedPersonLastName?: string;
+  proceedingReferenceNumber?: string;
+  enforcementDecision?: string;
+  proceedingClosureBasis?: string;
+  violations?: ViolationEntry[];
+  createdBy?: string;
+}
+
 export interface FormSnapshot {
   snapshotId: number;
   version: number;

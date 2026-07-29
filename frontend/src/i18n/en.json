@@ -275,7 +275,49 @@
   },
   "forms": {
     "foreign_violation_form": "Foreign country road transport inspection report",
-    "ti_kontrollkaart_form": "Labour Inspectorate inspection form",
+    "labour_inspection_form": "Labour Inspectorate inspection form",
+    "labour_inspection": {
+      "generalSection": "General information",
+      "inspectorName": "Inspector name",
+      "inspectionDate": "Inspection date",
+      "inspectionType": "Inspection type",
+      "inspectionTypePassenger": "Passenger transport",
+      "inspectionTypeCargo": "Cargo transport",
+      "companyName": "Company name",
+      "companyRegCode": "Registry code",
+      "vehicleCount": "Number of vehicles",
+      "totalDriversCount": "Number of drivers checked",
+      "controlsMatrix": {
+        "title": "Checks",
+        "transportClass": "Transport class",
+        "analogRecorderDrivers": "Analogue recorder drivers",
+        "digitalRecorderDrivers": "Digital recorder drivers",
+        "smartRecorderDrivers": "Smart recorder drivers",
+        "analogRecorderWorkDays": "Analogue recorder work days",
+        "digitalRecorderWorkDays": "Digital recorder work days",
+        "smartRecorderWorkDays": "Smart recorder work days",
+        "addRow": "Add transport class"
+      },
+      "prescriptionSection": "Prescription",
+      "prescriptionComposed": "Prescription composed",
+      "punishmentSection": "Misdemeanor proceeding",
+      "punishedPersonIdCode": "Punished person's ID code",
+      "punishedPersonFirstName": "Punished person's first name",
+      "punishedPersonLastName": "Punished person's last name",
+      "proceedingReferenceNumber": "Proceeding reference number",
+      "violations": {
+        "title": "Violations",
+        "pickerTitle": "Select violation",
+        "quantity": "Quantity",
+        "add": "Add violation"
+      },
+      "validation": {
+        "required": "Required field",
+        "api": {
+          "violations_present_requires_e_toimik_publish": "An act with violations cannot be confirmed here — publishing is done via e-toimik."
+        }
+      }
+    },
     "reputation_noncompliance_form": "Transport manager declared non-compliant with good repute",
     "compound_form": "Transport supervision and vehicle technical condition inspection",
     "compound": {

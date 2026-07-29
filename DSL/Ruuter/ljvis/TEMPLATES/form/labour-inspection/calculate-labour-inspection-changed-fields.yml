@@ -1,0 +1,60 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Calculate changed fields for a labour inspection form update, diffing against its latest saved snapshot"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: formId
+        type: string
+      - field: inspectorName
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: inspectionType
+        type: string
+      - field: companyName
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: vehicleCount
+        type: string
+      - field: totalDriversCount
+        type: string
+      - field: controlsMatrix
+        type: string
+      - field: prescriptionComposed
+        type: string
+      - field: punishedPersonIdCode
+        type: string
+      - field: punishedPersonFirstName
+        type: string
+      - field: punishedPersonLastName
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: violations
+        type: string
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.formId}
+  result: res
+  next: buildAuditData
+
+buildAuditData:
+  assign:
+    changed_fields: "${(function(){ var o = (res.response.body && res.response.body[0]) || {}; var n = incoming.body; var fieldMap = [['inspectorName','inspector_name'],['inspectionDate','inspection_date'],['inspectionType','inspection_type'],['companyName','company_name'],['companyRegCode','company_reg_code'],['vehicleCount','vehicle_count'],['totalDriversCount','total_drivers_count'],['controlsMatrix','controls_matrix'],['prescriptionComposed','prescription_composed'],['punishedPersonIdCode','punished_person_id_code'],['punishedPersonFirstName','punished_person_first_name'],['punishedPersonLastName','punished_person_last_name'],['proceedingReferenceNumber','proceeding_reference_number'],['violations','violations']]; var changed = []; for (var i = 0; i < fieldMap.length; i++) { var camelKey = fieldMap[i][0]; var snakeKey = fieldMap[i][1]; var oldVal = o[camelKey] == null ? '' : String(o[camelKey]); var newVal = n[camelKey] == null ? '' : String(n[camelKey]); if (oldVal !== newVal) { changed.push(snakeKey); } } return changed; })()}"
+  next: returnResult
+
+returnResult:
+  return: "{\"changed_fields\":${JSON.stringify(changed_fields)}}"
+  next: end

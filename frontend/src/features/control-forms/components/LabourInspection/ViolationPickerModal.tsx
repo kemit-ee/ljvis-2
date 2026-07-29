@@ -1,0 +1,218 @@
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button, Card, Heading, Icon, Radio, Text, TextField } from '@tedi-design-system/react/tedi';
+import type { ViolationEntry } from '../../types';
+import type { ClassifierEntry } from '../../../classifiers/types';
+import styles from './ViolationPickerModal.module.css';
+
+interface ViolationPickerModalProps {
+  violationClassifiers: ClassifierEntry[];
+  onAdd: (violation: ViolationEntry) => void;
+  onClose: () => void;
+}
+
+interface ViolationTreeNodeProps {
+  item: ClassifierEntry;
+  childrenMap: Map<number, ClassifierEntry[]>;
+  depth: number;
+  expandedKeys: Set<number>;
+  selectedKey: number | null;
+  onToggle: (key: number) => void;
+  onSelect: (item: ClassifierEntry) => void;
+}
+
+function ViolationTreeNode({
+  item,
+  childrenMap,
+  depth,
+  expandedKeys,
+  selectedKey,
+  onToggle,
+  onSelect,
+}: ViolationTreeNodeProps) {
+  const children = childrenMap.get(item.classifierValueKey) ?? [];
+  const hasChildren = children.length > 0;
+  const isExpanded = expandedKeys.has(item.classifierValueKey);
+  const isSelected = selectedKey === item.classifierValueKey;
+
+  return (
+    <div>
+      <div className={styles.row} style={{ paddingLeft: depth * 24 }}>
+        {hasChildren ? (
+          <button
+            type="button"
+            className={styles.toggleButton}
+            onClick={() => onToggle(item.classifierValueKey)}
+            aria-label={isExpanded ? 'collapse' : 'expand'}
+          >
+            <Icon
+              name={isExpanded ? 'indeterminate_check_box' : 'add_box'}
+              type="outlined"
+              size={18}
+              color="brand"
+            />
+          </button>
+        ) : (
+          <span className={styles.leafRadio}>
+            <Radio
+              id={`violation-leaf-${item.classifierValueKey}`}
+              name="violation-leaf"
+              value={String(item.classifierValueKey)}
+              label=""
+              hideLabel
+              checked={isSelected}
+              onChange={() => onSelect(item)}
+            />
+          </span>
+        )}
+        <span
+          className={hasChildren ? styles.groupLabel : styles.leafLabel}
+          onClick={() => (hasChildren ? onToggle(item.classifierValueKey) : onSelect(item))}
+        >
+          {item.code} — {item.name}
+        </span>
+      </div>
+      {hasChildren && isExpanded && (
+        <div>
+          {children.map((child) => (
+            <ViolationTreeNode
+              key={child.classifierValueKey}
+              item={child}
+              childrenMap={childrenMap}
+              depth={depth + 1}
+              expandedKeys={expandedKeys}
+              selectedKey={selectedKey}
+              onToggle={onToggle}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ViolationPickerModal({
+  violationClassifiers,
+  onAdd,
+  onClose,
+}: ViolationPickerModalProps) {
+  const { t } = useTranslation();
+  const [expandedKeys, setExpandedKeys] = useState<Set<number>>(new Set());
+  const [selectedKey, setSelectedKey] = useState<number | null>(null);
+  const [quantity, setQuantity] = useState('1');
+
+  const itemsByKey = useMemo(() => {
+    const map = new Map<number, ClassifierEntry>();
+    violationClassifiers.forEach((c) => map.set(c.classifierValueKey, c));
+    return map;
+  }, [violationClassifiers]);
+
+  const childrenMap = useMemo(() => {
+    const map = new Map<number, ClassifierEntry[]>();
+    violationClassifiers.forEach((c) => {
+      if (c.parentKey === null) return;
+      const list = map.get(c.parentKey) ?? [];
+      list.push(c);
+      map.set(c.parentKey, list);
+    });
+    return map;
+  }, [violationClassifiers]);
+
+  const rootItems = useMemo(
+    () => violationClassifiers.filter((c) => c.parentKey === null),
+    [violationClassifiers],
+  );
+
+  const toggleExpand = (key: number) => {
+    setExpandedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const getAncestorChain = (key: number): ClassifierEntry[] => {
+    const chain: ClassifierEntry[] = [];
+    let current = itemsByKey.get(key);
+    while (current) {
+      chain.unshift(current);
+      current = current.parentKey !== null ? itemsByKey.get(current.parentKey) : undefined;
+    }
+    return chain;
+  };
+
+  const selectedChain = selectedKey !== null ? getAncestorChain(selectedKey) : [];
+  const canAdd = selectedChain.length >= 2;
+
+  const handleAdd = () => {
+    if (!canAdd) return;
+    const [l1, l2, l3] = selectedChain;
+    onAdd({
+      level1ValueKey: l1.code,
+      level2ValueKey: l2.code,
+      level3ValueKey: l3?.code,
+      quantity: parseInt(quantity, 10) || 1,
+    });
+    onClose();
+  };
+
+  return (
+    <div className={styles.overlay}>
+      <div className={styles.dialog}>
+        <Card>
+          <Card.Content>
+            <div className={styles.header}>
+              <Heading element="h3">
+                {t('forms.labour_inspection.violations.pickerTitle')}
+              </Heading>
+              <Button type="button" visualType="secondary" onClick={onClose}>
+                {t('common.close')}
+              </Button>
+            </div>
+
+            <div className={styles.tree}>
+              {rootItems.map((item) => (
+                <ViolationTreeNode
+                  key={item.classifierValueKey}
+                  item={item}
+                  childrenMap={childrenMap}
+                  depth={0}
+                  expandedKeys={expandedKeys}
+                  selectedKey={selectedKey}
+                  onToggle={toggleExpand}
+                  onSelect={(selected) => setSelectedKey(selected.classifierValueKey)}
+                />
+              ))}
+            </div>
+
+            {selectedChain.length > 0 && (
+              <Text element="p" className={styles.selectedPath}>
+                {selectedChain.map((c) => c.name).join(' → ')}
+              </Text>
+            )}
+
+            <div className={styles.footer}>
+              <div style={{ maxWidth: 140 }}>
+                <TextField
+                  id="violation-quantity"
+                  label={t('forms.labour_inspection.violations.quantity')}
+                  value={quantity}
+                  onChange={(v) => setQuantity(v.replace(/\D/g, ''))}
+                  input={{ maxLength: 3 }}
+                />
+              </div>
+              <Button type="button" onClick={handleAdd} disabled={!canAdd}>
+                {t('forms.labour_inspection.violations.add')}
+              </Button>
+            </div>
+          </Card.Content>
+        </Card>
+      </div>
+    </div>
+  );
+}

@@ -24,6 +24,8 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | PUT | `/v1/classifiers/value` | — | uuenda kehtivusperioodi (classifierId, classifierValueId body-s) |
 | POST | `/v1/classifiers/check-code` | — | *(planeeritud — DSL fail puudub)* |
 | GET | `/v1/classifiers/catalogue` | — | *(planeeritud — DSL fail puudub)* |
+| GET | `/v1/classifier-values` | — | Kõikide klassifikaatorite väärtuste lame nimekiri (viimane snapshot, koos kehtivusega). Nõuab ainult sisselogimist (`/v1/.guard`), **mitte** `classifier.read`. FE laeb selle korra sisselogimisel `ClassifierProvider` kaudu — vt `docs/classifier-caching.md`. |
+| GET | `/v1/classifiers/bundle` | — | Kõik klassifikaatorid + väärtused ühes bulk-vastuses, rühmitatud klassifikaatori metaandmetega (`classifierId`, `classifierName`). Nõuab `classifier.read`. Kasutamiseks ainult admin-kontekstides, kus on tagatud vastav õigus — tavaliste vormide dropdown'ite jaoks kasuta `/v1/classifier-values` kaudu täidetavat kešši. |
 
 ### Kasutajagrupid
 | Meetod | Tee | Query paramid | Märkus |

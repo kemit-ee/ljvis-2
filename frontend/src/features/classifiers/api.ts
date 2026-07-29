@@ -5,6 +5,28 @@ import type {
 } from '../../hooks/usePaginatedList';
 import type { Classifier, ClassifierValue } from './types.ts';
 
+export interface ClassifierBundleValue {
+  classifierId: number;
+  classifierCode: string;
+  classifierName: string;
+  classifierValueId: number;
+  parentKey: number | null;
+  code: string;
+  name: string;
+  validFrom: string;
+  validUntil: string | null;
+  isValid: boolean;
+}
+
+/**
+ * Bulk bundle of all classifiers + values, gated by `classifier.read`.
+ * Prefer the `ClassifierProvider`/`useClassifiers()` cache for form dropdowns —
+ * this is only wired up directly for validity-aware admin-only use cases.
+ * See docs/classifier-caching.md.
+ */
+export const getClassifiersBundle = () =>
+  get<ClassifierBundleValue[]>('/v1/classifiers/bundle');
+
 export const listClassifiers = (params?: ListApiParams) =>
   get<PagedResponse<Classifier>>(
     '/v1/classifiers',

@@ -1,0 +1,25 @@
+{{#with forms.[0]}}
+{
+        "id": "{{this.id}}",
+        "formNumber": "{{this.formNumber}}",
+        "status": "{{this.status}}",
+        "inspectorName": "{{this.inspectorName}}",
+        "inspectionDate": "{{this.inspectionDate}}",
+        "externalInspectionId": {{#if this.externalInspectionId}}"{{this.externalInspectionId}}"{{else}}null{{/if}},
+        "inspectionType": "{{this.inspectionType}}",
+        "companyName": "{{this.companyName}}",
+        "companyRegCode": "{{this.companyRegCode}}",
+        "vehicleCount": {{#if this.vehicleCount}}{{this.vehicleCount}}{{else}}null{{/if}},
+        "totalDriversCount": {{#if this.totalDriversCount}}{{this.totalDriversCount}}{{else}}null{{/if}},
+        "controlsMatrix": {{{this.controlsMatrix}}},
+        "prescriptionComposed": {{this.prescriptionComposed}},
+        "punishedPersonIdCode": {{#if this.punishedPersonIdCode}}"{{this.punishedPersonIdCode}}"{{else}}null{{/if}},
+        "punishedPersonFirstName": {{#if this.punishedPersonFirstName}}"{{this.punishedPersonFirstName}}"{{else}}null{{/if}},
+        "punishedPersonLastName": {{#if this.punishedPersonLastName}}"{{this.punishedPersonLastName}}"{{else}}null{{/if}},
+        "proceedingReferenceNumber": {{#if this.proceedingReferenceNumber}}"{{this.proceedingReferenceNumber}}"{{else}}null{{/if}},
+        "enforcementDecision": {{#if this.enforcementDecision}}"{{this.enforcementDecision}}"{{else}}null{{/if}},
+        "proceedingClosureBasis": {{#if this.proceedingClosureBasis}}"{{this.proceedingClosureBasis}}"{{else}}null{{/if}},
+        "violations": {{{this.violations}}},
+        "createdBy": "{{this.createdBy}}"
+}
+{{/with}}

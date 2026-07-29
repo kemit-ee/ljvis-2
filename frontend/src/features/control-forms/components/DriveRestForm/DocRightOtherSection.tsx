@@ -8,7 +8,7 @@ import {
   ChoiceGroup,
 } from '@tedi-design-system/react/tedi';
 import styles from './DocRightOtherSection.module.css';
-import type { ClassifierValueData } from '../../../classifier-values/types';
+import type { ClassifierEntry } from '../../../classifiers/types';
 import type { OtherDocument } from '../../types';
 
 type Visibility = 'BOTH' | 'CARGO' | 'PASSENGER';
@@ -30,7 +30,7 @@ export function getVisibility(code: string): Visibility {
 
 interface Props {
   transportType: string;
-  docRightOtherDocs: ClassifierValueData[];
+  docRightOtherDocs: ClassifierEntry[];
   otherDocuments: OtherDocument[];
   setFieldValue: (field: string, value: unknown) => void;
 }

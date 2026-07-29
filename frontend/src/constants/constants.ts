@@ -5,6 +5,7 @@ export const BREAKPOINTS = {
 export const FORM_TYPE = {
   FOREIGN_VIOLATION: 'foreign-violation-form',
   COMPOUND: 'compound-form',
+  LABOUR_INSPECTION: 'labour-inspection',
 } as const;
 
 export const PERMISSIONS = {
