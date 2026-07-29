@@ -308,6 +308,9 @@
       "violations": {
         "title": "Violations",
         "pickerTitle": "Select violation",
+        "legalBasis": "Legal basis",
+        "violationType": "Violation type",
+        "violationCode": "Violation code",
         "quantity": "Quantity",
         "add": "Add violation"
       },

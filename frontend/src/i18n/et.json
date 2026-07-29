@@ -328,6 +328,9 @@
       "violations": {
         "title": "Rikkumised",
         "pickerTitle": "Vali rikkumine",
+        "legalBasis": "Õiguslik alus",
+        "violationType": "Rikkumise liik",
+        "violationCode": "Rikkumise kood",
         "quantity": "Kogus",
         "add": "Lisa rikkumine"
       },
