@@ -28,25 +28,41 @@ import { useNavigate } from 'react-router-dom';
 interface Props {
   type: string;
   initialData?: DriveRestForm;
+  compoundFormKey?: number;
+  onSaved?: (id?: string) => void;
+  initialValidate?: boolean;
+  onValuesChange?: (values: Partial<DriveRestForm>) => void;
 }
 
 interface DriveRestFormRef {
   formElement: HTMLFormElement;
-  handleSubmit: () => void;
+  handleSubmit: (overrideCompoundFormKey?: number) => void;
   getFormData?: () => Partial<DriveRestForm>;
   setFormData?: (data: Partial<DriveRestForm>) => void;
+  hasErrors: () => boolean;
+  validateForm?: () => void;
 }
 
 export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
-  ({ type: type, initialData }, ref) => {
+  ({ type: type, initialData, compoundFormKey, onSaved, initialValidate, onValuesChange }, ref) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const formRef = useRef<HTMLFormElement>(null);
 
     useImperativeHandle(ref, () => ({
       formElement: formRef.current as HTMLFormElement,
-      handleSubmit: () => {
-        formik.handleSubmit();
+      handleSubmit: (overrideCompoundFormKey?: number) => {
+        // If a compoundFormKey is provided at submit time (e.g. the general
+        // form was just saved), apply it and wait for it to land in formik's
+        // state before submitting, since setFieldValue updates state
+        // asynchronously and formik.values could otherwise still be stale.
+        if (overrideCompoundFormKey !== undefined) {
+          void formik
+            .setFieldValue('compoundFormKey', overrideCompoundFormKey)
+            .then(() => formik.handleSubmit());
+        } else {
+          formik.handleSubmit();
+        }
       },
       getFormData: () => {
         return formik.values;
@@ -56,10 +72,26 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
           formik.setFieldValue(key, data[key]);
         });
       },
+      hasErrors: () => {
+        return Object.keys(formik.errors).length > 0;
+      },
+      validateForm: () => {
+        // Mark all fields as touched to show errors
+        const touched: Record<string, boolean> = {};
+        Object.keys(formik.values).forEach(key => {
+          touched[key] = true;
+        });
+        formik.setTouched(touched);
+        formik.validateForm();
+      },
     }));
 
-    const handleSaved = () => {
-      navigate(`/`, { state: { justCreated: true } });
+    const handleSaved = (id?: string) => {
+      if (onSaved) {
+        onSaved(id);
+      } else {
+        navigate(`/`, { state: { justCreated: true } });
+      }
     };
 
     const {
@@ -72,7 +104,36 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       tachographTypes,
       drivingViolations,
       massDimensions,
-    } = useDriveRestForm(initialData, handleSaved, type as 'driver' | 'teammate');
+    } = useDriveRestForm(initialData, handleSaved, type as 'driver' | 'teammate', compoundFormKey);
+
+    // Trigger validation on mount and value changes
+    useEffect(() => {
+      formik.validateForm();
+    }, [formik.values]);
+
+    // Keep the parent's snapshot in sync after the initial mount, so
+    // saving from another tab never validates stale default values.
+    const hasMountedRef = useRef(false);
+    useEffect(() => {
+      if (!hasMountedRef.current) {
+        hasMountedRef.current = true;
+        return;
+      }
+      onValuesChange?.(formik.values);
+    }, [formik.values]);
+
+    // If this tab was already validated before (e.g. via a save attempt
+    // while it was inactive/unmounted), mark all fields as touched as soon
+    // as it mounts so inline error messages show up immediately
+    useEffect(() => {
+      if (initialValidate) {
+        const touched: Record<string, boolean> = {};
+        Object.keys(formik.values).forEach(key => {
+          touched[key] = true;
+        });
+        formik.setTouched(touched);
+      }
+    }, []);
 
     const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
