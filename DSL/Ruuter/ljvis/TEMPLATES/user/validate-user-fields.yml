@@ -16,6 +16,8 @@ declaration:
         type: string
       - field: organisation_id
         type: string
+      - field: structural_unit_id
+        type: string
       - field: job_title_name
         type: string
       - field: email
@@ -121,11 +123,6 @@ return_invalid_organisation_id:
     error_code: required
   next: emit_invalid
 
-return_invalid_structural_unit_id:
-  assign:
-    error_field: structuralUnitId
-    error_code: required
-  next: emit_invalid
 
 return_invalid_job_title_name:
   assign:

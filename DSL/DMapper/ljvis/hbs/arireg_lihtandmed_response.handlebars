@@ -1,0 +1,20 @@
+{
+  "totalFound": {{#if lihtandmed_v3Response.keha.leitud}}{{lihtandmed_v3Response.keha.leitud}}{{else}}0{{/if}},
+  "data": [
+    {{#each lihtandmed_v3Response.keha.ettevotjad.item}}
+    {
+      "registryCode": "{{this.ariregistri_kood}}",
+      "companyName": "{{this.ettevotja_nimi}}",
+      "status": "{{this.ettevotja_staatus}}",
+      "statusText": "{{this.ettevotja_staatus_tekstina}}",
+      "legalForm": "{{this.oiguslik_vorm}}",
+      "legalFormText": "{{this.oiguslik_vorm_tekstina}}",
+      "locationCode": "{{this.asukoha_ehak_kood}}",
+      "locationText": "{{this.asukoha_ehak_tekstina}}",
+      "addressCode": "{{this.aadress_ehak_kood}}",
+      "address": "{{this.aadress_ehak_tekstina}}",
+      "addressNormalized": "{{this.aadress_ads_normaliseeritud_taisaadress}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ]
+}

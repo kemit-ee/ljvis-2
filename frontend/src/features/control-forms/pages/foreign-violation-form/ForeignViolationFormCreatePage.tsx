@@ -11,7 +11,6 @@ import {
   Card,
   Text,
   ChoiceGroup,
-  FileDropzone,
   Alert,
   DateField,
   TimeField,
@@ -22,6 +21,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { useForeignViolationForm } from './useForeignViolationForm';
+import { CompanyPickerModal } from '../../components/CompanyPickerModal';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import {
@@ -142,12 +142,24 @@ export function ForeignViolationFormCreatePage() {
     handleCompanyNameSearch,
     handleVehicleSearch,
     handleLicenceCopyNumberSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
+    associatedPersons,
+    associatedPersonsLoading,
   } = useForeignViolationForm(undefined, handleSaved);
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
   return (
     <div>
+      {companyPickerResults.length > 0 && (
+        <CompanyPickerModal
+          companies={companyPickerResults}
+          onSelect={onCompanyPicked}
+          onClose={closeCompanyPicker}
+        />
+      )}
       <form onSubmit={formik.handleSubmit}>
         <div className="card-main">
           <Heading element="h1">{t('forms.foreign_violation_form')}</Heading>
@@ -486,6 +498,26 @@ export function ForeignViolationFormCreatePage() {
                       }
                     />
                   </div>
+                  {associatedPersonsLoading && (
+                    <div className="mt-1">
+                      <Text>{t('common.loading')}</Text>
+                    </div>
+                  )}
+                  {!associatedPersonsLoading && associatedPersons.length > 0 && (
+                    <div className="mt-1">
+                      <Text element="p"><strong>{t('xroad.associatedPersons.title')}</strong></Text>
+                      {associatedPersons
+                        .filter((p) => !p.endDate)
+                        .map((p, i) => (
+                          <Text key={i} element="p">
+                            {p.firstName
+                              ? `${p.firstName} ${p.nameOrBusinessName}`
+                              : p.nameOrBusinessName}
+                            {' — '}{p.roleText}
+                          </Text>
+                        ))}
+                    </div>
+                  )}
                 </Card.Content>
               </Card>
             </Col>
@@ -1094,34 +1126,6 @@ export function ForeignViolationFormCreatePage() {
                         : {})}
                     />
                   </div>
-                </Card.Content>
-              </Card>
-            </Col>
-          </Row>
-          <Row className="m-0">
-            <Col className="p-0">
-              <Card className="mb-1">
-                <Card.Content>
-                  <Heading element="h3" className="mb-1">
-                    {t('forms.foreign_violation.filesBasicInfo')}
-                  </Heading>
-                  <FileDropzone
-                    id="files"
-                    name="file-dropzone"
-                    label={t('forms.foreign_violation.filesBoxInfo')}
-                    onChange={(files) =>
-                      formik.setFieldValue('files', JSON.stringify(files))
-                    }
-                    maxSize={10}
-                    helper={
-                      typeof formik.errors.files === 'string'
-                        ? { text: formik.errors.files, type: 'error' as const }
-                        : { text: t('forms.foreign_violation.filesHelper') }
-                    }
-                    multiple
-                    accept=".jpg,.jpeg,.png,.gif,.bmp,.tif,.tiff,.pdf,.doc,.docx,.xls,.xlsx,.odt,.rtf,.msg,.eml,.txt,.zip,.ddd"
-                    validateIndividually
-                  />
                 </Card.Content>
               </Card>
             </Col>

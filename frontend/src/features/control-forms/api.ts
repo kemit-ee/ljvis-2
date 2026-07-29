@@ -30,7 +30,11 @@ export const confirmForeignViolationForm = (data: ForeignViolationForm) =>
     data as unknown as Record<string, unknown>,
   );
 
-export const deleteForeignViolationForm = (id: string, form_number: string, old_status: string) =>
+export const deleteForeignViolationForm = (
+  id: string,
+  form_number: string,
+  old_status: string,
+) =>
   post<ForeignViolationForm[]>(
     `/v1/control-forms/foreign-violation-form/edit/delete`,
     { id, form_number, old_status },
@@ -57,8 +61,16 @@ export const confirmCompoundForm = (data: CompoundForm) =>
     data as unknown as Record<string, unknown>,
   );
 
-export const deleteCompoundForm = (id: string, form_number: string, old_status: string) =>
-  post<CompoundForm[]>(`/v1/control-forms/compound-form/edit/delete`, { id, form_number, old_status });
+export const deleteCompoundForm = (
+  id: string,
+  form_number: string,
+  old_status: string,
+) =>
+  post<CompoundForm[]>(`/v1/control-forms/compound-form/edit/delete`, {
+    id,
+    form_number,
+    old_status,
+  });
 
 export const getFormSnapshots = (id: string, formType: string) =>
   get<FormSnapshot[]>(`/v1/control-forms/get-snapshots`, { id, formType });

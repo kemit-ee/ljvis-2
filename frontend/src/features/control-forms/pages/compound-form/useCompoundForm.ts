@@ -25,7 +25,8 @@ import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';
-import {FORM_CONFIG} from "../../formRoutes.ts";
+import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
+import { FORM_CONFIG } from "../../formRoutes.ts";
 
 export const emptyDriver = (): Driver => ({
   personalCodeEe: '',
@@ -85,7 +86,6 @@ export function useCompoundForm(
   const [companyCitiesParishes, setCompanyCitiesParishes] = useState<Ehak[]>(
     [],
   );
-  const [companySearchError, setCompanySearchError] = useState(false);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
     null,
@@ -472,11 +472,21 @@ export function useCompoundForm(
     }
   };
 
-  const handleCompanySearch = async () => {
-    setCompanySearchError(false);
-    const result = null;
-    if (!result) setCompanySearchError(true);
-  };
+  const {
+    searchByRegCode,
+    error: companySearchError,
+    setError: setCompanySearchError,
+  } = useCompanySearch({
+    onCompanyFound: (company) => {
+      formik.setFieldValue('companyName', company.companyName);
+      formik.setFieldValue('companyAddress', company.address);
+      formik.setFieldValue('companyCity', company.city);
+      formik.setFieldValue('companyPostalCode', company.postalCode);
+      formik.setFieldValue('companyCountryCode', 'EE');
+    },
+  });
+
+  const handleCompanySearch = () => searchByRegCode(formik.values.companyRegCode);
 
   const handleVehicleSearch = async () => {
     setVehicleSearchError(false);

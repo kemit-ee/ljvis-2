@@ -1,15 +1,17 @@
 [
     {{#each users}}
     {
-        "id": "{{this.id}}",
+        "eventId": "{{this.eventId}}",
         "eventType": "{{this.eventType}}",
         "eventCategory": "{{this.eventCategory}}",
         "actorName": "{{this.actorName}}",
-        "actorPersonalCode": "{{this.actorPersonalCode}}",
+        "actorPersonalCode": "{{this.actorPersonalCodeHash}}",
         "description": "{{this.description}}",
         "logContent": "{{this.logContent}}",
         "createdAt": "{{this.createdAt}}",
-        "createdBy": "{{this.createdBy}}"
+        "createdBy": "{{this.createdBy}}",
+        "traceId": "{{this.traceId}}",
+        "spanId": "{{this.spanId}}"
     }{{#unless @last}},{{/unless}}
     {{/each}}
 ]

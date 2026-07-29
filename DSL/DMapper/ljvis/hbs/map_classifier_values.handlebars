@@ -1,17 +1,15 @@
-{
-    "content": [
-        {{#each classifierValues}}
-        {
-            "classifierId": "{{this.classifierId}}",
-            "classifierValueId": "{{this.classifierValueId}}",
-            "classifierCode": "{{this.classifierCode}}",
-            "code": "{{this.code}}",
-            "name": "{{this.name}}",
-            "validFrom": "{{this.validFrom}}",
-            "validUntil": {{#if this.validUntil}}"{{this.validUntil}}"{{else}}null{{/if}},
-            "isValid": "{{this.isValid}}"
-        }{{#unless @last}},{{/unless}}
-        {{/each}}
-    ],
-    "total": {{#with classifierValues.[0]}}{{total}}{{else}}0{{/with}}
-}
+[
+    {{#each classifierValues}}
+    {
+        "classifierId": "{{this.classifierId}}",
+        "classifierValueId": "{{this.classifierValueId}}",
+        "classifierCode": "{{this.classifierCode}}",
+        "code": "{{this.code}}",
+        "name": "{{this.name}}",
+        "validFrom": "{{this.validFrom}}",
+        "validUntil": {{#if this.validUntil}}"{{this.validUntil}}"{{else}}null{{/if}},
+        "isValid": "{{this.isValid}}",
+        "total": {{this.total}}
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+]

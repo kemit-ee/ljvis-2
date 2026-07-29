@@ -1,0 +1,49 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Soft-delete a file attachment record in the DB. Expects: id, form_type, actor_personal_code, actor_name"
+  method: post
+  accepts: json
+  returns: json
+  namespace: templates
+
+getAttachmentRecord:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachment_by_id"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.id}
+  result: attachmentRecord
+  next: deleteFileInDB
+
+deleteFileInDB:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/files/delete_form_attachment"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.id}
+  result: dbResult
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/files/log-file-delete"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: ${incoming.body.form_type}
+    form_number: ${attachmentRecord.response.body[0].formNumber || attachmentRecord.response.body[0].form_number}
+    file_id: ${incoming.body.id}
+    file_name: ${attachmentRecord.response.body[0].fileName || attachmentRecord.response.body[0].file_name}
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+  result: auditResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${dbResult.response.body}
+  status: 200

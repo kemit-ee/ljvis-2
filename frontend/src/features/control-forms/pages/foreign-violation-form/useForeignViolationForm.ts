@@ -16,6 +16,9 @@ import { listStructureUnits } from '../../../structure-units/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
+import { getAssociatedPersons } from '../../../xroad/api';
+import type { XRoadAssociatedPerson } from '../../../xroad/types';
+import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 
 export function useForeignViolationForm(
   form: ForeignViolationForm | undefined,
@@ -26,9 +29,13 @@ export function useForeignViolationForm(
   const { user: authUser } = useAuth();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
-  const [companySearchError, setCompanySearchError] = useState(false);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
+  const [associatedPersons, setAssociatedPersons] = useState<
+    XRoadAssociatedPerson[]
+  >([]);
+  const [associatedPersonsLoading, setAssociatedPersonsLoading] =
+    useState(false);
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
 
@@ -155,7 +162,6 @@ export function useForeignViolationForm(
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession:
         form?.inspectorProfession ?? authUser?.jobtitle ?? '',
-      files: form?.files ?? '[]',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -182,10 +188,6 @@ export function useForeignViolationForm(
           violations: Array.isArray(values.violations)
             ? JSON.stringify(values.violations)
             : (values.violations ?? '[]'),
-          files:
-            typeof values.files === 'string'
-              ? values.files
-              : JSON.stringify(values.files ?? []),
         };
         const payload = {
           ...trimmedValues,
@@ -235,17 +237,35 @@ export function useForeignViolationForm(
     listStructureUnits(newOrgId).then(setStructureUnits).catch(console.error);
   };
 
-  const handleCompanyRegCodeSearch = async () => {
-    setCompanySearchError(false);
-    const result = null;
-    if (!result) setCompanySearchError(true);
-  };
+  const {
+    searchByRegCode,
+    searchByName,
+    error: companySearchError,
+    setError: setCompanySearchError,
+    pickerResults: companyPickerResults,
+    handleCompanyPicked: onCompanyPicked,
+    closePicker: closeCompanyPicker,
+  } = useCompanySearch({
+    onCompanyFound: (company) => {
+      formik.setFieldValue('companyName', company.companyName);
+      formik.setFieldValue('companyAddressLine1', company.address);
+      formik.setFieldValue('companyCity', company.city);
+      formik.setFieldValue('companyPostalCode', company.postalCode);
+      if (company.registryCode) {
+        formik.setFieldValue('companyCountryCode', 'EE');
+      }
+      setAssociatedPersons([]);
+      setAssociatedPersonsLoading(true);
+      getAssociatedPersons(company.registryCode)
+        .then(setAssociatedPersons)
+        .catch(console.error)
+        .finally(() => setAssociatedPersonsLoading(false));
+    },
+  });
 
-  const handleCompanyNameSearch = async () => {
-    setCompanySearchError(false);
-    const result = null;
-    if (!result) setCompanySearchError(true);
-  };
+  const handleCompanyRegCodeSearch = () =>
+    searchByRegCode(formik.values.companyRegCode);
+  const handleCompanyNameSearch = () => searchByName(formik.values.companyName);
 
   const handleVehicleSearch = async () => {
     setVehicleSearchError(false);
@@ -295,5 +315,10 @@ export function useForeignViolationForm(
     handleCompanyNameSearch,
     handleVehicleSearch,
     handleLicenceCopyNumberSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
+    associatedPersons,
+    associatedPersonsLoading,
   };
 }

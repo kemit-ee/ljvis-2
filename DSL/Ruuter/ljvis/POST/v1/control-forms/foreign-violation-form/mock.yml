@@ -1,0 +1,11 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      id: 1
+      formNumber: "vr-2026-00001/1"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body}
+  next: end

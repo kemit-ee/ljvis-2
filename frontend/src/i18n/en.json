@@ -765,6 +765,32 @@
     "data": "Auditikirje andmed",
     "dataTitle": "Auditikirje"
   },
+  "form": {
+    "files": {
+      "title": "Attachments",
+      "addBtn": "Add attachment",
+      "uploadTitle": "Upload file",
+      "uploadBtn": "Upload",
+      "limits": "Allowed types: pdf, jpeg, png, asice, doc, docx. Max size: 20MB.",
+      "empty": "No files have been added to this form.",
+      "col": {
+        "name": "File name",
+        "uploaded": "Added",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "deleted": "Deleted"
+      },
+      "error": {
+        "tooLarge": "File size exceeds the 20MB limit.",
+        "invalidType": "Invalid file type. Allowed: pdf, jpeg, png, asice, doc, docx.",
+        "duplicate": "A file with the same name already exists. Uploading will add a new version."
+      },
+      "confirmDeleteTitle": "Delete file",
+      "confirmDelete": "Do you want to delete this file?"
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
@@ -789,7 +815,18 @@
     "enterNotesPlaceHolder": "Enter notes...",
     "search": "Search",
     "remove": "Remove",
+    "cancel": "Cancel",
+    "download": "Download",
     "space": " "
+  },
+  "xroad": {
+    "companyPicker": {
+      "title": "Select carrier",
+      "select": "Select"
+    },
+    "associatedPersons": {
+      "title": "Authorised representatives"
+    }
   },
   "footer": {
     "help": "Help",

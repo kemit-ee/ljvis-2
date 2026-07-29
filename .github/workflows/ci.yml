@@ -260,6 +260,7 @@ jobs:
       - name: Show logs on failure
         if: failure()
         run: |
+          docker compose -f docker-compose.ci.yml -p ljvis-ci logs liquibase --tail=50
           docker compose -f docker-compose.ci.yml -p ljvis-ci logs tara-mock --tail=30
           docker compose -f docker-compose.ci.yml -p ljvis-ci logs tim --tail=50
           docker compose -f docker-compose.ci.yml -p ljvis-ci logs ruuter --tail=50

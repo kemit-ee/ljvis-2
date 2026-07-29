@@ -8,7 +8,6 @@ import {
   TextArea,
   Text,
   ChoiceGroup,
-  FileDropzone,
   Alert,
   DateField,
   TimeField,
@@ -16,16 +15,21 @@ import {
   AccordionItem,
   AccordionItemHeader,
   AccordionItemContent,
+  Row,
+  Col,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
+import { CompanyPickerModal } from '../CompanyPickerModal';
 import type { FormikProps } from 'formik';
 import {
   EU_VIOLATION_GROUPS,
   COUNTRIES,
 } from '../../../../constants/constants';
+import type { XRoadCompany, XRoadAssociatedPerson } from '../../../xroad/types';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
+import { FormFiles } from '../../../forms/components/FormFiles.tsx';
 
 interface ForeignViolationEditFormValues {
   id: string;
@@ -70,7 +74,6 @@ interface ForeignViolationEditFormValues {
   inspectorOrganisationId: string;
   inspectorUnit: string;
   inspectorProfession: string;
-  files: string | { id: string; isLoading: boolean; isValid: boolean }[];
 }
 
 interface ForeignViolationFormEditCardProps {
@@ -102,6 +105,11 @@ interface ForeignViolationFormEditCardProps {
   handleCompanyNameSearch: () => void;
   handleVehicleSearch: () => void;
   handleLicenceCopyNumberSearch: () => void;
+  companyPickerResults: XRoadCompany[];
+  onCompanyPicked: (company: XRoadCompany) => void;
+  closeCompanyPicker: () => void;
+  associatedPersons: XRoadAssociatedPerson[];
+  associatedPersonsLoading: boolean;
   onCancel: () => void;
   onConfirm: () => void;
   onDelete: () => void;
@@ -127,6 +135,11 @@ export function ForeignViolationFormEditCard({
   handleCompanyNameSearch,
   handleVehicleSearch,
   handleLicenceCopyNumberSearch,
+  companyPickerResults,
+  onCompanyPicked,
+  closeCompanyPicker,
+  associatedPersons,
+  associatedPersonsLoading,
   onCancel,
   onConfirm,
   onDelete,
@@ -214,6 +227,13 @@ export function ForeignViolationFormEditCard({
 
   return (
     <form onSubmit={formik.handleSubmit}>
+      {companyPickerResults.length > 0 && (
+        <CompanyPickerModal
+          companies={companyPickerResults}
+          onSelect={onCompanyPicked}
+          onClose={closeCompanyPicker}
+        />
+      )}
       <div className="page-header">
         <div className="page-header-title">
           <Heading element="h1">{formik.values.formNumber ?? ''}</Heading>
@@ -494,6 +514,26 @@ export function ForeignViolationFormEditCard({
               onChange={(v) => formik.setFieldValue('companyPostalCode', v)}
             />
           </div>
+          {associatedPersonsLoading && (
+            <div className="mt-1">
+              <Text element="p">{t('common.loading')}</Text>
+            </div>
+          )}
+          {!associatedPersonsLoading && associatedPersons.length > 0 && (
+            <div className="mt-1">
+              <Text element="p">
+                <strong>{t('xroad.associatedPersons.title')}</strong>
+              </Text>
+              {associatedPersons
+                .filter((p) => !p.endDate)
+                .map((p, i) => (
+                  <Text element="p" key={i}>
+                    {p.firstName ? `${p.firstName} ${p.nameOrBusinessName}` : p.nameOrBusinessName}
+                    {' — '}{p.roleText}
+                  </Text>
+                ))}
+            </div>
+          )}
         </Card.Content>
       </Card>
 
@@ -1028,30 +1068,14 @@ export function ForeignViolationFormEditCard({
         </Card.Content>
       </Card>
 
-      <Card className="mb-1">
-        <Card.Content>
-          <Heading element="h3" className="mb-1">
-            {t('forms.foreign_violation.filesBasicInfo')}
-          </Heading>
-          <FileDropzone
-            id="files"
-            name="file-dropzone"
-            label={t('forms.foreign_violation.filesBoxInfo')}
-            onChange={(files) =>
-              formik.setFieldValue('files', JSON.stringify(files))
-            }
-            maxSize={10}
-            helper={
-              typeof formik.errors.files === 'string'
-                ? { text: formik.errors.files, type: 'error' as const }
-                : { text: t('forms.foreign_violation.filesHelper') }
-            }
-            multiple
-            accept=".jpg,.jpeg,.png,.gif,.bmp,.tif,.tiff,.pdf,.doc,.docx,.xls,.xlsx,.odt,.rtf,.msg,.eml,.txt,.zip,.ddd"
-            validateIndividually
+      <Row className="m-0">
+        <Col className="p-0">
+          <FormFiles
+            formType="foreign-violation-form"
+            formNumber={formik.values.formNumber}
           />
-        </Card.Content>
-      </Card>
+        </Col>
+      </Row>
 
       {formik.values.id && (
         <FormVersionsTable formId={formik.values.id} formType={formType} />

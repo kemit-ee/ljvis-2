@@ -1,183 +1,171 @@
 # LJVIS2 – Admini paigaldus- ja seadistusjuhend
 
-**Versioon:** 0.2  
-**Kuupäev:** 2026-07-08
+**Versioon:** 0.1  
+**Kuupäev:** 2026-07-07
 
 ---
 
 ## Sisukord
 
-1. [Süsteemi ülevaade](#1-süsteemi-ülevaade)
-2. [Kubernetes ressursid](#2-kubernetes-ressursid)
-3. [Andmebaasid](#3-andmebaasid)
-4. [Secrets ja ConfigMap-id](#4-secrets-ja-configmap-id)
-5. [Objektisalv (S3)](#5-objektisalv-s3)
-6. [GitLab CI/CD](#6-gitlab-cicd)
-7. [X-tee seadistus](#7-x-tee-seadistus)
-8. [Käivitusjärjekord ja sõltuvused](#8-käivitusjärjekord-ja-sõltuvused)
-9. [Võrgu ligipääsupiirangud](#9-võrgu-ligipääsupiirangud)
-10. [Paigalduse kontrollnimekiri](#10-paigalduse-kontrollnimekiri)
+1. [Andmebaasid](#1-andmebaasid)
+2. [Kubernetes Secrets](#2-kubernetes-secrets)
+3. [GitLab CI/CD pipeline](#3-gitlab-cicd-pipeline)
+4. [X-tee seadistus](#4-x-tee-seadistus)
+5. [Rakenduste käivitusjärjekord](#5-rakenduste-käivitusjärjekord)
 
 ---
 
-## 1. Süsteemi ülevaade
+## 1. Andmebaasid
 
-### 1.1 Komponendid ja rollid
+Süsteem vajab **kahte eraldi PostgreSQL andmebaasi** — need peavad olema kaks eraldi RDS instantsi (või vähemalt eraldi schemad rangete turvapiiridega).
 
-| Teenus | Roll | Avalik? | Image allikas |
-|--------|------|---------|---------------|
-| `frontend` | Nginx + React UI, ainus avalik sisenemispunkt | ✅ HTTPS :443 | ECR (build repo-st) |
-| `ruuter` | API gateway, äriloogika DSL orkestratsioon | ❌ ainult läbi frontend | ECR (build repo-st) |
-| `ruuter-internal` | Sisemised vood (nt öine deaktiveerimistöö) | ❌ klastri-sisene | ECR (build repo-st) |
-| `resql-ljvis` | SQL → REST mikroteenus (JDBC → PostgreSQL) | ❌ klastri-sisene | ECR (build repo-st) |
-| `data-mapper` | Andmete transformatsioon (Handlebars templating) | ❌ klastri-sisene | ECR (build repo-st) |
-| `tim` | Autentimine ja sessioonihaldus (OIDC / JWT) | ⚠️ ainult `/tim/*` rajad | `ghcr.io/buerokratt/tim:pre-apha-2.7.1` |
-| `liquibase` | Andmebaasi skeemimigratsioonid (ühekordne Job) | ❌ klastri-sisene | ECR (build repo-st) |
-| `tara-mock` | TARA OIDC mock (ainult dev/CI) | ❌ ei paigaldata prod-is | — |
+### 1.1 LJVIS rakenduse andmebaas
 
-### 1.2 Andmevood
+| Parameeter | Väärtus |
+|-----------|---------|
+| Engine | PostgreSQL 17 |
+| Andmebaasi nimi | `ljvis_db` |
+| Kasutajanimi | `ljvis` |
+| Port | `5432` |
+| Kasutaja | `resql-ljvis` teenus (JDBC) |
 
-| Voog | Kirjeldus |
-|------|-----------|
-| Kasutaja → Frontend | HTTPS :443, TLS lõpetatakse ALB-s |
-| Frontend → Ruuter | `/api/*` — kõik rakenduse API päringud |
-| Frontend → TIM | `/tim/*` — autentimise päringud |
-| Ruuter → TIM | JWT valideerimine iga päringuga |
-| Ruuter → RESQL | Andmebaasipäringud (SELECT, INSERT, UPDATE) |
-| Ruuter → Data Mapper | Vastuste transformatsioon (Handlebars) |
-| Ruuter → X-tee | Välisregistrite päringud (Rahvastikuregister, Äriregister jne) |
-| RESQL → PostgreSQL LJVIS | JDBC ühendus `ljvis_db` andmebaasile |
-| TIM → PostgreSQL TIM | JDBC ühendus `tim` andmebaasile |
-| TIM → TARA | OIDC autentimisvoog (prod: `tara.ria.ee`, dev: `tara-mock`) |
-| Liquibase → PostgreSQL LJVIS | Skeemimigratsioonid deploy ajal |
+Skeemi migratsioonid rakendatakse automaatselt **Liquibase** kaudu deploy ajal (`DSL/Liquibase/changelog/`). Liquibase vajab sama andmebaasi ühendust.
 
-### 1.3 Keskkonna aadressid
+Algne init-skript: `DSL/Liquibase/init-db.sql` — loob `ljvis_db` andmebaasi ja vajalikud laiendused.
 
-| Keskkond | Avalik URL |
-|----------|-----------|
-| Dev / test | `https://dev.liiklusvalve.ee/` |
-| Test (X-tee) | `https://test.liiklusvalve.ee/xtee/tunnel` |
-| Prod | `https://liiklusvalve.ee/` |
-| Prod (X-tee) | `https://liiklusvalve.ee/xtee/tunnel` |
+### 1.2 TIM autentimise andmebaas
 
----
+| Parameeter | Väärtus |
+|-----------|---------|
+| Engine | PostgreSQL 17 |
+| Andmebaasi nimi | `tim` |
+| Kasutajanimi | `tim` |
+| Port | `5432` |
+| Kasutaja | `tim` teenus |
 
-## 2. Kubernetes ressursid
+TIM haldab oma skeemi ise — Liquibase seda ei puuduta.
 
-### 2.1 Deployment-id
+### 1.3 Andmebaaside eraldamine
 
-| Deployment | Konteiner port | K8s Service tüüp | Replicas (min) |
-|-----------|---------------|------------------|----------------|
-| `frontend` | 443 | LoadBalancer / Ingress | 2 |
-| `ruuter` | 8086 | ClusterIP | 2 |
-| `ruuter-internal` | 8089 | ClusterIP | 1 |
-| `resql-ljvis` | 8090 | ClusterIP | 2 |
-| `data-mapper` | 3005 | ClusterIP | 2 |
-| `tim` | 8085 | ClusterIP (+ Ingress `/tim/*`) | 2 |
+- LJVIS DB ja TIM DB **ei tohi jagada sama PostgreSQL instantsi** turvapiiride tõttu.
+- Mõlemad andmebaasid peavad olema **ainult sisemisest võrgust** (klastri seest) kättesaadavad — mitte avalikust internetist.
 
-### 2.2 Job-id
+### 1.4 PostgreSQL versioonipiirang (JDBC driver ceiling)
 
-| Job | Käivitusaeg | Sõltuvus |
-|-----|-------------|----------|
-| `liquibase-migration` | Iga deploy (enne Deployment rollout'i) | PostgreSQL LJVIS healtcheck OK |
+Süsteem on testitud ja töötab **PostgreSQL 17-ga**.
 
-### 2.3 ConfigMap-id
+**Piirang:** `resql-ljvis` (`ghcr.io/buerokratt/resql:v1.3.4`) ja `tim`
+(`ghcr.io/buerokratt/tim:pre-apha-2.7.1`) kasutavad mõlemad sisseehitatud
+PostgreSQL JDBC draiverit **42.3.9**, mis ametlikult toetab PostgreSQL ≤ 15.
 
-| ConfigMap nimi | Mountitakse | Sisu |
-|---------------|-------------|------|
-| `ljvis-constants` | `ruuter`, `ruuter-internal` | `constants.ini` (teenuste sisemised URL-id) |
-| `ruuter-cors-config` | `ruuter` | CORS ja turvaseadistus |
+PostgreSQL 17 kasutamine on **kalkuleeritud risk** — JDBC draiver on
+wire-protokolliga tagasiühilduv ja põhioperatsioonid (INSERT/SELECT/UPDATE)
+toimivad testidega kinnitatult. PostgreSQL **18 või uuemat ei tohi kasutada**
+seni, kuni RESQL ja TIM ei ole uuendatud JDBC draiveriga ≥ 42.6 versioonile.
 
-### 2.4 Ingress routing
+| Komponent | JDBC driver | Ametlik PG tugi | Testitud |
+|-----------|-------------|-----------------|----------|
+| RESQL `v1.3.4` | `42.3.9` | ≤ PG 15 | PG 17 ✓ |
+| TIM `pre-apha-2.7.1` | `42.3.9` | ≤ PG 15 | PG 17 ✓ |
+| Liquibase `4.29.2` | `42.7.11` | ≤ PG 18 | PG 17 ✓ |
 
-| Path prefix | Sihteenus | Port |
-|-------------|----------|------|
-| `/` | `frontend` | 443 |
-| `/api/*` | `ruuter` (läbi frontend proxy) | 8086 |
-| `/tim/*` | `tim` (läbi frontend proxy) | 8085 |
+Järgmine lubatud upgrade'i samm: uuenda RESQL ja TIM Buerostack upstream'is
+→ kontrolli, et uus versioon kasutab JDBC ≥ 42.6 → seejärel saab minna PG 18 peale.
 
-> `ruuter`, `resql-ljvis`, `data-mapper`, `ruuter-internal` **ei tohi** Ingress kaudu otse eksponeeritud olla.
+### 1.5 Liquibase migratsioonide käivitusviis
 
-### 2.5 AWS ressursid
+Kaks konventsiooni Liquibase changeset'ide ja käivitusrea koostamisel.
+Mõlemad on tuvastatud gotcha'd, mille vastu on odavam kirjutada õigesti
+esimesest korrast kui hiljem otsida.
 
-| Ressurss | Tüüp | Kasutus |
-|----------|------|---------|
-| EKS klaster | AWS EKS | Kõik Kubernetes workload-id |
-| RDS (LJVIS) | PostgreSQL 14+ | `ljvis_db` andmebaas |
-| RDS (TIM) | PostgreSQL 14+ | `tim` andmebaas |
-| ECR registry | Amazon ECR | Docker image-id |
-| Secrets Manager | AWS Secrets Manager | Kõik saladused (monteeritakse K8s Secret-idena) |
-| CloudWatch | AWS CloudWatch | Logid |
-| ALB | Application Load Balancer | TLS termineerimine, Ingress |
-| ACM | AWS Certificate Manager | TLS sertifikaat |
-| S3 / R2 | S3-ühilduv | Docs hostimine (`api-endpoints.md`, `openapi.yaml`) |
+#### 1.5.1 `-D` läheb **enne** alamkäsku (kanonaalne vorm)
 
----
+Liquibase CLI globaalsed optionid — nende hulgas `-DKEY=VALUE` ja
+`--defaultsFile=…` — kuuluvad **enne** alamkäsku (`update`, `rollback`,
+`status`, …). Sama parameeter alamkäsu järel on käsu-spetsiifiline
+option ja Liquibase versioonist sõltuvalt kas jäetakse maha, tõlgendatakse
+teisiti või (Liquibase 5-s) jäävad täielikult tähelepanuta.
 
-## 3. Andmebaasid
-
-### 3.1 Nõutavad andmebaasid
-
-| Andmebaas | Engine | Nimi | Kasutaja | Haldaja |
-|-----------|--------|------|---------|---------|
-| LJVIS DB | PostgreSQL 14+ | `ljvis_db` | `ljvis` | Liquibase (skeemimigratsioonid), RESQL (päringud) |
-| TIM DB | PostgreSQL 14+ | `tim` | `tim` | TIM teenus (haldab oma skeemi ise) |
-
-> LJVIS DB ja TIM DB **peavad olema eraldi RDS instantsid** — mitte sama PostgreSQL server.  
-> Kumbki andmebaas ei tohi olla avalikult internetist kättesaadav.
-
-### 3.2 LJVIS DB seadistus
-
-| Samm | Toiming |
-|------|---------|
-| 1 | Loo RDS PostgreSQL 14+ instants |
-| 2 | Käivita `DSL/Liquibase/init-db.sql` — loob andmebaasi ja vajalikud laiendused |
-| 3 | Liquibase rakendab automaatselt `DSL/Liquibase/changelog/` migratsioonid deploy ajal |
-
-### 3.3 TIM DB seadistus
-
-| Samm | Toiming |
-|------|---------|
-| 1 | Loo eraldi RDS PostgreSQL 14+ instants |
-| 2 | TIM teenus loob skeemi ise esimesel käivitusel — eraldi migratsiooniskripti pole vaja |
-
----
-
-## 4. Secrets ja ConfigMap-id
-
-> Kõik saladused panna **AWS Secrets Manager**-i ja monteerida Kubernetes Secretidena (nt External Secrets Operator kaudu). Saladused ei tohi olla koodis ega image-is.
-
-### 4.1 Kõik nõutavad Secrets ühe pilguga
-
-| Secret nimi | Kasutab teenus | Kohustuslik |
-|-------------|---------------|-------------|
-| `ljvis-db-credentials` | `resql-ljvis`, `liquibase` | ✅ |
-| `tim-db-credentials` | `tim` | ✅ |
-| `tim-tara-credentials` | `tim` | ✅ |
-| `tim-jwt-config` | `tim` | ✅ |
-| `ljvis-s3-credentials` | GitLab CI/CD pipeline | ✅ |
-
-### 4.2 `ljvis-db-credentials`
+**Kanonaalne vorm (kehtib nii 4.x kui 5.x jaoks):**
 
 ```yaml
+# docker-compose.yml
+command: >
+  -DAUDIT_SALT=${AUDIT_SALT}
+  --defaultsFile=/liquibase/liquibase.properties
+  update
+```
+
+`-DKEY=VALUE` läheb enne alamkäsku. Ekvivalentne pikk vorm on
+`--changelog-parameter=KEY=VALUE`.
+
+Sama reegel kehtib nii `docker-compose.yml`-i, `docker-compose.ci.yml`-i
+kui ka Kubernetes Job'is kutsutava käsurea kohta.
+
+#### 1.5.2 `splitStatements="false"` PL/pgSQL kehade jaoks
+
+Liquibase jagab SQL-faili vaikimisi `;`-i järgi eraldi lauseteks. See
+lõhub kõik changeset'id, mille SQL sisaldab PL/pgSQL funktsioonikeha —
+sisemised semikoolonid `BEGIN … END $$;` plokkides tõlgendatakse
+lause-terminaatoritena ja Liquibase rakendab poole funktsiooni
+definitsioonist, siis kukub.
+
+Nõutav alati, kui viidatud SQL-fail sisaldab:
+
+- `CREATE FUNCTION … LANGUAGE plpgsql AS $$ … $$;`
+- Trigger-funktsiooni keha (nt audit-räsi-ahel `audit-logging.md`
+  §Hash chain integrity).
+- Suvalist `DO $$ … $$` plokki.
+
+```xml
+<changeSet id="…" author="…">
+  <sqlFile path="changelog/…-audit-trigger.sql" splitStatements="false" />
+  <rollback>
+    <sqlFile path="changelog/…-rollback.sql" splitStatements="false" />
+  </rollback>
+</changeSet>
+```
+
+Rakenda nii `<sqlFile>`-le kui ka `<rollback>`-i sees olevale
+`<sqlFile>`-le. Vaikselt ebaõnnestuv rollback on halvem kui valjult
+ebaõnnestuv forward.
+
+---
+
+## 2. Kubernetes Secrets
+
+Kõik saladused panna **AWS Secrets Manager**-i ja monteerida Kubernetes Secretidena (nt External Secrets Operator kaudu).
+
+### 2.1 LJVIS andmebaasi ühendus (resql-ljvis)
+
+```yaml
+# Secret nimi: ljvis-db-credentials
 RESQL_DB_JDBC_URL: jdbc:postgresql://<rds-host>:5432/ljvis_db
 RESQL_DB_USERNAME: ljvis
 RESQL_DB_PASSWORD: <parool>
 ```
 
-> Docker-compose-s vastavad muutujad: `sqlms.datasources.[0].jdbcUrl`, `.username`, `.password`
+Kasutatav teenus: `resql-ljvis`  
+Env muutujad docker-compose näidises:
+```
+sqlms.datasources.[0].jdbcUrl
+sqlms.datasources.[0].username
+sqlms.datasources.[0].password
+```
 
-### 4.3 `tim-db-credentials`
+### 2.2 TIM andmebaasi ühendus (tim)
 
 ```yaml
+# Secret nimi: tim-db-credentials
 TIM_DB_HOST: <rds-host>
 TIM_DB_USERNAME: tim
 TIM_DB_PASSWORD: <parool>
 ```
 
-### 4.4 `tim-tara-credentials`
+### 2.3 TIM OIDC / TARA seadistus (tim)
 
 ```yaml
+# Secret nimi: tim-tara-credentials
 TARA_CLIENT_ID: <kliendi-id TARA-st>
 TARA_CLIENT_SECRET: <kliendi-saladus TARA-st>
 TARA_REDIRECT_URI: https://<domeen>/tim/authenticate
@@ -187,19 +175,21 @@ TARA_JWKS_URI: https://tara.ria.ee/oidc/jwks
 JWT_KEYSTORE_PASSWORD: <parool>
 ```
 
-> Dev-keskkonnas asendatakse TARA URL-id `tara-mock` aadressiga.
+> Dev-keskkonnas asendatakse TARA päris-URL-id `tara-mock` teenuse aadressiga.
 
-### 4.5 `tim-jwt-config`
+### 2.4 TIM JWT küpsise seadistus (tim)
 
 ```yaml
 JWT_COOKIE_NAME: customJwtCookie
-JWT_SECURE_COOKIE: "true"
-SESSION_COOKIE_SAME_SITE: strict
+JWT_SECURE_COOKIE: "true"           # prod: true, dev: false
+SESSION_COOKIE_SAME_SITE: strict    # prod: strict, dev: lax
 FRONTPAGE_REDIRECT_URL: https://<domeen>
 AUTH_SUCCESS_REDIRECT_WHITELIST: https://<domeen>
 ```
 
-### 4.6 `ljvis-constants` ConfigMap
+### 2.5 Ruuter sisemised URL-id (constants.ini / ConfigMap)
+
+`constants.ini` fail määrab kõigi teenuste sisemised aadressid. Prod-keskkonnas asendada hostinimed Kubernetes teenuste nimedega:
 
 ```ini
 LJVIS_RESQL=http://resql-ljvis:8090/ljvis
@@ -212,271 +202,180 @@ LJVIS_PROJECT_LAYER=ljvis
 DOMAIN=<avalik domeen>
 ```
 
-### 4.7 `ruuter-cors-config` ConfigMap
+See fail monteeritakse **ConfigMap**-ina mõlemasse Ruuter konteinerisse (`ruuter` ja `ruuter-internal`).
+
+### 2.6 Ruuter CORS ja turvaseadistus
 
 ```yaml
+# ruuter-config
 ALLOWED_ORIGINS: https://<domeen>
 ALLOWED_METHOD_TYPES: POST,GET,PUT,DELETE
 HTTP_CODES_ALLOWLIST: 200,201,202,400,401,403,500
 INTERNAL_REQUESTS_ALLOWED_IPS: 127.0.0.1
 ```
 
----
+### 2.7 Mis teenus vajab mis Secret-i — kokkuvõte
 
-## 5. Objektisalv (S3)
-
-### 5.1 Bucket seadistus
-
-| Parameeter | Väärtus |
-|-----------|---------|
-| Bucket nimi | `ljvis` |
-| Regioon | `auto` (R2) / `eu-north-1` (AWS S3) |
-| Avalik ligipääs | Keelatud |
-| Versioneerimine | Soovituslik |
-| Sisu | `api-endpoints.md`, `openapi.yaml` ja muud docs-failid |
-
-### 5.2 Ligipääsuõiguste loomine
-
-**Cloudflare R2:**
-
-| Samm | Toiming |
-|------|---------|
-| 1 | Cloudflare Dashboard → R2 → Manage R2 API Tokens |
-| 2 | Loo token: nimi `ljvis-ci-rw`, õigused Object Read + Object Write, ainult bucket `ljvis` |
-| 3 | Salvesta Access Key ID ja Secret Access Key (kuvatakse ainult üks kord) |
-| 4 | Pane väärtused GitLab CI muutujatesse (vt §6) |
-
-**AWS S3 IAM policy (minimaalne):**
-
-```json
-{
-  "Effect": "Allow",
-  "Action": ["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
-  "Resource": ["arn:aws:s3:::ljvis", "arn:aws:s3:::ljvis/*"]
-}
-```
-
-### 5.3 `ljvis-s3-credentials` Secret
-
-```yaml
-S3_ENDPOINT_URL: https://<account-id>.r2.cloudflarestorage.com
-S3_BUCKET: ljvis
-S3_ACCESS_KEY_ID: <access-key-id>
-S3_SECRET_ACCESS_KEY: <secret-access-key>
-S3_REGION: auto
-```
-
-### 5.4 Credentials rotatsioon
-
-| Samm | Toiming |
-|------|---------|
-| 1 | Cloudflare / AWS: kustuta vana token / võti |
-| 2 | Loo uus token / võti |
-| 3 | Uuenda `ljvis-s3-credentials` Secret Kubernetes-es |
-| 4 | Uuenda GitLab CI muutujad `S3_ACCESS_KEY_ID` ja `S3_SECRET_ACCESS_KEY` |
+| Teenus | Secret-id |
+|--------|-----------|
+| `resql-ljvis` | `ljvis-db-credentials` |
+| `tim` | `tim-db-credentials`, `tim-tara-credentials`, TIM JWT seadistus |
+| `ruuter` | `constants.ini` ConfigMap, CORS seadistus |
+| `ruuter-internal` | `constants.ini` ConfigMap |
+| `data-mapper` | (pole saladusi, ainult DSL failid) |
+| `liquibase` | `ljvis-db-credentials` |
+| `frontend` | (pole saladusi, staatiline build) |
 
 ---
 
-## 6. GitLab CI/CD
+## 3. GitLab CI/CD pipeline
 
-### 6.1 Nõutavad CI/CD muutujad (Settings → CI/CD → Variables)
+### 3.1 Olemasolev pipeline
 
-| Muutuja | Kasutus | Maskeeritud |
-|---------|---------|-------------|
-| `AWS_ACCESS_KEY_ID` | EKS deploy (ECR login, kubectl) | ✅ |
-| `AWS_SECRET_ACCESS_KEY` | EKS deploy | ✅ |
-| `AWS_REGION` | nt `eu-north-1` | — |
-| `ECR_REGISTRY` | nt `123456789.dkr.ecr.eu-north-1.amazonaws.com` | — |
-| `EKS_CLUSTER_NAME` | Kubernetes klastri nimi | — |
-| `KUBECONFIG_B64` | Base64 kubeconfig (deploy kasutaja) | ✅ |
-| `DB_PASSWORD` | LJVIS DB parool (Liquibase + RESQL) | ✅ |
-| `TIM_DB_PASSWORD` | TIM DB parool | ✅ |
-| `TARA_CLIENT_SECRET` | TARA kliendi saladus | ✅ |
-| `S3_ENDPOINT_URL` | R2 / S3 endpoint | — |
-| `S3_BUCKET` | `ljvis` | — |
-| `S3_ACCESS_KEY_ID` | S3/R2 Access Key | ✅ |
-| `S3_SECRET_ACCESS_KEY` | S3/R2 Secret Key | ✅ |
+Praegu sisaldab `.gitlab-ci.yml` ainult **Secret Detection** etappi (GitLab SAST). Build ja deploy pipeline tuleb lisada.
 
-### 6.2 Build'itavad image-id
+### 3.2 GitLab CI muutujad (Settings → CI/CD → Variables)
 
-| Image | Dockerfile | ECR repo |
-|-------|-----------|----------|
-| `ruuter` | `docker/ruuter/Dockerfile` | `ljvis/ruuter` |
-| `ruuter-internal` | `docker/ruuter-internal/Dockerfile` | `ljvis/ruuter-internal` |
-| `resql-ljvis` | `docker/resql-ljvis/Dockerfile` | `ljvis/resql-ljvis` |
-| `data-mapper` | `docker/data-mapper/Dockerfile` | `ljvis/data-mapper` |
-| `liquibase` | `docker/liquibase/Dockerfile` | `ljvis/liquibase` |
-| `frontend` | `frontend/Dockerfile` | `ljvis/frontend` |
+Seadistada GitLab projekti tasandil (kaitstud ja maskeeritud):
 
-> `tara-mock` ei build'ita prod-is. `tim` tuleb `ghcr.io/buerokratt/tim:pre-apha-2.7.1`.
+| Muutuja | Selgitus |
+|---------|----------|
+| `AWS_ACCESS_KEY_ID` | AWS IAM kasutaja võti (EKS deploy jaoks) |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM salajane võti |
+| `AWS_REGION` | nt `eu-north-1` |
+| `ECR_REGISTRY` | nt `123456789.dkr.ecr.eu-north-1.amazonaws.com` |
+| `EKS_CLUSTER_NAME` | Kubernetes klastri nimi |
+| `KUBECONFIG_B64` | Base64-kodeeritud kubeconfig (deploy kasutaja) |
+| `DB_PASSWORD` | LJVIS andmebaasi parool (Liquibase ja RESQL jaoks) |
+| `TIM_DB_PASSWORD` | TIM andmebaasi parool |
+| `TARA_CLIENT_SECRET` | TARA kliendi saladus |
 
-### 6.3 Pipeline struktuur
+### 3.3 Soovitatav pipeline struktuur
 
 ```yaml
-stages: [test, build, push, deploy]
+stages:
+  - test
+  - build
+  - push
+  - deploy
 
 build:
+  stage: build
   script:
     - docker build -t $ECR_REGISTRY/ruuter:$CI_COMMIT_SHA -f docker/ruuter/Dockerfile .
-    # ... teised image-id
+    - docker build -t $ECR_REGISTRY/resql-ljvis:$CI_COMMIT_SHA -f docker/resql-ljvis/Dockerfile .
+    - docker build -t $ECR_REGISTRY/data-mapper:$CI_COMMIT_SHA -f docker/data-mapper/Dockerfile .
+    - docker build -t $ECR_REGISTRY/ruuter-internal:$CI_COMMIT_SHA -f docker/ruuter-internal/Dockerfile .
+    - docker build -t $ECR_REGISTRY/frontend:$CI_COMMIT_SHA -f frontend/Dockerfile ./frontend
 
 push:
+  stage: push
   script:
     - aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY
     - docker push $ECR_REGISTRY/ruuter:$CI_COMMIT_SHA
-    # ...
+    # ... kõik image'd
 
 deploy:
-  script:
-    - echo $KUBECONFIG_B64 | base64 -d > kubeconfig && export KUBECONFIG=kubeconfig
-    - kubectl apply -f k8s/liquibase-job.yaml && kubectl wait --for=condition=complete job/liquibase
-    - kubectl set image deployment/ruuter ruuter=$ECR_REGISTRY/ruuter:$CI_COMMIT_SHA
-    # ...
-
-upload-docs:
   stage: deploy
   script:
-    - pip install awscli --quiet
-    - aws s3 cp docs/api-endpoints.md s3://$S3_BUCKET/api-endpoints.md --endpoint-url $S3_ENDPOINT_URL
-    - aws s3 cp docs/openapi.yaml s3://$S3_BUCKET/openapi.yaml --endpoint-url $S3_ENDPOINT_URL
-  variables:
-    AWS_ACCESS_KEY_ID: $S3_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY: $S3_SECRET_ACCESS_KEY
-    AWS_DEFAULT_REGION: auto
-  only: [dev, main]
+    - echo $KUBECONFIG_B64 | base64 -d > kubeconfig
+    - export KUBECONFIG=kubeconfig
+    - kubectl set image deployment/ruuter ruuter=$ECR_REGISTRY/ruuter:$CI_COMMIT_SHA
+    # ... kõik deploymentid
 ```
+
+> **Märkus:** Liquibase käivitatakse deploy ajal eraldi **Kubernetes Job**-ina enne rakenduste rollout'i.
+
+### 3.4 Image-id mis tuleb build'ida ja ECR-i pushida
+
+| Image | Dockerfile |
+|-------|-----------|
+| `ruuter` | `docker/ruuter/Dockerfile` |
+| `ruuter-internal` | `docker/ruuter-internal/Dockerfile` |
+| `resql-ljvis` | `docker/resql-ljvis/Dockerfile` |
+| `data-mapper` | `docker/data-mapper/Dockerfile` |
+| `liquibase` | `docker/liquibase/Dockerfile` |
+| `frontend` | `frontend/Dockerfile` |
+
+> `tara-mock` image't **ei build'ita** prod-s — ainult dev/CI jaoks.  
+> `tim` image tuleb avalikust ghcr.io-st: `ghcr.io/buerokratt/tim:pre-apha-2.7.1`
 
 ---
 
-## 7. X-tee seadistus
+## 4. X-tee seadistus
 
-### 7.1 LJVIS roll X-tees
+X-tee on kahetasandiline:
 
-| Roll | Kirjeldus |
-|------|-----------|
-| X-tee klient | LJVIS pärib välisregistritest andmeid (Rahvastikuregister, Äriregister, Liiklusregister) |
-| X-tee teenusepakkuja | Välissüsteemid pärivad LJVIS-ist kontrolliandmeid SOAP/MP4 kaudu |
+**a) LJVIS kui X-tee klient** — pärib andmeid välistest registritest (Rahvastikuregister, Äriregister, Liiklusregister)  
+**b) LJVIS kui X-tee teenusepakkuja** — välissüsteemid pärivad LJVIS-ist kontrolliandmeid
 
-### 7.2 LJVIS kliendi identifikaator
+### 4.1 LJVIS X-tee kliendi identifikaator
 
-| Keskkond | Identifikaator |
-|----------|---------------|
-| Test | `ee-test/GOV/70003158/ljvis` |
-| Prod | `EE/GOV/70003158/ljvis` |
+```
+{instance}/GOV/70003158/ljvis
+```
 
-### 7.3 Tunneli URL (rakenduse seadistuses)
+Dev/test: `ee-test/GOV/70003158/ljvis`  
+Prod: `EE/GOV/70003158/ljvis`
 
-| Keskkond | URL |
-|----------|-----|
+### 4.2 Tunneli URL
+
+| Keskkond | Tunnel URL |
+|----------|-----------|
 | Test | `https://test.liiklusvalve.ee/xtee/tunnel` |
 | Prod | `https://liiklusvalve.ee/xtee/tunnel` |
 
-> Tunnel URL seadistatakse Ruuteri DSL failides (`DSL/Ruuter/ljvis/`) HTTP sammu `url` väljal.
+Tunnel URL seadistatakse Ruuteri DSL failides, kus X-tee päringuid tehakse. Otsida failidest: `DSL/Ruuter/ljvis/` — X-tee kutsed lähevad läbi Ruuteri HTTP sammu.
 
-### 7.4 Välised registrid mida LJVIS pärib
+### 4.3 Välised teenused mida LJVIS pärib
 
 | Teenus | X-tee identifikaator | Kasutusjuht |
 |--------|---------------------|-------------|
-| Rahvastikuregister | `ee-test/GOV/70008440/rr/RR404_isik/v3` | Isiku andmete eeltäitmine |
-| Äriregister | `ee-test/GOV/70000310/arireg/lihtandmed_v1/v1` | Ettevõtte andmete eeltäitmine |
-| Liiklusregister | `liiklusregister/paring2/v2` | Sõiduki andmete eeltäitmine |
+| Rahvastikuregister | `ee-test/GOV/70008440/rr/RR404_isik/v3` | Isiku andmete eeltäitmine vormil |
+| Äriregister | `ee-test/GOV/70000310/arireg/lihtandmed_v1/v1` | Ettevõtte andmete eeltäitmine vormil |
+| Liiklusregister | `liiklusregister/paring2/v2` | Sõiduki andmete eeltäitmine vormil |
 
-### 7.5 LJVIS pakutavad X-tee teenused
+### 4.4 LJVIS kui X-tee teenusepakkuja
 
-| Teenus | Protokoll | Kirjeldus |
-|--------|-----------|-----------|
-| `IsikuKontroll` | SOAP / MP4.0 | Isiku kontrollide pärimine |
-| `IsikuEttevoteKontrollid` | SOAP / MP4.0 | Ettevõtte ja isiku rikkumised |
-| `ErakorralineYlevaatus` | SOAP / MP4.0 | Erakorralise ülevaatuse registreerimine |
-| `RegisterJobInspection` / `V2` | SOAP / MP4.0 | Töökontrolli registreerimine |
+LJVIS pakub välissüsteemidele SOAP/MP4 teenuseid:
 
-> WSDL: `XTeeService/ljvis.wsdl`
+| Teenus | Kirjeldus |
+|--------|-----------|
+| `IsikuKontroll` | Isiku kontrollide pärimine |
+| `IsikuEttevoteKontrollid` | Ettevõtte ja isiku rikkumised |
+| `ErakorralineYlevaatus` | Erakorralise ülevaatuse registreerimine |
+| `RegisterJobInspection` / `RegisterJobInspectionV2` | Töökontrolli registreerimine |
 
+WSDL: `Ljvis.XTeeService/ljvis.wsdl`  
+Protokoll: X-tee Message Protocol 4.0 (SOAP)
 
-## 7. Käivitusjärjekord ja sõltuvused
+### 4.5 X-tee turvaserveri seadistus
 
-| Järjekord | Teenus | Ootab | Kubernetes mehhanism |
-|-----------|--------|-------|----------------------|
-| 1 | PostgreSQL LJVIS (RDS) | — | RDS käivitub enne klastrit |
-| 2 | PostgreSQL TIM (RDS) | — | RDS käivitub enne klastrit |
-| 3 | `liquibase` Job | LJVIS DB healthcheck OK | `initContainer` / K8s Job + `kubectl wait` |
-| 4 | `tim` | TIM DB | `readinessProbe` |
-| 5 | `resql-ljvis` | LJVIS DB | `readinessProbe` |
-| 6 | `data-mapper` | — (sõltumatu) | paralleelselt teistega |
-| 7 | `ruuter` | TIM + RESQL + data-mapper | `readinessProbe` |
-| 8 | `ruuter-internal` | RESQL | `readinessProbe` |
-| 9 | `frontend` | ruuter | `readinessProbe` |
+X-tee turvaserver peab olema seadistatud eraldi (see on infra-tasandi töö, mitte rakenduse seadistus). Rakenduse poolel tuleb Ruuteri DSL failides õiged tunneli URL-id seadistada.
+
+> Võta ühendust RIA-ga (Riigi Infosüsteemi Amet) X-tee liikmelisuse ja turvaserveri sertifikaatide seadistamiseks.
 
 ---
 
-## 8. Võrgu ligipääsupiirangud
+## 5. Rakenduste käivitusjärjekord
 
-### 8.1 Avaliku ligipääsu reegel
+Kubernetes deployment peab järgima seda järjekorda:
 
-| Teenus | Internet → teenus | Lubatud |
-|--------|------------------|---------|
-| ALB / Ingress | HTTPS :443 | ✅ |
-| `frontend` | läbi ALB | ✅ |
-| `tim` | ainult `/tim/*` rajad läbi frontend | ⚠️ piiratud |
-| `ruuter` | ei tohi otse | ❌ |
-| `ruuter-internal` | ei tohi otse | ❌ |
-| `resql-ljvis` | ei tohi otse | ❌ |
-| `data-mapper` | ei tohi otse | ❌ |
-| PostgreSQL LJVIS | ei tohi otse | ❌ |
-| PostgreSQL TIM | ei tohi otse | ❌ |
+```
+1. PostgreSQL (LJVIS DB)       ← RDS, käivitub enne kõike
+2. PostgreSQL (TIM DB)         ← RDS, käivitub enne kõike
+3. Liquibase Job               ← ootab LJVIS DB healthcheck'i, rakendab migratsioonid
+4. TIM                         ← ootab TIM DB
+5. resql-ljvis                 ← ootab LJVIS DB
+6. data-mapper                 ← sõltumatu, saab käivituda paralleelselt
+7. ruuter                      ← ootab TIM + RESQL + data-mapper
+8. ruuter-internal             ← ootab RESQL
+9. frontend                    ← ootab ruuter
+```
 
-### 8.2 Sisemine liiklus (klastri sees)
-
-| Allikas | Sihteenus | Lubatud |
-|---------|----------|---------|
-| `frontend` | `ruuter` :8086 | ✅ |
-| `frontend` | `tim` :8085 | ✅ |
-| `ruuter` | `tim` :8085 | ✅ |
-| `ruuter` | `resql-ljvis` :8090 | ✅ |
-| `ruuter` | `data-mapper` :3005 | ✅ |
-| `ruuter-internal` | `resql-ljvis` :8090 | ✅ |
-| `resql-ljvis` | PostgreSQL LJVIS :5432 | ✅ |
-| `tim` | PostgreSQL TIM :5432 | ✅ |
-| `liquibase` | PostgreSQL LJVIS :5432 | ✅ (ainult deploy ajal) |
+Kubernetes init-containerid või `depends_on` ekvivalendid tuleb Helm chart'is vastavalt seadistada.
 
 ---
-
-## 9. Paigalduse kontrollnimekiri
-
-### Infrastruktuur
-
-- [ ] EKS klaster on loodud
-- [ ] RDS PostgreSQL LJVIS on loodud ja kättesaadav klastri sees
-- [ ] RDS PostgreSQL TIM on loodud ja kättesaadav klastri sees
-- [ ] ALB + ACM TLS sertifikaat on seadistatud
-- [ ] ECR repod on loodud kõigile image-idele
-- [ ] S3 / R2 bucket `ljvis` on loodud (privaatne)
-- [ ] AWS Secrets Manager on seadistatud ja External Secrets Operator on klastris
-
-### Secrets
-
-- [ ] `ljvis-db-credentials` on loodud
-- [ ] `tim-db-credentials` on loodud
-- [ ] `tim-tara-credentials` on loodud (TARA kliendi ID ja saladus RIA-st)
-- [ ] `tim-jwt-config` on loodud
-- [ ] `ljvis-s3-credentials` on loodud
-- [ ] `ljvis-constants` ConfigMap on loodud õigete K8s service nimedega
-- [ ] `ruuter-cors-config` ConfigMap on loodud õige domeeniga
-
-### CI/CD
-
-- [ ] Kõik §6.1 GitLab CI muutujad on seadistatud (kaitstud + maskeeritud)
-- [ ] Pipeline käivitub ja kõik image-id build'itakse + pushitakse ECR-i
-- [ ] `liquibase` Job käivitub edukalt (skeemimigratsioonid rakenduvad)
-- [ ] Docs failid üleslaetakse S3-sse (`upload-docs` samm)
-
-### Rakendus
-
-- [ ] Kõik Deployment-id on `Running` ja `Ready`
-- [ ] `https://<domeen>/` laeb frontendi
-- [ ] Sisselogimine TARA kaudu toimib
-- [ ] API päringud `/api/v1/classifiers` tagastavad vastuse
-
 
 ## Viited
 

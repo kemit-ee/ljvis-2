@@ -80,19 +80,15 @@ checkSearch:
   next: extractPersonalCodes
 
 logSearchEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user.list.search"
-      event_category: "user_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: "Otsing '${search}'"
-      log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"ownOrganisation\",\"organisationId\":${organisation_id}}"
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  body:
+    event_type: "user.list.search"
+    event_category: "user_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: "Otsing '${search}'"
+    log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"ownOrganisation\",\"organisationId\":${organisation_id}}"
   result: audit_result
   next: extractPersonalCodes
 
@@ -125,19 +121,15 @@ setDescriptionAndLogContent:
   next: logViewEvent
 
 logViewEvent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
-    headers:
-      type: json
-    body:
-      event_type: "user.list.view"
-      event_category: "user_management"
-      actor_name: ${actor_name}
-      actor_personal_code: ${actor_personal_code}
-      description: ${view_description}
-      log_content: ${view_log_content}
-      created_by: ${actor_name}
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  body:
+    event_type: "user.list.view"
+    event_category: "user_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: ${view_description}
+    log_content: ${view_log_content}
   result: audit_result
   next: returnSuccess
 

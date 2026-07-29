@@ -41,6 +41,7 @@ getLogs:
       page_size: ${page_size}
       sorting: ${sorting}
   result: res
+  next: mapResponse
 
 mapResponse:
   call: http.post
@@ -51,6 +52,7 @@ mapResponse:
     body:
       logs: ${res.response.body}
   result: mapped
+  next: returnSuccess
 
 returnSuccess:
   return: ${mapped.response.body}
