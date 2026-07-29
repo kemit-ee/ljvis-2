@@ -15,6 +15,7 @@ import type { LabourInspectionForm } from '../../types';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
 import styles from './LabourInspectionFormPage.module.css';
+import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 
 export function LabourInspectionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -208,38 +209,36 @@ export function LabourInspectionFormPage() {
           removeViolation={removeViolation}
         />
 
-        <div className="card-main" style={{ display: 'flex', gap: '1rem' }}>
-          {isEditActive ? (
-            <>
-              <Button type="submit">{t('common.save')}</Button>
-              {canConfirm && (
-                <Button type="button" onClick={triggerConfirm}>
-                  {t('common.confirm')}
+        <div className="page-actions">
+          <div className="page-actions-buttons">
+            {isEditActive ? (
+              <>
+                <Button
+                  type="button"
+                  visualType="secondary"
+                  onClick={() => {
+                    formik.resetForm();
+                    setIsEditActive(false);
+                  }}
+                >
+                  {t('common.cancel')}
                 </Button>
-              )}
-              <Button
-                type="button"
-                visualType="secondary"
-                onClick={() => {
-                  formik.resetForm();
-                  setIsEditActive(false);
-                }}
-              >
-                {t('common.cancel')}
-              </Button>
-            </>
-          ) : (
-            canEdit && (
-              <Button type="button" onClick={() => setIsEditActive(true)}>
-                {t('common.edit')}
-              </Button>
-            )
-          )}
-          {canDelete && (
-            <Button type="button" visualType="secondary" onClick={handleDelete}>
-              {t('common.delete')}
-            </Button>
-          )}
+                <Button type="submit">{t('common.save')}</Button>
+                {canConfirm && (
+                  <Button type="button" onClick={triggerConfirm}>
+                    {t('common.confirm')}
+                  </Button>
+                )}
+              </>
+            ) : (
+              canEdit && (
+                <Button type="button" onClick={() => setIsEditActive(true)}>
+                  {t('common.edit')}
+                </Button>
+              )
+            )}
+            {canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
+          </div>
         </div>
       </form>
 

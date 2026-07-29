@@ -62,15 +62,17 @@ export function LabourInspectionFormCreatePage() {
           removeViolation={removeViolation}
         />
 
-        <div className="card-main" style={{ display: 'flex', gap: '1rem' }}>
-          <Button type="submit">{t('common.save')}</Button>
-          <Button
-            type="button"
-            visualType="secondary"
-            onClick={() => navigate('/')}
-          >
-            {t('common.cancel')}
-          </Button>
+        <div className="page-actions">
+          <div className="page-actions-buttons">
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => navigate('/')}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit">{t('common.save')}</Button>
+          </div>
         </div>
       </form>
     </div>

@@ -124,6 +124,7 @@ export function LabourInspectionFormFields({
                 label={t('forms.labour_inspection.inspectorName')}
                 value={formik.values.inspectorName}
                 onChange={(v) => formik.setFieldValue('inspectorName', v)}
+                required
                 input={{ maxLength: 200 }}
                 {...(formik.touched.inspectorName && formik.errors.inspectorName
                   ? { helper: { text: formik.errors.inspectorName as string, type: 'error' as const } }
@@ -157,6 +158,7 @@ export function LabourInspectionFormFields({
               <Select
                 id="inspectionType"
                 label={t('forms.labour_inspection.inspectionType')}
+                required
                 options={INSPECTION_TYPES.map((it) => ({
                   value: it.value,
                   label: t(it.labelKey),
@@ -178,6 +180,7 @@ export function LabourInspectionFormFields({
                 label={t('forms.labour_inspection.companyName')}
                 value={formik.values.companyName}
                 onChange={(v) => formik.setFieldValue('companyName', v)}
+                required
                 input={{ maxLength: 300 }}
                 {...(formik.touched.companyName && formik.errors.companyName
                   ? { helper: { text: formik.errors.companyName as string, type: 'error' as const } }
@@ -188,6 +191,7 @@ export function LabourInspectionFormFields({
                 label={t('forms.labour_inspection.companyRegCode')}
                 value={formik.values.companyRegCode}
                 onChange={(v) => formik.setFieldValue('companyRegCode', v)}
+                required
                 input={{ maxLength: 20 }}
                 {...(formik.touched.companyRegCode && formik.errors.companyRegCode
                   ? { helper: { text: formik.errors.companyRegCode as string, type: 'error' as const } }
