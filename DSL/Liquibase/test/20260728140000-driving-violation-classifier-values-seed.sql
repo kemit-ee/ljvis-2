@@ -45,17 +45,17 @@ DECLARE
     -- sub-arrays of a multidimensional array literal to share the same length, which the
     -- level-2 lists below do not — they range from 1 to 10 entries per group)
     v_groups                           TEXT[] := ARRAY[
-        '(EÜ) nr 561/2006|Sõiduajad|REG561_DRIVING_TIME|Artikli 6 lõige 1;Artikli 6 lõige 2;Artikli 6 lõige 3',
-        '(EÜ) nr 561/2006|Vaheajad|REG561_BREAKS|Artikkel 7',
-        '(EÜ) nr 561/2006|Puhkeperioodid|REG561_REST_PERIODS|Artikli 8 lõige 2;Artikli 8 lõige 5;Artikli 8 lõige 6',
-        '(EÜ) nr 561/2006|12 päeva reeglist lubatav erand|REG561_12DAY_EXCEPTION|Artikli 8 lõike 6 punkt a;Artikli 8 lõike 6 punkt b alapunkt ii;Artikli 8 lõike 6 punkt d',
-        '(EÜ) nr 561/2006|Töökorraldus|REG561_WORK_ORGANISATION|Artikli 10 lõige 1;Artikli 10 lõige 2',
-        '(EL) nr 165/2014|Sõidumeerikute, juhikaartide või salvestuslehtede kasutamine|REG165_TACHOGRAPH_USE|Artikkel 27;Artikli 32 lõige 1;Artikli 32 lõige 1 ja artikli 33 lõige 1;Artikli 32 lõige 3;Artikli 33 lõige 2;Artikli 34 lõige 1;Artikli 34 lõige 2;Artikli 34 lõige 3;Artikli 34 lõige 4;Artikli 34 lõige 5',
-        '(EL) nr 165/2014|Rikked|REG165_MALFUNCTIONS|Artikli 37 lõige 2',
-        'direktiiv 2002/15/EÜ|Maksimaalne iganädalane tööaeg|DIR200215_MAX_WEEKLY_WORKTIME|Artikkel 4',
-        'direktiiv 2002/15/EÜ|Vaheajad|DIR200215_BREAKS|Artikli 5 lõige 1',
-        'direktiiv 2002/15/EÜ|Öötöö|DIR200215_NIGHT_WORK|Artikli 7 lõige 1',
-        'direktiiv 2002/15/EÜ|Salvestused|DIR200215_RECORDS|Artikkel 9'
+        '(EÜ) nr 561/2006|Sõiduajad|SOIDUAJAD|Artikli 6 lõige 1;Artikli 6 lõige 2;Artikli 6 lõige 3',
+        '(EÜ) nr 561/2006|Vaheajad|VAHEAJAD_561|Artikkel 7',
+        '(EÜ) nr 561/2006|Puhkeperioodid|PUHKEPERIOODID|Artikli 8 lõige 2;Artikli 8 lõige 5;Artikli 8 lõige 6',
+        '(EÜ) nr 561/2006|12 päeva reeglist lubatav erand|PAEVA_12_ERAND|Artikli 8 lõike 6 punkt a;Artikli 8 lõike 6 punkt b alapunkt ii;Artikli 8 lõike 6 punkt d',
+        '(EÜ) nr 561/2006|Töökorraldus|TOOKORRALDUS|Artikli 10 lõige 1;Artikli 10 lõige 2',
+        '(EL) nr 165/2014|Sõidumeerikute, juhikaartide või salvestuslehtede kasutamine|SOIDUMEERIKUD|Artikkel 27;Artikli 32 lõige 1;Artikli 32 lõige 1 ja artikli 33 lõige 1;Artikli 32 lõige 3;Artikli 33 lõige 2;Artikli 34 lõige 1;Artikli 34 lõige 2;Artikli 34 lõige 3;Artikli 34 lõige 4;Artikli 34 lõige 5',
+        '(EL) nr 165/2014|Rikked|RIKKED|Artikli 37 lõige 2',
+        'direktiiv 2002/15/EÜ|Maksimaalne iganädalane tööaeg|MAKS_TOOAEG|Artikkel 4',
+        'direktiiv 2002/15/EÜ|Vaheajad|VAHEAJAD_TOOAEG|Artikli 5 lõige 1',
+        'direktiiv 2002/15/EÜ|Öötöö|OOTOO|Artikli 7 lõige 1',
+        'direktiiv 2002/15/EÜ|Salvestused|SALVESTUSED|Artikkel 9'
     ];
 BEGIN
     IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'DRIVING_VIOLATION') THEN
