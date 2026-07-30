@@ -1,7 +1,7 @@
 declaration:
   call: declare
-  version: 0.1
-  description: "Generic control-form audit logger. Renders the human-readable description from a single per-event-type format catalog and serialises log_content safely via JSON.stringify (no hand-built JSON). Delegates the DB write to audit/log-audit-event. Intended as the shared convention for all control-form audit events — add new events by adding one entry to the FORMATS catalog below."
+  version: 0.4
+  description: "Generic control-form audit logger (currently used only by labour-inspection create/update/view). See .ai/coding_guidelines_and_lessons_learned.md § Ruuter DSL for why this file avoids literal '{'/'}' inside ${...} expressions and uses TIM /jwt/userinfo directly instead of check-user-authority."
   method: post
   accepts: json
   returns: json
@@ -24,10 +24,65 @@ declaration:
       - field: muudetud_valjad
         type: string
 
-buildAudit:
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
+  next: buildActorInfo
+
+buildActorInfo:
   assign:
-    description: "${(function(){ var FORMATS = { 'control_form.labour_inspection.create': 'TI kontrollakt loodud, akti võti={akti_voti}, vormi number={vormi_number}, karistatud isikukood={isikukood}', 'control_form.labour_inspection.update': 'TI kontrollakt muudetud, akti võti={akti_voti}, vormi number={vormi_number}, karistatud isikukood={isikukood}, muudetud väljad={muudetud_valjad}', 'control_form.labour_inspection.view': 'TI kontrollakt vaadatud, akti võti={akti_voti}, vormi number={vormi_number}, karistatud isikukood={isikukood}' }; var b = incoming.body; var tpl = FORMATS[b.event_type] || ''; return tpl.replace(/\\{(\\w+)\\}/g, function(_, k){ var v = b[k]; return (v != null && v !== '') ? v : '-'; }); })()}"
-    log_content: "${(function(){ var b = incoming.body; var clean = function(v){ return (v != null && v !== '') ? v : null; }; var p = { formKey: clean(b.akti_voti), formNumber: clean(b.vormi_number), punishedPersonIdCode: clean(b.isikukood) }; if (b.muudetud_valjad != null && b.muudetud_valjad !== '') { try { p.changedFields = JSON.parse(b.muudetud_valjad); } catch (e) { p.changedFields = b.muudetud_valjad; } } return JSON.stringify(p); })()}"
+    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+  next: selectDescription
+
+selectDescription:
+  switch:
+    - condition: ${incoming.body.event_type === 'control_form.labour_inspection.create'}
+      next: descCreate
+    - condition: ${incoming.body.event_type === 'control_form.labour_inspection.update'}
+      next: descUpdate
+    - condition: ${incoming.body.event_type === 'control_form.labour_inspection.view'}
+      next: descView
+  next: descDefault
+
+descCreate:
+  assign:
+    description: "TI kontrollakt loodud, akti võti=${incoming.body.akti_voti || '-'}, vormi number=${incoming.body.vormi_number || '-'}, karistatud isikukood=${incoming.body.isikukood || '-'}"
+  next: checkChangedFields
+
+descUpdate:
+  assign:
+    description: "TI kontrollakt muudetud, akti võti=${incoming.body.akti_voti || '-'}, vormi number=${incoming.body.vormi_number || '-'}, karistatud isikukood=${incoming.body.isikukood || '-'}, muudetud väljad=${incoming.body.muudetud_valjad || '-'}"
+  next: checkChangedFields
+
+descView:
+  assign:
+    description: "TI kontrollakt vaadatud, akti võti=${incoming.body.akti_voti || '-'}, vormi number=${incoming.body.vormi_number || '-'}, karistatud isikukood=${incoming.body.isikukood || '-'}"
+  next: checkChangedFields
+
+descDefault:
+  assign:
+    description: ""
+  next: checkChangedFields
+
+checkChangedFields:
+  switch:
+    - condition: ${incoming.body.muudetud_valjad != null && incoming.body.muudetud_valjad !== ''}
+      next: buildLogContentWithChanges
+  next: buildLogContentPlain
+
+buildLogContentPlain:
+  assign:
+    log_content: "${JSON.stringify(Object.fromEntries([['formKey', incoming.body.akti_voti || null], ['formNumber', incoming.body.vormi_number || null], ['punishedPersonIdCode', incoming.body.isikukood || null]]))}"
+  next: writeAudit
+
+buildLogContentWithChanges:
+  assign:
+    log_content: "${JSON.stringify(Object.fromEntries([['formKey', incoming.body.akti_voti || null], ['formNumber', incoming.body.vormi_number || null], ['punishedPersonIdCode', incoming.body.isikukood || null], ['changedFields', JSON.parse(incoming.body.muudetud_valjad)]]))}"
   next: writeAudit
 
 writeAudit:
@@ -38,6 +93,8 @@ writeAudit:
   body:
     event_type: ${incoming.body.event_type}
     event_category: ${incoming.body.event_category}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res
