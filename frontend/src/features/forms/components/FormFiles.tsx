@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -5,14 +6,8 @@ import {
   Heading,
   Text,
   StatusBadge,
-} from '@tedi-design-system/react/tedi';
-import {
   Modal,
-  ModalCloser,
-  ModalProvider,
-  ModalTrigger,
-  CardContent,
-} from '@tedi-design-system/react/community';
+} from '@tedi-design-system/react/tedi';
 import { useFormFiles } from '../hooks/useFormFiles';
 import type { FormAttachment } from '../types/files';
 import styles from './FormFiles.module.css';
@@ -50,24 +45,26 @@ export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
     handleUploadModalToggle,
   } = useFormFiles(formType, formNumber);
 
+  const [deleteModalFileId, setDeleteModalFileId] = useState<number | null>(null);
+  const fileForDeleteModal = files.find((f) => f.id === deleteModalFileId) ?? null;
+
   if (!formNumber) return null;
 
   return (
-    <Card>
+    <Card className="mb-1">
       <Card.Content>
         <div className={styles.header}>
           <Heading element="h3">{t('form.files.title')}</Heading>
-          <ModalProvider open={uploadModalOpen} onToggle={handleUploadModalToggle}>
-            <ModalTrigger>
-              <Button iconLeft="add">
-                {t('form.files.addBtn')}
-              </Button>
-            </ModalTrigger>
-            <Modal aria-labelledby="upload-modal-title">
-              <CardContent>
-                <Heading element="h2" id="upload-modal-title">
-                  {t('form.files.uploadTitle')}
-                </Heading>
+          <Button iconLeft="add" onClick={() => handleUploadModalToggle(true)}>
+            {t('form.files.addBtn')}
+          </Button>
+          <Modal open={uploadModalOpen} onToggle={handleUploadModalToggle}>
+            <Modal.Content>
+              <Modal.Header
+                title={t('form.files.uploadTitle')}
+                closeButton
+              />
+              <Modal.Body>
                 <div className={styles.uploadInputWrapper}>
                   <input
                     ref={fileInputRef}
@@ -89,23 +86,23 @@ export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
                     </Text>
                   )}
                 </div>
-                <div className="modal-actions">
-                  <ModalCloser>
-                    <Button visualType="secondary">
-                      {t('common.cancel')}
-                    </Button>
-                  </ModalCloser>
-                  <Button
-                    onClick={handleUpload}
-                    disabled={!fileToUpload || isUploading}
-                    isLoading={isUploading}
-                  >
-                    {t('form.files.uploadBtn')}
+              </Modal.Body>
+              <Modal.Footer>
+                <Modal.Closer>
+                  <Button visualType="secondary">
+                    {t('common.cancel')}
                   </Button>
-                </div>
-              </CardContent>
-            </Modal>
-          </ModalProvider>
+                </Modal.Closer>
+                <Button
+                  onClick={handleUpload}
+                  disabled={!fileToUpload || isUploading}
+                  isLoading={isUploading}
+                >
+                  {t('form.files.uploadBtn')}
+                </Button>
+              </Modal.Footer>
+            </Modal.Content>
+          </Modal>
         </div>
 
         {isLoading ? (
@@ -148,42 +145,14 @@ export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
                       >
                         {t('common.download')}
                       </Button>
-                      <ModalProvider>
-                        <ModalTrigger>
-                          <Button visualType="secondary" color="danger" iconLeft="delete">
-                            {t('common.remove')}
-                          </Button>
-                        </ModalTrigger>
-                        <Modal aria-labelledby={`delete-file-title-${file.id}`}>
-                          <CardContent>
-                            <Heading element="h2" id={`delete-file-title-${file.id}`}>
-                              {t('form.files.confirmDeleteTitle')}
-                            </Heading>
-                            <Text>
-                              {t('form.files.confirmDelete')}
-                            </Text>
-                            <Text modifiers="small" color="secondary">
-                              {file.fileName}
-                            </Text>
-                            <div className="modal-actions">
-                              <ModalCloser>
-                                <Button visualType="secondary">
-                                  {t('common.no')}
-                                </Button>
-                              </ModalCloser>
-                              <ModalCloser>
-                                <Button
-                                  color="danger"
-                                  onClick={() => handleDelete(file.id)}
-                                  isLoading={isDeleting === file.id}
-                                >
-                                  {t('common.yes')}
-                                </Button>
-                              </ModalCloser>
-                            </div>
-                          </CardContent>
-                        </Modal>
-                      </ModalProvider>
+                      <Button
+                        visualType="secondary"
+                        color="danger"
+                        iconLeft="delete"
+                        onClick={() => setDeleteModalFileId(file.id)}
+                      >
+                        {t('common.remove')}
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -193,6 +162,42 @@ export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
         ) : (
           <Text color="secondary">{t('form.files.empty')}</Text>
         )}
+
+        <Modal
+          open={deleteModalFileId !== null}
+          onToggle={(open) => {
+            if (!open) setDeleteModalFileId(null);
+          }}
+        >
+          <Modal.Content>
+            <Modal.Header title={t('form.files.confirmDeleteTitle')} closeButton />
+            <Modal.Body>
+              <Text>{t('form.files.confirmDelete')}</Text>
+              {fileForDeleteModal && (
+                <Text modifiers="small" color="secondary">
+                  {fileForDeleteModal.fileName}
+                </Text>
+              )}
+            </Modal.Body>
+            <Modal.Footer>
+              <Modal.Closer>
+                <Button visualType="secondary">{t('common.no')}</Button>
+              </Modal.Closer>
+              <Button
+                color="danger"
+                onClick={() => {
+                  if (fileForDeleteModal) {
+                    handleDelete(fileForDeleteModal.id);
+                    setDeleteModalFileId(null);
+                  }
+                }}
+                isLoading={fileForDeleteModal ? isDeleting === fileForDeleteModal.id : false}
+              >
+                {t('common.yes')}
+              </Button>
+            </Modal.Footer>
+          </Modal.Content>
+        </Modal>
       </Card.Content>
     </Card>
   );

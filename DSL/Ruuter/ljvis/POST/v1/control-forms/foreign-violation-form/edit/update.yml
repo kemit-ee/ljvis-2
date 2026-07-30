@@ -92,8 +92,6 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
-      - field: files
-        type: string
       - field: status
         type: string
 
@@ -149,7 +147,6 @@ extractRequestData:
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
-    files: "${incoming.body.files}"
     status: "${incoming.body.status}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
@@ -257,7 +254,6 @@ updateForm:
       inspectorOrganisationId: ${inspector_organisation_id}
       inspectorUnit: ${inspector_unit}
       inspectorProfession: ${inspector_profession}
-      files: ${files}
       status: ${status}
       created_by: ${created_by}
   result: insertRes
