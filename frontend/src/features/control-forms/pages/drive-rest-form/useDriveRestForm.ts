@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -14,10 +14,105 @@ import type {
 } from '../../types';
 import { insertDriveRestForm } from '../../api';
 
+export function createDriveRestValidationSchema(
+  t: (key: string) => string,
+) {
+  return Yup.object({
+    transportType: Yup.string().required(
+      t('forms.sp_form.validation.required'),
+    ),
+    resultType: Yup.string().required(
+      t('forms.sp_form.validation.required'),
+    ),
+    proceedingReferenceNumber: Yup.string().when('proceedingType', {
+      is: (proceedingType: string) => !!proceedingType,
+      then: (schema) =>
+        schema.required(t('forms.sp_form.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    atpViolationDescription: Yup.string().when('atpViolationFound', {
+      is: 'Jah',
+      then: (schema) =>
+        schema.required(t('forms.sp_form.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    checkedDaysCount: Yup.string(),
+    workDaysCount: Yup.string().test(
+      'workDaysCountMax',
+      t('forms.sp_form.validation.workDaysCountMax'),
+      function (value) {
+        if (!value) return true;
+        const workDays = parseInt(value, 10);
+        const checkedDays = parseInt(this.parent.checkedDaysCount || '', 10);
+        if (isNaN(checkedDays)) return false;
+        return workDays <= checkedDays;
+      },
+    ),
+  });
+}
+
+export function serializeDriveRestFormValues(
+  values: Partial<DriveRestForm> & Record<string, unknown>,
+  status: string,
+) {
+  const filteredOtherDocuments = Array.isArray(values.otherDocuments)
+    ? (values.otherDocuments as OtherDocument[]).filter(
+        (doc) => doc.result === 'NOUETEKOHANE' || doc.result === 'PUUDUB'
+      )
+    : [];
+
+  return {
+    ...values,
+    status,
+    transportClasses: Array.isArray(values.transportClasses)
+      ? JSON.stringify(values.transportClasses)
+      : (values.transportClasses ?? '[]'),
+    cabotageViolations: Array.isArray(values.cabotageViolations)
+      ? JSON.stringify(values.cabotageViolations)
+      : (values.cabotageViolations ?? '[]'),
+    documentChecks: Array.isArray(values.documentChecks)
+      ? JSON.stringify(
+          (values.documentChecks as DocumentCheck[]).map((e) => ({
+            documentCode: e.documentCode || e.level2Code,
+            documentName: e.documentName || e.level2Name,
+            severityCode: e.severityCode || e.level3Name,
+            violationCode: e.violationCode || e.level3Code,
+          })),
+        )
+      : (values.documentChecks ?? '[]'),
+    otherDocuments: JSON.stringify(filteredOtherDocuments),
+    violations5612006: Array.isArray(values.violations5612006)
+      ? JSON.stringify(values.violations5612006)
+      : (values.violations5612006 ?? '[]'),
+    violations1652014: Array.isArray(values.violations1652014)
+      ? JSON.stringify(values.violations1652014)
+      : (values.violations1652014 ?? '[]'),
+    violations200215: Array.isArray(values.violations200215)
+      ? JSON.stringify(values.violations200215)
+      : (values.violations200215 ?? '[]'),
+    violations5932008: Array.isArray(values.violations5932008)
+      ? JSON.stringify(values.violations5932008)
+      : (values.violations5932008 ?? '[]'),
+    violations20201057: Array.isArray(values.violations20201057)
+      ? JSON.stringify(values.violations20201057)
+      : (values.violations20201057 ?? '[]'),
+    massDimensionMeasurements: Array.isArray(values.massDimensionMeasurements)
+      ? JSON.stringify(values.massDimensionMeasurements)
+      : (values.massDimensionMeasurements ?? '[]'),
+    erruPoints: Array.isArray(values.erruPoints)
+      ? JSON.stringify(values.erruPoints)
+      : (values.erruPoints ?? '[]'),
+    files: Array.isArray(values.files)
+      ? JSON.stringify(values.files)
+      : (values.files ?? '[]'),
+  };
+}
+
 export function useDriveRestForm(
   form: DriveRestForm | undefined,
   onSaved: (id?: string) => void,
-  type: 'driver' | 'teammate' = 'driver',
+  type: 'driver' | 'teammate',
+  compoundFormKey?: number,
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
@@ -75,44 +170,13 @@ export function useDriveRestForm(
     [classifierValues],
   );
 
-  const validationSchema = Yup.object({
-    transportType: Yup.string().required(
-      t('forms.sp_form.validation.required'),
-    ),
-    resultType: Yup.string().required(
-      t('forms.sp_form.validation.required'),
-    ),
-    proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => proceedingType !== undefined,
-      then: (schema) =>
-        schema.required(t('forms.sp_form.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
-    atpViolationDescription: Yup.string().when('atpViolationFound', {
-      is: 'Jah',
-      then: (schema) =>
-        schema.required(t('forms.sp_form.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
-    checkedDaysCount: Yup.string(),
-    workDaysCount: Yup.string().test(
-      'workDaysCountMax',
-      t('forms.sp_form.validation.workDaysCountMax'),
-      function (value) {
-        if (!value) return true;
-        const workDays = parseInt(value, 10);
-        const checkedDays = parseInt(this.parent.checkedDaysCount || '', 10);
-        if (isNaN(checkedDays)) return false;
-        return workDays <= checkedDays;
-      },
-    ),
-  });
+  const validationSchema = createDriveRestValidationSchema(t);
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
       id: form?.id ?? '',
-      compoundFormKey: form?.compoundFormKey ?? 1,
+      compoundFormKey: form?.compoundFormKey,
       subFormNumber: form?.subFormNumber ?? '',
       status: form?.status ?? 'saved',
       selectionStatus: form?.selectionStatus ?? 'active',
@@ -198,67 +262,12 @@ export function useDriveRestForm(
     },
     validationSchema,
     onSubmit: async (values) => {
-      if (!formik.isValid) {
-        return;
-      }
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
         const nextStatus = isConfirming ? 'confirmed' : 'saved';
 
-        const filteredOtherDocuments = Array.isArray(values.otherDocuments)
-          ? (values.otherDocuments as OtherDocument[]).filter(
-              (doc) => doc.result === 'NOUETEKOHANE' || doc.result === 'PUUDUB'
-            )
-          : [];
-
-        const trimmedValues = {
-          ...values,
-          status: nextStatus,
-          transportClasses: Array.isArray(values.transportClasses)
-            ? JSON.stringify(values.transportClasses)
-            : (values.transportClasses ?? '[]'),
-          cabotageViolations: Array.isArray(values.cabotageViolations)
-            ? JSON.stringify(values.cabotageViolations)
-            : (values.cabotageViolations ?? '[]'),
-          documentChecks: Array.isArray(values.documentChecks)
-            ? JSON.stringify(
-                (values.documentChecks as DocumentCheck[]).map((e) => ({
-                  documentCode: e.documentCode || e.level2Code,
-                  documentName: e.documentName || e.level2Name,
-                  severityCode: e.severityCode || e.level3Name,
-                  violationCode: e.violationCode || e.level3Code,
-                })),
-              )
-            : (values.documentChecks ?? '[]'),
-          otherDocuments: JSON.stringify(filteredOtherDocuments),
-          violations5612006: Array.isArray(values.violations5612006)
-            ? JSON.stringify(values.violations5612006)
-            : (values.violations5612006 ?? '[]'),
-          violations1652014: Array.isArray(values.violations1652014)
-            ? JSON.stringify(values.violations1652014)
-            : (values.violations1652014 ?? '[]'),
-          violations200215: Array.isArray(values.violations200215)
-            ? JSON.stringify(values.violations200215)
-            : (values.violations200215 ?? '[]'),
-          violations5932008: Array.isArray(values.violations5932008)
-            ? JSON.stringify(values.violations5932008)
-            : (values.violations5932008 ?? '[]'),
-          violations20201057: Array.isArray(values.violations20201057)
-            ? JSON.stringify(values.violations20201057)
-            : (values.violations20201057 ?? '[]'),
-          massDimensionMeasurements: Array.isArray(
-            values.massDimensionMeasurements,
-          )
-            ? JSON.stringify(values.massDimensionMeasurements)
-            : (values.massDimensionMeasurements ?? '[]'),
-          erruPoints: Array.isArray(values.erruPoints)
-            ? JSON.stringify(values.erruPoints)
-            : (values.erruPoints ?? '[]'),
-          files: Array.isArray(values.files)
-            ? JSON.stringify(values.files)
-            : (values.files ?? '[]'),
-        };
+        const trimmedValues = serializeDriveRestFormValues(values, nextStatus);
 
         if (values.id) {
           // if (isConfirming) {
@@ -283,6 +292,15 @@ export function useDriveRestForm(
       }
     },
   });
+
+  // Sync compoundFormKey via setFieldValue instead of initialValues, so
+  // saving the general form (which assigns compoundFormKey afterwards)
+  // doesn't trigger enableReinitialize and wipe out the already-filled sub-form
+  useEffect(() => {
+    if (compoundFormKey !== undefined) {
+      formik.setFieldValue('compoundFormKey', compoundFormKey);
+    }
+  }, [compoundFormKey]);
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
