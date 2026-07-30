@@ -225,16 +225,15 @@ services:
 
   xtr:
     container_name: xtr
-    image: ghcr.io/buerokratt/xtr:v3.1.16
+    image: turnerrainer/xtr:rc
     platform: linux/amd64
     environment:
-      - server.port=8080
-      - application.dslPath=/DSL
-      - application.ssl.keystore-password=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
-      - application.security-server=${XROAD_SECURITY_SERVER:-}
-      - application.xroad-instance=${XROAD_INSTANCE:-ee-test}
+      - RUST_LOG=info
+      - XTR_KEYSTORE_PASSWORD=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
     volumes:
-      - ./DSL/xtr:/DSL
+      - ./DSL/xtr:/app/DSL
+      - ./xtr.yaml:/app/xtr.yaml:ro
+      - ./wsdl:/app/wsdl:ro
     ports:
       - 9010:8080
     networks:

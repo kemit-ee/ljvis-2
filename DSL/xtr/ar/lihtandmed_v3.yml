@@ -5,7 +5,7 @@ params:
   - username
   - password
 
-service: https://ariregxmlv6.rik.ee/
+service: https://demo-ariregxmlv6.rik.ee/
 method: POST
 
 envelope: >

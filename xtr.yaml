@@ -11,9 +11,6 @@ client_data:
 
 wsdl_watch_dir: /app/wsdl
 
-security_server:
-  url: "https://demo-ariregxmlv6.rik.ee/"
-
 limits:
   max_request_bytes: 1048576
   max_response_bytes: 16777216

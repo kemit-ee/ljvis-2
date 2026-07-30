@@ -1,0 +1,20 @@
+{
+  "totalFound": {{#if data.length}}{{data.length}}{{else}}0{{/if}},
+  "data": [
+    {{#each data}}
+    {
+      "registryCode": "{{reg_code}}",
+      "companyName": "{{name}}",
+      "status": "{{status}}",
+      "statusText": "",
+      "legalForm": "{{legal_form}}",
+      "legalFormText": "",
+      "locationCode": "",
+      "locationText": "",
+      "addressCode": "",
+      "address": "{{legal_address}}",
+      "addressNormalized": "{{legal_address}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ]
+}

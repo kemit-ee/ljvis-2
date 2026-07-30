@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Search Ariregister company data (lihtandmed_v3) via XTR"
+  description: "Search Ariregister company data via public autocomplete REST API"
   method: post
   accepts: json
   returns: json
@@ -12,46 +12,45 @@ declaration:
         type: string
       - field: companyName
         type: string
-      - field: maxResults
-        type: integer
 
 validate:
   switch:
     - condition: "${incoming.body.registryCode == null && incoming.body.companyName == null}"
       return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"At least one of registryCode or companyName is required\"}"
       status: 400
-    - condition: "${incoming.body.maxResults != null && (incoming.body.maxResults < 1 || incoming.body.maxResults > 100)}"
-      return: "{\"error\": \"INVALID_PARAMETER\", \"message\": \"maxResults must be between 1 and 100\"}"
-      status: 400
   next: assignParams
 
 assignParams:
   assign:
-    reg_code: "${incoming.body.registryCode || ''}"
-    company_name: "${incoming.body.companyName || ''}"
-    max_results: "${incoming.body.maxResults || 10}"
+    search_term: "${incoming.body.registryCode || incoming.body.companyName || ''}"
     start_time: "${new Date().getTime()}"
-  next: callXtr
+  next: callAriregister
 
-callXtr:
+callAriregister:
+  call: http.get
+  args:
+    url: "[#ARIREG_AUTOCOMPLETE_URL]"
+    query:
+      q: "${search_term}"
+  result: arResponse
+  next: checkAriregisterStatus
+
+checkAriregisterStatus:
+  switch:
+    - condition: "${arResponse.response.statusCodeValue < 200 || arResponse.response.statusCodeValue >= 300}"
+      next: logFailure
+  next: mapResponse
+
+mapResponse:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/lihtandmed_v3"
+    url: "[#LJVIS_DMAPPER_HBS]/arireg_autocomplete_response"
     headers:
       type: json
     body:
-      reg_code: ${reg_code}
-      company_name: ${company_name}
-      max_results: ${max_results}
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
-  result: xtrResponse
-  next: checkXtrStatus
-
-checkXtrStatus:
-  switch:
-    - condition: "${xtrResponse.response.statusCodeValue < 200 || xtrResponse.response.statusCodeValue >= 300}"
-      next: logFailure
+      data: ${arResponse.response.body.data}
+      status: ${arResponse.response.body.status}
+  result: mappedResponse
   next: logSuccess
 
 logSuccess:
@@ -62,7 +61,7 @@ logSuccess:
       type: json
     body:
       service_code: "arireg.lihtandmed_v3.v1"
-      request_xml: "${'registryCode=' + reg_code + ';companyName=' + company_name}"
+      request_xml: "${'q=' + search_term}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
@@ -78,20 +77,20 @@ logFailure:
       type: json
     body:
       service_code: "arireg.lihtandmed_v3.v1"
-      request_xml: "${'registryCode=' + reg_code + ';companyName=' + company_name}"
+      request_xml: "${'q=' + search_term}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
-      error_message: "${'XTR HTTP ' + xtrResponse.response.statusCodeValue}"
+      error_message: "${'ARI HTTP ' + arResponse.response.statusCodeValue}"
   result: logResult
   next: returnError
 
 returnResponse:
-  return: ${xtrResponse.response.body}
+  return: "${mappedResponse.response.body}"
   status: 200
   next: end
 
 returnError:
-  return: "{\"error\": \"XTR_ERROR\", \"message\": \"Äriregistri päring ebaõnnestus\"}"
+  return: "{\"error\": \"ARI_ERROR\", \"message\": \"Äriregistri päring ebaõnnestus\"}"
   status: 502
   next: end
