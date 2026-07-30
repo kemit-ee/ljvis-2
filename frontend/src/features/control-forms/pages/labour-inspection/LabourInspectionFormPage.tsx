@@ -16,6 +16,8 @@ import { LabourInspectionFormFields } from '../../components/LabourInspection/La
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
 import styles from './LabourInspectionFormPage.module.css';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
+import { AsyncButton } from '../../../../shared/components/AsyncButton';
+import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 
 export function LabourInspectionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -38,6 +40,7 @@ export function LabourInspectionFormPage() {
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
   const { form, loading, refetch } = useLabourInspectionFormDetail(
     snapshotId ? undefined : id,
@@ -61,7 +64,9 @@ export function LabourInspectionFormPage() {
   }, [form?.status]);
 
   const canEdit =
-    hasPermission('labour_inspection_form.write') && form?.status !== 'deleted';
+    hasPermission('labour_inspection_form.write') &&
+    form?.status !== 'deleted' &&
+    form?.status !== 'confirmed';
   const canDelete =
     hasPermission('control_form.delete') && form?.status !== 'deleted';
   const canConfirm =
@@ -75,6 +80,7 @@ export function LabourInspectionFormPage() {
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
+    setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
 
@@ -82,6 +88,7 @@ export function LabourInspectionFormPage() {
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
+    setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
 
@@ -111,7 +118,8 @@ export function LabourInspectionFormPage() {
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-    if (!snapshot) return <Text>{t('common.error')}</Text>;
+    if (!snapshot)
+      return <FormNotFoundView title={t('forms.labour_inspection_form')} />;
     return (
       <div>
         <Button
@@ -151,7 +159,8 @@ export function LabourInspectionFormPage() {
 
   if (loading && !form) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (!form) return <Text>{t('common.error')}</Text>;
+  if (!form)
+    return <FormNotFoundView title={t('forms.labour_inspection_form')} />;
 
   return (
     <div>
@@ -180,6 +189,11 @@ export function LabourInspectionFormPage() {
       {formError && (
         <Alert type="danger" size="small" className="mb-1">
           {formError}
+        </Alert>
+      )}
+      {isEditActive && formik.dirty && (
+        <Alert icon="warning" type="warning" size="small" className="mb-1">
+          {t('forms.labour_inspection.unsavedChangesWarning')}
         </Alert>
       )}
 
@@ -223,18 +237,26 @@ export function LabourInspectionFormPage() {
                 >
                   {t('common.cancel')}
                 </Button>
-                <Button type="submit">{t('common.save')}</Button>
+                <AsyncButton
+                  type="button"
+                  onClick={() => formik.submitForm()}
+                >
+                  {t('common.save')}
+                </AsyncButton>
                 {canConfirm && (
-                  <Button type="button" onClick={triggerConfirm}>
+                  <AsyncButton type="button" onClick={() => triggerConfirm()}>
                     {t('common.confirm')}
-                  </Button>
+                  </AsyncButton>
                 )}
               </>
             ) : (
               canEdit && (
-                <Button type="button" onClick={() => setIsEditActive(true)}>
+                <AsyncButton
+                  type="button"
+                  onClick={() => setIsEditActive(true)}
+                >
                   {t('common.edit')}
-                </Button>
+                </AsyncButton>
               )
             )}
             {canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
@@ -243,7 +265,11 @@ export function LabourInspectionFormPage() {
       </form>
 
       {id && (
-        <FormVersionsTable formId={id} formType={FORM_TYPE.LABOUR_INSPECTION} />
+        <FormVersionsTable
+          formId={id}
+          formType={FORM_TYPE.LABOUR_INSPECTION}
+          refreshKey={versionsRefreshKey}
+        />
       )}
     </div>
   );

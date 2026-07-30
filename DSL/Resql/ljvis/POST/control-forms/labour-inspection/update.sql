@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row; also used by confirm/re-save. version is always computed server-side from the latest existing snapshot (never trusts client input): carried forward unchanged while status=saved, incremented by 1 once the act has reached status=confirmed — see COMMENT on forms.labour_inspection_form.version."
+  description: "Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row. version is always computed server-side as latest version + 1 (never trusts client input); uq_lif_form_number_version guards against any duplicate."
   method: post
   accepts: json
   returns: json
@@ -51,6 +51,17 @@ declaration:
       - field: version
         type: number
 */
+-- `latest` reads form_number and current version from the most recent
+-- snapshot of this act, then increments by 1. uq_lif_form_number_version
+-- (partial unique index WHERE status <> 'deleted') catches any duplicate
+-- if a concurrent double-save somehow slips through.
+WITH latest AS (
+  SELECT form_number, version + 1 AS version
+  FROM forms.labour_inspection_form
+  WHERE labour_inspection_form_key = :key::BIGINT
+  ORDER BY created_at DESC
+  LIMIT 1
+)
 INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
   form_number,
@@ -72,22 +83,10 @@ INSERT INTO forms.labour_inspection_form (
   violations,
   created_by
 )
-VALUES (
+SELECT
   :key::BIGINT,
-  (
-    SELECT form_number
-    FROM forms.labour_inspection_form
-    WHERE labour_inspection_form_key = :key::BIGINT
-    ORDER BY created_at DESC
-    LIMIT 1
-  ),
-  (
-    SELECT CASE WHEN status = 'confirmed' THEN version + 1 ELSE version END
-    FROM forms.labour_inspection_form
-    WHERE labour_inspection_form_key = :key::BIGINT
-    ORDER BY created_at DESC
-    LIMIT 1
-  ),
+  latest.form_number,
+  latest.version,
   :status,
   :inspectorName,
   :inspectionDate::DATE,
@@ -104,5 +103,5 @@ VALUES (
   NULLIF(:proceedingReferenceNumber, ''),
   COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
   :created_by
-)
+FROM latest
 RETURNING labour_inspection_form_key AS id, form_number, version;

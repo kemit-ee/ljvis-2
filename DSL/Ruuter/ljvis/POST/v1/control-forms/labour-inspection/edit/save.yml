@@ -50,31 +50,39 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    inspector_name: "${incoming.body.inspectorName}"
-    inspection_date: "${incoming.body.inspectionDate}"
-    inspection_type: "${incoming.body.inspectionType}"
-    company_name: "${incoming.body.companyName}"
-    company_reg_code: "${incoming.body.companyRegCode}"
-    vehicle_count: "${incoming.body.vehicleCount}"
-    total_drivers_count: "${incoming.body.totalDriversCount}"
-    controls_matrix: "${incoming.body.controlsMatrix}"
-    prescription_composed: "${incoming.body.prescriptionComposed}"
-    punished_person_id_code: "${incoming.body.punishedPersonIdCode}"
-    punished_person_first_name: "${incoming.body.punishedPersonFirstName}"
-    punished_person_last_name: "${incoming.body.punishedPersonLastName}"
-    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber}"
-    violations: "${incoming.body.violations}"
+    inspector_name: "${incoming.body.inspectorName || ''}"
+    inspection_date: "${incoming.body.inspectionDate || ''}"
+    inspection_type: "${incoming.body.inspectionType || ''}"
+    company_name: "${incoming.body.companyName || ''}"
+    company_reg_code: "${incoming.body.companyRegCode || ''}"
+    vehicle_count: "${incoming.body.vehicleCount || ''}"
+    total_drivers_count: "${incoming.body.totalDriversCount || ''}"
+    controls_matrix: "${incoming.body.controlsMatrix || '[]'}"
+    prescription_composed: "${incoming.body.prescriptionComposed || 'false'}"
+    punished_person_id_code: "${incoming.body.punishedPersonIdCode || ''}"
+    punished_person_first_name: "${incoming.body.punishedPersonFirstName || ''}"
+    punished_person_last_name: "${incoming.body.punishedPersonLastName || ''}"
+    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
+    violations: "${incoming.body.violations || '[]'}"
     created_by: "${auth_user.personalcode}"
-  next: validateRequired
+  next: validateForm
 
-validateRequired:
+validateForm:
+  template: "[#LJVIS_PROJECT_LAYER]/form/labour-inspection/validate-labour-inspection-form"
+  requestType: templates
+  body:
+    inspectorName: ${inspector_name}
+    inspectionDate: ${inspection_date}
+    inspectionType: ${inspection_type}
+    companyName: ${company_name}
+    companyRegCode: ${company_reg_code}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
   switch:
-    - condition: ${!inspector_name || inspector_name.trim() === ''}
-      next: returnInspectorNameRequiredError
-    - condition: ${!inspection_date || inspection_date.trim() === ''}
-      next: returnInspectionDateRequiredError
-    - condition: ${new Date(inspection_date) > new Date()}
-      next: returnInspectionDateFutureError
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
   next: checkIsCreate
 
 checkIsCreate:
@@ -134,6 +142,12 @@ getCurrentFormForStatus:
 extractCurrentStatus:
   assign:
     current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormNotLocked
+
+checkFormNotLocked:
+  switch:
+    - condition: ${current_status === 'confirmed'}
+      next: returnFormLockedError
   next: calculateChangedFields
 
 calculateChangedFields:
@@ -207,17 +221,12 @@ returnSuccess:
   return: ${saveRes.response.body}
   next: end
 
-returnInspectorNameRequiredError:
+returnValidationError:
   status: 422
-  return: '{"type":"VALIDATION_ERROR","field":"inspectorName","code":"required"}'
+  return: ${validationResult}
   next: end
 
-returnInspectionDateRequiredError:
+returnFormLockedError:
   status: 422
-  return: '{"type":"VALIDATION_ERROR","field":"inspectionDate","code":"required"}'
-  next: end
-
-returnInspectionDateFutureError:
-  status: 422
-  return: '{"type":"VALIDATION_ERROR","field":"inspectionDate","code":"future_date_not_allowed"}'
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_confirm"}'
   next: end

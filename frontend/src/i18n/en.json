@@ -277,6 +277,7 @@
     "foreign_violation_form": "Foreign country road transport inspection report",
     "labour_inspection_form": "Labour Inspectorate inspection form",
     "labour_inspection": {
+      "unsavedChangesWarning": "You have unsaved changes — press \"Save\" to persist them.",
       "generalSection": "General information",
       "inspectorName": "Inspector name",
       "inspectionDate": "Inspection date",
@@ -312,14 +313,18 @@
         "violationType": "Violation type",
         "violationCode": "Violation code",
         "quantity": "Quantity",
-        "add": "Add violation"
+        "add": "Add violation",
+        "search": "Search violation"
       },
       "validation": {
         "required": "Required field",
         "api": {
           "violations_present_requires_e_toimik_publish": "An act with violations cannot be confirmed here — publishing is done via e-toimik.",
           "required": "Required field",
-          "future_date_not_allowed": "Date cannot be in the future"
+          "future_date_not_allowed": "Date cannot be in the future",
+          "max_length_exceeded": "Value is too long",
+          "form_locked_after_confirm": "This form has been confirmed and can no longer be edited",
+          "already_confirmed": "This form has already been confirmed"
         }
       }
     },

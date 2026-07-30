@@ -297,8 +297,9 @@
     "foreign_violation_form": "Välisriigis teostatud autoveoalase kontrolli kontrollkaart",
     "labour_inspection_form": "Tööinspektsiooni kontrollkaart",
     "labour_inspection": {
+      "unsavedChangesWarning": "Teil on salvestamata muudatusi — vajutage \"Salvesta\", et need kinnitada.",
       "generalSection": "Üldandmed",
-      "inspectorName": "Kontrolli läbiviija nimi",
+      "inspectorName": "Kontrolli läbiviimise eest vastutav isik",
       "inspectionDate": "Kontrolli kuupäev",
       "inspectionType": "Kontrolli liik",
       "inspectionTypePassenger": "Sõitjate vedu",
@@ -332,14 +333,18 @@
         "violationType": "Rikkumise liik",
         "violationCode": "Rikkumise kood",
         "quantity": "Kogus",
-        "add": "Lisa rikkumine"
+        "add": "Lisa rikkumine",
+        "search": "Otsi rikkumist"
       },
       "validation": {
         "required": "Kohustuslik väli",
         "api": {
           "violations_present_requires_e_toimik_publish": "Rikkumistega akti ei saa siin kinnitada — avaldamine toimub e-toimiku kaudu.",
           "required": "Kohustuslik väli",
-          "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus"
+          "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus",
+          "max_length_exceeded": "Väärtus on liiga pikk",
+          "form_locked_after_confirm": "See vorm on kinnitatud ja seda ei saa enam muuta",
+          "already_confirmed": "See vorm on juba kinnitatud"
         }
       }
     },

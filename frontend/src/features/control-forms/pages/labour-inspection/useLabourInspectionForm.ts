@@ -125,7 +125,7 @@ export function useLabourInspectionForm(
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
-    formik.submitForm();
+    return formik.submitForm();
   };
 
   const addMatrixRow = (transportClass: number) => {

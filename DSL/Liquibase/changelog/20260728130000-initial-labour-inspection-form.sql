@@ -47,7 +47,7 @@ COMMENT ON TABLE  forms.labour_inspection_form IS 'INSERT-only snapshot of a Lab
 COMMENT ON COLUMN forms.labour_inspection_form.id IS 'Per-row physical primary key.';
 COMMENT ON COLUMN forms.labour_inspection_form.labour_inspection_form_key IS 'Stable logical identity of the act (from forms.seq_labour_inspection_form_key). All snapshot rows of one act share this value. NOT unique.';
 COMMENT ON COLUMN forms.labour_inspection_form.form_number IS 'Act number core, format ti-AAAA-NNNNN. Logically immutable across all snapshots of the act; uniqueness enforced at orchestration layer. Displayed to the user joined with version as ti-AAAA-NNNNN/V (see version column) — never stores the /V suffix itself.';
-COMMENT ON COLUMN forms.labour_inspection_form.version IS 'Display version (the /V suffix of the act number). Starts at 1; increments by 1 on every re-save after the act reaches status=confirmed. Carried forward unchanged on every other re-save.';
+COMMENT ON COLUMN forms.labour_inspection_form.version IS 'Display version (the /V suffix of the act number). Starts at 1; incremented by 1 on every re-save. Computed server-side in update.sql as MAX(version)+1 from prior snapshots; guarded against duplicates by uq_lif_form_number_version.';
 COMMENT ON COLUMN forms.labour_inspection_form.status IS 'Lifecycle status: saved, confirmed, deleted. deleted is a final, irreversible soft-delete; deleted rows are hidden from search/view and retained for audit only.';
 COMMENT ON COLUMN forms.labour_inspection_form.inspector_name IS 'Name of the inspector who performed the control (kontrolli läbiviimise eest vastutav isik); free text, max 200 characters.';
 COMMENT ON COLUMN forms.labour_inspection_form.inspection_date IS 'Date the inspection was performed; must not be in the future (validated FE and backend).';
@@ -77,3 +77,20 @@ CREATE INDEX idx_lif_company_name          ON forms.labour_inspection_form (comp
 CREATE INDEX idx_lif_punished_person_id    ON forms.labour_inspection_form (punished_person_id_code);
 CREATE INDEX idx_lif_controls_matrix_gin   ON forms.labour_inspection_form USING GIN (controls_matrix);
 CREATE INDEX idx_lif_violations_gin        ON forms.labour_inspection_form USING GIN (violations);
+
+ALTER TABLE forms.labour_inspection_form
+    ADD CONSTRAINT chk_lif_status CHECK (status IN ('saved', 'confirmed', 'deleted')),
+    ADD CONSTRAINT chk_lif_inspection_type CHECK (inspection_type IN ('passenger', 'cargo')),
+    ADD CONSTRAINT chk_lif_inspector_name_not_blank CHECK (btrim(inspector_name) <> ''),
+    ADD CONSTRAINT chk_lif_inspection_date_not_future CHECK (inspection_date <= CURRENT_DATE),
+    ADD CONSTRAINT chk_lif_company_name_not_blank CHECK (btrim(company_name) <> ''),
+    ADD CONSTRAINT chk_lif_company_reg_code_not_blank CHECK (btrim(company_reg_code) <> ''),
+    ADD CONSTRAINT chk_lif_vehicle_count_non_negative CHECK (vehicle_count IS NULL OR vehicle_count >= 0),
+    ADD CONSTRAINT chk_lif_total_drivers_count_non_negative CHECK (total_drivers_count IS NULL OR total_drivers_count >= 0),
+    ADD CONSTRAINT chk_lif_version_positive CHECK (version >= 1);
+
+CREATE UNIQUE INDEX uq_lif_form_number_version
+    ON forms.labour_inspection_form (form_number, version)
+    WHERE status <> 'deleted';
+
+COMMENT ON INDEX forms.uq_lif_form_number_version IS 'Guards against duplicate (form_number, version) pairs among non-deleted snapshots. Deleted tombstones are excluded since delete.sql intentionally reuses the version of the snapshot it soft-deletes.';

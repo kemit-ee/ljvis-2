@@ -101,6 +101,7 @@ export function ViolationPickerModal({
   const [expandedKeys, setExpandedKeys] = useState<Set<number>>(new Set());
   const [selectedKey, setSelectedKey] = useState<number | null>(null);
   const [quantity, setQuantity] = useState('1');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Only currently-valid (non-expired) classifier values may be selected for
   // a new violation entry; already-recorded (possibly since-expired) values
@@ -127,10 +128,73 @@ export function ViolationPickerModal({
     return map;
   }, [validClassifiers]);
 
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  // When searching, compute the set of items that either match the search
+  // term themselves or have at least one matching descendant, plus the set
+  // of ancestor keys that should be force-expanded to reveal the match.
+  const { visibleKeys, autoExpandKeys } = useMemo(() => {
+    if (!normalizedSearch) {
+      return { visibleKeys: null as Set<number> | null, autoExpandKeys: new Set<number>() };
+    }
+    const matches = validClassifiers.filter(
+      (c) =>
+        c.name.toLowerCase().includes(normalizedSearch) ||
+        c.code.toLowerCase().includes(normalizedSearch),
+    );
+    const visible = new Set<number>();
+    const expand = new Set<number>();
+    const addWithAncestors = (item: ClassifierEntry, includeSelf: boolean) => {
+      if (includeSelf) visible.add(item.classifierValueKey);
+      let current = item.parentKey !== null ? itemsByKey.get(item.parentKey) : undefined;
+      while (current) {
+        visible.add(current.classifierValueKey);
+        expand.add(current.classifierValueKey);
+        current = current.parentKey !== null ? itemsByKey.get(current.parentKey) : undefined;
+      }
+    };
+    const addDescendants = (key: number) => {
+      (childrenMap.get(key) ?? []).forEach((child) => {
+        visible.add(child.classifierValueKey);
+        addDescendants(child.classifierValueKey);
+      });
+    };
+    matches.forEach((m) => {
+      addWithAncestors(m, true);
+      addDescendants(m.classifierValueKey);
+      if ((childrenMap.get(m.classifierValueKey) ?? []).length > 0) {
+        expand.add(m.classifierValueKey);
+      }
+    });
+    return { visibleKeys: visible, autoExpandKeys: expand };
+  }, [normalizedSearch, validClassifiers, itemsByKey, childrenMap]);
+
+  const effectiveExpandedKeys = useMemo(() => {
+    if (!normalizedSearch) return expandedKeys;
+    const merged = new Set(expandedKeys);
+    autoExpandKeys.forEach((k) => merged.add(k));
+    return merged;
+  }, [normalizedSearch, expandedKeys, autoExpandKeys]);
+
   const rootItems = useMemo(
-    () => validClassifiers.filter((c) => c.parentKey === null),
-    [validClassifiers],
+    () =>
+      validClassifiers.filter(
+        (c) => c.parentKey === null && (!visibleKeys || visibleKeys.has(c.classifierValueKey)),
+      ),
+    [validClassifiers, visibleKeys],
   );
+
+  const visibleChildrenMap = useMemo(() => {
+    if (!visibleKeys) return childrenMap;
+    const map = new Map<number, ClassifierEntry[]>();
+    childrenMap.forEach((children, parentKey) => {
+      map.set(
+        parentKey,
+        children.filter((c) => visibleKeys.has(c.classifierValueKey)),
+      );
+    });
+    return map;
+  }, [childrenMap, visibleKeys]);
 
   const toggleExpand = (key: number) => {
     setExpandedKeys((prev) => {
@@ -183,19 +247,34 @@ export function ViolationPickerModal({
               </Button>
             </div>
 
+            <div className={styles.searchWrapper} style={{ marginBottom: '0.75rem' }}>
+              <TextField
+                id="violation-search"
+                label={t('forms.labour_inspection.violations.search')}
+                hideLabel
+                placeholder={t('forms.labour_inspection.violations.search')}
+                value={searchTerm}
+                onChange={(v) => setSearchTerm(v)}
+              />
+            </div>
+
             <div className={styles.tree}>
-              {rootItems.map((item) => (
-                <ViolationTreeNode
-                  key={item.classifierValueKey}
-                  item={item}
-                  childrenMap={childrenMap}
-                  depth={0}
-                  expandedKeys={expandedKeys}
-                  selectedKey={selectedKey}
-                  onToggle={toggleExpand}
-                  onSelect={(selected) => setSelectedKey(selected.classifierValueKey)}
-                />
-              ))}
+              {rootItems.length === 0 ? (
+                <Text>{t('common.tableIsEmpty')}</Text>
+              ) : (
+                rootItems.map((item) => (
+                  <ViolationTreeNode
+                    key={item.classifierValueKey}
+                    item={item}
+                    childrenMap={visibleChildrenMap}
+                    depth={0}
+                    expandedKeys={effectiveExpandedKeys}
+                    selectedKey={selectedKey}
+                    onToggle={toggleExpand}
+                    onSelect={(selected) => setSelectedKey(selected.classifierValueKey)}
+                  />
+                ))
+              )}
             </div>
 
             {selectedChain.length > 0 && (

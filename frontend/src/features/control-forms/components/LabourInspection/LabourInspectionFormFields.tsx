@@ -396,9 +396,10 @@ export function LabourInspectionFormFields({
               </Button>
             )}
           </div>
-          {formik.values.violations.length === 0 ? (
+          {formik.values.violations.length === 0 && (
             <Text>{t('common.tableIsEmpty')}</Text>
-          ) : (
+          )}
+          {formik.values.violations.length > 0 && (
             Object.entries(violationsGrouped).map(([l1KeyStr, items]) => {
               const l1 = violationClassifiers.find(
                 (c) => c.classifierValueKey === Number(l1KeyStr),

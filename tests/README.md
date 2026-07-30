@@ -127,6 +127,7 @@ tests/postman/
 | Collection | What it covers |
 |---|---|
 | **classifiers** | List (search/pagination), get (403/success), get-values (403/success with status), edit/update (403/422/200), values/insert (403/200), values/update (403/200) |
+| **labour-inspection** | Create/edit/save (403, 422 required/future-date/max-length, 200 create+version=1), get (403/404/200), re-save (200, version increments), confirm (403, 200, already_confirmed 422, violations-present 422), edit-after-confirm (422 form_locked_after_confirm), delete (403/200, deleted still readable) |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
 | **permissions** | `GET /permissions/list` — verify seeded permissions, check `user_group.update` present |
 | **users** | List (admin/403), check-exists, insert (success/409/422/403), get, update, set-groups, get-groups |
@@ -137,6 +138,7 @@ tests/postman/
 | Collection | Auth roles used | Setup queries |
 |---|---|---|
 | classifiers | Super Admin, No-perm (403 tests) | classifier ID |
+| labour-inspection | Super Admin, No-perm (403 tests) | none — creates its own acts |
 | organisations | Super Admin | — |
 | permissions | Super Admin | — |
 | users | Super Admin, No-perm (403 tests) | org ID, group ID |
@@ -166,7 +168,7 @@ Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`)
 
 | Group | Key permissions |
 |---|---|
-| Super Admin Group | `user.list.admin`, `user.read.admin`, `user.edit.admin`, `user_group.list.admin`, `user_group.update`, `organisation.list`, `permission.list`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit` |
+| Super Admin Group | `user.list.admin`, `user.read.admin`, `user.edit.admin`, `user_group.list.admin`, `user_group.update`, `organisation.list`, `permission.list`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit`, `labour_inspection_form.write`, `labour_inspection_form.read`, `control_form.view_unpublished`, `control_form.delete` |
 | Local Admin Group | `user.list.local`, `user.read.local`, `user.edit.local`, `user_group.list.local`, `user_group.update`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit` |
 
 ### Classifiers

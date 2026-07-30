@@ -150,6 +150,30 @@
       "value": "",
       "enabled": true,
       "description": "classifier_value_key of CI_TEST value — populated during Classifiers POST test"
+    },
+    {
+      "key": "long_string_201",
+      "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "enabled": true,
+      "description": "201-char string — used to trigger max_length_exceeded (200-char limit) in Labour Inspection tests"
+    },
+    {
+      "key": "created_lif_id",
+      "value": "",
+      "enabled": true,
+      "description": "labour_inspection_form_key of the act created during Labour Inspection tests"
+    },
+    {
+      "key": "created_lif_form_number",
+      "value": "",
+      "enabled": true,
+      "description": "form_number of the act created during Labour Inspection tests"
+    },
+    {
+      "key": "created_lif_id_2",
+      "value": "",
+      "enabled": true,
+      "description": "labour_inspection_form_key of the 2nd act (with a violation) created during Labour Inspection tests"
     }
   ],
   "_postman_variable_scope": "environment"
