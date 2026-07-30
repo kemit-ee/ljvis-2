@@ -1,7 +1,7 @@
 declaration:
   call: declare
-  version: 0.1
-  description: "Audit: labour inspection form (labour_inspection_form) create event"
+  version: 0.2
+  description: "Audit: labour inspection form (labour_inspection_form) create event. Thin adapter — delegates rendering/serialisation to audit/log-form-event."
   method: post
   accepts: json
   returns: json
@@ -11,27 +11,25 @@ declaration:
       - field: cookie
         type: string
     body:
+      - field: akti_voti
+        type: string
       - field: form_number
         type: string
       - field: version
         type: string
+      - field: isikukood
+        type: string
 
-buildAudit:
-  assign:
-    form_number_display: "${incoming.body.form_number}/${incoming.body.version || 1}"
-    description: "Loodi Tööinspektsiooni kontrollakt ${form_number_display}"
-    log_content: "{\"formNumber\":\"${form_number_display}\"}"
-  next: logAuditEvent
-
-logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+delegate:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-form-event"
   requestType: templates
   headers:
     cookie: ${incoming.headers.cookie}
   body:
     event_type: "control_form.labour_inspection.create"
     event_category: "control_form_management"
-    description: ${description}
-    log_content: ${log_content}
+    akti_voti: ${incoming.body.akti_voti}
+    vormi_number: "${incoming.body.form_number}/${incoming.body.version || 1}"
+    isikukood: ${incoming.body.isikukood}
   result: res
   next: end

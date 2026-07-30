@@ -123,8 +123,10 @@ logCreate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
+    akti_voti: ${saveRes.response.body[0].id}
     form_number: ${saveRes.response.body[0].formNumber}
     version: ${saveRes.response.body[0].version}
+    isikukood: ${punished_person_id_code}
   result: audit_result
   next: returnSuccess
 
@@ -211,9 +213,11 @@ logUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
+    akti_voti: ${id}
     form_number: ${saveRes.response.body[0].formNumber}
     version: ${saveRes.response.body[0].version}
     changed_fields: ${changed_fields_result}
+    isikukood: ${punished_person_id_code}
   result: audit_result
   next: returnSuccess
 

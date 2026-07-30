@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
+import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
@@ -71,7 +72,9 @@ export function LabourInspectionFormCreatePage() {
             >
               {t('common.cancel')}
             </Button>
-            <Button type="submit">{t('common.save')}</Button>
+            <AsyncButton type="button" onClick={() => formik.submitForm()}>
+              {t('common.save')}
+            </AsyncButton>
           </div>
         </div>
       </form>

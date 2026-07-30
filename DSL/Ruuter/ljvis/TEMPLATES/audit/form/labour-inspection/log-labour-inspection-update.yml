@@ -1,7 +1,7 @@
 declaration:
   call: declare
-  version: 0.1
-  description: "Audit: labour inspection form (labour_inspection_form) update event"
+  version: 0.2
+  description: "Audit: labour inspection form (labour_inspection_form) update event. Thin adapter — delegates rendering/serialisation to audit/log-form-event."
   method: post
   accepts: json
   returns: json
@@ -11,30 +11,28 @@ declaration:
       - field: cookie
         type: string
     body:
+      - field: akti_voti
+        type: string
       - field: form_number
         type: string
       - field: version
         type: string
+      - field: isikukood
+        type: string
       - field: changed_fields
         type: string
 
-buildAudit:
-  assign:
-    form_number_display: "${incoming.body.form_number}/${incoming.body.version || 1}"
-    changed_fields_json: ${JSON.stringify(incoming.body.changed_fields)}
-    description: "Muudeti Tööinspektsiooni kontrollakti ${form_number_display}, muudetud väljad: ${changed_fields_json}"
-    log_content: "{\"formNumber\":\"${form_number_display}\",\"changedFields\":${changed_fields_json}}"
-  next: logAuditEvent
-
-logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+delegate:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-form-event"
   requestType: templates
   headers:
     cookie: ${incoming.headers.cookie}
   body:
     event_type: "control_form.labour_inspection.update"
     event_category: "control_form_management"
-    description: ${description}
-    log_content: ${log_content}
+    akti_voti: ${incoming.body.akti_voti}
+    vormi_number: "${incoming.body.form_number}/${incoming.body.version || 1}"
+    isikukood: ${incoming.body.isikukood}
+    muudetud_valjad: "${JSON.stringify(incoming.body.changed_fields)}"
   result: res
   next: end

@@ -53,6 +53,7 @@ extractFormData:
   assign:
     form_number: "${res.response.body[0].formNumber}"
     created_by: "${res.response.body[0].createdBy}"
+    punished_person_id_code: "${res.response.body[0].punishedPersonIdCode || ''}"
   next: checkShouldLog
 
 checkShouldLog:
@@ -67,7 +68,9 @@ logAuditEvent:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
+    akti_voti: ${id}
     form_number: ${form_number}
+    isikukood: ${punished_person_id_code}
   result: audit_result
   next: mapResponse
 

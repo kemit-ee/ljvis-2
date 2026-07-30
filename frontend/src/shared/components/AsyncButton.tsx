@@ -8,9 +8,10 @@ interface AsyncButtonProps extends Omit<ButtonProps, 'onClick' | 'isLoading'> {
 }
 
 /**
- * Button that disables itself and shows a spinner while its async `onClick`
- * handler is in flight, preventing duplicate submissions (e.g. double-click
- * on Save). Safe to use with synchronous handlers too.
+ * Button that uses TEDI's native isLoading state while its async `onClick`
+ * handler is in flight: text becomes transparent (button width stays fixed),
+ * a spinner appears on the left, and the button remains visually active.
+ * Prevents duplicate submissions via an in-flight guard.
  */
 export function AsyncButton({ onClick, disabled, ...rest }: AsyncButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +31,7 @@ export function AsyncButton({ onClick, disabled, ...rest }: AsyncButtonProps) {
       {...rest}
       onClick={handleClick}
       isLoading={isLoading}
-      disabled={disabled || isLoading}
+      disabled={disabled}
     />
   );
 }

@@ -1,0 +1,44 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Generic control-form audit logger. Renders the human-readable description from a single per-event-type format catalog and serialises log_content safely via JSON.stringify (no hand-built JSON). Delegates the DB write to audit/log-audit-event. Intended as the shared convention for all control-form audit events — add new events by adding one entry to the FORMATS catalog below."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: event_type
+        type: string
+      - field: event_category
+        type: string
+      - field: akti_voti
+        type: string
+      - field: vormi_number
+        type: string
+      - field: isikukood
+        type: string
+      - field: muudetud_valjad
+        type: string
+
+buildAudit:
+  assign:
+    description: "${(function(){ var FORMATS = { 'control_form.labour_inspection.create': 'TI kontrollakt loodud, akti võti={akti_voti}, vormi number={vormi_number}, karistatud isikukood={isikukood}', 'control_form.labour_inspection.update': 'TI kontrollakt muudetud, akti võti={akti_voti}, vormi number={vormi_number}, karistatud isikukood={isikukood}, muudetud väljad={muudetud_valjad}', 'control_form.labour_inspection.view': 'TI kontrollakt vaadatud, akti võti={akti_voti}, vormi number={vormi_number}, karistatud isikukood={isikukood}' }; var b = incoming.body; var tpl = FORMATS[b.event_type] || ''; return tpl.replace(/\\{(\\w+)\\}/g, function(_, k){ var v = b[k]; return (v != null && v !== '') ? v : '-'; }); })()}"
+    log_content: "${(function(){ var b = incoming.body; var clean = function(v){ return (v != null && v !== '') ? v : null; }; var p = { formKey: clean(b.akti_voti), formNumber: clean(b.vormi_number), punishedPersonIdCode: clean(b.isikukood) }; if (b.muudetud_valjad != null && b.muudetud_valjad !== '') { try { p.changedFields = JSON.parse(b.muudetud_valjad); } catch (e) { p.changedFields = b.muudetud_valjad; } } return JSON.stringify(p); })()}"
+  next: writeAudit
+
+writeAudit:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: ${incoming.body.event_type}
+    event_category: ${incoming.body.event_category}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end
