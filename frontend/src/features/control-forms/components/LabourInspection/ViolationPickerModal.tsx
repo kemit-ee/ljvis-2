@@ -234,8 +234,8 @@ export function ViolationPickerModal({
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.dialog}>
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <Card>
           <Card.Content>
             <div className={styles.header}>

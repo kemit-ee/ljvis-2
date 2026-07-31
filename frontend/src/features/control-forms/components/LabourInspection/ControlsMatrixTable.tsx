@@ -164,6 +164,7 @@ export function ControlsMatrixTable({
                     <Button
                       type="button"
                       visualType="link"
+                      color="danger"
                       icon="delete"
                       onClick={() => onRemoveRow(index)}
                     >

@@ -19,7 +19,10 @@ import { ControlsMatrixTable } from './ControlsMatrixTable';
 import { ViolationPickerModal } from './ViolationPickerModal';
 
 export const INSPECTION_TYPES = [
-  { value: 'passenger', labelKey: 'forms.labour_inspection.inspectionTypePassenger' },
+  {
+    value: 'passenger',
+    labelKey: 'forms.labour_inspection.inspectionTypePassenger',
+  },
   { value: 'cargo', labelKey: 'forms.labour_inspection.inspectionTypeCargo' },
 ];
 
@@ -88,7 +91,9 @@ export function LabourInspectionFormFields({
   const curatedClassifiers = useMemo(() => {
     const l1Keys = new Set(
       violationClassifiers
-        .filter((c) => c.parentKey === null && CURATED_LEVEL1_CODES.includes(c.code))
+        .filter(
+          (c) => c.parentKey === null && CURATED_LEVEL1_CODES.includes(c.code),
+        )
         .map((c) => c.classifierValueKey),
     );
     const l2Keys = new Set(
@@ -156,7 +161,12 @@ export function LabourInspectionFormFields({
                 required
                 input={{ maxLength: 200 }}
                 {...(formik.touched.inspectorName && formik.errors.inspectorName
-                  ? { helper: { text: formik.errors.inspectorName as string, type: 'error' as const } }
+                  ? {
+                      helper: {
+                        text: formik.errors.inspectorName as string,
+                        type: 'error' as const,
+                      },
+                    }
                   : {})}
               />
               <DateField
@@ -190,7 +200,11 @@ export function LabourInspectionFormFields({
                 inputType="radio"
                 label={t('forms.labour_inspection.inspectionType')}
                 required
-                value={formik.values.inspectionType ? [formik.values.inspectionType] : []}
+                value={
+                  formik.values.inspectionType
+                    ? [formik.values.inspectionType]
+                    : []
+                }
                 items={INSPECTION_TYPES.map((it) => ({
                   id: `inspectionType_${it.value}`,
                   label: t(it.labelKey),
@@ -211,7 +225,12 @@ export function LabourInspectionFormFields({
                 required
                 input={{ maxLength: 300 }}
                 {...(formik.touched.companyName && formik.errors.companyName
-                  ? { helper: { text: formik.errors.companyName as string, type: 'error' as const } }
+                  ? {
+                      helper: {
+                        text: formik.errors.companyName as string,
+                        type: 'error' as const,
+                      },
+                    }
                   : {})}
               />
               <TextField
@@ -221,8 +240,14 @@ export function LabourInspectionFormFields({
                 onChange={(v) => formik.setFieldValue('companyRegCode', v)}
                 required
                 input={{ maxLength: 20 }}
-                {...(formik.touched.companyRegCode && formik.errors.companyRegCode
-                  ? { helper: { text: formik.errors.companyRegCode as string, type: 'error' as const } }
+                {...(formik.touched.companyRegCode &&
+                formik.errors.companyRegCode
+                  ? {
+                      helper: {
+                        text: formik.errors.companyRegCode as string,
+                        type: 'error' as const,
+                      },
+                    }
                   : {})}
               />
             </div>
@@ -262,7 +287,10 @@ export function LabourInspectionFormFields({
                 label={t('forms.labour_inspection.totalDriversCount')}
                 value={formik.values.totalDriversCount}
                 onChange={(v) =>
-                  formik.setFieldValue('totalDriversCount', v.replace(/\D/g, ''))
+                  formik.setFieldValue(
+                    'totalDriversCount',
+                    v.replace(/\D/g, ''),
+                  )
                 }
                 input={{ maxLength: 5 }}
               />
@@ -338,7 +366,9 @@ export function LabourInspectionFormFields({
                 id="punishedPersonIdCode"
                 label={t('forms.labour_inspection.punishedPersonIdCode')}
                 value={formik.values.punishedPersonIdCode}
-                onChange={(v) => formik.setFieldValue('punishedPersonIdCode', v)}
+                onChange={(v) =>
+                  formik.setFieldValue('punishedPersonIdCode', v)
+                }
                 input={{ maxLength: 20 }}
               />
               <TextField
@@ -399,7 +429,7 @@ export function LabourInspectionFormFields({
           {formik.values.violations.length === 0 && (
             <Text>{t('common.tableIsEmpty')}</Text>
           )}
-          {formik.values.violations.length > 0 && (
+          {formik.values.violations.length > 0 &&
             Object.entries(violationsGrouped).map(([l1KeyStr, items]) => {
               const l1 = violationClassifiers.find(
                 (c) => c.classifierValueKey === Number(l1KeyStr),
@@ -414,11 +444,28 @@ export function LabourInspectionFormFields({
                   </Heading>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ borderBottom: '2px solid #dee2e6', textAlign: 'left' }}>
-                        <th style={{ padding: '0.5rem' }}>{t('forms.labour_inspection.violations.legalBasis')}</th>
-                        <th style={{ padding: '0.5rem' }}>{t('forms.labour_inspection.violations.violationType')}</th>
-                        <th style={{ padding: '0.5rem' }}>{t('forms.labour_inspection.violations.violationCode')}</th>
-                        <th style={{ padding: '0.5rem' }}>{t('forms.labour_inspection.violations.quantity')}</th>
+                      <tr
+                        style={{
+                          borderBottom: '2px solid #dee2e6',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <th style={{ padding: '0.5rem' }}>
+                          {t('forms.labour_inspection.violations.legalBasis')}
+                        </th>
+                        <th style={{ padding: '0.5rem' }}>
+                          {t(
+                            'forms.labour_inspection.violations.violationType',
+                          )}
+                        </th>
+                        <th style={{ padding: '0.5rem' }}>
+                          {t(
+                            'forms.labour_inspection.violations.violationCode',
+                          )}
+                        </th>
+                        <th style={{ padding: '0.5rem' }}>
+                          {t('forms.labour_inspection.violations.quantity')}
+                        </th>
                         {!readOnly && <th style={{ padding: '0.5rem' }}></th>}
                       </tr>
                     </thead>
@@ -433,16 +480,25 @@ export function LabourInspectionFormFields({
                             )
                           : undefined;
                         return (
-                          <tr key={idx} style={{ borderBottom: '1px solid #dee2e6' }}>
-                            <td style={{ padding: '0.5rem' }}>{l2?.name ?? '-'}</td>
-                            <td style={{ padding: '0.5rem' }}>{l2?.name ?? '-'}</td>
-                            <td style={{ padding: '0.5rem' }}>{l3?.name ?? '-'}</td>
+                          <tr
+                            key={idx}
+                            style={{ borderBottom: '1px solid #dee2e6' }}
+                          >
+                            <td style={{ padding: '0.5rem' }}>
+                              {l2?.description ?? '-'}
+                            </td>
+                            <td style={{ padding: '0.5rem' }}>
+                              {l2?.name ?? '-'}
+                            </td>
+                            <td style={{ padding: '0.5rem' }}>
+                              {l3?.name ?? '-'}
+                            </td>
                             <td style={{ padding: '0.5rem' }}>{v.quantity}</td>
                             {!readOnly && (
                               <td style={{ padding: '0.5rem' }}>
                                 <Button
                                   type="button"
-                                  visualType="link"
+                                  color="danger"
                                   icon="delete"
                                   onClick={() => removeViolation(idx)}
                                 >
@@ -457,8 +513,7 @@ export function LabourInspectionFormFields({
                   </table>
                 </div>
               );
-            })
-          )}
+            })}
           {showViolationPicker && (
             <ViolationPickerModal
               violationClassifiers={curatedClassifiers}
