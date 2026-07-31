@@ -80,6 +80,8 @@ declaration:
     fields:
       - field: id
         type: number
+      - field: subFormNumber
+        type: string
 */
 INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   compound_form_key,
@@ -151,4 +153,4 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         NULLIF(:enforcementDecision, ''),
         NULLIF(:proceedingClosureBasis, ''),
         NULLIF(:notes, ''),
-        :created_by) RETURNING sp_teammate_form_key AS id;
+        :created_by) RETURNING sp_teammate_form_key AS id, sub_form_number;
