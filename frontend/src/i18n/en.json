@@ -275,7 +275,59 @@
   },
   "forms": {
     "foreign_violation_form": "Foreign country road transport inspection report",
-    "ti_kontrollkaart_form": "Labour Inspectorate inspection form",
+    "labour_inspection_form": "Labour Inspectorate inspection form",
+    "labour_inspection": {
+      "unsavedChangesWarning": "You have unsaved changes — press \"Save\" to persist them.",
+      "generalSection": "General information",
+      "inspectorName": "Inspector name",
+      "inspectionDate": "Inspection date",
+      "inspectionType": "Inspection type",
+      "inspectionTypePassenger": "Passenger transport",
+      "inspectionTypeCargo": "Cargo transport",
+      "companyName": "Company name",
+      "companyRegCode": "Registry code",
+      "vehicleCount": "Number of vehicles",
+      "totalDriversCount": "Number of drivers checked",
+      "controlsMatrix": {
+        "title": "Checks",
+        "transportClass": "Transport class",
+        "analogRecorderDrivers": "Analogue recorder drivers",
+        "digitalRecorderDrivers": "Digital recorder drivers",
+        "smartRecorderDrivers": "Smart recorder drivers",
+        "analogRecorderWorkDays": "Analogue recorder work days",
+        "digitalRecorderWorkDays": "Digital recorder work days",
+        "smartRecorderWorkDays": "Smart recorder work days",
+        "addRow": "Add transport class"
+      },
+      "prescriptionSection": "Prescription",
+      "prescriptionComposed": "Prescription composed",
+      "punishmentSection": "Misdemeanor proceeding",
+      "punishedPersonIdCode": "Punished person's ID code",
+      "punishedPersonFirstName": "Punished person's first name",
+      "punishedPersonLastName": "Punished person's last name",
+      "proceedingReferenceNumber": "Proceeding reference number",
+      "violations": {
+        "title": "Violations",
+        "pickerTitle": "Select violation",
+        "legalBasis": "Legal basis",
+        "violationType": "Violation type",
+        "violationCode": "Violation code",
+        "quantity": "Quantity",
+        "add": "Add violation",
+        "search": "Search violation"
+      },
+      "validation": {
+        "required": "Required field",
+        "api": {
+          "violations_present_requires_e_toimik_publish": "An act with violations cannot be confirmed here — publishing is done via e-toimik.",
+          "required": "Required field",
+          "future_date_not_allowed": "Date cannot be in the future",
+          "max_length_exceeded": "Value is too long",
+          "form_locked_after_confirm": "This form has been confirmed and can no longer be edited",
+          "already_confirmed": "This form has already been confirmed"
+        }
+      }
+    },
     "reputation_noncompliance_form": "Transport manager declared non-compliant with good repute",
     "compound_form": "Transport supervision and vehicle technical condition inspection",
     "compound": {

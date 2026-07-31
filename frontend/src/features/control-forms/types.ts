@@ -1,3 +1,49 @@
+export interface ControlsMatrixRow {
+  /** classifier_value_key of a TRANSPORT_TYPE classifier value. */
+  transportClass: number;
+  analogRecorderDrivers?: number;
+  digitalRecorderDrivers?: number;
+  smartRecorderDrivers?: number;
+  analogRecorderWorkDays?: number;
+  digitalRecorderWorkDays?: number;
+  smartRecorderWorkDays?: number;
+}
+
+export interface ViolationEntry {
+  /** classifier_value_key values within the DRIVING_VIOLATION classifier. */
+  level1ValueKey: number;
+  level2ValueKey: number;
+  level3ValueKey?: number;
+  quantity: number;
+}
+
+export interface LabourInspectionForm {
+  id?: string;
+  /** Immutable core act number, format ti-AAAA-NNNNN (no /V suffix — see `version`). */
+  formNumber?: string;
+  /** The /V display suffix of the act number; join as `${formNumber}/${version}` for display. */
+  version?: number;
+  status?: string;
+  inspectorName: string;
+  inspectionDate: string;
+  externalInspectionId?: string;
+  inspectionType: string;
+  companyName: string;
+  companyRegCode: string;
+  vehicleCount?: string;
+  totalDriversCount?: string;
+  controlsMatrix?: ControlsMatrixRow[];
+  prescriptionComposed?: boolean;
+  punishedPersonIdCode?: string;
+  punishedPersonFirstName?: string;
+  punishedPersonLastName?: string;
+  proceedingReferenceNumber?: string;
+  enforcementDecision?: string;
+  proceedingClosureBasis?: string;
+  violations?: ViolationEntry[];
+  createdBy?: string;
+}
+
 export interface FormSnapshot {
   snapshotId: number;
   version: number;

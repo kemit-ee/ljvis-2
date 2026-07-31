@@ -8,15 +8,15 @@ import {
   Separator,
   Checkbox,
 } from '@tedi-design-system/react/tedi';
-import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
+import type { ClassifierEntry } from '../../../../classifiers/types';
 import type { CheckEntry } from '../../../types.ts';
 import styles from './CheckModal.module.css';
 
 interface Props {
-  level1Item: ClassifierValueData | null;
-  level1Items: ClassifierValueData[];
-  level2Items: ClassifierValueData[];
-  level3Items: ClassifierValueData[];
+  level1Item: ClassifierEntry | null;
+  level1Items: ClassifierEntry[];
+  level2Items: ClassifierEntry[];
+  level3Items: ClassifierEntry[];
   existingEntries: CheckEntry[];
   onConfirm: (entries: CheckEntry[]) => void;
   isModalOpen: boolean;

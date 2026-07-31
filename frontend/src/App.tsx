@@ -22,7 +22,10 @@ import { ForeignViolationFormCreatePage } from './features/control-forms/pages/f
 import { ForeignViolationFormPage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormPage';
 import { CompoundFormCreatePage } from './features/control-forms/pages/compound-form/CompoundFormCreatePage';
 import { CompoundFormPage } from './features/control-forms/pages/compound-form/CompoundFormPage';
+import { LabourInspectionFormCreatePage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormCreatePage';
+import { LabourInspectionFormPage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
+import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -86,6 +89,18 @@ function AppRoutes() {
             path="/control-forms/compound/:id/:snapshotId"
             element={<CompoundFormPage />}
           />
+          <Route
+            path="/control-forms/labour-inspection/new"
+            element={<LabourInspectionFormCreatePage />}
+          />
+          <Route
+            path="/control-forms/labour-inspection/:id"
+            element={<LabourInspectionFormPage />}
+          />
+          <Route
+            path="/control-forms/labour-inspection/:id/:snapshotId"
+            element={<LabourInspectionFormPage />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
@@ -97,8 +112,10 @@ function App() {
   return (
     <ErrorProvider>
       <AuthProvider>
-        <AppRoutes />
-        <ToastContainer />
+        <ClassifierProvider>
+          <AppRoutes />
+          <ToastContainer />
+        </ClassifierProvider>
       </AuthProvider>
     </ErrorProvider>
   );

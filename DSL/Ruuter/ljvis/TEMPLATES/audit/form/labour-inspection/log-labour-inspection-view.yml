@@ -1,0 +1,33 @@
+declaration:
+  call: declare
+  version: 0.2
+  description: "Audit: labour inspection form (labour_inspection_form) view event. Thin adapter — delegates rendering/serialisation to audit/log-form-event."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: akti_voti
+        type: string
+      - field: form_number
+        type: string
+      - field: isikukood
+        type: string
+
+delegate:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-form-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.labour_inspection.view"
+    event_category: "control_form_management"
+    akti_voti: ${incoming.body.akti_voti}
+    vormi_number: ${incoming.body.form_number}
+    isikukood: ${incoming.body.isikukood}
+  result: res
+  next: end

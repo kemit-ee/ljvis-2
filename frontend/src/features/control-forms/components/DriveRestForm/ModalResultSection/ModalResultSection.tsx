@@ -9,7 +9,7 @@ import {
   Separator,
   Heading,
 } from '@tedi-design-system/react/tedi';
-import type { ClassifierValueData } from '../../../../classifier-values/types.ts';
+import type { ClassifierEntry } from '../../../../classifiers/types';
 import type { CheckEntry } from '../../../types.ts';
 import { MassDimensionModal } from '../CheckModal/MassDimensionModal';
 import { DocCheckModal } from '../CheckModal/DocCheckModal';
@@ -23,7 +23,7 @@ interface ViolationEntry {
 }
 
 interface Props {
-  checks: ClassifierValueData[];
+  checks: ClassifierEntry[];
   type: 'docCheck' | 'drivingViolation' | 'massDimension';
   setFieldValue?: (field: string, value: unknown) => void;
   fieldName?: string;
@@ -35,7 +35,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName }: P
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedLevel1, setSelectedLevel1] =
-    useState<ClassifierValueData | null>(null);
+    useState<ClassifierEntry | null>(null);
   const [selectedDirective, setSelectedDirective] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

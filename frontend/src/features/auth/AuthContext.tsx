@@ -8,15 +8,12 @@ import {
 import type { ReactNode } from 'react';
 import type { AuthUser } from './types';
 import { getUserInfo, logout as apiLogout } from './api';
-import { listClassifierValues } from '../classifier-values/api';
-import type { ClassifierValueData } from '../classifier-values/types';
 import { setUnauthorizedHandler } from '../../shared/api/client';
 
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   permissions: string[];
-  classifierValues: ClassifierValueData[];
   hasPermission: (code: string) => boolean;
   hasAnyPermission: (codes: string[]) => boolean;
   refetchUser: () => Promise<void>;
@@ -27,7 +24,6 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
   permissions: [],
-  classifierValues: [],
   hasPermission: () => false,
   hasAnyPermission: () => false,
   refetchUser: async () => {},
@@ -38,17 +34,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState<string[]>([]);
-  const [classifierValues, setClassifierValues] = useState<ClassifierValueData[]>([]);
 
   const fetchUser = useCallback(async () => {
     setLoading(true);
     try {
-      const [info, classifierData] = await Promise.all([
-        getUserInfo(),
-        listClassifierValues(),
-      ]);
+      const info = await getUserInfo();
       setUser(info);
-      setClassifierValues(classifierData);
       if (info?.permissions) {
         setPermissions(
           Array.isArray(info.permissions)
@@ -61,7 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       setUser(null);
       setPermissions([]);
-      setClassifierValues([]);
     } finally {
       setLoading(false);
     }
@@ -102,7 +92,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading,
         permissions,
-        classifierValues,
         hasPermission,
         hasAnyPermission,
         refetchUser: fetchUser,

@@ -1,0 +1,36 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: labour inspection form (labour_inspection_form) X-tee inbound import event. UNUSED STUB — no caller exists yet; the inbound import endpoint itself is out of scope for LJVIS-75 (needs OAuth2 client-credentials infra that doesn't exist yet in Ruuter DSL). Kept here so the future import ticket can wire it up without inventing a new event type."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: form_number
+        type: string
+      - field: external_inspection_id
+        type: string
+
+buildAudit:
+  assign:
+    description: "Imporditi Tööinspektsiooni kontrollakt ${incoming.body.form_number} (X-tee, väline ID: ${incoming.body.external_inspection_id})"
+    log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"externalInspectionId\":\"${incoming.body.external_inspection_id}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.labour_inspection.import"
+    event_category: "control_form_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

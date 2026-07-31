@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useAuth } from '../../../auth/AuthContext';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type {
   DriveRestForm,
   TransportClass,
@@ -117,57 +117,46 @@ export function useDriveRestForm(
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
 
-  const { classifierValues } = useAuth();
+  const { getByCode } = useClassifiers();
 
   const cargoCabotageViolations = useMemo(
-    () =>
-      classifierValues.filter(
-        (v) => v.classifierCode === 'CARGO_CABOTAGE_VIOLATION',
-      ),
-    [classifierValues],
+    () => getByCode('CARGO_CABOTAGE_VIOLATION'),
+    [getByCode],
   );
 
   const passengerCabotageViolations = useMemo(
-    () =>
-      classifierValues.filter(
-        (v) => v.classifierCode === 'PASSENGER_CABOTAGE_VIOLATION',
-      ),
-    [classifierValues],
+    () => getByCode('PASSENGER_CABOTAGE_VIOLATION'),
+    [getByCode],
   );
 
   const transportClasses = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'TRANSPORT_CLASS'),
-    [classifierValues],
+    () => getByCode('TRANSPORT_CLASS'),
+    [getByCode],
   );
 
   const docRightChecks = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'DOC_RIGHT_CHECK'),
-    [classifierValues],
+    () => getByCode('DOC_RIGHT_CHECK'),
+    [getByCode],
   );
 
   const docRightOtherDocs = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'OTHER_DOCUMENTS'),
-    [classifierValues],
+    () => getByCode('OTHER_DOCUMENTS'),
+    [getByCode],
   );
 
   const tachographTypes = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'TACHOGRAPH_TYPES'),
-    [classifierValues],
+    () => getByCode('TACHOGRAPH_TYPES'),
+    [getByCode],
   );
 
   const drivingViolations = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'DRIVING_VIOLATION'),
-    [classifierValues],
+    () => getByCode('DRIVING_VIOLATION'),
+    [getByCode],
   );
 
   const massDimensions = useMemo(
-    () => classifierValues.filter((v) => v.classifierCode === 'MASS_DIMENSION'),
-    [classifierValues],
+    () => getByCode('MASS_DIMENSION'),
+    [getByCode],
   );
 
   const validationSchema = createDriveRestValidationSchema(t);

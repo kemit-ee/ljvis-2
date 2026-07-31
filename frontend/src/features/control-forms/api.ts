@@ -4,6 +4,7 @@ import type {
   CompoundForm,
   FormSnapshot,
   DriveRestForm,
+  LabourInspectionForm,
 } from './types';
 
 export const getForm = (id: number) =>
@@ -82,8 +83,40 @@ export const getCompoundFormSnapshot = (id: string, formKey: string) =>
     formKey,
   });
 
-export const insertDriveRestForm = (scope: 'driver' | 'teammate', data: DriveRestForm) =>
+export const insertDriveRestForm = (
+  scope: 'driver' | 'teammate',
+  data: DriveRestForm,
+) =>
   post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/insert`,
     data as unknown as Record<string, unknown>,
+  );
+
+export const getLabourInspectionForm = (id: number) =>
+  get<LabourInspectionForm>(`/v1/control-forms/labour-inspection`, {
+    q: String(id),
+  });
+
+export const saveLabourInspectionForm = (data: LabourInspectionForm) =>
+  post<LabourInspectionForm[]>(
+    `/v1/control-forms/labour-inspection/edit/save`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const confirmLabourInspectionForm = (data: LabourInspectionForm) =>
+  post<LabourInspectionForm[]>(
+    `/v1/control-forms/labour-inspection/edit/confirm`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const deleteLabourInspectionForm = (id: string, old_status: string) =>
+  post<LabourInspectionForm[]>(
+    `/v1/control-forms/labour-inspection/edit/delete`,
+    { id, old_status },
+  );
+
+export const getLabourInspectionFormSnapshot = (id: string, formKey: string) =>
+  post<LabourInspectionForm[]>(
+    `/v1/control-forms/labour-inspection/read/get-snapshot`,
+    { id, formKey },
   );

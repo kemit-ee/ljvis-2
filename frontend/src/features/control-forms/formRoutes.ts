@@ -14,9 +14,9 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     hasParent: false,
     showOnDashboard: true,
   },
-  ti_kontrollkaart_form: {
-    labelKey: 'forms.ti_kontrollkaart_form',
-    route: '/ti-kontrollkaart',
+  labour_inspection_form: {
+    labelKey: 'forms.labour_inspection_form',
+    route: '/labour-inspection',
     hasParent: false,
     showOnDashboard: true,
   },
