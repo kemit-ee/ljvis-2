@@ -30,7 +30,6 @@ import type { Trailer, DriveRestForm, Driver } from '../../types';
 
 type TrailerTouched = (Partial<Record<keyof Trailer, boolean>> | undefined)[];
 type TrailerErrors = (Partial<Record<keyof Trailer, string>> | undefined)[];
-type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 type DriverErrors = (Partial<Record<keyof Driver, string>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -137,6 +136,7 @@ export function CompoundFormCreatePage() {
   // latest value instead of a stale value captured in its closure
   const compoundFormIdRef = useRef<number | null>(null);
   const savedDriveRestFormsRef = useRef<Set<string>>(new Set());
+  const savedSubFormIdsRef = useRef<Record<string, string>>({});
 
   const handleSaved = (id?: string) => {
     if (id) {
@@ -1616,14 +1616,10 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers?.[0] as { firstName?: boolean } | undefined)
-                            ?.firstName &&
-                          (formik.errors.drivers?.[0] as { firstName?: string } | undefined)
-                            ?.firstName
+                          {...((formik.errors.drivers as DriverErrors)?.[0]?.firstName
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers?.[0] as { firstName?: string } | undefined)
-                                    ?.firstName,
+                                  text: (formik.errors.drivers as DriverErrors)[0]?.firstName,
                                   type: 'error' as const,
                                 },
                               }
@@ -1640,12 +1636,10 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers as DriverTouched)?.[0]?.lastName &&
-                          (formik.errors.drivers as DriverErrors)?.[0]?.lastName
+                          {...((formik.errors.drivers as DriverErrors)?.[0]?.lastName
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as DriverErrors)[0]
-                                    ?.lastName,
+                                  text: (formik.errors.drivers as DriverErrors)[0]?.lastName,
                                   type: 'error' as const,
                                 },
                               }
@@ -1664,14 +1658,10 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers as DriverTouched)?.[0]
-                            ?.personalCodeForeign &&
-                          (formik.errors.drivers as DriverErrors)?.[0]
-                            ?.personalCodeForeign
+                          {...((formik.errors.drivers as DriverErrors)?.[0]?.personalCodeForeign
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as DriverErrors)?.[0]
-                                    ?.personalCodeForeign,
+                                  text: (formik.errors.drivers as DriverErrors)?.[0]?.personalCodeForeign,
                                   type: 'error' as const,
                                 },
                               }
@@ -1746,12 +1736,10 @@ export function CompoundFormCreatePage() {
                             placeholder={t('common.dateFieldPlaceholder')}
                             required
                             inputProps={
-                              (formik.touched.drivers as DriverTouched)?.[0]?.birthDate &&
                               (formik.errors.drivers as DriverErrors)?.[0]?.birthDate
                                 ? {
                                     helper: {
-                                      text: (formik.errors.drivers as DriverErrors)?.[0]
-                                        ?.birthDate,
+                                      text: (formik.errors.drivers as DriverErrors)?.[0]?.birthDate,
                                       type: 'error' as const,
                                     },
                                   }
@@ -2058,6 +2046,7 @@ export function CompoundFormCreatePage() {
                 }} onSaved={(id) => {
                   if (id) {
                     savedDriveRestFormsRef.current = new Set(savedDriveRestFormsRef.current).add(tabId);
+                    savedSubFormIdsRef.current[tabId] = String(id);
                   }
                 }} />
               </div>
@@ -2136,12 +2125,13 @@ export function CompoundFormCreatePage() {
                     );
                     if (result[0]?.id) {
                       savedDriveRestFormsRef.current = new Set(savedDriveRestFormsRef.current).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(result[0].id);
                     }
                   }
                 }
               }
 
-              // Step 6: Navigate (will be updated based on user info)
+              // Step 6: Navigate to the compound page (which shows all tabs).
               navigate(`/control-forms/compound/${id}`, {
                 state: { justCreated: true },
               });

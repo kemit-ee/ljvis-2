@@ -27,9 +27,10 @@ interface Props {
   type: 'docCheck' | 'drivingViolation' | 'massDimension';
   setFieldValue?: (field: string, value: unknown) => void;
   fieldName?: string;
+  readOnly?: boolean;
 }
 
-export function ModalResultSection({ checks, type, setFieldValue, fieldName }: Props) {
+export function ModalResultSection({ checks, type, setFieldValue, fieldName, readOnly }: Props) {
   const { t } = useTranslation();
   const [entries, setEntries] = useState<CheckEntry[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -244,6 +245,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName }: P
                   'Sõidu- ja puhkeaja nõuete rikkumised',
                 )}
         </Heading>
+        {!readOnly && (
         <div className="pos-relative">
           <Button
             ref={buttonRef}
@@ -318,6 +320,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName }: P
               document.body,
             )}
         </div>
+        )}
       </div>
 
       {type === 'massDimension' && (
@@ -421,6 +424,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName }: P
                             <Text>{entry.level3Code}</Text>
                           </>
                         )}
+                        {!readOnly && (
                         <div className="pos-rel-left">
                           <Button
                             icon="delete"
@@ -433,6 +437,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName }: P
                             {t('common.remove', 'Eemalda')}
                           </Button>
                         </div>
+                        )}
                       </div>
                     </Card.Content>
                   </Card>

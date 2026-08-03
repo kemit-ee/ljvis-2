@@ -53,11 +53,14 @@ export function useCompoundForm(
   form: CompoundForm | undefined,
   onSaved: (id?: string) => void,
   onConfirmed?: () => void,
+  subFormsAllConfirmed?: boolean,
+  onResetToSaved?: () => void,
 ) {
   const { t } = useTranslation();
   const { user: authUser, permissions } = useAuth();
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
+  const pendingForceSaved = useRef(false);
 
   const WRITE_SUFFIX = '.write';
   const FORM_SP_PREFIX = 'sp_';
@@ -230,42 +233,17 @@ export function useCompoundForm(
       drivers.forEach((driver: Driver, index: number) => {
         if (index === 0) {
           if (!driver?.firstName)
-            errors.push(
-              this.createError({
-                path: `drivers[${index}].firstName`,
-                message: req,
-              }),
-            );
+            errors.push(new Yup.ValidationError(req, driver?.firstName, `drivers[${index}].firstName`));
           if (!driver?.lastName)
-            errors.push(
-              this.createError({
-                path: `drivers[${index}].lastName`,
-                message: req,
-              }),
-            );
+            errors.push(new Yup.ValidationError(req, driver?.lastName, `drivers[${index}].lastName`));
           if (!driver?.personalCodeForeign)
-            errors.push(
-              this.createError({
-                path: `drivers[${index}].personalCodeForeign`,
-                message: req,
-              }),
-            );
+            errors.push(new Yup.ValidationError(req, driver?.personalCodeForeign, `drivers[${index}].personalCodeForeign`));
           if (!driver?.birthDate)
-            errors.push(
-              this.createError({
-                path: `drivers[${index}].birthDate`,
-                message: req,
-              }),
-            );
+            errors.push(new Yup.ValidationError(req, driver?.birthDate, `drivers[${index}].birthDate`));
         }
         if (index === 1) {
           if (!driver?.birthDate)
-            errors.push(
-              this.createError({
-                path: `drivers[${index}].birthDate`,
-                message: req,
-              }),
-            );
+            errors.push(new Yup.ValidationError(req, driver?.birthDate, `drivers[${index}].birthDate`));
         }
       });
       if (errors.length > 0) throw new Yup.ValidationError(errors);
@@ -349,7 +327,9 @@ export function useCompoundForm(
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
-        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const forceSaved = pendingForceSaved.current;
+        pendingForceSaved.current = false;
+        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmed ?? true);
         const nextStatus = isConfirming
           ? 'confirmed'
           : isReconfirmedEdit
@@ -386,12 +366,16 @@ export function useCompoundForm(
           driver2PersonalCodeForeign: driver2?.personalCodeForeign || '',
         };
         if (values.id) {
-          if (isConfirming) {
+          if (isConfirming || isReconfirmedEdit) {
             await confirmCompoundForm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else {
             await updateCompoundForm(trimmedValues as unknown as CompoundForm);
-            onSaved(values.id);
+            if (forceSaved && onResetToSaved) {
+              onResetToSaved();
+            } else {
+              onSaved(values.id);
+            }
           }
         } else {
           const result = await insertCompoundForm(
@@ -416,6 +400,11 @@ export function useCompoundForm(
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
+    formik.submitForm();
+  };
+
+  const triggerSaveAsSaved = () => {
+    pendingForceSaved.current = true;
     formik.submitForm();
   };
 
@@ -549,6 +538,7 @@ export function useCompoundForm(
     handleTrailerSearch,
     handleMtrSearch,
     triggerConfirm,
+    triggerSaveAsSaved,
     availableForms,
   };
 }

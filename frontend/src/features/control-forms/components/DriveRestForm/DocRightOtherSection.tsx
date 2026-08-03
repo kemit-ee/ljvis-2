@@ -33,6 +33,7 @@ interface Props {
   docRightOtherDocs: ClassifierEntry[];
   otherDocuments: OtherDocument[];
   setFieldValue: (field: string, value: unknown) => void;
+  readOnly?: boolean;
 }
 
 export function DocRightOtherSection({
@@ -40,6 +41,7 @@ export function DocRightOtherSection({
   docRightOtherDocs,
   otherDocuments,
   setFieldValue,
+  readOnly,
 }: Props) {
   const { t } = useTranslation();
   const [remarkOpenStates, setRemarkOpenStates] = useState<Record<number, boolean>>({});
@@ -197,8 +199,10 @@ export function DocRightOtherSection({
                     id: `${id}-${opt.value}`,
                     value: opt.value,
                     label: opt.label,
+                    disabled: readOnly
                   }))}
                 />
+                {!readOnly && (
                 <div className="pos-rel-left">
                   <Button
                     icon="comment"
@@ -210,6 +214,7 @@ export function DocRightOtherSection({
                     {t('forms.otherDocs.addRemark', 'Lisa märkus')}
                   </Button>
                 </div>
+                )}
               </div>
             </Card.Content>
             {remarkOpen && (
@@ -220,7 +225,9 @@ export function DocRightOtherSection({
                   placeholder={t('forms.otherDocs.remarkPlaceholder', 'Märkus')}
                   value={row.notes}
                   onChange={(val) => setRemark(id, val as string)}
+                  disabled={readOnly}
                 />
+                {!readOnly && (
                 <Button
                   icon="delete"
                   id="deleteOtherc"
@@ -231,6 +238,7 @@ export function DocRightOtherSection({
                 >
                   {t('common.remove', 'Eemalda')}
                 </Button>
+                )}
               </div>
             )}
           </Card>

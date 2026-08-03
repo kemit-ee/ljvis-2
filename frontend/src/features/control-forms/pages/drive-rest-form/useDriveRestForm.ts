@@ -12,7 +12,7 @@ import type {
   Violation,
   MassDimensionMeasurement,
 } from '../../types';
-import { insertDriveRestForm } from '../../api';
+import { insertDriveRestForm, updateDriveRestForm } from '../../api';
 
 export function createDriveRestValidationSchema(
   t: (key: string) => string,
@@ -254,18 +254,28 @@ export function useDriveRestForm(
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
-        const nextStatus = isConfirming ? 'confirmed' : 'saved';
+        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
+        const subFormNumberString = form?.subFormNumber ?? '';
+        const incrementSubFormNumber = (n: string): string => {
+          const match = n.match(/^(.+\/)([0-9]+)$/);
+          return match ? `${match[1]}${parseInt(match[2], 10) + 1}` : n;
+        };
+        const nextSubFormNumber = isReconfirmedEdit
+          ? incrementSubFormNumber(subFormNumberString)
+          : subFormNumberString;
 
-        const trimmedValues = serializeDriveRestFormValues(values, nextStatus);
+        const trimmedValues = {
+          ...serializeDriveRestFormValues(values, nextStatus),
+          subFormNumber: nextSubFormNumber,
+        };
 
         if (values.id) {
-          // if (isConfirming) {
-          //   await confirmDriveRestForm(trimmedValues as unknown as DriveRestForm);
-          //   onConfirmed?.();
-          // } else {
-          //   await updateDriveRestForm(trimmedValues as unknown as DriveRestForm);
-          //   onSaved(values.id);
-          // }
+          const result = await updateDriveRestForm(
+            type,
+            trimmedValues as unknown as DriveRestForm,
+          );
+          onSaved(result[0]?.id);
         } else {
           const result = await insertDriveRestForm(
             type,
@@ -273,9 +283,6 @@ export function useDriveRestForm(
           );
           onSaved(result[0]?.id);
         }
-
-        console.log('Form submitted:', trimmedValues);
-        onSaved(values.id);
       } catch (e) {
         console.error('Save failed', e);
       }

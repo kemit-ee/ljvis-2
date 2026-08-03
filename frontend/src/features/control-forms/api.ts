@@ -1,4 +1,4 @@
-import { post, get } from '../../shared/api/client';
+import { post, postSilent, get, ApiError } from '../../shared/api/client';
 import type {
   ForeignViolationForm,
   CompoundForm,
@@ -90,6 +90,53 @@ export const insertDriveRestForm = (
   post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/insert`,
     data as unknown as Record<string, unknown>,
+  );
+
+export const getDriveRestForm = (scope: 'driver' | 'teammate', id: number) =>
+  post<DriveRestForm>(`/v1/control-forms/drive-rest-form/${scope}/read/get`, {
+    id,
+  });
+
+export const updateDriveRestForm = (
+  scope: 'driver' | 'teammate',
+  data: DriveRestForm,
+) =>
+  post<DriveRestForm[]>(
+    `/v1/control-forms/drive-rest-form/${scope}/edit/update`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const getDriveRestFormByCompoundFormKey = (
+  scope: 'driver' | 'teammate',
+  compoundFormKey: number,
+): Promise<DriveRestForm | null> =>
+  postSilent<DriveRestForm | null>(
+    `/v1/control-forms/drive-rest-form/${scope}/read/get-by-compound-form-key`,
+    { compoundFormKey },
+  ).catch((err: ApiError) => {
+    if (err?.status === 300) return null;
+    throw err;
+  });
+
+export const deleteDriveRestForm = (
+  scope: 'driver' | 'teammate',
+  id: string,
+  form_number: string,
+  old_status: string,
+) =>
+  post<DriveRestForm[]>(
+    `/v1/control-forms/drive-rest-form/${scope}/edit/delete`,
+    { id, form_number, old_status },
+  );
+
+export const getDriveRestFormSnapshot = (
+  scope: 'driver' | 'teammate',
+  id: string,
+  formKey: string,
+) =>
+  post<DriveRestForm[]>(
+    `/v1/control-forms/drive-rest-form/${scope}/read/get-snapshot`,
+    { id, formKey },
   );
 
 export const getLabourInspectionForm = (id: number) =>

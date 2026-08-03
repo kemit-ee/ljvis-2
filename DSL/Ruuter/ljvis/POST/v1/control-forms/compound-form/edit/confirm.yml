@@ -12,8 +12,6 @@ declaration:
         type: string
       - field: formNumber
         type: string
-      - field: status
-        type: string
       - field: controlDate
         type: string
       - field: controlTime
@@ -115,7 +113,7 @@ extractRequestData:
   assign:
     key: "${incoming.body.id}"
     form_number: "${incoming.body.formNumber}"
-    status: "${incoming.body.status}"
+    status: "confirmed"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
     control_country_code: "${incoming.body.controlCountryCode}"
