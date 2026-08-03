@@ -8,6 +8,7 @@ import {
   Tabs,
   Dropdown,
   StatusIndicator,
+  ClosingButton,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
@@ -52,6 +53,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   );
   const [loadingEntry, setLoadingEntry] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | null>(null);
 
   const [driverForm, setDriverForm] = useState<DriveRestForm | null>(null);
   const [teammateForm, setTeammateForm] = useState<DriveRestForm | null>(null);
@@ -301,6 +303,34 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     }
   }, [compoundForm?.status]);
 
+  const handleRemove = (tabId: 'tab-driver' | 'tab-teammate') => {
+    const form = tabId === 'tab-driver' ? driverForm : teammateForm;
+    if (!form || form.status === undefined) {
+      setOpenTabs((prev) => prev.filter((t) => t !== tabId));
+      if (tabId === 'tab-driver') { setDriverForm(null); setDriverEditActive(false); }
+      if (tabId === 'tab-teammate') { setTeammateForm(null); setTeammateEditActive(false); }
+      setActiveTab('tab-compound');
+      return;
+    }
+    setRemoveConfirmTab(tabId);
+  };
+
+  const handleRemoveConfirmed = async () => {
+    if (!removeConfirmTab) return;
+    const form = removeConfirmTab === 'tab-driver' ? driverForm : teammateForm;
+    const scope = removeConfirmTab === 'tab-driver' ? 'driver' : 'teammate';
+    setRemoveConfirmTab(null);
+    if (form?.id && form?.subFormNumber) {
+      try {
+        await deleteDriveRestForm(scope, String(form.id), form.subFormNumber, form.status ?? '');
+      } catch (e) {
+        console.error('Delete sub-form failed', e);
+        return;
+      }
+    }
+    if (compoundFormKey) navigate(`/control-forms/compound/${compoundFormKey}`);
+  };
+
   const canDelete =
     hasPermission('control_form.delete') &&
     ((driverForm != null && driverForm.status !== 'deleted') ||
@@ -510,6 +540,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   return (
     <div>
+      <DeleteConfirmModal
+        subForm
+        isOpen={removeConfirmTab !== null}
+        onClose={() => setRemoveConfirmTab(null)}
+        onDelete={handleRemoveConfirmed}
+      />
       {showSavedAlert && !showConfirmedAlert && (
         <Alert
           icon="check_circle"
@@ -559,6 +595,15 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                   <StatusIndicator type="danger" position="top-right" />
                 )}
               </span>
+              {driverEditActive && openTabs.length > 1 && (
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove('tab-driver');
+                  }}
+                />
+              )}
             </Tabs.Trigger>
           )}
           {openTabs.includes('tab-teammate') && (
@@ -569,6 +614,15 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                   <StatusIndicator type="danger" position="top-right" />
                 )}
               </span>
+              {teammateEditActive && openTabs.length > 1 && (
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove('tab-teammate');
+                  }}
+                />
+              )}
             </Tabs.Trigger>
           )}
           {isDesktop && addFormDropdown && (

@@ -113,10 +113,12 @@ export const getDriveRestFormByCompoundFormKey = (
   postSilent<DriveRestForm | null>(
     `/v1/control-forms/drive-rest-form/${scope}/read/get-by-compound-form-key`,
     { compoundFormKey },
-  ).catch((err: ApiError) => {
-    if (err?.status === 300) return null;
-    throw err;
-  });
+  )
+    .then((res) => (res?.status === 'deleted' ? null : res))
+    .catch((err: ApiError) => {
+      if (err?.status === 300) return null;
+      throw err;
+    });
 
 export const deleteDriveRestForm = (
   scope: 'driver' | 'teammate',

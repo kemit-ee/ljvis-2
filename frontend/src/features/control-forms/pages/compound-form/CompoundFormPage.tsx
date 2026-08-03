@@ -8,6 +8,7 @@ import {
   Tabs,
   Dropdown,
   StatusIndicator,
+  ClosingButton,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm } from './useCompoundForm';
 import { useCompoundFormDetail } from './useCompoundFormDetail';
@@ -72,6 +73,7 @@ export function CompoundFormPage() {
   const teammateEditCardRef = useRef<DriveRestFormEditCardRef | null>(null);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
+  const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | null>(null);
 
   const hasTabErrors = (tabId: string) => {
     if (!validatedTabs.has(tabId)) return false;
@@ -291,6 +293,38 @@ export function CompoundFormPage() {
     if (tabId === 'tab-driver') setDriverEditActive(true);
     if (tabId === 'tab-teammate') setTeammateEditActive(true);
     setActiveTab(tabId);
+  };
+
+  const subFormCount = (driverForm || driverEditActive ? 1 : 0) + (teammateForm || teammateEditActive ? 1 : 0);
+
+  const handleRemove = (tabId: 'tab-driver' | 'tab-teammate') => {
+    const subForm = tabId === 'tab-driver' ? driverForm : teammateForm;
+    if (!subForm || subForm.status === undefined) {
+      if (tabId === 'tab-driver') { setDriverForm(null); setDriverEditActive(false); }
+      if (tabId === 'tab-teammate') { setTeammateForm(null); setTeammateEditActive(false); }
+      setActiveTab('tab-compound');
+      return;
+    }
+    setRemoveConfirmTab(tabId);
+  };
+
+  const handleRemoveConfirmed = async () => {
+    if (!removeConfirmTab) return;
+    const subForm = removeConfirmTab === 'tab-driver' ? driverForm : teammateForm;
+    const scope = removeConfirmTab === 'tab-driver' ? 'driver' : 'teammate';
+    setRemoveConfirmTab(null);
+    if (subForm?.id && subForm?.subFormNumber) {
+      try {
+        await deleteDriveRestForm(scope, String(subForm.id), subForm.subFormNumber, subForm.status ?? '');
+      } catch (e) {
+        console.error('Delete sub-form failed', e);
+        return;
+      }
+    }
+    if (scope === 'driver') { setDriverForm(null); setDriverEditActive(false); }
+    if (scope === 'teammate') { setTeammateForm(null); setTeammateEditActive(false); }
+    setActiveTab('tab-compound');
+    navigate(`/control-forms/compound/${id}`);
   };
 
   const subFormsAllConfirmed = [driverForm, teammateForm]
@@ -615,6 +649,12 @@ export function CompoundFormPage() {
 
   return (
     <div>
+      <DeleteConfirmModal
+        subForm
+        isOpen={removeConfirmTab !== null}
+        onClose={() => setRemoveConfirmTab(null)}
+        onDelete={handleRemoveConfirmed}
+      />
       {showSavedAlert && !showConfirmedAlert && (
         <Alert
           icon="check_circle"
@@ -662,6 +702,15 @@ export function CompoundFormPage() {
                   <StatusIndicator type="danger" position="top-right" />
                 )}
               </span>
+              {driverEditActive && subFormCount > 1 && (
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove('tab-driver');
+                  }}
+                />
+              )}
             </Tabs.Trigger>
           )}
           {(teammateForm || teammateEditActive) && (
@@ -672,6 +721,15 @@ export function CompoundFormPage() {
                   <StatusIndicator type="danger" position="top-right" />
                 )}
               </span>
+              {teammateEditActive && subFormCount > 1 && (
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove('tab-teammate');
+                  }}
+                />
+              )}
             </Tabs.Trigger>
           )}
           {isDesktop && addFormDropdown && (
