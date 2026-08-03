@@ -1,0 +1,67 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "MOCK ERRU hub for CTUD request/response — dev and CI only, never reachable in production (ERRU_CTUD_ENDPOINT points at XTR there). Stands in for the MOVEHUB / s-TESTA synchronous request-response interface, which is unavailable in this environment. Modelled on the legacy SimulationController from the 2010 Erru.Receiver, which served the same purpose. The scenario is selected by the target country so every branch of the send flow is reachable from a test: DE=Found with a full payload, LV=NotFound, PL=Timeout, GR=NotAvailable (a member state still on ERRU v2.4), anything else=Found with a minimal payload. FI is handled by returning HTTP 502 so the transport-failure branch can be exercised. Response shapes follow ERRU 3.5 as derived from the 2.4 CheckCommunityLicence schema plus the LJVIS2-144 specification."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: ctudTo
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: requestAllVehicles
+        type: string
+
+selectScenario:
+  switch:
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'LV'}
+      next: returnNotFound
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'PL'}
+      next: returnTimeout
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'GR'}
+      next: returnNotAvailable
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'FI'}
+      next: returnTransportFailure
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'DE'}
+      next: returnFoundFull
+  next: returnFoundMinimal
+
+returnFoundFull:
+  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"DE-BAG","transportUndertakingName":"Rhein Spedition GmbH","legalForm":"GmbH","numberOfEmployees":42,"numberOfVehicles":18,"riskRating":74,"riskBand":"Green","searchMethod":"CommunityLicence","address":{"address":"Hauptstrasse 12","postCode":"50667","city":"Koeln","country":"DE"},"communityLicenceDetails":[{"communityLicenceNumber":"DE-CL-2019-55821","communityLicenceStatus":"Active","communityLicenceType":"CommunityLicenceGoods","startDate":"2019-04-01","expiryDate":"2029-03-31","withdrawalDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":null,"licencingAuthority":"DE-BAG"},{"communityLicenceNumber":"DE-CL-2015-11002","communityLicenceStatus":"Expired","communityLicenceType":"CommunityLicencePassenger","startDate":"2015-01-01","expiryDate":"2025-01-01","withdrawalDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":null,"licencingAuthority":"DE-BAG"}],"certifiedTrueCopyDetails":[{"trueCopyNumber":"DE-CL-2019-55821-004","trueCopyIssueDate":"2019-04-01","trueCopyExpiryDate":"2029-03-31","trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null,"trueCopyWithdrawalDate":null}],"vehicleRegistrations":["K-RS-4412","K-RS-4413"]}'
+  next: end
+
+returnFoundMinimal:
+  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"XX-CA","transportUndertakingName":"Generic Transport Ltd","legalForm":"Ltd","numberOfEmployees":5,"numberOfVehicles":2,"riskRating":10,"riskBand":"Grey","searchMethod":"Name","address":{"address":"Main street 1","postCode":"00001","city":"Capital","country":"XX"},"communityLicenceDetails":[],"certifiedTrueCopyDetails":[],"vehicleRegistrations":[]}'
+  next: end
+
+returnNotFound:
+  return: '{"statusCode":"NotFound","statusMessage":"No transport undertaking matched the supplied criteria","respondingAuthority":"LV-ATD"}'
+  next: end
+
+# Timeout and NotAvailable are set by the ERRU Hub, never by a responding member state.
+# Neither is an error: the request still reaches status 'responded'.
+returnTimeout:
+  return: '{"statusCode":"Timeout","statusMessage":"Target member state did not respond in time","respondingAuthority":""}'
+  next: end
+
+returnNotAvailable:
+  return: '{"statusCode":"NotAvailable","statusMessage":"Target member state is not reachable (ERRU v2.4)","respondingAuthority":""}'
+  next: end
+
+returnTransportFailure:
+  status: 502
+  return: '{"error":"MOCK_TRANSPORT_FAILURE","message":"Simulated ERRU transport failure"}'
+  next: end

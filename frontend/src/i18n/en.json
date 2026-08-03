@@ -646,7 +646,6 @@
       "validation": {
         "required": "Required field",
         "minorViolationsCount": "Allowed up to three-digit number",
-
         "api": {
           "required": "Required field"
         }
@@ -668,7 +667,9 @@
     "administration": "Administration",
     "userGroups": "User Groups",
     "classifiers": "Klassifikaatorid",
-    "logs": "Logs"
+    "logs": "Logs",
+    "erru": "ERRU",
+    "ctud": "Transport undertaking data requests"
   },
   "users": {
     "title": "Users",
@@ -869,7 +870,8 @@
     "remove": "Remove",
     "cancel": "Cancel",
     "download": "Download",
-    "space": " "
+    "space": " ",
+    "clear": "Clear filters"
   },
   "xroad": {
     "companyPicker": {
@@ -888,5 +890,94 @@
     "cookies": "Cookies",
     "privacy": "Privacy policy",
     "logoAlt": "COMING"
+  },
+  "erru": {
+    "ctud": {
+      "notFound": "CTUD request not found",
+      "sendFailed": "Sending the request to ERRU failed. You can try again.",
+      "list": {
+        "title": "Transport undertaking data requests",
+        "newRequest": "New CTUD request",
+        "id": "ID",
+        "sentAt": "Sent",
+        "ctudFrom": "Requesting country",
+        "ctudTo": "Target country",
+        "undertakingName": "Transport undertaking name",
+        "licenceNumber": "Community licence / certified true copy no.",
+        "vehicleNumber": "Vehicle reg. no.",
+        "status": "Status",
+        "handler": "User",
+        "direction": "Direction"
+      },
+      "filters": {
+        "sentFrom": "Sent from",
+        "sentUntil": "Sent until"
+      },
+      "form": {
+        "titleOutgoing": "Transport undertaking data check (MS → ERRU)",
+        "titleInbound": "Transport undertaking data check (ERRU → MS)",
+        "titleNew": "New CTUD request (MS → ERRU)",
+        "headerBlock": "Request header and parties",
+        "undertakingBlock": "Transport undertaking",
+        "ctudFrom": "Requesting member state",
+        "ctudTo": "Target member state",
+        "originatingAuthority": "Originating competent authority",
+        "requestSource": "Request source",
+        "requestPurpose": "Request purpose",
+        "undertakingName": "Transport undertaking name",
+        "licenceNumber": "Community licence or certified true copy number",
+        "vehicleNumber": "Vehicle registration number",
+        "vehicleCountry": "Vehicle registration country",
+        "requestAllVehicles": "Return all managed vehicles",
+        "minTwoHint": "At least two of the three search fields must be filled.",
+        "send": "Send",
+        "resend": "Send again",
+        "readOnly": "read-only",
+        "version": "Version {{version}}"
+      },
+      "response": {
+        "title": "Response",
+        "statusCode": "Status code",
+        "statusMessage": "Status message",
+        "respondingAuthority": "Responding competent authority",
+        "undertaking": "Transport undertaking",
+        "name": "Transport undertaking name",
+        "legalForm": "Legal form",
+        "employees": "Number of employees",
+        "vehicles": "Number of managed vehicles",
+        "riskRating": "Risk rating",
+        "riskBand": "Risk band",
+        "searchMethod": "Search method",
+        "address": "Address",
+        "street": "Street",
+        "postCode": "Post code",
+        "city": "City",
+        "country": "Country",
+        "licences": "Community licences",
+        "licenceNumber": "Licence number",
+        "licenceStatus": "Licence status",
+        "licenceType": "Licence type",
+        "licencingAuthority": "Licencing authority",
+        "startDate": "Valid from",
+        "expiryDate": "Valid until",
+        "trueCopies": "Certified true copies",
+        "trueCopyNumber": "True copy number",
+        "trueCopyIssueDate": "Issue date",
+        "trueCopyExpiryDate": "Expiry date",
+        "vehicleList": "Vehicle list"
+      },
+      "validation": {
+        "required": "This field is required",
+        "min_two_search_criteria": "At least two of the three search fields must be filled.",
+        "unknown_not_allowed": "The value \"unknown\" is not allowed",
+        "invalid_country_code": "Country code must be two letters",
+        "max_length_exceeded": "Maximum length exceeded",
+        "not_editable": "A sent or inbound request cannot be edited",
+        "not_sendable": "The request cannot be sent in this state",
+        "invalid_transition": "This status transition is not allowed",
+        "draft_not_created": "Saving the draft failed",
+        "send_failed": "Sending failed"
+      }
+    }
   }
 }

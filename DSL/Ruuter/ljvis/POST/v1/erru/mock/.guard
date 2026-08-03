@@ -1,0 +1,15 @@
+# Permissive guard for the DEV/CI-ONLY mock ERRU hub.
+#
+# The parent POST/.guard requires a LJVIS user cookie. The mock hub stands in for an
+# external system (MOVEHUB / s-TESTA), and send.yml must call it exactly the way it
+# will call XTR in production — i.e. WITHOUT forwarding the operator's session cookie.
+# Sending a user cookie to an external endpoint would be wrong, so instead of weakening
+# send.yml this narrower guard lets the stub be reached.
+#
+# Safe because the mock is unreachable in production: ERRU_CTUD_ENDPOINT points at XTR
+# there, and nothing else references this path. If you want it gone from production
+# entirely, drop DSL/Ruuter/ljvis/POST/v1/erru/mock/ from the deployed image.
+allow_mock:
+  return: "success"
+  status: 200
+  next: end

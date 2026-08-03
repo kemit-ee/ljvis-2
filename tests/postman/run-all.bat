@@ -36,6 +36,9 @@ call newman run "%COL%\classifiers.collection.json" -e "%ENV%" -r cli,htmlextra 
 echo Running collection: labour-inspection.collection.json
 call newman run "%COL%\labour-inspection.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\labour-inspection.html"
 
+echo Running collection: erru-ctud.collection.json
+call newman run "%COL%\erru-ctud.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-ctud.html"
+
 echo.
 echo All collections passed.
 echo HTML reports:

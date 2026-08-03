@@ -24,6 +24,9 @@ import { CompoundFormCreatePage } from './features/control-forms/pages/compound-
 import { CompoundFormPage } from './features/control-forms/pages/compound-form/CompoundFormPage';
 import { LabourInspectionFormCreatePage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormCreatePage';
 import { LabourInspectionFormPage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormPage';
+import { CtudListPage } from './features/erru/pages/ctud/CtudListPage';
+import { CtudFormCreatePage } from './features/erru/pages/ctud/CtudFormCreatePage';
+import { CtudFormPage } from './features/erru/pages/ctud/CtudFormPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -101,6 +104,10 @@ function AppRoutes() {
             path="/control-forms/labour-inspection/:id/:snapshotId"
             element={<LabourInspectionFormPage />}
           />
+          {/* ERRU — CTUD (tegevusloa kontroll) */}
+          <Route path="/erru/ctud" element={<CtudListPage />} />
+          <Route path="/erru/ctud/new" element={<CtudFormCreatePage />} />
+          <Route path="/erru/ctud/:id" element={<CtudFormPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

@@ -276,7 +276,9 @@
     "administration": "Haldus",
     "userGroups": "Kasutajagrupid",
     "classifiers": "Klassifikaatorid",
-    "logs": "Logid"
+    "logs": "Logid",
+    "erru": "ERRU",
+    "ctud": "Tegevusloa kontrolli päringud"
   },
   "desktop": {
     "title": "Töölaud",
@@ -966,7 +968,8 @@
     "space": " ",
     "deleteConfirmTitle": "Koondvormi kustutamine",
     "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?",
-    "download": "Laadi alla"
+    "download": "Laadi alla",
+    "clear": "Tühista filtrid"
   },
   "xroad": {
     "companyPicker": {
@@ -985,5 +988,94 @@
     "cookies": "Küpsised",
     "privacy": "Privaatsussätted",
     "logoAlt": "Euroopa Sotsiaalfond"
+  },
+  "erru": {
+    "ctud": {
+      "notFound": "Tegevusloa kontrolli päringut ei leitud",
+      "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
+      "list": {
+        "title": "Tegevusloa kontrolli päringud",
+        "newRequest": "Uus tegevusloa kontrolli päring",
+        "id": "ID",
+        "sentAt": "Saadetud",
+        "ctudFrom": "Saatnud riik",
+        "ctudTo": "Saadetud riik",
+        "undertakingName": "Veoettevõtja nimi",
+        "licenceNumber": "Ühenduse tegevusloa kinnitatud ärakirja või tõestatud koopia nr",
+        "vehicleNumber": "Sõiduki reg.nr",
+        "status": "Staatus",
+        "handler": "Kasutaja",
+        "direction": "Suund"
+      },
+      "filters": {
+        "sentFrom": "Saadetud alates",
+        "sentUntil": "Saadetud kuni"
+      },
+      "form": {
+        "titleOutgoing": "Tegevusloa kontroll (MS → ERRU)",
+        "titleInbound": "Tegevusloa kontroll (ERRU → MS)",
+        "titleNew": "Uus tegevusloa kontrolli päring (MS → ERRU)",
+        "headerBlock": "Päringu päis ja osapooled",
+        "undertakingBlock": "Veoettevõtja",
+        "ctudFrom": "Päringu esitanud liikmesriik",
+        "ctudTo": "Sihtliikmesriik",
+        "originatingAuthority": "Päringu esitanud pädev asutus",
+        "requestSource": "Päringu allikas",
+        "requestPurpose": "Päringu eesmärk",
+        "undertakingName": "Veoettevõtja nimi",
+        "licenceNumber": "Ühenduse tegevusloa või selle kinnitatud ärakirja/tõestatud koopia number",
+        "vehicleNumber": "Sõiduki registreerimisnumber",
+        "vehicleCountry": "Sõiduki registreerimisriik",
+        "requestAllVehicles": "Kõikide sõidukite andmed",
+        "minTwoHint": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast.",
+        "send": "Saada",
+        "resend": "Saada uuesti",
+        "readOnly": "ainult lugemiseks",
+        "version": "Versioon {{version}}"
+      },
+      "response": {
+        "title": "Päringu vastus",
+        "statusCode": "Staatuse kood",
+        "statusMessage": "Staatuse teade",
+        "respondingAuthority": "Vastust esitav pädev asutus",
+        "undertaking": "Veoettevõtja",
+        "name": "Veoettevõtja nimi",
+        "legalForm": "Õiguslik vorm",
+        "employees": "Veoettevõtjas töötavate inimeste arv",
+        "vehicles": "Veoettevõtja hallatavate sõidukite arv",
+        "riskRating": "Veoettevõtja riskiaste",
+        "riskBand": "Veoettevõtja riskivahemik",
+        "searchMethod": "Otsingu meetod",
+        "address": "Veoettevõtja aadress",
+        "street": "Tänav",
+        "postCode": "Postiindeks",
+        "city": "Linn",
+        "country": "Asukohariik",
+        "licences": "Ühenduse tegevusloa andmed",
+        "licenceNumber": "Loa number",
+        "licenceStatus": "Loa staatus",
+        "licenceType": "Loa liik",
+        "licencingAuthority": "Tegevusloa andja",
+        "startDate": "Kehtivuse alguskuupäev",
+        "expiryDate": "Kehtivuse lõppkuupäev",
+        "trueCopies": "Kinnitatud ärakirja/tõestatud koopia andmed",
+        "trueCopyNumber": "Ärakirja number",
+        "trueCopyIssueDate": "Väljastamise kuupäev",
+        "trueCopyExpiryDate": "Kehtivuse lõppkuupäev",
+        "vehicleList": "Sõidukite loend"
+      },
+      "validation": {
+        "required": "Väli on kohustuslik",
+        "min_two_search_criteria": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast.",
+        "unknown_not_allowed": "Väärtus „unknown“ ei ole lubatud",
+        "invalid_country_code": "Riigi kood peab olema kahetäheline",
+        "max_length_exceeded": "Välja pikkus on ületatud",
+        "not_editable": "Saadetud või sissetulevat päringut ei saa muuta",
+        "not_sendable": "Päringut ei saa selles olekus saata",
+        "invalid_transition": "Olekumuutus ei ole lubatud",
+        "draft_not_created": "Mustandi salvestamine ebaõnnestus",
+        "send_failed": "Päringu saatmine ebaõnnestus"
+      }
+    }
   }
 }

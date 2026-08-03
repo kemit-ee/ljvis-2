@@ -112,6 +112,8 @@ via API, with no shared state between collections.
 tests/postman/
 ├── collections/
 │   ├── classifiers.collection.json
+│   ├── erru-ctud.collection.json
+│   ├── labour-inspection.collection.json
 │   ├── organisations.collection.json
 │   ├── permissions.collection.json
 │   ├── users.collection.json
@@ -127,6 +129,7 @@ tests/postman/
 | Collection | What it covers |
 |---|---|
 | **classifiers** | List (search/pagination), get (403/success), get-values (403/success with status), edit/update (403/422/200), values/insert (403/200), values/update (403/200) |
+| **erru-ctud** | Create draft (403 without `ctud.create`, 422 validation matrix: min-two-of-three search criteria / `unknown` name / missing registration country / missing or 1-char target country / missing source+purpose / max length, 200 create with `version=1` and generated `CTUD-EE-AAAA-NNNNN`), get (403/404/200 with upper-cased text and `ctudFrom=EE`), revise (200 `version=2` with unchanged `businessCaseId`, 422 missing id, 422 `not_editable` once sent), list (403, `{content,total}`, one row per request not per snapshot, `direction` filter, OR-group name-or-licence), send (403 without `ctud.send` **and no snapshot written**, DE→`Found` with 2 licences + true copy + vehicle list, LV→`NotFound`, PL→`Timeout`, GR→`NotAvailable` — both still `responded`, not `error` — FI→transport failure `error`, retry-from-error allowed, 422 `not_sendable` on re-send, 404), inbound machine endpoint on `ruuter-internal` (Found + `Grey` risk, replay of the same `technicalId` returns the same answer and creates **no** duplicate, NotFound, `requestAllVehicles=false`, 400 `InvalidData` for each missing ERRU envelope field, 400 for fewer than two criteria and for `unknown`) |
 | **labour-inspection** | Create/edit/save (403, 422 required/future-date/max-length, 200 create+version=1), get (403/404/200), re-save (200, version increments), confirm (403, 200, already_confirmed 422, violations-present 422), edit-after-confirm (422 form_locked_after_confirm), delete (403/200, deleted still readable) |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
 | **permissions** | `GET /permissions/list` — verify seeded permissions, check `user_group.update` present |
@@ -138,6 +141,7 @@ tests/postman/
 | Collection | Auth roles used | Setup queries |
 |---|---|---|
 | classifiers | Super Admin, No-perm (403 tests) | classifier ID |
+| erru-ctud | Super Admin (`ctud.read`+`create`+`send`), Org Admin (`ctud.read`+`create`, **no** `ctud.send`), No-perm (403 tests) | none — creates its own requests; needs `internal_api_url` for the inbound endpoint |
 | labour-inspection | Super Admin, No-perm (403 tests) | none — creates its own acts |
 | organisations | Super Admin | — |
 | permissions | Super Admin | — |
@@ -192,7 +196,9 @@ Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`)
 
 1. Create `tests/postman/collections/<feature>.collection.json`.
 2. Start with `[Auth]` login requests and `[Setup]` queries to resolve IDs.
-3. Add the collection to `tests/postman/run-all.sh`.
+3. Add the collection to `tests/postman/run-all.sh` **and** `run-all.bat`.
+4. If the feature has an endpoint on `ruuter-internal`, target it with `{{internal_api_url}}`
+   (CI `http://localhost:9089`, dev `http://localhost:8089`) rather than `{{api_url}}`.
 
 See `.skills/generate-functional-tests/SKILL.md` for the full guide on
 conventions, test case taxonomy, and JSON structure reference.

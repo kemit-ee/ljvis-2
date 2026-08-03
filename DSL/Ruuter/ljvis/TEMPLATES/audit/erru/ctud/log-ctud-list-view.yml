@@ -1,0 +1,44 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: CTUD request list viewed (LJVIS2-145). Logged on EVERY list load, because the list exposes person-related data (transport undertaking and handler names) and the log must make it traceable who saw whose data. The description carries the applied filters (including the handler personal code filter), the number of rows shown and the page number. Actor is supplied by the caller, which has already resolved it via check-user-authority."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: filters
+        type: string
+      - field: result_count
+        type: string
+      - field: page
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "CTUD päringute loendi vaatamine: filtrid ${incoming.body.filters || '-'}, kuvatud päringuid ${incoming.body.result_count || '0'}, lehekülg ${incoming.body.page || '1'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['filters', incoming.body.filters || null], ['resultCount', incoming.body.result_count || null], ['page', incoming.body.page || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "ctud.list.view"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

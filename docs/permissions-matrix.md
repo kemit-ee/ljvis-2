@@ -53,6 +53,9 @@ changelog:
 | `classifier_value` | `edit`                | `classifier_value.edit`                  | Add classifier values and update their validity period (incl. ending and re-opening validity).           |
 | `audit`        | `read`                    | `audit.read`                             | Read audit log entries and export CSV.                                                                   |
 | `audit`        | `verify`                  | `audit.verify`                           | Walk the audit hash chain and confirm integrity. Privileged reader permission separate from `audit.read`. |
+| `ctud`         | `read`                    | `ctud.read`                              | View an ERRU CTUD (transport-undertaking-data) request and the target country's response, including the request list. |
+| `ctud`         | `create`                  | `ctud.create`                            | Compose and save an outgoing ERRU CTUD request draft. Editing is possible only while the request is `initiated`. |
+| `ctud`         | `send`                    | `ctud.send`                              | Send an ERRU CTUD request to the target member state. Serving *inbound* requests needs no permission — it is an automatic system process. |
 
 ## 2. API endpoint access matrix
 
@@ -148,7 +151,23 @@ changelog:
 | `/api/v1/classifiers/violation-types`                               | GET  | `getClassifierViolationTypes`     | `classifier.read`                 |
 | `/api/v1/classifiers/countries`                                     | GET  | `getClassifierCountries`          | `classifier.read`                 |
 
-### 2.7 Authentication
+### 2.7 ERRU — CTUD (transport undertaking data)
+
+| Endpoint                | HTTP | operationId       | Required permissions |
+| ----------------------- | ---- | ----------------- | -------------------- |
+| `/v1/erru/ctud/search`  | GET  | `getCtudRequests` | `ctud.read`          |
+| `/v1/erru/ctud`         | GET  | `getCtudRequest`  | `ctud.read`          |
+| `/v1/erru/ctud`         | POST | `postCtudRequest` | `ctud.create`        |
+| `/v1/erru/ctud`         | PUT  | `putCtudRequest`  | `ctud.create`        |
+| `/v1/erru/ctud/send`    | POST | `postCtudSend`    | `ctud.send`          |
+
+> The inbound counterpart `POST /erru/ctud/inbound-request` is intentionally absent from this
+> matrix: it is served by the separate `ruuter-internal` instance, is not exposed publicly, and
+> requires no `ctud.*` permission because no user is involved. It is a machine-to-machine
+> endpoint whose authentication is still an open gap — see the `TODO(M2M)` note in
+> `DSL/Ruuter.internal/ljvis/POST/erru/ctud/inbound-request.yml`.
+
+### 2.8 Authentication
 
 | Endpoint             | HTTP | operationId          | Required permissions                     |
 | -------------------- | ---- | -------------------- | ---------------------------------------- |

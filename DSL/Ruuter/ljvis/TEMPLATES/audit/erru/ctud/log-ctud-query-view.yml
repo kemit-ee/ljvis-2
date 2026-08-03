@@ -1,0 +1,48 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: single CTUD request viewed (LJVIS2-143). Logged on EVERY open of the request, because the view shows transport undertaking data. The description carries the request identifier, the searched undertaking details, the target country and the viewer's personal code, which is what makes it traceable who saw whose data."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: transport_undertaking_name
+        type: string
+      - field: community_licence_number
+        type: string
+      - field: vehicle_registration_number
+        type: string
+      - field: ctud_to
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "CTUD päringu vaatamine: päringu tunnus ${incoming.body.business_case_id || '-'}, veoettevõtja ${incoming.body.transport_undertaking_name || '-'}, tegevusloa number ${incoming.body.community_licence_number || '-'}, sõiduki registreerimisnumber ${incoming.body.vehicle_registration_number || '-'}, sihtriik ${incoming.body.ctud_to || '-'}, vaataja ${incoming.body.actor_personal_code || '-'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['transportUndertakingName', incoming.body.transport_undertaking_name || null], ['communityLicenceNumber', incoming.body.community_licence_number || null], ['vehicleRegistrationNumber', incoming.body.vehicle_registration_number || null], ['ctudTo', incoming.body.ctud_to || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "ctud.query.view"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end
