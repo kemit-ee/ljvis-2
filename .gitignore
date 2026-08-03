@@ -1,0 +1,36 @@
+# PostgreSQL data directory (docker-compose volume, repo root only).
+# Anchored with a leading slash: an unanchored `data/` also matches
+# architecture/data/, which holds tracked data-model documentation.
+/data/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# Node (frontend has its own .gitignore, but just in case)
+node_modules/
+# TIM PostgreSQL data directory (docker-compose volume, repo root only).
+/tim-db/
+
+# Docker
+*.log
+
+# Environment overrides
+.env
+.env.local
+.env.*.local
+.env.tara
+
+.actrc
+
+.ai
+.devin
+
+# Task/test documentation (local only)
+TASK-*.md
+TEST-*.md
+
+tests/postman/reports/*

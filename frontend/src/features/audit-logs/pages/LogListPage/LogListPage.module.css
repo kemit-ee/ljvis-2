@@ -1,0 +1,35 @@
+:global(#logs-table) td,
+:global(#logs-table) th {
+  border-left: 1px solid #e5e7eb;
+}
+
+:global(#logs-table) td:first-child,
+:global(#logs-table) th:first-child {
+  border-left: none;
+  width: 10% !important;
+  max-width: 10% !important;
+}
+
+:global(#logs-table) td:nth-child(3),
+:global(#logs-table) th:nth-child(3) {
+  width: 15% !important;
+  max-width: 15% !important;
+}
+
+:global(#logs-table) td:nth-child(4),
+:global(#logs-table) th:nth-child(4) {
+  width: 15% !important;
+  max-width: 15% !important;
+}
+
+:global(#logs-table) td:nth-last-child(2),
+:global(#logs-table) th:nth-last-child(2) {
+  width: 35% !important;
+  max-width: 35% !important;
+}
+
+:global(#logs-table) td:last-child,
+:global(#logs-table) th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}

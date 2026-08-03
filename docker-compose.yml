@@ -1,0 +1,265 @@
+services:
+  database:
+    container_name: database
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=ljvis
+      - POSTGRES_PASSWORD=01234
+      - POSTGRES_DB=ljvis_db
+    ports:
+      - 54321:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./DSL/Liquibase/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ljvis -d ljvis_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - ljvisnetwork
+
+  liquibase:
+    container_name: liquibase
+    build:
+      context: .
+      dockerfile: docker/liquibase/Dockerfile
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./DSL/Liquibase/liquibase.properties:/liquibase/liquibase.properties
+      - ./DSL/Liquibase/changelog:/liquibase/changelog
+      - ./DSL/Liquibase/changelog.yaml:/liquibase/changelog.yaml
+    environment:
+      - AUDIT_SALT=${AUDIT_SALT:-dev-local-audit-salt-change-me-32chars}
+    command: --defaultsFile=/liquibase/liquibase.properties update -DAUDIT_SALT=${AUDIT_SALT:-dev-local-audit-salt-change-me-32chars}
+    networks:
+      - ljvisnetwork
+
+  resql-ljvis:
+    container_name: resql-ljvis
+    build:
+      context: .
+      dockerfile: docker/resql-ljvis/Dockerfile
+    platform: linux/amd64
+    depends_on:
+      - database
+    environment:
+      - server.port=8090
+      - sqlms.datasources.[0].name=byk
+      - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/ljvis_db
+      - sqlms.datasources.[0].username=ljvis
+      - sqlms.datasources.[0].password=01234
+      - logging.level.org.springframework.boot=INFO
+    ports:
+      - 8090:8090
+    volumes:
+      - ./DSL/Resql:/DSL
+    networks:
+      - ljvisnetwork
+
+  ruuter:
+    container_name: ruuter
+    build:
+      context: .
+      dockerfile: docker/ruuter/Dockerfile
+    platform: linux/amd64
+    environment:
+      - application.cors.allowedOrigins=http://localhost:8086,http://localhost:3001,http://localhost:3004,http://localhost:8080
+      - application.httpCodesAllowList=200,201,202,400,401,403,500
+      - application.incomingRequests.allowedMethodTypes=POST,GET,PUT,DELETE
+      - application.internalRequests.allowedIPs=127.0.0.1
+      - application.logging.displayRequestContent=true
+      - application.logging.displayResponseContent=true
+      - application.logging.printStackTrace=true
+      - application.internalRequests.disabled=true
+      - server.port=8086
+      - application.externalAuthAllowed=.*mock.*
+    volumes:
+      - ./DSL/Ruuter:/DSL
+      - ./constants.ini:/app/constants.ini
+    ports:
+      - 8086:8086
+    networks:
+      - ljvisnetwork
+    cpus: "0.5"
+    mem_limit: "512M"
+
+  data-mapper:
+    container_name: data-mapper
+    build:
+      context: .
+      dockerfile: docker/data-mapper/Dockerfile
+    platform: linux/amd64
+    environment:
+      - PORT=3005
+      - CONTENT_FOLDER=/data
+    volumes:
+      - ./DSL:/data
+      - ./DSL/DMapper/ljvis/hbs:/workspace/app/views/ljvis
+    ports:
+      - 3005:3005
+    networks:
+      - ljvisnetwork
+
+  ruuter-internal:
+    container_name: ruuter-internal
+    build:
+      context: .
+      dockerfile: docker/ruuter-internal/Dockerfile
+    platform: linux/amd64
+    environment:
+      - application.cors.allowedOrigins=http://localhost:8086,http://localhost:8089,http://localhost:3001,http://localhost:3004,http://localhost:8080
+      - application.httpCodesAllowList=200,201,202,400,401,403,500
+      - application.internalRequests.allowedIPs=127.0.0.1
+      - application.logging.displayRequestContent=true
+      - application.logging.displayResponseContent=true
+      - application.logging.printStackTrace=true
+      - application.internalRequests.disabled=true
+      - server.port=8089
+    volumes:
+      - ./DSL/Ruuter.internal:/DSL
+      - ./constants.ini:/app/constants.ini
+    ports:
+      - 8089:8089
+    networks:
+      - ljvisnetwork
+    cpus: "0.5"
+    mem_limit: "512M"
+
+  # ─── LOCAL DEV / CI ONLY — never deployed to production (Helm charts) ───────
+  tara-mock:
+    container_name: tara-mock
+    build:
+      context: .
+      dockerfile: docker/tara-mock/Dockerfile
+    volumes:
+      - tara-mock-vault:/service/vault
+      - ./docker/tara-mock/identities.json:/service/identities.json:ro
+    networks:
+      - ljvisnetwork
+    ports:
+      - 8888:8080
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  tim-postgresql:
+    container_name: tim-postgresql
+    image: postgres:17
+    environment:
+      - POSTGRES_USER=tim
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=tim
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ./tim-db:/var/lib/postgresql/data
+    ports:
+      - 9876:5432
+    networks:
+      - ljvisnetwork
+
+  tim:
+    container_name: tim
+    image: ghcr.io/buerokratt/tim:pre-apha-2.7.1
+    platform: linux/amd64
+    depends_on:
+      - tim-postgresql
+      - tara-mock
+    # Imports TARA-Mock CA into JVM cacerts before starting TIM.
+    # user-authorization-uri → browser redirect (localhost:8888, port-mapped).
+    # access-token-uri / key-set-uri → direct Docker DNS (tara-mock:8080).
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until [ -f /tara-mock-vault/rootCA.pem ]; do sleep 1; done
+        CACERTS=$$(find /opt/java /usr/lib/jvm -name cacerts -path '*/security/cacerts' 2>/dev/null | head -1)
+        keytool -import -trustcacerts -noprompt -alias tara-mock-ca \
+          -file /tara-mock-vault/rootCA.pem -keystore "$$CACERTS" -storepass changeit
+        exec ./generate-keystore.sh
+    environment:
+      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
+      - JWT_INTEGRATION_SIGNATURE_KEY_STORE_PASSWORD=defaultpassword
+      - security.oauth2.client.client-id=ljvis
+      - security.oauth2.client.client-secret=ljvis-secret
+      - security.oauth2.client.scope=openid
+      - security.oauth2.client.registered-redirect-uri=http://localhost:3001/tim/authenticate
+      - security.oauth2.client.user-authorization-uri=https://localhost:8888/oidc/authorize
+      - security.oauth2.client.access-token-uri=https://tara-mock:8080/oidc/token
+      - security.oauth2.resource.jwk.key-set-uri=https://tara-mock:8080/oidc/jwks
+      - frontpage.redirect.url=http://localhost:3001
+      - auth.success.redirect.whitelist=http://localhost:3001
+      - jwt-integration.signature.cookieName=customJwtCookie
+      - jwt-integration.signature.secureCookie=false
+      - server.servlet.session.cookie.same-site=lax
+    volumes:
+      - tara-mock-vault:/tara-mock-vault:ro
+    ports:
+      - 8085:8085
+    networks:
+      - ljvisnetwork
+    cpus: "0.5"
+    mem_limit: "512M"
+
+  s3-proxy:
+    container_name: s3-proxy
+    build:
+      context: .
+      dockerfile: docker/s3-proxy/Dockerfile
+    environment:
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - S3_REGION=${S3_REGION:-auto}
+      - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+      - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+      - S3_KEY_PREFIX=${S3_KEY_PREFIX:-protokollid}
+      - S3_MAX_SIZE_MB=${S3_MAX_SIZE_MB:-20}
+      - S3_MAX_FILENAME_LENGTH=${S3_MAX_FILENAME_LENGTH:-200}
+      - S3_ALLOWED_MIME_TYPES=${S3_ALLOWED_MIME_TYPES:-application/pdf,image/jpeg,image/png,application/vnd.etsi.asic-e+zip,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document}
+      - PORT=3010
+    networks:
+      - ljvisnetwork
+    cpus: "0.25"
+    mem_limit: "128M"
+
+
+  xtr:
+    container_name: xtr
+    image: ghcr.io/buerokratt/xtr:v3.1.16
+    platform: linux/amd64
+    environment:
+      - server.port=8080
+      - application.dslPath=/DSL
+      - application.ssl.keystore-password=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
+      - application.security-server=${XROAD_SECURITY_SERVER:-}
+      - application.xroad-instance=${XROAD_INSTANCE:-ee-test}
+    volumes:
+      - ./DSL/xtr:/DSL
+    ports:
+      - 9010:8080
+    networks:
+      - ljvisnetwork
+    cpus: "0.5"
+    mem_limit: "512M"
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 3001:3001
+    depends_on:
+      - ruuter
+    networks:
+      - ljvisnetwork
+
+volumes:
+  tara-mock-vault:
+
+networks:
+  ljvisnetwork:
+    name: ljvisnetwork
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400

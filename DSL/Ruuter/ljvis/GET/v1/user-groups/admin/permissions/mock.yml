@@ -1,0 +1,52 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      items:
+        - permissionId: "1"
+          code: "user_group.list.admin"
+          description: "Kasutajagruppide nimekirja vaatamine kõigi asutuste ulatuses"
+        - permissionId: "3"
+          code: "user_group.read.admin"
+          description: "Kasutajagrupi detailvaate algandmete vaatamine kõigi gruppide ulatuses"
+        - permissionId: "4"
+          code: "user_group.read.local"
+          description: "Kasutajagrupi detailvaate algandmete vaatamine ainult oma asutusega seotud gruppidele"
+        - permissionId: "5"
+          code: "user_group.create"
+          description: "Uue kasutajagrupi loomine"
+        - permissionId: "6"
+          code: "user_group.update"
+          description: "Kasutajagrupi nimetuse, asutuste ja õiguste-seoste muutmine"
+        - permissionId: "7"
+          code: "user_group.list_users.admin"
+          description: "Kasutajagrupi liikmete pagineeritud nimekiri kõigi asutuste ulatuses"
+        - permissionId: "9"
+          code: "user_group.search_eligible_users"
+          description: "Gruppi sidumiseks sobivate kasutajate otsimine"
+        - permissionId: "10"
+          code: "user_group.add_user"
+          description: "Kasutaja(te) sidumine kasutajagrupiga"
+        - permissionId: "11"
+          code: "user_group.remove_user"
+          description: "Kasutaja eemaldamine kasutajagrupist"
+        - permissionId: "12"
+          code: "user.list.admin"
+          description: "Kasutajate nimekirja vaatamine kõigi asutuste ulatuses"
+        - permissionId: "14"
+          code: "user.read.admin"
+          description: "Kasutaja andmete vaatamine kõigi asutuste ulatuses"
+        - permissionId: "16"
+          code: "user.edit.admin"
+          description: "Kasutaja lisamine, vaatamine ja muutmine kõigi asutuste ulatuses"
+        - permissionId: "18"
+          code: "organisation.list"
+          description: "Asutuste kataloogi laadimine UI valikute jaoks"
+        - permissionId: "19"
+          code: "permission.list"
+          description: "Õiguste kataloogi laadimine UI valikute jaoks"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body.items}
+  next: end

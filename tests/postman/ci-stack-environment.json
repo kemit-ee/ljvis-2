@@ -1,0 +1,156 @@
+{
+  "id": "ljvis-ci-stack-env",
+  "name": "LJVIS — CI Stack (ports 9xxx)",
+  "values": [
+    {
+      "key": "api_url",
+      "value": "http://localhost:9086",
+      "enabled": true,
+      "description": "Ruuter — CI stack (port 9086, isolated from dev stack on 8086)"
+    },
+    {
+      "key": "resql_users_url",
+      "value": "http://localhost:9087/users",
+      "enabled": true
+    },
+    {
+      "key": "resql_ljvis_url",
+      "value": "http://localhost:9090/ljvis",
+      "enabled": true
+    },
+    {
+      "key": "tim_url",
+      "value": "http://localhost:9085",
+      "enabled": true
+    },
+    {
+      "key": "pc_admin",
+      "value": "60001019906",
+      "enabled": true,
+      "description": "Super Admin personal code — seeded by tests/bootstrap/seed-admin.sql"
+    },
+    {
+      "key": "pc_org_admin",
+      "value": "60001017727",
+      "enabled": true
+    },
+    {
+      "key": "pc_user",
+      "value": "60001017869",
+      "enabled": true
+    },
+    {
+      "key": "cookie_admin",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "baseline_org_count",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "created_org_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "cookie_local",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "cookie_noperm",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "created_user_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "created_group_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "seeded_user_admin_id",
+      "value": "",
+      "enabled": true,
+      "description": "ID of Super Admin user row — populated during Users tests"
+    },
+    {
+      "key": "seeded_group_admin_id",
+      "value": "",
+      "enabled": true,
+      "description": "ID of CI Super Admin Group — populated during User Groups tests"
+    },
+    {
+      "key": "seeded_org_bootstrap_id",
+      "value": "",
+      "enabled": true,
+      "description": "ID of CI Bootstrap Organisation — populated during Organisations tests"
+    },
+    {
+      "key": "seeded_permission_id",
+      "value": "",
+      "enabled": true,
+      "description": "ID of first available permission — populated during Permissions tests"
+    },
+    {
+      "key": "local_admin_group_id",
+      "value": "",
+      "enabled": true,
+      "description": "ID of Local Admin Group — populated during local-admin scenario in Users tests"
+    },
+    {
+      "key": "created_local_admin_id",
+      "value": "",
+      "enabled": true,
+      "description": "ID of local-admin CI user (48001011236) created during scenario"
+    },
+    {
+      "key": "cookie_local_ci",
+      "value": "",
+      "enabled": true,
+      "description": "JWT cookie for local-admin CI user (48001011236)"
+    },
+    {
+      "key": "local_list_count_before",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "created_local_user2_id",
+      "value": "",
+      "enabled": true,
+      "description": "ID of user (48001021234) inserted by local admin during scenario"
+    },
+    {
+      "key": "seeded_classifier_id",
+      "value": "",
+      "enabled": true,
+      "description": "classifier_key of RTK — populated during Classifiers tests setup"
+    },
+    {
+      "key": "seeded_classifier_id_2",
+      "value": "",
+      "enabled": true,
+      "description": "classifier_key of TEST — populated during Classifiers tests setup"
+    },
+    {
+      "key": "seeded_value_id",
+      "value": "",
+      "enabled": true,
+      "description": "classifier_value_key of RTK/EE — populated during Classifiers tests setup"
+    },
+    {
+      "key": "created_value_id",
+      "value": "",
+      "enabled": true,
+      "description": "classifier_value_key of CI_TEST value — populated during Classifiers POST test"
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

@@ -1,0 +1,62 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: compound locked form update event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: form_number
+        type: string
+      - field: status
+        type: string
+      - field: changed_fields
+        type: string
+
+checkStatus:
+  switch:
+    - condition: ${incoming.body.status === 'confirmed'}
+      next: setStatusConfirmed
+    - condition: ${incoming.body.status === 'published'}
+      next: setStatusPublished
+  next: setStatusDefault
+
+setStatusConfirmed:
+  assign:
+    status_label: "Kinnitatud"
+  next: buildAudit
+
+setStatusPublished:
+  assign:
+    status_label: "Avalikustatud"
+  next: buildAudit
+
+setStatusDefault:
+  assign:
+    status_label: ${incoming.body.status}
+  next: buildAudit
+
+buildAudit:
+  assign:
+    changed_fields_json: ${JSON.stringify(incoming.body.changed_fields)}
+    description: "Muudeti vormi ${incoming.body.form_number} (olek: ${status_label}), üldosa muudetud väljad: ${changed_fields_json}"
+    log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"status\":\"${incoming.body.status}\",\"changedFields\":${changed_fields_json}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.edit_locked"
+    event_category: "control_form_lifecycle"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

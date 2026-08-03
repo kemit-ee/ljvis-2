@@ -1,0 +1,12 @@
+[
+    {{#each users}}
+    {
+        "id": "{{this.id}}",
+        "firstName": "{{this.firstName}}",
+        "lastName": "{{this.lastName}}",
+        "personalCode": "{{this.personalCode}}",
+        "organisationName": "{{this.organisationName}}",
+        "status": "{{this.status}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+]

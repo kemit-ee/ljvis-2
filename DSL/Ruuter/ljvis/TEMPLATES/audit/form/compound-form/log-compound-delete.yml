@@ -1,0 +1,36 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: compound form delete event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: form_number
+        type: string
+      - field: old_status
+        type: string
+
+buildAudit:
+  assign:
+    description: "Kustutati koondvorm ${incoming.body.form_number}, olek: ${incoming.body.old_status} → deleted"
+    log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"deleted\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.delete"
+    event_category: "control_form_lifecycle"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

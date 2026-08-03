@@ -1,0 +1,63 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: user group add-users event — fetches personal codes internally"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: user_group_id
+        type: string
+      - field: group_name
+        type: string
+      - field: user_ids
+        type: string
+
+checkUserIds:
+  switch:
+    - condition: "${incoming.body.user_ids == ''}"
+      next: buildEmptyAudit
+  next: fetchPersonalCodes
+
+fetchPersonalCodes:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_users_by_ids"
+    headers:
+      type: json
+    body:
+      user_ids: ${incoming.body.user_ids}
+  result: personalCodesRes
+  next: buildAudit
+
+buildAudit:
+  assign:
+    added_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
+    added_personal_codes_str: "${(personalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ')}"
+    description: "Kasutajagrupi ${incoming.body.group_name} muutmine: lisatud kasutajad: ${added_personal_codes_str}"
+    log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":${added_personal_codes_json},\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+buildEmptyAudit:
+  assign:
+    description: "Kasutajagrupi ${incoming.body.group_name} muutmine: lisatud kasutajad: "
+    log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user_group.update"
+    event_category: "user_group_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

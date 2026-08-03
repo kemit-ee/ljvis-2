@@ -1,0 +1,30 @@
+.wrapper-desktop {
+  position: static;
+  transition: width 0.3s ease-in-out;
+}
+
+.wrapper-desktop-expanded {
+  width: 260px;
+}
+
+.wrapper-desktop-collapsed {
+  width: 100px;
+}
+
+.wrapper-mobile {
+  position: fixed;
+  top: 112px;
+  left: 0;
+  height: calc(100vh - 112px);
+  z-index: 112;
+  width: 240px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.wrapper-mobile-hidden {
+  transform: translateX(-100%);
+}
+
+.wrapper-mobile-visible {
+  transform: translateX(0);
+}

@@ -1,0 +1,19 @@
+{
+    "content": [
+        {{#each logs}}
+        {
+            "eventId": "{{this.eventId}}",
+            "eventType": "{{this.eventType}}",
+            "eventCategory": "{{this.eventCategory}}",
+            "actorName": "{{this.actorName}}",
+            "actorPersonalCode": "{{this.actorPersonalCodeHash}}",
+            "description": "{{this.description}}",
+            "createdAt": "{{this.createdAt}}",
+            "createdBy": "{{this.createdBy}}",
+            "traceId": "{{this.traceId}}",
+            "spanId": "{{this.spanId}}"
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with logs.[0]}}{{total}}{{else}}0{{/with}}
+}

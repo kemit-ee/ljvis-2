@@ -1,0 +1,18 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      id: "a0000001-0000-0000-0000-000000000001"
+      personalcode: "60001019906"
+      firstname: "Marko"
+      lastname: "Mägi"
+      organisationid: "b0000001-0000-0000-0000-000000000001"
+      organisationname: "Politsei- ja Piirivalveamet"
+      email: "marko.magi@ppa.ee"
+      status: "active"
+      permissions: "user_group.list.admin,user_group.list.local,user_group.read.admin,user_group.read.local,user_group.create,user_group.update,user_group.list_users.admin,user_group.list_users.local,user_group.search_eligible_users,user_group.add_user,user_group.remove_user,user.list.admin,user.list.local,user.read.admin,user.read.local,user.edit.admin,user.edit.local,organisation.list,permission.list,classifier.list,classifier.read,classifier.edit,classifier_value.edit,audit.read,foreign_violation_form.write,foreign_violation_form.read"
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body}
+  next: end

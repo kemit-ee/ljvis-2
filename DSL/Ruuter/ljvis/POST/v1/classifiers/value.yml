@@ -1,0 +1,97 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Create a new classifier value"
+  method: post
+  accepts: json
+  returns: json
+  namespace: classifiers
+  allowlist:
+    body:
+      - field: classifierId
+        type: string
+      - field: code
+        type: string
+      - field: name
+        type: string
+      - field: validFrom
+        type: string
+      - field: validUntil
+        type: string
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    classifier_id: "${incoming.body.classifierId}"
+    code: "${incoming.body.code}"
+    name: "${incoming.body.name}"
+    valid_from: "${incoming.body.validFrom}"
+    valid_until: "${incoming.body.validUntil ?? ''}"
+    created_by: "${auth_user.personalcode || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+  next: getClassifierCode
+
+getClassifierCode:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier"
+    headers:
+      type: json
+    body:
+      id: ${classifier_id}
+  result: classifierRes
+  next: setClassifierCode
+
+setClassifierCode:
+  assign:
+    classifier_code: "${classifierRes.response.body[0].code  || ''}"
+  next: insertClassifierValue
+
+insertClassifierValue:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/insert_classifier_value"
+    headers:
+      type: json
+    body:
+      classifier_id: ${classifier_id}
+      code: ${code}
+      name: ${name}
+      valid_from: ${valid_from}
+      valid_until: ${valid_until}
+      created_by: ${created_by}
+  result: insertRes
+  next: buildAuditData
+
+buildAuditData:
+  assign:
+    classifier_code: ${classifier_code}
+    classifier_value_id: "${insertRes.response.body[0].id}"
+    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}"
+    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  body:
+    event_type: "classifier_value.add"
+    event_category: "classifier_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${insertRes.response.body}
+  next: end

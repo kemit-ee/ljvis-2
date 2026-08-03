@@ -1,0 +1,58 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get a single classifier value by ID"
+  method: get
+  accepts: json
+  returns: json
+  namespace: classifiers
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "Classifier ID"
+      - field: valueId
+        type: string
+        description: "Classifier Value ID"
+
+extractRequestData:
+  assign:
+    classifier_value_id: "${incoming.params.valueId}"
+  next: getClassifierValue
+
+getClassifierValue:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier_value"
+    headers:
+      type: json
+    body:
+      classifier_value_id: ${classifier_value_id}
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${res.response.body.length > 0}
+      next: mapResponse
+  next: notFound
+
+notFound:
+  status: 404
+  return: "Not found"
+  next: end
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_classifier_value"
+    headers:
+      type: json
+    body:
+      classifierValues: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

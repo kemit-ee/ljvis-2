@@ -1,0 +1,298 @@
+import { useTranslation } from 'react-i18next';
+import {
+  Button,
+  Card,
+  DateField,
+  Heading,
+  Select,
+  TextField,
+} from '@tedi-design-system/react/tedi';
+import {
+  CardContent,
+  Modal,
+  ModalCloser,
+  ModalProvider,
+} from '@tedi-design-system/react/community';
+import type { FormikProps } from 'formik';
+import { PhoneField } from '../PhoneField/PhoneField';
+import styles from './UserBasicInfoEditCard.module.css';
+import { toIsoDate } from '../../../../hooks/dateUtils';
+
+interface UserEditFormValues {
+  firstName: string;
+  lastName: string;
+  personalCode: string;
+  organisationId: string;
+  structuralUnitName: string;
+  jobTitleName: string;
+  email: string;
+  phone: string;
+  accessStart: string;
+  accessEnd: string;
+}
+
+interface UserBasicInfoEditCardProps {
+  formik: FormikProps<UserEditFormValues>;
+  isDesktop: boolean;
+  orgOptions: { label: string; value: string }[];
+  structuralUnitOptions: { label: string; value: string }[];
+  isLocalAdmin: boolean;
+  handleOrgChange: (
+    val:
+      | { value: string; label: string | React.ReactNode }
+      | readonly { value: string; label: string | React.ReactNode }[]
+      | null,
+  ) => void;
+  handleStructuralUnitChange: (
+    val:
+      | { value: string; label: string | React.ReactNode }
+      | readonly { value: string; label: string | React.ReactNode }[]
+      | null,
+  ) => void;
+  handleSaveClick: () => void;
+  onCancel: () => void;
+  showConfirmModal: boolean;
+  setShowConfirmModal: (open: boolean) => void;
+}
+
+export function UserBasicInfoEditCard({
+  formik,
+  isDesktop,
+  orgOptions,
+  structuralUnitOptions,
+  isLocalAdmin,
+  handleOrgChange,
+  handleStructuralUnitChange,
+  handleSaveClick,
+  onCancel,
+  showConfirmModal,
+  setShowConfirmModal,
+}: UserBasicInfoEditCardProps) {
+  const { t } = useTranslation();
+
+  return (
+    <form onSubmit={formik.handleSubmit}>
+      <Card className="mb-1">
+        <Card.Content>
+          <div className={styles['card-header']}>
+            <div>
+              <Heading element="h3">{t('users.basicInfo')}</Heading>
+            </div>
+          </div>
+          <div className={isDesktop ? 'grid-3col' : 'grid-2col'}>
+            <TextField
+              id="firstName"
+              label={t('users.firstName')}
+              value={formik.values.firstName}
+              required
+              onChange={(v) => formik.setFieldValue('firstName', v)}
+              {...(formik.touched.firstName && formik.errors.firstName
+                ? {
+                    helper: {
+                      text: formik.errors.firstName,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
+            />
+            <TextField
+              id="lastName"
+              label={t('users.lastName')}
+              value={formik.values.lastName}
+              required
+              onChange={(v) => formik.setFieldValue('lastName', v)}
+              {...(formik.touched.lastName && formik.errors.lastName
+                ? {
+                    helper: {
+                      text: formik.errors.lastName,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
+            />
+            <TextField
+              id="personalCode"
+              label={t('users.personalCode')}
+              value={formik.values.personalCode}
+              input={{ maxLength: 11 }}
+              required
+              disabled
+              onChange={(v) => formik.setFieldValue('personalCode', v)}
+              {...(formik.touched.personalCode && formik.errors.personalCode
+                ? {
+                    helper: {
+                      text: formik.errors.personalCode,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
+            />
+            <Select
+              id="organisationId"
+              label={t('users.organisation')}
+              options={orgOptions}
+              value={
+                orgOptions.find(
+                  (o) => o.value === String(formik.values.organisationId),
+                ) ?? null
+              }
+              onChange={isLocalAdmin ? undefined : handleOrgChange}
+              disabled={isLocalAdmin}
+              required
+            />
+            <Select
+              id="structuralUnitId"
+              label={t('users.structuralUnit')}
+              options={structuralUnitOptions}
+              value={
+                structuralUnitOptions.find(
+                  (o) => o.value === formik.values.structuralUnitName,
+                ) ?? null
+              }
+              onChange={isLocalAdmin ? undefined : handleStructuralUnitChange}
+              disabled={isLocalAdmin}
+            />
+            <TextField
+              id="jobTitleName"
+              label={t('users.jobTitle')}
+              value={formik.values.jobTitleName}
+              input={{ maxLength: 100 }}
+              required
+              onChange={(v) => formik.setFieldValue('jobTitleName', v)}
+              {...(formik.touched.jobTitleName && formik.errors.jobTitleName
+                ? {
+                    helper: {
+                      text: formik.errors.jobTitleName,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
+            />
+            <TextField
+              id="email"
+              label={t('users.email')}
+              value={formik.values.email}
+              required
+              onChange={(v) => formik.setFieldValue('email', v)}
+              {...(formik.touched.email && formik.errors.email
+                ? {
+                    helper: {
+                      text: formik.errors.email,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
+            />
+            <PhoneField
+              value={formik.values.phone}
+              onChange={(v) => formik.setFieldValue('phone', v)}
+              {...(formik.touched.phone && formik.errors.phone
+                ? {
+                    helper: {
+                      text: formik.errors.phone,
+                      type: 'error' as const,
+                    },
+                  }
+                : {})}
+            />
+            {isDesktop && <div />}
+            <DateField
+              id="accessStart"
+              label={t('users.accessStart')}
+              selected={
+                formik.values.accessStart
+                  ? new Date(formik.values.accessStart)
+                  : undefined
+              }
+              onSelect={(v) => formik.setFieldValue('accessStart', toIsoDate(v))}
+              placeholder={t('common.dateFieldPlaceholder')}
+              required
+              inputProps={
+                formik.touched.accessStart && formik.errors.accessStart
+                  ? {
+                      helper: {
+                        text: formik.errors.accessStart,
+                        type: 'error' as const,
+                      },
+                    }
+                  : undefined
+              }
+            />
+            <DateField
+              id="accessEnd"
+              label={t('users.accessEnd')}
+              selected={
+                formik.values.accessEnd
+                  ? new Date(formik.values.accessEnd)
+                  : undefined
+              }
+              onSelect={(v) => formik.setFieldValue('accessEnd', toIsoDate(v))}
+              placeholder={t('common.dateFieldPlaceholder')}
+              inputProps={
+                formik.touched.accessEnd && formik.errors.accessEnd
+                  ? {
+                      helper: {
+                        text: formik.errors.accessEnd,
+                        type: 'error' as const,
+                      },
+                    }
+                  : undefined
+              }
+            />
+          </div>
+          <div
+            className={`${styles['form-actions']}${!isDesktop ? ` ${styles['form-actions-mobile']}` : ''}`}
+          >
+            <Button
+              type="button"
+              size="small"
+              visualType="link"
+              onClick={onCancel}
+            >
+              {t('users.cancel')}
+            </Button>
+            <Button type="button" size="small" onClick={handleSaveClick}>
+              {t('users.save')}
+            </Button>
+          </div>
+        </Card.Content>
+      </Card>
+      {showConfirmModal && (
+        <ModalProvider
+          defaultOpen
+          onToggle={(open) => {
+            if (!open) setShowConfirmModal(false);
+          }}
+        >
+          <Modal aria-labelledby="confirm-save-title">
+            <CardContent>
+              <Heading element="h3" id="confirm-save-title">
+                {t('users.confirmOrganisationChange')}
+              </Heading>
+              <div className="modal-actions">
+                <ModalCloser>
+                  <Button
+                    visualType="secondary"
+                    onClick={() => setShowConfirmModal(false)}
+                  >
+                    {t('common.discard')}
+                  </Button>
+                </ModalCloser>
+                <ModalCloser>
+                  <Button
+                    onClick={() => {
+                      setShowConfirmModal(false);
+                      formik.submitForm();
+                    }}
+                  >
+                    {t('common.confirmChange')}
+                  </Button>
+                </ModalCloser>
+              </div>
+            </CardContent>
+          </Modal>
+        </ModalProvider>
+      )}
+    </form>
+  );
+}

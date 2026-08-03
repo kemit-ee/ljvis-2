@@ -1,0 +1,44 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get permissions linked to a user group"
+  method: get
+  accepts: json
+  returns: json
+  namespace: user-groups
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "User group ID"
+
+extractRequestData:
+  assign:
+    user_group_id: "${incoming.params.q}"
+  next: getPermissions
+
+getPermissions:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
+    headers:
+      type: json
+    body:
+      user_group_id: ${user_group_id}
+  result: res
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_user_group_permissions"
+    headers:
+      type: json
+    body:
+      permissions: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

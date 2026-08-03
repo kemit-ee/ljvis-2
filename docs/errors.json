@@ -1,0 +1,984 @@
+{
+  "version": "0.3.0",
+  "updated": "2026-07-03",
+  "errors": [
+    {
+      "code": "ERR-400-001",
+      "httpStatus": 400,
+      "message": "",
+      "scenarios": [],
+      "occurrences": [
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/permissions" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/organisations" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}/user-group" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/user-groups/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/user-groups/users" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}/users" },
+        { "epic": "02", "task": "openapi", "endpoint": "DELETE /v1/user-groups/user" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/user-groups/available-users" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/users/{scope}/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/users/{scope}/check-personal-code" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/users/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/users/{scope}/user" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/users/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/organisations" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/users/{scope}/update" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /v1/classifiers/check-code" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "openapi", "endpoint": "PUT /v1/classifiers/value" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers/values" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "openapi", "endpoint": "PUT /v1/classifiers/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      },
+      "flags": ["MISSING_SCENARIOS"]
+    },
+    {
+      "code": "ERR-400-002",
+      "httpStatus": 400,
+      "message": "Klassifikaatori koodi ei saa muuta.",
+      "scenarios": [
+        "Admin proovib salvestada klassifikaatorit muudetud koodiga, kuid kood on muutmatu pärast loomist."
+      ],
+      "occurrences": [
+        { "epic": "04", "task": "03", "row": 3, "endpoint": "PUT /v1/classifiers/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-400-003",
+      "httpStatus": 400,
+      "message": "Sisendandmed on vigased.",
+      "scenarios": [
+        "Kohustuslik väli (nimetus või kood) on jäetud tühjaks.",
+        "Välja väärtus ületab lubatud pikkust.",
+        "Kehtivuse lõpukuupäev on varasem kui alguskuupäev või sellega võrdne."
+      ],
+      "occurrences": [
+        { "epic": "04", "task": "03", "row": 4, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "03", "row": 5, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "04", "row": 5, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 7, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 8, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 9, "endpoint": "POST /v1/classifiers/value" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-401-001",
+      "httpStatus": 401,
+      "message": "Sessioon on aegunud. Palun logi uuesti sisse.",
+      "scenarios": [
+        "JWT-token puudub või on aegunud, kui kasutaja proovib avada mõnda rakenduse kuva."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "01", "row": 2, "endpoint": "GET /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 1, "endpoint": "GET /v1/users/admin/user" },
+        { "epic": "02", "task": "02", "row": 1, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 1, "endpoint": "PUT /v1/users/admin/update" },
+        { "epic": "02", "task": "04", "row": 2, "endpoint": "GET /v1/user-groups/admin" },
+        { "epic": "02", "task": "05", "row": 1, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 1, "endpoint": "GET /v1/user-groups/admin/user-group" },
+        { "epic": "04", "task": "01", "row": 2, "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "02", "row": 3, "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "02", "row": 3, "endpoint": "GET /v1/classifiers/values" },
+        { "epic": "04", "task": "03", "row": 7, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "04", "row": 10, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 10, "endpoint": "PUT /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 10, "endpoint": "POST /v1/classifiers/check-code" }
+      ],
+      "logging": {
+        "level": "INFO",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-401-002",
+      "httpStatus": 401,
+      "message": "Autentimine ebaõnnestus.",
+      "scenarios": [
+        "OAuth2 machine token puudub või on aegunud sisemise teenuse pöördumisel."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "07", "row": 1, "endpoint": "POST /api/v1/internal/users/run-user-deactivation" }
+      ],
+      "logging": {
+        "level": "INFO",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-001",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus lehe avamiseks.",
+      "scenarios": [
+        "Kasutajal puuduvad kõik kasutajate nimekirja vaatamiseks vajalikud õigused (`user.list.admin` või `user.list.local`) ja ta üritab nimekirja avada.",
+        "Kasutajal puuduvad kõik kasutajagruppide nimekirja vaatamiseks vajalikud õigused (`user_group.list.admin` või `user_group.list.local`) ja ta üritab nimekirja avada.",
+        "Kasutajal puuduvad kõik kasutajagrupi detailvaate avamiseks vajalikud õigused (`user_group.read.admin` või `user_group.read.local`) ja ta üritab avada üksikut gruppi.",
+        "Kasutajal puudub õigus `classifier.list` ja ta üritab klassifikaatorite nimekirja avada.",
+        "Kasutajal puudub õigus `classifier.read` ja ta üritab klassifikaatori detailvaadet avada."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "01", "row": 1, "endpoint": "GET /v1/users/admin" },
+        { "epic": "02", "task": "04", "row": 1, "endpoint": "GET /v1/user-groups/admin" },
+        { "epic": "02", "task": "06", "row": 2, "endpoint": "GET /v1/user-groups/admin/user-group" },
+        { "epic": "04", "task": "01", "row": 1, "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "02", "row": 1, "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "02", "row": 1, "endpoint": "GET /v1/classifiers/values" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-002",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus kasutajagrupi loomiseks.",
+      "scenarios": [
+        "Kasutaja, kellel puudub õigus `user_group.create`, üritab pöörduda kasutajagrupi loomise teenuse poole."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "05", "row": 2, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "05", "row": 3, "endpoint": "POST /v1/user-groups" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-003",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus kasutajagrupi muutmiseks.",
+      "scenarios": [
+        "Kasutaja, kellel puudub õigus `user_group.update`, üritab pöörduda kasutajagrupi andmete või seoste muutmise teenuse poole.",
+        "Kasutaja, kellel puudub õigus `user_group.add_user` või `user_group.remove_user`, üritab pöörduda kasutaja-haldamise teenuse poole."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "06", "row": 3, "endpoint": "PUT /v1/user-groups/update" },
+        { "epic": "02", "task": "06", "row": 3, "endpoint": "PUT /v1/user-groups/users" },
+        { "epic": "02", "task": "06", "row": 3, "endpoint": "DELETE /v1/user-groups/user" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-004",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus kasutajagrupi vaatamiseks.",
+      "scenarios": [
+        "Lokaalne kontohaldur, kellel on õigus `user_group.read.local`, pöördub kasutajagrupile, mis pole tema asutusega aktiivselt seotud — õigus kehtib ainult oma asutusega seotud gruppidele."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "06", "row": 4, "endpoint": "GET /v1/user-groups/admin/user-group" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-005",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus kasutaja andmete muutmiseks.",
+      "scenarios": [
+        "Kasutaja, kellel puudub õigus `user.edit.admin` või `user.edit.local`, üritab pöörduda kasutaja loomise või muutmise teenuse poole."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 2, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 2, "endpoint": "PUT /v1/users/admin/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-006",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus selle kasutaja vaatamiseks.",
+      "scenarios": [
+        "Lokaalne kontohaldur, kellel on õigus `user.read.local`, proovib vaadata teise asutuse kasutaja andmeid — õigus kehtib ainult oma asutuse kasutajatele."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 9, "endpoint": "GET /v1/users/admin/user" },
+        { "epic": "02", "task": "02", "row": 9, "endpoint": "PUT /v1/users/admin/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-007",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus asutuse muutmiseks.",
+      "scenarios": [
+        "Lokaalne kontohaldur, kellel on õigus `user.edit.local`, proovib muuta kasutaja asutust — asutuse muutmine nõuab õigust `user.edit.admin`."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 10, "endpoint": "PUT /v1/users/admin/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-008",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus kasutajagruppide määramiseks.",
+      "scenarios": [
+        "Kasutaja, kellel puudub õigus `user.edit.admin` või `user.edit.local`, üritab pöörduda kasutaja kasutajagruppide haldamise teenuse poole."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "03", "row": 1, "endpoint": "PUT /v1/users/admin/groups" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-009",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus selle kasutaja muutmiseks.",
+      "scenarios": [
+        "Lokaalne kontohaldur, kellel on õigus `user.edit.local`, proovib muuta teise asutuse kasutaja kasutajagruppe — õigus kehtib ainult oma asutuse kasutajatele."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "03", "row": 2, "endpoint": "PUT /v1/users/admin/groups" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-010",
+      "httpStatus": 403,
+      "message": "Ligipääs keelatud.",
+      "scenarios": [
+        "Inimkasutaja JWT-ga pöördutakse sisemisele teenusele, mis nõuab `service.execute` tüüpi OAuth2 machine token'it."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "07", "row": 2, "endpoint": "POST /api/v1/internal/users/run-user-deactivation" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-011",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus klassifikaatori muutmiseks.",
+      "scenarios": [
+        "Kasutaja, kellel puudub õigus `classifier.edit`, üritab pöörduda klassifikaatori muutmise teenuse poole."
+      ],
+      "occurrences": [
+        { "epic": "04", "task": "03", "row": 1, "endpoint": "POST /api/v1/admin/classifiers/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-403-012",
+      "httpStatus": 403,
+      "message": "Teil puudub õigus klassifikaatori väärtuste haldamiseks.",
+      "scenarios": [
+        "Kasutaja, kellel puudub õigus `classifier_value.edit`, üritab pöörduda klassifikaatori väärtuste lisamise, kehtivuse lõpetamise või koodi kontrolli teenuse poole."
+      ],
+      "occurrences": [
+        { "epic": "04", "task": "04", "row": 1, "endpoint": "POST /api/v1/admin/classifier-values/check-code-exists" },
+        { "epic": "04", "task": "04", "row": 1, "endpoint": "POST /api/v1/admin/classifier-values/create" },
+        { "epic": "04", "task": "04", "row": 1, "endpoint": "POST /api/v1/admin/classifier-values/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-404-001",
+      "httpStatus": 404,
+      "message": "",
+      "scenarios": [],
+      "occurrences": [
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/permissions" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/organisations" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}/user-group" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/user-groups/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/user-groups/users" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/user-groups/{scope}/users" },
+        { "epic": "02", "task": "openapi", "endpoint": "DELETE /v1/user-groups/user" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/user-groups/available-users" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/users/{scope}/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/users/{scope}/check-personal-code" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /v1/users/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/users/{scope}/user" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/users/{scope}" },
+        { "epic": "02", "task": "openapi", "endpoint": "GET /v1/organisations" },
+        { "epic": "02", "task": "openapi", "endpoint": "PUT /v1/users/{scope}/update" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /v1/classifiers/check-code" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "openapi", "endpoint": "PUT /v1/classifiers/value" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers/values" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "openapi", "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "openapi", "endpoint": "PUT /v1/classifiers/update" }
+      ],
+      "logging": {
+        "level": "INFO",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path"
+        ]
+      },
+      "flags": ["MISSING_SCENARIOS"]
+    },
+    {
+      "code": "ERR-404-002",
+      "httpStatus": 404,
+      "message": "Otsitavat kirjet ei leitud.",
+      "scenarios": [
+        "Klassifikaatorit ei leitud esitatud identifikaatori või koodi alusel.",
+        "Klassifikaatori väärtust ei leitud esitatud identifikaatori alusel."
+      ],
+      "occurrences": [
+        { "epic": "04", "task": "02", "row": 2, "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "03", "row": 2, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "04", "row": 2, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 3, "endpoint": "PUT /v1/classifiers/value" }
+      ],
+      "logging": {
+        "level": "INFO",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-409-001",
+      "httpStatus": 409,
+      "message": "Kasutaja kuulub juba sellesse gruppi. Värskenda lehte ja proovi uuesti.",
+      "scenarios": [
+        "Admin valib modaalist \"Lisa kasutaja gruppi\" kasutaja, kes on juba grupi aktiivne liige, ja proovib teda lisada.",
+        "Admin valib kasutaja detailvaate multiselect rippmenüüst kasutajagrupi, mille liikmelisus on juba aktiivne."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "03", "row": 5, "endpoint": "PUT /v1/users/admin/groups" },
+        { "epic": "02", "task": "06", "row": 9, "endpoint": "PUT /v1/user-groups/users" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-409-002",
+      "httpStatus": 409,
+      "message": "Selle isikukoodiga kasutaja on süsteemis juba olemas.",
+      "scenarios": [
+        "Admin proovib luua uut kasutajat isikukoodiga, mis on süsteemis juba registreeritud."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 3, "endpoint": "POST /v1/users/admin" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-409-003",
+      "httpStatus": 409,
+      "message": "Kasutaja on deaktiveerimisel või mitteaktiivne; kasutajagruppe ei saa muuta.",
+      "scenarios": [
+        "Admin proovib muuta kasutaja kasutajagruppe, kuid kasutaja olek on `pending_deactivation` või `inactive`."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "03", "row": 3, "endpoint": "PUT /v1/users/admin/groups" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-409-004",
+      "httpStatus": 409,
+      "message": "Sellise koodiga väärtus on klassifikaatoris juba olemas.",
+      "scenarios": [
+        "Admin proovib lisada klassifikaatorisse väärtust koodiga, mis on selles klassifikaatoris juba kasutusel."
+      ],
+      "occurrences": [
+        { "epic": "04", "task": "04", "row": 4, "endpoint": "POST /v1/classifiers/value" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": true,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-409-006",
+      "httpStatus": 409,
+      "message": "Eemaldatavate asutustega on seotud N kasutajat, kes eemaldatakse automaatselt grupist. Kas soovid jätkata?",
+      "scenarios": [
+        "Administraator eemaldab akordionist 'Seotud asutused' ühe või mitu asutust ja nende asutustega on seotud aktiivseid grupi liikmeid, kuid confirmMemberRemoval puudub päringust."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "06", "row": 15, "endpoint": "PUT /v1/user-groups/update" }
+      ],
+      "logging": {
+        "level": "INFO",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id",
+          "labels.target_group_id",
+          "labels.affected_member_count",
+          "labels.affected_organisation_ids"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-001",
+      "httpStatus": 422,
+      "message": "Kasutajagrupi nimetus on kohustuslik.",
+      "scenarios": [
+        "Admin proovib salvestada uue kasutajagrupi tühja nimetusega.",
+        "Admin sisestab akordionil \"Kasutajagrupi andmed\" nimetuseks ainult tühikud ja vajutab Salvesta."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "05", "row": 4, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 5, "endpoint": "PUT /v1/user-groups/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-002",
+      "httpStatus": 422,
+      "message": "Kasutajagrupi nimetus võib olla kuni 50 tähemärki.",
+      "scenarios": [
+        "Admin sisestab uue kasutajagrupi nimetuseks 51 tähemärki ja vajutab Salvesta.",
+        "Admin sisestab akordionil \"Kasutajagrupi andmed\" 51 tähemärki pikkuse nimetuse ja vajutab Salvesta."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "05", "row": 5, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 6, "endpoint": "PUT /v1/user-groups/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-003",
+      "httpStatus": 422,
+      "message": "Valige vähemalt üks asutus.",
+      "scenarios": [
+        "Admin proovib luua uue kasutajagrupi ilma ühtegi asutust valimata.",
+        "Admin avab akordioni \"Seotud asutused\" muutmisrežiimi, eemaldab kõik märkeruudud ja vajutab Salvesta."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "05", "row": 6, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 7, "endpoint": "PUT /v1/user-groups/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-004",
+      "httpStatus": 422,
+      "message": "Tekkis viga andmete salvestamisel. Värskenda lehte ja proovi uuesti.",
+      "scenarios": [
+        "Modaalist edastatud asutuse või õiguse ID ei vasta ühelegi olemasolevale kataloogi kirjele uue kasutajagrupi loomisel."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "05", "row": 7, "endpoint": "POST /v1/user-groups" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-005",
+      "httpStatus": 422,
+      "message": "Tekkis viga andmete salvestamisel. Värskenda lehte ja proovi uuesti.",
+      "scenarios": [
+        "Akordioni salvestamisel saadetakse asutuse, õiguse või kasutaja ID, mida kataloogis ei eksisteeri."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "06", "row": 8, "endpoint": "PUT /v1/user-groups/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-006",
+      "httpStatus": 422,
+      "message": "Tekkis viga andmete salvestamisel. Värskenda lehte ja proovi uuesti.",
+      "scenarios": [
+        "Admin valib modaalist \"Lisa kasutaja gruppi\" kasutaja, kelle asutus pole grupiga aktiivselt seotud."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "06", "row": 10, "endpoint": "PUT /v1/user-groups/users" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-007",
+      "httpStatus": 422,
+      "message": "Kasutaja staatus on muutunud ja teda ei saa gruppi lisada. Värskenda lehte ja proovi uuesti.",
+      "scenarios": [
+        "Admin valib modaalist \"Lisa kasutaja gruppi\" kasutaja, kelle olek on `pending_deactivation` või `inactive`."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "06", "row": 11, "endpoint": "PUT /v1/user-groups/users" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-008",
+      "httpStatus": 422,
+      "message": "Väli on kohustuslik.",
+      "scenarios": [
+        "Admin jätab kasutaja loomisel või muutmisel kohustusliku välja tühjaks ja proovib salvestada."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 4, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 4, "endpoint": "PUT /v1/users/admin/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-009",
+      "httpStatus": 422,
+      "message": "Isikukood ei ole korrektne.",
+      "scenarios": [
+        "Admin sisestab uue kasutaja loomisel isikukoodi, mille kontrollsumma ei läbi valideerimist."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 5, "endpoint": "POST /v1/users/admin" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-010",
+      "httpStatus": 422,
+      "message": "E-posti aadress ei ole korrektne.",
+      "scenarios": [
+        "Admin sisestab kasutaja loomisel või muutmisel vigase e-posti aadressi mustri ja proovib salvestada."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 6, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 6, "endpoint": "PUT /v1/users/admin/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-011",
+      "httpStatus": 422,
+      "message": "Telefoninumber võib sisaldada ainult numbreid ja tühikuid.",
+      "scenarios": [
+        "Admin sisestab kasutaja loomisel või muutmisel telefoninumbri, mis sisaldab muid märke kui numbreid ja tühikuid, ja proovib salvestada."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 7, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 7, "endpoint": "PUT /v1/users/admin/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-012",
+      "httpStatus": 422,
+      "message": "Ligipääsu lõpukuupäev ei saa olla enne alguskuupäeva.",
+      "scenarios": [
+        "Admin sisestab kasutaja loomisel või muutmisel ligipääsu lõpukuupäeva, mis on varasem kui alguskuupäev, ja proovib salvestada."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 8, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 8, "endpoint": "PUT /v1/users/admin/update" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-422-013",
+      "httpStatus": 422,
+      "message": "Valitud kasutajagrupp ei kuulu kasutaja asutusega.",
+      "scenarios": [
+        "Admin proovib kasutajale määrata kasutajagruppi, mis pole kasutaja praeguse asutusega aktiivselt seotud."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "03", "row": 4, "endpoint": "PUT /v1/users/admin/groups" }
+      ],
+      "logging": {
+        "level": "WARN",
+        "audit": false,
+        "ecsFields": [
+          "event.action",
+          "http.request.method",
+          "http.response.status_code",
+          "url.path"
+        ]
+      }
+    },
+    {
+      "code": "ERR-500-001",
+      "httpStatus": 500,
+      "message": "Andmete laadimine ebaõnnestus. Palun proovige hiljem uuesti.",
+      "scenarios": [
+        "Andmebaasi või muu süsteemi viga andmete laadimisel."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "01", "row": 3, "endpoint": "GET /v1/users/admin" },
+        { "epic": "02", "task": "04", "row": 3, "endpoint": "GET /v1/user-groups/admin" },
+        { "epic": "04", "task": "01", "row": 3, "endpoint": "GET /v1/classifiers" },
+        { "epic": "04", "task": "02", "row": 4, "endpoint": "GET /v1/classifiers/classifier" },
+        { "epic": "04", "task": "02", "row": 4, "endpoint": "GET /v1/classifiers/values" }
+      ],
+      "logging": {
+        "level": "ERROR",
+        "audit": true,
+        "ecsFields": [
+          "error.message",
+          "error.stack_trace",
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-500-002",
+      "httpStatus": 500,
+      "message": "Salvestamine ebaõnnestus. Palun proovige hiljem uuesti.",
+      "scenarios": [
+        "Andmebaasi tehinguviga salvestamisel; tehing rollback'itakse ja andmeid ei salvestata."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "02", "row": 12, "endpoint": "POST /v1/users/admin" },
+        { "epic": "02", "task": "02", "row": 12, "endpoint": "PUT /v1/users/admin/update" },
+        { "epic": "02", "task": "03", "row": 6, "endpoint": "PUT /v1/users/admin/groups" },
+        { "epic": "02", "task": "05", "row": 8, "endpoint": "POST /v1/user-groups" },
+        { "epic": "02", "task": "06", "row": 12, "endpoint": "PUT /v1/user-groups/update" },
+        { "epic": "02", "task": "06", "row": 12, "endpoint": "PUT /v1/user-groups/users" },
+        { "epic": "02", "task": "06", "row": 12, "endpoint": "DELETE /v1/user-groups/user" },
+        { "epic": "04", "task": "03", "row": 6, "endpoint": "PUT /v1/classifiers/update" },
+        { "epic": "04", "task": "04", "row": 9, "endpoint": "POST /v1/classifiers/value" },
+        { "epic": "04", "task": "04", "row": 9, "endpoint": "PUT /v1/classifiers/value" }
+      ],
+      "logging": {
+        "level": "ERROR",
+        "audit": true,
+        "ecsFields": [
+          "error.message",
+          "error.stack_trace",
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    },
+    {
+      "code": "ERR-503-001",
+      "httpStatus": 503,
+      "message": "Teenus on ajutiselt kättesaamatu. Palun proovige hiljem uuesti.",
+      "scenarios": [
+        "Allpool asuv teenus (andmebaas, Redis vms sõltuvuskomponent) ei ole kättesaadav."
+      ],
+      "occurrences": [
+        { "epic": "02", "task": "openapi", "endpoint": "GET /api/v1/admin/permissions/list" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/organisations/list" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/create" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/get" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/list" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/update" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/add" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/list" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/remove" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/user-groups/users/search-eligible" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/change-organisation" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/check-personal-code-exists" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/create" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/get" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/list" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/organisations/options" },
+        { "epic": "02", "task": "openapi", "endpoint": "POST /api/v1/admin/users/update" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/check-code-exists" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/create" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/update" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifier-values/list" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/get" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/list" },
+        { "epic": "04", "task": "openapi", "endpoint": "POST /api/v1/admin/classifiers/update" }
+      ],
+      "logging": {
+        "level": "ERROR",
+        "audit": true,
+        "ecsFields": [
+          "error.message",
+          "error.stack_trace",
+          "event.action",
+          "http.response.status_code",
+          "url.path",
+          "user.id"
+        ]
+      }
+    }
+  ]
+}

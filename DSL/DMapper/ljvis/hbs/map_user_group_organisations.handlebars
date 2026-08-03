@@ -1,0 +1,8 @@
+[
+    {{#each organisations}}
+    {
+        "organisationId": "{{this.organisationId}}",
+        "name": "{{this.name}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+]
