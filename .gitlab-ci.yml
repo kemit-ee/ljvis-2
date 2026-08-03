@@ -115,8 +115,12 @@ include:
 
 # ---------------------------------------------------------------------------- test
 
+# The GitLab template ships no `tags`, so the job waits forever on this instance where
+# every runner is tagged. arm64 is safe: the template pins SECRETS_ANALYZER_VERSION "7",
+# and the v7 analyzer image is multi-arch (v6 was amd64-only).
 secret_detection:
   stage: test
+  tags: ["arm64"]
 
 # Sonar cannot parse the Bürokratt DSL, so this is the only check that catches a broken
 # flow before the image is built: YAML parse, unreachable steps, dangling `next`, empty SQL.
