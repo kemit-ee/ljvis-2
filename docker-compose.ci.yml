@@ -49,7 +49,8 @@ services:
       - ./DSL/Liquibase/changelog.yaml:/liquibase/changelog.yaml
     environment:
       - AUDIT_SALT=${AUDIT_SALT:-ci-test-audit-salt-change-me-32chars}
-    command: --defaultsFile=/liquibase/liquibase.properties update -DAUDIT_SALT=${AUDIT_SALT:-ci-test-audit-salt-change-me-32chars}
+      - DB_NAME=${DB_NAME:-ljvis_db}
+    command: --defaultsFile=/liquibase/liquibase.properties update -DAUDIT_SALT=${AUDIT_SALT:-ci-test-audit-salt-change-me-32chars} -DDB_NAME=${DB_NAME:-ljvis_db}
     depends_on:
       database:
         condition: service_healthy
