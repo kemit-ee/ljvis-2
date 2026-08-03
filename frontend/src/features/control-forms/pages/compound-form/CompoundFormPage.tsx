@@ -1,20 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Text, Alert, Tabs, Dropdown, StatusIndicator } from '@tedi-design-system/react/tedi';
+import {
+  Button,
+  Text,
+  Alert,
+  Tabs,
+  Dropdown,
+  StatusIndicator,
+} from '@tedi-design-system/react/tedi';
 import { useCompoundForm } from './useCompoundForm';
 import { useCompoundFormDetail } from './useCompoundFormDetail';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
-import { deleteCompoundForm, getCompoundFormSnapshot, getDriveRestFormByCompoundFormKey, deleteDriveRestForm, updateDriveRestForm } from '../../api';
+import {
+  deleteCompoundForm,
+  getCompoundFormSnapshot,
+  getDriveRestFormByCompoundFormKey,
+  deleteDriveRestForm,
+  updateDriveRestForm,
+} from '../../api';
 import type { DriveRestForm } from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 import { DriveRestFormViewCard } from '../../components/DriveRestForm/DriveRestFormViewCard';
-import { DriveRestFormEditCard, type DriveRestFormEditCardRef } from '../../components/DriveRestForm/DriveRestFormEditCard';
+import {
+  DriveRestFormEditCard,
+  type DriveRestFormEditCardRef,
+} from '../../components/DriveRestForm/DriveRestFormEditCard';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
-import { serializeDriveRestFormValues, createDriveRestValidationSchema } from '../drive-rest-form/useDriveRestForm';
+import {
+  serializeDriveRestFormValues,
+  createDriveRestValidationSchema,
+} from '../drive-rest-form/useDriveRestForm';
 
 export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -44,7 +63,9 @@ export function CompoundFormPage() {
   const [teammateEditActive, setTeammateEditActive] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
   const [driverDraft, setDriverDraft] = useState<DriveRestForm | null>(null);
-  const [teammateDraft, setTeammateDraft] = useState<DriveRestForm | null>(null);
+  const [teammateDraft, setTeammateDraft] = useState<DriveRestForm | null>(
+    null,
+  );
   const driverDraftRef = useRef<DriveRestForm | null>(null);
   const teammateDraftRef = useRef<DriveRestForm | null>(null);
   const driverEditCardRef = useRef<DriveRestFormEditCardRef | null>(null);
@@ -57,8 +78,9 @@ export function CompoundFormPage() {
     return tabErrors[tabId] ?? false;
   };
 
-  const { form, loading, refetch } =
-    useCompoundFormDetail(snapshotId ? undefined : id);
+  const { form, loading, refetch } = useCompoundFormDetail(
+    snapshotId ? undefined : id,
+  );
   const [snapshot, setSnapshot] = useState<
     import('../../types').CompoundForm | null
   >(null);
@@ -77,17 +99,29 @@ export function CompoundFormPage() {
     Promise.all([
       getDriveRestFormByCompoundFormKey('driver', compoundFormKey),
       getDriveRestFormByCompoundFormKey('teammate', compoundFormKey),
-    ]).then(([driver, teammate]) => {
-      setDriverForm(driver);
-      setTeammateForm(teammate);
-      if (driver?.status === 'saved') setDriverEditActive(true);
-      if (teammate?.status === 'saved') setTeammateEditActive(true);
-    }).catch(console.error).finally(() => setSubFormsLoaded(true));
+    ])
+      .then(([driver, teammate]) => {
+        setDriverForm(driver);
+        setTeammateForm(teammate);
+        const anySubFormSaved =
+          driver?.status === 'saved' || teammate?.status === 'saved';
+        if (anySubFormSaved) {
+          if (driver) setDriverEditActive(true);
+          if (teammate) setTeammateEditActive(true);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setSubFormsLoaded(true));
   }, [form?.id]);
 
-  const checkAndAutoConfirmCompound = (latestDriver: DriveRestForm | null, latestTeammate: DriveRestForm | null) => {
+  const checkAndAutoConfirmCompound = (
+    latestDriver: DriveRestForm | null,
+    latestTeammate: DriveRestForm | null,
+  ) => {
     if (!form || form.status === 'confirmed') return;
-    const forms = [latestDriver, latestTeammate].filter(Boolean) as DriveRestForm[];
+    const forms = [latestDriver, latestTeammate].filter(
+      Boolean,
+    ) as DriveRestForm[];
     if (forms.length === 0) return;
     const allConfirmed = forms.every((f) => f.status === 'confirmed');
     if (allConfirmed) {
@@ -100,9 +134,18 @@ export function CompoundFormPage() {
     getDriveRestFormByCompoundFormKey('driver', Number(form.id))
       .then((res) => {
         setDriverForm(res);
-        setDriverEditActive(res?.status === 'saved');
         getDriveRestFormByCompoundFormKey('teammate', Number(form.id))
-          .then((tm) => checkAndAutoConfirmCompound(res, tm))
+          .then((tm) => {
+            const anySubFormSaved =
+              res?.status === 'saved' || tm?.status === 'saved';
+            if (anySubFormSaved) {
+              if (res) setDriverEditActive(true);
+              if (tm) setTeammateEditActive(true);
+            } else {
+              setDriverEditActive(res?.status === 'saved');
+            }
+            checkAndAutoConfirmCompound(res, tm);
+          })
           .catch(console.error);
         onDone?.();
       })
@@ -114,9 +157,18 @@ export function CompoundFormPage() {
     getDriveRestFormByCompoundFormKey('teammate', Number(form.id))
       .then((res) => {
         setTeammateForm(res);
-        setTeammateEditActive(res?.status === 'saved');
         getDriveRestFormByCompoundFormKey('driver', Number(form.id))
-          .then((dr) => checkAndAutoConfirmCompound(dr, res))
+          .then((dr) => {
+            const anySubFormSaved =
+              dr?.status === 'saved' || res?.status === 'saved';
+            if (anySubFormSaved) {
+              if (dr) setDriverEditActive(true);
+              if (res) setTeammateEditActive(true);
+            } else {
+              setTeammateEditActive(res?.status === 'saved');
+            }
+            checkAndAutoConfirmCompound(dr, res);
+          })
           .catch(console.error);
         onDone?.();
       })
@@ -147,18 +199,23 @@ export function CompoundFormPage() {
     });
 
     if (activeTab === 'tab-driver') driverEditCardRef.current?.validateForm?.();
-    if (activeTab === 'tab-teammate') teammateEditCardRef.current?.validateForm?.();
+    if (activeTab === 'tab-teammate')
+      teammateEditCardRef.current?.validateForm?.();
 
     const anySubFormHasErrors = Object.values(newTabErrors).some(Boolean);
     if (anySubFormHasErrors) return;
 
-    if (isEditActive && formik.dirty) formik.handleSubmit();
+    if (isEditActive) formik.handleSubmit();
     if (driverEditActive) {
       const driverIsNew = !driverForm;
-      const driverIsChanged = driverDraft !== null && driverDraft.status === 'saved';
+      const driverIsChanged = driverDraft !== null;
       if (driverEditCardRef.current && (driverIsNew || driverIsChanged)) {
         driverEditCardRef.current.save();
-      } else if (!driverEditCardRef.current && driverDraftRef.current && (driverIsNew || driverIsChanged)) {
+      } else if (
+        !driverEditCardRef.current &&
+        driverDraftRef.current &&
+        (driverIsNew || driverIsChanged)
+      ) {
         const serialized = serializeDriveRestFormValues(
           driverDraftRef.current as Partial<DriveRestForm> &
             Record<string, unknown>,
@@ -178,17 +235,28 @@ export function CompoundFormPage() {
     }
     if (teammateEditActive) {
       const teammateIsNew = !teammateForm;
-      const teammateIsChanged =
-        teammateDraft !== null && teammateDraft.status === 'saved';
+      const teammateIsChanged = teammateDraft !== null;
       if (teammateEditCardRef.current && (teammateIsNew || teammateIsChanged)) {
         teammateEditCardRef.current.save();
-      } else if (!teammateEditCardRef.current && teammateDraftRef.current && (teammateIsNew || teammateIsChanged)) {
+      } else if (
+        !teammateEditCardRef.current &&
+        teammateDraftRef.current &&
+        (teammateIsNew || teammateIsChanged)
+      ) {
         const serialized = serializeDriveRestFormValues(
-          teammateDraftRef.current as Partial<DriveRestForm> & Record<string, unknown>,
+          teammateDraftRef.current as Partial<DriveRestForm> &
+            Record<string, unknown>,
           teammateForm?.status === 'confirmed' ? 'confirmed' : 'saved',
         );
         updateDriveRestForm('teammate', serialized as unknown as DriveRestForm)
-          .then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTeammate(() => { teammateDraftRef.current = null; setTeammateDraft(null); }); })
+          .then(() => {
+            setShowSavedAlert(true);
+            window.scrollTo(0, 0);
+            refetchTeammate(() => {
+              teammateDraftRef.current = null;
+              setTeammateDraft(null);
+            });
+          })
           .catch(console.error);
       }
     }
@@ -197,9 +265,26 @@ export function CompoundFormPage() {
   const canEdit =
     hasPermission('foreign_violation_form.write') && form?.status !== 'deleted';
 
-  const addableTabs: { tabId: 'tab-driver' | 'tab-teammate'; labelKey: string }[] = [
-    ...(!driverForm && !driverEditActive ? [{ tabId: 'tab-driver' as const, labelKey: 'forms.driver_drive_rest_form' }] : []),
-    ...(!teammateForm && !teammateEditActive ? [{ tabId: 'tab-teammate' as const, labelKey: 'forms.teammate_drive_rest_form' }] : []),
+  const addableTabs: {
+    tabId: 'tab-driver' | 'tab-teammate';
+    labelKey: string;
+  }[] = [
+    ...(!driverForm && !driverEditActive
+      ? [
+          {
+            tabId: 'tab-driver' as const,
+            labelKey: 'forms.driver_drive_rest_form',
+          },
+        ]
+      : []),
+    ...(!teammateForm && !teammateEditActive
+      ? [
+          {
+            tabId: 'tab-teammate' as const,
+            labelKey: 'forms.teammate_drive_rest_form',
+          },
+        ]
+      : []),
   ];
 
   const addTab = (tabId: 'tab-driver' | 'tab-teammate') => {
@@ -264,7 +349,15 @@ export function CompoundFormPage() {
     handleMtrSearch,
     triggerConfirm,
     triggerSaveAsSaved,
-  } = useCompoundForm(form ?? undefined, handleEditSaved, handleConfirmed, subFormsAllConfirmed, () => { refetch(); });
+  } = useCompoundForm(
+    form ?? undefined,
+    handleEditSaved,
+    handleConfirmed,
+    subFormsAllConfirmed,
+    () => {
+      refetch();
+    },
+  );
 
   const resetCompoundFormToSaved = () => {
     if (!form || form.status !== 'confirmed') return;
@@ -299,10 +392,20 @@ export function CompoundFormPage() {
   const handleDeleteAll = async () => {
     try {
       if (driverForm?.id && driverForm?.subFormNumber) {
-        await deleteDriveRestForm('driver', String(driverForm.id), driverForm.subFormNumber, driverForm.status ?? '');
+        await deleteDriveRestForm(
+          'driver',
+          String(driverForm.id),
+          driverForm.subFormNumber,
+          driverForm.status ?? '',
+        );
       }
       if (teammateForm?.id && teammateForm?.subFormNumber) {
-        await deleteDriveRestForm('teammate', String(teammateForm.id), teammateForm.subFormNumber, teammateForm.status ?? '');
+        await deleteDriveRestForm(
+          'teammate',
+          String(teammateForm.id),
+          teammateForm.subFormNumber,
+          teammateForm.status ?? '',
+        );
       }
       await handleDelete();
     } catch (e) {
@@ -377,11 +480,11 @@ export function CompoundFormPage() {
     hasPermission('sp_teammate_form.write') &&
     hasPermission('control_form.view_unpublished') &&
     teammateForm?.status === 'saved';
-  const canDeleteAll = hasPermission('control_form.delete') && (
-    (driverForm != null && driverForm.status !== 'deleted') ||
-    (teammateForm != null && teammateForm.status !== 'deleted') ||
-    (form?.status !== 'deleted')
-  );
+  const canDeleteAll =
+    hasPermission('control_form.delete') &&
+    ((driverForm != null && driverForm.status !== 'deleted') ||
+      (teammateForm != null && teammateForm.status !== 'deleted') ||
+      form?.status !== 'deleted');
   const hasSubForms = driverForm !== null || teammateForm !== null;
   const anyEditActive = isEditActive || driverEditActive || teammateEditActive;
 
@@ -487,11 +590,17 @@ export function CompoundFormPage() {
         )}
         <div className="page-actions mt-1">
           <div className="page-actions-buttons">
-            {hasPermission('control_form.edit_locked') && !isEditActive && form?.status !== 'deleted' && (
-              <Button type="button" visualType="secondary" onClick={() => setIsEditActive(true)}>
-                {t('common.edit')}
-              </Button>
-            )}
+            {hasPermission('control_form.edit_locked') &&
+              !isEditActive &&
+              form?.status !== 'deleted' && (
+                <Button
+                  type="button"
+                  visualType="secondary"
+                  onClick={() => setIsEditActive(true)}
+                >
+                  {t('common.edit')}
+                </Button>
+              )}
             {isEditActive && (
               <Button type="button" onClick={() => formik.handleSubmit()}>
                 {t('common.save')}
@@ -506,7 +615,7 @@ export function CompoundFormPage() {
 
   return (
     <div>
-      {showSavedAlert && (
+      {showSavedAlert && !showConfirmedAlert && (
         <Alert
           icon="check_circle"
           className="mb-1"
@@ -521,7 +630,10 @@ export function CompoundFormPage() {
         <Alert
           icon="check_circle"
           className="mb-1"
-          onClose={() => setShowConfirmedAlert(false)}
+          onClose={() => {
+            setShowConfirmedAlert(false);
+            setShowSavedAlert(false);
+          }}
           type="success"
           size="small"
         >
@@ -563,7 +675,13 @@ export function CompoundFormPage() {
             </Tabs.Trigger>
           )}
           {isDesktop && addFormDropdown && (
-            <div style={{ marginLeft: 'auto', alignSelf: 'center', marginRight: '1rem' }}>
+            <div
+              style={{
+                marginLeft: 'auto',
+                alignSelf: 'center',
+                marginRight: '1rem',
+              }}
+            >
               {addFormDropdown}
             </div>
           )}
@@ -633,13 +751,33 @@ export function CompoundFormPage() {
                   setShowSavedAlert(true);
                   window.scrollTo(0, 0);
                   if (!driverForm) resetCompoundFormToSaved();
-                  refetchDriver(() => { driverDraftRef.current = null; setDriverDraft(null); });
+                  refetchDriver(() => {
+                    driverDraftRef.current = null;
+                    setDriverDraft(null);
+                  });
                 }}
-                onCancel={() => { setDriverEditActive(false); driverDraftRef.current = null; setDriverDraft(null); }}
+                onCancel={() => {
+                  setDriverEditActive(false);
+                  driverDraftRef.current = null;
+                  setDriverDraft(null);
+                }}
                 canConfirm={canConfirmDriver}
-                onConfirm={() => { refetchDriver(() => { setDriverEditActive(false); driverDraftRef.current = null; setDriverDraft(null); }); }}
+                onConfirm={() => {
+                  refetchDriver(() => {
+                    setDriverEditActive(false);
+                    driverDraftRef.current = null;
+                    setDriverDraft(null);
+                  });
+                }}
                 formType={FORM_TYPE.DRIVER}
-                onValuesChange={(v) => { const next = { ...(driverDraftRef.current ?? driverForm ?? {}), ...v } as DriveRestForm; driverDraftRef.current = next; setDriverDraft(next); }}
+                onValuesChange={(v) => {
+                  const next = {
+                    ...(driverDraftRef.current ?? driverForm ?? {}),
+                    ...v,
+                  } as DriveRestForm;
+                  driverDraftRef.current = next;
+                  setDriverDraft(next);
+                }}
                 initialValidate={validatedTabs.has('tab-driver')}
               />
             )}
@@ -667,13 +805,33 @@ export function CompoundFormPage() {
                   setShowSavedAlert(true);
                   window.scrollTo(0, 0);
                   if (!teammateForm) resetCompoundFormToSaved();
-                  refetchTeammate(() => { teammateDraftRef.current = null; setTeammateDraft(null); });
+                  refetchTeammate(() => {
+                    teammateDraftRef.current = null;
+                    setTeammateDraft(null);
+                  });
                 }}
-                onCancel={() => { setTeammateEditActive(false); teammateDraftRef.current = null; setTeammateDraft(null); }}
+                onCancel={() => {
+                  setTeammateEditActive(false);
+                  teammateDraftRef.current = null;
+                  setTeammateDraft(null);
+                }}
                 canConfirm={canConfirmTeammate}
-                onConfirm={() => { refetchTeammate(() => { setTeammateEditActive(false); teammateDraftRef.current = null; setTeammateDraft(null); }); }}
+                onConfirm={() => {
+                  refetchTeammate(() => {
+                    setTeammateEditActive(false);
+                    teammateDraftRef.current = null;
+                    setTeammateDraft(null);
+                  });
+                }}
                 formType={FORM_TYPE.TEAMMATE}
-                onValuesChange={(v) => { const next = { ...(teammateDraftRef.current ?? teammateForm ?? {}), ...v } as DriveRestForm; teammateDraftRef.current = next; setTeammateDraft(next); }}
+                onValuesChange={(v) => {
+                  const next = {
+                    ...(teammateDraftRef.current ?? teammateForm ?? {}),
+                    ...v,
+                  } as DriveRestForm;
+                  teammateDraftRef.current = next;
+                  setTeammateDraft(next);
+                }}
                 initialValidate={validatedTabs.has('tab-teammate')}
               />
             )}
@@ -682,11 +840,21 @@ export function CompoundFormPage() {
       </Tabs>
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {hasPermission('control_form.edit_locked') && !anyEditActive && form?.status !== 'deleted' && (
-            <Button type="button" visualType="secondary" onClick={() => { setIsEditActive(true); if (driverForm) setDriverEditActive(true); if (teammateForm) setTeammateEditActive(true); }}>
-              {t('common.edit')}
-            </Button>
-          )}
+          {hasPermission('control_form.edit_locked') &&
+            !anyEditActive &&
+            form?.status !== 'deleted' && (
+              <Button
+                type="button"
+                visualType="secondary"
+                onClick={() => {
+                  setIsEditActive(true);
+                  if (driverForm) setDriverEditActive(true);
+                  if (teammateForm) setTeammateEditActive(true);
+                }}
+              >
+                {t('common.edit')}
+              </Button>
+            )}
           {anyEditActive && (
             <Button type="button" onClick={handleSubFormSaveAll}>
               {t('common.save')}

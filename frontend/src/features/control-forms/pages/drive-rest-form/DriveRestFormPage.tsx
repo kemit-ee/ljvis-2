@@ -14,13 +14,25 @@ import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
-import { getDriveRestForm, getDriveRestFormByCompoundFormKey, deleteDriveRestForm, deleteCompoundForm, updateDriveRestForm } from '../../api';
-import { serializeDriveRestFormValues, createDriveRestValidationSchema } from './useDriveRestForm';
+import {
+  getDriveRestForm,
+  getDriveRestFormByCompoundFormKey,
+  deleteDriveRestForm,
+  deleteCompoundForm,
+  updateDriveRestForm,
+} from '../../api';
+import {
+  serializeDriveRestFormValues,
+  createDriveRestValidationSchema,
+} from './useDriveRestForm';
 import type { DriveRestForm } from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 import { DriveRestFormViewCard } from '../../components/DriveRestForm/DriveRestFormViewCard';
-import { DriveRestFormEditCard, type DriveRestFormEditCardRef } from '../../components/DriveRestForm/DriveRestFormEditCard';
+import {
+  DriveRestFormEditCard,
+  type DriveRestFormEditCardRef,
+} from '../../components/DriveRestForm/DriveRestFormEditCard';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
 
 interface DriveRestFormPageProps {
@@ -46,7 +58,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const driverDraftRef = useRef<DriveRestForm | null>(null);
   const teammateDraftRef = useRef<DriveRestForm | null>(null);
   const [driverDraft, setDriverDraft] = useState<DriveRestForm | null>(null);
-  const [teammateDraft, setTeammateDraft] = useState<DriveRestForm | null>(null);
+  const [teammateDraft, setTeammateDraft] = useState<DriveRestForm | null>(
+    null,
+  );
   const [driverLoaded, setDriverLoaded] = useState(false);
   const [teammateLoaded, setTeammateLoaded] = useState(false);
 
@@ -60,7 +74,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const [teammateEditActive, setTeammateEditActive] = useState(false);
   const [compoundEditActive, setCompoundEditActive] = useState(false);
   const [showSavedAlert, setShowSavedAlert] = useState(false);
-  const [compoundVersionsRefreshKey, setCompoundVersionsRefreshKey] = useState(0);
+  const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [compoundVersionsRefreshKey, setCompoundVersionsRefreshKey] =
+    useState(0);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
 
@@ -73,16 +89,18 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   };
 
   useEffect(() => {
-    if (driverForm?.status !== undefined) {
-      setDriverEditActive(driverForm.status === 'saved');
+    const anySubFormSaved =
+      driverForm?.status === 'saved' || teammateForm?.status === 'saved';
+    if (anySubFormSaved) {
+      if (driverForm) setDriverEditActive(true);
+      if (teammateForm) setTeammateEditActive(true);
+    } else {
+      if (driverForm?.status !== undefined)
+        setDriverEditActive(driverForm.status === 'saved');
+      if (teammateForm?.status !== undefined)
+        setTeammateEditActive(teammateForm.status === 'saved');
     }
-  }, [driverForm?.status]);
-
-  useEffect(() => {
-    if (teammateForm?.status !== undefined) {
-      setTeammateEditActive(teammateForm.status === 'saved');
-    }
-  }, [teammateForm?.status]);
+  }, [driverForm?.status, teammateForm?.status]);
 
   const addTab = (tabId: 'tab-driver' | 'tab-teammate') => {
     setOpenTabs((prev) => (prev.includes(tabId) ? prev : [...prev, tabId]));
@@ -199,7 +217,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       .finally(() => setLoadingEntry(false));
   }, [id, entryType]);
 
-
   const {
     form: compoundForm,
     loading: compoundLoading,
@@ -209,7 +226,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   );
 
   const refetchCompoundRef = useRef(refetchCompound);
-  useEffect(() => { refetchCompoundRef.current = refetchCompound; }, [refetchCompound]);
+  useEffect(() => {
+    refetchCompoundRef.current = refetchCompound;
+  }, [refetchCompound]);
 
   const handleCompoundSaved = () => {
     setShowSavedAlert(true);
@@ -220,7 +239,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   };
 
   const handleCompoundConfirmed = () => {
-    setShowSavedAlert(true);
+    setShowConfirmedAlert(true);
     setCompoundEditActive(false);
     setDriverEditActive(driverForm?.status === 'saved');
     setTeammateEditActive(teammateForm?.status === 'saved');
@@ -266,7 +285,15 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     handleMtrSearch,
     triggerConfirm: triggerConfirmCompound,
     triggerSaveAsSaved: triggerCompoundSaveAsSaved,
-  } = useCompoundForm(compoundForm ?? undefined, handleCompoundSaved, handleCompoundConfirmed, subFormsAllConfirmed, () => { refetchCompoundRef.current(); });
+  } = useCompoundForm(
+    compoundForm ?? undefined,
+    handleCompoundSaved,
+    handleCompoundConfirmed,
+    subFormsAllConfirmed,
+    () => {
+      refetchCompoundRef.current();
+    },
+  );
 
   useEffect(() => {
     if (compoundForm?.status !== undefined) {
@@ -276,11 +303,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   const canDelete =
     hasPermission('control_form.delete') &&
-    (
-      (driverForm != null && driverForm.status !== 'deleted') ||
+    ((driverForm != null && driverForm.status !== 'deleted') ||
       (teammateForm != null && teammateForm.status !== 'deleted') ||
-      (compoundForm != null && compoundForm.status !== 'deleted')
-    );
+      (compoundForm != null && compoundForm.status !== 'deleted'));
 
   const handleDelete = async () => {
     try {
@@ -337,8 +362,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     });
 
     if (activeTab !== 'tab-compound') {
-      if (activeTab === 'tab-driver') driverEditCardRef.current?.validateForm?.();
-      if (activeTab === 'tab-teammate') teammateEditCardRef.current?.validateForm?.();
+      if (activeTab === 'tab-driver')
+        driverEditCardRef.current?.validateForm?.();
+      if (activeTab === 'tab-teammate')
+        teammateEditCardRef.current?.validateForm?.();
     }
 
     const anySubFormHasErrors = Object.values(newTabErrors).some(Boolean);
@@ -352,11 +379,18 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         driverEditCardRef.current.save();
       } else if (driverDraftRef.current) {
         const serialized = serializeDriveRestFormValues(
-          driverDraftRef.current as Partial<DriveRestForm> & Record<string, unknown>,
+          driverDraftRef.current as Partial<DriveRestForm> &
+            Record<string, unknown>,
           driverForm?.status === 'confirmed' ? 'confirmed' : 'saved',
         );
         updateDriveRestForm('driver', serialized as unknown as DriveRestForm)
-          .then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchDriver(() => { driverDraftRef.current = null; }); })
+          .then(() => {
+            setShowSavedAlert(true);
+            window.scrollTo(0, 0);
+            refetchDriver(() => {
+              driverDraftRef.current = null;
+            });
+          })
           .catch(console.error);
       }
     }
@@ -365,11 +399,18 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         teammateEditCardRef.current.save();
       } else if (teammateDraftRef.current) {
         const serialized = serializeDriveRestFormValues(
-          teammateDraftRef.current as Partial<DriveRestForm> & Record<string, unknown>,
+          teammateDraftRef.current as Partial<DriveRestForm> &
+            Record<string, unknown>,
           teammateForm?.status === 'confirmed' ? 'confirmed' : 'saved',
         );
         updateDriveRestForm('teammate', serialized as unknown as DriveRestForm)
-          .then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTeammate(() => { teammateDraftRef.current = null; }); })
+          .then(() => {
+            setShowSavedAlert(true);
+            window.scrollTo(0, 0);
+            refetchTeammate(() => {
+              teammateDraftRef.current = null;
+            });
+          })
           .catch(console.error);
       }
     }
@@ -378,7 +419,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const canConfirm = () => {
     const form = activeTab === 'tab-driver' ? driverForm : teammateForm;
     const writePermission =
-      entryType === 'driver' ? 'sp_driver_form.write' : 'sp_teammate_form.write';
+      entryType === 'driver'
+        ? 'sp_driver_form.write'
+        : 'sp_teammate_form.write';
     return (
       hasPermission(writePermission) &&
       hasPermission('control_form.view_unpublished') &&
@@ -386,9 +429,14 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     );
   };
 
-  const checkAndAutoConfirmCompound = (latestDriver: DriveRestForm | null, latestTeammate: DriveRestForm | null) => {
+  const checkAndAutoConfirmCompound = (
+    latestDriver: DriveRestForm | null,
+    latestTeammate: DriveRestForm | null,
+  ) => {
     if (!compoundForm || compoundForm.status === 'confirmed') return;
-    const forms = [latestDriver, latestTeammate].filter(Boolean) as DriveRestForm[];
+    const forms = [latestDriver, latestTeammate].filter(
+      Boolean,
+    ) as DriveRestForm[];
     if (forms.length === 0) return;
     const allConfirmed = forms.every((f) => f.status === 'confirmed');
     if (allConfirmed) {
@@ -401,9 +449,18 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     getDriveRestFormByCompoundFormKey('driver', compoundFormKey)
       .then((res) => {
         setDriverForm(res);
-        setDriverEditActive(res?.status === 'saved');
         getDriveRestFormByCompoundFormKey('teammate', compoundFormKey)
-          .then((tm) => checkAndAutoConfirmCompound(res, tm))
+          .then((tm) => {
+            const anySubFormSaved =
+              res?.status === 'saved' || tm?.status === 'saved';
+            if (anySubFormSaved) {
+              if (res) setDriverEditActive(true);
+              if (tm) setTeammateEditActive(true);
+            } else {
+              setDriverEditActive(res?.status === 'saved');
+            }
+            checkAndAutoConfirmCompound(res, tm);
+          })
           .catch(console.error);
         onDone?.();
       })
@@ -415,9 +472,18 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     getDriveRestFormByCompoundFormKey('teammate', compoundFormKey)
       .then((res) => {
         setTeammateForm(res);
-        setTeammateEditActive(res?.status === 'saved');
         getDriveRestFormByCompoundFormKey('driver', compoundFormKey)
-          .then((dr) => checkAndAutoConfirmCompound(dr, res))
+          .then((dr) => {
+            const anySubFormSaved =
+              dr?.status === 'saved' || res?.status === 'saved';
+            if (anySubFormSaved) {
+              if (dr) setDriverEditActive(true);
+              if (res) setTeammateEditActive(true);
+            } else {
+              setTeammateEditActive(res?.status === 'saved');
+            }
+            checkAndAutoConfirmCompound(dr, res);
+          })
           .catch(console.error);
         onDone?.();
       })
@@ -444,7 +510,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   return (
     <div>
-      {showSavedAlert && (
+      {showSavedAlert && !showConfirmedAlert && (
         <Alert
           icon="check_circle"
           className="mb-1"
@@ -453,6 +519,20 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           size="small"
         >
           {t('forms.savedNote')}
+        </Alert>
+      )}
+      {showConfirmedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => {
+            setShowConfirmedAlert(false);
+            setShowSavedAlert(false);
+          }}
+          type="success"
+          size="small"
+        >
+          {t('forms.confirmedNote')}
         </Alert>
       )}
 
