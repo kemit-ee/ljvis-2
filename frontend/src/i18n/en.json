@@ -460,6 +460,118 @@
         }
       }
     },
+    "adr": {
+      "title": "ADR control form (dangerous goods)",
+      "sectionTitle": "ADR control form",
+      "addNew": "Add ADR control form",
+      "hintOnlyOnViolation": "These fields are filled in only if a violation is found.",
+      "driverAssistant": {
+        "title": "Driver's assistant data",
+        "personalCode": "Personal code",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "citizenship": "Citizenship",
+        "birthDate": "Date of birth",
+        "searchInvalid": "Enter a valid Estonian personal code",
+        "searchNotFound": "Person not found"
+      },
+      "certificates": {
+        "title": "ADR training certificate numbers",
+        "driver": "Driver's ADR training certificate number",
+        "crew": "Crew member's ADR training certificate number",
+        "assistant": "Driver's assistant's ADR training certificate number"
+      },
+      "lastLoad": {
+        "title": "Last loading/unloading address and date",
+        "date": "Date"
+      },
+      "nextLoad": {
+        "title": "Next loading/unloading address"
+      },
+      "dangerousGoods": {
+        "title": "Transported dangerous goods",
+        "empty": "No dangerous goods added",
+        "addRow": "+ Add dangerous good",
+        "unNumber": "UN number",
+        "packagingGroup": "Packaging group",
+        "quantity": "Quantity",
+        "unitCode": "Unit"
+      },
+      "exemption": {
+        "title": "Exemption",
+        "hint": "Application of ADR exemptions per ADR provisions.",
+        "applied": "Is an exemption applied",
+        "provision": "ADR provision"
+      },
+      "containerType": {
+        "title": "Container type",
+        "options": {
+          "mahtlast": "Bulk",
+          "paak": "Tank",
+          "pakend": "Packaging",
+          "memu": "MEMU"
+        }
+      },
+      "infringements": {
+        "title": "Infringements",
+        "classifierMissing": "The infringements checklist classifier has not been configured yet.",
+        "checkStatus": "Result",
+        "status": {
+          "checked": "Checked (C)",
+          "not_possible": "Not possible to check (NC)",
+          "not_applicable": "Not applicable (NA)"
+        },
+        "riskCategory": "Risk category",
+        "adrProvision": "ADR provision",
+        "notes": "Note",
+        "otherViolations": "Other violations"
+      },
+      "result": {
+        "title": "Inspection result",
+        "resultType": "Inspection result",
+        "resultTypes": {
+          "ok": "OK",
+          "misdemeanor_proceedings": "Misdemeanor proceedings initiated",
+          "warning": "Warning",
+          "driving_ban_art5": "Driving ban (ADR art 5)",
+          "transport_interruption": "Road transport interrupted"
+        },
+        "proceedingType": "Type of proceedings",
+        "proceedingTypes": {
+          "expedited": "Expedited proceedings",
+          "general": "General proceedings"
+        },
+        "proceedingReferenceNumber": "Proceedings reference number",
+        "correctiveMeasures": "Corrective measures applied",
+        "correctiveMeasureOptions": {
+          "on_spot": "On the spot",
+          "before_journey_end": "Before the end of the journey",
+          "at_premises": "At the company's premises"
+        },
+        "sealOpened": "Seal opened during inspection",
+        "sealOpenedDate": "Seal opened date",
+        "sealInstalledDate": "Seal installed date"
+      },
+      "notes": {
+        "title": "Notes"
+      },
+      "xroad": {
+        "title": "Data queried via the data exchange layer (X-tee)",
+        "enforcementDecision": "Enforced decision",
+        "proceedingClosureBasis": "Basis for closing proceedings",
+        "save": "Save X-tee data",
+        "saveError": "Failed to save X-tee data"
+      },
+      "validation": {
+        "required": "Required field",
+        "notesMaxLength": "Notes can be at most {{max}} characters",
+        "api": {
+          "required": "Required field",
+          "form_locked_after_publish": "This form has been published and can no longer be edited",
+          "already_confirmed": "This form has already been confirmed"
+        }
+      }
+    },
     "compound": {
       "generalPart": "General part",
       "inspectionPlaceBasicInfo": "Inspection place",

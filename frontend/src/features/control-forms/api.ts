@@ -11,6 +11,8 @@ import type {
   TechnicalCheckVariant,
   TransportInterruptionForm,
   TransportInterruptionFormListItem,
+  AdrForm,
+  AdrFormListItem,
 } from './types';
 
 const technicalCheckPath = (variant: TechnicalCheckVariant) =>
@@ -228,4 +230,35 @@ export const confirmTransportInterruptionForm = (
   post<TransportInterruptionForm[]>(
     `/v1/control-forms/transport-interruption/edit/confirm`,
     data as unknown as Record<string, unknown>,
+  );
+
+export const getAdrForm = (id: string) =>
+  post<AdrForm>(`/v1/control-forms/adr-form/read/get`, { id });
+
+export const listAdrFormsByCompoundFormKey = (compoundFormKey: number) =>
+  post<AdrFormListItem[]>(
+    `/v1/control-forms/adr-form/read/get-by-compound-form-key`,
+    { compoundFormKey },
+  );
+
+export const saveAdrForm = (data: AdrForm) =>
+  post<AdrForm[]>(
+    `/v1/control-forms/adr-form/edit/save`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const confirmAdrForm = (data: AdrForm) =>
+  post<AdrForm[]>(
+    `/v1/control-forms/adr-form/edit/confirm`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const saveAdrFormXroadFields = (data: {
+  id: string;
+  enforcementDecision?: string;
+  proceedingClosureBasis?: string;
+}) =>
+  post<AdrForm[]>(
+    `/v1/control-forms/adr-form/edit/xroad/save-xroad-fields`,
+    data,
   );

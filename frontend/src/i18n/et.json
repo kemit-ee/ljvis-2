@@ -480,6 +480,118 @@
         }
       }
     },
+    "adr": {
+      "title": "ADR kontrollvorm (ohtlik veos)",
+      "sectionTitle": "ADR kontrollvorm",
+      "addNew": "Lisa ADR kontrollvorm",
+      "hintOnlyOnViolation": "Andmed täidetakse ainult rikkumise korral.",
+      "driverAssistant": {
+        "title": "Autojuhi abi andmed",
+        "personalCode": "Isikukood",
+        "firstName": "Eesnimi",
+        "lastName": "Perekonnanimi",
+        "citizenship": "Kodakondsus",
+        "birthDate": "Sünniaeg",
+        "searchInvalid": "Sisestage kehtiv Eesti isikukood",
+        "searchNotFound": "Isikut ei leitud"
+      },
+      "certificates": {
+        "title": "ADR koolitustunnistuse numbrid",
+        "driver": "Autojuhi ADR koolitustunnistuse number",
+        "crew": "Meeskonnaliikme ADR koolitustunnistuse number",
+        "assistant": "Autojuhi abi ADR koolitustunnistuse number"
+      },
+      "lastLoad": {
+        "title": "Viimase peale- või mahalaadimise aadress ja kuupäev",
+        "date": "Kuupäev"
+      },
+      "nextLoad": {
+        "title": "Järgmise peale- või mahalaadimise aadress"
+      },
+      "dangerousGoods": {
+        "title": "Veetavate ohtlike kaupade andmed",
+        "empty": "Ohtlikke kaupu ei ole lisatud",
+        "addRow": "+ Lisa ohtlik kaup",
+        "unNumber": "ÜN-number",
+        "packagingGroup": "Pakendirühm",
+        "quantity": "Kogus",
+        "unitCode": "Ühik"
+      },
+      "exemption": {
+        "title": "Erandi kohaldamine",
+        "hint": "ADR erandite kohaldamine vastavalt ADR sätetele.",
+        "applied": "Kas kohaldatakse erandit",
+        "provision": "ADRi punkt"
+      },
+      "containerType": {
+        "title": "Mahuti tüüp",
+        "options": {
+          "mahtlast": "Mahtlast",
+          "paak": "Paak",
+          "pakend": "Pakend",
+          "memu": "MEMU"
+        }
+      },
+      "infringements": {
+        "title": "Rikkumised",
+        "classifierMissing": "Rikkumiste kontrollnimekirja klassifikaator ei ole veel seadistatud.",
+        "checkStatus": "Tulemus",
+        "status": {
+          "checked": "Kontrollitud (C)",
+          "not_possible": "Ei ole võimalik kontrollida (NC)",
+          "not_applicable": "Ei kohaldata (NA)"
+        },
+        "riskCategory": "Riskikategooria",
+        "adrProvision": "ADRi punkt",
+        "notes": "Märkus",
+        "otherViolations": "Muud rikkumised"
+      },
+      "result": {
+        "title": "Kontrolli tulemus",
+        "resultType": "Kontrolli tulemus",
+        "resultTypes": {
+          "ok": "Korras",
+          "misdemeanor_proceedings": "Alustati väärteomenetlust",
+          "warning": "Hoiatus",
+          "driving_ban_art5": "Sõidukeeld (ADR art 5)",
+          "transport_interruption": "Autovedu on katkestatud"
+        },
+        "proceedingType": "Menetluse liik",
+        "proceedingTypes": {
+          "expedited": "Kiirmenetlus",
+          "general": "Üldmenetlus"
+        },
+        "proceedingReferenceNumber": "Menetluse viitenumber",
+        "correctiveMeasures": "Rakendatud meetmed",
+        "correctiveMeasureOptions": {
+          "on_spot": "Kohapeal",
+          "before_journey_end": "Enne sõidu lõppu",
+          "at_premises": "Ettevõtte territooriumil"
+        },
+        "sealOpened": "Plomm avatud kontrolli käigus",
+        "sealOpenedDate": "Plommi avamise kuupäev",
+        "sealInstalledDate": "Plommi paigaldamise kuupäev"
+      },
+      "notes": {
+        "title": "Märkused"
+      },
+      "xroad": {
+        "title": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
+        "enforcementDecision": "Jõustunud otsus",
+        "proceedingClosureBasis": "Menetluse lõpetamise alus",
+        "save": "Salvesta X-tee andmed",
+        "saveError": "X-tee andmete salvestamine ebaõnnestus"
+      },
+      "validation": {
+        "required": "Kohustuslik väli",
+        "notesMaxLength": "Märkused võivad olla kuni {{max}} tähemärki",
+        "api": {
+          "required": "Kohustuslik väli",
+          "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
+          "already_confirmed": "See vorm on juba kinnitatud"
+        }
+      }
+    },
     "driver_drive_rest_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
     "teammate_drive_rest_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
     "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",

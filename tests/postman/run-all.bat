@@ -42,6 +42,9 @@ call newman run "%COL%\technical-check-forms.collection.json" -e "%ENV%" --delay
 echo Running collection: transport-interruption.collection.json
 call newman run "%COL%\transport-interruption.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\transport-interruption.html"
 
+echo Running collection: adr-form.collection.json
+call newman run "%COL%\adr-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\adr-form.html"
+
 echo.
 echo All collections passed.
 echo HTML reports:

@@ -12,11 +12,13 @@ import {
   getCompoundFormSnapshot,
   listTechnicalCheckFormsByCompoundFormKey,
   listTransportInterruptionFormsByCompoundFormKey,
+  listAdrFormsByCompoundFormKey,
 } from '../../api';
 import type {
   TechnicalCheckFormListItem,
   TechnicalCheckVariant,
   TransportInterruptionFormListItem,
+  AdrFormListItem,
 } from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
@@ -122,6 +124,48 @@ function TransportInterruptionSection({
       {canEdit && (
         <Link to={`/control-forms/transport-interruption/new/${compoundFormKey}`}>
           {t('forms.transport_interruption.addNew')}
+        </Link>
+      )}
+    </div>
+  );
+}
+
+/**
+ * LJVIS2-141: minimal navigation into the ADR (ohtlik veos) sub-form of this
+ * compound form. Same stopgap pattern as TechnicalCheckFormsSection above
+ * pending the real "Koondvormi alamvormide haldamine" tab-bar infrastructure.
+ */
+function AdrFormSection({
+  compoundFormKey,
+  canEdit,
+}: {
+  compoundFormKey: number;
+  canEdit: boolean;
+}) {
+  const { t } = useTranslation();
+  const [items, setItems] = useState<AdrFormListItem[]>([]);
+
+  useEffect(() => {
+    listAdrFormsByCompoundFormKey(compoundFormKey)
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .catch(() => setItems([]));
+  }, [compoundFormKey]);
+
+  return (
+    <div className="mb-1">
+      <Heading element="h3">{t('forms.adr.sectionTitle')}</Heading>
+      <ul>
+        {items.map((item) => (
+          <li key={item.id}>
+            <Link to={`/control-forms/adr/${item.id}`}>
+              {item.subFormNumber}/{item.version}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {canEdit && (
+        <Link to={`/control-forms/adr/new/${compoundFormKey}`}>
+          {t('forms.adr.addNew')}
         </Link>
       )}
     </div>
@@ -384,6 +428,10 @@ export function CompoundFormPage() {
           compoundFormKey={Number(id)}
           canEdit={canEdit}
         />
+      )}
+
+      {id && form.status !== 'deleted' && (
+        <AdrFormSection compoundFormKey={Number(id)} canEdit={canEdit} />
       )}
     </div>
   );

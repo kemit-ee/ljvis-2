@@ -360,3 +360,78 @@ export interface TransportInterruptionFormListItem {
   version: number;
   status: string;
 }
+
+/** LJVIS2-141: ADR (ohtlik veos) kontrollvormi alamvorm. */
+export type AdrDriverAssistant = {
+  personalCodeEe?: string;
+  personalCodeForeign?: string;
+  firstName?: string;
+  lastName?: string;
+  citizenshipCode?: string;
+  birthDate?: string;
+};
+
+export type AdrAddress = {
+  countryCode?: string;
+  county?: string;
+  city?: string;
+  street?: string;
+  postalCode?: string;
+};
+
+export type DangerousGoodEntry = {
+  unNumber: string;
+  packagingGroup: string;
+  quantity: string;
+  unitCode: string;
+};
+
+export type AdrInfringementCheckStatus = '' | 'checked' | 'not_possible' | 'not_applicable';
+
+export type AdrInfringementEntry = {
+  classifierValueKey: number;
+  checkStatus: AdrInfringementCheckStatus;
+  riskCategory?: string;
+  adrProvision?: string;
+  notes?: string;
+};
+
+export interface AdrForm {
+  id?: string;
+  compoundFormKey?: number;
+  subFormNumber?: string;
+  version?: number;
+  status?: string;
+  driverAssistant?: AdrDriverAssistant;
+  driverAdrCertificateNumber?: string;
+  crewAdrCertificateNumber?: string;
+  assistantAdrCertificateNumber?: string;
+  lastLoadAddress?: AdrAddress;
+  lastLoadDate?: string;
+  nextLoadAddress?: AdrAddress;
+  dangerousGoods?: DangerousGoodEntry[];
+  exemptionApplied?: boolean;
+  exemptionAdrProvision?: string;
+  containerType?: string;
+  infringements?: AdrInfringementEntry[];
+  otherViolations?: string;
+  resultType?: string;
+  proceedingType?: string;
+  proceedingReferenceNumber?: string;
+  correctiveMeasures?: string[];
+  sealOpened?: boolean;
+  sealOpenedDate?: string;
+  sealInstalledDate?: string;
+  notes?: string;
+  enforcementDecision?: string;
+  proceedingClosureBasis?: string;
+  createdBy?: string;
+}
+
+export interface AdrFormListItem {
+  id: string;
+  subFormNumber: string;
+  version: number;
+  status: string;
+  resultType: string;
+}

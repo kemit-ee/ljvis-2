@@ -26,6 +26,7 @@ import { LabourInspectionFormCreatePage } from './features/control-forms/pages/l
 import { LabourInspectionFormPage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormPage';
 import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
 import { TransportInterruptionFormPage } from './features/control-forms/pages/transport-interruption-form/TransportInterruptionFormPage';
+import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -127,6 +128,11 @@ function AppRoutes() {
             path="/control-forms/transport-interruption/:id"
             element={<TransportInterruptionFormPage />}
           />
+          <Route
+            path="/control-forms/adr/new/:compoundFormKey"
+            element={<AdrFormPage />}
+          />
+          <Route path="/control-forms/adr/:id" element={<AdrFormPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

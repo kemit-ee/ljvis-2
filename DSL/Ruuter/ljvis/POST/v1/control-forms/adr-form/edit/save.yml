@@ -1,0 +1,242 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Create or update the ADR sub-form (ohtlik veos, LJVIS2-141) — single unified save endpoint, branches internally on presence of id. Status is always server-controlled. Requires an already-existing compoundFormKey."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: compoundFormKey
+        type: number
+      - field: driverAssistant
+        type: string
+      - field: driverAdrCertificateNumber
+        type: string
+      - field: crewAdrCertificateNumber
+        type: string
+      - field: assistantAdrCertificateNumber
+        type: string
+      - field: lastLoadAddress
+        type: string
+      - field: lastLoadDate
+        type: string
+      - field: nextLoadAddress
+        type: string
+      - field: dangerousGoods
+        type: string
+      - field: exemptionApplied
+        type: boolean
+      - field: exemptionAdrProvision
+        type: string
+      - field: containerType
+        type: string
+      - field: infringements
+        type: string
+      - field: otherViolations
+        type: string
+      - field: resultType
+        type: string
+      - field: proceedingType
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: correctiveMeasures
+        type: string
+      - field: sealOpened
+        type: boolean
+      - field: sealOpenedDate
+        type: string
+      - field: sealInstalledDate
+        type: string
+      - field: notes
+        type: string
+
+get_user_context:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    compound_form_key: "${incoming.body.compoundFormKey}"
+    driver_assistant: "${incoming.body.driverAssistant || ''}"
+    driver_adr_certificate_number: "${incoming.body.driverAdrCertificateNumber || ''}"
+    crew_adr_certificate_number: "${incoming.body.crewAdrCertificateNumber || ''}"
+    assistant_adr_certificate_number: "${incoming.body.assistantAdrCertificateNumber || ''}"
+    last_load_address: "${incoming.body.lastLoadAddress || ''}"
+    last_load_date: "${incoming.body.lastLoadDate || ''}"
+    next_load_address: "${incoming.body.nextLoadAddress || ''}"
+    dangerous_goods: "${incoming.body.dangerousGoods || '[]'}"
+    exemption_applied: "${incoming.body.exemptionApplied || false}"
+    exemption_adr_provision: "${incoming.body.exemptionAdrProvision || ''}"
+    container_type: "${incoming.body.containerType || ''}"
+    infringements: "${incoming.body.infringements || '[]'}"
+    other_violations: "${incoming.body.otherViolations || ''}"
+    result_type: "${incoming.body.resultType || 'ok'}"
+    proceeding_type: "${incoming.body.proceedingType || ''}"
+    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
+    corrective_measures: "${incoming.body.correctiveMeasures || '[]'}"
+    seal_opened: "${incoming.body.sealOpened || false}"
+    seal_opened_date: "${incoming.body.sealOpenedDate || ''}"
+    seal_installed_date: "${incoming.body.sealInstalledDate || ''}"
+    notes: "${incoming.body.notes || ''}"
+    created_by: "${auth_user.response.body.personalCode || ''}"
+  next: checkNotesLength
+
+checkNotesLength:
+  switch:
+    - condition: ${notes.length > 4000}
+      next: returnNotesTooLongError
+    - condition: ${id == null || id === ''}
+      next: checkCompoundFormKeyForCreate
+  next: getCurrentFormForStatus
+
+checkCompoundFormKeyForCreate:
+  switch:
+    - condition: ${compound_form_key == null}
+      next: returnMissingCompoundFormKeyError
+  next: insertForm
+
+insertForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/insert"
+    headers:
+      type: json
+    body:
+      compoundFormKey: ${compound_form_key}
+      status: saved
+      driverAssistant: ${driver_assistant}
+      driverAdrCertificateNumber: ${driver_adr_certificate_number}
+      crewAdrCertificateNumber: ${crew_adr_certificate_number}
+      assistantAdrCertificateNumber: ${assistant_adr_certificate_number}
+      lastLoadAddress: ${last_load_address}
+      lastLoadDate: ${last_load_date}
+      nextLoadAddress: ${next_load_address}
+      dangerousGoods: ${dangerous_goods}
+      exemptionApplied: ${exemption_applied}
+      exemptionAdrProvision: ${exemption_adr_provision}
+      containerType: ${container_type}
+      infringements: ${infringements}
+      otherViolations: ${other_violations}
+      resultType: ${result_type}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      correctiveMeasures: ${corrective_measures}
+      sealOpened: ${seal_opened}
+      sealOpenedDate: ${seal_opened_date}
+      sealInstalledDate: ${seal_installed_date}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: saveRes
+  next: logSave
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: extractCurrentStatus
+
+extractCurrentStatus:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+    current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
+  next: checkFormNotLocked
+
+checkFormNotLocked:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: returnFormLockedError
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: ${current_status}
+      driverAssistant: ${driver_assistant}
+      driverAdrCertificateNumber: ${driver_adr_certificate_number}
+      crewAdrCertificateNumber: ${crew_adr_certificate_number}
+      assistantAdrCertificateNumber: ${assistant_adr_certificate_number}
+      lastLoadAddress: ${last_load_address}
+      lastLoadDate: ${last_load_date}
+      nextLoadAddress: ${next_load_address}
+      dangerousGoods: ${dangerous_goods}
+      exemptionApplied: ${exemption_applied}
+      exemptionAdrProvision: ${exemption_adr_provision}
+      containerType: ${container_type}
+      infringements: ${infringements}
+      otherViolations: ${other_violations}
+      resultType: ${result_type}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      correctiveMeasures: ${corrective_measures}
+      sealOpened: ${seal_opened}
+      sealOpenedDate: ${seal_opened_date}
+      sealInstalledDate: ${seal_installed_date}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: saveRes
+  next: logSave
+
+logSave:
+  assign:
+    sub_form_key: "${saveRes.response.body[0].id}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber + '/' + saveRes.response.body[0].version}"
+    compound_key_for_log: "${compound_form_key || current_compound_form_key}"
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "ADR alamvorm salvestatud, alamvormi võti=${sub_form_key}, koondvormi võti=${compound_key_for_log}, alamvormi number=${sub_form_number}, tulemus=${result_type}, menetluse liik=${proceeding_type}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.adr.save"
+    event_category: "control_form"
+    description: ${description}
+    log_content: "{\"subFormKey\":${sub_form_key},\"compoundFormKey\":${compound_key_for_log},\"subFormNumber\":\"${sub_form_number}\",\"resultType\":\"${result_type}\"}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${saveRes.response.body}
+  next: end
+
+returnMissingCompoundFormKeyError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"compoundFormKey","code":"required"}'
+  next: end
+
+returnNotesTooLongError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"notes","code":"max_length_4000"}'
+  next: end
+
+returnFormLockedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_publish"}'
+  next: end
