@@ -160,8 +160,7 @@ export function DriveRestFormFields({
                     label: t('forms.sp_form.transportTypeCargo'),
                   },
                 ])}
-                {...(formik.touched.transportType &&
-                formik.errors.transportType
+                {...(formik.touched.transportType && formik.errors.transportType
                   ? {
                       helper: {
                         text: formik.errors.transportType,
@@ -288,9 +287,7 @@ export function DriveRestFormFields({
                 const transportClassesValue = Array.isArray(
                   formik.values.transportClasses,
                 )
-                  ? formik.values.transportClasses.map(
-                      (item) => item.classCode,
-                    )
+                  ? formik.values.transportClasses.map((item) => item.classCode)
                   : [];
                 const cabotageViolationsValue = Array.isArray(
                   formik.values.cabotageViolations,
@@ -631,7 +628,10 @@ export function DriveRestFormFields({
                   </div>
                   <div>
                     <Text modifiers="bold">
-                      {t('forms.docRightCheck.otherDocuments', 'Muud dokumendid')}
+                      {t(
+                        'forms.docRightCheck.otherDocuments',
+                        'Muud dokumendid',
+                      )}
                     </Text>
                     <div className="mt-1">
                       <DocRightOtherSection
@@ -806,11 +806,15 @@ export function DriveRestFormFields({
                       setFieldValue={formik.setFieldValue}
                       readOnly={readOnly}
                       initialViolations={{
-                        violations5612006: formik.values.violations5612006 ?? [],
-                        violations1652014: formik.values.violations1652014 ?? [],
+                        violations5612006:
+                          formik.values.violations5612006 ?? [],
+                        violations1652014:
+                          formik.values.violations1652014 ?? [],
                         violations200215: formik.values.violations200215 ?? [],
-                        violations5932008: formik.values.violations5932008 ?? [],
-                        violations20201057: formik.values.violations20201057 ?? [],
+                        violations5932008:
+                          formik.values.violations5932008 ?? [],
+                        violations20201057:
+                          formik.values.violations20201057 ?? [],
                       }}
                     />
                   </div>
@@ -844,7 +848,10 @@ export function DriveRestFormFields({
                       setFieldValue={formik.setFieldValue}
                       fieldName="massDimensionMeasurements"
                       readOnly={readOnly}
-                      initialEntries={formik.values.massDimensionMeasurements as unknown as CheckEntry[]}
+                      initialEntries={
+                        formik.values
+                          .massDimensionMeasurements as unknown as CheckEntry[]
+                      }
                     />
                   </div>
                 </AccordionItemContent>
@@ -863,16 +870,17 @@ export function DriveRestFormFields({
               <div>
                 <ChoiceGroup
                   id="atpViolationFound"
-                  label={<strong>{t('forms.sp_form.atpViolationFound')}</strong>}
+                  label={
+                    <strong>{t('forms.sp_form.atpViolationFound')}</strong>
+                  }
                   name="roadTaxStatus"
                   inputType="radio"
                   direction="row"
-                  value={formik.values.atpViolationFound === true ? 'true' : formik.values.atpViolationFound === false ? 'false' : undefined}
+                  value={formik.values.atpViolationFound}
                   className="mb-1"
                   onChange={(val) => {
-                    const boolVal = val === 'true';
-                    formik.setFieldValue('atpViolationFound', boolVal);
-                    if (!boolVal) {
+                    formik.setFieldValue('atpViolationFound', val as string);
+                    if (val !== 'true') {
                       formik.setFieldValue('atpViolationDescription', '');
                     }
                   }}
@@ -890,7 +898,7 @@ export function DriveRestFormFields({
                   ])}
                 />
                 <div></div>
-                {formik.values.atpViolationFound === true && (
+                {formik.values.atpViolationFound === 'true' && (
                   <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
                     <TextArea
                       id="atpViolationDescription"
@@ -941,8 +949,12 @@ export function DriveRestFormFields({
                   id="sanctionNotes"
                   label=""
                   value={formik.values.notes}
-                  placeholder={readOnly ? '' : t('common.enterNotesPlaceholder')}
-                  onChange={(val) => formik.setFieldValue('notes', val as string)}
+                  placeholder={
+                    readOnly ? '' : t('common.enterNotesPlaceholder')
+                  }
+                  onChange={(val) =>
+                    formik.setFieldValue('notes', val as string)
+                  }
                   maxHeight="8rem"
                   disabled={readOnly}
                 />
