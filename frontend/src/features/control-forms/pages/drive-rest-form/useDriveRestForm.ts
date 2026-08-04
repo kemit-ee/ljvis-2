@@ -255,7 +255,8 @@ export function useDriveRestForm(
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
         const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
-        const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
+        const nextStatus =
+          isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
         const subFormNumberString = form?.subFormNumber ?? '';
         const incrementSubFormNumber = (n: string): string => {
           const match = n.match(/^(.+\/)([0-9]+)$/);

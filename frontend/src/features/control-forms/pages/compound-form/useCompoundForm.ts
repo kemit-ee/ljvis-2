@@ -5,16 +5,8 @@ import * as Yup from 'yup';
 import type { Organisation } from '../../../organisations/types';
 import type { StructureUnit } from '../../../structure-units/types';
 import type {CompoundForm, Trailer, Driver, ControlForm} from '../../types';
-import type { Ehak } from '../../../ehak/types';
-import type { Road } from '../../../roads/types';
-import type { TrailerCategory } from '../../../trailer-categories/types';
-import type { VehicleCategory } from '../../../vehicle-categories/types';
 import { listOrganisations } from '../../../organisations/api';
 import { listStructureUnits } from '../../../structure-units/api';
-import { listEhakCounties, listEhakCitiesParishes } from '../../../ehak/api';
-import { listRoads } from '../../../roads/api';
-import { listTrailerCategories } from '../../../trailer-categories/api';
-import { listVehicleCategories } from '../../../vehicle-categories/api';
 import {
   insertCompoundForm,
   updateCompoundForm,
@@ -27,6 +19,7 @@ import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 import { FORM_CONFIG } from "../../formRoutes.ts";
+import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 
 export const emptyDriver = (): Driver => ({
   personalCodeEe: '',
@@ -61,6 +54,7 @@ export function useCompoundForm(
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
   const pendingForceSaved = useRef(false);
+  const { getByCode, getChildren } = useClassifiers();
 
   const WRITE_SUFFIX = '.write';
   const FORM_SP_PREFIX = 'sp_';
@@ -77,18 +71,6 @@ export function useCompoundForm(
 
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
-  const [counties, setCounties] = useState<Ehak[]>([]);
-  const [citiesParishes, setCitiesParishes] = useState<Ehak[]>([]);
-  const [roads, setRoads] = useState<Road[]>([]);
-  const [trailerCategories, setTrailerCategories] = useState<TrailerCategory[]>(
-    [],
-  );
-  const [vehicleCategories, setVehicleCategories] = useState<VehicleCategory[]>(
-    [],
-  );
-  const [companyCitiesParishes, setCompanyCitiesParishes] = useState<Ehak[]>(
-    [],
-  );
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
     null,
@@ -99,21 +81,40 @@ export function useCompoundForm(
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
 
-  useEffect(() => {
-    listEhakCounties().then(setCounties).catch(console.error);
-  }, []);
+  const counties = useMemo(
+    () =>
+      getByCode('EHAK')
+        .filter((e) => e.parentKey === null)
+        .map((e) => ({ id: e.classifierValueKey, name: e.name })),
+    [getByCode],
+  );
 
-  useEffect(() => {
-    listRoads().then(setRoads).catch(console.error);
-  }, []);
+  const roads = useMemo(
+    () =>
+      getByCode('ROAD_NAME').map((e) => ({
+        code: e.code,
+        name: e.name,
+      })),
+    [getByCode],
+  );
 
-  useEffect(() => {
-    listTrailerCategories().then(setTrailerCategories).catch(console.error);
-  }, []);
+  const trailerCategories = useMemo(
+    () =>
+      getByCode('TRAILER_CATEGORY').map((e) => ({
+        code: e.code,
+        name: e.name,
+      })),
+    [getByCode],
+  );
 
-  useEffect(() => {
-    listVehicleCategories().then(setVehicleCategories).catch(console.error);
-  }, []);
+  const vehicleCategories = useMemo(
+    () =>
+      getByCode('VEHICLE_CATEGORY').map((e) => ({
+        code: e.code,
+        name: e.name,
+      })),
+    [getByCode],
+  );
 
   useEffect(() => {
     if (authUser?.organisationid) {
@@ -123,23 +124,6 @@ export function useCompoundForm(
     }
   }, [authUser?.organisationid]);
 
-  useEffect(() => {
-    if (form?.county) {
-      listEhakCitiesParishes(Number(form.county))
-        .then((data) => setCitiesParishes(Array.isArray(data) ? data : []))
-        .catch(console.error);
-    }
-  }, [form?.county]);
-
-  useEffect(() => {
-    if (form?.companyCounty) {
-      listEhakCitiesParishes(Number(form.companyCounty))
-        .then((data) =>
-          setCompanyCitiesParishes(Array.isArray(data) ? data : []),
-        )
-        .catch(console.error);
-    }
-  }, [form?.companyCounty]);
 
   const validationSchema = Yup.object({
     address: Yup.string().max(
@@ -461,24 +445,28 @@ export function useCompoundForm(
     listStructureUnits(newOrgId).then(setStructureUnits).catch(console.error);
   };
 
-  const handleCountyChange = (countyId?: number) => {
-    setCitiesParishes([]);
-    if (countyId) {
-      listEhakCitiesParishes(countyId)
-        .then((data) => setCitiesParishes(Array.isArray(data) ? data : []))
-        .catch(console.error);
-    }
+  const citiesParishes = useMemo(
+    () =>
+      formik.values.county
+        ? getChildren('EHAK', Number(formik.values.county)).map((e) => ({ id: e.classifierValueKey, name: e.name }))
+        : [],
+    [formik.values.county, getChildren],
+  );
+
+  const companyCitiesParishes = useMemo(
+    () =>
+      formik.values.companyCounty
+        ? getChildren('EHAK', Number(formik.values.companyCounty)).map((e) => ({ id: e.classifierValueKey, name: e.name }))
+        : [],
+    [formik.values.companyCounty, getChildren],
+  );
+
+  const handleCountyChange = () => {
+    formik.setFieldValue('city', '');
   };
 
-  const handleCompanyCountyChange = (countyId?: number) => {
-    setCompanyCitiesParishes([]);
-    if (countyId) {
-      listEhakCitiesParishes(countyId)
-        .then((data) =>
-          setCompanyCitiesParishes(Array.isArray(data) ? data : []),
-        )
-        .catch(console.error);
-    }
+  const handleCompanyCountyChange = () => {
+    formik.setFieldValue('companyCity', '');
   };
 
   const handleStructuralUnitChange = (

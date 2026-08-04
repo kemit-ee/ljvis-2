@@ -553,7 +553,7 @@ export function CompoundFormCreatePage() {
                                   : '';
                               formik.setFieldValue('county', v);
                               formik.setFieldValue('city', '');
-                              handleCountyChange(v ? Number(v) : undefined);
+                              handleCountyChange();
                             }}
                             required={formik.values.controlCountryCode === 'EE'}
                             disabled={formik.values.controlCountryCode !== 'EE'}
@@ -1462,9 +1462,7 @@ export function CompoundFormCreatePage() {
                                     : '';
                                 formik.setFieldValue('companyCounty', v);
                                 formik.setFieldValue('companyCity', '');
-                                handleCompanyCountyChange(
-                                  v ? Number(v) : undefined,
-                                );
+                                handleCompanyCountyChange();
                               }}
                             />
                             <Select

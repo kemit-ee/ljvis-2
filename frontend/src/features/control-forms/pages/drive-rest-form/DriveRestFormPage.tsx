@@ -590,21 +590,19 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   }
 
   if (loadingEntry) return <Text>{t('common.loading')}</Text>;
+  if (forbidden) return <Text>{t('common.forbidden')}</Text>;
   if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;
 
   const sharedCompoundProps = {
     isDesktop,
     orgOptions,
     structureUnits,
-    roads: roads as { code: string; name: string }[],
-    trailerCategories: trailerCategories as { code: string; name: string }[],
-    vehicleCategories: vehicleCategories as { code: string; name: string }[],
-    counties: counties as { id: number; name: string }[],
-    citiesParishes: citiesParishes as { id: number; name: string }[],
-    companyCitiesParishes: companyCitiesParishes as {
-      id: number;
-      name: string;
-    }[],
+    roads: roads,
+    trailerCategories: trailerCategories,
+    vehicleCategories: vehicleCategories,
+    counties: counties,
+    citiesParishes: citiesParishes,
+    companyCitiesParishes: companyCitiesParishes,
   };
 
   return (

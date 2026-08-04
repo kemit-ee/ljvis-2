@@ -405,9 +405,9 @@ export function CompoundFormPage() {
       .then((res) => {
         const data = Array.isArray(res) ? res[0] : res;
         setSnapshot(data);
-        if (data?.county) handleCountyChange(Number(data.county));
+        if (data?.county) handleCountyChange();
         if (data?.companyCounty)
-          handleCompanyCountyChange(Number(data.companyCounty));
+          handleCompanyCountyChange();
       })
       .catch(console.error)
       .finally(() => setSnapshotLoading(false));
@@ -465,18 +465,12 @@ export function CompoundFormPage() {
           isDesktop={isDesktop}
           orgOptions={orgOptions}
           structureUnits={structureUnits}
-          roads={roads as { code: string; name: string }[]}
-          trailerCategories={
-            trailerCategories as { code: string; name: string }[]
-          }
-          vehicleCategories={
-            vehicleCategories as { code: string; name: string }[]
-          }
-          counties={counties as { id: number; name: string }[]}
-          citiesParishes={citiesParishes as { id: number; name: string }[]}
-          companyCitiesParishes={
-            companyCitiesParishes as { id: number; name: string }[]
-          }
+          roads={roads}
+          trailerCategories={trailerCategories}
+          vehicleCategories={vehicleCategories}
+          counties={counties}
+          citiesParishes={citiesParishes}
+          companyCitiesParishes={companyCitiesParishes}
           canEdit={false}
           onEdit={() => {}}
           isSnapshot
@@ -494,10 +488,10 @@ export function CompoundFormPage() {
     isDesktop,
     orgOptions,
     structureUnits,
-    roads: roads as { code: string; name: string }[],
-    trailerCategories: trailerCategories as { code: string; name: string }[],
-    vehicleCategories: vehicleCategories as { code: string; name: string }[],
-    counties: counties as { id: number; name: string }[],
+    roads: roads,
+    trailerCategories: trailerCategories,
+    vehicleCategories: vehicleCategories,
+    counties: counties,
     citiesParishes: citiesParishes as { id: number; name: string }[],
     companyCitiesParishes: companyCitiesParishes as {
       id: number;
