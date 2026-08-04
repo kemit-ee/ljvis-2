@@ -127,35 +127,26 @@ services:
     build:
       context: .
       dockerfile: docker/ruuter/Dockerfile
-    platform: linux/amd64
     restart: unless-stopped
     depends_on:
       resql-ljvis:
         condition: service_healthy
     environment:
-      - application.cors.allowedOrigins=http://localhost:9086,http://localhost:3001
-      - application.httpCodesAllowList=200,201,202,400,401,403,422,500
-      - application.incomingRequests.allowedMethodTypes=POST,GET,PUT,DELETE
-      - application.internalRequests.allowedIPs=127.0.0.1
-      - application.logging.displayRequestContent=true
-      - application.logging.displayResponseContent=true
-      - application.logging.printStackTrace=true
-      - application.internalRequests.disabled=true
-      - server.port=8086
-      - application.externalAuthAllowed=
+      - RUST_LOG=info
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health > /dev/null 2>&1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 15
     volumes:
-      - ./DSL/Ruuter:/DSL
-      - ./tests/dsl:/DSL/ljvis/POST/auth/dev:ro
-      - ./constants.ini:/app/constants.ini
+      - ./DSL/Ruuter/ljvis:/app/DSL/ljvis:ro
+      - ./tests/dsl:/app/DSL/ljvis/POST/auth/dev:ro
+      - ./constants.ini:/app/constants.ini:ro
+      - ./ruuter.yaml:/app/ruuter.yaml:ro
     networks:
       - ljvis-ci
     ports:
-      - "9086:8086"
+      - "9086:8080"
     cpus: "0.5"
     mem_limit: "512M"
 
@@ -163,26 +154,19 @@ services:
     build:
       context: .
       dockerfile: docker/ruuter-internal/Dockerfile
-    platform: linux/amd64
     restart: unless-stopped
     depends_on:
       - bootstrap
     environment:
-      - application.cors.allowedOrigins=http://localhost:9086,http://localhost:9089
-      - application.httpCodesAllowList=200,201,202,400,401,403,422,500
-      - application.internalRequests.allowedIPs=127.0.0.1
-      - application.logging.displayRequestContent=true
-      - application.logging.displayResponseContent=true
-      - application.logging.printStackTrace=true
-      - application.internalRequests.disabled=true
-      - server.port=8089
+      - RUST_LOG=info
     volumes:
-      - ./DSL/Ruuter.internal:/DSL
-      - ./constants.ini:/app/constants.ini
+      - ./DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro
+      - ./constants.ini:/app/constants.ini:ro
+      - ./ruuter-internal.yaml:/app/ruuter.yaml:ro
     networks:
       - ljvis-ci
     ports:
-      - "9089:8089"
+      - "9089:8080"
     cpus: "0.5"
     mem_limit: "512M"
 

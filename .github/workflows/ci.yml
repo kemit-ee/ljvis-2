@@ -208,7 +208,7 @@ jobs:
       - name: Wait for ruuter
         run: |
           for i in $(seq 1 60); do
-            if curl -sf http://localhost:9086/actuator/health > /dev/null 2>&1; then
+            if curl -sf http://localhost:9086/health > /dev/null 2>&1; then
               echo "ruuter ready"; break
             fi
             if [ "$i" = "60" ]; then echo "❌ ruuter not ready after 300s"; exit 1; fi
