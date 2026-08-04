@@ -65,23 +65,14 @@ services:
     build:
       context: .
       dockerfile: docker/ruuter/Dockerfile
-    platform: linux/amd64
     environment:
-      - application.cors.allowedOrigins=http://localhost:8086,http://localhost:3001,http://localhost:3004,http://localhost:8080
-      - application.httpCodesAllowList=200,201,202,400,401,403,500
-      - application.incomingRequests.allowedMethodTypes=POST,GET,PUT,DELETE
-      - application.internalRequests.allowedIPs=127.0.0.1
-      - application.logging.displayRequestContent=true
-      - application.logging.displayResponseContent=true
-      - application.logging.printStackTrace=true
-      - application.internalRequests.disabled=true
-      - server.port=8086
-      - application.externalAuthAllowed=.*mock.*
+      - RUST_LOG=info
     volumes:
-      - ./DSL/Ruuter:/DSL
-      - ./constants.ini:/app/constants.ini
+      - ./DSL/Ruuter/ljvis:/app/DSL/ljvis:ro
+      - ./constants.ini:/app/constants.ini:ro
+      - ./ruuter.yaml:/app/ruuter.yaml:ro
     ports:
-      - 8086:8086
+      - 8086:8080
     networks:
       - ljvisnetwork
     cpus: "0.5"
@@ -109,21 +100,14 @@ services:
     build:
       context: .
       dockerfile: docker/ruuter-internal/Dockerfile
-    platform: linux/amd64
     environment:
-      - application.cors.allowedOrigins=http://localhost:8086,http://localhost:8089,http://localhost:3001,http://localhost:3004,http://localhost:8080
-      - application.httpCodesAllowList=200,201,202,400,401,403,500
-      - application.internalRequests.allowedIPs=127.0.0.1
-      - application.logging.displayRequestContent=true
-      - application.logging.displayResponseContent=true
-      - application.logging.printStackTrace=true
-      - application.internalRequests.disabled=true
-      - server.port=8089
+      - RUST_LOG=info
     volumes:
-      - ./DSL/Ruuter.internal:/DSL
-      - ./constants.ini:/app/constants.ini
+      - ./DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro
+      - ./constants.ini:/app/constants.ini:ro
+      - ./ruuter-internal.yaml:/app/ruuter.yaml:ro
     ports:
-      - 8089:8089
+      - 8089:8080
     networks:
       - ljvisnetwork
     cpus: "0.5"
