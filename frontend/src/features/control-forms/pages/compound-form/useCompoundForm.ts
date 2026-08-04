@@ -162,9 +162,12 @@ export function useCompoundForm(
     controlDate: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
-    county: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
+    county: Yup.string().when('controlCountryCode', {
+      is: 'EE',
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
     controlCountryCode: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
@@ -233,17 +236,47 @@ export function useCompoundForm(
       drivers.forEach((driver: Driver, index: number) => {
         if (index === 0) {
           if (!driver?.firstName)
-            errors.push(new Yup.ValidationError(req, driver?.firstName, `drivers[${index}].firstName`));
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.firstName,
+                `drivers[${index}].firstName`,
+              ),
+            );
           if (!driver?.lastName)
-            errors.push(new Yup.ValidationError(req, driver?.lastName, `drivers[${index}].lastName`));
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.lastName,
+                `drivers[${index}].lastName`,
+              ),
+            );
           if (!driver?.personalCodeForeign)
-            errors.push(new Yup.ValidationError(req, driver?.personalCodeForeign, `drivers[${index}].personalCodeForeign`));
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.personalCodeForeign,
+                `drivers[${index}].personalCodeForeign`,
+              ),
+            );
           if (!driver?.birthDate)
-            errors.push(new Yup.ValidationError(req, driver?.birthDate, `drivers[${index}].birthDate`));
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.birthDate,
+                `drivers[${index}].birthDate`,
+              ),
+            );
         }
         if (index === 1) {
           if (!driver?.birthDate)
-            errors.push(new Yup.ValidationError(req, driver?.birthDate, `drivers[${index}].birthDate`));
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.birthDate,
+                `drivers[${index}].birthDate`,
+              ),
+            );
         }
       });
       if (errors.length > 0) throw new Yup.ValidationError(errors);
