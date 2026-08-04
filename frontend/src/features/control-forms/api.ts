@@ -5,7 +5,14 @@ import type {
   FormSnapshot,
   DriveRestForm,
   LabourInspectionForm,
+  FormAttachment,
+  TechnicalCheckForm,
+  TechnicalCheckFormListItem,
+  TechnicalCheckVariant,
 } from './types';
+
+const technicalCheckPath = (variant: TechnicalCheckVariant) =>
+  variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';
 
 export const getForm = (id: number) =>
     get<ForeignViolationForm>('/v1/control-forms/foreign-violation-form', { q: String(id) });
@@ -71,6 +78,21 @@ export const deleteCompoundForm = (
 export const getFormSnapshots = (id: string, formType: string) =>
   get<FormSnapshot[]>(`/v1/control-forms/get-snapshots`, { id, formType });
 
+export const uploadFormFile = (data: {
+  formType: string;
+  formNumber: string;
+  fileName: string;
+  fileBase64: string;
+  mimetype: string;
+}) =>
+  post<FormAttachment>(`/v1/control-forms/files/upload`, data);
+
+export const listFormFiles = (formNumber: string) =>
+  post<FormAttachment[]>(`/v1/control-forms/files/list`, { formNumber });
+
+export const downloadFormFile = (id: string, formType: string) =>
+  post<{ url: string }>(`/v1/control-forms/files/download`, { id, formType });
+
 export const getForeignViolationFormSnapshot = (id: string, formKey: string) =>
   post<ForeignViolationForm[]>(
     `/v1/control-forms/foreign-violation-form/read/get-snapshot`,
@@ -119,4 +141,54 @@ export const getLabourInspectionFormSnapshot = (id: string, formKey: string) =>
   post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/read/get-snapshot`,
     { id, formKey },
+  );
+
+export const getTechnicalCheckForm = (
+  variant: TechnicalCheckVariant,
+  id: string,
+) =>
+  post<TechnicalCheckForm>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/read/get`,
+    { id },
+  );
+
+export const listTechnicalCheckFormsByCompoundFormKey = (
+  variant: TechnicalCheckVariant,
+  compoundFormKey: number,
+) =>
+  post<TechnicalCheckFormListItem[]>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/read/get-by-compound-form-key`,
+    { compoundFormKey },
+  );
+
+export const saveTechnicalCheckForm = (
+  variant: TechnicalCheckVariant,
+  data: TechnicalCheckForm,
+) =>
+  post<TechnicalCheckForm[]>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/edit/save`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const confirmTechnicalCheckForm = (
+  variant: TechnicalCheckVariant,
+  data: TechnicalCheckForm,
+) =>
+  post<TechnicalCheckForm[]>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/edit/confirm`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const saveTechnicalCheckFormXroadFields = (
+  variant: TechnicalCheckVariant,
+  data: {
+    id: string;
+    extraordinaryInspectionDate?: string;
+    enforcementDecision?: string;
+    proceedingClosureBasis?: string;
+  },
+) =>
+  post<TechnicalCheckForm[]>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/edit/xroad/save-xroad-fields`,
+    data,
   );

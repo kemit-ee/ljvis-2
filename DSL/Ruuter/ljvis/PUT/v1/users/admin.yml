@@ -34,10 +34,11 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -54,7 +55,7 @@ extractRequestData:
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
     access_end: "${incoming.body.accessEnd ?? ''}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.response.body.personalCode || ''}"
     status: "${incoming.body.status ?? ''}"
   next: getCurrentUserGroups
 
@@ -196,8 +197,8 @@ handleNoOrgChanges:
 
 buildAuditLog:
   assign:
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
+    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
     description: ${view_description}
     log_content: ${view_log_content}
   next: logAuditEvent

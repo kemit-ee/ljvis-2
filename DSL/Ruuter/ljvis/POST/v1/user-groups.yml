@@ -18,10 +18,11 @@ declaration:
         description: "Array of permission UUIDs"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -30,9 +31,9 @@ extractRequestData:
     name: "${incoming.body.name}"
     organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
     permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
-    created_by: "${auth_user.personalcode}"
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: "${auth_user.personalcode}"
+    created_by: "${auth_user.response.body.personalCode || ''}"
+    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
     selected_org_count: ${(incoming.body.organisationIds ?? []).length}
   next: validateRequired
 

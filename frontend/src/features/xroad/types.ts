@@ -9,6 +9,16 @@ export interface XRoadCompany {
   postalCode: string;
 }
 
+export interface XRoadPerson {
+  personalCode: string;
+  firstName: string;
+  lastName: string;
+  citizenshipCode?: string;
+  citizenshipName?: string;
+  dateOfBirth?: string;
+  personStatus?: string;
+}
+
 export interface XRoadAssociatedPerson {
   personType: 'F' | 'J';
   role: string;

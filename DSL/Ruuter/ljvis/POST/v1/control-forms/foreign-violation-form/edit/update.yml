@@ -96,10 +96,11 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -148,9 +149,9 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
     status: "${incoming.body.status}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    created_by: "${auth_user.personalcode}"
+    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
+    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    created_by: "${auth_user.response.body.personalCode || ''}"
   next: calculateChangedFields
 
 calculateChangedFields:

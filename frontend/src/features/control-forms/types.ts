@@ -1,3 +1,13 @@
+export interface FormAttachment {
+  id: string;
+  formNumber?: string;
+  fileName: string;
+  s3Key?: string;
+  status?: string;
+  createdAt?: string;
+  createdBy?: string;
+}
+
 export interface ControlsMatrixRow {
   /** classifier_value_key of a TRANSPORT_TYPE classifier value. */
   transportClass: number;
@@ -271,3 +281,57 @@ export type MassDimensionMeasurement = {
   allowedValue: string;
   excessValue: string;
 };
+
+/** LJVIS2-72: shared "vehicle" | "trailer" technical roadworthiness check sub-form. */
+export type TechnicalCheckVariant = 'vehicle' | 'trailer';
+
+export type PartSummaryStatus = 'not_checked' | 'checked' | 'non_compliant';
+
+export type PartSummaryEntry = {
+  /** TECHNICAL_CHECK level-1 classifier value code, e.g. "CAA_1". */
+  partCode: string;
+  status: PartSummaryStatus;
+};
+
+export type PartSeverity = 'VO' | 'OV' | 'EOV';
+
+export type PartDefectEntry = {
+  partCode: string;
+  /** TECHNICAL_CHECK level-2 classifier value code, e.g. "CAA_1.1". */
+  defectCode: string;
+  severity: PartSeverity;
+};
+
+export interface TechnicalCheckForm {
+  id?: string;
+  compoundFormKey?: number;
+  subFormNumber?: string;
+  version?: number;
+  status?: string;
+  partsSummary?: PartSummaryEntry[];
+  partsDefects?: PartDefectEntry[];
+  resultType?: string;
+  resultTransportInterruption?: boolean;
+  eraYvMntRegnr?: boolean;
+  eraYvMntVintin?: boolean;
+  eraYvMntAxles?: boolean;
+  eraYvMntPlaces?: boolean;
+  eraYvMntRebuilt?: boolean;
+  proceedingType?: string;
+  proceedingReferenceNumber?: string;
+  violations?: string[];
+  notes?: string;
+  files?: string[];
+  extraordinaryInspectionDate?: string;
+  enforcementDecision?: string;
+  proceedingClosureBasis?: string;
+  createdBy?: string;
+}
+
+export interface TechnicalCheckFormListItem {
+  id: string;
+  subFormNumber: string;
+  version: number;
+  status: string;
+  resultType: string;
+}

@@ -19,10 +19,11 @@ declaration:
         description: "Array of removed organisation IDs"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -33,8 +34,8 @@ extractRequestData:
     removed_organisation_ids: "${(incoming.body.removedOrganisationIds ?? []).join(',')}"
     added_organisation_ids_json: ${JSON.stringify((incoming.body.addedOrganisationIds ?? []).map(Number))}
     removed_organisation_ids_json: ${JSON.stringify((incoming.body.removedOrganisationIds ?? []).map(Number))}
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
+    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
   next: getUserGroup
 
 getUserGroup:

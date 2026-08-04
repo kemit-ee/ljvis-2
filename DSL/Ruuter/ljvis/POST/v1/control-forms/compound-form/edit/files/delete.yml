@@ -1,0 +1,39 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Delete a file attachment for a compound form"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+get_user_context:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: deleteFile
+
+deleteFile:
+  template: "[#LJVIS_PROJECT_LAYER]/files/delete"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: ${incoming.body.id}
+    form_type: "compound-form"
+    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
+  result: deleteResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${deleteResult}
+  status: 200
+  next: end

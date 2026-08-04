@@ -34,10 +34,11 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -54,7 +55,7 @@ extractRequestData:
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
     access_end: "${incoming.body.accessEnd ?? ''}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.response.body.personalCode || ''}"
     status: "${incoming.body.status ?? ''}"
   next: validateId
 
@@ -160,8 +161,8 @@ setNoChanges:
 buildAuditLog:
   assign:
     changed_fields_json: ${JSON.stringify(changed_fields)}
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
+    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
     description: ${view_description}
     view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"changedFields\":${changed_fields_json},\"previousOrganisationId\":null,\"newOrganisationId\":null,\"removedGroupIds\":null}"
   next: logAuditEvent

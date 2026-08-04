@@ -294,6 +294,27 @@
       "status": "Staatus",
       "open": "Ava link"
     },
+    "shared": {
+      "files": {
+        "label": "Failid",
+        "save_first": "Salvesta vorm enne failide lisamist",
+        "error": "Faili üleslaadimine või allalaadimine ebaõnnestus"
+      },
+      "address": {
+        "country": "Riik",
+        "county": "Maakond",
+        "city": "Linn/Vald",
+        "street": "Tänav, maja",
+        "postalCode": "Postiindeks"
+      },
+      "personSearch": {
+        "personalCode": "Isikukood",
+        "search": "Otsi",
+        "notFound": "Isikut ei leitud",
+        "error": "Otsing ebaõnnestus",
+        "invalidCode": "Sisestage kehtiv Eesti isikukood"
+      }
+    },
     "foreign_violation_form": "Välisriigis teostatud autoveoalase kontrolli kontrollkaart",
     "labour_inspection_form": "Tööinspektsiooni kontrollkaart",
     "labour_inspection": {
@@ -350,6 +371,84 @@
     },
     "reputation_noncompliance_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
     "compound_form": "Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart",
+    "technical_check": {
+      "sectionTitle": "Tehnonõuetele vastavuse kontrollvormid",
+      "vehicleTitle": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
+      "trailerTitle": "Haagise tehnonõuetele vastavuse kontrollvorm",
+      "addNew": "Lisa uus tehnovorm",
+      "validation": {
+        "required": "Kohustuslik väli",
+        "notesMaxLength": "Märkuste maht on piiratud 2000 tähemärgiga",
+        "api": {
+          "required": "Kohustuslik väli",
+          "max_length_2000": "Märkuste maht on piiratud 2000 tähemärgiga",
+          "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
+          "code_not_applicable_to_trailer": "Valitud kood ei kohaldu haagisele",
+          "already_confirmed": "See vorm on juba kinnitatud",
+          "xroad_fields_require_confirmed_status": "X-tee väljade salvestamine nõuab kinnitatud olekus vormi"
+        }
+      },
+      "parts": {
+        "title": "Sõiduki kontrollitavate osade ja sõlmede nimekiri",
+        "column": "Osa/sõlm",
+        "statusColumn": "Olek",
+        "notChecked": "Ei kontrollitud",
+        "checked": "Kontrollitud",
+        "nonCompliant": "Ei vasta nõuetele"
+      },
+      "resultsTable": {
+        "title": "Tuvastatud rikked",
+        "empty": "Rikkeid ei ole lisatud",
+        "part": "Osa/sõlm",
+        "defect": "Rike",
+        "severity": "Raskusaste"
+      },
+      "defectModal": {
+        "select": "Vali",
+        "noDefects": "Sellel osal ei ole rikkeid",
+        "selectAtLeastOne": "Valige vähemalt üks rike."
+      },
+      "result": {
+        "title": "Kontrolli tulemus",
+        "resultType": "Kontrolli tulemus",
+        "autoLockedHint": "Osad valikud on lukustatud, kuna leitud rikked eeldavad kõrgemat kontrolli tulemuse taset. Eemalda vastavad rikked, et madalamat taset valida.",
+        "options": {
+          "ok": "Tehniliselt korras",
+          "extraordinary_inspection": "Suunatud erakorralisele tehnoülevaatusele",
+          "extraordinary_inspection_ta": "Suunatud erakorralisele tehnoülevaatusele liiklusregistri andmete täpsustamiseks Transpordiametis",
+          "driving_ban": "Sõidukeeld"
+        },
+        "transportInterruption": "Autovedu on katkestatud",
+        "taFieldsTitle": "Transpordiameti täpsustus",
+        "taRegnr": "Registreerimisnumber (A)",
+        "taVintin": "VIN-kood või TIN-kood (E)",
+        "taAxles": "Telgede arv (L)",
+        "taPlaces": "Istekohtade arv koos juhiga (S.1)",
+        "taRebuilt": "Sõiduk on omavoliliselt ümberehitatud",
+        "proceedingType": "Menetluse liik",
+        "proceedingTypes": {
+          "summary": "Lühimenetlus",
+          "expedited": "Kiirmenetlus",
+          "general": "Üldmenetlus"
+        },
+        "proceedingReferenceNumber": "Menetluse viitenumber"
+      },
+      "notes": {
+        "label": "Märkused",
+        "counter": "{{count}}/{{max}} tähemärki"
+      },
+      "violations": {
+        "title": "Euroopa Parlamendi ja nõukogu määrusest (EÜ) nr 1071/2009 ja komisjoni määrusest (EL) nr 2016/403 tuleneva raske rikkumise tuvastamine"
+      },
+      "xroad": {
+        "title": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
+        "extraordinaryInspectionDate": "Erakorraline tehnoülevaatus läbitud",
+        "enforcementDecision": "Jõustunud otsus",
+        "proceedingClosureBasis": "Menetluse lõpetamise alus",
+        "save": "Salvesta X-tee andmed",
+        "saveError": "X-tee andmete salvestamine ebaõnnestus"
+      }
+    },
     "driver_drive_rest_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
     "teammate_drive_rest_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
     "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",

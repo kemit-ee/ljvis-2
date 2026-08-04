@@ -1,0 +1,178 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Confirm (kinnita) the trailer technical-check sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: partsSummary
+        type: string
+      - field: partsDefects
+        type: string
+      - field: resultType
+        type: string
+      - field: resultTransportInterruption
+        type: boolean
+      - field: eraYvMntRegnr
+        type: boolean
+      - field: eraYvMntVintin
+        type: boolean
+      - field: eraYvMntAxles
+        type: boolean
+      - field: eraYvMntPlaces
+        type: boolean
+      - field: eraYvMntRebuilt
+        type: boolean
+      - field: proceedingType
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: violations
+        type: string
+      - field: notes
+        type: string
+      - field: files
+        type: string
+
+get_user_context:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    parts_summary: "${incoming.body.partsSummary || '[]'}"
+    parts_defects: "${incoming.body.partsDefects || '[]'}"
+    result_type: "${incoming.body.resultType || 'ok'}"
+    result_transport_interruption: "${incoming.body.resultTransportInterruption || false}"
+    era_yv_mnt_regnr: "${incoming.body.eraYvMntRegnr || false}"
+    era_yv_mnt_vintin: "${incoming.body.eraYvMntVintin || false}"
+    era_yv_mnt_axles: "${incoming.body.eraYvMntAxles || false}"
+    era_yv_mnt_places: "${incoming.body.eraYvMntPlaces || false}"
+    era_yv_mnt_rebuilt: "${incoming.body.eraYvMntRebuilt || false}"
+    proceeding_type: "${incoming.body.proceedingType || ''}"
+    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
+    violations: "${incoming.body.violations || '[]'}"
+    notes: "${incoming.body.notes || ''}"
+    files: "${incoming.body.files || '[]'}"
+    created_by: "${auth_user.response.body.personalCode || ''}"
+  next: checkTrailerExclusions
+
+# LJVIS2-72 §4: haagise vormil ei tohi esineda CAA_2/CAA_3/CAA_7/CAA_9 (ja nende
+# alamrikked) osade koondtabelis/parts_defects ega MSI203/MSI204/VSI847/SI926
+# rikkumistes.
+checkTrailerExclusions:
+  switch:
+    - condition: "${['CAA_2','CAA_3','CAA_7','CAA_9'].some(c => parts_summary.indexOf('\"' + c + '\"') !== -1 || parts_defects.indexOf('\"' + c + '.') !== -1) || ['MSI203','MSI204','VSI847','SI926'].some(c => violations.indexOf(c) !== -1)}"
+      next: returnTrailerExclusionError
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: checkNotAlreadyConfirmedOrPublished
+
+checkNotAlreadyConfirmedOrPublished:
+  assign:
+    current_status: "${currentFormRes.response.body[0].status}"
+    compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
+  next: checkStatusSwitch
+
+checkStatusSwitch:
+  switch:
+    - condition: ${current_status === 'confirmed'}
+      next: returnAlreadyConfirmedError
+    - condition: ${current_status === 'published'}
+      next: returnFormLockedError
+  next: confirmForm
+
+confirmForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: confirmed
+      partsSummary: ${parts_summary}
+      partsDefects: ${parts_defects}
+      resultType: ${result_type}
+      resultTransportInterruption: ${result_transport_interruption}
+      eraYvMntRegnr: ${era_yv_mnt_regnr}
+      eraYvMntVintin: ${era_yv_mnt_vintin}
+      eraYvMntAxles: ${era_yv_mnt_axles}
+      eraYvMntPlaces: ${era_yv_mnt_places}
+      eraYvMntRebuilt: ${era_yv_mnt_rebuilt}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      violations: ${violations}
+      notes: ${notes}
+      files: ${files}
+      created_by: ${created_by}
+  result: confirmRes
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "Tehnovorm kinnitatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${confirmRes.response.body[0].subFormNumber}/${confirmRes.response.body[0].version}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.trailer_technical.confirm"
+    event_category: "control_form"
+    description: ${description}
+    log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${confirmRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnAlreadyConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_confirmed"}'
+  next: end
+
+returnFormLockedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_publish"}'
+  next: end
+
+returnTrailerExclusionError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"code_not_applicable_to_trailer"}'
+  next: end

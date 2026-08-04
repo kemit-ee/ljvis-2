@@ -1,0 +1,71 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get vehicle technical-check sub-form by id (latest snapshot). Logs a view event only when the viewing user differs from the sub-form's creator (LJVIS2-72 §7)."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+get_user_context:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: fetchForm
+
+fetchForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.id}
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length !== 1}
+      next: returnNotFound
+  next: checkViewerDiffersFromCreator
+
+checkViewerDiffersFromCreator:
+  switch:
+    - condition: ${res.response.body[0].createdBy != null && res.response.body[0].createdBy !== auth_user.response.body.personalCode}
+      next: logView
+  next: returnSuccess
+
+logView:
+  assign:
+    description: "Tehnovorm vaadatud, alamvormi võti=${res.response.body[0].id}, koondvormi võti=${res.response.body[0].compoundFormKey}, alamvormi number=${res.response.body[0].subFormNumber}/${res.response.body[0].version}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.vehicle_technical.view"
+    event_category: "control_form"
+    description: ${description}
+    log_content: "{\"subFormKey\":${res.response.body[0].id}}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end

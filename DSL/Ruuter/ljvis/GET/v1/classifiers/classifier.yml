@@ -13,19 +13,20 @@ declaration:
         description: "Classifier ID"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.params.q}"
-    created_by: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    created_by: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
+    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
   next: getClassifier
 
 getClassifier:

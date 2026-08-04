@@ -19,10 +19,11 @@ declaration:
         description: "Array of removed user group IDs"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -33,7 +34,7 @@ extractRequestData:
     removed_group_ids: "${(incoming.body.removedGroupIds ?? []).join(',')}"
     added_group_ids_json: "${JSON.stringify((incoming.body.addedGroupIds ?? []).map(Number))}"
     removed_group_ids_json: "${JSON.stringify((incoming.body.removedGroupIds ?? []).map(Number))}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.response.body.personalCode || ''}"
   next: checkRemovedGroups
 
 checkRemovedGroups:
@@ -90,8 +91,8 @@ getUser:
 
 buildAuditLog:
   assign:
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
+    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
     first_name: "${userRes.response.body[0].firstName || ''}"
     last_name: "${userRes.response.body[0].lastName || ''}"
     personal_code: "${userRes.response.body[0].personalCode || ''}"
