@@ -31,7 +31,7 @@ export function createDriveRestValidationSchema(
       otherwise: (schema) => schema.optional(),
     }),
     atpViolationDescription: Yup.string().when('atpViolationFound', {
-      is: 'Jah',
+      is: true,
       then: (schema) =>
         schema.required(t('forms.sp_form.validation.required')),
       otherwise: (schema) => schema.optional(),
@@ -233,7 +233,7 @@ export function useDriveRestForm(
         : typeof form?.massDimensionMeasurements === 'string'
           ? JSON.parse(form.massDimensionMeasurements)
           : []) as MassDimensionMeasurement[],
-      atpViolationFound: form?.atpViolationFound ?? '',
+      atpViolationFound: form?.atpViolationFound,
       atpViolationDescription: form?.atpViolationDescription ?? '',
       erruPoints: (Array.isArray(form?.erruPoints)
         ? form.erruPoints

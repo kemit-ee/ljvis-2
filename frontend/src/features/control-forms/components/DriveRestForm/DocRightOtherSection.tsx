@@ -178,7 +178,7 @@ export function DocRightOtherSection({
       {visibleDocs.map((doc) => {
         const id = doc.classifierValueKey;
         const row = getRow(id);
-        const remarkOpen = remarkOpenStates[id] || false;
+        const remarkOpen = remarkOpenStates[id] || !!row.notes;
         return (
           <Card key={id}>
             <Card.Content>

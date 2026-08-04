@@ -10,7 +10,7 @@ import {
   Heading,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierEntry } from '../../../../classifiers/types';
-import type { CheckEntry } from '../../../types.ts';
+import type { CheckEntry, DocumentCheck, Violation } from '../../../types.ts';
 import { MassDimensionModal } from '../CheckModal/MassDimensionModal';
 import { DocCheckModal } from '../CheckModal/DocCheckModal';
 import { DrivingViolationModal } from '../CheckModal/DrivingViolationModal';
@@ -28,20 +28,13 @@ interface Props {
   setFieldValue?: (field: string, value: unknown) => void;
   fieldName?: string;
   readOnly?: boolean;
+  initialDocumentChecks?: DocumentCheck[];
+  initialEntries?: CheckEntry[];
+  initialViolations?: Record<string, Violation[]>;
 }
 
-export function ModalResultSection({ checks, type, setFieldValue, fieldName, readOnly }: Props) {
+export function ModalResultSection({ checks, type, setFieldValue, fieldName, readOnly, initialDocumentChecks, initialEntries: initialEntriesProp, initialViolations }: Props) {
   const { t } = useTranslation();
-  const [entries, setEntries] = useState<CheckEntry[]>([]);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [selectedLevel1, setSelectedLevel1] =
-    useState<ClassifierEntry | null>(null);
-  const [selectedDirective, setSelectedDirective] = useState<string>('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, position: 'bottom' as 'bottom' | 'top' });
 
   const level1Items = useMemo(
     () => checks.filter((v) => !v.parentKey),
@@ -57,15 +50,90 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
     [checks, level1Items],
   );
   const level3Items = useMemo(() => {
-    if (type === 'massDimension') {
-      return [];
-    }
+    if (type === 'massDimension') return [];
     return checks.filter(
       (v) =>
         v.parentKey &&
         level2Items.some((l2) => l2.classifierValueKey === v.parentKey),
     );
   }, [checks, level2Items, type]);
+
+  const initialEntries = useMemo<CheckEntry[]>(() => {
+    if (type === 'massDimension') {
+      return (initialEntriesProp ?? []) as CheckEntry[];
+    }
+    if (type === 'drivingViolation' && initialViolations) {
+      const directiveToFieldMap: Record<string, string> = {
+        '561/2006': 'violations5612006',
+        '165/2014': 'violations1652014',
+        '2002/15': 'violations200215',
+        '593/2008': 'violations5932008',
+        '2020/1057': 'violations20201057',
+      };
+      const entries: CheckEntry[] = [];
+      Object.entries(directiveToFieldMap).forEach(([directive, field]) => {
+        const violations = initialViolations[field] ?? [];
+        violations.forEach((v) => {
+          const l3 = level3Items.find((item) => item.code === v.violationCode);
+          const l2 = l3 ? level2Items.find((item) => item.classifierValueKey === l3.parentKey) : undefined;
+          const l1 = l2 ? level1Items.find((item) => item.classifierValueKey === l2.parentKey) : undefined;
+          entries.push({
+            level1Code: l1?.code ?? '',
+            level1Name: l1?.name ?? '',
+            level2Code: l2?.code ?? '',
+            level2Name: l2?.name ?? '',
+            level2Description: l2?.description ?? directive,
+            level3Code: v.violationCode,
+            level3Name: l3?.name ?? v.violationCode,
+            severity: l3?.description ?? v.severityCode,
+            severityCode: v.severityCode,
+            violationCode: v.violationCode,
+            articleDirective: directive,
+          });
+        });
+      });
+      return entries;
+    }
+    if (type === 'docCheck' && initialDocumentChecks?.length) {
+      return initialDocumentChecks.map((dc) => {
+        const l2 = level2Items.find((v) => v.code === dc.documentCode);
+        const l1 = l2 ? level1Items.find((v) => v.classifierValueKey === l2.parentKey) : undefined;
+        const l3 = level3Items.find((v) => v.code === dc.violationCode);
+        return {
+          level1Code: l1?.code ?? '',
+          level1Name: l1?.name ?? '',
+          level2Code: dc.documentCode,
+          level2Name: dc.documentName,
+          level2Description: l2?.description ?? '',
+          level3Code: dc.violationCode,
+          level3Name: l3?.name ?? dc.severityCode,
+          severity: l3?.description ?? '',
+          documentCode: dc.documentCode,
+          documentName: dc.documentName,
+          severityCode: dc.severityCode,
+          violationCode: dc.violationCode,
+        };
+      });
+    }
+    return [];
+  }, [type, initialDocumentChecks, initialEntriesProp, initialViolations, level1Items, level2Items, level3Items]);
+
+  const [entries, setEntries] = useState<CheckEntry[]>(initialEntries);
+
+  useEffect(() => {
+    if (initialEntries.length > 0) {
+      setEntries(initialEntries);
+    }
+  }, [initialEntries.length]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [selectedLevel1, setSelectedLevel1] =
+    useState<ClassifierEntry | null>(null);
+  const [selectedDirective, setSelectedDirective] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, position: 'bottom' as 'bottom' | 'top' });
 
   const filteredLevel1 = useMemo(() => {
     if (!search.trim()) return level1Items;

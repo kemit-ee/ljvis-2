@@ -17,6 +17,7 @@ import {
   Alert,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../classifier-values/types';
+import type { CheckEntry } from '../../types.ts';
 import { ModalResultSection } from './ModalResultSection/ModalResultSection';
 import { DocRightOtherSection } from './DocRightOtherSection';
 import styles from '../../pages/drive-rest-form/DriveRestFormPage.module.css';
@@ -625,6 +626,7 @@ export function DriveRestFormFields({
                       setFieldValue={formik.setFieldValue}
                       fieldName="documentChecks"
                       readOnly={readOnly}
+                      initialDocumentChecks={formik.values.documentChecks}
                     />
                   </div>
                   <div>
@@ -803,6 +805,13 @@ export function DriveRestFormFields({
                       type="drivingViolation"
                       setFieldValue={formik.setFieldValue}
                       readOnly={readOnly}
+                      initialViolations={{
+                        violations5612006: formik.values.violations5612006 ?? [],
+                        violations1652014: formik.values.violations1652014 ?? [],
+                        violations200215: formik.values.violations200215 ?? [],
+                        violations5932008: formik.values.violations5932008 ?? [],
+                        violations20201057: formik.values.violations20201057 ?? [],
+                      }}
                     />
                   </div>
                 </AccordionItemContent>
@@ -835,6 +844,7 @@ export function DriveRestFormFields({
                       setFieldValue={formik.setFieldValue}
                       fieldName="massDimensionMeasurements"
                       readOnly={readOnly}
+                      initialEntries={formik.values.massDimensionMeasurements as unknown as CheckEntry[]}
                     />
                   </div>
                 </AccordionItemContent>
@@ -857,11 +867,12 @@ export function DriveRestFormFields({
                   name="roadTaxStatus"
                   inputType="radio"
                   direction="row"
-                  value={formik.values.atpViolationFound}
+                  value={formik.values.atpViolationFound === true ? 'true' : formik.values.atpViolationFound === false ? 'false' : undefined}
                   className="mb-1"
                   onChange={(val) => {
-                    formik.setFieldValue('atpViolationFound', val as string);
-                    if (val !== 'true') {
+                    const boolVal = val === 'true';
+                    formik.setFieldValue('atpViolationFound', boolVal);
+                    if (!boolVal) {
                       formik.setFieldValue('atpViolationDescription', '');
                     }
                   }}
@@ -879,7 +890,7 @@ export function DriveRestFormFields({
                   ])}
                 />
                 <div></div>
-                {formik.values.atpViolationFound === 'true' && (
+                {formik.values.atpViolationFound === true && (
                   <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
                     <TextArea
                       id="atpViolationDescription"
@@ -930,7 +941,7 @@ export function DriveRestFormFields({
                   id="sanctionNotes"
                   label=""
                   value={formik.values.notes}
-                  placeholder={t('common.enterNotesPlaceholder')}
+                  placeholder={readOnly ? '' : t('common.enterNotesPlaceholder')}
                   onChange={(val) => formik.setFieldValue('notes', val as string)}
                   maxHeight="8rem"
                   disabled={readOnly}

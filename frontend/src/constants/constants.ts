@@ -10,6 +10,14 @@ export const FORM_TYPE = {
   TEAMMATE: 'drive-rest-form/teammate',
 } as const;
 
+export const FORM_ROUTE: Record<string, string> = {
+  [FORM_TYPE.FOREIGN_VIOLATION]: 'foreign-violation',
+  [FORM_TYPE.COMPOUND]: 'compound',
+  [FORM_TYPE.LABOUR_INSPECTION]: 'labour-inspection',
+  [FORM_TYPE.DRIVER]: 'sp-driver',
+  [FORM_TYPE.TEAMMATE]: 'sp-teammate',
+};
+
 export const PERMISSIONS = {
   USER_LIST_ADMIN: 'user.list.admin',
   USER_LIST_LOCAL: 'user.list.local',

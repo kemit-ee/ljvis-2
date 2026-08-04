@@ -21,6 +21,7 @@ import {
   deleteDriveRestForm,
   deleteCompoundForm,
   updateDriveRestForm,
+  getDriveRestFormSnapshot,
 } from '../../api';
 import {
   serializeDriveRestFormValues,
@@ -41,7 +42,7 @@ interface DriveRestFormPageProps {
 }
 
 export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
-  const { id } = useParams<{ id: string }>();
+  const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
@@ -82,6 +83,17 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
 
+  const forbidden = !(
+    ((entryType === 'driver' && hasPermission('sp_driver_form.read')) ||
+      (entryType === 'teammate' && hasPermission('sp_teammate_form.read'))) &&
+    hasPermission('classifier.read')
+  );
+
+  const [snapshot, setSnapshot] = useState<
+    import('../../types').DriveRestForm | null
+  >(null);
+  const [snapshotLoading, setSnapshotLoading] = useState(!!snapshotId);
+
   const driverEditCardRef = useRef<DriveRestFormEditCardRef | null>(null);
   const teammateEditCardRef = useRef<DriveRestFormEditCardRef | null>(null);
 
@@ -89,6 +101,18 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     if (!validatedTabs.has(tabId)) return false;
     return tabErrors[tabId] ?? false;
   };
+
+  useEffect(() => {
+    if (!snapshotId) return;
+    setSnapshotLoading(true);
+    getDriveRestFormSnapshot(entryType, snapshotId, id!)
+      .then((res) => {
+        const data = Array.isArray(res) ? res[0] : res;
+        setSnapshot(data);
+      })
+      .catch(console.error)
+      .finally(() => setSnapshotLoading(false));
+  }, [snapshotId, id]);
 
   useEffect(() => {
     const anySubFormSaved =
@@ -519,6 +543,51 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       })
       .catch(console.error);
   };
+
+  if (snapshotId) {
+    if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
+    if (forbidden) return <Text>{t('common.forbidden')}</Text>;
+    if (!snapshot) return <Text>{t('common.error')}</Text>;
+    return (
+      <div>
+        {entryType === 'driver' ? (
+          <div>
+            <Button
+              visualType="link"
+              onClick={() => navigate(`/control-forms/sp-driver/${id}`)}
+              iconLeft="arrow_back"
+            >
+              {t('common.back')}
+            </Button>
+            <DriveRestFormViewCard
+              scope="driver"
+              form={snapshot}
+              canEdit={false}
+              onEdit={() => {}}
+              formType={FORM_TYPE.DRIVER}
+            />
+          </div>
+        ) : (
+          <div>
+            <Button
+              visualType="link"
+              onClick={() => navigate(`/control-forms/sp-teammate/${id}`)}
+              iconLeft="arrow_back"
+            >
+              {t('common.back')}
+            </Button>
+            <DriveRestFormViewCard
+              scope="teammate"
+              form={snapshot}
+              canEdit={false}
+              onEdit={() => {}}
+              formType={FORM_TYPE.TEAMMATE}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (loadingEntry) return <Text>{t('common.loading')}</Text>;
   if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;

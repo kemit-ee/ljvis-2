@@ -204,7 +204,7 @@ export interface DriveRestForm {
   violations20201057?: Violation[];
   massDimensionNonCompliant?: boolean;
   massDimensionMeasurements?: MassDimensionMeasurement[];
-  atpViolationFound?: string;
+  atpViolationFound?: boolean;
   atpViolationDescription?: string;
   erruPoints?: string[];
   files?: string[];

@@ -107,7 +107,15 @@ function AppRoutes() {
             element={<DriveRestFormPage entryType="driver" />}
           />
           <Route
+            path="/control-forms/sp-driver/:id/:snapshotId"
+            element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
             path="/control-forms/sp-teammate/:id"
+            element={<DriveRestFormPage entryType="teammate" />}
+          />
+          <Route
+            path="/control-forms/sp-teammate/:id/:snapshotId"
             element={<DriveRestFormPage entryType="teammate" />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
