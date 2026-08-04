@@ -217,7 +217,6 @@ export interface DriveRestForm {
   atpViolationFound?: string;
   atpViolationDescription?: string;
   erruPoints?: string[];
-  files?: string[];
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
   notes?: string;
@@ -321,7 +320,6 @@ export interface TechnicalCheckForm {
   proceedingReferenceNumber?: string;
   violations?: string[];
   notes?: string;
-  files?: string[];
   extraordinaryInspectionDate?: string;
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
@@ -334,4 +332,31 @@ export interface TechnicalCheckFormListItem {
   version: number;
   status: string;
   resultType: string;
+}
+
+/** LJVIS2-74: autoveo katkestamise kontrollvorm (transport-interruption / kv_form) sub-form. */
+export interface TransportInterruptionForm {
+  id?: string;
+  compoundFormKey?: number;
+  subFormNumber?: string;
+  version?: number;
+  status?: string;
+  headerText?: string;
+  residenceCountry?: string;
+  residenceRegion?: string;
+  residenceCity?: string;
+  residenceAddressLine?: string;
+  residencePostalCode?: string;
+  interruptionReason?: string;
+  legalBases?: string[];
+  terminationCondition?: string;
+  personApplications?: string;
+  createdBy?: string;
+}
+
+export interface TransportInterruptionFormListItem {
+  id: string;
+  subFormNumber: string;
+  version: number;
+  status: string;
 }

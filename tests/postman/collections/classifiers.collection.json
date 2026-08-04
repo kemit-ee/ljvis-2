@@ -283,7 +283,7 @@
 							"  pm.expect(Array.isArray(data.content)).to.be.true;",
 							"  pm.expect(data.total).to.be.a('number');",
 							"});",
-							"pm.test('Total equals 3 (seeded: RTK + TEST, plus production-seeded TECHNICAL_CHECK)', () => pm.expect(data.total).to.eql(3));",
+							"pm.test('Total equals 4 (seeded: RTK + TEST, plus production-seeded TECHNICAL_CHECK + INTERRUPTION_BASES)', () => pm.expect(data.total).to.eql(4));",
 							"pm.test('Each item has id, code, name, description', () => {",
 							"  data.content.forEach(c => {",
 							"    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
@@ -512,7 +512,7 @@
 			]
 		},
 		{
-			"name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=3",
+			"name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=4",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -552,7 +552,7 @@
 							"var body = pm.response.json();",
 							"var data = (body && body.response) ? body.response : body;",
 							"pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-							"pm.test('Total is still 3', () => pm.expect(data.total).to.eql(3));"
+							"pm.test('Total is still 4', () => pm.expect(data.total).to.eql(4));"
 						]
 					}
 				}

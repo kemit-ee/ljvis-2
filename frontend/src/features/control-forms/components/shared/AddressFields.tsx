@@ -51,6 +51,7 @@ export function AddressFields({
 
   const countyOptions = counties.map(asOption);
   const cityOptions = citiesParishes.map(asOption);
+  const isEstonia = value.countryCode === 'EE';
 
   return (
     <>
@@ -59,47 +60,75 @@ export function AddressFields({
         label={t('forms.shared.address.country')}
         options={countryOptions}
         value={countryOptions.find((o) => o.value === value.countryCode) ?? null}
-        onChange={(val) =>
-          onChange({
-            ...value,
-            countryCode: val && !Array.isArray(val) ? (val as { value: string }).value : '',
-          })
-        }
+        onChange={(val) => {
+          const countryCode =
+            val && !Array.isArray(val) ? (val as { value: string }).value : '';
+          // UC-08/UC-09: switching country always clears county/city — an
+          // EHAK id from the dropdown is meaningless as free text and vice
+          // versa, so the previous value can never be valid after the switch.
+          onChange({ ...value, countryCode, county: '', city: '' });
+        }}
         disabled={disabled}
         {...(errors?.countryCode
           ? { helper: { text: errors.countryCode, type: 'error' as const } }
           : {})}
       />
-      <Select
-        id="addressCounty"
-        label={t('forms.shared.address.county')}
-        options={countyOptions}
-        value={countyOptions.find((o) => o.value === value.county) ?? null}
-        onChange={(val) => {
-          const v = val && !Array.isArray(val) ? (val as { value: string }).value : '';
-          onChange({ ...value, county: v, city: '' });
-        }}
-        disabled={disabled}
-        {...(errors?.county
-          ? { helper: { text: errors.county, type: 'error' as const } }
-          : {})}
-      />
-      <Select
-        id="addressCity"
-        label={t('forms.shared.address.city')}
-        options={cityOptions}
-        value={cityOptions.find((o) => o.value === value.city) ?? null}
-        onChange={(val) =>
-          onChange({
-            ...value,
-            city: val && !Array.isArray(val) ? (val as { value: string }).value : '',
-          })
-        }
-        disabled={disabled || !value.county}
-        {...(errors?.city
-          ? { helper: { text: errors.city, type: 'error' as const } }
-          : {})}
-      />
+      {isEstonia ? (
+        <Select
+          id="addressCounty"
+          label={t('forms.shared.address.county')}
+          options={countyOptions}
+          value={countyOptions.find((o) => o.value === value.county) ?? null}
+          onChange={(val) => {
+            const v = val && !Array.isArray(val) ? (val as { value: string }).value : '';
+            onChange({ ...value, county: v, city: '' });
+          }}
+          disabled={disabled}
+          {...(errors?.county
+            ? { helper: { text: errors.county, type: 'error' as const } }
+            : {})}
+        />
+      ) : (
+        <TextField
+          id="addressCounty"
+          label={t('forms.shared.address.county')}
+          value={value.county}
+          onChange={(v) => onChange({ ...value, county: v, city: '' })}
+          disabled={disabled}
+          {...(errors?.county
+            ? { helper: { text: errors.county, type: 'error' as const } }
+            : {})}
+        />
+      )}
+      {isEstonia ? (
+        <Select
+          id="addressCity"
+          label={t('forms.shared.address.city')}
+          options={cityOptions}
+          value={cityOptions.find((o) => o.value === value.city) ?? null}
+          onChange={(val) =>
+            onChange({
+              ...value,
+              city: val && !Array.isArray(val) ? (val as { value: string }).value : '',
+            })
+          }
+          disabled={disabled || !value.county}
+          {...(errors?.city
+            ? { helper: { text: errors.city, type: 'error' as const } }
+            : {})}
+        />
+      ) : (
+        <TextField
+          id="addressCity"
+          label={t('forms.shared.address.city')}
+          value={value.city}
+          onChange={(v) => onChange({ ...value, city: v })}
+          disabled={disabled}
+          {...(errors?.city
+            ? { helper: { text: errors.city, type: 'error' as const } }
+            : {})}
+        />
+      )}
       <TextField
         id="addressStreet"
         label={t('forms.shared.address.street')}
@@ -116,6 +145,7 @@ export function AddressFields({
         value={value.postalCode}
         onChange={(v) => onChange({ ...value, postalCode: v })}
         disabled={disabled}
+        input={{ maxLength: 10 }}
         {...(errors?.postalCode
           ? { helper: { text: errors.postalCode, type: 'error' as const } }
           : {})}

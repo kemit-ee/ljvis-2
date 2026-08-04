@@ -38,8 +38,6 @@ declaration:
         type: string
       - field: notes
         type: string
-      - field: files
-        type: string
       - field: created_by
         type: string
   response:
@@ -71,7 +69,6 @@ WITH ins AS (
     proceeding_reference_number,
     violations,
     notes,
-    files,
     created_by
   )
   VALUES (
@@ -93,7 +90,6 @@ WITH ins AS (
     NULLIF(:proceedingReferenceNumber, ''),
     COALESCE(NULLIF(:violations, '')::jsonb, '[]'::jsonb),
     NULLIF(:notes, ''),
-    COALESCE(NULLIF(:files, '')::jsonb, '[]'::jsonb),
     :created_by
   )
   RETURNING vehicle_technical_form_key, sub_form_number, version

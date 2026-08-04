@@ -114,7 +114,6 @@ export function useTechnicalCheckForm(
       proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
       violations: (Array.isArray(form?.violations) ? form.violations : []) as string[],
       notes: form?.notes ?? '',
-      files: (Array.isArray(form?.files) ? form.files : []) as string[],
       extraordinaryInspectionDate: form?.extraordinaryInspectionDate ?? '',
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
@@ -131,7 +130,6 @@ export function useTechnicalCheckForm(
           partsSummary: JSON.stringify(values.partsSummary ?? []),
           partsDefects: JSON.stringify(values.partsDefects ?? []),
           violations: JSON.stringify(values.violations ?? []),
-          files: JSON.stringify(values.files ?? []),
         } as unknown as TechnicalCheckForm;
         const result = isConfirming
           ? await confirmTechnicalCheckForm(variant, payload)

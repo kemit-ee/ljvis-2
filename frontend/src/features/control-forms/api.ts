@@ -9,6 +9,8 @@ import type {
   TechnicalCheckForm,
   TechnicalCheckFormListItem,
   TechnicalCheckVariant,
+  TransportInterruptionForm,
+  TransportInterruptionFormListItem,
 } from './types';
 
 const technicalCheckPath = (variant: TechnicalCheckVariant) =>
@@ -78,20 +80,25 @@ export const deleteCompoundForm = (
 export const getFormSnapshots = (id: string, formType: string) =>
   get<FormSnapshot[]>(`/v1/control-forms/get-snapshots`, { id, formType });
 
-export const uploadFormFile = (data: {
-  formType: string;
-  formNumber: string;
-  fileName: string;
-  fileBase64: string;
-  mimetype: string;
-}) =>
-  post<FormAttachment>(`/v1/control-forms/files/upload`, data);
+export const uploadFormFile = (
+  formPath: string,
+  data: {
+    formNumber: string;
+    fileName: string;
+    fileBase64: string;
+    mimetype: string;
+  },
+) => post<FormAttachment>(`/v1/control-forms/${formPath}/edit/files/upload`, data);
 
-export const listFormFiles = (formNumber: string) =>
-  post<FormAttachment[]>(`/v1/control-forms/files/list`, { formNumber });
+export const listFormFiles = (formPath: string, formNumber: string) =>
+  post<FormAttachment[]>(`/v1/control-forms/${formPath}/read/files/list`, {
+    formNumber,
+  });
 
-export const downloadFormFile = (id: string, formType: string) =>
-  post<{ url: string }>(`/v1/control-forms/files/download`, { id, formType });
+export const downloadFormFile = (formPath: string, id: string) =>
+  post<{ url: string }>(`/v1/control-forms/${formPath}/read/files/download`, {
+    id,
+  });
 
 export const getForeignViolationFormSnapshot = (id: string, formKey: string) =>
   post<ForeignViolationForm[]>(
@@ -191,4 +198,34 @@ export const saveTechnicalCheckFormXroadFields = (
   post<TechnicalCheckForm[]>(
     `/v1/control-forms/${technicalCheckPath(variant)}/edit/xroad/save-xroad-fields`,
     data,
+  );
+
+export const getTransportInterruptionForm = (id: string) =>
+  post<TransportInterruptionForm>(
+    `/v1/control-forms/transport-interruption/read/get`,
+    { id },
+  );
+
+export const listTransportInterruptionFormsByCompoundFormKey = (
+  compoundFormKey: number,
+) =>
+  post<TransportInterruptionFormListItem[]>(
+    `/v1/control-forms/transport-interruption/read/get-by-compound-form-key`,
+    { compoundFormKey },
+  );
+
+export const saveTransportInterruptionForm = (
+  data: TransportInterruptionForm,
+) =>
+  post<TransportInterruptionForm[]>(
+    `/v1/control-forms/transport-interruption/edit/save`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const confirmTransportInterruptionForm = (
+  data: TransportInterruptionForm,
+) =>
+  post<TransportInterruptionForm[]>(
+    `/v1/control-forms/transport-interruption/edit/confirm`,
+    data as unknown as Record<string, unknown>,
   );

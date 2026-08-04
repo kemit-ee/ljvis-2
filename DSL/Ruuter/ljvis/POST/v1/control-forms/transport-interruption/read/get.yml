@@ -1,0 +1,38 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get transport-interruption sub-form by id (latest snapshot)"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+fetchForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/transport-interruption/get"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.id}
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length !== 1}
+      next: returnNotFound
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end

@@ -11,8 +11,13 @@ import {
   deleteCompoundForm,
   getCompoundFormSnapshot,
   listTechnicalCheckFormsByCompoundFormKey,
+  listTransportInterruptionFormsByCompoundFormKey,
 } from '../../api';
-import type { TechnicalCheckFormListItem, TechnicalCheckVariant } from '../../types';
+import type {
+  TechnicalCheckFormListItem,
+  TechnicalCheckVariant,
+  TransportInterruptionFormListItem,
+} from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 
@@ -77,6 +82,48 @@ function TechnicalCheckFormsSection({
       <Heading element="h3">{t('forms.technical_check.sectionTitle')}</Heading>
       {renderVariant('vehicle')}
       {renderVariant('trailer')}
+    </div>
+  );
+}
+
+/**
+ * LJVIS2-74: minimal navigation into the transport-interruption sub-form of
+ * this compound form. Same stopgap pattern as TechnicalCheckFormsSection above
+ * pending the real "Koondvormi alamvormide haldamine" tab-bar infrastructure.
+ */
+function TransportInterruptionSection({
+  compoundFormKey,
+  canEdit,
+}: {
+  compoundFormKey: number;
+  canEdit: boolean;
+}) {
+  const { t } = useTranslation();
+  const [items, setItems] = useState<TransportInterruptionFormListItem[]>([]);
+
+  useEffect(() => {
+    listTransportInterruptionFormsByCompoundFormKey(compoundFormKey)
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .catch(() => setItems([]));
+  }, [compoundFormKey]);
+
+  return (
+    <div className="mb-1">
+      <Heading element="h3">{t('forms.transport_interruption.sectionTitle')}</Heading>
+      <ul>
+        {items.map((item) => (
+          <li key={item.id}>
+            <Link to={`/control-forms/transport-interruption/${item.id}`}>
+              {item.subFormNumber}/{item.version}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {canEdit && (
+        <Link to={`/control-forms/transport-interruption/new/${compoundFormKey}`}>
+          {t('forms.transport_interruption.addNew')}
+        </Link>
+      )}
     </div>
   );
 }
@@ -327,6 +374,13 @@ export function CompoundFormPage() {
 
       {id && form.status !== 'deleted' && (
         <TechnicalCheckFormsSection
+          compoundFormKey={Number(id)}
+          canEdit={canEdit}
+        />
+      )}
+
+      {id && form.status !== 'deleted' && (
+        <TransportInterruptionSection
           compoundFormKey={Number(id)}
           canEdit={canEdit}
         />

@@ -48,8 +48,6 @@ declaration:
         type: string
       - field: notes
         type: string
-      - field: files
-        type: string
       - field: extraordinaryInspectionDate
         type: string
       - field: enforcementDecision
@@ -78,7 +76,6 @@ SELECT
   proceeding_reference_number,
   violations::text,
   notes,
-  files::text,
   extraordinary_inspection_date,
   enforcement_decision,
   proceeding_closure_basis,

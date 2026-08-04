@@ -38,8 +38,6 @@ declaration:
         type: string
       - field: notes
         type: string
-      - field: files
-        type: string
 
 get_user_context:
   call: http.get
@@ -67,7 +65,6 @@ extractRequestData:
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
     violations: "${incoming.body.violations || '[]'}"
     notes: "${incoming.body.notes || ''}"
-    files: "${incoming.body.files || '[]'}"
     created_by: "${auth_user.response.body.personalCode || ''}"
   next: checkTrailerExclusions
 
@@ -116,7 +113,6 @@ insertForm:
       proceedingReferenceNumber: ${proceeding_reference_number}
       violations: ${violations}
       notes: ${notes}
-      files: ${files}
       created_by: ${created_by}
   result: saveRes
   next: logSave
@@ -166,7 +162,6 @@ updateForm:
       proceedingReferenceNumber: ${proceeding_reference_number}
       violations: ${violations}
       notes: ${notes}
-      files: ${files}
       created_by: ${created_by}
   result: saveRes
   next: logSave

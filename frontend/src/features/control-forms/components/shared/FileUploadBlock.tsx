@@ -13,7 +13,8 @@ const ALLOWED_ACCEPT = '.pdf,.jpg,.jpeg,.png,.tiff';
 const MAX_SIZE_MB = 10;
 
 interface FileUploadBlockProps {
-  formType: string;
+  /** URL path segment of the owning form, e.g. "foreign-violation-form", "vehicle-technical". */
+  formPath: string;
   formNumber?: string;
   disabled?: boolean;
 }
@@ -31,7 +32,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export function FileUploadBlock({
-  formType,
+  formPath,
   formNumber,
   disabled,
 }: FileUploadBlockProps) {
@@ -41,8 +42,8 @@ export function FileUploadBlock({
 
   const refresh = useCallback(() => {
     if (!formNumber) return;
-    listFormFiles(formNumber).then(setAttachments).catch(() => setError(true));
-  }, [formNumber]);
+    listFormFiles(formPath, formNumber).then(setAttachments).catch(() => setError(true));
+  }, [formPath, formNumber]);
 
   useEffect(() => {
     refresh();
@@ -61,8 +62,7 @@ export function FileUploadBlock({
     for (const raw of newFiles) {
       try {
         const base64 = await fileToBase64(raw);
-        await uploadFormFile({
-          formType,
+        await uploadFormFile(formPath, {
           formNumber,
           fileName: raw.name,
           fileBase64: base64,
@@ -83,7 +83,7 @@ export function FileUploadBlock({
   const handleDownload = async (file: FileUploadFile) => {
     if (!file.id) return;
     try {
-      const { url } = await downloadFormFile(file.id, formType);
+      const { url } = await downloadFormFile(formPath, file.id);
       window.open(url, '_blank');
     } catch {
       setError(true);
@@ -93,7 +93,7 @@ export function FileUploadBlock({
   return (
     <div>
       <FileUpload
-        name={`${formType}-files`}
+        name={`${formPath}-files`}
         label={t('forms.shared.files.label')}
         accept={ALLOWED_ACCEPT}
         maxSize={MAX_SIZE_MB}

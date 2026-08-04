@@ -38,8 +38,6 @@ declaration:
         type: string
       - field: notes
         type: string
-      - field: files
-        type: string
       - field: created_by
         type: string
   response:
@@ -78,7 +76,6 @@ INSERT INTO forms.trailer_technical_form (
   proceeding_reference_number,
   violations,
   notes,
-  files,
   extraordinary_inspection_date,
   enforcement_decision,
   proceeding_closure_basis,
@@ -103,7 +100,6 @@ SELECT
   NULLIF(:proceedingReferenceNumber, ''),
   COALESCE(NULLIF(:violations, '')::jsonb, '[]'::jsonb),
   NULLIF(:notes, ''),
-  COALESCE(NULLIF(:files, '')::jsonb, '[]'::jsonb),
   latest.extraordinary_inspection_date,
   latest.enforcement_decision,
   latest.proceeding_closure_basis,

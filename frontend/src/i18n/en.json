@@ -429,6 +429,37 @@
         "saveError": "Failed to save X-Road data"
       }
     },
+    "transport_interruption": {
+      "title": "Road transport interrupted",
+      "sectionTitle": "Transport-interruption control form",
+      "addNew": "Add transport-interruption control form",
+      "header": {
+        "title": "Header",
+        "headerText": "Header"
+      },
+      "residence": {
+        "title": "Residence"
+      },
+      "result": {
+        "title": "Inspection result",
+        "interruptionReason": "Because:",
+        "legalBases": "Legal grounds"
+      },
+      "terminationCondition": {
+        "title": "Condition for ending the transport interruption"
+      },
+      "personApplications": {
+        "title": "Person's applications"
+      },
+      "validation": {
+        "postalCodeMaxLength": "Postal code can be at most {{max}} characters",
+        "api": {
+          "required": "Required field",
+          "form_locked_after_publish": "This form has been published and can no longer be edited",
+          "already_confirmed": "This form has already been confirmed"
+        }
+      }
+    },
     "compound": {
       "generalPart": "General part",
       "inspectionPlaceBasicInfo": "Inspection place",

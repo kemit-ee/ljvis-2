@@ -1,0 +1,271 @@
+{
+  "info": {
+    "name": "LJVIS — Transport Interruption Form",
+    "_postman_id": "ljvis-transport-interruption-v1",
+    "description": "Functional tests for /control-forms/transport-interruption endpoints (LJVIS2-74). Covers permission boundaries (transport_interruption_form.write/read), backend validation (compoundFormKey required), version/status lifecycle (saved -> confirmed, already_confirmed, form_locked_after_publish), and the server-side UPPERCASE transform of free-text fields (LJVIS2-74 §4). Self-contained: authenticates and creates its own compound form + sub-form.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_admin}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "var body = pm.response.json();",
+        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_user}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "var body = pm.response.json();",
+        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Setup] Create compound form for sub-form tests",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/insert", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"status\":\"saved\",\"controlDate\":\"2024-01-01\",\"controlTime\":\"10:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"CI123TI\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('id present', () => pm.expect(row.id).to.not.be.undefined);",
+        "pm.environment.set('created_kv_compound_key', String(row.id));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/save — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"compoundFormKey\": {{created_kv_compound_key}}, \"headerText\": \"\", \"legalBases\": \"[]\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without transport_interruption_form.write', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/save — missing compoundFormKey → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"headerText\": \"\", \"legalBases\": \"[]\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('field is compoundFormKey', () => pm.expect(body.field).to.eql('compoundFormKey'));",
+        "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/save — create → 200, save id/subFormNumber, version=1, text uppercased",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"compoundFormKey\": {{created_kv_compound_key}}, \"headerText\": \"ci pohja prefektuur\", \"residenceCountry\": \"EE\", \"residenceAddressLine\": \"ci test street 1\", \"interruptionReason\": \"ci reason lowercase\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\"]\", \"personApplications\": \"ci person application\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('Response has id, subFormNumber, version=1', () => {",
+        "  pm.expect(row.id).to.not.be.undefined;",
+        "  pm.expect(row.subFormNumber).to.be.a('string').and.not.empty;",
+        "  pm.expect(Number(row.version)).to.eql(1);",
+        "});",
+        "pm.environment.set('created_kv_id', String(row.id));",
+        "pm.environment.set('created_kv_sub_form_number', String(row.subFormNumber));"
+      ]}}]
+    },
+    {
+      "name": "POST read/get — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without read/view_unpublished permission', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST read/get — not found → 404",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"999999999\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 404 for nonexistent id', () => pm.response.to.have.status(404));"
+      ]}}]
+    },
+    {
+      "name": "POST read/get — happy path, verify uppercase transform",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('status is saved', () => pm.expect(body.status).to.eql('saved'));",
+        "pm.test('version is 1', () => pm.expect(Number(body.version)).to.eql(1));",
+        "pm.test('headerText is uppercased', () => pm.expect(body.headerText).to.eql('CI POHJA PREFEKTUUR'));",
+        "pm.test('interruptionReason is uppercased', () => pm.expect(body.interruptionReason).to.eql('CI REASON LOWERCASE'));",
+        "pm.test('personApplications is uppercased', () => pm.expect(body.personApplications).to.eql('CI PERSON APPLICATION'));",
+        "pm.test('residenceAddressLine is uppercased', () => pm.expect(body.residenceAddressLine).to.eql('CI TEST STREET 1'));",
+        "pm.test('terminationCondition defaulted', () => pm.expect(body.terminationCondition).to.eql('KUNI VEO KATKESTAMISE ALUSE ÄRALANGEMISENI.'));",
+        "pm.test('legalBases contains selected code', () => pm.expect(JSON.parse(body.legalBases)).to.include('autovs_51_lg3_p1'));",
+        "pm.test('subFormNumber matches created id', () => pm.expect(body.subFormNumber).to.eql(pm.environment.get('created_kv_sub_form_number')));",
+        "pm.test('compoundFormKey matches', () => pm.expect(Number(body.compoundFormKey)).to.eql(Number(pm.environment.get('created_kv_compound_key'))));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/save — re-save (update) → 200, version increments to 2, all 4 legalBases accepted",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"ci updated header\", \"terminationCondition\": \"kuni asjaolud ara langevad\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\",\\\"autovs_51_lg3_p2\\\",\\\"autovs_51_lg3_p3\\\",\\\"autovs_51_lg3_p4\\\"]\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('version incremented to 2', () => pm.expect(Number(row.version)).to.eql(2));",
+        "pm.test('sub_form_number unchanged', () => pm.expect(row.subFormNumber).to.eql(pm.environment.get('created_kv_sub_form_number')));"
+      ]}}]
+    },
+    {
+      "name": "POST read/get — after re-save: terminationCondition uppercased, all 4 legalBases stored",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('terminationCondition custom value is uppercased', () => pm.expect(body.terminationCondition).to.eql('KUNI ASJAOLUD ARA LANGEVAD'));",
+        "pm.test('all 4 legalBases codes stored', () => {",
+        "  var bases = JSON.parse(body.legalBases);",
+        "  ['autovs_51_lg3_p1','autovs_51_lg3_p2','autovs_51_lg3_p3','autovs_51_lg3_p4'].forEach(code => pm.expect(bases).to.include(code));",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "POST read/get-by-compound-form-key — happy path, list contains created sub-form",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/read/get-by-compound-form-key", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "read", "get-by-compound-form-key"]},
+        "body": {"mode": "raw", "raw": "{\"compoundFormKey\": {{created_kv_compound_key}}}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('list contains created sub-form', () => {",
+        "  pm.expect(Array.isArray(body)).to.be.true;",
+        "  var found = body.find(r => String(r.id) === pm.environment.get('created_kv_id'));",
+        "  pm.expect(found).to.not.be.undefined;",
+        "});"
+      ]}}]
+    },
+    {
+      "name": "POST edit/confirm — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/confirm", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "confirm"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[]\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without transport_interruption_form.write', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/confirm — happy path → 200, status confirmed, version 3",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/confirm", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "confirm"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\"]\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('version incremented to 3', () => pm.expect(Number(row.version)).to.eql(3));"
+      ]}}]
+    },
+    {
+      "name": "POST read/get — status is confirmed after confirm",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('status is confirmed', () => pm.expect(body.status).to.eql('confirmed'));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/confirm — already confirmed → 422 already_confirmed",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/confirm", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "confirm"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[]\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('code is already_confirmed', () => pm.expect(body.code).to.eql('already_confirmed'));"
+      ]}}]
+    }
+  ],
+  "variable": []
+}

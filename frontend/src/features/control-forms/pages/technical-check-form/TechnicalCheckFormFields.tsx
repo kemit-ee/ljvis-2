@@ -96,7 +96,7 @@ export function TechnicalCheckFormFields({
     euViolations.filter((v) => v.description === category);
 
   const notesLength = (values.notes ?? '').length;
-  const formType = variant === 'vehicle' ? 'vehicle_technical_form' : 'trailer_technical_form';
+  const formPath = variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';
   const formNumber = values.subFormNumber
     ? `${values.subFormNumber}/${values.version ?? 1}`
     : undefined;
@@ -353,7 +353,7 @@ export function TechnicalCheckFormFields({
             <Heading element="h3" className="mb-1">
               {t('forms.shared.files.label')}
             </Heading>
-            <FileUploadBlock formType={formType} formNumber={formNumber} disabled={!canEdit} />
+            <FileUploadBlock formPath={formPath} formNumber={formNumber} disabled={!canEdit} />
           </Card.Content>
         </Card>
       )}
