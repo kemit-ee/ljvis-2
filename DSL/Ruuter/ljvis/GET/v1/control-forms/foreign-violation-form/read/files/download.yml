@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Get a short-lived presigned download URL for a file attachment"
   method: get
   accepts: json

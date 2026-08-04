@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Get list of available users for a user group with pagination, sorting and search"
   method: post
   accepts: json

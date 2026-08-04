@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Search/list users filtered by own organisation (local scope)"
   method: get
   accepts: json

@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Replace all group memberships for a user"
   method: put
   accepts: json

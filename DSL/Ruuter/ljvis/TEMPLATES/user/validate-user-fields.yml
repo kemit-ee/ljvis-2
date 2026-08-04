@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Validate all required user form fields including format checks"
   method: post
   accepts: json

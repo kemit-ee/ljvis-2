@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Calculate changed fields for a labour inspection form update, diffing against its latest saved snapshot"
   method: post
   accepts: json

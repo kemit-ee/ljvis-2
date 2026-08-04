@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Deactivate expired users - removes groups and sets status to inactive (called by cron)"
   method: post
   accepts: json

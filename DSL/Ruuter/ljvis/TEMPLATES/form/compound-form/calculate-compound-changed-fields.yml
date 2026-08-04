@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Calculate changed fields for compound form including SQL lookup"
   method: post
   accepts: json

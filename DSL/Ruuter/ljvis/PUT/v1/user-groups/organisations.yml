@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Replace all organisation links for a user group"
   method: put
   accepts: json

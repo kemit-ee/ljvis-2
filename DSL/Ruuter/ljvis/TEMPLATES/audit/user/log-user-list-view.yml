@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Audit: user list view event (accepts pre-built description and log_content)"
   method: post
   accepts: json

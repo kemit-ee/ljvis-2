@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Audit: file upload event. Generic — works for any form type."
   method: post
   accepts: json

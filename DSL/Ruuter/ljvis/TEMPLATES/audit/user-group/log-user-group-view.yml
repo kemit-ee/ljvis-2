@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Audit: user group view event — fetches group users internally to build description"
   method: post
   accepts: json

@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Audit: user group delete-user event — fetches removed user personal code internally"
   method: post
   accepts: json

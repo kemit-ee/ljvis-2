@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Soft-delete a file attachment record in the DB. Expects: id, form_type, actor_personal_code, actor_name"
   method: post
   accepts: json

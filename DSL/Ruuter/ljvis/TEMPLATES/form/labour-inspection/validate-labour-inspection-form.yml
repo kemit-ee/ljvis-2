@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Single source of truth for labour inspection form (Tööinspektsiooni kontrollakt) field validation — shared by save.yml (insert + update) and confirm.yml so the rules only need to be defined and kept in sync in one place. Mirrors the frontend Yup schema in useLabourInspectionForm.ts and the forms.labour_inspection_form table CHECK constraints. Returns '{\"valid\":true}' when all checks pass, otherwise the same VALIDATION_ERROR shape the callers previously returned directly, ready to be forwarded to the client as-is."
   method: post
   accepts: json

@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Check if a personal code is already in use"
   method: post
   accepts: json

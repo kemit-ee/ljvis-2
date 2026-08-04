@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Search Ariregister company data (lihtandmed_v3) via XTR"
   method: post
   accepts: json

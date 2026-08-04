@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Audit: user group set-organisations event — conditionally fetches cascade-removed user personal codes"
   method: post
   accepts: json

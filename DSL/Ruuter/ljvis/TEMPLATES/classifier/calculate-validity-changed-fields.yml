@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Calculate changed fields for classifier value validity including SQL lookup"
   method: post
   accepts: json

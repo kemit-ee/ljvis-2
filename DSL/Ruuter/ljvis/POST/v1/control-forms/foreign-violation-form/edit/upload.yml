@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Upload a file attachment for a control form to S3 and record it in the DB"
   method: post
   accepts: json

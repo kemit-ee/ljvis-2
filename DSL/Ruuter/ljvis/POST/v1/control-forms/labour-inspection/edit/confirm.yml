@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "Confirm (kinnita) a labour inspection form. Server-side rule: an act with any recorded violations cannot be confirmed here — publishing those requires the (out-of-scope) e-toimik integration. A violations-free act may be confirmed manually."
   method: post
   accepts: json
