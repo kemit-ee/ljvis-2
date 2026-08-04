@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Delete a user from a user group"
   method: delete
   accepts: json

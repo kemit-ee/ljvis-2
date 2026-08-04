@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Insert drive rest form for driver"
   method: post
   accepts: json

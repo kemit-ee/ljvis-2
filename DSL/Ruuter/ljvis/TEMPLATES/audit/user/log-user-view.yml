@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Audit: single user view event"
   method: post
   accepts: json

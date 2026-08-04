@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "List of structure units filter by organisation ID"
   method: get
   accepts: json

@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input — see extractRequestData / validateRequired / updateForm."
   method: post
   accepts: json

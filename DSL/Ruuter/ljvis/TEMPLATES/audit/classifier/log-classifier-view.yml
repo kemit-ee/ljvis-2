@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Audit: classifier view event"
   method: post
   accepts: json

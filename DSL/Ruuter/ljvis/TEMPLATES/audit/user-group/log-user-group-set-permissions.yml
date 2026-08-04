@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Audit: user group set-permissions event — fetches full permissions list to resolve codes"
   method: post
   accepts: json

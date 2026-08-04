@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Upload a file to S3 and record it in the DB. Expects: form_type, form_number, file_name, file_base64, mimetype, actor_personal_code"
   method: post
   accepts: json

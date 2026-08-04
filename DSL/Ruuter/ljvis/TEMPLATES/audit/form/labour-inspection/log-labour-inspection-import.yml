@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Audit: labour inspection form (labour_inspection_form) X-tee inbound import event. UNUSED STUB — no caller exists yet; the inbound import endpoint itself is out of scope for LJVIS-75 (needs OAuth2 client-credentials infra that doesn't exist yet in Ruuter DSL). Kept here so the future import ticket can wire it up without inventing a new event type."
   method: post
   accepts: json

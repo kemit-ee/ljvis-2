@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Search Ariregister company data (lihtandmed_v3) via XTR"
   method: post
   accepts: json

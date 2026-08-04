@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Get a short-lived presigned download URL for a file attachment"
   method: get
   accepts: json

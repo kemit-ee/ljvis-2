@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Create a new user group with optional organisations and permissions"
   method: post
   accepts: json

@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.2"
+  version: "1.0"
   description: "Audit: labour inspection form (labour_inspection_form) create event. Thin adapter — delegates rendering/serialisation to audit/log-form-event."
   method: post
   accepts: json

@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.3"
+  version: "1.0"
   description: "Write one audit event to the database. Actor data is passed in by the caller (already sourced from JWT). Generates a ULID event_id before the INSERT. Extracts trace_id and span_id from the incoming traceparent header."
   method: post
   accepts: json

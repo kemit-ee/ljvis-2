@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Validate JWT cookie via TIM, then look up user + permissions from LJVIS DB"
   method: post
   accepts: json

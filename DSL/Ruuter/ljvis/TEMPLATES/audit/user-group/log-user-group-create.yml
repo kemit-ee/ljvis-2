@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Audit: user group create event — fetches permissions and organisation count internally"
   method: post
   accepts: json

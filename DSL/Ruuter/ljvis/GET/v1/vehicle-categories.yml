@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "List of all vehicle categories"
   method: get
   accepts: json

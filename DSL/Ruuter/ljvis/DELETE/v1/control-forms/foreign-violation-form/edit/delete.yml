@@ -1,6 +1,6 @@
 declaration:
 
-  version: "0.1"
+  version: "1.0"
   description: "Soft-delete a control form file attachment by ID"
   method: delete
   accepts: json
