@@ -1245,7 +1245,9 @@
     "enterNotesPlaceholder": "Sisestage märkused...",
     "space": " ",
     "deleteConfirmTitle": "Koondvormi kustutamine",
+    "deleteSubConfirmTitle": "Alamvormi kustutamine",
     "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?",
+    "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
     "download": "Laadi alla"
   },
   "xroad": {

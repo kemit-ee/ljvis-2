@@ -1,0 +1,67 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Audit: sp driver form view event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: sub_form_key
+        type: number
+      - field: compound_form_key
+        type: number
+      - field: sub_form_number
+        type: string
+      - field: driver1PersonalCodeEe
+        type: string
+      - field: driver1PersonalCodeForeign
+        type: string
+      - field: driver2PersonalCodeEe
+        type: string
+      - field: driver2PersonalCodeForeign
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildDriver1Code:
+  assign:
+    driver1_ee: "${incoming.body.driver1PersonalCodeEe != null && incoming.body.driver1PersonalCodeEe != '' ? incoming.body.driver1PersonalCodeEe : '-'}"
+    driver1_foreign: "${incoming.body.driver1PersonalCodeForeign != null && incoming.body.driver1PersonalCodeForeign != '' ? incoming.body.driver1PersonalCodeForeign : '-'}"
+    driver1_code: "${driver1_ee}/${driver1_foreign}"
+  next: buildDriver2Part
+
+buildDriver2Part:
+  assign:
+    driver2_ee: "${incoming.body.driver2PersonalCodeEe != null && incoming.body.driver2PersonalCodeEe != '' ? incoming.body.driver2PersonalCodeEe : '-'}"
+    driver2_foreign: "${incoming.body.driver2PersonalCodeForeign != null && incoming.body.driver2PersonalCodeForeign != '' ? incoming.body.driver2PersonalCodeForeign : '-'}"
+    driver2_part: "${(incoming.body.driver2PersonalCodeEe != null && incoming.body.driver2PersonalCodeEe != '') || (incoming.body.driver2PersonalCodeForeign != null && incoming.body.driver2PersonalCodeForeign != '') ? ', teise juhi isikukood: ' + driver2_ee + '/' + driver2_foreign : ''}"
+    log_content_driver2_part: "${(incoming.body.driver2PersonalCodeEe != null && incoming.body.driver2PersonalCodeEe != '') || (incoming.body.driver2PersonalCodeForeign != null && incoming.body.driver2PersonalCodeForeign != '') ? ',\"driver2PersonalCodeEe\":\"' + driver2_ee + '\",\"driver2PersonalCodeForeign\":\"' + driver2_foreign + '\"' : ''}"
+  next: buildAudit
+
+buildAudit:
+  assign:
+    description: "SP alamvorm vaadatud, alamvormi võti: ${incoming.body.sub_form_key}, koondvormi võti: ${incoming.body.compound_form_key}, alamvormi number: ${incoming.body.sub_form_number}, juhi isikukood: ${driver1_code}${driver2_part}"
+    log_content: "{\"subFormKey\":\"${incoming.body.sub_form_key}\",\"driver1PersonalCodeEe\":\"${driver1_ee}\",\"driver1PersonalCodeForeign\":\"${driver1_foreign}\"${log_content_driver2_part}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.sp_driver.view"
+    event_category: "control_form"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

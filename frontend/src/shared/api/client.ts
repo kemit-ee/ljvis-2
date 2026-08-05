@@ -83,6 +83,27 @@ export async function post<T>(
   return json!.response;
 }
 
+export async function postSilent<T>(
+  path: string,
+  body: Record<string, unknown>,
+): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+  const json = (await res.json().catch(() => null)) as RuuterResponse<T> | null;
+  if (!res.ok) {
+    throw new ApiError(
+      `POST ${path} failed: ${res.status}`,
+      res.status,
+      json?.response,
+    );
+  }
+  return json!.response;
+}
+
 export async function put<T>(
   path: string,
   body: Record<string, unknown>,

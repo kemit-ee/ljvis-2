@@ -29,6 +29,7 @@ import { TransportInterruptionFormPage } from './features/control-forms/pages/tr
 import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage';
 import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-repute-form/GoodReputeFormCreatePage';
 import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
+import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -93,6 +94,22 @@ function AppRoutes() {
           <Route
             path="/control-forms/compound/:id/:snapshotId"
             element={<CompoundFormPage />}
+          />
+          <Route
+            path="/control-forms/sp-driver/:id"
+            element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
+            path="/control-forms/sp-driver/:id/:snapshotId"
+            element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
+            path="/control-forms/sp-teammate/:id"
+            element={<DriveRestFormPage entryType="teammate" />}
+          />
+          <Route
+            path="/control-forms/sp-teammate/:id/:snapshotId"
+            element={<DriveRestFormPage entryType="teammate" />}
           />
           <Route
             path="/control-forms/labour-inspection/new"

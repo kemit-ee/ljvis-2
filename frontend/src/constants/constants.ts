@@ -6,8 +6,18 @@ export const FORM_TYPE = {
   FOREIGN_VIOLATION: 'foreign-violation-form',
   COMPOUND: 'compound-form',
   LABOUR_INSPECTION: 'labour-inspection',
+  DRIVER: 'drive-rest-form/driver',
+  TEAMMATE: 'drive-rest-form/teammate',
   GOOD_REPUTE: 'good-repute',
 } as const;
+
+export const FORM_ROUTE: Record<string, string> = {
+  [FORM_TYPE.FOREIGN_VIOLATION]: 'foreign-violation',
+  [FORM_TYPE.COMPOUND]: 'compound',
+  [FORM_TYPE.LABOUR_INSPECTION]: 'labour-inspection',
+  [FORM_TYPE.DRIVER]: 'sp-driver',
+  [FORM_TYPE.TEAMMATE]: 'sp-teammate',
+};
 
 export const PERMISSIONS = {
   USER_LIST_ADMIN: 'user.list.admin',
