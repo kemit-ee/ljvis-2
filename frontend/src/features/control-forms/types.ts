@@ -435,3 +435,24 @@ export interface AdrFormListItem {
   status: string;
   resultType: string;
 }
+
+/** LJVIS2-136: hea maine vorm (veokorraldusjuhi hea maine nõudele mittevastavus). Independent form — no parent compound form. */
+export interface GoodReputeForm {
+  id?: string;
+  /** Immutable core form number, format mv-AAAA-NNNNN (no /V suffix — see `version`). */
+  formNumber?: string;
+  version?: number;
+  status?: string;
+  personalCode: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  placeOfBirth?: string;
+  certificateNumber: string;
+  certificateIssueDate: string;
+  certificateCountryCode: string;
+  fitnessStatus: string;
+  unfitFromDate?: string;
+  unfitUntilDate?: string;
+  createdBy?: string;
+}

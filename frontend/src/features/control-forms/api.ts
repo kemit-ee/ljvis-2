@@ -13,6 +13,7 @@ import type {
   TransportInterruptionFormListItem,
   AdrForm,
   AdrFormListItem,
+  GoodReputeForm,
 } from './types';
 
 const technicalCheckPath = (variant: TechnicalCheckVariant) =>
@@ -261,4 +262,25 @@ export const saveAdrFormXroadFields = (data: {
   post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/xroad/save-xroad-fields`,
     data,
+  );
+
+export const getGoodReputeForm = (id: string) =>
+  post<GoodReputeForm>(`/v1/control-forms/good-repute/read/get`, { id });
+
+export const saveGoodReputeForm = (data: GoodReputeForm) =>
+  post<GoodReputeForm[]>(
+    `/v1/control-forms/good-repute/edit/save`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const confirmGoodReputeForm = (data: GoodReputeForm) =>
+  post<GoodReputeForm[]>(
+    `/v1/control-forms/good-repute/edit/confirm`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const getGoodReputeFormSnapshot = (id: string, formKey: string) =>
+  post<GoodReputeForm[]>(
+    `/v1/control-forms/good-repute/read/get-snapshot`,
+    { id, formKey },
   );

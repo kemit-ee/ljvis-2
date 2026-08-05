@@ -369,7 +369,45 @@
         }
       }
     },
-    "reputation_noncompliance_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
+    "good_repute": {
+      "title": "Hea maine vorm",
+      "driver": {
+        "title": "Veokorraldusjuhi andmed",
+        "personalCode": "Isikukood",
+        "firstName": "Eesnimi",
+        "lastName": "Perekonnanimi",
+        "dateOfBirth": "Sünniaeg",
+        "placeOfBirth": "Sünnikoht",
+        "searchInvalid": "Isikukood on vigases formaadis",
+        "searchNotFound": "Isiku andmeid ei leitud"
+      },
+      "certificate": {
+        "title": "Ametialase pädevuse tunnistus",
+        "number": "Ametialase pädevuse tunnistuse number",
+        "issueDate": "Ametialase pädevuse tunnistuse väljaandmise kuupäev",
+        "countryCode": "Ametialase pädevuse tunnistuse väljastanud riik"
+      },
+      "fitness": {
+        "title": "Sobivuse hinnang",
+        "status": "Sobivus",
+        "fit": "Sobib",
+        "unfit": "Sobimatu",
+        "unfitFromDate": "Sobimatuks tunnistamise kuupäev",
+        "unfitUntilDate": "Sobimatuse lõppkuupäev"
+      },
+      "validation": {
+        "required": "Kohustuslik väli",
+        "api": {
+          "required": "Kohustuslik väli",
+          "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus",
+          "max_length_exceeded": "Väärtus on liiga pikk",
+          "must_be_after_unfit_from_date": "Sobimatuse lõppkuupäev peab olema hilisem kui alguskuupäev",
+          "form_locked_after_confirm": "See vorm on kinnitatud ja seda ei saa enam muuta",
+          "already_confirmed": "See vorm on juba kinnitatud"
+        }
+      }
+    },
+    "good_repute_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
     "compound_form": "Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart",
     "technical_check": {
       "sectionTitle": "Tehnonõuetele vastavuse kontrollvormid",

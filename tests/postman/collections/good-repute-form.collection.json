@@ -1,0 +1,302 @@
+{
+  "info": {
+    "name": "LJVIS — Good Repute Form",
+    "_postman_id": "ljvis-good-repute-form-v1",
+    "description": "Functional tests for /control-forms/good-repute endpoints (LJVIS2-136). Covers permission boundaries (good_repute_form.write/read), backend validation (required fields, future date, conditional unfit dates + date ordering), UPPERCASE enforcement on text fields, version/status lifecycle (saved -> confirmed, locked-after-confirm, already_confirmed), and the saved-state no-version-bump rule. Self-contained: authenticates and creates its own test data.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_admin}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "var body = pm.response.json();",
+        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_user}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "var body = pm.response.json();",
+        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"37001010000\", \"firstName\": \"Jaan\", \"lastName\": \"Tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"CERT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without good_repute_form.write', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — missing personalCode → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"\", \"firstName\": \"Jaan\", \"lastName\": \"Tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"CERT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('Field is personalCode', () => pm.expect(body.field).to.eql('personalCode'));",
+        "pm.test('Code is required', () => pm.expect(body.code).to.eql('required'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — future dateOfBirth → 422 future_date_not_allowed",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"37001010000\", \"firstName\": \"Jaan\", \"lastName\": \"Tamm\", \"dateOfBirth\": \"2999-01-01\", \"certificateNumber\": \"CERT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('Field is dateOfBirth', () => pm.expect(body.field).to.eql('dateOfBirth'));",
+        "pm.test('Code is future_date_not_allowed', () => pm.expect(body.code).to.eql('future_date_not_allowed'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — fitnessStatus=unfit without unfitFromDate → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"37001010000\", \"firstName\": \"Jaan\", \"lastName\": \"Tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"CERT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('Field is unfitFromDate', () => pm.expect(body.field).to.eql('unfitFromDate'));",
+        "pm.test('Code is required', () => pm.expect(body.code).to.eql('required'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — unfitUntilDate before unfitFromDate → 422 must_be_after_unfit_from_date",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"37001010000\", \"firstName\": \"Jaan\", \"lastName\": \"Tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"CERT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-06-01\", \"unfitUntilDate\": \"2024-01-01\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('Field is unfitUntilDate', () => pm.expect(body.field).to.eql('unfitUntilDate'));",
+        "pm.test('Code is must_be_after_unfit_from_date', () => pm.expect(body.code).to.eql('must_be_after_unfit_from_date'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — create (happy path, lowercase input)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"37001010000\", \"firstName\": \"jaan\", \"lastName\": \"tamm\", \"dateOfBirth\": \"1970-01-01\", \"placeOfBirth\": \"tallinn\", \"certificateNumber\": \"cert-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('id present', () => pm.expect(row.id).to.not.be.undefined);",
+        "pm.test('form_number has mv- prefix', () => pm.expect(row.form_number || row.formNumber).to.match(/^mv-\\d{4}-\\d{5}$/));",
+        "pm.test('version is 1', () => pm.expect(row.version).to.eql(1));",
+        "pm.environment.set('created_good_repute_id', String(row.id));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/read/get — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without good_repute_form.read', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/read/get — not found → 404",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"999999999\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/read/get — happy path, values UPPERCASED",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('firstName is uppercased', () => pm.expect(body.firstName || body.first_name).to.eql('JAAN'));",
+        "pm.test('lastName is uppercased', () => pm.expect(body.lastName || body.last_name).to.eql('TAMM'));",
+        "pm.test('placeOfBirth is uppercased', () => pm.expect(body.placeOfBirth || body.place_of_birth).to.eql('TALLINN'));",
+        "pm.test('certificateNumber is uppercased', () => pm.expect(body.certificateNumber || body.certificate_number).to.eql('CERT-1'));",
+        "pm.test('status is saved', () => pm.expect(body.status).to.eql('saved'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — re-save while saved (version unchanged)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"personalCode\": \"37001010000\", \"firstName\": \"jaan\", \"lastName\": \"tamm\", \"dateOfBirth\": \"1970-01-01\", \"placeOfBirth\": \"tartu\", \"certificateNumber\": \"cert-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('version stays 1 (saved-state resave rule)', () => pm.expect(row.version).to.eql(1));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/confirm — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "confirm"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"personalCode\": \"37001010000\", \"firstName\": \"jaan\", \"lastName\": \"tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"cert-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without good_repute_form.write', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/confirm — happy path (saved -> confirmed, version unchanged)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "confirm"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"personalCode\": \"37001010000\", \"firstName\": \"jaan\", \"lastName\": \"tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"cert-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('version unchanged by confirm', () => pm.expect(row.version).to.eql(1));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/read/get — status is confirmed",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('status is confirmed', () => pm.expect(body.status).to.eql('confirmed'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/confirm — already confirmed → 422 already_confirmed",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "confirm"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"personalCode\": \"37001010000\", \"firstName\": \"jaan\", \"lastName\": \"tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"cert-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('Code is already_confirmed', () => pm.expect(body.code).to.eql('already_confirmed'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — save on confirmed form → 422 form_locked_after_confirm",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"personalCode\": \"37001010000\", \"firstName\": \"jaan\", \"lastName\": \"tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"cert-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('Code is form_locked_after_confirm', () => pm.expect(body.code).to.eql('form_locked_after_confirm'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — create fitnessStatus=unfit with valid dates (happy path)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"37001010001\", \"firstName\": \"Mart\", \"lastName\": \"Mets\", \"dateOfBirth\": \"1980-05-05\", \"certificateNumber\": \"CERT-2\", \"certificateIssueDate\": \"2021-02-02\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2024-12-31\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.environment.set('created_good_repute_unfit_id', String(row.id));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/read/get — unfit dates persisted",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_unfit_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('fitnessStatus is unfit', () => pm.expect(body.fitnessStatus || body.fitness_status).to.eql('unfit'));",
+        "pm.test('unfitFromDate present', () => pm.expect(body.unfitFromDate || body.unfit_from_date).to.not.be.undefined);",
+        "pm.test('unfitUntilDate present', () => pm.expect(body.unfitUntilDate || body.unfit_until_date).to.not.be.undefined);"
+      ]}}]
+    }
+  ]
+}

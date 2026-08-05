@@ -1,0 +1,163 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Single source of truth for good repute form (hea maine vorm) field validation — shared by save.yml (insert + update) and confirm.yml. Mirrors the frontend Yup schema and the forms.good_repute_form table CHECK constraints (LJVIS2-136). Returns '{\"valid\":true}' when all checks pass, otherwise a VALIDATION_ERROR shape ready to be forwarded to the client as-is."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: personalCode
+        type: string
+      - field: firstName
+        type: string
+      - field: lastName
+        type: string
+      - field: dateOfBirth
+        type: string
+      - field: placeOfBirth
+        type: string
+      - field: certificateNumber
+        type: string
+      - field: certificateIssueDate
+        type: string
+      - field: certificateCountryCode
+        type: string
+      - field: fitnessStatus
+        type: string
+      - field: unfitFromDate
+        type: string
+      - field: unfitUntilDate
+        type: string
+
+extractFields:
+  assign:
+    personal_code: "${incoming.body.personalCode}"
+    first_name: "${incoming.body.firstName}"
+    last_name: "${incoming.body.lastName}"
+    date_of_birth: "${incoming.body.dateOfBirth}"
+    place_of_birth: "${incoming.body.placeOfBirth || ''}"
+    certificate_number: "${incoming.body.certificateNumber}"
+    certificate_issue_date: "${incoming.body.certificateIssueDate}"
+    certificate_country_code: "${incoming.body.certificateCountryCode}"
+    fitness_status: "${incoming.body.fitnessStatus}"
+    unfit_from_date: "${incoming.body.unfitFromDate || ''}"
+    unfit_until_date: "${incoming.body.unfitUntilDate || ''}"
+  next: validate
+
+validate:
+  switch:
+    - condition: ${!personal_code || personal_code.trim() === ''}
+      next: returnPersonalCodeRequiredError
+    - condition: ${personal_code.length > 20}
+      next: returnPersonalCodeMaxLengthError
+    - condition: ${!first_name || first_name.trim() === ''}
+      next: returnFirstNameRequiredError
+    - condition: ${first_name.length > 100}
+      next: returnFirstNameMaxLengthError
+    - condition: ${!last_name || last_name.trim() === ''}
+      next: returnLastNameRequiredError
+    - condition: ${last_name.length > 100}
+      next: returnLastNameMaxLengthError
+    - condition: ${!date_of_birth || date_of_birth.trim() === ''}
+      next: returnDateOfBirthRequiredError
+    - condition: ${new Date(date_of_birth) > new Date()}
+      next: returnDateOfBirthFutureError
+    - condition: ${place_of_birth.length > 200}
+      next: returnPlaceOfBirthMaxLengthError
+    - condition: ${!certificate_number || certificate_number.trim() === ''}
+      next: returnCertificateNumberRequiredError
+    - condition: ${certificate_number.length > 100}
+      next: returnCertificateNumberMaxLengthError
+    - condition: ${!certificate_issue_date || certificate_issue_date.trim() === ''}
+      next: returnCertificateIssueDateRequiredError
+    - condition: ${new Date(certificate_issue_date) > new Date()}
+      next: returnCertificateIssueDateFutureError
+    - condition: ${!certificate_country_code || certificate_country_code.trim() === ''}
+      next: returnCertificateCountryCodeRequiredError
+    - condition: ${!fitness_status || (fitness_status !== 'fit' && fitness_status !== 'unfit')}
+      next: returnFitnessStatusRequiredError
+    - condition: ${fitness_status === 'unfit' && (!unfit_from_date || unfit_from_date.trim() === '')}
+      next: returnUnfitFromDateRequiredError
+    - condition: ${fitness_status === 'unfit' && (!unfit_until_date || unfit_until_date.trim() === '')}
+      next: returnUnfitUntilDateRequiredError
+    - condition: ${fitness_status === 'unfit' && unfit_from_date && unfit_until_date && new Date(unfit_until_date) <= new Date(unfit_from_date)}
+      next: returnUnfitUntilDateOrderError
+  next: returnValid
+
+returnValid:
+  return: '{"valid":true}'
+  next: end
+
+returnPersonalCodeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"personalCode","code":"required"}'
+  next: end
+
+returnPersonalCodeMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"personalCode","code":"max_length_exceeded"}'
+  next: end
+
+returnFirstNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"firstName","code":"required"}'
+  next: end
+
+returnFirstNameMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"firstName","code":"max_length_exceeded"}'
+  next: end
+
+returnLastNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"lastName","code":"required"}'
+  next: end
+
+returnLastNameMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"lastName","code":"max_length_exceeded"}'
+  next: end
+
+returnDateOfBirthRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"dateOfBirth","code":"required"}'
+  next: end
+
+returnDateOfBirthFutureError:
+  return: '{"type":"VALIDATION_ERROR","field":"dateOfBirth","code":"future_date_not_allowed"}'
+  next: end
+
+returnPlaceOfBirthMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"placeOfBirth","code":"max_length_exceeded"}'
+  next: end
+
+returnCertificateNumberRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"certificateNumber","code":"required"}'
+  next: end
+
+returnCertificateNumberMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"certificateNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnCertificateIssueDateRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"certificateIssueDate","code":"required"}'
+  next: end
+
+returnCertificateIssueDateFutureError:
+  return: '{"type":"VALIDATION_ERROR","field":"certificateIssueDate","code":"future_date_not_allowed"}'
+  next: end
+
+returnCertificateCountryCodeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"certificateCountryCode","code":"required"}'
+  next: end
+
+returnFitnessStatusRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"fitnessStatus","code":"required"}'
+  next: end
+
+returnUnfitFromDateRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"unfitFromDate","code":"required"}'
+  next: end
+
+returnUnfitUntilDateRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"unfitUntilDate","code":"required"}'
+  next: end
+
+returnUnfitUntilDateOrderError:
+  return: '{"type":"VALIDATION_ERROR","field":"unfitUntilDate","code":"must_be_after_unfit_from_date"}'
+  next: end

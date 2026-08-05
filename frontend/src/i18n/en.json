@@ -349,7 +349,45 @@
         }
       }
     },
-    "reputation_noncompliance_form": "Transport manager declared non-compliant with good repute",
+    "good_repute": {
+      "title": "Good repute form",
+      "driver": {
+        "title": "Transport manager data",
+        "personalCode": "Personal code",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "dateOfBirth": "Date of birth",
+        "placeOfBirth": "Place of birth",
+        "searchInvalid": "Personal code is in an invalid format",
+        "searchNotFound": "No matching person found"
+      },
+      "certificate": {
+        "title": "Professional competence certificate",
+        "number": "Professional competence certificate number",
+        "issueDate": "Certificate issue date",
+        "countryCode": "Country that issued the certificate"
+      },
+      "fitness": {
+        "title": "Fitness assessment",
+        "status": "Fitness",
+        "fit": "Fit",
+        "unfit": "Unfit",
+        "unfitFromDate": "Declared unfit from date",
+        "unfitUntilDate": "Unfit until date"
+      },
+      "validation": {
+        "required": "Required field",
+        "api": {
+          "required": "Required field",
+          "future_date_not_allowed": "Date cannot be in the future",
+          "max_length_exceeded": "Value is too long",
+          "must_be_after_unfit_from_date": "Unfit until date must be later than the unfit from date",
+          "form_locked_after_confirm": "This form has been confirmed and can no longer be edited",
+          "already_confirmed": "This form has already been confirmed"
+        }
+      }
+    },
+    "good_repute_form": "Transport manager declared non-compliant with good repute",
     "compound_form": "Transport supervision and vehicle technical condition inspection",
     "technical_check": {
       "sectionTitle": "Technical roadworthiness check sub-forms",

@@ -60,7 +60,9 @@ INSERT INTO users.permission (code, description, created_by) VALUES
     ('transport_interruption_form.write','Autoveo katkestamise kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
     ('transport_interruption_form.read', 'Autoveo katkestamise kontrollvormi andmete lugemine', 'bootstrap'),
     ('adr_form.write',                   'ADR (ohtlik veos) kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
-    ('adr_form.read',                    'ADR (ohtlik veos) kontrollvormi andmete lugemine', 'bootstrap')
+    ('adr_form.read',                    'ADR (ohtlik veos) kontrollvormi andmete lugemine', 'bootstrap'),
+    ('good_repute_form.write',           'Hea maine vormi loomine, täitmine, salvestamine ja failide üleslaadimine', 'bootstrap'),
+    ('good_repute_form.read',            'Hea maine vormi andmete lugemine ja failide allalaadimine', 'bootstrap')
 ON CONFLICT (code) DO NOTHING;
 
 -- ============================================================
@@ -72,7 +74,7 @@ SELECT
     'Super Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation),
-    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read']::TEXT[],
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Super Admin Group');
 

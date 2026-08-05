@@ -45,6 +45,9 @@ call newman run "%COL%\transport-interruption.collection.json" -e "%ENV%" --dela
 echo Running collection: adr-form.collection.json
 call newman run "%COL%\adr-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\adr-form.html"
 
+echo Running collection: good-repute-form.collection.json
+call newman run "%COL%\good-repute-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\good-repute-form.html"
+
 echo.
 echo All collections passed.
 echo HTML reports:

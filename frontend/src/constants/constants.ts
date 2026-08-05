@@ -6,6 +6,7 @@ export const FORM_TYPE = {
   FOREIGN_VIOLATION: 'foreign-violation-form',
   COMPOUND: 'compound-form',
   LABOUR_INSPECTION: 'labour-inspection',
+  GOOD_REPUTE: 'good-repute',
 } as const;
 
 export const PERMISSIONS = {

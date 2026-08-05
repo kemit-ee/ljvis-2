@@ -27,6 +27,8 @@ import { LabourInspectionFormPage } from './features/control-forms/pages/labour-
 import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
 import { TransportInterruptionFormPage } from './features/control-forms/pages/transport-interruption-form/TransportInterruptionFormPage';
 import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage';
+import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-repute-form/GoodReputeFormCreatePage';
+import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -133,6 +135,18 @@ function AppRoutes() {
             element={<AdrFormPage />}
           />
           <Route path="/control-forms/adr/:id" element={<AdrFormPage />} />
+          <Route
+            path="/control-forms/good-repute/new"
+            element={<GoodReputeFormCreatePage />}
+          />
+          <Route
+            path="/control-forms/good-repute/:id"
+            element={<GoodReputeFormPage />}
+          />
+          <Route
+            path="/control-forms/good-repute/:id/:snapshotId"
+            element={<GoodReputeFormPage />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
