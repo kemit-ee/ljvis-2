@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input — see extractRequestData / validateRequired / updateForm."
+  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input — see extractRequestData / validateRequired / updateForm. Confirmed acts can only be re-saved by a user with control_form.edit_locked."
   method: post
   accepts: json
   returns: json
@@ -64,7 +64,7 @@ extractRequestData:
     punished_person_last_name: "${incoming.body.punishedPersonLastName || ''}"
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
     violations: "${incoming.body.violations || '[]'}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
   next: validateForm
 
 validateForm:
@@ -148,7 +148,7 @@ extractCurrentStatus:
 
 checkFormNotLocked:
   switch:
-    - condition: ${current_status === 'confirmed'}
+    - condition: ${current_status === 'confirmed' && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
       next: returnFormLockedError
   next: calculateChangedFields
 

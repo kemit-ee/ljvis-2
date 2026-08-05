@@ -100,8 +100,6 @@ declaration:
         type: string
       - field: inspector_profession
         type: string
-      - field: files
-        type: string
       - field: status
         type: string
       - field: created_by
@@ -150,7 +148,6 @@ SELECT
   inspector_organisation_id,
   inspector_unit,
   inspector_profession,
-  files::text,
   status,
   created_by
 FROM forms.foreign_violation_form

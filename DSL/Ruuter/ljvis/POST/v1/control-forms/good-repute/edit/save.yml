@@ -1,0 +1,172 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Create or update a good repute form (hea maine vorm) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136). Confirmed forms can only be re-saved by a user with control_form.edit_locked."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: personalCode
+        type: string
+      - field: firstName
+        type: string
+      - field: lastName
+        type: string
+      - field: dateOfBirth
+        type: string
+      - field: placeOfBirth
+        type: string
+      - field: certificateNumber
+        type: string
+      - field: certificateIssueDate
+        type: string
+      - field: certificateCountryCode
+        type: string
+      - field: fitnessStatus
+        type: string
+      - field: unfitFromDate
+        type: string
+      - field: unfitUntilDate
+        type: string
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    personal_code: "${incoming.body.personalCode || ''}"
+    first_name: "${incoming.body.firstName || ''}"
+    last_name: "${incoming.body.lastName || ''}"
+    date_of_birth: "${incoming.body.dateOfBirth || ''}"
+    place_of_birth: "${incoming.body.placeOfBirth || ''}"
+    certificate_number: "${incoming.body.certificateNumber || ''}"
+    certificate_issue_date: "${incoming.body.certificateIssueDate || ''}"
+    certificate_country_code: "${incoming.body.certificateCountryCode || ''}"
+    fitness_status: "${incoming.body.fitnessStatus || ''}"
+    unfit_from_date: "${incoming.body.unfitFromDate || ''}"
+    unfit_until_date: "${incoming.body.unfitUntilDate || ''}"
+    created_by: "${auth_user.personalcode || ''}"
+  next: validateForm
+
+validateForm:
+  template: "[#LJVIS_PROJECT_LAYER]/form/good-repute/validate-good-repute-form"
+  requestType: templates
+  body:
+    personalCode: ${personal_code}
+    firstName: ${first_name}
+    lastName: ${last_name}
+    dateOfBirth: ${date_of_birth}
+    placeOfBirth: ${place_of_birth}
+    certificateNumber: ${certificate_number}
+    certificateIssueDate: ${certificate_issue_date}
+    certificateCountryCode: ${certificate_country_code}
+    fitnessStatus: ${fitness_status}
+    unfitFromDate: ${unfit_from_date}
+    unfitUntilDate: ${unfit_until_date}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+  next: checkIsCreate
+
+checkIsCreate:
+  switch:
+    - condition: ${id == null || id === ''}
+      next: insertForm
+  next: getCurrentFormForStatus
+
+insertForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/insert"
+    headers:
+      type: json
+    body:
+      status: saved
+      personalCode: ${personal_code}
+      firstName: ${first_name}
+      lastName: ${last_name}
+      dateOfBirth: ${date_of_birth}
+      placeOfBirth: ${place_of_birth}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateCountryCode: ${certificate_country_code}
+      fitnessStatus: ${fitness_status}
+      unfitFromDate: ${unfit_from_date}
+      unfitUntilDate: ${unfit_until_date}
+      created_by: ${created_by}
+  result: saveRes
+  next: returnSuccess
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: extractCurrentStatus
+
+extractCurrentStatus:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormNotLocked
+
+checkFormNotLocked:
+  switch:
+    - condition: ${current_status === 'confirmed' && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+      next: returnFormLockedError
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: ${current_status}
+      personalCode: ${personal_code}
+      firstName: ${first_name}
+      lastName: ${last_name}
+      dateOfBirth: ${date_of_birth}
+      placeOfBirth: ${place_of_birth}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateCountryCode: ${certificate_country_code}
+      fitnessStatus: ${fitness_status}
+      unfitFromDate: ${unfit_from_date}
+      unfitUntilDate: ${unfit_until_date}
+      created_by: ${created_by}
+  result: saveRes
+  next: returnSuccess
+
+returnSuccess:
+  return: ${saveRes.response.body}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end
+
+returnFormLockedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_confirm"}'
+  next: end

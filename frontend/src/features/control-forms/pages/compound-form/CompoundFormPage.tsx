@@ -1,15 +1,176 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Text, Alert } from '@tedi-design-system/react/tedi';
+import { Button, Text, Alert, Heading } from '@tedi-design-system/react/tedi';
 import { useCompoundForm } from './useCompoundForm';
 import { useCompoundFormDetail } from './useCompoundFormDetail';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
-import { deleteCompoundForm, getCompoundFormSnapshot } from '../../api';
+import {
+  deleteCompoundForm,
+  getCompoundFormSnapshot,
+  listTechnicalCheckFormsByCompoundFormKey,
+  listTransportInterruptionFormsByCompoundFormKey,
+  listAdrFormsByCompoundFormKey,
+} from '../../api';
+import type {
+  TechnicalCheckFormListItem,
+  TechnicalCheckVariant,
+  TransportInterruptionFormListItem,
+  AdrFormListItem,
+} from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
+
+/**
+ * LJVIS2-72: minimal navigation into the vehicle/trailer technical-check
+ * sub-forms of this compound form. Full tab-bar sub-form management
+ * ("Koondvormi alamvormide haldamine") is a separate, not-yet-built piece of
+ * infrastructure — this list is a stopgap that makes the feature reachable.
+ */
+function TechnicalCheckFormsSection({
+  compoundFormKey,
+  canEdit,
+}: {
+  compoundFormKey: number;
+  canEdit: boolean;
+}) {
+  const { t } = useTranslation();
+  const [lists, setLists] = useState<
+    Record<TechnicalCheckVariant, TechnicalCheckFormListItem[]>
+  >({ vehicle: [], trailer: [] });
+
+  useEffect(() => {
+    listTechnicalCheckFormsByCompoundFormKey('vehicle', compoundFormKey)
+      .then((data) => setLists((prev) => ({ ...prev, vehicle: Array.isArray(data) ? data : [] })))
+      .catch(() => setLists((prev) => ({ ...prev, vehicle: [] })));
+    listTechnicalCheckFormsByCompoundFormKey('trailer', compoundFormKey)
+      .then((data) => setLists((prev) => ({ ...prev, trailer: Array.isArray(data) ? data : [] })))
+      .catch(() => setLists((prev) => ({ ...prev, trailer: [] })));
+  }, [compoundFormKey]);
+
+  const renderVariant = (variant: TechnicalCheckVariant) => {
+    const items = Array.isArray(lists[variant]) ? lists[variant] : [];
+    return (
+    <div className="mb-1" key={variant}>
+      <Heading element="h4">
+        {t(
+          variant === 'vehicle'
+            ? 'forms.technical_check.vehicleTitle'
+            : 'forms.technical_check.trailerTitle',
+        )}
+      </Heading>
+      <ul>
+        {items.map((item) => (
+          <li key={item.id}>
+            <Link to={`/control-forms/${variant}-technical/${item.id}`}>
+              {item.subFormNumber}/{item.version}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {canEdit && (
+        <Link to={`/control-forms/${variant}-technical/new/${compoundFormKey}`}>
+          {t('forms.technical_check.addNew')}
+        </Link>
+      )}
+    </div>
+  );
+  };
+
+  return (
+    <div className="mb-1">
+      <Heading element="h3">{t('forms.technical_check.sectionTitle')}</Heading>
+      {renderVariant('vehicle')}
+      {renderVariant('trailer')}
+    </div>
+  );
+}
+
+/**
+ * LJVIS2-74: minimal navigation into the transport-interruption sub-form of
+ * this compound form. Same stopgap pattern as TechnicalCheckFormsSection above
+ * pending the real "Koondvormi alamvormide haldamine" tab-bar infrastructure.
+ */
+function TransportInterruptionSection({
+  compoundFormKey,
+  canEdit,
+}: {
+  compoundFormKey: number;
+  canEdit: boolean;
+}) {
+  const { t } = useTranslation();
+  const [items, setItems] = useState<TransportInterruptionFormListItem[]>([]);
+
+  useEffect(() => {
+    listTransportInterruptionFormsByCompoundFormKey(compoundFormKey)
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .catch(() => setItems([]));
+  }, [compoundFormKey]);
+
+  return (
+    <div className="mb-1">
+      <Heading element="h3">{t('forms.transport_interruption.sectionTitle')}</Heading>
+      <ul>
+        {items.map((item) => (
+          <li key={item.id}>
+            <Link to={`/control-forms/transport-interruption/${item.id}`}>
+              {item.subFormNumber}/{item.version}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {canEdit && (
+        <Link to={`/control-forms/transport-interruption/new/${compoundFormKey}`}>
+          {t('forms.transport_interruption.addNew')}
+        </Link>
+      )}
+    </div>
+  );
+}
+
+/**
+ * LJVIS2-141: minimal navigation into the ADR (ohtlik veos) sub-form of this
+ * compound form. Same stopgap pattern as TechnicalCheckFormsSection above
+ * pending the real "Koondvormi alamvormide haldamine" tab-bar infrastructure.
+ */
+function AdrFormSection({
+  compoundFormKey,
+  canEdit,
+}: {
+  compoundFormKey: number;
+  canEdit: boolean;
+}) {
+  const { t } = useTranslation();
+  const [items, setItems] = useState<AdrFormListItem[]>([]);
+
+  useEffect(() => {
+    listAdrFormsByCompoundFormKey(compoundFormKey)
+      .then((data) => setItems(Array.isArray(data) ? data : []))
+      .catch(() => setItems([]));
+  }, [compoundFormKey]);
+
+  return (
+    <div className="mb-1">
+      <Heading element="h3">{t('forms.adr.sectionTitle')}</Heading>
+      <ul>
+        {items.map((item) => (
+          <li key={item.id}>
+            <Link to={`/control-forms/adr/${item.id}`}>
+              {item.subFormNumber}/{item.version}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      {canEdit && (
+        <Link to={`/control-forms/adr/new/${compoundFormKey}`}>
+          {t('forms.adr.addNew')}
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -253,6 +414,24 @@ export function CompoundFormPage() {
           onEdit={() => setIsEditActive(true)}
           formType={FORM_TYPE.COMPOUND}
         />
+      )}
+
+      {id && form.status !== 'deleted' && (
+        <TechnicalCheckFormsSection
+          compoundFormKey={Number(id)}
+          canEdit={canEdit}
+        />
+      )}
+
+      {id && form.status !== 'deleted' && (
+        <TransportInterruptionSection
+          compoundFormKey={Number(id)}
+          canEdit={canEdit}
+        />
+      )}
+
+      {id && form.status !== 'deleted' && (
+        <AdrFormSection compoundFormKey={Number(id)} canEdit={canEdit} />
       )}
     </div>
   );

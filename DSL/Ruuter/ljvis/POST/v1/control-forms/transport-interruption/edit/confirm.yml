@@ -1,0 +1,129 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Confirm (kinnita) the transport-interruption sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: headerText
+        type: string
+      - field: residenceCountry
+        type: string
+      - field: residenceRegion
+        type: string
+      - field: residenceCity
+        type: string
+      - field: residenceAddressLine
+        type: string
+      - field: residencePostalCode
+        type: string
+      - field: interruptionReason
+        type: string
+      - field: legalBases
+        type: string
+      - field: terminationCondition
+        type: string
+      - field: personApplications
+        type: string
+
+get_user_context:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    header_text: "${incoming.body.headerText || ''}"
+    residence_country: "${incoming.body.residenceCountry || 'EE'}"
+    residence_region: "${incoming.body.residenceRegion || ''}"
+    residence_city: "${incoming.body.residenceCity || ''}"
+    residence_address_line: "${incoming.body.residenceAddressLine || ''}"
+    residence_postal_code: "${incoming.body.residencePostalCode || ''}"
+    interruption_reason: "${incoming.body.interruptionReason || ''}"
+    legal_bases: "${incoming.body.legalBases || '[]'}"
+    termination_condition: "${incoming.body.terminationCondition || ''}"
+    person_applications: "${incoming.body.personApplications || ''}"
+    created_by: "${auth_user.response.body.personalCode || ''}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/transport-interruption/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: checkStatusSwitch
+
+checkStatusSwitch:
+  assign:
+    current_status: "${currentFormRes.response.body[0].status}"
+  next: checkStatusValues
+
+checkStatusValues:
+  switch:
+    - condition: ${current_status === 'confirmed'}
+      next: returnAlreadyConfirmedError
+    - condition: ${current_status === 'published'}
+      next: returnFormLockedError
+  next: confirmForm
+
+confirmForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/transport-interruption/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: confirmed
+      headerText: ${header_text}
+      residenceCountry: ${residence_country}
+      residenceRegion: ${residence_region}
+      residenceCity: ${residence_city}
+      residenceAddressLine: ${residence_address_line}
+      residencePostalCode: ${residence_postal_code}
+      interruptionReason: ${interruption_reason}
+      legalBases: ${legal_bases}
+      terminationCondition: ${termination_condition}
+      personApplications: ${person_applications}
+      created_by: ${created_by}
+  result: confirmRes
+  next: returnSuccess
+
+returnSuccess:
+  return: ${confirmRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnAlreadyConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_confirmed"}'
+  next: end
+
+returnFormLockedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_publish"}'
+  next: end

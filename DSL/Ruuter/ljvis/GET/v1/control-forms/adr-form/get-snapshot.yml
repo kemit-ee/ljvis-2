@@ -1,0 +1,32 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "Get a single ADR form snapshot by snapshot ID, for the read-only historical version view (LJVIS2-141)."
+  method: get
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "Snapshot ID"
+      - field: formKey
+        type: string
+        description: "ADR form key"
+
+getSnapshot:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/get-snapshot"
+    headers:
+      type: json
+    body:
+      id: ${incoming.params.id}
+      form_key: ${incoming.params.formKey}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

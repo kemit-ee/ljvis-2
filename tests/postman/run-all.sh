@@ -38,6 +38,26 @@ newman run "$COL/labour-inspection.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/labour-inspection.html"
 
+newman run "$COL/technical-check-forms.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/technical-check-forms.html"
+
+newman run "$COL/transport-interruption.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/transport-interruption.html"
+
+newman run "$COL/adr-form.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/adr-form.html"
+
+newman run "$COL/good-repute-form.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/good-repute-form.html"
+
 echo ""
 echo "All collections passed."
 echo "HTML reports:"

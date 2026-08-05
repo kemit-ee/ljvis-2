@@ -102,9 +102,6 @@ export function serializeDriveRestFormValues(
     erruPoints: Array.isArray(values.erruPoints)
       ? JSON.stringify(values.erruPoints)
       : (values.erruPoints ?? '[]'),
-    files: Array.isArray(values.files)
-      ? JSON.stringify(values.files)
-      : (values.files ?? '[]'),
   };
 }
 
@@ -239,11 +236,6 @@ export function useDriveRestForm(
         ? form.erruPoints
         : typeof form?.erruPoints === 'string'
           ? JSON.parse(form.erruPoints)
-          : []) as string[],
-      files: (Array.isArray(form?.files)
-        ? form.files
-        : typeof form?.files === 'string'
-          ? JSON.parse(form.files)
           : []) as string[],
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
