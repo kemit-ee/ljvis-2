@@ -299,14 +299,17 @@ export function CompoundFormEditCard({
                           (o) => o.value === formik.values.controlCountryCode,
                         ) ?? null
                       }
-                      onChange={(val) =>
-                        formik.setFieldValue(
-                          'controlCountryCode',
+                      onChange={(val) => {
+                        const newCode =
                           val && !Array.isArray(val)
                             ? (val as { value: string }).value
-                            : '',
-                        )
-                      }
+                            : '';
+                        formik.setFieldValue('controlCountryCode', newCode);
+                        if (newCode !== 'EE') {
+                          formik.setFieldValue('county', '');
+                          formik.setFieldValue('city', '');
+                        }
+                      }}
                       required
                       {...(formik.touched.controlCountryCode &&
                       formik.errors.controlCountryCode
@@ -339,7 +342,8 @@ export function CompoundFormEditCard({
                         formik.setFieldValue('city', '');
                         handleCountyChange(v ? Number(v) : undefined);
                       }}
-                      required
+                      required={formik.values.controlCountryCode === 'EE'}
+                      disabled={formik.values.controlCountryCode !== 'EE'}
                       {...(formik.touched.county && formik.errors.county
                         ? {
                             helper: {
@@ -1084,14 +1088,17 @@ export function CompoundFormEditCard({
                             (o) => o.value === formik.values.companyCountryCode,
                           ) ?? null
                         }
-                        onChange={(val) =>
-                          formik.setFieldValue(
-                            'companyCountryCode',
+                        onChange={(val) => {
+                          const newCode =
                             val && !Array.isArray(val)
                               ? (val as { value: string }).value
-                              : '',
-                          )
-                        }
+                              : '';
+                          formik.setFieldValue('companyCountryCode', newCode);
+                          if (newCode !== 'EE') {
+                            formik.setFieldValue('companyCounty', '');
+                            formik.setFieldValue('companyCity', '');
+                          }
+                        }}
                         required
                         {...(formik.touched.companyCountryCode &&
                         formik.errors.companyCountryCode
@@ -1130,6 +1137,7 @@ export function CompoundFormEditCard({
                           formik.setFieldValue('companyCity', '');
                           handleCompanyCountyChange(v ? Number(v) : undefined);
                         }}
+                        disabled={formik.values.companyCountryCode !== 'EE'}
                       />
                       <Select
                         id="companyCity"
@@ -1296,7 +1304,9 @@ export function CompoundFormEditCard({
                         ?.firstName
                         ? {
                             helper: {
-                              text: (formik.errors.drivers as DriverErrors[])[index].firstName,
+                              text: (formik.errors.drivers as DriverErrors[])[
+                                index
+                              ].firstName,
                               type: 'error' as const,
                             },
                           }
@@ -1317,7 +1327,9 @@ export function CompoundFormEditCard({
                         ?.lastName
                         ? {
                             helper: {
-                              text: (formik.errors.drivers as DriverErrors[])[index].lastName,
+                              text: (formik.errors.drivers as DriverErrors[])[
+                                index
+                              ].lastName,
                               type: 'error' as const,
                             },
                           }
@@ -1340,7 +1352,9 @@ export function CompoundFormEditCard({
                         ?.personalCodeForeign
                         ? {
                             helper: {
-                              text: (formik.errors.drivers as DriverErrors[])[index].personalCodeForeign,
+                              text: (formik.errors.drivers as DriverErrors[])[
+                                index
+                              ].personalCodeForeign,
                               type: 'error' as const,
                             },
                           }
@@ -1418,7 +1432,9 @@ export function CompoundFormEditCard({
                             ?.birthDate
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as DriverErrors[])[index].birthDate,
+                                  text: (
+                                    formik.errors.drivers as DriverErrors[]
+                                  )[index].birthDate,
                                   type: 'error' as const,
                                 },
                               }
