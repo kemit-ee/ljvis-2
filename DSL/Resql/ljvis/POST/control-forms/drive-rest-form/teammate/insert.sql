@@ -68,8 +68,6 @@ declaration:
         type: string
       - field: erruPoints
         type: string
-      - field: files
-        type: string
       - field: enforcementDecision
         type: string
       - field: proceedingClosureBasis
@@ -113,7 +111,6 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   atp_violation_found,
                                   atp_violation_description,
                                   erru_points,
-                                  files,
                                   enforcement_decision,
                                   proceeding_closure_basis,
                                   notes,
@@ -149,7 +146,6 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         CASE WHEN :atpViolationFound = 'true' THEN TRUE ELSE FALSE END,
         NULLIF(:atpViolationDescription, ''),
         COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb),
-        COALESCE(NULLIF(:files, '')::jsonb, '[]'::jsonb),
         NULLIF(:enforcementDecision, ''),
         NULLIF(:proceedingClosureBasis, ''),
         NULLIF(:notes, ''),
