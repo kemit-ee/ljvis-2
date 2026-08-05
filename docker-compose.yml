@@ -1,7 +1,7 @@
 services:
   database:
     container_name: database
-    image: postgres:17
+    image: postgres:14
     environment:
       - POSTGRES_USER=ljvis
       - POSTGRES_PASSWORD=01234
@@ -43,20 +43,12 @@ services:
     build:
       context: .
       dockerfile: docker/resql-ljvis/Dockerfile
-    platform: linux/amd64
     depends_on:
       - database
     environment:
-      - server.port=8090
-      - sqlms.datasources.[0].name=byk
-      - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/ljvis_db
-      - sqlms.datasources.[0].username=ljvis
-      - sqlms.datasources.[0].password=01234
-      - logging.level.org.springframework.boot=INFO
+      - RESQL_DB_PASSWORD=01234
     ports:
-      - 8090:8090
-    volumes:
-      - ./DSL/Resql:/DSL
+      - 8090:8080
     networks:
       - ljvisnetwork
 
