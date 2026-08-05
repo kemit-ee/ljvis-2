@@ -1,0 +1,28 @@
+declaration:
+  call: declare
+  version: 0.1
+  description: "List latest snapshots of all transport-interruption sub-forms linked to a compound form key"
+  method: get
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: compoundFormKey
+        type: string
+        description: "Compound form key"
+
+fetchList:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/transport-interruption/get-by-compound-form-key"
+    headers:
+      type: json
+    body:
+      compoundFormKey: ${incoming.params.compoundFormKey}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

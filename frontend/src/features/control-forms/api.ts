@@ -94,13 +94,13 @@ export const uploadFormFile = (
 ) => post<FormAttachment>(`/v1/control-forms/${formPath}/edit/files/upload`, data);
 
 export const listFormFiles = (formPath: string, formNumber: string) =>
-  post<FormAttachment[]>(`/v1/control-forms/${formPath}/read/files/list`, {
-    formNumber,
+  get<FormAttachment[]>(`/v1/control-forms/${formPath}/read/files/list`, {
+    form_number: formNumber,
   });
 
 export const downloadFormFile = (formPath: string, id: string) =>
-  post<{ url: string }>(`/v1/control-forms/${formPath}/read/files/download`, {
-    id,
+  get<{ url: string }>(`/v1/control-forms/${formPath}/read/files/download`, {
+    q: id,
   });
 
 export const getForeignViolationFormSnapshot = (id: string, formKey: string) =>
@@ -157,18 +157,18 @@ export const getTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
   id: string,
 ) =>
-  post<TechnicalCheckForm>(
-    `/v1/control-forms/${technicalCheckPath(variant)}/read/get`,
-    { id },
+  get<TechnicalCheckForm>(
+    `/v1/control-forms/${technicalCheckPath(variant)}`,
+    { q: id },
   );
 
 export const listTechnicalCheckFormsByCompoundFormKey = (
   variant: TechnicalCheckVariant,
   compoundFormKey: number,
 ) =>
-  post<TechnicalCheckFormListItem[]>(
-    `/v1/control-forms/${technicalCheckPath(variant)}/read/get-by-compound-form-key`,
-    { compoundFormKey },
+  get<TechnicalCheckFormListItem[]>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/get-by-compound-form-key`,
+    { compoundFormKey: String(compoundFormKey) },
   );
 
 export const saveTechnicalCheckForm = (
@@ -204,17 +204,17 @@ export const saveTechnicalCheckFormXroadFields = (
   );
 
 export const getTransportInterruptionForm = (id: string) =>
-  post<TransportInterruptionForm>(
-    `/v1/control-forms/transport-interruption/read/get`,
-    { id },
+  get<TransportInterruptionForm>(
+    `/v1/control-forms/transport-interruption`,
+    { q: id },
   );
 
 export const listTransportInterruptionFormsByCompoundFormKey = (
   compoundFormKey: number,
 ) =>
-  post<TransportInterruptionFormListItem[]>(
-    `/v1/control-forms/transport-interruption/read/get-by-compound-form-key`,
-    { compoundFormKey },
+  get<TransportInterruptionFormListItem[]>(
+    `/v1/control-forms/transport-interruption/get-by-compound-form-key`,
+    { compoundFormKey: String(compoundFormKey) },
   );
 
 export const saveTransportInterruptionForm = (
@@ -234,12 +234,12 @@ export const confirmTransportInterruptionForm = (
   );
 
 export const getAdrForm = (id: string) =>
-  post<AdrForm>(`/v1/control-forms/adr-form/read/get`, { id });
+  get<AdrForm>(`/v1/control-forms/adr-form`, { q: id });
 
 export const listAdrFormsByCompoundFormKey = (compoundFormKey: number) =>
-  post<AdrFormListItem[]>(
-    `/v1/control-forms/adr-form/read/get-by-compound-form-key`,
-    { compoundFormKey },
+  get<AdrFormListItem[]>(
+    `/v1/control-forms/adr-form/get-by-compound-form-key`,
+    { compoundFormKey: String(compoundFormKey) },
   );
 
 export const saveAdrForm = (data: AdrForm) =>
@@ -265,7 +265,7 @@ export const saveAdrFormXroadFields = (data: {
   );
 
 export const getGoodReputeForm = (id: string) =>
-  post<GoodReputeForm>(`/v1/control-forms/good-repute/read/get`, { id });
+  get<GoodReputeForm>(`/v1/control-forms/good-repute`, { q: id });
 
 export const saveGoodReputeForm = (data: GoodReputeForm) =>
   post<GoodReputeForm[]>(
@@ -280,7 +280,7 @@ export const confirmGoodReputeForm = (data: GoodReputeForm) =>
   );
 
 export const getGoodReputeFormSnapshot = (id: string, formKey: string) =>
-  post<GoodReputeForm[]>(
-    `/v1/control-forms/good-repute/read/get-snapshot`,
+  get<GoodReputeForm[]>(
+    `/v1/control-forms/good-repute/get-snapshot`,
     { id, formKey },
   );

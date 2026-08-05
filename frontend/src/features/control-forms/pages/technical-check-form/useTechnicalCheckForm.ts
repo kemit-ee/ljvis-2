@@ -233,8 +233,8 @@ export function useTechnicalCheckForm(
     } else if (autoLevel < oldAutoLevel && currentLevel === oldAutoLevel) {
       // Defects were removed and the current result was itself auto-derived
       // (not manually escalated beyond it) — follow the downgrade too
-      // (LJVIS2-72 §4, UC-11: "результат сбрасывается на Tehniliselt korras
-      // (или на OV-уровень, если OV ещё присутствуют)"). Preserve the TA
+      // (LJVIS2-72 §4, UC-11: "result resets to Tehniliselt korras
+      // (or to the OV level, if OV are still present)"). Preserve the TA
       // variant of extraordinary_inspection if it was selected and still applicable.
       formik.setFieldValue(
         'resultType',

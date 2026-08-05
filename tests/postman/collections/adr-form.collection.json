@@ -141,36 +141,33 @@
       ]}}]
     },
     {
-      "name": "POST adr-form/read/get — no permission → 403",
+      "name": "GET adr-form — no permission → 403",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_adr_id}}\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form"], "query": [{"key": "q", "value": "{{created_adr_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 403 without adr_form.read', () => pm.response.to.have.status(403));"
       ]}}]
     },
     {
-      "name": "POST adr-form/read/get — not found → 404",
+      "name": "GET adr-form — not found → 404",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"999999999\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q=999999999", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form"], "query": [{"key": "q", "value": "999999999"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 404 for nonexistent id', () => pm.response.to.have.status(404));"
       ]}}]
     },
     {
-      "name": "POST adr-form/read/get — happy path, verify fields",
+      "name": "GET adr-form — happy path, verify fields",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_adr_id}}\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form"], "query": [{"key": "q", "value": "{{created_adr_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -185,12 +182,11 @@
       ]}}]
     },
     {
-      "name": "POST adr-form/read/get-by-compound-form-key — happy path",
+      "name": "GET adr-form/get-by-compound-form-key — happy path",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/read/get-by-compound-form-key", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "read", "get-by-compound-form-key"]},
-        "body": {"mode": "raw", "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/get-by-compound-form-key?compoundFormKey={{created_adr_compound_key}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "get-by-compound-form-key"], "query": [{"key": "compoundFormKey", "value": "{{created_adr_compound_key}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -264,12 +260,11 @@
       ]}}]
     },
     {
-      "name": "POST adr-form/read/get — status is confirmed after confirm",
+      "name": "GET adr-form — status is confirmed after confirm",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_adr_id}}\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form"], "query": [{"key": "q", "value": "{{created_adr_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -325,12 +320,11 @@
       ]}}]
     },
     {
-      "name": "POST adr-form/read/get — X-tee fields persisted, version unchanged",
+      "name": "GET adr-form — X-tee fields persisted, version unchanged",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_adr_id}}\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form"], "query": [{"key": "q", "value": "{{created_adr_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",

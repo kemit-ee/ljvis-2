@@ -150,36 +150,33 @@
       ]}}]
     },
     {
-      "name": "POST good-repute/read/get — no permission → 403",
+      "name": "GET good-repute — no permission → 403",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute?q={{created_good_repute_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute"], "query": [{"key": "q", "value": "{{created_good_repute_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 403 without good_repute_form.read', () => pm.response.to.have.status(403));"
       ]}}]
     },
     {
-      "name": "POST good-repute/read/get — not found → 404",
+      "name": "GET good-repute — not found → 404",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"999999999\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute?q=999999999", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute"], "query": [{"key": "q", "value": "999999999"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 404', () => pm.response.to.have.status(404));"
       ]}}]
     },
     {
-      "name": "POST good-repute/read/get — happy path, values UPPERCASED",
+      "name": "GET good-repute — happy path, values UPPERCASED",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute?q={{created_good_repute_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute"], "query": [{"key": "q", "value": "{{created_good_repute_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -237,12 +234,11 @@
       ]}}]
     },
     {
-      "name": "POST good-repute/read/get — status is confirmed",
+      "name": "GET good-repute — status is confirmed",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute?q={{created_good_repute_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute"], "query": [{"key": "q", "value": "{{created_good_repute_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -314,12 +310,11 @@
       ]}}]
     },
     {
-      "name": "POST good-repute/read/get — unfit dates persisted",
+      "name": "GET good-repute — unfit dates persisted",
       "request": {
-        "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
-        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/read/get", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "read", "get"]},
-        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_unfit_id}}\"}"}
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute?q={{created_good_repute_unfit_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute"], "query": [{"key": "q", "value": "{{created_good_repute_unfit_id}}"}]}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
