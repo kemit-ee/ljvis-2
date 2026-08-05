@@ -21,6 +21,7 @@ import type { CheckEntry } from '../../types.ts';
 import { ModalResultSection } from './ModalResultSection/ModalResultSection';
 import { DocRightOtherSection } from './DocRightOtherSection';
 import styles from '../../pages/drive-rest-form/DriveRestFormPage.module.css';
+import { FormFiles } from '../../../forms/components/FormFiles.tsx';
 
 interface ChoiceItem {
   id: string;
@@ -934,6 +935,16 @@ export function DriveRestFormFields({
               </div>
             </Card.Content>
           </Card>
+        </Col>
+      </Row>
+      {/* Plokk: Failid */}
+      <Row className="m-0">
+        <Col className="p-0">
+          <FormFiles
+            formType="foreign-violation-form"
+            formNumber={formik.values.subFormNumber}
+            canEdit={!readOnly}
+          />
         </Col>
       </Row>
       {/* Plokk: Märkused */}
