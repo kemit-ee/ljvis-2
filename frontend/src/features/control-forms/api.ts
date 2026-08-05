@@ -43,7 +43,10 @@ export const insertCompoundForm = (data: CompoundForm) =>
   );
 
 export const getCompoundForm = (id: number, subFormId?: number) =>
-  post<CompoundForm>(`/v1/control-forms/compound-form/read/get`, subFormId != null ? { id, subFormId } : { id });
+  get<CompoundForm>(
+    `/v1/control-forms/compound-form`,
+    subFormId != null ? { q: String(id), subFormId: String(subFormId) } : { q: String(id) },
+  );
 
 export const updateCompoundForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
@@ -93,8 +96,8 @@ export const insertDriveRestForm = (
   );
 
 export const getDriveRestForm = (scope: 'driver' | 'teammate', id: number) =>
-  post<DriveRestForm>(`/v1/control-forms/drive-rest-form/${scope}/read/get`, {
-    id,
+  get<DriveRestForm>(`/v1/control-forms/${scope}-form`, {
+    q: String(id),
   });
 
 export const updateDriveRestForm = (

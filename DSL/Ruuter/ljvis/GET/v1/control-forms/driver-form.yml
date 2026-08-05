@@ -2,14 +2,14 @@ declaration:
   call: declare
   version: 0.1
   description: "Get a single drive rest form (driver) by key"
-  method: post
+  method: get
   accepts: json
   returns: json
   namespace: control-forms
   allowlist:
     body:
-      - field: id
-        type: number
+      - field: q
+        type: string
         description: "sp_driver_form_key"
 
 getActorFromTim:
@@ -23,7 +23,7 @@ getActorFromTim:
 
 extractRequestData:
   assign:
-    id: "${incoming.body.id}"
+    id: "${incoming.params.q}"
     actor_personal_code: "${timRes.response.body.personalCode || ''}"
     actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
   next: getForm

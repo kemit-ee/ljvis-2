@@ -1,16 +1,19 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Get a single drive rest form (teammate) by key"
-  method: post
+  description: "Get a single compound form by ID"
+  method: get
   accepts: json
   returns: json
   namespace: control-forms
   allowlist:
     body:
-      - field: id
-        type: number
-        description: "sp_teammate_form_key"
+      - field: q
+        type: string
+        description: "Compound form ID"
+      - field: subFormId
+        type: string
+        description: "Sub-form ID if called from sub-form page"
 
 getActorFromTim:
   call: http.get
@@ -23,7 +26,8 @@ getActorFromTim:
 
 extractRequestData:
   assign:
-    id: "${incoming.body.id}"
+    id: "${incoming.params.q}"
+    sub_form_id: "${incoming.params.subFormId}"
     actor_personal_code: "${timRes.response.body.personalCode || ''}"
     actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
   next: getForm
@@ -31,7 +35,7 @@ extractRequestData:
 getForm:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
       type: json
     body:
@@ -43,31 +47,13 @@ checkResponse:
   switch:
     - condition: ${res.response.body.length != 1}
       next: returnNotFound
-  next: extractCompoundRequestData
-
-extractCompoundRequestData:
-  assign:
-    compound_id: "${res.response.body[0].compoundFormKey}"
-  next: getCompoundForm
-
-getCompoundForm:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
-    headers:
-      type: json
-    body:
-      id: ${compound_id}
-  result: comres
   next: extractFormData
 
 extractFormData:
   assign:
-    sub_form_key: "${res.response.body[0].id}"
-    sub_form_number: "${res.response.body[0].subFormNumber}"
-    compound_form_key: "${res.response.body[0].compoundFormKey}"
+    form_number: "${res.response.body[0].formNumber}"
     created_by: "${res.response.body[0].createdBy}"
-    drivers: ${JSON.parse(comres.response.body[0].drivers)}
+    drivers: ${JSON.parse(res.response.body[0].drivers)}
   next: extractDriverCodes
 
 extractDriverCodes:
@@ -80,19 +66,19 @@ extractDriverCodes:
 
 checkShouldLog:
   switch:
+    - condition: ${sub_form_id != null}
+      next: mapResponse
     - condition: ${actor_personal_code != created_by}
       next: logAuditEvent
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/sp-teammate-form/log-sp-teammate-view"
+  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-view"
   requestType: templates
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
-    sub_form_number: ${sub_form_number}
-    compound_form_key: ${compound_form_key}
+    form_key: ${id}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
@@ -105,7 +91,7 @@ logAuditEvent:
 mapResponse:
   call: http.post
   args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_sp_teammate_form"
+    url: "[#LJVIS_DMAPPER_HBS]/map_compound_form"
     headers:
       type: json
     body:
