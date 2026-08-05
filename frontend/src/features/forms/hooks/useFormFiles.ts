@@ -9,7 +9,7 @@ import {
 import type { FormAttachment } from '../types/files';
 import { ALLOWED_MIME_TYPES, ALLOWED_EXT, MAX_FILE_SIZE_MB } from '../types/files';
 
-export function useFormFiles(formType: string, formNumber: string) {
+export function useFormFiles(formType: string, formNumber: string, canEdit: boolean) {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -127,6 +127,7 @@ export function useFormFiles(formType: string, formNumber: string) {
 
   return {
     files,
+    canEdit,
     isLoading,
     isUploading,
     isDeleting,
