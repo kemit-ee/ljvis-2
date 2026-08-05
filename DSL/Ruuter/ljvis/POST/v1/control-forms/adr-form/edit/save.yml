@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Create or update the ADR sub-form (ohtlik veos, LJVIS2-141) — single unified save endpoint, branches internally on presence of id. Status is always server-controlled. Requires an already-existing compoundFormKey."
+  description: "Create or update the ADR sub-form (ohtlik veos, LJVIS2-141) — single unified save endpoint, branches internally on presence of id. Status is always server-controlled. Requires an already-existing compoundFormKey. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
   method: post
   accepts: json
   returns: json
@@ -56,11 +56,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -89,7 +88,7 @@ extractRequestData:
     seal_opened_date: "${incoming.body.sealOpenedDate || ''}"
     seal_installed_date: "${incoming.body.sealInstalledDate || ''}"
     notes: "${incoming.body.notes || ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: checkNotesLength
 
 checkNotesLength:
@@ -159,7 +158,7 @@ extractCurrentStatus:
 
 checkFormNotLocked:
   switch:
-    - condition: ${current_status === 'published'}
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
       next: returnFormLockedError
   next: updateForm
 
@@ -238,5 +237,5 @@ returnNotesTooLongError:
 
 returnFormLockedError:
   status: 422
-  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_publish"}'
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked"}'
   next: end

@@ -1,7 +1,7 @@
 declaration:
   call: declare
   version: 0.1
-  description: "Create or update a good repute form (hea maine vorm) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136)."
+  description: "Create or update a good repute form (hea maine vorm) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136). Confirmed forms can only be re-saved by a user with control_form.edit_locked."
   method: post
   accepts: json
   returns: json
@@ -34,11 +34,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -56,7 +55,7 @@ extractRequestData:
     fitness_status: "${incoming.body.fitnessStatus || ''}"
     unfit_from_date: "${incoming.body.unfitFromDate || ''}"
     unfit_until_date: "${incoming.body.unfitUntilDate || ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: validateForm
 
 validateForm:
@@ -130,7 +129,7 @@ extractCurrentStatus:
 
 checkFormNotLocked:
   switch:
-    - condition: ${current_status === 'confirmed'}
+    - condition: ${current_status === 'confirmed' && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
       next: returnFormLockedError
   next: updateForm
 

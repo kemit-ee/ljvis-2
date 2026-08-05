@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Transport Interruption Form",
     "_postman_id": "ljvis-transport-interruption-v1",
-    "description": "Functional tests for /control-forms/transport-interruption endpoints (LJVIS2-74). Covers permission boundaries (transport_interruption_form.write/read), backend validation (compoundFormKey required), version/status lifecycle (saved -> confirmed, already_confirmed, form_locked_after_publish), and the server-side UPPERCASE transform of free-text fields (LJVIS2-74 §4). Self-contained: authenticates and creates its own compound form + sub-form.",
+    "description": "Functional tests for /control-forms/transport-interruption endpoints (LJVIS2-74). Covers permission boundaries (transport_interruption_form.write/read), backend validation (compoundFormKey required), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data), and the server-side UPPERCASE transform of free-text fields (LJVIS2-74 §4). Self-contained: authenticates and creates its own compound form + sub-form.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -36,6 +36,22 @@
         "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
         "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
         "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — Officer (no edit_locked)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_officer}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "var body = pm.response.json();",
+        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_officer', 'customJwtCookie=' + token);"
       ]}}]
     },
     {
@@ -154,7 +170,7 @@
       ]}}]
     },
     {
-      "name": "POST edit/save — re-save (update) → 200, version increments to 2, all 4 legalBases accepted",
+      "name": "POST edit/save — re-save while saved → 200, version stays 1, all 4 legalBases accepted",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -166,7 +182,7 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 2', () => pm.expect(Number(row.version)).to.eql(2));",
+        "pm.test('version stays 1 (saved-state resave rule)', () => pm.expect(Number(row.version)).to.eql(1));",
         "pm.test('sub_form_number unchanged', () => pm.expect(row.subFormNumber).to.eql(pm.environment.get('created_kv_sub_form_number')));"
       ]}}]
     },
@@ -221,7 +237,7 @@
       ]}}]
     },
     {
-      "name": "POST edit/confirm — happy path → 200, status confirmed, version 3",
+      "name": "POST edit/confirm — happy path → 200, status confirmed, version unchanged",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -233,7 +249,7 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 3', () => pm.expect(Number(row.version)).to.eql(3));"
+        "pm.test('version unchanged by confirm', () => pm.expect(Number(row.version)).to.eql(1));"
       ]}}]
     },
     {
@@ -264,6 +280,37 @@
         "var raw = pm.response.json();",
         "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "pm.test('code is already_confirmed', () => pm.expect(body.code).to.eql('already_confirmed'));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/save — officer (no edit_locked) saves confirmed form → 422 form_locked",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_officer}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"should not save\", \"legalBases\": \"[]\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('code is form_locked', () => pm.expect(body.code).to.eql('form_locked'));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/save — admin (edit_locked) saves confirmed form → 200, version bumps to 2",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/transport-interruption/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "transport-interruption", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"admin edited locked data\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\"]\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(Number(row.version)).to.eql(2));"
       ]}}]
     }
   ],

@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Vehicle/Trailer Technical Check Forms",
     "_postman_id": "ljvis-technical-check-forms-v1",
-    "description": "Functional tests for /control-forms/{vehicle-technical|trailer-technical} endpoints (LJVIS2-72). Covers permission boundaries (vehicle_technical_form.write/read, trailer_technical_form.write/read, control_form.edit_locked), backend validation (compoundFormKey required, notes max length, trailer-exclusion of vehicle-only codes), version/status lifecycle (saved -> confirmed, already_confirmed, form_locked_after_publish), and the X-tee fields block. Self-contained: authenticates and creates its own compound form + sub-forms.",
+    "description": "Functional tests for /control-forms/{vehicle-technical|trailer-technical} endpoints (LJVIS2-72). Covers permission boundaries (vehicle_technical_form.write/read, trailer_technical_form.write/read, control_form.edit_locked), backend validation (compoundFormKey required, notes max length, trailer-exclusion of vehicle-only codes), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data), and the X-tee fields block. Self-contained: authenticates and creates its own compound form + sub-forms.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -36,6 +36,22 @@
         "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
         "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
         "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — Officer (no edit_locked)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_officer}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "var body = pm.response.json();",
+        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_officer', 'customJwtCookie=' + token);"
       ]}}]
     },
     {
@@ -186,7 +202,7 @@
       ]}}]
     },
     {
-      "name": "POST vehicle-technical/edit/save — re-save → 200, version increments to 2",
+      "name": "POST vehicle-technical/edit/save — re-save while saved → 200, version stays 1",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -198,7 +214,7 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 2', () => pm.expect(Number(row.version)).to.eql(2));",
+        "pm.test('version stays 1 (saved-state resave rule)', () => pm.expect(Number(row.version)).to.eql(1));",
         "pm.test('subFormNumber unchanged', () => pm.expect(row.subFormNumber).to.eql(pm.environment.get('created_vtf_sub_form_number')));"
       ]}}]
     },
@@ -230,7 +246,7 @@
       ]}}]
     },
     {
-      "name": "POST vehicle-technical/edit/confirm — happy path → 200, status confirmed, version 3",
+      "name": "POST vehicle-technical/edit/confirm — happy path → 200, status confirmed, version unchanged",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -242,7 +258,7 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 3', () => pm.expect(Number(row.version)).to.eql(3));"
+        "pm.test('version unchanged by confirm', () => pm.expect(Number(row.version)).to.eql(1));"
       ]}}]
     },
     {
@@ -300,7 +316,7 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version NOT incremented (still 3)', () => pm.expect(Number(row.version)).to.eql(3));"
+        "pm.test('version NOT incremented (still 1)', () => pm.expect(Number(row.version)).to.eql(1));"
       ]}}]
     },
     {
@@ -317,7 +333,7 @@
         "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "pm.test('extraordinaryInspectionDate persisted', () => pm.expect(body.extraordinaryInspectionDate).to.eql('2024-05-01'));",
         "pm.test('enforcementDecision persisted', () => pm.expect(body.enforcementDecision).to.eql('Otsus jõustunud'));",
-        "pm.test('version still 3', () => pm.expect(Number(body.version)).to.eql(3));"
+        "pm.test('version still 1', () => pm.expect(Number(body.version)).to.eql(1));"
       ]}}]
     },
     {
@@ -403,7 +419,7 @@
       ]}}]
     },
     {
-      "name": "POST trailer-technical/edit/confirm — happy path → 200, status confirmed",
+      "name": "POST trailer-technical/edit/confirm — happy path → 200, status confirmed, version unchanged",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -415,11 +431,26 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 2', () => pm.expect(Number(row.version)).to.eql(2));"
+        "pm.test('version unchanged by confirm', () => pm.expect(Number(row.version)).to.eql(1));"
       ]}}]
     },
     {
-      "name": "POST trailer-technical/edit/save — editing after confirm still allowed (only published locks) → 200",
+      "name": "POST trailer-technical/edit/save — officer (no edit_locked) saves confirmed form → 422 form_locked",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_officer}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/trailer-technical/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "trailer-technical", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"Should not save\", \"files\": \"[]\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('code is form_locked', () => pm.expect(body.code).to.eql('form_locked'));"
+      ]}}]
+    },
+    {
+      "name": "POST trailer-technical/edit/save — admin (edit_locked) saves confirmed form → 200, version bumps to 2",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -431,7 +462,7 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 3', () => pm.expect(Number(row.version)).to.eql(3));"
+        "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(Number(row.version)).to.eql(2));"
       ]}}]
     }
   ],

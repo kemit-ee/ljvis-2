@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Labour Inspection Form",
     "_postman_id": "ljvis-labour-inspection-v1",
-    "description": "Functional tests for /control-forms/labour-inspection endpoints (LJVIS2-75). Covers permission boundaries (labour_inspection_form.write/read, control_form.view_unpublished, control_form.delete), backend validation (required fields, max length, future date), version/status lifecycle (saved -> confirmed, locked-after-confirm), and delete. Self-contained: authenticates and creates its own test data.",
+    "description": "Functional tests for /control-forms/labour-inspection endpoints (LJVIS2-75). Covers permission boundaries (labour_inspection_form.write/read, control_form.view_unpublished, control_form.delete), backend validation (required fields, max length, future date), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, locked-after-confirm, and the edit_locked-gated re-save of confirmed data), and delete. Self-contained: authenticates and creates its own test data.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -36,6 +36,22 @@
         "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
         "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
         "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — Officer (no edit_locked)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_officer}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "var body = pm.response.json();",
+        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_officer', 'customJwtCookie=' + token);"
       ]}}]
     },
     {
@@ -191,7 +207,7 @@
       ]}}]
     },
     {
-      "name": "POST edit/save — re-save (update) → 200, version increments to 2",
+      "name": "POST edit/save — re-save while saved → 200, version stays 1 (no-bump rule)",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -203,12 +219,12 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 2', () => pm.expect(Number(row.version)).to.eql(2));",
+        "pm.test('version stays 1 (saved-state resave rule)', () => pm.expect(Number(row.version)).to.eql(1));",
         "pm.test('form_number unchanged', () => pm.expect(row.formNumber).to.eql(pm.environment.get('created_lif_form_number')));"
       ]}}]
     },
     {
-      "name": "POST edit/save — re-save again → 200, version increments to 3",
+      "name": "POST edit/save — re-save again while saved → 200, version still 1",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -220,7 +236,7 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 3', () => pm.expect(Number(row.version)).to.eql(3));"
+        "pm.test('version still 1', () => pm.expect(Number(row.version)).to.eql(1));"
       ]}}]
     },
     {
@@ -236,7 +252,7 @@
       ]}}]
     },
     {
-      "name": "POST edit/confirm — happy path → 200, status confirmed, version 4",
+      "name": "POST edit/confirm — happy path → 200, status confirmed, version unchanged",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -248,7 +264,7 @@
         "var raw = pm.response.json();",
         "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-        "pm.test('version incremented to 4', () => pm.expect(Number(row.version)).to.eql(4));"
+        "pm.test('version unchanged by confirm', () => pm.expect(Number(row.version)).to.eql(1));"
       ]}}]
     },
     {
@@ -286,10 +302,10 @@
       ]}}]
     },
     {
-      "name": "POST edit/save — editing a confirmed act → 422 form_locked_after_confirm",
+      "name": "POST edit/save — officer (no edit_locked) editing confirmed act → 422 form_locked_after_confirm",
       "request": {
         "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "header": [{"key": "Cookie", "value": "{{cookie_officer}}"}, {"key": "Content-Type", "value": "application/json"}],
         "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "labour-inspection", "edit", "save"]},
         "body": {"mode": "raw", "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"Should Not Save\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\"}"}
       },
@@ -298,6 +314,22 @@
         "var raw = pm.response.json();",
         "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "pm.test('code is form_locked_after_confirm', () => pm.expect(body.code).to.eql('form_locked_after_confirm'));"
+      ]}}]
+    },
+    {
+      "name": "POST edit/save — admin (edit_locked) editing confirmed act → 200, version bumps to 2",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "labour-inspection", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"Admin Edited Locked Data\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(Number(row.version)).to.eql(2));"
       ]}}]
     },
     {

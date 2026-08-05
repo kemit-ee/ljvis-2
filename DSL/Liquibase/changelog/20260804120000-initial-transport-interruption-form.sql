@@ -65,8 +65,6 @@ ALTER TABLE forms.kv_form
     ADD CONSTRAINT chk_kv_status CHECK (status IN ('saved', 'confirmed', 'published')),
     ADD CONSTRAINT chk_kv_version_positive CHECK (version >= 1);
 
-CREATE UNIQUE INDEX uq_kv_sub_form_number_version ON forms.kv_form (sub_form_number, version);
-
 -- INTERRUPTION_BASES classifier — 4 legal-basis codes (LJVIS2-74 §4 "Õiguslikud alused").
 INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
 VALUES (

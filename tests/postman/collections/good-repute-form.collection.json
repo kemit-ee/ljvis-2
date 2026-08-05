@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Good Repute Form",
     "_postman_id": "ljvis-good-repute-form-v1",
-    "description": "Functional tests for /control-forms/good-repute endpoints (LJVIS2-136). Covers permission boundaries (good_repute_form.write/read), backend validation (required fields, future date, conditional unfit dates + date ordering), UPPERCASE enforcement on text fields, version/status lifecycle (saved -> confirmed, locked-after-confirm, already_confirmed), and the saved-state no-version-bump rule. Self-contained: authenticates and creates its own test data.",
+    "description": "Functional tests for /control-forms/good-repute endpoints (LJVIS2-136). Covers permission boundaries (good_repute_form.write/read), backend validation (required fields, future date, conditional unfit dates + date ordering), UPPERCASE enforcement on text fields, version/status lifecycle (saved -> confirmed, locked-after-confirm, already_confirmed), the saved-state no-version-bump rule, and the edit_locked-gated re-save of confirmed data (officer blocked, admin allowed with version bump). Self-contained: authenticates and creates its own test data.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -36,6 +36,22 @@
         "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
         "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
         "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+      ]}}]
+    },
+    {
+      "name": "[Auth] Login — Officer (no edit_locked)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/auth/dev/dev-login", "host": ["{{api_url}}"], "path": ["ljvis", "auth", "dev", "dev-login"]},
+        "body": {"mode": "raw", "raw": "{\"personalCode\": \"{{pc_officer}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+        "var body = pm.response.json();",
+        "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+        "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+        "pm.environment.set('cookie_officer', 'customJwtCookie=' + token);"
       ]}}]
     },
     {
@@ -251,10 +267,10 @@
       ]}}]
     },
     {
-      "name": "POST good-repute/edit/save — save on confirmed form → 422 form_locked_after_confirm",
+      "name": "POST good-repute/edit/save — officer (no edit_locked) saves confirmed form → 422 form_locked_after_confirm",
       "request": {
         "method": "POST",
-        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "header": [{"key": "Cookie", "value": "{{cookie_officer}}"}, {"key": "Content-Type", "value": "application/json"}],
         "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
         "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"personalCode\": \"37001010000\", \"firstName\": \"jaan\", \"lastName\": \"tamm\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"cert-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
       },
@@ -263,6 +279,22 @@
         "var raw = pm.response.json();",
         "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
         "pm.test('Code is form_locked_after_confirm', () => pm.expect(body.code).to.eql('form_locked_after_confirm'));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/save — admin (edit_locked) saves confirmed form → 200, version bumps to 2",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "save"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"personalCode\": \"37001010000\", \"firstName\": \"jaan\", \"lastName\": \"tammadmin\", \"dateOfBirth\": \"1970-01-01\", \"certificateNumber\": \"cert-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+        "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(row.version).to.eql(2));"
       ]}}]
     },
     {

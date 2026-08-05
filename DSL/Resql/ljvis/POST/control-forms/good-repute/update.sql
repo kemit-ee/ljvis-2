@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update good repute form (hea maine vorm) — appends a new snapshot row. Per LJVIS2-136: version is unchanged while the latest snapshot's status is 'saved' (repeat saves, and the saved->confirmed transition, do not bump /V); version increments only when re-saving already-locked (confirmed) data. uq_grf_form_number_version guards against any duplicate."
+  description: "Update good repute form (hea maine vorm) — appends a new snapshot row. Per LJVIS2-136: version is unchanged while the latest snapshot's status is 'saved' (repeat saves, and the saved->confirmed transition, do not bump /V); version increments only when re-saving already-locked (confirmed) data."
   method: post
   accepts: json
   returns: json

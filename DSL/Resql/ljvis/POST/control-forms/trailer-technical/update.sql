@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update trailer technical-check sub-form — appends a new snapshot row. sub_form_number and version are always read from the latest snapshot / computed server-side (never trusts client input); uq_ttf_sub_form_number_version guards against duplicates."
+  description: "Update trailer technical-check sub-form — appends a new snapshot row. sub_form_number is always read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published) data."
   method: post
   accepts: json
   returns: json
@@ -50,7 +50,8 @@ declaration:
         type: number
 */
 WITH latest AS (
-  SELECT sub_form_number, version + 1 AS version,
+  SELECT sub_form_number,
+         CASE WHEN status = 'saved' THEN version ELSE version + 1 END AS version,
          extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis
   FROM forms.trailer_technical_form
   WHERE trailer_technical_form_key = :key::BIGINT

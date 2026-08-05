@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update ADR sub-form — appends a new snapshot row, bumps version server-side. Carries X-tee fields forward from the latest snapshot."
+  description: "Update ADR sub-form — appends a new snapshot row. sub_form_number is always read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published) data. Carries X-tee fields forward from the latest snapshot."
   method: post
   accepts: json
   returns: json
@@ -66,7 +66,8 @@ declaration:
         type: number
 */
 WITH latest AS (
-  SELECT sub_form_number, version + 1 AS version,
+  SELECT compound_form_key, sub_form_number,
+         CASE WHEN status = 'saved' THEN version ELSE version + 1 END AS version,
          enforcement_decision, proceeding_closure_basis
   FROM forms.adr_form
   WHERE adr_form_key = :key::BIGINT
@@ -106,7 +107,7 @@ INSERT INTO forms.adr_form (
 )
 SELECT
   :key::BIGINT,
-  (SELECT compound_form_key FROM forms.adr_form WHERE adr_form_key = :key::BIGINT ORDER BY created_at DESC LIMIT 1),
+  latest.compound_form_key,
   latest.sub_form_number,
   latest.version,
   :status,

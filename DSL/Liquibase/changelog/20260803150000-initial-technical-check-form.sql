@@ -84,8 +84,6 @@ ALTER TABLE forms.vehicle_technical_form
     ADD CONSTRAINT chk_vtf_notes_length CHECK (notes IS NULL OR char_length(notes) <= 2000),
     ADD CONSTRAINT chk_vtf_version_positive CHECK (version >= 1);
 
-CREATE UNIQUE INDEX uq_vtf_sub_form_number_version ON forms.vehicle_technical_form (sub_form_number, version);
-
 -- 2. trailer_technical_form — structurally identical to vehicle_technical_form (see wiki §0 Variandid)
 CREATE TABLE forms.trailer_technical_form (
     id                              BIGSERIAL       NOT NULL,
@@ -129,8 +127,6 @@ ALTER TABLE forms.trailer_technical_form
     ADD CONSTRAINT chk_ttf_result_type CHECK (result_type IN ('ok', 'extraordinary_inspection', 'extraordinary_inspection_ta', 'driving_ban')),
     ADD CONSTRAINT chk_ttf_notes_length CHECK (notes IS NULL OR char_length(notes) <= 2000),
     ADD CONSTRAINT chk_ttf_version_positive CHECK (version >= 1);
-
-CREATE UNIQUE INDEX uq_ttf_sub_form_number_version ON forms.trailer_technical_form (sub_form_number, version);
 
 -- 3. TECHNICAL_CHECK classifier — level 1 only (real part/assembly codes & names,
 -- from LJVIS2-72 analysis document §4 "Osade read"). Level-2 defect codes are not

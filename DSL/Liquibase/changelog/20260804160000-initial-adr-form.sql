@@ -99,5 +99,3 @@ ALTER TABLE forms.adr_form
     ADD CONSTRAINT chk_adr_notes_length CHECK (notes IS NULL OR char_length(notes) <= 4000),
     ADD CONSTRAINT chk_adr_other_violations_length CHECK (other_violations IS NULL OR char_length(other_violations) <= 4000),
     ADD CONSTRAINT chk_adr_version_positive CHECK (version >= 1);
-
-CREATE UNIQUE INDEX uq_adr_sub_form_number_version ON forms.adr_form (sub_form_number, version);
