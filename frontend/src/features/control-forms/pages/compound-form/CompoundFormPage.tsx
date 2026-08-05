@@ -133,45 +133,27 @@ export function CompoundFormPage() {
     }
   };
 
-  const refetchDriver = (onDone?: () => void) => {
+  const refetchSubForm = (scope: 'driver' | 'teammate', onDone?: () => void) => {
     if (!form?.id) return;
-    getDriveRestFormByCompoundFormKey('driver', Number(form.id))
+    const siblingScope = scope === 'driver' ? 'teammate' : 'driver';
+    getDriveRestFormByCompoundFormKey(scope, Number(form.id))
       .then((res) => {
-        setDriverForm(res);
-        getDriveRestFormByCompoundFormKey('teammate', Number(form.id))
-          .then((tm) => {
+        if (scope === 'driver') setDriverForm(res);
+        else setTeammateForm(res);
+        getDriveRestFormByCompoundFormKey(siblingScope, Number(form.id))
+          .then((sibling) => {
+            const driver = scope === 'driver' ? res : sibling;
+            const teammate = scope === 'teammate' ? res : sibling;
             const anySubFormSaved =
-              res?.status === 'saved' || tm?.status === 'saved';
+              driver?.status === 'saved' || teammate?.status === 'saved';
             if (anySubFormSaved) {
-              if (res) setDriverEditActive(true);
-              if (tm) setTeammateEditActive(true);
+              if (driver) setDriverEditActive(true);
+              if (teammate) setTeammateEditActive(true);
             } else {
-              setDriverEditActive(res?.status === 'saved');
+              if (scope === 'driver') setDriverEditActive(res?.status === 'saved');
+              else setTeammateEditActive(res?.status === 'saved');
             }
-            checkAndAutoConfirmCompound(res, tm);
-          })
-          .catch(console.error);
-        onDone?.();
-      })
-      .catch(console.error);
-  };
-
-  const refetchTeammate = (onDone?: () => void) => {
-    if (!form?.id) return;
-    getDriveRestFormByCompoundFormKey('teammate', Number(form.id))
-      .then((res) => {
-        setTeammateForm(res);
-        getDriveRestFormByCompoundFormKey('driver', Number(form.id))
-          .then((dr) => {
-            const anySubFormSaved =
-              dr?.status === 'saved' || res?.status === 'saved';
-            if (anySubFormSaved) {
-              if (dr) setDriverEditActive(true);
-              if (res) setTeammateEditActive(true);
-            } else {
-              setTeammateEditActive(res?.status === 'saved');
-            }
-            checkAndAutoConfirmCompound(dr, res);
+            checkAndAutoConfirmCompound(driver, teammate);
           })
           .catch(console.error);
         onDone?.();
@@ -229,7 +211,7 @@ export function CompoundFormPage() {
           .then(() => {
             setShowSavedAlert(true);
             window.scrollTo(0, 0);
-            refetchDriver(() => {
+            refetchSubForm('driver', () => {
               driverDraftRef.current = null;
               setDriverDraft(null);
             });
@@ -256,7 +238,7 @@ export function CompoundFormPage() {
           .then(() => {
             setShowSavedAlert(true);
             window.scrollTo(0, 0);
-            refetchTeammate(() => {
+            refetchSubForm('teammate', () => {
               teammateDraftRef.current = null;
               setTeammateDraft(null);
             });
@@ -297,7 +279,9 @@ export function CompoundFormPage() {
     setActiveTab(tabId);
   };
 
-  const subFormCount = (driverForm || driverEditActive ? 1 : 0) + (teammateForm || teammateEditActive ? 1 : 0);
+  const subFormCount =
+    (driverForm && (driverForm.status === 'saved' || driverForm.status === 'confirmed') ? 1 : 0) +
+    (teammateForm && (teammateForm.status === 'saved' || teammateForm.status === 'confirmed') ? 1 : 0);
 
   const handleRemove = (tabId: 'tab-driver' | 'tab-teammate') => {
     const subForm = tabId === 'tab-driver' ? driverForm : teammateForm;
@@ -501,6 +485,34 @@ export function CompoundFormPage() {
     }[],
   };
 
+  const editCardProps = {
+    formik,
+    ...sharedProps,
+    canConfirm,
+    canDelete,
+    companySearchError,
+    setCompanySearchError,
+    vehicleSearchError,
+    setVehicleSearchError,
+    trailerSearchError,
+    setTrailerSearchError,
+    mtrSearchError,
+    setMtrSearchError,
+    handleOrgChange,
+    handleStructuralUnitChange,
+    handleCountyChange,
+    handleCompanyCountyChange,
+    handleCompanySearch,
+    handleVehicleSearch,
+    handleTrailerSearch,
+    handleMtrSearch,
+    onCancel: () => { formik.resetForm(); setIsEditActive(false); },
+    onConfirm: triggerConfirm,
+    onDelete: handleDelete,
+    formType: FORM_TYPE.COMPOUND,
+    versionsRefreshKey,
+  };
+
   const canEditSubForms = hasPermission('foreign_violation_form.write');
   const canConfirmDriver =
     hasPermission('sp_driver_form.write') &&
@@ -579,36 +591,7 @@ export function CompoundFormPage() {
           {t('common.back')}
         </Button>
         {isEditActive ? (
-          <CompoundFormEditCard
-            formik={formik}
-            {...sharedProps}
-            canConfirm={canConfirm}
-            canDelete={canDelete}
-            companySearchError={companySearchError}
-            setCompanySearchError={setCompanySearchError}
-            vehicleSearchError={vehicleSearchError}
-            setVehicleSearchError={setVehicleSearchError}
-            trailerSearchError={trailerSearchError}
-            setTrailerSearchError={setTrailerSearchError}
-            mtrSearchError={mtrSearchError}
-            setMtrSearchError={setMtrSearchError}
-            handleOrgChange={handleOrgChange}
-            handleStructuralUnitChange={handleStructuralUnitChange}
-            handleCountyChange={handleCountyChange}
-            handleCompanyCountyChange={handleCompanyCountyChange}
-            handleCompanySearch={handleCompanySearch}
-            handleVehicleSearch={handleVehicleSearch}
-            handleTrailerSearch={handleTrailerSearch}
-            handleMtrSearch={handleMtrSearch}
-            onCancel={() => {
-              formik.resetForm();
-              setIsEditActive(false);
-            }}
-            onConfirm={triggerConfirm}
-            onDelete={handleDelete}
-            formType={FORM_TYPE.COMPOUND}
-            versionsRefreshKey={versionsRefreshKey}
-          />
+          <CompoundFormEditCard {...editCardProps} />
         ) : (
           <CompoundFormViewCard
             form={form}
@@ -743,36 +726,7 @@ export function CompoundFormPage() {
 
         <Tabs.Content id="tab-compound" className="p-1">
           {isEditActive ? (
-            <CompoundFormEditCard
-              formik={formik}
-              {...sharedProps}
-              canConfirm={canConfirm}
-              canDelete={canDelete}
-              companySearchError={companySearchError}
-              setCompanySearchError={setCompanySearchError}
-              vehicleSearchError={vehicleSearchError}
-              setVehicleSearchError={setVehicleSearchError}
-              trailerSearchError={trailerSearchError}
-              setTrailerSearchError={setTrailerSearchError}
-              mtrSearchError={mtrSearchError}
-              setMtrSearchError={setMtrSearchError}
-              handleOrgChange={handleOrgChange}
-              handleStructuralUnitChange={handleStructuralUnitChange}
-              handleCountyChange={handleCountyChange}
-              handleCompanyCountyChange={handleCompanyCountyChange}
-              handleCompanySearch={handleCompanySearch}
-              handleVehicleSearch={handleVehicleSearch}
-              handleTrailerSearch={handleTrailerSearch}
-              handleMtrSearch={handleMtrSearch}
-              onCancel={() => {
-                formik.resetForm();
-                setIsEditActive(false);
-              }}
-              onConfirm={triggerConfirm}
-              onDelete={handleDelete}
-              formType={FORM_TYPE.COMPOUND}
-              versionsRefreshKey={versionsRefreshKey}
-            />
+            <CompoundFormEditCard {...editCardProps} />
           ) : (
             <CompoundFormViewCard
               form={form}
@@ -805,7 +759,7 @@ export function CompoundFormPage() {
                   setShowSavedAlert(true);
                   window.scrollTo(0, 0);
                   if (!driverForm) resetCompoundFormToSaved();
-                  refetchDriver(() => {
+                  refetchSubForm('driver', () => {
                     driverDraftRef.current = null;
                     setDriverDraft(null);
                   });
@@ -817,7 +771,7 @@ export function CompoundFormPage() {
                 }}
                 canConfirm={canConfirmDriver}
                 onConfirm={() => {
-                  refetchDriver(() => {
+                  refetchSubForm('driver', () => {
                     setDriverEditActive(false);
                     driverDraftRef.current = null;
                     setDriverDraft(null);
@@ -859,7 +813,7 @@ export function CompoundFormPage() {
                   setShowSavedAlert(true);
                   window.scrollTo(0, 0);
                   if (!teammateForm) resetCompoundFormToSaved();
-                  refetchTeammate(() => {
+                  refetchSubForm('teammate', () => {
                     teammateDraftRef.current = null;
                     setTeammateDraft(null);
                   });
@@ -871,7 +825,7 @@ export function CompoundFormPage() {
                 }}
                 canConfirm={canConfirmTeammate}
                 onConfirm={() => {
-                  refetchTeammate(() => {
+                  refetchSubForm('teammate', () => {
                     setTeammateEditActive(false);
                     teammateDraftRef.current = null;
                     setTeammateDraft(null);
