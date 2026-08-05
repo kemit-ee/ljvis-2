@@ -42,8 +42,8 @@ export const insertCompoundForm = (data: CompoundForm) =>
     data as unknown as Record<string, unknown>,
   );
 
-export const getCompoundForm = (id: number) =>
-  post<CompoundForm>(`/v1/control-forms/compound-form/read/get`, { id });
+export const getCompoundForm = (id: number, subFormId?: number) =>
+  post<CompoundForm>(`/v1/control-forms/compound-form/read/get`, subFormId != null ? { id, subFormId } : { id });
 
 export const updateCompoundForm = (data: CompoundForm) =>
   post<CompoundForm[]>(

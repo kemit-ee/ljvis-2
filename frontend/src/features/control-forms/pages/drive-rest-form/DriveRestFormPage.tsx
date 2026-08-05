@@ -54,6 +54,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   );
   const [loadingEntry, setLoadingEntry] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const isFetching = useRef(false);
   const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | null>(null);
 
   const [driverForm, setDriverForm] = useState<DriveRestForm | null>(null);
@@ -118,8 +119,16 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     const anySubFormSaved =
       driverForm?.status === 'saved' || teammateForm?.status === 'saved';
     if (anySubFormSaved) {
-      if (driverForm) setDriverEditActive(true);
-      if (teammateForm) setTeammateEditActive(true);
+      if (driverForm)
+        setDriverEditActive(
+          hasPermission('sp_driver_form.write') ||
+            !hasPermission('sp_driver_form.read')
+        );
+      if (teammateForm)
+        setTeammateEditActive(
+          hasPermission('sp_teammate_form.write') ||
+            !hasPermission('sp_teammate_form.read')
+        );
     } else {
       if (driverForm?.status !== undefined)
         setDriverEditActive(driverForm.status === 'saved');
@@ -220,6 +229,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   // Load the entry sub-form first to discover the compound form key
   useEffect(() => {
     if (!id) return;
+    if (isFetching.current) return;
+    isFetching.current = true;
     setLoadingEntry(true);
     getDriveRestForm(entryType, Number(id))
       .then((res) => {
@@ -249,6 +260,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     refetch: refetchCompound,
   } = useCompoundFormDetail(
     compoundFormKey ? String(compoundFormKey) : undefined,
+    id ? Number(id) : undefined,
   );
 
   const refetchCompoundRef = useRef(refetchCompound);
@@ -323,7 +335,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   useEffect(() => {
     if (compoundForm?.status !== undefined) {
-      setCompoundEditActive(compoundForm.status === 'saved');
+      setCompoundEditActive(
+        compoundForm.status === 'saved' &&
+          hasPermission('compound_form.write'),
+      );
     }
   }, [compoundForm?.status]);
 

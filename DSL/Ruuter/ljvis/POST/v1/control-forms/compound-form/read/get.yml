@@ -11,6 +11,9 @@ declaration:
       - field: id
         type: number
         description: "Compound form ID"
+      - field: subFormId
+        type: number
+        description: "Sub-form ID if called from sub-form page"
 
 getActorFromTim:
   call: http.get
@@ -24,7 +27,9 @@ getActorFromTim:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
+    sub_form_id: "${incoming.body.subFormId}"
     actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
   next: getForm
 
 getForm:
@@ -61,6 +66,8 @@ extractDriverCodes:
 
 checkShouldLog:
   switch:
+    - condition: ${sub_form_id != null}
+      next: mapResponse
     - condition: ${actor_personal_code != created_by}
       next: logAuditEvent
   next: mapResponse
@@ -76,6 +83,8 @@ logAuditEvent:
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 

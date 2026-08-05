@@ -90,7 +90,9 @@ export function CompoundFormPage() {
 
   useEffect(() => {
     if (form?.status !== undefined) {
-      setIsEditActive(form.status === 'saved');
+      setIsEditActive(
+        form.status === 'saved' && hasPermission('compound_form.write'),
+      );
       if (form.status === 'confirmed') setShowSavedAlert(false);
     }
   }, [form?.status]);
@@ -108,8 +110,8 @@ export function CompoundFormPage() {
         const anySubFormSaved =
           driver?.status === 'saved' || teammate?.status === 'saved';
         if (anySubFormSaved) {
-          if (driver) setDriverEditActive(true);
-          if (teammate) setTeammateEditActive(true);
+          if (driver) setDriverEditActive(hasPermission('sp_driver_form.write'));
+          if (teammate) setTeammateEditActive(hasPermission('sp_teammate_form.write'));
         }
       })
       .catch(console.error)
