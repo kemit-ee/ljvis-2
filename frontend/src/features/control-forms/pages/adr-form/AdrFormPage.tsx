@@ -24,9 +24,11 @@ import { AddressFields } from '../../components/shared/AddressFields';
 import type { AddressFieldsValue } from '../../components/shared/AddressFields';
 import { DangerousGoodsTable } from './DangerousGoodsTable';
 import { AdrInfringementsSection } from './AdrInfringementsSection';
-import { saveAdrFormXroadFields } from '../../api';
+import { saveAdrFormXroadFields, getAdrFormSnapshot } from '../../api';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
+import type { AdrForm } from '../../types';
 
 const RESULT_OPTIONS = [
   'ok',
@@ -49,8 +51,9 @@ const addressToValue = (a: { countryCode?: string; county?: string; city?: strin
 });
 
 export function AdrFormPage() {
-  const { id, compoundFormKey: compoundFormKeyParam } = useParams<{
+  const { id, snapshotId, compoundFormKey: compoundFormKeyParam } = useParams<{
     id?: string;
+    snapshotId?: string;
     compoundFormKey?: string;
   }>();
   const { t } = useTranslation();
@@ -65,8 +68,17 @@ export function AdrFormPage() {
 
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [xroadError, setXroadError] = useState<string | null>(null);
+  const [snapshot, setSnapshot] = useState<AdrForm | null>(null);
+  const [snapshotLoading, setSnapshotLoading] = useState(!!snapshotId);
 
-  const { form, loading, refetch } = useAdrFormDetail(id);
+  const { form, loading, refetch } = useAdrFormDetail(snapshotId ? undefined : id);
+
+  useEffect(() => {
+    if (!snapshotId || !id) return;
+    getAdrFormSnapshot(snapshotId, id)
+      .then((res) => { setSnapshot(Array.isArray(res) ? res[0] : res); setSnapshotLoading(false); })
+      .catch(() => setSnapshotLoading(false));
+  }, [snapshotId, id]);
 
   const compoundFormKey =
     form?.compoundFormKey ??
@@ -146,8 +158,24 @@ export function AdrFormPage() {
     }
   };
 
-  if (loading) return <Text>{t('common.loading')}</Text>;
+  if (loading || snapshotLoading) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
+
+  if (snapshotId) {
+    if (!snapshot) return <FormNotFoundView title={t('forms.adr.title')} />;
+    const snapNumber = snapshot.subFormNumber ? `${snapshot.subFormNumber}/${snapshot.version ?? 1}` : undefined;
+    return (
+      <div>
+        <Button visualType="link" onClick={() => navigate(-1)} iconLeft="arrow_back">
+          {t('common.back')}
+        </Button>
+        <div className="card-main">
+          <Heading element="h1">{snapNumber ?? t('forms.adr.title')}</Heading>
+        </div>
+      </div>
+    );
+  }
+
   if (id && !form) return <FormNotFoundView title={t('forms.adr.title')} />;
 
   const values = formik.values;
@@ -609,6 +637,14 @@ export function AdrFormPage() {
           </div>
         </div>
       </form>
+
+      {id && (
+        <FormVersionsTable
+          formId={id}
+          formType="adr-form"
+          refreshKey={showSavedAlert ? 1 : 0}
+        />
+      )}
     </div>
   );
 }

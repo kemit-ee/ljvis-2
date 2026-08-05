@@ -153,6 +153,16 @@ export const getLabourInspectionFormSnapshot = (id: string, formKey: string) =>
     { id, formKey },
   );
 
+export const getTechnicalCheckFormSnapshot = (
+  variant: TechnicalCheckVariant,
+  id: string,
+  formKey: string,
+) =>
+  get<TechnicalCheckForm>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/get-snapshot`,
+    { id, formKey },
+  );
+
 export const getTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
   id: string,
@@ -217,6 +227,12 @@ export const listTransportInterruptionFormsByCompoundFormKey = (
     { compoundFormKey: String(compoundFormKey) },
   );
 
+export const getTransportInterruptionFormSnapshot = (id: string, formKey: string) =>
+  get<TransportInterruptionForm>(
+    `/v1/control-forms/transport-interruption/get-snapshot`,
+    { id, formKey },
+  );
+
 export const saveTransportInterruptionForm = (
   data: TransportInterruptionForm,
 ) =>
@@ -241,6 +257,9 @@ export const listAdrFormsByCompoundFormKey = (compoundFormKey: number) =>
     `/v1/control-forms/adr-form/get-by-compound-form-key`,
     { compoundFormKey: String(compoundFormKey) },
   );
+
+export const getAdrFormSnapshot = (id: string, formKey: string) =>
+  get<AdrForm>(`/v1/control-forms/adr-form/get-snapshot`, { id, formKey });
 
 export const saveAdrForm = (data: AdrForm) =>
   post<AdrForm[]>(

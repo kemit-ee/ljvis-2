@@ -7,17 +7,20 @@ import type { TechnicalCheckVariant } from '../../types';
 import { useTechnicalCheckForm } from './useTechnicalCheckForm';
 import { useTechnicalCheckFormDetail } from './useTechnicalCheckFormDetail';
 import { TechnicalCheckFormFields } from './TechnicalCheckFormFields';
-import { saveTechnicalCheckFormXroadFields } from '../../api';
+import { saveTechnicalCheckFormXroadFields, getTechnicalCheckFormSnapshot } from '../../api';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
+import type { TechnicalCheckForm } from '../../types';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
 }
 
 export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps) {
-  const { id, compoundFormKey: compoundFormKeyParam } = useParams<{
+  const { id, snapshotId, compoundFormKey: compoundFormKeyParam } = useParams<{
     id?: string;
+    snapshotId?: string;
     compoundFormKey?: string;
   }>();
   const { t } = useTranslation();
@@ -35,8 +38,17 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [xroadError, setXroadError] = useState<string | null>(null);
+  const [snapshot, setSnapshot] = useState<TechnicalCheckForm | null>(null);
+  const [snapshotLoading, setSnapshotLoading] = useState(!!snapshotId);
 
-  const { form, loading, refetch } = useTechnicalCheckFormDetail(variant, id);
+  const { form, loading, refetch } = useTechnicalCheckFormDetail(variant, snapshotId ? undefined : id);
+
+  useEffect(() => {
+    if (!snapshotId || !id) return;
+    getTechnicalCheckFormSnapshot(variant, snapshotId, id)
+      .then((res) => { setSnapshot(Array.isArray(res) ? res[0] : res); setSnapshotLoading(false); })
+      .catch(() => setSnapshotLoading(false));
+  }, [snapshotId, id, variant]);
 
   const compoundFormKey =
     form?.compoundFormKey ??
@@ -89,8 +101,41 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     }
   };
 
-  if (loading) return <Text>{t('common.loading')}</Text>;
+  if (loading || snapshotLoading) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
+
+  if (snapshotId) {
+    if (!snapshot) return <FormNotFoundView title={t(titleKey)} />;
+    return (
+      <div>
+        <Button visualType="link" onClick={() => navigate(-1)} iconLeft="arrow_back">
+          {t('common.back')}
+        </Button>
+        <div className="card-main">
+          <Heading element="h1">
+            {snapshot.subFormNumber ? `${snapshot.subFormNumber}/${snapshot.version ?? 1}` : t(titleKey)}
+          </Heading>
+        </div>
+        <TechnicalCheckFormFields
+          variant={variant}
+          formik={{ values: snapshot, errors: {}, touched: {}, setFieldValue: () => {}, handleSubmit: () => {} } as never}
+          parts={[]}
+          defectsByPartKey={{} as never}
+          euViolations={[]}
+          applyPartDefects={() => {}}
+          setPartStatus={() => {}}
+          removeDefect={() => {}}
+          setResultType={() => {}}
+          toggleViolation={() => {}}
+          canEdit={false}
+          canEditXroadFields={false}
+          isEditLocked={false}
+          xroadBlockVisible={snapshot.status !== 'saved'}
+        />
+      </div>
+    );
+  }
+
   if (id && !form) return <FormNotFoundView title={t(titleKey)} />;
 
   return (
@@ -165,6 +210,14 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           </div>
         </div>
       </form>
+
+      {id && (
+        <FormVersionsTable
+          formId={id}
+          formType={variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}
+          refreshKey={showSavedAlert ? 1 : 0}
+        />
+      )}
     </div>
   );
 }

@@ -18,10 +18,14 @@ import { AddressFields } from '../../components/shared/AddressFields';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
+import { getTransportInterruptionFormSnapshot } from '../../api';
+import type { TransportInterruptionForm } from '../../types';
 
 export function TransportInterruptionFormPage() {
-  const { id, compoundFormKey: compoundFormKeyParam } = useParams<{
+  const { id, snapshotId, compoundFormKey: compoundFormKeyParam } = useParams<{
     id?: string;
+    snapshotId?: string;
     compoundFormKey?: string;
   }>();
   const { t } = useTranslation();
@@ -36,8 +40,17 @@ export function TransportInterruptionFormPage() {
   );
 
   const [showSavedAlert, setShowSavedAlert] = useState(false);
+  const [snapshot, setSnapshot] = useState<TransportInterruptionForm | null>(null);
+  const [snapshotLoading, setSnapshotLoading] = useState(!!snapshotId);
 
-  const { form, loading, refetch } = useTransportInterruptionFormDetail(id);
+  const { form, loading, refetch } = useTransportInterruptionFormDetail(snapshotId ? undefined : id);
+
+  useEffect(() => {
+    if (!snapshotId || !id) return;
+    getTransportInterruptionFormSnapshot(snapshotId, id)
+      .then((res) => { setSnapshot(Array.isArray(res) ? res[0] : res); setSnapshotLoading(false); })
+      .catch(() => setSnapshotLoading(false));
+  }, [snapshotId, id]);
 
   const compoundFormKey =
     form?.compoundFormKey ??
@@ -68,8 +81,24 @@ export function TransportInterruptionFormPage() {
 
   const legalBases = getByCode('INTERRUPTION_BASES');
 
-  if (loading) return <Text>{t('common.loading')}</Text>;
+  if (loading || snapshotLoading) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
+
+  if (snapshotId) {
+    if (!snapshot) return <FormNotFoundView title={t('forms.transport_interruption.title')} />;
+    const snapNumber = snapshot.subFormNumber ? `${snapshot.subFormNumber}/${snapshot.version ?? 1}` : undefined;
+    return (
+      <div>
+        <Button visualType="link" onClick={() => navigate(-1)} iconLeft="arrow_back">
+          {t('common.back')}
+        </Button>
+        <div className="card-main">
+          <Heading element="h1">{snapNumber ?? t('forms.transport_interruption.title')}</Heading>
+        </div>
+      </div>
+    );
+  }
+
   if (id && !form) return <FormNotFoundView title={t('forms.transport_interruption.title')} />;
 
   const values = formik.values;
@@ -231,6 +260,14 @@ export function TransportInterruptionFormPage() {
           </div>
         </div>
       </form>
+
+      {id && (
+        <FormVersionsTable
+          formId={id}
+          formType="transport-interruption"
+          refreshKey={showSavedAlert ? 1 : 0}
+        />
+      )}
     </div>
   );
 }

@@ -115,11 +115,19 @@ function AppRoutes() {
             element={<TechnicalCheckFormPage variant="vehicle" />}
           />
           <Route
+            path="/control-forms/vehicle-technical/:id/:snapshotId"
+            element={<TechnicalCheckFormPage variant="vehicle" />}
+          />
+          <Route
             path="/control-forms/trailer-technical/new/:compoundFormKey"
             element={<TechnicalCheckFormPage variant="trailer" />}
           />
           <Route
             path="/control-forms/trailer-technical/:id"
+            element={<TechnicalCheckFormPage variant="trailer" />}
+          />
+          <Route
+            path="/control-forms/trailer-technical/:id/:snapshotId"
             element={<TechnicalCheckFormPage variant="trailer" />}
           />
           <Route
@@ -131,10 +139,15 @@ function AppRoutes() {
             element={<TransportInterruptionFormPage />}
           />
           <Route
+            path="/control-forms/transport-interruption/:id/:snapshotId"
+            element={<TransportInterruptionFormPage />}
+          />
+          <Route
             path="/control-forms/adr/new/:compoundFormKey"
             element={<AdrFormPage />}
           />
           <Route path="/control-forms/adr/:id" element={<AdrFormPage />} />
+          <Route path="/control-forms/adr/:id/:snapshotId" element={<AdrFormPage />} />
           <Route
             path="/control-forms/good-repute/new"
             element={<GoodReputeFormCreatePage />}
