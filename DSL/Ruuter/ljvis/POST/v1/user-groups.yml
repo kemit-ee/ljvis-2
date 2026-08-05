@@ -30,9 +30,9 @@ extractRequestData:
     name: "${incoming.body.name}"
     organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
     permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
-    created_by: "${auth_user.personalcode}"
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
     selected_org_count: ${(incoming.body.organisationIds ?? []).length}
   next: validateRequired
 

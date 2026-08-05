@@ -15,6 +15,7 @@ import styles from './FormFiles.module.css';
 interface FormFilesProps {
   formType: string;
   formNumber: string;
+  canEdit: boolean;
 }
 
 function formatDate(iso: string): string {
@@ -26,7 +27,7 @@ function formatDate(iso: string): string {
   );
 }
 
-export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
+export const FormFiles = ({ formType, formNumber, canEdit }: FormFilesProps) => {
   const { t } = useTranslation();
   const {
     files,
@@ -43,7 +44,7 @@ export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
     handleDelete,
     handleDownload,
     handleUploadModalToggle,
-  } = useFormFiles(formType, formNumber);
+  } = useFormFiles(formType, formNumber, canEdit);
 
   const [deleteModalFileId, setDeleteModalFileId] = useState<number | null>(null);
   const fileForDeleteModal = files.find((f) => f.id === deleteModalFileId) ?? null;
@@ -55,9 +56,10 @@ export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
       <Card.Content>
         <div className={styles.header}>
           <Heading element="h3">{t('form.files.title')}</Heading>
+          {canEdit && (
           <Button iconLeft="add" onClick={() => handleUploadModalToggle(true)}>
             {t('form.files.addBtn')}
-          </Button>
+          </Button>)}
           <Modal open={uploadModalOpen} onToggle={handleUploadModalToggle}>
             <Modal.Content>
               <Modal.Header
@@ -145,6 +147,7 @@ export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
                       >
                         {t('common.download')}
                       </Button>
+                      {canEdit && (
                       <Button
                         visualType="secondary"
                         color="danger"
@@ -152,7 +155,7 @@ export const FormFiles = ({ formType, formNumber }: FormFilesProps) => {
                         onClick={() => setDeleteModalFileId(file.id)}
                       >
                         {t('common.remove')}
-                      </Button>
+                      </Button>)}
                     </div>
                   </td>
                 </tr>

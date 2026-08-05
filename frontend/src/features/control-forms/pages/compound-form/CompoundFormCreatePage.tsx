@@ -30,7 +30,6 @@ import type { Trailer, DriveRestForm, Driver } from '../../types';
 
 type TrailerTouched = (Partial<Record<keyof Trailer, boolean>> | undefined)[];
 type TrailerErrors = (Partial<Record<keyof Trailer, string>> | undefined)[];
-type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 type DriverErrors = (Partial<Record<keyof Driver, string>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -49,27 +48,27 @@ interface FormRef {
   validateForm?: () => void;
 }
 
+const ROUTE_TO_TAB: Record<
+  string,
+  { tabId: string; type: string; labelKey: string }
+> = {
+  '/sp-driver': {
+    tabId: 'tab-sp-driver',
+    type: 'driver',
+    labelKey: 'forms.driver_drive_rest_form',
+  },
+  '/sp-teammate': {
+    tabId: 'tab-sp-teammate',
+    type: 'teammate',
+    labelKey: 'forms.teammate_drive_rest_form',
+  },
+};
+
 export function CompoundFormCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const type = searchParams.get('type');
-
-  const ROUTE_TO_TAB: Record<
-    string,
-    { tabId: string; type: string; labelKey: string }
-  > = {
-    '/sp-driver': {
-      tabId: 'tab-sp-driver',
-      type: 'driver',
-      labelKey: 'forms.driver_drive_rest_form',
-    },
-    '/sp-teammate': {
-      tabId: 'tab-sp-teammate',
-      type: 'teammate',
-      labelKey: 'forms.teammate_drive_rest_form',
-    },
-  };
 
   const initialTab =
     type && ROUTE_TO_TAB[`/sp-${type}`]
@@ -137,6 +136,7 @@ export function CompoundFormCreatePage() {
   // latest value instead of a stale value captured in its closure
   const compoundFormIdRef = useRef<number | null>(null);
   const savedDriveRestFormsRef = useRef<Set<string>>(new Set());
+  const savedSubFormIdsRef = useRef<Record<string, string>>({});
 
   const handleSaved = (id?: string) => {
     if (id) {
@@ -334,7 +334,9 @@ export function CompoundFormCreatePage() {
               }}
             >
               {t('forms.compound.generalPart')}
-              {hasTabErrors('tab-1') && <StatusIndicator type="danger" position="top-right" />}
+              {hasTabErrors('tab-1') && (
+                <StatusIndicator type="danger" position="top-right" />
+              )}
             </span>
           </Tabs.Trigger>
           {openTabs.map((tabId) => (
@@ -345,7 +347,9 @@ export function CompoundFormCreatePage() {
                 }}
               >
                 {tabLabels[tabId]}
-                {hasTabErrors(tabId) && <StatusIndicator type="danger" position="top-right" />}
+                {hasTabErrors(tabId) && (
+                  <StatusIndicator type="danger" position="top-right" />
+                )}
               </span>
               {openTabs.length > 1 && (
                 <ClosingButton
@@ -503,14 +507,17 @@ export function CompoundFormCreatePage() {
                                   o.value === formik.values.controlCountryCode,
                               ) ?? null
                             }
-                            onChange={(val) =>
-                              formik.setFieldValue(
-                                'controlCountryCode',
+                            onChange={(val) => {
+                              const newCode =
                                 val && !Array.isArray(val)
                                   ? (val as { value: string }).value
-                                  : '',
-                              )
-                            }
+                                  : '';
+                              formik.setFieldValue('controlCountryCode', newCode);
+                              if (newCode !== 'EE') {
+                                formik.setFieldValue('county', '');
+                                formik.setFieldValue('city', '');
+                              }
+                            }}
                             required
                             {...(formik.touched.controlCountryCode &&
                             formik.errors.controlCountryCode
@@ -546,9 +553,10 @@ export function CompoundFormCreatePage() {
                                   : '';
                               formik.setFieldValue('county', v);
                               formik.setFieldValue('city', '');
-                              handleCountyChange(v ? Number(v) : undefined);
+                              handleCountyChange();
                             }}
-                            required
+                            required={formik.values.controlCountryCode === 'EE'}
+                            disabled={formik.values.controlCountryCode !== 'EE'}
                             {...(formik.touched.county && formik.errors.county
                               ? {
                                   helper: {
@@ -581,7 +589,7 @@ export function CompoundFormCreatePage() {
                                   : '';
                               formik.setFieldValue('city', v);
                             }}
-                            disabled={!formik.values.county}
+                            disabled={!formik.values.county || formik.values.controlCountryCode !== 'EE'}
                           />
                         </div>
                         <Text id="road_type">
@@ -1021,11 +1029,13 @@ export function CompoundFormCreatePage() {
                                           }}
                                           required
                                           {...((
-                                            formik.touched.trailers as TrailerTouched
+                                            formik.touched
+                                              .trailers as TrailerTouched
                                           )?.[index]?.regNr &&
-                                          (formik.errors.trailers as TrailerErrors)?.[
-                                            index
-                                          ]?.regNr
+                                          (
+                                            formik.errors
+                                              .trailers as TrailerErrors
+                                          )?.[index]?.regNr
                                             ? {
                                                 helper: {
                                                   text: (
@@ -1103,15 +1113,18 @@ export function CompoundFormCreatePage() {
                                         formik.setFieldValue('trailers', u);
                                       }}
                                       required
-                                      {...((formik.touched.trailers as TrailerTouched)?.[
-                                        index
-                                      ]?.countryCode &&
-                                      (formik.errors.trailers as TrailerErrors)?.[index]
-                                        ?.countryCode
+                                      {...((
+                                        formik.touched
+                                          .trailers as TrailerTouched
+                                      )?.[index]?.countryCode &&
+                                      (
+                                        formik.errors.trailers as TrailerErrors
+                                      )?.[index]?.countryCode
                                         ? {
                                             helper: {
                                               text: (
-                                                formik.errors.trailers as TrailerErrors
+                                                formik.errors
+                                                  .trailers as TrailerErrors
                                               )?.[index]?.countryCode,
                                               type: 'error' as const,
                                             },
@@ -1199,15 +1212,18 @@ export function CompoundFormCreatePage() {
                                         formik.setFieldValue('trailers', u);
                                       }}
                                       required
-                                      {...((formik.touched.trailers as TrailerTouched)?.[
-                                        index
-                                      ]?.categoryCode &&
-                                      (formik.errors.trailers as TrailerErrors)?.[index]
-                                        ?.categoryCode
+                                      {...((
+                                        formik.touched
+                                          .trailers as TrailerTouched
+                                      )?.[index]?.categoryCode &&
+                                      (
+                                        formik.errors.trailers as TrailerErrors
+                                      )?.[index]?.categoryCode
                                         ? {
                                             helper: {
                                               text: (
-                                                formik.errors.trailers as TrailerErrors
+                                                formik.errors
+                                                  .trailers as TrailerErrors
                                               )[index]?.categoryCode,
                                               type: 'error' as const,
                                             },
@@ -1232,15 +1248,19 @@ export function CompoundFormCreatePage() {
                                           formik.setFieldValue('trailers', u);
                                         }}
                                         required
-                                        {...((formik.touched.trailers as TrailerTouched)?.[
-                                          index
-                                        ]?.categoryOther &&
-                                        (formik.errors.trailers as TrailerErrors)?.[index]
-                                          ?.categoryOther
+                                        {...((
+                                          formik.touched
+                                            .trailers as TrailerTouched
+                                        )?.[index]?.categoryOther &&
+                                        (
+                                          formik.errors
+                                            .trailers as TrailerErrors
+                                        )?.[index]?.categoryOther
                                           ? {
                                               helper: {
                                                 text: (
-                                                  formik.errors.trailers as TrailerErrors
+                                                  formik.errors
+                                                    .trailers as TrailerErrors
                                                 )?.[index]?.categoryOther,
                                                 type: 'error' as const,
                                               },
@@ -1442,9 +1462,7 @@ export function CompoundFormCreatePage() {
                                     : '';
                                 formik.setFieldValue('companyCounty', v);
                                 formik.setFieldValue('companyCity', '');
-                                handleCompanyCountyChange(
-                                  v ? Number(v) : undefined,
-                                );
+                                handleCompanyCountyChange();
                               }}
                             />
                             <Select
@@ -1616,14 +1634,13 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers?.[0] as { firstName?: boolean } | undefined)
-                            ?.firstName &&
-                          (formik.errors.drivers?.[0] as { firstName?: string } | undefined)
+                          {...((formik.errors.drivers as DriverErrors)?.[0]
                             ?.firstName
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers?.[0] as { firstName?: string } | undefined)
-                                    ?.firstName,
+                                  text: (
+                                    formik.errors.drivers as DriverErrors
+                                  )[0]?.firstName,
                                   type: 'error' as const,
                                 },
                               }
@@ -1640,12 +1657,13 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers as DriverTouched)?.[0]?.lastName &&
-                          (formik.errors.drivers as DriverErrors)?.[0]?.lastName
+                          {...((formik.errors.drivers as DriverErrors)?.[0]
+                            ?.lastName
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as DriverErrors)[0]
-                                    ?.lastName,
+                                  text: (
+                                    formik.errors.drivers as DriverErrors
+                                  )[0]?.lastName,
                                   type: 'error' as const,
                                 },
                               }
@@ -1664,14 +1682,13 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.touched.drivers as DriverTouched)?.[0]
-                            ?.personalCodeForeign &&
-                          (formik.errors.drivers as DriverErrors)?.[0]
+                          {...((formik.errors.drivers as DriverErrors)?.[0]
                             ?.personalCodeForeign
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as DriverErrors)?.[0]
-                                    ?.personalCodeForeign,
+                                  text: (
+                                    formik.errors.drivers as DriverErrors
+                                  )?.[0]?.personalCodeForeign,
                                   type: 'error' as const,
                                 },
                               }
@@ -1691,8 +1708,9 @@ export function CompoundFormCreatePage() {
                             ?.personalCodeEe
                             ? {
                                 helper: {
-                                  text: (formik.errors.drivers as DriverErrors)[0]
-                                    ?.personalCodeEe,
+                                  text: (
+                                    formik.errors.drivers as DriverErrors
+                                  )[0]?.personalCodeEe,
                                   type: 'error' as const,
                                 },
                               }
@@ -1746,12 +1764,13 @@ export function CompoundFormCreatePage() {
                             placeholder={t('common.dateFieldPlaceholder')}
                             required
                             inputProps={
-                              (formik.touched.drivers as DriverTouched)?.[0]?.birthDate &&
-                              (formik.errors.drivers as DriverErrors)?.[0]?.birthDate
+                              (formik.errors.drivers as DriverErrors)?.[0]
+                                ?.birthDate
                                 ? {
                                     helper: {
-                                      text: (formik.errors.drivers as DriverErrors)?.[0]
-                                        ?.birthDate,
+                                      text: (
+                                        formik.errors.drivers as DriverErrors
+                                      )?.[0]?.birthDate,
                                       type: 'error' as const,
                                     },
                                   }
@@ -2051,15 +2070,25 @@ export function CompoundFormCreatePage() {
           openTabs.includes(tabId) ? (
             <Tabs.Content key={tabId} id={tabId} className="p-1">
               <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
-                <DriveRestFormCreatePage type={tabType} compoundFormKey={compoundFormId ?? undefined} initialValidate={validatedTabs.has(tabId)} onValuesChange={(values) => {
-                  savedFormData.current[tabId] = values;
-                }} ref={(ref) => {
-                  formRefs.current[tabId].current = ref;
-                }} onSaved={(id) => {
-                  if (id) {
-                    savedDriveRestFormsRef.current = new Set(savedDriveRestFormsRef.current).add(tabId);
-                  }
-                }} />
+                <DriveRestFormCreatePage
+                  type={tabType}
+                  compoundFormKey={compoundFormId ?? undefined}
+                  initialValidate={validatedTabs.has(tabId)}
+                  onValuesChange={(values) => {
+                    savedFormData.current[tabId] = values;
+                  }}
+                  ref={(ref) => {
+                    formRefs.current[tabId].current = ref;
+                  }}
+                  onSaved={(id) => {
+                    if (id) {
+                      savedDriveRestFormsRef.current = new Set(
+                        savedDriveRestFormsRef.current,
+                      ).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(id);
+                    }
+                  }}
+                />
               </div>
             </Tabs.Content>
           ) : null,
@@ -2129,19 +2158,25 @@ export function CompoundFormCreatePage() {
                       ...savedFormData.current[tabId],
                       compoundFormKey: id,
                     };
-                    const trimmedValues = serializeDriveRestFormValues(values, 'saved');
+                    const trimmedValues = serializeDriveRestFormValues(
+                      values,
+                      'saved',
+                    );
                     const result = await insertDriveRestForm(
                       tabType,
                       trimmedValues as unknown as DriveRestForm,
                     );
                     if (result[0]?.id) {
-                      savedDriveRestFormsRef.current = new Set(savedDriveRestFormsRef.current).add(tabId);
+                      savedDriveRestFormsRef.current = new Set(
+                        savedDriveRestFormsRef.current,
+                      ).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(result[0].id);
                     }
                   }
                 }
               }
 
-              // Step 6: Navigate (will be updated based on user info)
+              // Step 6: Navigate to the compound page (which shows all tabs).
               navigate(`/control-forms/compound/${id}`, {
                 state: { justCreated: true },
               });

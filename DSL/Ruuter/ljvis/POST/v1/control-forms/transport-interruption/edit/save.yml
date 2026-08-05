@@ -1,0 +1,153 @@
+declaration:
+
+  version: "1.0"
+  description: "Create or update the transport-interruption sub-form (autoveo katkestamise kontrollvorm, LJVIS2-74) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: compoundFormKey
+        type: number
+      - field: headerText
+        type: string
+      - field: residenceCountry
+        type: string
+      - field: residenceRegion
+        type: string
+      - field: residenceCity
+        type: string
+      - field: residenceAddressLine
+        type: string
+      - field: residencePostalCode
+        type: string
+      - field: interruptionReason
+        type: string
+      - field: legalBases
+        type: string
+      - field: terminationCondition
+        type: string
+      - field: personApplications
+        type: string
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    compound_form_key: "${incoming.body.compoundFormKey}"
+    header_text: "${incoming.body.headerText || ''}"
+    residence_country: "${incoming.body.residenceCountry || 'EE'}"
+    residence_region: "${incoming.body.residenceRegion || ''}"
+    residence_city: "${incoming.body.residenceCity || ''}"
+    residence_address_line: "${incoming.body.residenceAddressLine || ''}"
+    residence_postal_code: "${incoming.body.residencePostalCode || ''}"
+    interruption_reason: "${incoming.body.interruptionReason || ''}"
+    legal_bases: "${incoming.body.legalBases || '[]'}"
+    termination_condition: "${incoming.body.terminationCondition || ''}"
+    person_applications: "${incoming.body.personApplications || ''}"
+    created_by: "${auth_user.personalcode || ''}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${id == null || id === ''}
+      next: checkCompoundFormKeyForCreate
+  next: getCurrentFormForStatus
+
+checkCompoundFormKeyForCreate:
+  switch:
+    - condition: ${compound_form_key == null}
+      next: returnMissingCompoundFormKeyError
+  next: insertForm
+
+insertForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/transport-interruption/insert"
+    headers:
+      type: json
+    body:
+      compoundFormKey: ${compound_form_key}
+      status: saved
+      headerText: ${header_text}
+      residenceCountry: ${residence_country}
+      residenceRegion: ${residence_region}
+      residenceCity: ${residence_city}
+      residenceAddressLine: ${residence_address_line}
+      residencePostalCode: ${residence_postal_code}
+      interruptionReason: ${interruption_reason}
+      legalBases: ${legal_bases}
+      terminationCondition: ${termination_condition}
+      personApplications: ${person_applications}
+      created_by: ${created_by}
+  result: saveRes
+  next: returnSuccess
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/transport-interruption/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: extractCurrentStatus
+
+extractCurrentStatus:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormNotLocked
+
+checkFormNotLocked:
+  switch:
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+      next: returnFormLockedError
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/transport-interruption/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: ${current_status}
+      headerText: ${header_text}
+      residenceCountry: ${residence_country}
+      residenceRegion: ${residence_region}
+      residenceCity: ${residence_city}
+      residenceAddressLine: ${residence_address_line}
+      residencePostalCode: ${residence_postal_code}
+      interruptionReason: ${interruption_reason}
+      legalBases: ${legal_bases}
+      terminationCondition: ${termination_condition}
+      personApplications: ${person_applications}
+      created_by: ${created_by}
+  result: saveRes
+  next: returnSuccess
+
+returnSuccess:
+  return: ${saveRes.response.body}
+  next: end
+
+returnMissingCompoundFormKeyError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"compoundFormKey","code":"required"}'
+  next: end
+
+returnFormLockedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked"}'
+  next: end

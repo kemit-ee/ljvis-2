@@ -1,0 +1,26 @@
+server:
+  bind: "0.0.0.0:8080"
+  max_body_bytes: 1048576
+  request_timeout_seconds: 30
+
+sql_dir: "/app/sql"
+
+project_datasource_map:
+  ljvis: byk
+
+allow_datasource_header: false
+
+datasources:
+  - name: byk
+    url: "postgres://database:5432/ljvis_db"
+    username: "ljvis"
+    password_env: "RESQL_DB_PASSWORD"
+    max_connections: 10
+    acquire_timeout_seconds: 5
+
+cors:
+  allowed_origins: "*"
+
+logging:
+  level: "info"
+  format: "text"

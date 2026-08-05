@@ -1,47 +1,54 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, Text } from '@tedi-design-system/react/tedi';
-import {
-  Modal,
-  ModalCloser,
-  ModalProvider,
-  ModalTrigger,
-  CardContent,
-} from '@tedi-design-system/react/community';
+import { Button, Modal, Text } from '@tedi-design-system/react/tedi';
 
 interface DeleteConfirmModalProps {
   onDelete: () => void;
+  subForm?: boolean;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function DeleteConfirmModal({ onDelete }: DeleteConfirmModalProps) {
+export function DeleteConfirmModal({ onDelete, subForm, isOpen, onClose }: DeleteConfirmModalProps) {
   const { t } = useTranslation();
+  const [internalOpen, setInternalOpen] = useState(false);
+  const titleKey = subForm ? 'common.deleteSubConfirmTitle' : 'common.deleteConfirmTitle';
+  const bodyKey = subForm ? 'common.deleteSubConfirm' : 'common.deleteConfirm';
+
+  const controlled = isOpen !== undefined;
+  const open = controlled ? isOpen : internalOpen;
+  const handleToggle = (next: boolean) => {
+    if (!next) {
+      if (controlled) onClose?.();
+      else setInternalOpen(false);
+    }
+  };
 
   return (
-    <ModalProvider>
-      <ModalTrigger>
-        <Button type="button" color="danger">
+    <>
+      {!controlled && (
+        <Button type="button" color="danger" onClick={() => setInternalOpen(true)}>
           {t('common.delete')}
         </Button>
-      </ModalTrigger>
-      <Modal aria-labelledby="delete-confirm-title">
-        <CardContent>
-          <Heading element="h2" id="delete-confirm-title">
-            {t('common.deleteConfirmTitle')}
-          </Heading>
-          <div className="mt-1">
-            <Text>{t('common.deleteConfirm')}</Text>
-          </div>
-          <div className="modal-actions">
-            <ModalCloser>
-              <Button visualType="secondary">{t('common.cancel')}</Button>
-            </ModalCloser>
-            <ModalCloser>
-              <Button color="danger" onClick={onDelete}>
-                {t('common.delete')}
+      )}
+      <Modal open={open} onToggle={handleToggle}>
+        <Modal.Content>
+          <Modal.Header title={t(titleKey)} closeButton />
+          <Modal.Body>
+            <Text>{t(bodyKey)}</Text>
+          </Modal.Body>
+          <Modal.Footer>
+            <Modal.Closer>
+              <Button visualType="secondary" onClick={() => handleToggle(false)}>
+                {t('common.cancel')}
               </Button>
-            </ModalCloser>
-          </div>
-        </CardContent>
+            </Modal.Closer>
+            <Button color="danger" onClick={onDelete}>
+              {t('common.delete')}
+            </Button>
+          </Modal.Footer>
+        </Modal.Content>
       </Modal>
-    </ModalProvider>
+    </>
   );
 }

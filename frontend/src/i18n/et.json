@@ -294,6 +294,27 @@
       "status": "Staatus",
       "open": "Ava link"
     },
+    "shared": {
+      "files": {
+        "label": "Failid",
+        "save_first": "Salvesta vorm enne failide lisamist",
+        "error": "Faili üleslaadimine või allalaadimine ebaõnnestus"
+      },
+      "address": {
+        "country": "Riik",
+        "county": "Maakond",
+        "city": "Linn/Vald",
+        "street": "Tänav, maja",
+        "postalCode": "Postiindeks"
+      },
+      "personSearch": {
+        "personalCode": "Isikukood",
+        "search": "Otsi",
+        "notFound": "Isikut ei leitud",
+        "error": "Otsing ebaõnnestus",
+        "invalidCode": "Sisestage kehtiv Eesti isikukood"
+      }
+    },
     "foreign_violation_form": "Välisriigis teostatud autoveoalase kontrolli kontrollkaart",
     "labour_inspection_form": "Tööinspektsiooni kontrollkaart",
     "labour_inspection": {
@@ -348,8 +369,267 @@
         }
       }
     },
-    "reputation_noncompliance_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
+    "good_repute": {
+      "title": "Hea maine vorm",
+      "driver": {
+        "title": "Veokorraldusjuhi andmed",
+        "personalCode": "Isikukood",
+        "firstName": "Eesnimi",
+        "lastName": "Perekonnanimi",
+        "dateOfBirth": "Sünniaeg",
+        "placeOfBirth": "Sünnikoht",
+        "searchInvalid": "Isikukood on vigases formaadis",
+        "searchNotFound": "Isiku andmeid ei leitud"
+      },
+      "certificate": {
+        "title": "Ametialase pädevuse tunnistus",
+        "number": "Ametialase pädevuse tunnistuse number",
+        "issueDate": "Ametialase pädevuse tunnistuse väljaandmise kuupäev",
+        "countryCode": "Ametialase pädevuse tunnistuse väljastanud riik"
+      },
+      "fitness": {
+        "title": "Sobivuse hinnang",
+        "status": "Sobivus",
+        "fit": "Sobib",
+        "unfit": "Sobimatu",
+        "unfitFromDate": "Sobimatuks tunnistamise kuupäev",
+        "unfitUntilDate": "Sobimatuse lõppkuupäev"
+      },
+      "validation": {
+        "required": "Kohustuslik väli",
+        "api": {
+          "required": "Kohustuslik väli",
+          "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus",
+          "max_length_exceeded": "Väärtus on liiga pikk",
+          "must_be_after_unfit_from_date": "Sobimatuse lõppkuupäev peab olema hilisem kui alguskuupäev",
+          "form_locked_after_confirm": "See vorm on kinnitatud ja seda ei saa enam muuta",
+          "already_confirmed": "See vorm on juba kinnitatud"
+        }
+      }
+    },
+    "good_repute_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
     "compound_form": "Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart",
+    "technical_check": {
+      "sectionTitle": "Tehnonõuetele vastavuse kontrollvormid",
+      "vehicleTitle": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
+      "trailerTitle": "Haagise tehnonõuetele vastavuse kontrollvorm",
+      "addNew": "Lisa uus tehnovorm",
+      "validation": {
+        "required": "Kohustuslik väli",
+        "notesMaxLength": "Märkuste maht on piiratud 2000 tähemärgiga",
+        "api": {
+          "required": "Kohustuslik väli",
+          "max_length_2000": "Märkuste maht on piiratud 2000 tähemärgiga",
+          "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
+          "code_not_applicable_to_trailer": "Valitud kood ei kohaldu haagisele",
+          "already_confirmed": "See vorm on juba kinnitatud",
+          "xroad_fields_require_confirmed_status": "X-tee väljade salvestamine nõuab kinnitatud olekus vormi"
+        }
+      },
+      "parts": {
+        "title": "Sõiduki kontrollitavate osade ja sõlmede nimekiri",
+        "column": "Osa/sõlm",
+        "statusColumn": "Olek",
+        "notChecked": "Ei kontrollitud",
+        "checked": "Kontrollitud",
+        "nonCompliant": "Ei vasta nõuetele"
+      },
+      "resultsTable": {
+        "title": "Tuvastatud rikked",
+        "empty": "Rikkeid ei ole lisatud",
+        "part": "Osa/sõlm",
+        "defect": "Rike",
+        "severity": "Raskusaste"
+      },
+      "defectModal": {
+        "select": "Vali",
+        "noDefects": "Sellel osal ei ole rikkeid",
+        "selectAtLeastOne": "Valige vähemalt üks rike."
+      },
+      "result": {
+        "title": "Kontrolli tulemus",
+        "resultType": "Kontrolli tulemus",
+        "autoLockedHint": "Osad valikud on lukustatud, kuna leitud rikked eeldavad kõrgemat kontrolli tulemuse taset. Eemalda vastavad rikked, et madalamat taset valida.",
+        "options": {
+          "ok": "Tehniliselt korras",
+          "extraordinary_inspection": "Suunatud erakorralisele tehnoülevaatusele",
+          "extraordinary_inspection_ta": "Suunatud erakorralisele tehnoülevaatusele liiklusregistri andmete täpsustamiseks Transpordiametis",
+          "driving_ban": "Sõidukeeld"
+        },
+        "transportInterruption": "Autovedu on katkestatud",
+        "taFieldsTitle": "Transpordiameti täpsustus",
+        "taRegnr": "Registreerimisnumber (A)",
+        "taVintin": "VIN-kood või TIN-kood (E)",
+        "taAxles": "Telgede arv (L)",
+        "taPlaces": "Istekohtade arv koos juhiga (S.1)",
+        "taRebuilt": "Sõiduk on omavoliliselt ümberehitatud",
+        "proceedingType": "Menetluse liik",
+        "proceedingTypes": {
+          "summary": "Lühimenetlus",
+          "expedited": "Kiirmenetlus",
+          "general": "Üldmenetlus"
+        },
+        "proceedingReferenceNumber": "Menetluse viitenumber"
+      },
+      "notes": {
+        "label": "Märkused",
+        "counter": "{{count}}/{{max}} tähemärki"
+      },
+      "violations": {
+        "title": "Euroopa Parlamendi ja nõukogu määrusest (EÜ) nr 1071/2009 ja komisjoni määrusest (EL) nr 2016/403 tuleneva raske rikkumise tuvastamine"
+      },
+      "xroad": {
+        "title": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
+        "extraordinaryInspectionDate": "Erakorraline tehnoülevaatus läbitud",
+        "enforcementDecision": "Jõustunud otsus",
+        "proceedingClosureBasis": "Menetluse lõpetamise alus",
+        "save": "Salvesta X-tee andmed",
+        "saveError": "X-tee andmete salvestamine ebaõnnestus"
+      }
+    },
+    "transport_interruption": {
+      "title": "Autovedu on katkestatud",
+      "sectionTitle": "Autoveo katkestamise kontrollvorm",
+      "addNew": "Lisa autoveo katkestamise kontrollvorm",
+      "header": {
+        "title": "Päis",
+        "headerText": "Päis"
+      },
+      "residence": {
+        "title": "Elukoht"
+      },
+      "result": {
+        "title": "Kontrolli tulemus",
+        "interruptionReason": "Kuna:",
+        "legalBases": "Õiguslikud alused"
+      },
+      "terminationCondition": {
+        "title": "Autoveo katkestamise lõppemise tingimus"
+      },
+      "personApplications": {
+        "title": "Isiku taotlused"
+      },
+      "validation": {
+        "postalCodeMaxLength": "Sihtnumber võib olla kuni {{max}} tähemärki",
+        "api": {
+          "required": "Kohustuslik väli",
+          "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
+          "already_confirmed": "See vorm on juba kinnitatud"
+        }
+      }
+    },
+    "adr": {
+      "title": "ADR kontrollvorm (ohtlik veos)",
+      "sectionTitle": "ADR kontrollvorm",
+      "addNew": "Lisa ADR kontrollvorm",
+      "hintOnlyOnViolation": "Andmed täidetakse ainult rikkumise korral.",
+      "driverAssistant": {
+        "title": "Autojuhi abi andmed",
+        "personalCode": "Isikukood",
+        "firstName": "Eesnimi",
+        "lastName": "Perekonnanimi",
+        "citizenship": "Kodakondsus",
+        "birthDate": "Sünniaeg",
+        "searchInvalid": "Sisestage kehtiv Eesti isikukood",
+        "searchNotFound": "Isikut ei leitud"
+      },
+      "certificates": {
+        "title": "ADR koolitustunnistuse numbrid",
+        "driver": "Autojuhi ADR koolitustunnistuse number",
+        "crew": "Meeskonnaliikme ADR koolitustunnistuse number",
+        "assistant": "Autojuhi abi ADR koolitustunnistuse number"
+      },
+      "lastLoad": {
+        "title": "Viimase peale- või mahalaadimise aadress ja kuupäev",
+        "date": "Kuupäev"
+      },
+      "nextLoad": {
+        "title": "Järgmise peale- või mahalaadimise aadress"
+      },
+      "dangerousGoods": {
+        "title": "Veetavate ohtlike kaupade andmed",
+        "empty": "Ohtlikke kaupu ei ole lisatud",
+        "addRow": "+ Lisa ohtlik kaup",
+        "unNumber": "ÜN-number",
+        "packagingGroup": "Pakendirühm",
+        "quantity": "Kogus",
+        "unitCode": "Ühik"
+      },
+      "exemption": {
+        "title": "Erandi kohaldamine",
+        "hint": "ADR erandite kohaldamine vastavalt ADR sätetele.",
+        "applied": "Kas kohaldatakse erandit",
+        "provision": "ADRi punkt"
+      },
+      "containerType": {
+        "title": "Mahuti tüüp",
+        "options": {
+          "mahtlast": "Mahtlast",
+          "paak": "Paak",
+          "pakend": "Pakend",
+          "memu": "MEMU"
+        }
+      },
+      "infringements": {
+        "title": "Rikkumised",
+        "classifierMissing": "Rikkumiste kontrollnimekirja klassifikaator ei ole veel seadistatud.",
+        "checkStatus": "Tulemus",
+        "status": {
+          "checked": "Kontrollitud (C)",
+          "not_possible": "Ei ole võimalik kontrollida (NC)",
+          "not_applicable": "Ei kohaldata (NA)"
+        },
+        "riskCategory": "Riskikategooria",
+        "adrProvision": "ADRi punkt",
+        "notes": "Märkus",
+        "otherViolations": "Muud rikkumised"
+      },
+      "result": {
+        "title": "Kontrolli tulemus",
+        "resultType": "Kontrolli tulemus",
+        "resultTypes": {
+          "ok": "Korras",
+          "misdemeanor_proceedings": "Alustati väärteomenetlust",
+          "warning": "Hoiatus",
+          "driving_ban_art5": "Sõidukeeld (ADR art 5)",
+          "transport_interruption": "Autovedu on katkestatud"
+        },
+        "proceedingType": "Menetluse liik",
+        "proceedingTypes": {
+          "expedited": "Kiirmenetlus",
+          "general": "Üldmenetlus"
+        },
+        "proceedingReferenceNumber": "Menetluse viitenumber",
+        "correctiveMeasures": "Rakendatud meetmed",
+        "correctiveMeasureOptions": {
+          "on_spot": "Kohapeal",
+          "before_journey_end": "Enne sõidu lõppu",
+          "at_premises": "Ettevõtte territooriumil"
+        },
+        "sealOpened": "Plomm avatud kontrolli käigus",
+        "sealOpenedDate": "Plommi avamise kuupäev",
+        "sealInstalledDate": "Plommi paigaldamise kuupäev"
+      },
+      "notes": {
+        "title": "Märkused"
+      },
+      "xroad": {
+        "title": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
+        "enforcementDecision": "Jõustunud otsus",
+        "proceedingClosureBasis": "Menetluse lõpetamise alus",
+        "save": "Salvesta X-tee andmed",
+        "saveError": "X-tee andmete salvestamine ebaõnnestus"
+      },
+      "validation": {
+        "required": "Kohustuslik väli",
+        "notesMaxLength": "Märkused võivad olla kuni {{max}} tähemärki",
+        "api": {
+          "required": "Kohustuslik väli",
+          "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
+          "already_confirmed": "See vorm on juba kinnitatud"
+        }
+      }
+    },
     "driver_drive_rest_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
     "teammate_drive_rest_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
     "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
@@ -965,7 +1245,9 @@
     "enterNotesPlaceholder": "Sisestage märkused...",
     "space": " ",
     "deleteConfirmTitle": "Koondvormi kustutamine",
+    "deleteSubConfirmTitle": "Alamvormi kustutamine",
     "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?",
+    "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
     "download": "Laadi alla"
   },
   "xroad": {

@@ -24,6 +24,12 @@ import { CompoundFormCreatePage } from './features/control-forms/pages/compound-
 import { CompoundFormPage } from './features/control-forms/pages/compound-form/CompoundFormPage';
 import { LabourInspectionFormCreatePage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormCreatePage';
 import { LabourInspectionFormPage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormPage';
+import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
+import { TransportInterruptionFormPage } from './features/control-forms/pages/transport-interruption-form/TransportInterruptionFormPage';
+import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage';
+import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-repute-form/GoodReputeFormCreatePage';
+import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
+import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -90,6 +96,22 @@ function AppRoutes() {
             element={<CompoundFormPage />}
           />
           <Route
+            path="/control-forms/sp-driver/:id"
+            element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
+            path="/control-forms/sp-driver/:id/:snapshotId"
+            element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
+            path="/control-forms/sp-teammate/:id"
+            element={<DriveRestFormPage entryType="teammate" />}
+          />
+          <Route
+            path="/control-forms/sp-teammate/:id/:snapshotId"
+            element={<DriveRestFormPage entryType="teammate" />}
+          />
+          <Route
             path="/control-forms/labour-inspection/new"
             element={<LabourInspectionFormCreatePage />}
           />
@@ -100,6 +122,60 @@ function AppRoutes() {
           <Route
             path="/control-forms/labour-inspection/:id/:snapshotId"
             element={<LabourInspectionFormPage />}
+          />
+          <Route
+            path="/control-forms/vehicle-technical/new/:compoundFormKey"
+            element={<TechnicalCheckFormPage variant="vehicle" />}
+          />
+          <Route
+            path="/control-forms/vehicle-technical/:id"
+            element={<TechnicalCheckFormPage variant="vehicle" />}
+          />
+          <Route
+            path="/control-forms/vehicle-technical/:id/:snapshotId"
+            element={<TechnicalCheckFormPage variant="vehicle" />}
+          />
+          <Route
+            path="/control-forms/trailer-technical/new/:compoundFormKey"
+            element={<TechnicalCheckFormPage variant="trailer" />}
+          />
+          <Route
+            path="/control-forms/trailer-technical/:id"
+            element={<TechnicalCheckFormPage variant="trailer" />}
+          />
+          <Route
+            path="/control-forms/trailer-technical/:id/:snapshotId"
+            element={<TechnicalCheckFormPage variant="trailer" />}
+          />
+          <Route
+            path="/control-forms/transport-interruption/new/:compoundFormKey"
+            element={<TransportInterruptionFormPage />}
+          />
+          <Route
+            path="/control-forms/transport-interruption/:id"
+            element={<TransportInterruptionFormPage />}
+          />
+          <Route
+            path="/control-forms/transport-interruption/:id/:snapshotId"
+            element={<TransportInterruptionFormPage />}
+          />
+          <Route
+            path="/control-forms/adr/new/:compoundFormKey"
+            element={<AdrFormPage />}
+          />
+          <Route path="/control-forms/adr/:id" element={<AdrFormPage />} />
+          <Route path="/control-forms/adr/:id/:snapshotId" element={<AdrFormPage />} />
+          <Route
+            path="/control-forms/good-repute/new"
+            element={<GoodReputeFormCreatePage />}
+          />
+          <Route
+            path="/control-forms/good-repute/:id"
+            element={<GoodReputeFormPage />}
+          />
+          <Route
+            path="/control-forms/good-repute/:id/:snapshotId"
+            element={<GoodReputeFormPage />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

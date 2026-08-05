@@ -78,30 +78,22 @@ services:
     build:
       context: .
       dockerfile: docker/resql-ljvis/Dockerfile
-    platform: linux/amd64
     restart: unless-stopped
     depends_on:
       bootstrap:
         condition: service_completed_successfully
     environment:
-      - server.port=8090
-      - sqlms.datasources.[0].name=byk
-      - sqlms.datasources.[0].jdbcUrl=jdbc:postgresql://database:5432/ljvis_db
-      - sqlms.datasources.[0].username=ljvis
-      - sqlms.datasources.[0].password=01234
-      - logging.level.org.springframework.boot=INFO
+      - RESQL_DB_PASSWORD=01234
     healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 8090"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 18
-      start_period: 45s
-    volumes:
-      - ./DSL/Resql:/DSL
+      start_period: 15s
     networks:
       - ljvis-ci
     ports:
-      - "9087:8090"
+      - "9087:8080"
 
   data-mapper:
     build:

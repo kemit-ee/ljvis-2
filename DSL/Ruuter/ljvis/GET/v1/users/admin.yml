@@ -40,8 +40,8 @@ getUser:
 
 buildAuditLog:
   assign:
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
     user_first_name: "${res.response.body[0].firstName || ''}"
     user_last_name: "${res.response.body[0].lastName || ''}"
     user_personal_code: "${res.response.body[0].personalCode || ''}"

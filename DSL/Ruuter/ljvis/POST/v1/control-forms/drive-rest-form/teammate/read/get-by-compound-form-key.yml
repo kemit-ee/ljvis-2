@@ -1,0 +1,53 @@
+declaration:
+
+  version: "1.0"
+  description: "Get the latest active drive rest form (teammate) for a compound form"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: compoundFormKey
+        type: number
+
+extractRequestData:
+  assign:
+    compound_form_key: "${incoming.body.compoundFormKey}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get-by-compound-form-key"
+    headers:
+      type: json
+    body:
+      compoundFormKey: ${compound_form_key}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnEmpty
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_sp_teammate_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnEmpty:
+  return: null
+  next: end

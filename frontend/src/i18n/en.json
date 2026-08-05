@@ -274,6 +274,27 @@
     "addForm": "+ Add"
   },
   "forms": {
+    "shared": {
+      "files": {
+        "label": "Files",
+        "save_first": "Save the form before adding files",
+        "error": "File upload or download failed"
+      },
+      "address": {
+        "country": "Country",
+        "county": "County",
+        "city": "City/Parish",
+        "street": "Street, building",
+        "postalCode": "Postal code"
+      },
+      "personSearch": {
+        "personalCode": "Personal code",
+        "search": "Search",
+        "notFound": "Person not found",
+        "error": "Search failed",
+        "invalidCode": "Enter a valid Estonian personal code"
+      }
+    },
     "foreign_violation_form": "Foreign country road transport inspection report",
     "labour_inspection_form": "Labour Inspectorate inspection form",
     "labour_inspection": {
@@ -328,8 +349,267 @@
         }
       }
     },
-    "reputation_noncompliance_form": "Transport manager declared non-compliant with good repute",
+    "good_repute": {
+      "title": "Good repute form",
+      "driver": {
+        "title": "Transport manager data",
+        "personalCode": "Personal code",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "dateOfBirth": "Date of birth",
+        "placeOfBirth": "Place of birth",
+        "searchInvalid": "Personal code is in an invalid format",
+        "searchNotFound": "No matching person found"
+      },
+      "certificate": {
+        "title": "Professional competence certificate",
+        "number": "Professional competence certificate number",
+        "issueDate": "Certificate issue date",
+        "countryCode": "Country that issued the certificate"
+      },
+      "fitness": {
+        "title": "Fitness assessment",
+        "status": "Fitness",
+        "fit": "Fit",
+        "unfit": "Unfit",
+        "unfitFromDate": "Declared unfit from date",
+        "unfitUntilDate": "Unfit until date"
+      },
+      "validation": {
+        "required": "Required field",
+        "api": {
+          "required": "Required field",
+          "future_date_not_allowed": "Date cannot be in the future",
+          "max_length_exceeded": "Value is too long",
+          "must_be_after_unfit_from_date": "Unfit until date must be later than the unfit from date",
+          "form_locked_after_confirm": "This form has been confirmed and can no longer be edited",
+          "already_confirmed": "This form has already been confirmed"
+        }
+      }
+    },
+    "good_repute_form": "Transport manager declared non-compliant with good repute",
     "compound_form": "Transport supervision and vehicle technical condition inspection",
+    "technical_check": {
+      "sectionTitle": "Technical roadworthiness check sub-forms",
+      "vehicleTitle": "Vehicle technical roadworthiness check form",
+      "trailerTitle": "Trailer technical roadworthiness check form",
+      "addNew": "Add new technical check form",
+      "validation": {
+        "required": "Required field",
+        "notesMaxLength": "Notes are limited to 2000 characters",
+        "api": {
+          "required": "Required field",
+          "max_length_2000": "Notes are limited to 2000 characters",
+          "form_locked_after_publish": "This form has been published and can no longer be edited",
+          "code_not_applicable_to_trailer": "The selected code does not apply to a trailer",
+          "already_confirmed": "This form has already been confirmed",
+          "xroad_fields_require_confirmed_status": "X-Road fields can only be saved on a confirmed form"
+        }
+      },
+      "parts": {
+        "title": "List of inspected parts and assemblies",
+        "column": "Part / assembly",
+        "statusColumn": "Status",
+        "notChecked": "Not checked",
+        "checked": "Checked",
+        "nonCompliant": "Non-compliant"
+      },
+      "resultsTable": {
+        "title": "Detected defects",
+        "empty": "No defects added",
+        "part": "Part / assembly",
+        "defect": "Defect",
+        "severity": "Severity"
+      },
+      "defectModal": {
+        "select": "Select",
+        "noDefects": "This part has no defects",
+        "selectAtLeastOne": "Select at least one defect."
+      },
+      "result": {
+        "title": "Inspection result",
+        "resultType": "Inspection result",
+        "autoLockedHint": "Some options are locked because the detected defects require a higher inspection result. Remove those defects to select a lower level.",
+        "options": {
+          "ok": "Technically sound",
+          "extraordinary_inspection": "Referred for extraordinary roadworthiness test",
+          "extraordinary_inspection_ta": "Referred for extraordinary roadworthiness test with Transport Administration data verification",
+          "driving_ban": "Driving ban"
+        },
+        "transportInterruption": "Road transport interrupted",
+        "taFieldsTitle": "Transport Administration verification",
+        "taRegnr": "Registration number (A)",
+        "taVintin": "VIN/TIN code (E)",
+        "taAxles": "Number of axles (L)",
+        "taPlaces": "Number of seats incl. driver (S.1)",
+        "taRebuilt": "Vehicle has been rebuilt without authorisation",
+        "proceedingType": "Proceeding type",
+        "proceedingTypes": {
+          "summary": "Summary proceeding",
+          "expedited": "Expedited proceeding",
+          "general": "General proceeding"
+        },
+        "proceedingReferenceNumber": "Proceeding reference number"
+      },
+      "notes": {
+        "label": "Notes",
+        "counter": "{{count}}/{{max}} characters"
+      },
+      "violations": {
+        "title": "Identification of a serious infringement under Regulation (EC) No 1071/2009 and Commission Regulation (EU) 2016/403"
+      },
+      "xroad": {
+        "title": "Data entered via the X-Road query",
+        "extraordinaryInspectionDate": "Extraordinary roadworthiness test passed",
+        "enforcementDecision": "Final decision",
+        "proceedingClosureBasis": "Basis for closing proceedings",
+        "save": "Save X-Road data",
+        "saveError": "Failed to save X-Road data"
+      }
+    },
+    "transport_interruption": {
+      "title": "Road transport interrupted",
+      "sectionTitle": "Transport-interruption control form",
+      "addNew": "Add transport-interruption control form",
+      "header": {
+        "title": "Header",
+        "headerText": "Header"
+      },
+      "residence": {
+        "title": "Residence"
+      },
+      "result": {
+        "title": "Inspection result",
+        "interruptionReason": "Because:",
+        "legalBases": "Legal grounds"
+      },
+      "terminationCondition": {
+        "title": "Condition for ending the transport interruption"
+      },
+      "personApplications": {
+        "title": "Person's applications"
+      },
+      "validation": {
+        "postalCodeMaxLength": "Postal code can be at most {{max}} characters",
+        "api": {
+          "required": "Required field",
+          "form_locked_after_publish": "This form has been published and can no longer be edited",
+          "already_confirmed": "This form has already been confirmed"
+        }
+      }
+    },
+    "adr": {
+      "title": "ADR control form (dangerous goods)",
+      "sectionTitle": "ADR control form",
+      "addNew": "Add ADR control form",
+      "hintOnlyOnViolation": "These fields are filled in only if a violation is found.",
+      "driverAssistant": {
+        "title": "Driver's assistant data",
+        "personalCode": "Personal code",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "citizenship": "Citizenship",
+        "birthDate": "Date of birth",
+        "searchInvalid": "Enter a valid Estonian personal code",
+        "searchNotFound": "Person not found"
+      },
+      "certificates": {
+        "title": "ADR training certificate numbers",
+        "driver": "Driver's ADR training certificate number",
+        "crew": "Crew member's ADR training certificate number",
+        "assistant": "Driver's assistant's ADR training certificate number"
+      },
+      "lastLoad": {
+        "title": "Last loading/unloading address and date",
+        "date": "Date"
+      },
+      "nextLoad": {
+        "title": "Next loading/unloading address"
+      },
+      "dangerousGoods": {
+        "title": "Transported dangerous goods",
+        "empty": "No dangerous goods added",
+        "addRow": "+ Add dangerous good",
+        "unNumber": "UN number",
+        "packagingGroup": "Packaging group",
+        "quantity": "Quantity",
+        "unitCode": "Unit"
+      },
+      "exemption": {
+        "title": "Exemption",
+        "hint": "Application of ADR exemptions per ADR provisions.",
+        "applied": "Is an exemption applied",
+        "provision": "ADR provision"
+      },
+      "containerType": {
+        "title": "Container type",
+        "options": {
+          "mahtlast": "Bulk",
+          "paak": "Tank",
+          "pakend": "Packaging",
+          "memu": "MEMU"
+        }
+      },
+      "infringements": {
+        "title": "Infringements",
+        "classifierMissing": "The infringements checklist classifier has not been configured yet.",
+        "checkStatus": "Result",
+        "status": {
+          "checked": "Checked (C)",
+          "not_possible": "Not possible to check (NC)",
+          "not_applicable": "Not applicable (NA)"
+        },
+        "riskCategory": "Risk category",
+        "adrProvision": "ADR provision",
+        "notes": "Note",
+        "otherViolations": "Other violations"
+      },
+      "result": {
+        "title": "Inspection result",
+        "resultType": "Inspection result",
+        "resultTypes": {
+          "ok": "OK",
+          "misdemeanor_proceedings": "Misdemeanor proceedings initiated",
+          "warning": "Warning",
+          "driving_ban_art5": "Driving ban (ADR art 5)",
+          "transport_interruption": "Road transport interrupted"
+        },
+        "proceedingType": "Type of proceedings",
+        "proceedingTypes": {
+          "expedited": "Expedited proceedings",
+          "general": "General proceedings"
+        },
+        "proceedingReferenceNumber": "Proceedings reference number",
+        "correctiveMeasures": "Corrective measures applied",
+        "correctiveMeasureOptions": {
+          "on_spot": "On the spot",
+          "before_journey_end": "Before the end of the journey",
+          "at_premises": "At the company's premises"
+        },
+        "sealOpened": "Seal opened during inspection",
+        "sealOpenedDate": "Seal opened date",
+        "sealInstalledDate": "Seal installed date"
+      },
+      "notes": {
+        "title": "Notes"
+      },
+      "xroad": {
+        "title": "Data queried via the data exchange layer (X-tee)",
+        "enforcementDecision": "Enforced decision",
+        "proceedingClosureBasis": "Basis for closing proceedings",
+        "save": "Save X-tee data",
+        "saveError": "Failed to save X-tee data"
+      },
+      "validation": {
+        "required": "Required field",
+        "notesMaxLength": "Notes can be at most {{max}} characters",
+        "api": {
+          "required": "Required field",
+          "form_locked_after_publish": "This form has been published and can no longer be edited",
+          "already_confirmed": "This form has already been confirmed"
+        }
+      }
+    },
     "compound": {
       "generalPart": "General part",
       "inspectionPlaceBasicInfo": "Inspection place",

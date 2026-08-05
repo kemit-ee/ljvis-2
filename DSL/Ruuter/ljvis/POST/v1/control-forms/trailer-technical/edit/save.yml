@@ -1,0 +1,215 @@
+declaration:
+
+  version: "1.0"
+  description: "Create or update the trailer technical-check sub-form (haagise tehnovorm, LJVIS2-72) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Rejects vehicle-only codes not applicable to a trailer (CAA_2/CAA_3/CAA_7/CAA_9 and their child defects; MSI203/MSI204/VSI847/SI926). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: compoundFormKey
+        type: number
+      - field: partsSummary
+        type: string
+      - field: partsDefects
+        type: string
+      - field: resultType
+        type: string
+      - field: resultTransportInterruption
+        type: boolean
+      - field: eraYvMntRegnr
+        type: boolean
+      - field: eraYvMntVintin
+        type: boolean
+      - field: eraYvMntAxles
+        type: boolean
+      - field: eraYvMntPlaces
+        type: boolean
+      - field: eraYvMntRebuilt
+        type: boolean
+      - field: proceedingType
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: violations
+        type: string
+      - field: notes
+        type: string
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    compound_form_key: "${incoming.body.compoundFormKey}"
+    parts_summary: "${incoming.body.partsSummary || '[]'}"
+    parts_defects: "${incoming.body.partsDefects || '[]'}"
+    result_type: "${incoming.body.resultType || 'ok'}"
+    result_transport_interruption: "${incoming.body.resultTransportInterruption || false}"
+    era_yv_mnt_regnr: "${incoming.body.eraYvMntRegnr || false}"
+    era_yv_mnt_vintin: "${incoming.body.eraYvMntVintin || false}"
+    era_yv_mnt_axles: "${incoming.body.eraYvMntAxles || false}"
+    era_yv_mnt_places: "${incoming.body.eraYvMntPlaces || false}"
+    era_yv_mnt_rebuilt: "${incoming.body.eraYvMntRebuilt || false}"
+    proceeding_type: "${incoming.body.proceedingType || ''}"
+    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
+    violations: "${incoming.body.violations || '[]'}"
+    notes: "${incoming.body.notes || ''}"
+    created_by: "${auth_user.personalcode || ''}"
+  next: checkTrailerExclusions
+
+# LJVIS2-72 §4: haagise vormil ei tohi esineda CAA_2/CAA_3/CAA_7/CAA_9 (ja nende
+# alamrikked) osade koondtabelis/parts_defects ega MSI203/MSI204/VSI847/SI926
+# rikkumistes.
+checkTrailerExclusions:
+  switch:
+    - condition: "${['CAA_2','CAA_3','CAA_7','CAA_9'].some(c => parts_summary.indexOf('\"' + c + '\"') !== -1 || parts_defects.indexOf('\"' + c + '.') !== -1) || ['MSI203','MSI204','VSI847','SI926'].some(c => violations.indexOf(c) !== -1)}"
+      next: returnTrailerExclusionError
+  next: checkNotesLength
+
+checkNotesLength:
+  switch:
+    - condition: ${notes.length > 2000}
+      next: returnNotesTooLongError
+    - condition: ${id == null || id === ''}
+      next: checkCompoundFormKeyForCreate
+  next: getCurrentFormForStatus
+
+checkCompoundFormKeyForCreate:
+  switch:
+    - condition: ${compound_form_key == null}
+      next: returnMissingCompoundFormKeyError
+  next: insertForm
+
+insertForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/insert"
+    headers:
+      type: json
+    body:
+      compoundFormKey: ${compound_form_key}
+      status: saved
+      partsSummary: ${parts_summary}
+      partsDefects: ${parts_defects}
+      resultType: ${result_type}
+      resultTransportInterruption: ${result_transport_interruption}
+      eraYvMntRegnr: ${era_yv_mnt_regnr}
+      eraYvMntVintin: ${era_yv_mnt_vintin}
+      eraYvMntAxles: ${era_yv_mnt_axles}
+      eraYvMntPlaces: ${era_yv_mnt_places}
+      eraYvMntRebuilt: ${era_yv_mnt_rebuilt}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      violations: ${violations}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: saveRes
+  next: logSave
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: extractCurrentStatus
+
+extractCurrentStatus:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+    current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
+  next: checkFormNotLocked
+
+checkFormNotLocked:
+  switch:
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+      next: returnFormLockedError
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: ${current_status}
+      partsSummary: ${parts_summary}
+      partsDefects: ${parts_defects}
+      resultType: ${result_type}
+      resultTransportInterruption: ${result_transport_interruption}
+      eraYvMntRegnr: ${era_yv_mnt_regnr}
+      eraYvMntVintin: ${era_yv_mnt_vintin}
+      eraYvMntAxles: ${era_yv_mnt_axles}
+      eraYvMntPlaces: ${era_yv_mnt_places}
+      eraYvMntRebuilt: ${era_yv_mnt_rebuilt}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      violations: ${violations}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: saveRes
+  next: logSave
+
+logSave:
+  assign:
+    sub_form_key: "${saveRes.response.body[0].id}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber + '/' + saveRes.response.body[0].version}"
+    compound_key_for_log: "${compound_form_key || current_compound_form_key}"
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "Tehnovorm salvestatud, alamvormi võti=${sub_form_key}, koondvormi võti=${compound_key_for_log}, alamvormi number=${sub_form_number}, tulemus=${result_type}, menetluse liik=${proceeding_type}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.trailer_technical.save"
+    event_category: "control_form"
+    description: ${description}
+    log_content: "{\"subFormKey\":${sub_form_key},\"compoundFormKey\":${compound_key_for_log},\"subFormNumber\":\"${sub_form_number}\",\"resultType\":\"${result_type}\"}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${saveRes.response.body}
+  next: end
+
+returnMissingCompoundFormKeyError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"compoundFormKey","code":"required"}'
+  next: end
+
+returnNotesTooLongError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"notes","code":"max_length_2000"}'
+  next: end
+
+returnFormLockedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked"}'
+  next: end
+
+returnTrailerExclusionError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"code_not_applicable_to_trailer"}'
+  next: end

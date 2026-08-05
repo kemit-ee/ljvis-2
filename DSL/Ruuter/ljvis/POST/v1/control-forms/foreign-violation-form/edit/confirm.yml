@@ -92,16 +92,15 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
-      - field: files
-        type: string
       - field: status
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -149,11 +148,10 @@ extractRequestData:
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
-    files: "${incoming.body.files}"
     status: "${incoming.body.status}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
   next: getOldStatus
 
 getOldStatus:
@@ -216,7 +214,6 @@ confirmForm:
       inspectorOrganisationId: ${inspector_organisation_id}
       inspectorUnit: ${inspector_unit}
       inspectorProfession: ${inspector_profession}
-      files: ${files}
       status: ${status}
       created_by: ${created_by}
   result: insertRes

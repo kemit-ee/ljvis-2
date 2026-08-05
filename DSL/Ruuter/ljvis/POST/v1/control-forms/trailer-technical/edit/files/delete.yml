@@ -1,0 +1,38 @@
+declaration:
+
+  version: "1.0"
+  description: "Delete a file attachment for a trailer technical check form"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+get_user_context:
+  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: deleteFile
+
+deleteFile:
+  template: "[#LJVIS_PROJECT_LAYER]/files/delete"
+  requestType: templates
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: ${incoming.body.id}
+    form_type: "trailer-technical-form"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  result: deleteResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${deleteResult}
+  status: 200
+  next: end

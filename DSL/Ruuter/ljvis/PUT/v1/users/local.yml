@@ -54,7 +54,7 @@ extractRequestData:
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
     access_end: "${incoming.body.accessEnd ?? ''}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
     status: "${incoming.body.status ?? ''}"
   next: validateId
 
@@ -160,8 +160,8 @@ setNoChanges:
 buildAuditLog:
   assign:
     changed_fields_json: ${JSON.stringify(changed_fields)}
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
     description: ${view_description}
     view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"changedFields\":${changed_fields_json},\"previousOrganisationId\":null,\"newOrganisationId\":null,\"removedGroupIds\":null}"
   next: logAuditEvent

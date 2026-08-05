@@ -33,7 +33,7 @@ extractRequestData:
     removed_group_ids: "${(incoming.body.removedGroupIds ?? []).join(',')}"
     added_group_ids_json: "${JSON.stringify((incoming.body.addedGroupIds ?? []).map(Number))}"
     removed_group_ids_json: "${JSON.stringify((incoming.body.removedGroupIds ?? []).map(Number))}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
   next: checkRemovedGroups
 
 checkRemovedGroups:
@@ -90,8 +90,8 @@ getUser:
 
 buildAuditLog:
   assign:
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
     first_name: "${userRes.response.body[0].firstName || ''}"
     last_name: "${userRes.response.body[0].lastName || ''}"
     personal_code: "${userRes.response.body[0].personalCode || ''}"

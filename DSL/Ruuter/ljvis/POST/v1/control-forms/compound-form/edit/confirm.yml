@@ -12,8 +12,6 @@ declaration:
         type: string
       - field: formNumber
         type: string
-      - field: status
-        type: string
       - field: controlDate
         type: string
       - field: controlTime
@@ -104,10 +102,11 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -115,7 +114,7 @@ extractRequestData:
   assign:
     key: "${incoming.body.id}"
     form_number: "${incoming.body.formNumber}"
-    status: "${incoming.body.status}"
+    status: "confirmed"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
     control_country_code: "${incoming.body.controlCountryCode}"
@@ -159,7 +158,7 @@ extractRequestData:
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
   next: check_driver1_personal_code_not_empty
 
 check_driver1_personal_code_not_empty:

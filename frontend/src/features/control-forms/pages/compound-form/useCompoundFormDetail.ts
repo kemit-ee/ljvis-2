@@ -13,7 +13,7 @@ const toTimeValue = (date?: string, time?: string): Dayjs | null => {
   return dayjs(`1970-01-01T${time}`);
 };
 
-export function useCompoundFormDetail(id: string | undefined) {
+export function useCompoundFormDetail(id: string | undefined, subFormId?: number) {
   const [form, setForm] = useState<CompoundForm | null>(null);
   const [loading, setLoading] = useState(true);
   const isFetching = useRef(false);
@@ -24,7 +24,7 @@ export function useCompoundFormDetail(id: string | undefined) {
     isFetching.current = true;
     setLoading(true);
     try {
-      const result = await getCompoundForm(Number(id));
+      const result = await getCompoundForm(Number(id), subFormId);
       setForm(result);
     } catch (e) {
       console.error('Failed to load compound form', e);

@@ -20,9 +20,9 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     hasParent: false,
     showOnDashboard: true,
   },
-  reputation_noncompliance_form: {
-    labelKey: 'forms.reputation_noncompliance_form',
-    route: '/reputation-noncompliance',
+  good_repute_form: {
+    labelKey: 'forms.good_repute_form',
+    route: '/good-repute',
     hasParent: false,
     showOnDashboard: true,
   },
