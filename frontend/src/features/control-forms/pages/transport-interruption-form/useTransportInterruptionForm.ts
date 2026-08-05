@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { listEhakCounties } from '../../../ehak/api';
-import type { Ehak } from '../../../ehak/types';
 import type { TransportInterruptionForm } from '../../types';
 import type { AddressFieldsValue } from '../../components/shared/AddressFields';
 import {
@@ -44,12 +42,16 @@ export function useTransportInterruptionForm(
   const { user: authUser } = useAuth();
   const pendingConfirm = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [counties, setCounties] = useState<Ehak[]>([]);
+  const { getByCode } = useClassifiers();
   const { getValue } = useClassifiers();
 
-  useEffect(() => {
-    listEhakCounties().then(setCounties).catch(() => setCounties([]));
-  }, []);
+  const counties = useMemo(
+    () =>
+      getByCode('EHAK')
+        .filter((e) => e.parentKey === null)
+        .map((e) => ({ id: e.classifierValueKey, name: e.name })),
+    [getByCode],
+  );
 
   // LJVIS2-74 §4: "Päis" is pre-filled from the officer's PPA prefecture
   // (classifier PPA_STRUCTURE_UNIT_ADDRESS, keyed by structural unit) only

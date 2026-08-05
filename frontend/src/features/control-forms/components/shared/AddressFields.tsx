@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Select, TextField } from '@tedi-design-system/react/tedi';
 import { COUNTRIES } from '../../../../constants/constants';
-import { listEhakCitiesParishes } from '../../../ehak/api';
-import type { Ehak } from '../../../ehak/types';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 
 export interface AddressFieldsValue {
   countryCode: string;
@@ -16,12 +15,12 @@ export interface AddressFieldsValue {
 interface AddressFieldsProps {
   value: AddressFieldsValue;
   onChange: (value: AddressFieldsValue) => void;
-  counties: Ehak[];
+  counties: { id: number; name: string }[];
   disabled?: boolean;
   errors?: Partial<Record<keyof AddressFieldsValue, string>>;
 }
 
-const asOption = (e: Ehak) => ({ value: String(e.id), label: e.name });
+const asOption = (e: { id: number; name: string }) => ({ value: String(e.id), label: e.name });
 
 export function AddressFields({
   value,
@@ -31,23 +30,23 @@ export function AddressFields({
   errors,
 }: AddressFieldsProps) {
   const { t } = useTranslation();
-  const [citiesParishes, setCitiesParishes] = useState<Ehak[]>([]);
+  const { getChildren } = useClassifiers();
 
   const countryOptions = COUNTRIES.map((c) => ({
     value: c.value,
     label: t(c.labelKey),
   })).sort((a, b) => a.label.localeCompare(b.label));
 
-  useEffect(() => {
-    if (value.county) {
-      listEhakCitiesParishes(Number(value.county))
-        .then((data) => setCitiesParishes(Array.isArray(data) ? data : []))
-        .catch(() => setCitiesParishes([]));
-    } else {
-      setCitiesParishes([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value.county]);
+  const citiesParishes = useMemo(
+    () =>
+      value.county
+        ? getChildren('EHAK', Number(value.county)).map((e) => ({
+            id: e.classifierValueKey,
+            name: e.name,
+          }))
+        : [],
+    [value.county, getChildren],
+  );
 
   const countyOptions = counties.map(asOption);
   const cityOptions = citiesParishes.map(asOption);

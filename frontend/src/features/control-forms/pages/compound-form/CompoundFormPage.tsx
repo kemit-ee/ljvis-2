@@ -51,7 +51,7 @@ import {
  * ("Koondvormi alamvormide haldamine") is a separate, not-yet-built piece of
  * infrastructure — this list is a stopgap that makes the feature reachable.
  */
-function TechnicalCheckFormsSection({
+export function TechnicalCheckFormsSection({
   compoundFormKey,
   canEdit,
 }: {
@@ -115,7 +115,7 @@ function TechnicalCheckFormsSection({
  * this compound form. Same stopgap pattern as TechnicalCheckFormsSection above
  * pending the real "Koondvormi alamvormide haldamine" tab-bar infrastructure.
  */
-function TransportInterruptionSection({
+export function TransportInterruptionSection({
   compoundFormKey,
   canEdit,
 }: {
@@ -157,7 +157,7 @@ function TransportInterruptionSection({
  * compound form. Same stopgap pattern as TechnicalCheckFormsSection above
  * pending the real "Koondvormi alamvormide haldamine" tab-bar infrastructure.
  */
-function AdrFormSection({
+export function AdrFormSection({
   compoundFormKey,
   canEdit,
 }: {

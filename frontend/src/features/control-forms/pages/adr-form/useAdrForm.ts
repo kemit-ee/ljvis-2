@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -12,8 +12,7 @@ import type {
 } from '../../types';
 import { confirmAdrForm, saveAdrForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
-import { listEhakCounties } from '../../../ehak/api';
-import type { Ehak } from '../../../ehak/types';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 
 const NOTES_MAX_LENGTH = 4000;
 
@@ -54,11 +53,16 @@ export function useAdrForm(
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [counties, setCounties] = useState<Ehak[]>([]);
+  const { getByCode } = useClassifiers();
 
-  useEffect(() => {
-    listEhakCounties().then(setCounties).catch(() => setCounties([]));
-  }, []);
+
+  const counties = useMemo(
+    () =>
+      getByCode('EHAK')
+        .filter((e) => e.parentKey === null)
+        .map((e) => ({ id: e.classifierValueKey, name: e.name })),
+    [getByCode],
+  );
 
   const validationSchema = Yup.object({
     proceedingReferenceNumber: Yup.string().when('proceedingType', {
