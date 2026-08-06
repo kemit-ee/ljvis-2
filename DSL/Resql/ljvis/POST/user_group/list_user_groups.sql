@@ -62,7 +62,7 @@ SELECT
 FROM latest l
 WHERE
     (
-        :organisation_id::INTEGER = 0
+        :organisation_id::BIGINT = 0
         OR :organisation_id::BIGINT = ANY(l.organisations)
     )
     AND (

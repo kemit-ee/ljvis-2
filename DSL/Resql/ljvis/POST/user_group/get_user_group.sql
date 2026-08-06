@@ -36,7 +36,7 @@ SELECT
 FROM latest l
 WHERE l.user_group_key = :id::BIGINT
   AND (
-      :organisation_id::INTEGER = 0
+      :organisation_id::BIGINT = 0
       OR :organisation_id::BIGINT = ANY(l.organisations)
   )
 LIMIT 1;
