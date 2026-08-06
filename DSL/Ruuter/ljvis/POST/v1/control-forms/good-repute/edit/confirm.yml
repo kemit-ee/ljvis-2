@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Confirm (kinnita) a good repute form (hea maine vorm). Confirming re-validates and re-saves current field values, then transitions status saved -> confirmed. One-way: an already-confirmed form cannot be confirmed again (LJVIS2-136)."
   method: post
   accepts: json
@@ -34,11 +34,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -57,12 +56,12 @@ extractRequestData:
     fitness_status: "${incoming.body.fitnessStatus || ''}"
     unfit_from_date: "${incoming.body.unfitFromDate || ''}"
     unfit_until_date: "${incoming.body.unfitUntilDate || ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: validateForm
 
 validateForm:
-  template: "[#LJVIS_PROJECT_LAYER]/form/good-repute/validate-good-repute-form"
-  requestType: templates
+  template: "templates/form/good-repute/validate-good-repute-form"
+  requestType: GET
   body:
     personalCode: ${personal_code}
     firstName: ${first_name}

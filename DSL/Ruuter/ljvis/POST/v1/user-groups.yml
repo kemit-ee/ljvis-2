@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create a new user group with optional organisations and permissions"
   method: post
   accepts: json
@@ -18,11 +18,10 @@ declaration:
         description: "Array of permission UUIDs"
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -31,9 +30,9 @@ extractRequestData:
     name: "${incoming.body.name}"
     organisation_ids: "${(incoming.body.organisationIds ?? []).join(',')}"
     permission_ids: "${(incoming.body.permissionIds ?? []).join(',')}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
+    created_by: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
     selected_org_count: ${(incoming.body.organisationIds ?? []).length}
   next: validateRequired
 
@@ -97,13 +96,13 @@ getOrganisationsCount:
 
 buildAuditEvent:
   assign:
-    covers_all_organisations: ${selected_org_count === (orgsCountRes.response.body ?? []).length}
-    permission_codes: ${JSON.stringify((permsDataRes.response.body ?? []).map(p => p.code))}
+    covers_all_organisations: "${Number(selected_org_count) === (Array.isArray(orgsCountRes.response.body) ? orgsCountRes.response.body.length : 0)}"
+    permission_codes: "[]"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.create"
     event_category: "user_management"

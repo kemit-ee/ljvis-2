@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single user group by ID (admin scope — all organisations)"
   method: get
   accepts: json
@@ -13,11 +13,10 @@ declaration:
         description: "User group ID"
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -25,8 +24,8 @@ extractRequestData:
   assign:
     id: "${incoming.params.q}"
     organisation_id: 0
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getUserGroup
 
 getUserGroup:
@@ -71,15 +70,18 @@ getGroupUsers:
 buildAuditEvent:
   assign:
     group_name: "${res.response.body[0].name || ''}"
-    displayed_personal_codes: ${JSON.stringify((usersRes.response.body ?? []).map(u => u.personalCode))}
-    personal_codes_str: "${(usersRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ')}"
-    view_description: "${(usersRes.response.body ?? []).length > 0 ? 'Kasutajagrupi ' + group_name + ' vaatamine, kasutajaid: ' + personal_codes_str : 'Kasutajagrupi ' + group_name + ' vaatamine'}"
+    displayed_personal_codes: "[]"
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
+    view_description: "Kasutajagrupi ${group_name} vaatamine"
     log_content: "{\"targetGroupId\":${id},\"scope\":\"allOrganisations\",\"organisationId\":null,\"displayedUserPersonalCodes\":${displayed_personal_codes}}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.view"
     event_category: "user_group_management"

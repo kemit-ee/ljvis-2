@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Confirm (kinnita) the ADR sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
   method: post
   accepts: json
@@ -54,11 +54,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -86,7 +85,7 @@ extractRequestData:
     seal_opened_date: "${incoming.body.sealOpenedDate || ''}"
     seal_installed_date: "${incoming.body.sealInstalledDate || ''}"
     notes: "${incoming.body.notes || ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: getCurrentForm
 
 getCurrentForm:
@@ -160,8 +159,8 @@ buildLogDescription:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

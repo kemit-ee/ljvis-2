@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single classifier by ID"
   method: get
   accepts: json
@@ -13,20 +13,19 @@ declaration:
         description: "Classifier ID"
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.params.q}"
-    created_by: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    created_by: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getClassifier
 
 getClassifier:
@@ -43,13 +42,17 @@ getClassifier:
 buildAuditData:
   assign:
     classifier_code: "${res.response.body[0].code || ''}"
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     description: "Klassifikaator '${classifier_code}' (ID ${id}) vaatamine"
     log_content: "{\"classifierId\":\"${id}\",\"classifierCode\":\"${classifier_code}\"}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "classifier.view"
     event_category: "classifier_management"

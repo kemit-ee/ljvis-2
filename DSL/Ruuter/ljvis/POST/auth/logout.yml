@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Logout — expire JWT cookie via TIM and clear browser cookie"
   method: post
   accepts: json
@@ -24,6 +24,7 @@ expire_tim_session:
     url: "[#LJVIS_TIM]/jwt/blacklist"
     headers:
       cookie: ${incoming.headers.cookie}
+      X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
   result: expire_result
   next: return_clear_cookie
 

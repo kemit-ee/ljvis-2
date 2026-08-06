@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Update foreign violation form"
   method: post
   accepts: json
@@ -149,14 +149,14 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
     status: "${incoming.body.status}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: calculateChangedFields
 
 calculateChangedFields:
-  template: "[#LJVIS_PROJECT_LAYER]/form/foreign-violation/calculate-foreign-violation-changed-fields"
-  requestType: templates
+  template: "templates/form/foreign-violation/calculate-foreign-violation-changed-fields"
+  requestType: GET
   body:
     form_id: ${key}
     reporting_country_code: ${reporting_country_code}
@@ -203,6 +203,10 @@ calculateChangedFields:
 extractResult:
   assign:
     parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
     changed_fields_result: ${parsed_result.changed_fields}
   next: updateForm
 
@@ -272,8 +276,8 @@ checkStatus:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-update"
-  requestType: templates
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-update"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
@@ -283,8 +287,8 @@ logAuditEvent:
   next: returnSuccess
 
 logAuditEventLocked:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-update-locked"
-  requestType: templates
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-update-locked"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

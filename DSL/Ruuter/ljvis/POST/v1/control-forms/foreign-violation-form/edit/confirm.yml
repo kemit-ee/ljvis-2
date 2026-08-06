@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Insert foreign violation form"
   method: post
   accepts: json
@@ -149,9 +149,9 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
     status: "${incoming.body.status}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: getOldStatus
 
 getOldStatus:
@@ -227,8 +227,8 @@ extractResponseData:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-confirm"
-  requestType: templates
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-confirm"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

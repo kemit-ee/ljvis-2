@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get persons associated with a company from Ariregister (ettevottegaSeotudIsikud_v1) via XTR"
   method: post
   accepts: json
@@ -14,9 +14,13 @@ declaration:
 validate:
   switch:
     - condition: "${incoming.body.registryCode == null || incoming.body.registryCode == ''}"
-      return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"registryCode is required\"}"
-      status: 400
+      next: returnMissingParam
   next: assignParams
+
+returnMissingParam:
+  status: 400
+  return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"registryCode is required\"}"
+  next: end
 
 assignParams:
   assign:
@@ -37,7 +41,7 @@ callXtr:
 
 checkXtrStatus:
   switch:
-    - condition: "${xtrResponse.response.statusCodeValue < 200 || xtrResponse.response.statusCodeValue >= 300}"
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
       next: logFailure
   next: logSuccess
 
@@ -69,7 +73,7 @@ logFailure:
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
-      error_message: "${'XTR HTTP ' + xtrResponse.response.statusCodeValue}"
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
   result: logResult
   next: returnError
 

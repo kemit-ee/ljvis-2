@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a short-lived presigned download URL for a file attachment"
   method: get
   accepts: json
@@ -29,8 +29,8 @@ extractActorData:
   next: downloadFile
 
 downloadFile:
-  template: "[#LJVIS_PROJECT_LAYER]/files/download"
-  requestType: templates
+  template: "templates/files/download"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

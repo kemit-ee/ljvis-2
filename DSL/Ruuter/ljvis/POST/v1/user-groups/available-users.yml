@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get list of available users for a user group with pagination, sorting and search"
   method: post
   accepts: json
@@ -14,23 +14,14 @@ declaration:
       - field: pageSize
         type: number
         description: "Items per page"
-      - field: sorting
-        type: string
-        description: "Sort column and direction"
-      - field: search
-        type: string
-        description: "Search by first or last name"
       - field: userGroupId
         type: string
         description: "Filter by user group"
-      - field: organisationIds
-        type: string
-        description: "Filter by organisations"
 
 extractRequestData:
   assign:
-    page: "${incoming.body.page ?? 1}"
-    page_size: "${incoming.body.pageSize ?? 20}"
+    page: "${Number(incoming.body.page ?? 1)}"
+    page_size: "${Number(incoming.body.pageSize ?? 20)}"
     sorting: "${incoming.body.sorting ?? 'first_name asc'}"
     search: "${incoming.body.search ?? ''}"
     user_group_id: "${incoming.body.userGroupId}"

@@ -1,2 +1,5 @@
-FROM ghcr.io/buerokratt/ruuter:v2.2.1
-COPY DSL/Ruuter.internal/ljvis /DSL/ljvis
+FROM turnerrainer/ruuter:rc
+RUN rm -rf /app/DSL/samples
+COPY DSL/Ruuter.internal/ljvis /app/DSL/ljvis
+COPY constants.ini /app/constants.ini
+COPY ruuter-internal.yaml /app/ruuter.yaml

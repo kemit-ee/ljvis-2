@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get transport-interruption sub-form by id (latest snapshot)"
   method: get
   accepts: json

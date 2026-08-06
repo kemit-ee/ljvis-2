@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Confirm (kinnita) the trailer technical-check sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
   method: post
   accepts: json
@@ -38,11 +38,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -62,7 +61,7 @@ extractRequestData:
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
     violations: "${incoming.body.violations || '[]'}"
     notes: "${incoming.body.notes || ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: checkTrailerExclusions
 
 # LJVIS2-72 §4: haagise vormil ei tohi esineda CAA_2/CAA_3/CAA_7/CAA_9 (ja nende
@@ -137,8 +136,8 @@ buildLogDescription:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

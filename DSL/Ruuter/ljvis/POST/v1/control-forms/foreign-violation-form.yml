@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create a new foreign violation form"
   method: post
   accepts: json
@@ -92,11 +92,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -144,9 +143,9 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
     status: "${incoming.body.status}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: insertForm
 
 insertForm:
@@ -208,8 +207,8 @@ extractResponseData:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-create"
-  requestType: templates
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-create"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
