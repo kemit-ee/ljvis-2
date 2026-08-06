@@ -42,6 +42,10 @@ buildAudit:
     displayed_personal_codes: ${JSON.stringify(users_arr.map(u => u.personalCode))}
     personal_codes_str: "${users_arr.map(u => \"'\" + u.personalCode + \"'\").join(', ')}"
     description: "${users_arr.length > 0 ? 'Kasutajagrupi ' + incoming.body.group_name + ' vaatamine, kasutajaid: ' + personal_codes_str : 'Kasutajagrupi ' + incoming.body.group_name + ' vaatamine'}"
+  next: buildAuditMessage
+
+buildAuditMessage:
+  assign:
     log_content: "{\"targetGroupId\":${incoming.body.group_id},\"scope\":\"${incoming.body.scope}\",\"organisationId\":${incoming.body.organisation_id},\"displayedUserPersonalCodes\":${displayed_personal_codes}}"
   next: logAuditEvent
 

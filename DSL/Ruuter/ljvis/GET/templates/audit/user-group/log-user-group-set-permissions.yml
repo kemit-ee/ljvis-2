@@ -38,6 +38,10 @@ buildAudit:
     added_codes: ${JSON.stringify(all_perms.filter(p => added_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
     removed_codes: ${JSON.stringify(all_perms.filter(p => removed_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
     description: "Kasutajagrupi ${incoming.body.group_name} muutmine: õigused"
+  next: buildAuditMessage
+
+buildAuditMessage:
+  assign:
     log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":${added_codes},\"removedPermissionCodes\":${removed_codes},\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 

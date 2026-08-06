@@ -39,6 +39,10 @@ buildLogContent:
     first_name: "${userRes.response.body[0].firstName || ''}"
     last_name: "${userRes.response.body[0].lastName || ''}"
     personal_code: "${userRes.response.body[0].personalCode || ''}"
+  next: buildAuditMessage
+
+buildAuditMessage:
+  assign:
     log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"addedGroupIds\":${incoming.body.added_group_ids_json},\"removedGroupIds\":${incoming.body.removed_group_ids_json}}"
   next: buildDescription
 

@@ -66,7 +66,7 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    compound_form_key: "${incoming.body.compoundFormKey}"
+    compound_form_key: ${incoming.body.compoundFormKey}
     driver_assistant: "${incoming.body.driverAssistant || ''}"
     driver_adr_certificate_number: "${incoming.body.driverAdrCertificateNumber || ''}"
     crew_adr_certificate_number: "${incoming.body.crewAdrCertificateNumber || ''}"

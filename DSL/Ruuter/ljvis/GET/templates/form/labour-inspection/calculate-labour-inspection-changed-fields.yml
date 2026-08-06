@@ -80,6 +80,11 @@ buildAuditData:
     new_punished_person_last_name: ${incoming.body.punishedPersonLastName}
     new_proceeding_reference_number: ${incoming.body.proceedingReferenceNumber}
     new_violations: ${incoming.body.violations}
+    changed_fields: "[]"
+  next: calculateChangeFlags
+
+calculateChangeFlags:
+  assign:
     inspector_name_changed: ${new_inspector_name != old_inspector_name}
     inspection_date_changed: ${new_inspection_date != old_inspection_date}
     inspection_type_changed: ${new_inspection_type != old_inspection_type}
@@ -94,7 +99,6 @@ buildAuditData:
     punished_person_last_name_changed: ${new_punished_person_last_name != old_punished_person_last_name}
     proceeding_reference_number_changed: ${new_proceeding_reference_number != old_proceeding_reference_number}
     violations_changed: ${new_violations != old_violations}
-    changed_fields: "[]"
   next: checkInspectorName
 
 checkInspectorName:

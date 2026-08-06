@@ -50,7 +50,7 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    compound_form_key: "${incoming.body.compoundFormKey}"
+    compound_form_key: ${incoming.body.compoundFormKey}
     parts_summary: "${incoming.body.partsSummary || '[]'}"
     parts_defects: "${incoming.body.partsDefects || '[]'}"
     result_type: "${incoming.body.resultType || 'ok'}"

@@ -203,6 +203,10 @@ calculateChangedFields:
 extractResult:
   assign:
     parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
     changed_fields_result: ${parsed_result.changed_fields}
   next: updateForm
 

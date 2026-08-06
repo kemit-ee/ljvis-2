@@ -34,6 +34,10 @@ buildAudit:
   assign:
     removed_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
     removed_personal_codes_str: "${(personalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ')}"
+  next: buildAuditMessage
+
+buildAuditMessage:
+  assign:
     description: "Kasutajagrupi ${incoming.body.group_name} muutmine: eemaldatud kasutajad: ${removed_personal_codes_str}"
     log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":${removed_personal_codes_json},\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent

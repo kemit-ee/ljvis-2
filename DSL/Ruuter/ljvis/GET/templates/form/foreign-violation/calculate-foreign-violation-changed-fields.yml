@@ -100,7 +100,6 @@ getForm:
 
 buildAuditData:
   assign:
-    old_reporting_country_code: "${res.response.body[0].reportingCountryCode || ''}"
     old_reporting_authority: "${res.response.body[0].reportingAuthorityName || ''}"
     old_inspection_country_code: "${res.response.body[0].inspectionCountryCode || ''}"
     old_inspection_date: "${res.response.body[0].inspectionDate || ''}"
@@ -176,6 +175,11 @@ buildAuditData:
     new_inspector_organisation_id: ${incoming.body.inspector_organisation_id}
     new_inspector_unit: ${incoming.body.inspector_unit}
     new_inspector_profession: ${incoming.body.inspector_profession}
+    changed_fields: "[]"
+  next: calculateChangeFlags
+
+calculateChangeFlags:
+  assign:
     reporting_country_code_changed: ${new_reporting_country_code != old_reporting_country_code}
     reporting_authority_changed: ${new_reporting_authority != old_reporting_authority}
     inspection_country_code_changed: ${new_inspection_country_code != old_inspection_country_code}
@@ -214,8 +218,8 @@ buildAuditData:
     inspector_organisation_id_changed: ${new_inspector_organisation_id != old_inspector_organisation_id}
     inspector_unit_changed: ${new_inspector_unit != old_inspector_unit}
     inspector_profession_changed: ${new_inspector_profession != old_inspector_profession}
-    changed_fields: "[]"
   next: checkReportingCountryCode
+
 
 checkReportingCountryCode:
   switch:

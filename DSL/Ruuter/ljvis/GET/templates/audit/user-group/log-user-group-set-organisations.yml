@@ -43,6 +43,10 @@ buildAuditWithCascade:
   assign:
     cascade_removed_json: "${JSON.stringify((cascadePersonalCodesRes.response.body ?? []).map(u => u.personalCode))}"
     cascade_removed_str: "${(cascadePersonalCodesRes.response.body ?? []).length > 0 ? ', kaskaad: ' + (cascadePersonalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ') : ''}"
+  next: buildAuditMessage
+
+buildAuditMessage:
+  assign:
     description: "Kasutajagrupi ${incoming.body.group_name} muutmine: organisatsioonid${cascade_removed_str}"
     log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":${incoming.body.added_org_ids_json},\"removedOrganisationIds\":${incoming.body.removed_org_ids_json},\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":${cascade_removed_json}}"
   next: logAuditEvent

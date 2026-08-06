@@ -110,7 +110,6 @@ debugDrivers:
 
 buildAuditData:
   assign:
-    old_control_date: "${res.response.body[0].controlDate || ''}"
     old_control_time: "${res.response.body[0].controlTime || ''}"
     old_control_country_code: "${res.response.body[0].controlCountryCode || ''}"
     old_county: "${res.response.body[0].county || ''}"
@@ -188,6 +187,11 @@ buildAuditData:
     new_inspector_organisation_id: ${incoming.body.inspector_organisation_id}
     new_inspector_unit: ${incoming.body.inspector_unit}
     new_inspector_profession: ${incoming.body.inspector_profession}
+    changed_fields: "[]"
+  next: calculateChangeFlags
+
+calculateChangeFlags:
+  assign:
     control_date_changed: ${new_control_date != old_control_date}
     control_time_changed: ${new_control_time != old_control_time}
     control_country_code_changed: ${new_control_country_code != old_control_country_code}
@@ -227,8 +231,8 @@ buildAuditData:
     inspector_organisation_id_changed: ${new_inspector_organisation_id != old_inspector_organisation_id}
     inspector_unit_changed: ${new_inspector_unit != old_inspector_unit}
     inspector_profession_changed: ${new_inspector_profession != old_inspector_profession}
-    changed_fields: "[]"
   next: checkControlDate
+
 
 checkControlDate:
   switch:

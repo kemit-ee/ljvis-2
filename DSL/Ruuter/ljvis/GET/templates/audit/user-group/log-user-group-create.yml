@@ -48,6 +48,10 @@ buildAudit:
     covers_all_organisations: ${incoming.body.selected_org_count === (orgsCountRes.response.body ?? []).length}
     permission_codes: ${JSON.stringify((permsDataRes.response.body ?? []).map(p => p.code))}
     description: "Kasutajagrupi '${incoming.body.group_name}' loomine"
+  next: buildAuditMessage
+
+buildAuditMessage:
+  assign:
     log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"groupName\":\"${incoming.body.group_name}\",\"organisationIds\":[${incoming.body.organisation_ids}],\"permissionCodes\":${permission_codes},\"coversAllOrganisations\":${covers_all_organisations}}"
   next: logAuditEvent
 

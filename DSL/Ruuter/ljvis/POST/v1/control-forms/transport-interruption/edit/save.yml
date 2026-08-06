@@ -44,7 +44,7 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    compound_form_key: "${incoming.body.compoundFormKey}"
+    compound_form_key: ${incoming.body.compoundFormKey}
     header_text: "${incoming.body.headerText || ''}"
     residence_country: "${incoming.body.residenceCountry || 'EE'}"
     residence_region: "${incoming.body.residenceRegion || ''}"
