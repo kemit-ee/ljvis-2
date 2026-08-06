@@ -425,8 +425,7 @@ Ruuter DSL files (`<operatsioon>.yml`) orchestrate the business flow: they valid
 
 ```yaml
 declaration:
-  call: declare
-  version: 0.1
+  version: "1.0"
   description: "API route for POST /api/v1/admin/<entiteet>/<operatsioon>"
   method: post
   accepts: json
@@ -463,8 +462,7 @@ bad_request:
 
 ```yaml
 declaration:
-  call: declare
-  version: 0.1
+  version: "1.0"
   description: "API route for POST /api/v1/admin/<entiteet>/mock_<operatsioon>"
   method: post
   accepts: json
@@ -488,8 +486,7 @@ return_result:
 
 ```yaml
 declaration:
-  call: declare
-  version: 0.1
+  version: "1.0"
   description: "API route for GET /api/v1/admin/<entiteet>/<operatsioon>"
   method: get
   accepts: json
