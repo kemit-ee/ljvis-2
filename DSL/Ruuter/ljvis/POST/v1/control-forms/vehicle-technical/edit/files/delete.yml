@@ -12,16 +12,16 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
   next: deleteFile
 
 deleteFile:
-  template: "[#LJVIS_PROJECT_LAYER]/files/delete"
-  requestType: templates
+  template: "templates/files/delete"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

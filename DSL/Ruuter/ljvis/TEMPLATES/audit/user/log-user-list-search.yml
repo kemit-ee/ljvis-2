@@ -27,8 +27,8 @@ buildAudit:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

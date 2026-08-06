@@ -68,8 +68,8 @@ check_access_start:
   next: validate_personal_code_format
 
 validate_personal_code_format:
-  template: "[#LJVIS_PROJECT_LAYER]/validate/estonian-personal-code"
-  requestType: templates
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
   body:
     personal_code: ${incoming.body.personal_code}
   result: pc_result
@@ -82,8 +82,8 @@ check_personal_code_format:
   next: validate_email_format
 
 validate_email_format:
-  template: "[#LJVIS_PROJECT_LAYER]/validate/email"
-  requestType: templates
+  template: "templates/validate/email"
+  requestType: GET
   body:
     email: ${incoming.body.email}
   result: email_result

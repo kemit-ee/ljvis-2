@@ -19,8 +19,8 @@ declaration:
         description: "Array of removed organisation IDs"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -126,13 +126,17 @@ returnSuccess:
   assign:
     cascade_removed_json: "${typeof cascadePersonalCodesRes !== 'undefined' ? JSON.stringify((cascadePersonalCodesRes.response.body ?? []).map(u => u.personalCode)) : '[]'}"
     cascade_removed_str: "${typeof cascadePersonalCodesRes !== 'undefined' && (cascadePersonalCodesRes.response.body ?? []).length > 0 ? ', kaskaad: ' + (cascadePersonalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ') : ''}"
+  next: buildReturnSuccessContent
+
+buildReturnSuccessContent:
+  assign:
     description: "Kasutajagrupi ${group_name} muutmine: organisatsioonid${cascade_removed_str}"
     log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":${added_organisation_ids_json},\"removedOrganisationIds\":${removed_organisation_ids_json},\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":${cascade_removed_json}}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.update"
     event_category: "user_group_management"

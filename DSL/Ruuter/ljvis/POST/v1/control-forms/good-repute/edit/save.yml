@@ -34,8 +34,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -59,8 +59,8 @@ extractRequestData:
   next: validateForm
 
 validateForm:
-  template: "[#LJVIS_PROJECT_LAYER]/form/good-repute/validate-good-repute-form"
-  requestType: templates
+  template: "templates/form/good-repute/validate-good-repute-form"
+  requestType: GET
   body:
     personalCode: ${personal_code}
     firstName: ${first_name}

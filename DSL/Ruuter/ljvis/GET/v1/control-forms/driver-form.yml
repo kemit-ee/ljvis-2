@@ -85,8 +85,8 @@ checkShouldLog:
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/sp-driver-form/log-sp-driver-view"
-  requestType: templates
+  template: "templates/audit/form/sp-driver-form/log-sp-driver-view"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

@@ -25,8 +25,8 @@ declaration:
         description: "Whether to log this as a user-initiated search"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -35,8 +35,8 @@ get_user_context:
 extractRequestData:
   assign:
     search: "${incoming.params.q ?? ''}"
-    page: "${incoming.params.page ?? 1}"
-    page_size: "${incoming.params.pageSize ?? 20}"
+    page: "${Number(incoming.params.page ?? 1)}"
+    page_size: "${Number(incoming.params.pageSize ?? 20)}"
     sorting: "${incoming.params.sorting ?? 'name asc'}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
@@ -81,8 +81,8 @@ checkSearch:
   next: returnSuccess
 
 logSearchEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.list.search"
     event_category: "user_management"

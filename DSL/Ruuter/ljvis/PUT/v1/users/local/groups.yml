@@ -19,8 +19,8 @@ declaration:
         description: "Array of removed user group IDs"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -95,6 +95,10 @@ buildAuditLog:
     first_name: "${userRes.response.body[0].firstName || ''}"
     last_name: "${userRes.response.body[0].lastName || ''}"
     personal_code: "${userRes.response.body[0].personalCode || ''}"
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"addedGroupIds\":${added_group_ids_json},\"removedGroupIds\":${removed_group_ids_json}}"
   next: buildDescription
 
@@ -104,8 +108,8 @@ buildDescription:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user.set_groups"
     event_category: "user_management"

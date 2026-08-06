@@ -76,14 +76,19 @@ SELECT
     l.status,
     l.access_start,
     l.access_end,
-    COALESCE(
-        (SELECT ARRAY_AGG(
-             (SELECT name FROM users.user_group
-              WHERE user_group_key = grp_key
-              ORDER BY created_at DESC LIMIT 1)
-         )
-         FROM UNNEST(l.user_groups) AS grp_key),
-        ARRAY[]::TEXT[]
+    ARRAY_TO_JSON(
+        COALESCE(
+            ARRAY(
+                SELECT ug.name
+                FROM UNNEST(l.user_groups) AS grp_id
+                CROSS JOIN LATERAL (
+                    SELECT name FROM users.user_group
+                    WHERE user_group_key = grp_id
+                    ORDER BY created_at DESC LIMIT 1
+                ) ug
+            ),
+            ARRAY[]::TEXT[]
+        )
     ) AS user_groups,
     (COUNT(*) OVER ())::INTEGER AS total
 FROM latest l

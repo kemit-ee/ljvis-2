@@ -34,8 +34,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -89,8 +89,8 @@ return_invalid_id:
   next: propagate_error
 
 validateUser:
-  template: "[#LJVIS_PROJECT_LAYER]/user/validate-user-fields"
-  requestType: templates
+  template: "templates/user/validate-user-fields"
+  requestType: GET
   body:
     first_name: ${first_name}
     last_name: ${last_name}
@@ -109,8 +109,8 @@ checkUser:
   next: calculateChangedFields
 
 calculateChangedFields:
-  template: "[#LJVIS_PROJECT_LAYER]/user/calculate-user-changed-fields"
-  requestType: templates
+  template: "templates/user/calculate-user-changed-fields"
+  requestType: GET
   body:
     user_account_id: ${user_account_id}
     first_name: ${first_name}
@@ -128,8 +128,16 @@ calculateChangedFields:
 extractResult:
   assign:
     parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: extractChangedFields
+
+extractChangedFields:
+  assign:
     changed_fields_result: ${parsed_result.changed_fields}
     old_organisation_id: ${parsed_result.old_organisation_id}
+  next: setClearGroups
+
+setClearGroups:
+  assign:
     clear_groups: ${changed_fields_result.includes('organisation_id')}
   next: updateUser
 
@@ -167,6 +175,10 @@ setAnyChanges:
   assign:
     changed_fields: ${changed_fields_result}
     changed_fields_str: ${changed_fields_result.join(',')}
+  next: buildChangedDescription
+
+buildChangedDescription:
+  assign:
     view_description: "Kasutaja muutmine: ${first_name} ${last_name} (${personal_code}), muudetud: ${changed_fields_str}"
   next: checkOrgChanges
 
@@ -185,12 +197,20 @@ checkOrgChanges:
 handleOrgChanges:
   assign:
     changed_fields_json: ${JSON.stringify(changed_fields)}
+  next: buildOrgAuditContent
+
+buildOrgAuditContent:
+  assign:
     view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"changedFields\":${changed_fields_json},\"previousOrganisationId\":${old_organisation_id},\"newOrganisationId\":${organisation_id},\"removedGroupIds\":${removed_group_ids}}"
   next: buildAuditLog
 
 handleNoOrgChanges:
   assign:
     changed_fields_json: ${JSON.stringify(changed_fields)}
+  next: buildNoOrgAuditContent
+
+buildNoOrgAuditContent:
+  assign:
     view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"changedFields\":${changed_fields_json},\"previousOrganisationId\":null,\"newOrganisationId\":null,\"removedGroupIds\":null}"
   next: buildAuditLog
 
@@ -203,8 +223,8 @@ buildAuditLog:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user.update"
     event_category: "user_management"

@@ -73,8 +73,8 @@ checkShouldLog:
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-view"
-  requestType: templates
+  template: "templates/audit/form/compound-form/log-compound-view"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

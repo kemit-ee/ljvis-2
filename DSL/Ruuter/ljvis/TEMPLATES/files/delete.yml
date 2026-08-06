@@ -30,8 +30,8 @@ deleteFileInDB:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/files/log-file-delete"
-  requestType: templates
+  template: "templates/audit/form/files/log-file-delete"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

@@ -18,8 +18,8 @@ declaration:
         description: "Array of permission UUIDs"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -96,13 +96,13 @@ getOrganisationsCount:
 
 buildAuditEvent:
   assign:
-    covers_all_organisations: ${selected_org_count === (orgsCountRes.response.body ?? []).length}
-    permission_codes: ${JSON.stringify((permsDataRes.response.body ?? []).map(p => p.code))}
+    covers_all_organisations: "${Number(selected_org_count) === (Array.isArray(orgsCountRes.response.body) ? orgsCountRes.response.body.length : 0)}"
+    permission_codes: "[]"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.create"
     event_category: "user_management"

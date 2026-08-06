@@ -22,8 +22,8 @@ declaration:
         description: "Sorting"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -32,10 +32,10 @@ get_user_context:
 extractRequestData:
   assign:
     search: "${incoming.params.q ?? ''}"
-    page: "${incoming.params.page ?? 1}"
-    page_size: "${incoming.params.pageSize ?? 20}"
+    page: "${Number(incoming.params.page ?? 1)}"
+    page_size: "${Number(incoming.params.pageSize ?? 20)}"
     sorting: "${incoming.params.sorting ?? 'status asc'}"
-    organisation_id: ""
+    organisation_id: null
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getUsers
@@ -64,11 +64,15 @@ mapResponse:
     body:
       users: ${res.response.body}
   result: mapped
+  next: setResultCount
+
+setResultCount:
+  assign:
+    result_count: ${mapped.response.body.total}
   next: setDefaults
 
 setDefaults:
   assign:
-    result_count: ${mapped.response.body.total}
     view_description: "Kasutajate nimekiri, leht ${page}, tulemusi 0"
     view_log_content: "{\"page\":${page},\"pageSize\":${page_size},\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"displayedPersonalCodes\":[],\"scope\":\"allOrganisations\",\"organisationId\":null}"
   next: checkSearch
@@ -80,8 +84,8 @@ checkSearch:
   next: extractPersonalCodes
 
 logSearchEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user.list.search"
     event_category: "user_management"
@@ -121,8 +125,8 @@ setDescriptionAndLogContent:
   next: logViewEvent
 
 logViewEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user.list.view"
     event_category: "user_management"

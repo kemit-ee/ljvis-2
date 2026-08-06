@@ -40,8 +40,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -68,8 +68,8 @@ extractRequestData:
   next: validateForm
 
 validateForm:
-  template: "[#LJVIS_PROJECT_LAYER]/form/labour-inspection/validate-labour-inspection-form"
-  requestType: templates
+  template: "templates/form/labour-inspection/validate-labour-inspection-form"
+  requestType: GET
   body:
     inspectorName: ${inspector_name}
     inspectionDate: ${inspection_date}
@@ -118,8 +118,8 @@ insertForm:
   next: logCreate
 
 logCreate:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/labour-inspection/log-labour-inspection-create"
-  requestType: templates
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-create"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
@@ -153,8 +153,8 @@ checkFormNotLocked:
   next: calculateChangedFields
 
 calculateChangedFields:
-  template: "[#LJVIS_PROJECT_LAYER]/form/labour-inspection/calculate-labour-inspection-changed-fields"
-  requestType: templates
+  template: "templates/form/labour-inspection/calculate-labour-inspection-changed-fields"
+  requestType: GET
   body:
     formId: ${id}
     inspectorName: ${inspector_name}
@@ -208,8 +208,8 @@ updateForm:
   next: logUpdate
 
 logUpdate:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/labour-inspection/log-labour-inspection-update"
-  requestType: templates
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-update"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

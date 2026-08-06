@@ -32,6 +32,10 @@ buildAuditData:
     old_valid_until: "${res.response.body[0].validUntil || ''}"
     valid_from: ${incoming.body.valid_from}
     valid_until: ${incoming.body.valid_until}
+  next: calculateChanges
+
+calculateChanges:
+  assign:
     valid_from_changed: ${valid_from != old_valid_from}
     valid_until_changed: ${valid_until != old_valid_until}
   next: checkBothChanged

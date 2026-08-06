@@ -29,8 +29,8 @@ extractActorData:
   next: downloadFile
 
 downloadFile:
-  template: "[#LJVIS_PROJECT_LAYER]/files/download"
-  requestType: templates
+  template: "templates/files/download"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

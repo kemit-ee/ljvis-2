@@ -22,16 +22,12 @@ declaration:
         type: string
       - field: email
         type: string
-      - field: phone
-        type: string
       - field: accessStart
-        type: string
-      - field: accessEnd
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -53,8 +49,8 @@ extractRequestData:
   next: validateUser
 
 validateUser:
-  template: "[#LJVIS_PROJECT_LAYER]/user/validate-user-fields"
-  requestType: templates
+  template: "templates/user/validate-user-fields"
+  requestType: GET
   body:
     first_name: ${first_name}
     last_name: ${last_name}
@@ -120,8 +116,8 @@ buildAuditLog:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user.create"
     event_category: "user_management"

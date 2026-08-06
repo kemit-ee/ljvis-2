@@ -21,8 +21,8 @@ declaration:
         type: string
 
 delegate:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-form-event"
-  requestType: templates
+  template: "templates/audit/log-form-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

@@ -12,8 +12,8 @@ declaration:
         type: string
 
 getFiles:
-  template: "[#LJVIS_PROJECT_LAYER]/files/list"
-  requestType: templates
+  template: "templates/files/list"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

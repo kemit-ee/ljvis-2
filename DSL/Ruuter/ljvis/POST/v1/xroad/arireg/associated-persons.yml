@@ -41,7 +41,7 @@ callXtr:
 
 checkXtrStatus:
   switch:
-    - condition: "${xtrResponse.response.statusCodeValue < 200 || xtrResponse.response.statusCodeValue >= 300}"
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
       next: logFailure
   next: logSuccess
 
@@ -73,7 +73,7 @@ logFailure:
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
-      error_message: "${'XTR HTTP ' + xtrResponse.response.statusCodeValue}"
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
   result: logResult
   next: returnError
 

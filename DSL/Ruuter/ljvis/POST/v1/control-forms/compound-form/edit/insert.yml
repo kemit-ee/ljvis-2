@@ -169,8 +169,8 @@ skip_pc1_validation:
   next: check_driver2_personal_code_not_empty
 
 validate_driver1_personal_code_format:
-  template: "[#LJVIS_PROJECT_LAYER]/validate/estonian-personal-code"
-  requestType: templates
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
@@ -188,8 +188,8 @@ skip_pc2_validation:
   next: check_pc_results
 
 validate_driver2_personal_code_format:
-  template: "[#LJVIS_PROJECT_LAYER]/validate/estonian-personal-code"
-  requestType: templates
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result
@@ -261,8 +261,8 @@ extractResponseData:
 
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-create-update"
-  requestType: templates
+  template: "templates/audit/form/compound-form/log-compound-create-update"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

@@ -42,18 +42,18 @@ getPresignedUrl:
 
 checkPresignResult:
   switch:
-    - condition: ${presignResult.response.statusCode >= 400}
+    - condition: ${presignResult.response.status >= 400}
       next: returnPresignError
   next: logAuditEvent
 
 returnPresignError:
-  status: ${presignResult.response.statusCode}
+  status: ${presignResult.response.status}
   return: ${presignResult.response.body}
   next: end
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/files/log-file-download"
-  requestType: templates
+  template: "templates/audit/form/files/log-file-download"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

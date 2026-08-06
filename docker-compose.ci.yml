@@ -200,7 +200,7 @@ services:
       - tara-mock
     environment:
       - TIM_DATABASE_URL=postgres://tim:123@tim-postgresql:5432/tim
-      - TIM_ADMIN_TOKEN=${TIM_ADMIN_TOKEN:-ci-dev-admin-token}
+      - TIM_ADMIN_TOKEN=dev-admin-token
       - TIM_TARA_CLIENT_ID=ljvis
       - TIM_TARA_CLIENT_SECRET=ljvis-secret
       - RUST_LOG=info

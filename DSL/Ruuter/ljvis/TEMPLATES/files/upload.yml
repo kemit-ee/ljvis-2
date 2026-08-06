@@ -28,12 +28,12 @@ uploadToS3:
 
 checkS3Result:
   switch:
-    - condition: ${s3Result.response.statusCode >= 400}
+    - condition: ${s3Result.response.status >= 400}
       next: returnS3Error
   next: insertFileToDB
 
 returnS3Error:
-  status: ${s3Result.response.statusCode}
+  status: ${s3Result.response.status}
   return: ${s3Result.response.body}
   next: end
 
@@ -52,8 +52,8 @@ insertFileToDB:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/files/log-file-upload"
-  requestType: templates
+  template: "templates/audit/form/files/log-file-upload"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

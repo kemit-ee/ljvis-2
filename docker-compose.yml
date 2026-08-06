@@ -44,7 +44,8 @@ services:
       context: .
       dockerfile: docker/resql-ljvis/Dockerfile
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
       - RESQL_DB_PASSWORD=01234
     ports:

@@ -77,7 +77,7 @@ WHERE
         )
     AND
     (
-    :user_organisation_id = 0
+    :user_organisation_id::INTEGER = 0
         OR l.organisation_id = :user_organisation_id::BIGINT
     )
     AND (

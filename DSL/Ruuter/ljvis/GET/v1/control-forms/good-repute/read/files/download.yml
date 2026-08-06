@@ -13,16 +13,16 @@ declaration:
         description: "ID of the form_attachment record"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
   next: downloadFile
 
 downloadFile:
-  template: "[#LJVIS_PROJECT_LAYER]/files/download"
-  requestType: templates
+  template: "templates/files/download"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

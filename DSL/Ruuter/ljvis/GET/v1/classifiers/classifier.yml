@@ -13,8 +13,8 @@ declaration:
         description: "Classifier ID"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -42,13 +42,17 @@ getClassifier:
 buildAuditData:
   assign:
     classifier_code: "${res.response.body[0].code || ''}"
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     description: "Klassifikaator '${classifier_code}' (ID ${id}) vaatamine"
     log_content: "{\"classifierId\":\"${id}\",\"classifierCode\":\"${classifier_code}\"}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "classifier.view"
     event_category: "classifier_management"

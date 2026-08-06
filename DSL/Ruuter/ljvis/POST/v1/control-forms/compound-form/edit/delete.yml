@@ -47,8 +47,8 @@ deleteForm:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/log-form-delete"
-  requestType: templates
+  template: "templates/audit/form/log-form-delete"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

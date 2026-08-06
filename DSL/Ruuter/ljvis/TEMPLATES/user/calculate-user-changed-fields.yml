@@ -62,6 +62,11 @@ buildAuditData:
     new_phone: ${incoming.body.phone}
     new_access_start: ${incoming.body.access_start}
     new_access_end: ${incoming.body.access_end}
+    changed_fields: "[]"
+  next: calculateChangeFlags
+
+calculateChangeFlags:
+  assign:
     first_name_changed: ${new_first_name != old_first_name}
     last_name_changed: ${new_last_name != old_last_name}
     organisation_id_changed: ${new_organisation_id != old_organisation_id}
@@ -71,7 +76,6 @@ buildAuditData:
     phone_changed: ${new_phone != old_phone}
     access_start_changed: ${new_access_start != old_access_start}
     access_end_changed: ${new_access_end != old_access_end}
-    changed_fields: "[]"
   next: checkFirstName
 
 checkFirstName:

@@ -227,8 +227,8 @@ extractResponseData:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-confirm"
-  requestType: templates
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-confirm"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

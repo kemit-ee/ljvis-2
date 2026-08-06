@@ -92,8 +92,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -207,8 +207,8 @@ extractResponseData:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-create"
-  requestType: templates
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-create"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

@@ -32,6 +32,10 @@ buildAuditData:
     old_description: "${res.response.body[0].description || ''}"
     name: ${incoming.body.name}
     description: ${incoming.body.description}
+  next: calculateChanges
+
+calculateChanges:
+  assign:
     name_changed: ${name != old_name}
     description_changed: ${description != old_description}
   next: checkBothChanged

@@ -48,6 +48,4 @@ oauth2:
       allowed_redirect_uris:
         - "http://localhost:3001/tim/authenticate"
 
-logging:
-  level: "info"
-  format: "text"
+
