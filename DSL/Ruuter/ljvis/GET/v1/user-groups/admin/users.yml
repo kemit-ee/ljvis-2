@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "List members of a user group (admin scope — all organisations)"
   method: get
   accepts: json

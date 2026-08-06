@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Upload a file attachment for a labour inspection form"
   method: post
   accepts: json
@@ -18,17 +18,16 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: uploadFile
 
 uploadFile:
-  template: "[#LJVIS_PROJECT_LAYER]/files/upload"
-  requestType: templates
+  template: "templates/files/upload"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
@@ -37,8 +36,8 @@ uploadFile:
     file_name: ${incoming.body.fileName}
     file_base64: ${incoming.body.fileBase64}
     mimetype: ${incoming.body.mimetype}
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   result: uploadResult
   next: returnSuccess
 

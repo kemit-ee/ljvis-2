@@ -46,14 +46,16 @@ WITH latest AS (
 SELECT
     l.user_group_key AS id,
     l.name,
-    COALESCE(
-        ARRAY(
-            SELECT o.name
-            FROM UNNEST(l.organisations) AS org_id
-            JOIN users.organisation o ON o.id = org_id
-            ORDER BY o.name
-        ),
-        ARRAY[]::TEXT[]
+    ARRAY_TO_JSON(
+        COALESCE(
+            ARRAY(
+                SELECT o.name
+                FROM UNNEST(l.organisations) AS org_id
+                JOIN users.organisation o ON o.id = org_id
+                ORDER BY o.name
+            ),
+            ARRAY[]::TEXT[]
+        )
     ) AS organisations,
     l.covers_all_organisations,
     (COUNT(*) OVER ())::INTEGER AS total

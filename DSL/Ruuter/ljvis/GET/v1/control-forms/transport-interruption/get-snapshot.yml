@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single transport-interruption form snapshot by snapshot ID, for the read-only historical version view."
   method: get
   accepts: json

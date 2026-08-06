@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single compound form by ID"
   method: get
   accepts: json
@@ -73,8 +73,8 @@ checkShouldLog:
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-view"
-  requestType: templates
+  template: "templates/audit/form/compound-form/log-compound-view"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Update drive rest form for driver"
   method: post
   accepts: json
@@ -80,8 +80,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -202,8 +202,8 @@ extractDriverCodes:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/sp-driver-form/log-sp-driver-create-update"
-  requestType: templates
+  template: "templates/audit/form/sp-driver-form/log-sp-driver-create-update"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

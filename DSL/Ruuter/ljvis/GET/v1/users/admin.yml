@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single user by ID (admin scope — all organisations)"
   method: get
   accepts: json
@@ -13,18 +13,17 @@ declaration:
         description: "User UUID"
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.params.q}"
-    organisation_id: ""
+    organisation_id: null
   next: getUser
 
 getUser:
@@ -41,18 +40,22 @@ getUser:
 
 buildAuditLog:
   assign:
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
     user_first_name: "${res.response.body[0].firstName || ''}"
     user_last_name: "${res.response.body[0].lastName || ''}"
     user_personal_code: "${res.response.body[0].personalCode || ''}"
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     view_description: "Kasutaja vaatamine: ${user_first_name} ${user_last_name} (${user_personal_code})"
     view_log_content: "{\"targetPersonalCode\":\"${user_personal_code}\",\"targetName\":\"${user_first_name} ${user_last_name}\",\"scope\":\"allOrganisations\",\"organisationId\":null}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user.view"
     event_category: "user_management"

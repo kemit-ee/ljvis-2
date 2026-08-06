@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get the latest active drive rest form (teammate) for a compound form"
   method: post
   accepts: json

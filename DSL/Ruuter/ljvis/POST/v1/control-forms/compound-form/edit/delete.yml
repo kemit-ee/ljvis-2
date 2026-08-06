@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Delete compound form"
   method: post
   accepts: json
@@ -30,7 +30,7 @@ extractRequestData:
     form_number: "${incoming.body.form_number}"
     old_status: "${incoming.body.old_status}"
     status: "deleted"
-    created_by: "${auth_user.response.body.personalCode || ''}"
+    created_by: "${auth_user.personalcode || ''}"
   next: deleteForm
 
 deleteForm:
@@ -47,8 +47,8 @@ deleteForm:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/log-form-delete"
-  requestType: templates
+  template: "templates/audit/form/log-form-delete"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

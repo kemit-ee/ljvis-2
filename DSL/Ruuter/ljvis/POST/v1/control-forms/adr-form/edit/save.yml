@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create or update the ADR sub-form (ohtlik veos, LJVIS2-141) — single unified save endpoint, branches internally on presence of id. Status is always server-controlled. Requires an already-existing compoundFormKey. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
   method: post
   accepts: json
@@ -56,8 +56,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -66,7 +66,7 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    compound_form_key: "${incoming.body.compoundFormKey}"
+    compound_form_key: ${incoming.body.compoundFormKey}
     driver_assistant: "${incoming.body.driverAssistant || ''}"
     driver_adr_certificate_number: "${incoming.body.driverAdrCertificateNumber || ''}"
     crew_adr_certificate_number: "${incoming.body.crewAdrCertificateNumber || ''}"
@@ -209,8 +209,8 @@ buildLogDescription:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

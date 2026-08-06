@@ -15,7 +15,7 @@
     },
     {
       "key": "resql_ljvis_url",
-      "value": "http://localhost:9090/ljvis",
+      "value": "http://localhost:9087/ljvis",
       "enabled": true
     },
     {
