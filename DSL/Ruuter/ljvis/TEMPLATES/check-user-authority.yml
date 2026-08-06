@@ -29,13 +29,13 @@ get_cookie_info:
 
 check_cookie_info_response:
   switch:
-    - condition: ${200 <= res.response.statusCodeValue && res.response.statusCodeValue < 300}
+    - condition: ${200 <= res.response.status && res.response.status < 300}
       next: extract_personal_code
   next: return_bad_request
 
 extract_personal_code:
   assign:
-    personal_code: ${res.response.body.personalCode ?? ''}
+    personal_code: ${res.response.body.userinfo?.claims?.personalCode ?? res.response.body.userinfo?.subject ?? ''}
   next: check_personal_code
 
 check_personal_code:

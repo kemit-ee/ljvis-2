@@ -170,6 +170,9 @@ services:
     volumes:
       - ci-tara-vault:/service/vault
       - ./docker/tara-mock/identities.json:/service/identities.json:ro
+      # config.json sets taraMockHost=tara-mock so OIDC discovery URLs use
+      # the Docker-internal hostname that TIM can resolve.
+      - ./docker/tara-mock/config.json:/service/config.json:ro
     networks:
       - ljvis-ci
     ports:
@@ -188,43 +191,28 @@ services:
       - ljvis-ci
 
   tim:
-    image: ghcr.io/buerokratt/tim:pre-apha-2.7.1
-    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: docker/tim/Dockerfile
     restart: unless-stopped
     depends_on:
       - tim-postgresql
       - tara-mock
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        until [ -f /tara-mock-vault/rootCA.pem ]; do sleep 1; done
-        CACERTS=$$(find /opt/java /usr/lib/jvm -name cacerts -path '*/security/cacerts' 2>/dev/null | head -1)
-        keytool -import -trustcacerts -noprompt -alias tara-mock-ca \
-          -file /tara-mock-vault/rootCA.pem -keystore "$$CACERTS" -storepass changeit
-        exec ./generate-keystore.sh
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://tim-postgresql:5432/tim
-      - SECURITY_ALLOWLIST_JWT=ruuter,ruuter-internal,data-mapper,resql-ljvis,tim,tim-postgresql,127.0.0.1,::1
-      - JWT_INTEGRATION_SIGNATURE_KEY_STORE_PASSWORD=defaultpassword
-      - security.oauth2.client.client-id=ljvis
-      - security.oauth2.client.client-secret=ljvis-secret
-      - security.oauth2.client.scope=openid
-      - security.oauth2.client.registered-redirect-uri=http://localhost:3001/tim/authenticate
-      - security.oauth2.client.user-authorization-uri=https://localhost:9888/oidc/authorize
-      - security.oauth2.client.access-token-uri=https://tara-mock:8080/oidc/token
-      - security.oauth2.resource.jwk.key-set-uri=https://tara-mock:8080/oidc/jwks
-      - frontpage.redirect.url=http://localhost:3001
-      - auth.success.redirect.whitelist=http://localhost:3001
-      - jwt-integration.signature.cookieName=customJwtCookie
-      - jwt-integration.signature.secureCookie=false
-      - server.servlet.session.cookie.same-site=lax
+      - TIM_DATABASE_URL=postgres://tim:123@tim-postgresql:5432/tim
+      - TIM_ADMIN_TOKEN=${TIM_ADMIN_TOKEN:-ci-dev-admin-token}
+      - TIM_TARA_CLIENT_ID=ljvis
+      - TIM_TARA_CLIENT_SECRET=ljvis-secret
+      - RUST_LOG=info
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/actuator/health > /dev/null 2>&1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8085/health > /dev/null 2>&1"]
       interval: 10s
       timeout: 5s
       retries: 20
+      start_period: 20s
     volumes:
       - ci-tara-vault:/tara-mock-vault:ro
+      - ci-tim-jwt-key:/opt/tim/keys
     networks:
       - ljvis-ci
     ports:
@@ -236,6 +224,7 @@ volumes:
   ci-db-data:
   ci-tara-vault:
   ci-tim-db:
+  ci-tim-jwt-key:
 
 networks:
   ljvis-ci:
