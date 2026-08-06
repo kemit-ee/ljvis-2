@@ -205,6 +205,16 @@ jobs:
       - name: Build and start CI stack
         run: docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --build
 
+      - name: Wait for Resql
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:9087/healthz > /dev/null 2>&1; then
+              echo "resql ready"; break
+            fi
+            if [ "$i" = "60" ]; then echo "❌ resql not ready after 300s"; exit 1; fi
+            sleep 5
+          done
+
       - name: Wait for ruuter
         run: |
           for i in $(seq 1 60); do
