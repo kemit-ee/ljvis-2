@@ -30,6 +30,7 @@ import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage
 import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-repute-form/GoodReputeFormCreatePage';
 import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
 import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
+import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -49,6 +50,7 @@ function AppRoutes() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DesktopPage />} />
+          <Route path="/search" element={<FormSearchPage />} />
           <Route path="/users" element={<UserListPage />} />
           <Route path="/users/new" element={<UserCreatePage />} />
           <Route path="/users/:id" element={<UserDetailPage />} />
@@ -164,7 +166,10 @@ function AppRoutes() {
             element={<AdrFormPage />}
           />
           <Route path="/control-forms/adr/:id" element={<AdrFormPage />} />
-          <Route path="/control-forms/adr/:id/:snapshotId" element={<AdrFormPage />} />
+          <Route
+            path="/control-forms/adr/:id/:snapshotId"
+            element={<AdrFormPage />}
+          />
           <Route
             path="/control-forms/good-repute/new"
             element={<GoodReputeFormCreatePage />}

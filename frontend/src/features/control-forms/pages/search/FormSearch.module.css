@@ -1,0 +1,20 @@
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+:global(#form-search-table) tr:has(:global(.row-has-violation)) td {
+  background-color: #fdecec;
+}
+
+.table-link {
+  cursor: pointer;
+}

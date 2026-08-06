@@ -4,7 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { SideNav } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../features/auth/AuthContext';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import { BREAKPOINTS, PERMISSIONS } from '../constants/constants';
+import {
+  BREAKPOINTS,
+  PERMISSIONS,
+  FORM_READ_PERMISSIONS,
+} from '../constants/constants';
 import styles from './SideNavWrapper.module.css';
 
 interface UseSideNavPropsResult {
@@ -40,6 +44,16 @@ export function useSideNavProps(): UseSideNavPropsResult {
       to: '/',
       isActive: pathname === '/',
     });
+
+
+    if (hasAnyPermission(FORM_READ_PERMISSIONS)) {
+      items.push({
+        children: t('nav.search'),
+        icon: 'search',
+        to: '/search',
+        isActive: pathname.startsWith('/search'),
+      });
+    }
 
     if (
       hasAnyPermission([

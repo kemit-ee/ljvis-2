@@ -48,6 +48,9 @@ call newman run "%COL%\adr-form.collection.json" -e "%ENV%" --delay-request 300 
 echo Running collection: good-repute-form.collection.json
 call newman run "%COL%\good-repute-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\good-repute-form.html"
 
+echo Running collection: form-search.collection.json
+call newman run "%COL%\form-search.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\form-search.html"
+
 echo.
 echo All collections passed.
 echo HTML reports:

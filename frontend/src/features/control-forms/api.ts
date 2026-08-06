@@ -1,4 +1,5 @@
 import { post, postSilent, get, ApiError } from '../../shared/api/client';
+import type { PagedResponse } from '../../hooks/usePaginatedList';
 import type {
   ForeignViolationForm,
   CompoundForm,
@@ -14,17 +15,35 @@ import type {
   AdrForm,
   AdrFormListItem,
   GoodReputeForm,
+  FormSearchRow,
 } from './types';
+
+export const searchForms = async (
+  params: Record<string, string>,
+): Promise<PagedResponse<FormSearchRow>> => {
+  const rows = await get<FormSearchRow[]>(
+    '/v1/control-forms/search/list',
+    params,
+  );
+  return {
+    content: rows,
+    total: rows.length > 0 ? Number(rows[0].total ?? 0) : 0,
+  };
+};
 
 const technicalCheckPath = (variant: TechnicalCheckVariant) =>
   variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';
 
 export const getForm = (id: number) =>
-    get<ForeignViolationForm>('/v1/control-forms/foreign-violation-form', { q: String(id) });
+  get<ForeignViolationForm>('/v1/control-forms/foreign-violation-form', {
+    q: String(id),
+  });
 
-export const insertForeignViolationForm = (
-  data: ForeignViolationForm,
-) => post<ForeignViolationForm[]>('/v1/control-forms/foreign-violation-form', data as unknown as Record<string, unknown>);
+export const insertForeignViolationForm = (data: ForeignViolationForm) =>
+  post<ForeignViolationForm[]>(
+    '/v1/control-forms/foreign-violation-form',
+    data as unknown as Record<string, unknown>,
+  );
 
 export const updateForeignViolationForm = (data: ForeignViolationForm) =>
   post<ForeignViolationForm[]>(
@@ -57,7 +76,9 @@ export const insertCompoundForm = (data: CompoundForm) =>
 export const getCompoundForm = (id: number, subFormId?: number) =>
   get<CompoundForm>(
     `/v1/control-forms/compound-form`,
-    subFormId != null ? { q: String(id), subFormId: String(subFormId) } : { q: String(id) },
+    subFormId != null
+      ? { q: String(id), subFormId: String(subFormId) }
+      : { q: String(id) },
   );
 
 export const updateCompoundForm = (data: CompoundForm) =>
@@ -94,7 +115,8 @@ export const uploadFormFile = (
     fileBase64: string;
     mimetype: string;
   },
-) => post<FormAttachment>(`/v1/control-forms/${formPath}/edit/files/upload`, data);
+) =>
+  post<FormAttachment>(`/v1/control-forms/${formPath}/edit/files/upload`, data);
 
 export const listFormFiles = (formPath: string, formNumber: string) =>
   get<FormAttachment[]>(`/v1/control-forms/${formPath}/read/files/list`, {
@@ -219,10 +241,9 @@ export const getTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
   id: string,
 ) =>
-  get<TechnicalCheckForm>(
-    `/v1/control-forms/${technicalCheckPath(variant)}`,
-    { q: id },
-  );
+  get<TechnicalCheckForm>(`/v1/control-forms/${technicalCheckPath(variant)}`, {
+    q: id,
+  });
 
 export const listTechnicalCheckFormsByCompoundFormKey = (
   variant: TechnicalCheckVariant,
@@ -266,10 +287,9 @@ export const saveTechnicalCheckFormXroadFields = (
   );
 
 export const getTransportInterruptionForm = (id: string) =>
-  get<TransportInterruptionForm>(
-    `/v1/control-forms/transport-interruption`,
-    { q: id },
-  );
+  get<TransportInterruptionForm>(`/v1/control-forms/transport-interruption`, {
+    q: id,
+  });
 
 export const listTransportInterruptionFormsByCompoundFormKey = (
   compoundFormKey: number,
@@ -279,7 +299,10 @@ export const listTransportInterruptionFormsByCompoundFormKey = (
     { compoundFormKey: String(compoundFormKey) },
   );
 
-export const getTransportInterruptionFormSnapshot = (id: string, formKey: string) =>
+export const getTransportInterruptionFormSnapshot = (
+  id: string,
+  formKey: string,
+) =>
   get<TransportInterruptionForm>(
     `/v1/control-forms/transport-interruption/get-snapshot`,
     { id, formKey },
@@ -351,7 +374,7 @@ export const confirmGoodReputeForm = (data: GoodReputeForm) =>
   );
 
 export const getGoodReputeFormSnapshot = (id: string, formKey: string) =>
-  get<GoodReputeForm[]>(
-    `/v1/control-forms/good-repute/get-snapshot`,
-    { id, formKey },
-  );
+  get<GoodReputeForm[]>(`/v1/control-forms/good-repute/get-snapshot`, {
+    id,
+    formKey,
+  });

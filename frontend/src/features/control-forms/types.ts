@@ -386,7 +386,11 @@ export type DangerousGoodEntry = {
   unitCode: string;
 };
 
-export type AdrInfringementCheckStatus = '' | 'checked' | 'not_possible' | 'not_applicable';
+export type AdrInfringementCheckStatus =
+  | ''
+  | 'checked'
+  | 'not_possible'
+  | 'not_applicable';
 
 export type AdrInfringementEntry = {
   classifierValueKey: number;
@@ -455,4 +459,37 @@ export interface GoodReputeForm {
   unfitFromDate?: string;
   unfitUntilDate?: string;
   createdBy?: string;
+}
+
+export interface FormSearchRow {
+  formType: string;
+  formKey: number;
+  compoundFormKey: number | null;
+  formNumber: string;
+  status: string;
+  mainDate: string | null;
+  county: string | null;
+  vehicleRegNr: string | null;
+  companyRegCode: string | null;
+  companyName: string | null;
+  driverSearch: string | null;
+  inspectorOrgId: string | null;
+  inspectorName: string | null;
+  hasViolation: boolean;
+  /** Total row count of the full result set (window COUNT), present on every row. */
+  total?: number;
+}
+
+export interface FormSearchFilters {
+  dateFrom: string;
+  dateTo: string;
+  formType: string;
+  vehicleRegNr: string;
+  companyRegCode: string;
+  companyName: string;
+  driver: string;
+  county: string;
+  /** '' = any, 'true' = has violation, 'false' = no violation */
+  hasViolation: string;
+  status: string;
 }
