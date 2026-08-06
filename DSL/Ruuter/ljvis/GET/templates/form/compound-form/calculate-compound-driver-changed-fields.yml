@@ -1,0 +1,200 @@
+declaration:
+
+  version: "1.0"
+  description: "Calculate changed fields for drivers array - compares up to two drivers"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: old_drivers
+        type: string
+      - field: new_drivers
+        type: string
+      - field: changed_fields
+        type: string
+
+parseInputs:
+  assign:
+    old_drivers: ${incoming.body.old_drivers}
+    new_drivers: ${incoming.body.new_drivers}
+    changed_fields: ${incoming.body.changed_fields}
+  next: parseDrivers
+
+parseDrivers:
+  assign:
+    old_driver0_lastName: "${JSON.parse(old_drivers || \"[]\")[0] ? JSON.parse(old_drivers || \"[]\")[0].lastName || \"\" : \"\"}"
+    old_driver0_firstName: "${JSON.parse(old_drivers || \"[]\")[0] ? JSON.parse(old_drivers || \"[]\")[0].firstName || \"\" : \"\"}"
+    old_driver0_birthDate: "${JSON.parse(old_drivers || \"[]\")[0] ? JSON.parse(old_drivers || \"[]\")[0].birthDate || \"\" : \"\"}"
+    old_driver0_personalCodeEe: "${JSON.parse(old_drivers || \"[]\")[0] ? JSON.parse(old_drivers || \"[]\")[0].personalCodeEe || \"\" : \"\"}"
+    old_driver0_personalCodeForeign: "${JSON.parse(old_drivers || \"[]\")[0] ? JSON.parse(old_drivers || \"[]\")[0].personalCodeForeign || \"\" : \"\"}"
+    old_driver0_citizenshipCode: "${JSON.parse(old_drivers || \"[]\")[0] ? JSON.parse(old_drivers || \"[]\")[0].citizenshipCode || \"\" : \"\"}"
+    new_driver0_lastName: "${JSON.parse(new_drivers || \"[]\")[0] ? JSON.parse(new_drivers || \"[]\")[0].lastName || \"\" : \"\"}"
+    new_driver0_firstName: "${JSON.parse(new_drivers || \"[]\")[0] ? JSON.parse(new_drivers || \"[]\")[0].firstName || \"\" : \"\"}"
+    new_driver0_birthDate: "${JSON.parse(new_drivers || \"[]\")[0] ? JSON.parse(new_drivers || \"[]\")[0].birthDate || \"\" : \"\"}"
+    new_driver0_personalCodeEe: "${JSON.parse(new_drivers || \"[]\")[0] ? JSON.parse(new_drivers || \"[]\")[0].personalCodeEe || \"\" : \"\"}"
+    new_driver0_personalCodeForeign: "${JSON.parse(new_drivers || \"[]\")[0] ? JSON.parse(new_drivers || \"[]\")[0].personalCodeForeign || \"\" : \"\"}"
+    new_driver0_citizenshipCode: "${JSON.parse(new_drivers || \"[]\")[0] ? JSON.parse(new_drivers || \"[]\")[0].citizenshipCode || \"\" : \"\"}"
+    old_driver1_lastName: "${JSON.parse(old_drivers || \"[]\")[1] ? JSON.parse(old_drivers || \"[]\")[1].lastName || \"\" : \"\"}"
+    old_driver1_firstName: "${JSON.parse(old_drivers || \"[]\")[1] ? JSON.parse(old_drivers || \"[]\")[1].firstName || \"\" : \"\"}"
+    old_driver1_birthDate: "${JSON.parse(old_drivers || \"[]\")[1] ? JSON.parse(old_drivers || \"[]\")[1].birthDate || \"\" : \"\"}"
+    old_driver1_personalCodeEe: "${JSON.parse(old_drivers || \"[]\")[1] ? JSON.parse(old_drivers || \"[]\")[1].personalCodeEe || \"\" : \"\"}"
+    old_driver1_personalCodeForeign: "${JSON.parse(old_drivers || \"[]\")[1] ? JSON.parse(old_drivers || \"[]\")[1].personalCodeForeign || \"\" : \"\"}"
+    old_driver1_citizenshipCode: "${JSON.parse(old_drivers || \"[]\")[1] ? JSON.parse(old_drivers || \"[]\")[1].citizenshipCode || \"\" : \"\"}"
+    new_driver1_lastName: "${JSON.parse(new_drivers || \"[]\")[1] ? JSON.parse(new_drivers || \"[]\")[1].lastName || \"\" : \"\"}"
+    new_driver1_firstName: "${JSON.parse(new_drivers || \"[]\")[1] ? JSON.parse(new_drivers || \"[]\")[1].firstName || \"\" : \"\"}"
+    new_driver1_birthDate: "${JSON.parse(new_drivers || \"[]\")[1] ? JSON.parse(new_drivers || \"[]\")[1].birthDate || \"\" : \"\"}"
+    new_driver1_personalCodeEe: "${JSON.parse(new_drivers || \"[]\")[1] ? JSON.parse(new_drivers || \"[]\")[1].personalCodeEe || \"\" : \"\"}"
+    new_driver1_personalCodeForeign: "${JSON.parse(new_drivers || \"[]\")[1] ? JSON.parse(new_drivers || \"[]\")[1].personalCodeForeign || \"\" : \"\"}"
+    new_driver1_citizenshipCode: "${JSON.parse(new_drivers || \"[]\")[1] ? JSON.parse(new_drivers || \"[]\")[1].citizenshipCode || \"\" : \"\"}"
+    old_drivers_length: "${JSON.parse(old_drivers || \"[]\").length}"
+    new_drivers_length: "${JSON.parse(new_drivers || \"[]\").length}"
+  next: checkDriversLengthChanged
+
+checkDriversLengthChanged:
+  switch:
+    - condition: ${old_drivers_length != new_drivers_length}
+      next: addDriversLengthChanged
+  next: checkDriver0LastName
+
+addDriversLengthChanged:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[].count\"]" : "[\"drivers[].count\"]"}'
+  next: checkDriver0LastName
+
+checkDriver0LastName:
+  switch:
+    - condition: ${old_driver0_lastName != new_driver0_lastName}
+      next: addDriver0LastName
+  next: checkDriver0FirstName
+
+addDriver0LastName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[0].lastName\"]" : "[\"drivers[0].lastName\"]"}'
+  next: checkDriver0FirstName
+
+checkDriver0FirstName:
+  switch:
+    - condition: ${old_driver0_firstName != new_driver0_firstName}
+      next: addDriver0FirstName
+  next: checkDriver0BirthDate
+
+addDriver0FirstName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[0].firstName\"]" : "[\"drivers[0].firstName\"]"}'
+  next: checkDriver0BirthDate
+
+checkDriver0BirthDate:
+  switch:
+    - condition: ${old_driver0_birthDate != new_driver0_birthDate}
+      next: addDriver0BirthDate
+  next: checkDriver0PersonalCodeEe
+
+addDriver0BirthDate:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[0].birthDate\"]" : "[\"drivers[0].birthDate\"]"}'
+  next: checkDriver0PersonalCodeEe
+
+checkDriver0PersonalCodeEe:
+  switch:
+    - condition: ${old_driver0_personalCodeEe != new_driver0_personalCodeEe}
+      next: addDriver0PersonalCodeEe
+  next: checkDriver0PersonalCodeForeign
+
+addDriver0PersonalCodeEe:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[0].personalCodeEe\"]" : "[\"drivers[0].personalCodeEe\"]"}'
+  next: checkDriver0PersonalCodeForeign
+
+checkDriver0PersonalCodeForeign:
+  switch:
+    - condition: ${old_driver0_personalCodeForeign != new_driver0_personalCodeForeign}
+      next: addDriver0PersonalCodeForeign
+  next: checkDriver0CitizenshipCode
+
+addDriver0PersonalCodeForeign:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[0].personalCodeForeign\"]" : "[\"drivers[0].personalCodeForeign\"]"}'
+  next: checkDriver0CitizenshipCode
+
+checkDriver0CitizenshipCode:
+  switch:
+    - condition: ${old_driver0_citizenshipCode != new_driver0_citizenshipCode}
+      next: addDriver0CitizenshipCode
+  next: checkDriver1LastName
+
+addDriver0CitizenshipCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[0].citizenshipCode\"]" : "[\"drivers[0].citizenshipCode\"]"}'
+  next: checkDriver1LastName
+
+checkDriver1LastName:
+  switch:
+    - condition: ${old_driver1_lastName != new_driver1_lastName}
+      next: addDriver1LastName
+  next: checkDriver1FirstName
+
+addDriver1LastName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[1].lastName\"]" : "[\"drivers[1].lastName\"]"}'
+  next: checkDriver1FirstName
+
+checkDriver1FirstName:
+  switch:
+    - condition: ${old_driver1_firstName != new_driver1_firstName}
+      next: addDriver1FirstName
+  next: checkDriver1BirthDate
+
+addDriver1FirstName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[1].firstName\"]" : "[\"drivers[1].firstName\"]"}'
+  next: checkDriver1BirthDate
+
+checkDriver1BirthDate:
+  switch:
+    - condition: ${old_driver1_birthDate != new_driver1_birthDate}
+      next: addDriver1BirthDate
+  next: checkDriver1PersonalCodeEe
+
+addDriver1BirthDate:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[1].birthDate\"]" : "[\"drivers[1].birthDate\"]"}'
+  next: checkDriver1PersonalCodeEe
+
+checkDriver1PersonalCodeEe:
+  switch:
+    - condition: ${old_driver1_personalCodeEe != new_driver1_personalCodeEe}
+      next: addDriver1PersonalCodeEe
+  next: checkDriver1PersonalCodeForeign
+
+addDriver1PersonalCodeEe:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[1].personalCodeEe\"]" : "[\"drivers[1].personalCodeEe\"]"}'
+  next: checkDriver1PersonalCodeForeign
+
+checkDriver1PersonalCodeForeign:
+  switch:
+    - condition: ${old_driver1_personalCodeForeign != new_driver1_personalCodeForeign}
+      next: addDriver1PersonalCodeForeign
+  next: checkDriver1CitizenshipCode
+
+addDriver1PersonalCodeForeign:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[1].personalCodeForeign\"]" : "[\"drivers[1].personalCodeForeign\"]"}'
+  next: checkDriver1CitizenshipCode
+
+checkDriver1CitizenshipCode:
+  switch:
+    - condition: ${old_driver1_citizenshipCode != new_driver1_citizenshipCode}
+      next: addDriver1CitizenshipCode
+  next: returnResult
+
+addDriver1CitizenshipCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"drivers[1].citizenshipCode\"]" : "[\"drivers[1].citizenshipCode\"]"}'
+  next: returnResult
+
+returnResult:
+  return: "{\"changed_fields\":${changed_fields}}"
+  next: end

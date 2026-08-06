@@ -1,0 +1,50 @@
+declaration:
+
+  version: "1.0"
+  description: "Write one audit event to the database. Actor data is passed in by the caller (already sourced from JWT). Generates a ULID event_id before the INSERT. Extracts trace_id and span_id from the incoming traceparent header."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: event_type
+        type: string
+      - field: event_category
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+      - field: description
+        type: string
+      - field: log_content
+        type: string
+
+generateEventId:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    traceparent: "${incoming.headers.traceparent || ''}"
+    trace_id: "${(incoming.headers.traceparent || '').split('-')[1] || ''}"
+    span_id: "${(incoming.headers.traceparent || '').split('-')[2] || ''}"
+  next: logToResql
+
+logToResql:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: ${incoming.body.event_type}
+      event_category: ${incoming.body.event_category}
+      actor_name: "${incoming.body.actor_name || ''}"
+      actor_personal_code: "${incoming.body.actor_personal_code || ''}"
+      description: ${incoming.body.description}
+      log_content: ${incoming.body.log_content}
+      created_by: "${incoming.body.actor_name || ''}"
+      trace_id: ${trace_id}
+      span_id: ${span_id}
+  result: res
+  next: end

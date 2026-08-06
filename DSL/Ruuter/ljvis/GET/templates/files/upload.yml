@@ -1,0 +1,71 @@
+declaration:
+
+  version: "1.0"
+  description: "Upload a file to S3 and record it in the DB. Expects: form_type, form_number, file_name, file_base64, mimetype, actor_personal_code"
+  method: post
+  accepts: json
+  returns: json
+  namespace: templates
+
+buildS3Folder:
+  assign:
+    s3_folder: ${incoming.body.form_type + "/" + incoming.body.form_number}
+  next: uploadToS3
+
+uploadToS3:
+  call: http.post
+  args:
+    url: "[#S3_PROXY]/upload"
+    headers:
+      type: json
+    body:
+      key_folder: ${s3_folder}
+      file_name: ${incoming.body.file_name}
+      content_base64: ${incoming.body.file_base64}
+      content_type: ${incoming.body.mimetype}
+  result: s3Result
+  next: checkS3Result
+
+checkS3Result:
+  switch:
+    - condition: ${s3Result.response.status >= 400}
+      next: returnS3Error
+  next: insertFileToDB
+
+returnS3Error:
+  status: ${s3Result.response.status}
+  return: ${s3Result.response.body}
+  next: end
+
+insertFileToDB:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/files/insert_form_attachment"
+    headers:
+      type: json
+    body:
+      form_number: ${incoming.body.form_number}
+      file_name: ${incoming.body.file_name}
+      s3_key: ${s3Result.response.body.key}
+      created_by: ${incoming.body.actor_personal_code}
+  result: dbResult
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/files/log-file-upload"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: ${incoming.body.form_type}
+    form_number: ${incoming.body.form_number}
+    file_name: ${incoming.body.file_name}
+    s3_key: ${s3Result.response.body.key}
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+  result: auditResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${dbResult.response.body}
+  status: 200

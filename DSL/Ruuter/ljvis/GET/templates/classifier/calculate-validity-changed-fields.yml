@@ -1,0 +1,83 @@
+declaration:
+
+  version: "1.0"
+  description: "Calculate changed fields for classifier value validity including SQL lookup"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: classifier_value_id
+        type: string
+      - field: valid_from
+        type: string
+      - field: valid_until
+        type: string
+
+getExistingClassifierValue:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier_value"
+    headers:
+      type: json
+    body:
+      classifier_value_id: ${incoming.body.classifier_value_id}
+  result: res
+  next: buildAuditData
+
+buildAuditData:
+  assign:
+    old_valid_from: "${res.response.body[0].validFrom || ''}"
+    old_valid_until: "${res.response.body[0].validUntil || ''}"
+    valid_from: ${incoming.body.valid_from}
+    valid_until: ${incoming.body.valid_until}
+  next: calculateChanges
+
+calculateChanges:
+  assign:
+    valid_from_changed: ${valid_from != old_valid_from}
+    valid_until_changed: ${valid_until != old_valid_until}
+  next: checkBothChanged
+
+checkBothChanged:
+  switch:
+    - condition: ${valid_from_changed && valid_until_changed}
+      next: setBothChanged
+  next: checkValidFromChanged
+
+setBothChanged:
+  assign:
+    changed_fields: "[\"validFrom\",\"validUntil\"]"
+  next: returnResult
+
+checkValidFromChanged:
+  switch:
+    - condition: ${valid_from_changed}
+      next: setValidFromChanged
+  next: checkValidUntilChanged
+
+setValidFromChanged:
+  assign:
+    changed_fields: "[\"validFrom\"]"
+  next: returnResult
+
+checkValidUntilChanged:
+  switch:
+    - condition: ${valid_until_changed}
+      next: setValidUntilChanged
+  next: setNoChanges
+
+setValidUntilChanged:
+  assign:
+    changed_fields: "[\"validUntil\"]"
+  next: returnResult
+
+setNoChanges:
+  assign:
+    changed_fields: "[]"
+  next: returnResult
+
+returnResult:
+  return: ${changed_fields}
+  next: end

@@ -1,0 +1,119 @@
+declaration:
+
+  version: "1.0"
+  description: "Validate Estonian personal code (isikukood) - length, digits, date and checksum"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: personal_code
+        type: string
+
+assign_input:
+  assign:
+    pc: "${incoming.body.personal_code}"
+  next: check_not_empty
+
+check_not_empty:
+  switch:
+    - condition: ${pc == null || pc == ''}
+      next: return_invalid
+  next: check_length
+
+check_length:
+  switch:
+    - condition: ${pc.length != 11}
+      next: return_invalid
+  next: check_digits_only
+
+check_digits_only:
+  switch:
+    - condition: ${/[^0-9]/.test(pc)}
+      next: return_invalid
+  next: assign_date_parts
+
+assign_date_parts:
+  assign:
+    first_d: ${parseInt(pc[0])}
+    month_int: ${parseInt(pc.substring(3, 5))}
+    day_int: ${parseInt(pc.substring(5, 7))}
+  next: check_first_digit_range
+
+# First digit 1-2 = born 1800s, 3-4 = 1900s, 5-6 = 2000s (7+ invalid)
+check_first_digit_range:
+  switch:
+    - condition: ${first_d < 1 || first_d > 6}
+      next: return_invalid
+  next: determine_century
+
+determine_century:
+  assign:
+    century: "${first_d <= 2 ? '18' : first_d <= 4 ? '19' : '20'}"
+  next: assign_full_year
+
+assign_full_year:
+  assign:
+    full_year: ${parseInt(century + pc.substring(1, 3))}
+  next: validate_calendar
+
+# Build date from components and check for overflow (e.g. Feb 30 overflows to Mar 2)
+validate_calendar:
+  assign:
+    cal_month: ${new Date(full_year, month_int - 1, day_int).getMonth() + 1}
+    cal_day: ${new Date(full_year, month_int - 1, day_int).getDate()}
+  next: check_month_match
+
+check_month_match:
+  switch:
+    - condition: ${cal_month != month_int}
+      next: return_invalid
+  next: check_day_match
+
+check_day_match:
+  switch:
+    - condition: ${cal_day != day_int}
+      next: return_invalid
+  next: calculate_checksum
+
+# Checksum weights round 1: [1,2,3,4,5,6,7,8,9,1], round 2: [3,4,5,6,7,8,9,1,2,3]
+calculate_checksum:
+  assign:
+    rem1: ${[1,2,3,4,5,6,7,8,9,1].reduce((acc, w, i) => acc + parseInt(pc[i]) * w, 0) % 11}
+    rem2: ${[3,4,5,6,7,8,9,1,2,3].reduce((acc, w, i) => acc + parseInt(pc[i]) * w, 0) % 11}
+  next: determine_expected_checksum
+
+determine_expected_checksum:
+  assign:
+    expected_checksum: "${rem1 < 10 ? rem1 : rem2 < 10 ? rem2 : 0}"
+  next: verify_checksum
+
+verify_checksum:
+  switch:
+    - condition: ${parseInt(pc[10]) != expected_checksum}
+      next: return_invalid
+  next: return_valid
+
+return_valid:
+  return: "valid"
+  next: end
+
+return_invalid:
+  assign:
+    error_field: personalCode
+    error_code: invalid_estonian_personal_code
+  next: emit_invalid
+
+emit_invalid:
+  assign:
+    field_error:
+      type: VALIDATION_ERROR
+      field: ${error_field}
+      code: ${error_code}
+  next: emit_send
+
+emit_send:
+  status: 422
+  return: ${field_error}
+  next: end

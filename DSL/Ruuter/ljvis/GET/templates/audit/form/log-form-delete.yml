@@ -1,0 +1,66 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: form delete event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: form_number
+        type: string
+      - field: old_status
+        type: string
+
+checkStatus:
+  switch:
+    - condition: ${incoming.body.old_status === 'confirmed'}
+      next: setStatusConfirmed
+    - condition: ${incoming.body.old_status === 'published'}
+      next: setStatusPublished
+    - condition: ${incoming.body.old_status === 'saved'}
+      next: setStatusSaved
+  next: setStatusDefault
+
+setStatusConfirmed:
+  assign:
+    old_status_label: "Kinnitatud"
+  next: buildAudit
+
+setStatusPublished:
+  assign:
+    old_status_label: "Avalikustatud"
+  next: buildAudit
+
+setStatusSaved:
+  assign:
+    old_status_label: "Salvestatud"
+  next: buildAudit
+
+setStatusDefault:
+  assign:
+    old_status_label: ${incoming.body.old_status}
+  next: buildAudit
+
+buildAudit:
+  assign:
+    description: "Kustutati vorm ${incoming.body.form_number}, olek: ${old_status_label} → Kustutatud"
+    log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"deleted\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.delete"
+    event_category: "control_form_lifecycle"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

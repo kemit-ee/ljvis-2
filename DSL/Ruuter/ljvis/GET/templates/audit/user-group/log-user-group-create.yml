@@ -1,0 +1,65 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: user group create event — fetches permissions and organisation count internally"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: user_group_id
+        type: string
+      - field: group_name
+        type: string
+      - field: organisation_ids
+        type: string
+      - field: selected_org_count
+        type: number
+      - field: permission_ids
+        type: string
+
+fetchPermissions:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
+    headers:
+      type: json
+    body:
+      user_group_id: ${incoming.body.user_group_id}
+  result: permsDataRes
+  next: fetchOrgsCount
+
+fetchOrgsCount:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/organisation/list_organisations"
+    headers:
+      type: json
+    body: {}
+  result: orgsCountRes
+  next: buildAudit
+
+buildAudit:
+  assign:
+    covers_all_organisations: ${incoming.body.selected_org_count === (orgsCountRes.response.body ?? []).length}
+    permission_codes: ${JSON.stringify((permsDataRes.response.body ?? []).map(p => p.code))}
+    description: "Kasutajagrupi '${incoming.body.group_name}' loomine"
+    log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"groupName\":\"${incoming.body.group_name}\",\"organisationIds\":[${incoming.body.organisation_ids}],\"permissionCodes\":${permission_codes},\"coversAllOrganisations\":${covers_all_organisations}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user_group.create"
+    event_category: "user_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

@@ -1,0 +1,46 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: classifier value update event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: classifier_id
+        type: string
+      - field: classifier_code
+        type: string
+      - field: classifier_value_id
+        type: string
+      - field: code
+        type: string
+      - field: changed_fields
+        type: string
+      - field: valid_from
+        type: string
+      - field: valid_until
+        type: string
+
+buildAudit:
+  assign:
+    description: "Klassifikaator '${incoming.body.classifier_code}' (ID ${incoming.body.classifier_id}), väärtus '${incoming.body.code}' (ID ${incoming.body.classifier_value_id}), muudetud väljad: ${incoming.body.changed_fields}"
+    log_content: "{\"classifierId\":${incoming.body.classifier_id},\"classifierCode\":\"${incoming.body.classifier_code}\",\"classifierValueId\":${incoming.body.classifier_value_id},\"code\":\"${incoming.body.code}\",\"changedFields\":${incoming.body.changed_fields},\"validFrom\":\"${incoming.body.valid_from}\",\"validUntil\":\"${incoming.body.valid_until}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "classifier_value.update"
+    event_category: "classifier_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

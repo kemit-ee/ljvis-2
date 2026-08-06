@@ -1,0 +1,86 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: user set-groups event — fetches user info internally, builds description with branch logic"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: user_account_id
+        type: string
+      - field: added_group_ids
+        type: string
+      - field: removed_group_ids
+        type: string
+      - field: added_group_ids_json
+        type: string
+      - field: removed_group_ids_json
+        type: string
+
+fetchUser:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.user_account_id}
+      organisation_id: ""
+  result: userRes
+  next: buildLogContent
+
+buildLogContent:
+  assign:
+    first_name: "${userRes.response.body[0].firstName || ''}"
+    last_name: "${userRes.response.body[0].lastName || ''}"
+    personal_code: "${userRes.response.body[0].personalCode || ''}"
+    log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"addedGroupIds\":${incoming.body.added_group_ids_json},\"removedGroupIds\":${incoming.body.removed_group_ids_json}}"
+  next: buildDescription
+
+buildDescription:
+  switch:
+    - condition: "${incoming.body.added_group_ids != '' && incoming.body.removed_group_ids != ''}"
+      next: descBoth
+    - condition: "${incoming.body.added_group_ids != ''}"
+      next: descAddedOnly
+    - condition: "${incoming.body.removed_group_ids != ''}"
+      next: descRemovedOnly
+  next: descNone
+
+descBoth:
+  assign:
+    description: "Kasutaja gruppide muutmine: ${first_name} ${last_name} (${personal_code}), lisatud: ${incoming.body.added_group_ids}, eemaldatud: ${incoming.body.removed_group_ids}"
+  next: logAuditEvent
+
+descAddedOnly:
+  assign:
+    description: "Kasutaja gruppide muutmine: ${first_name} ${last_name} (${personal_code}), lisatud: ${incoming.body.added_group_ids}"
+  next: logAuditEvent
+
+descRemovedOnly:
+  assign:
+    description: "Kasutaja gruppide muutmine: ${first_name} ${last_name} (${personal_code}), eemaldatud: ${incoming.body.removed_group_ids}"
+  next: logAuditEvent
+
+descNone:
+  assign:
+    description: "Kasutaja gruppide muutmine: ${first_name} ${last_name} (${personal_code})"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user.set_groups"
+    event_category: "user_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

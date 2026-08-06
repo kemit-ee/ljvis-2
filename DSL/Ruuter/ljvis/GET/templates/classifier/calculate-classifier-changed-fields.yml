@@ -1,0 +1,83 @@
+declaration:
+
+  version: "1.0"
+  description: "Calculate changed fields for classifier including SQL lookup"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: classifier_id
+        type: string
+      - field: name
+        type: string
+      - field: description
+        type: string
+
+getClassifier:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.classifier_id}
+  result: res
+  next: buildAuditData
+
+buildAuditData:
+  assign:
+    old_name: "${res.response.body[0].name || ''}"
+    old_description: "${res.response.body[0].description || ''}"
+    name: ${incoming.body.name}
+    description: ${incoming.body.description}
+  next: calculateChanges
+
+calculateChanges:
+  assign:
+    name_changed: ${name != old_name}
+    description_changed: ${description != old_description}
+  next: checkBothChanged
+
+checkBothChanged:
+  switch:
+    - condition: ${name_changed && description_changed}
+      next: setBothChanged
+  next: checkNameChanged
+
+setBothChanged:
+  assign:
+    changed_fields: "[\"name\",\"description\"]"
+  next: returnResult
+
+checkNameChanged:
+  switch:
+    - condition: ${name_changed}
+      next: setNameChanged
+  next: checkDescriptionChanged
+
+setNameChanged:
+  assign:
+    changed_fields: "[\"name\"]"
+  next: returnResult
+
+checkDescriptionChanged:
+  switch:
+    - condition: ${description_changed}
+      next: setDescriptionChanged
+  next: setNoChanges
+
+setDescriptionChanged:
+  assign:
+    changed_fields: "[\"description\"]"
+  next: returnResult
+
+setNoChanges:
+  assign:
+    changed_fields: "[]"
+  next: returnResult
+
+returnResult:
+  return: ${changed_fields}
+  next: end

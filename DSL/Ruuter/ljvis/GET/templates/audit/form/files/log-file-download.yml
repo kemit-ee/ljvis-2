@@ -1,0 +1,46 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: file download event. Generic — works for any form type."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: form_type
+        type: string
+      - field: form_number
+        type: string
+      - field: file_id
+        type: string
+      - field: file_name
+        type: string
+      - field: actor_personal_code
+        type: string
+      - field: actor_name
+        type: string
+
+buildAudit:
+  assign:
+    description: "Laaditi alla fail ${incoming.body.file_name} vormilt ${incoming.body.form_number} (${incoming.body.form_type})"
+    log_content: "{\"formType\":\"${incoming.body.form_type}\",\"formNumber\":\"${incoming.body.form_number}\",\"fileId\":\"${incoming.body.file_id}\",\"fileName\":\"${incoming.body.file_name}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.file.download"
+    event_category: "control_form_management"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

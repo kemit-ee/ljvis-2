@@ -1,0 +1,59 @@
+declaration:
+
+  version: "1.0"
+  description: "Validate email format"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: email
+        type: string
+
+check_not_empty:
+  switch:
+    - condition: ${incoming.body.email == null || incoming.body.email == ''}
+      next: return_invalid
+  next: check_at_position
+
+check_at_position:
+  switch:
+    - condition: ${incoming.body.email.indexOf('@') < 1}
+      next: return_invalid
+  next: check_dot_after_at
+
+check_dot_after_at:
+  switch:
+    - condition: ${incoming.body.email.indexOf('.', incoming.body.email.indexOf('@')) < (incoming.body.email.indexOf('@') + 2)}
+      next: return_invalid
+  next: check_tld_length
+
+check_tld_length:
+  switch:
+    - condition: ${incoming.body.email.lastIndexOf('.') >= (incoming.body.email.length - 2)}
+      next: return_invalid
+  next: return_valid
+
+return_valid:
+  return: "valid"
+  next: end
+
+return_invalid:
+  assign:
+    error_field: email
+    error_code: invalid_email_format
+  next: emit_invalid
+
+emit_invalid:
+  assign:
+    field_error:
+      type: VALIDATION_ERROR
+      field: ${error_field}
+      code: ${error_code}
+  next: emit_send
+
+emit_send:
+  status: 422
+  return: ${field_error}
+  next: end
