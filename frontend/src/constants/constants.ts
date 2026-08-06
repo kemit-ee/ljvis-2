@@ -15,6 +15,7 @@ export const PERMISSIONS = {
   USER_GROUP_LIST_LOCAL: 'user_group.list.local',
   CLASSIFIER_LIST: 'classifier.list',
   AUDIT_READ: 'audit.read',
+  CTUD_READ: 'ctud.read',
 } as const;
 
 export const DESKTOP = {

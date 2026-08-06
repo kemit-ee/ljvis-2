@@ -75,6 +75,15 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.CTUD_READ)) {
+      items.push({
+        children: t('nav.ctud'),
+        icon: 'sync_alt',
+        to: '/erru/ctud',
+        isActive: pathname.startsWith('/erru/ctud'),
+      });
+    }
+
     if (hasPermission(PERMISSIONS.AUDIT_READ)) {
       adminSubItems.push({
         children: t('nav.logs'),
