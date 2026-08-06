@@ -251,6 +251,17 @@ export const confirmTechnicalCheckForm = (
     data as unknown as Record<string, unknown>,
   );
 
+export const deleteTechnicalCheckForm = (
+  variant: TechnicalCheckVariant,
+  id: string,
+  form_number: string,
+  old_status: string,
+) =>
+  post<TechnicalCheckForm[]>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/edit/delete`,
+    { id, form_number, old_status },
+  );
+
 export const saveTechnicalCheckFormXroadFields = (
   variant: TechnicalCheckVariant,
   data: {
@@ -301,6 +312,16 @@ export const confirmTransportInterruptionForm = (
     data as unknown as Record<string, unknown>,
   );
 
+export const deleteTransportInterruptionForm = (
+  id: string,
+  form_number: string,
+  old_status: string,
+) =>
+  post<TransportInterruptionForm[]>(
+    `/v1/control-forms/transport-interruption/edit/delete`,
+    { id, form_number, old_status },
+  );
+
 export const getAdrForm = (id: string) =>
   get<AdrForm>(`/v1/control-forms/adr-form`, { q: id });
 
@@ -335,6 +356,16 @@ export const saveAdrFormXroadFields = (data: {
     data,
   );
 
+export const deleteAdrForm = (
+  id: string,
+  form_number: string,
+  old_status: string,
+) =>
+  post<AdrForm[]>(
+    `/v1/control-forms/adr-form/edit/delete`,
+    { id, form_number, old_status },
+  );
+
 export const getGoodReputeForm = (id: string) =>
   get<GoodReputeForm>(`/v1/control-forms/good-repute`, { q: id });
 
@@ -348,6 +379,12 @@ export const confirmGoodReputeForm = (data: GoodReputeForm) =>
   post<GoodReputeForm[]>(
     `/v1/control-forms/good-repute/edit/confirm`,
     data as unknown as Record<string, unknown>,
+  );
+
+export const deleteGoodReputeForm = (id: string, old_status: string) =>
+  post<GoodReputeForm[]>(
+    `/v1/control-forms/good-repute/edit/delete`,
+    { id, old_status },
   );
 
 export const getGoodReputeFormSnapshot = (id: string, formKey: string) =>

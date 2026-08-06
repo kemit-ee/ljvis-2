@@ -324,6 +324,44 @@
         "pm.test('unfitFromDate present', () => pm.expect(body.unfitFromDate || body.unfit_from_date).to.not.be.undefined);",
         "pm.test('unfitUntilDate present', () => pm.expect(body.unfitUntilDate || body.unfit_until_date).to.not.be.undefined);"
       ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/delete — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/delete", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "delete"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"old_status\": \"saved\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 403 without control_form.delete', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST good-repute/edit/delete — happy path → 200",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/delete", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute", "edit", "delete"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_good_repute_id}}\", \"old_status\": \"saved\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "GET good-repute — deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/good-repute?q={{created_good_repute_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "good-repute"], "query": [{"key": "q", "value": "{{created_good_repute_id}}"}]}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+      ]}}]
     }
   ]
 }

@@ -457,6 +457,82 @@
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
         "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(Number(row.version)).to.eql(2));"
       ]}}]
+    },
+    {
+      "name": "POST vehicle-technical/edit/delete — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical/edit/delete", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "vehicle-technical", "edit", "delete"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_vtf_id}}\", \"form_number\": \"{{created_vtf_sub_form_number}}\", \"old_status\": \"saved\"}"}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 403 without control_form.delete', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST vehicle-technical/edit/delete — happy path → 200",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical/edit/delete", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "vehicle-technical", "edit", "delete"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_vtf_id}}\", \"form_number\": \"{{created_vtf_sub_form_number}}\", \"old_status\": \"saved\"}"}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "GET vehicle-technical — deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical?q={{created_vtf_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "vehicle-technical"], "query": [{"key": "q", "value": "{{created_vtf_id}}"}]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+      ]}}]
+    },
+    {
+      "name": "POST trailer-technical/edit/delete — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_noperm}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/trailer-technical/edit/delete", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "trailer-technical", "edit", "delete"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_ttf_id}}\", \"form_number\": \"test\", \"old_status\": \"saved\"}"}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 403 without control_form.delete', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST trailer-technical/edit/delete — happy path → 200",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/trailer-technical/edit/delete", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "trailer-technical", "edit", "delete"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_ttf_id}}\", \"form_number\": \"test\", \"old_status\": \"saved\"}"}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "GET trailer-technical — deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/trailer-technical?q={{created_ttf_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "trailer-technical"], "query": [{"key": "q", "value": "{{created_ttf_id}}"}]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+      ]}}]
     }
   ],
   "variable": []

@@ -365,6 +365,50 @@
         "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
         "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(Number(row.version)).to.eql(2));"
       ]}}]
+    },
+    {
+      "name": "POST adr-form/edit/delete — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Cookie", "value": "{{cookie_noperm}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_adr_id}}\", \"form_number\": \"{{created_adr_sub_form_number}}\", \"old_status\": \"saved\"}"},
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/delete", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "edit", "delete"]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 403 without control_form.delete', () => pm.response.to.have.status(403));"
+      ]}}]
+    },
+    {
+      "name": "POST adr-form/edit/delete — happy path → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Cookie", "value": "{{cookie_admin}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{created_adr_id}}\", \"form_number\": \"{{created_adr_sub_form_number}}\", \"old_status\": \"saved\"}"},
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/delete", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form", "edit", "delete"]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "GET adr-form — deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}],
+        "url": {"raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}", "host": ["{{api_url}}"], "path": ["ljvis", "v1", "control-forms", "adr-form"], "query": [{"key": "q", "value": "{{created_adr_id}}"}]}
+      },
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "var raw = pm.response.json();",
+        "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+        "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+      ]}}]
     }
   ],
   "variable": []
