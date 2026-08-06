@@ -21,9 +21,13 @@ getAttachmentRecord:
 checkRecordExists:
   switch:
     - condition: ${dbResult.response.body.length === 0}
-      return: '{"error": "File not found or has been deleted"}'
-      status: 404
+      next: returnNotFound
   next: getPresignedUrl
+
+returnNotFound:
+  status: 404
+  return: '{"error": "File not found or has been deleted"}'
+  next: end
 
 getPresignedUrl:
   call: http.get
@@ -39,9 +43,13 @@ getPresignedUrl:
 checkPresignResult:
   switch:
     - condition: ${presignResult.response.statusCode >= 400}
-      return: ${presignResult.response.body}
-      status: ${presignResult.response.statusCode}
+      next: returnPresignError
   next: logAuditEvent
+
+returnPresignError:
+  status: ${presignResult.response.statusCode}
+  return: ${presignResult.response.body}
+  next: end
 
 logAuditEvent:
   template: "[#LJVIS_PROJECT_LAYER]/audit/form/files/log-file-download"

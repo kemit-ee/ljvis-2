@@ -29,9 +29,13 @@ uploadToS3:
 checkS3Result:
   switch:
     - condition: ${s3Result.response.statusCode >= 400}
-      return: ${s3Result.response.body}
-      status: ${s3Result.response.statusCode}
+      next: returnS3Error
   next: insertFileToDB
+
+returnS3Error:
+  status: ${s3Result.response.statusCode}
+  return: ${s3Result.response.body}
+  next: end
 
 insertFileToDB:
   call: http.post

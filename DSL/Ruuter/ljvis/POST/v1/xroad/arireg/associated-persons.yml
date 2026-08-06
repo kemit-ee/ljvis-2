@@ -14,9 +14,13 @@ declaration:
 validate:
   switch:
     - condition: "${incoming.body.registryCode == null || incoming.body.registryCode == ''}"
-      return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"registryCode is required\"}"
-      status: 400
+      next: returnMissingParam
   next: assignParams
+
+returnMissingParam:
+  status: 400
+  return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"registryCode is required\"}"
+  next: end
 
 assignParams:
   assign:
