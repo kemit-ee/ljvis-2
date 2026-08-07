@@ -2,8 +2,9 @@ server:
   bind: "0.0.0.0"
   port: 8085
   request_timeout_seconds: 30
-  # Set to internal Docker DNS name so OAuth2 callbacks resolve correctly.
-  public_base_url: ""
+  # Browser-facing base URL (via nginx reverse proxy on port 3001).
+  # TIM computes its OIDC callback as {public_base_url}/auth/callback/{provider}.
+  public_base_url: "http://localhost:3001/tim"
 
 database:
   url_env: "TIM_DATABASE_URL"
@@ -46,6 +47,6 @@ oauth2:
         clock_skew_seconds: 60
         cache_ttl_seconds: 3600
       allowed_redirect_uris:
-        - "http://localhost:3001/tim/authenticate"
+        - "http://localhost:3001/auth/callback"
 
 

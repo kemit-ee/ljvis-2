@@ -13,7 +13,25 @@ import { DescriptionList } from '../DescriptionList';
 import { useFooterProps } from '../../../layout/useFooterProps';
 import styles from './LoginPage.module.css';
 
-const AUTH_URL = `/tim/oauth2/authorization/tara?callback_url=${window.location.origin}`;
+async function startLogin() {
+  // redirect_uri tells TIM (and TARA) where to send the authorization
+  // code after authentication. This is a frontend route — AuthCallback
+  // picks up code+state and forwards them to Ruuter.
+  const redirectUri = `${window.location.origin}/auth/callback`;
+  const res = await fetch(
+    `/tim/auth/login/tara?redirect_uri=${encodeURIComponent(redirectUri)}`,
+  );
+  const data = await res.json();
+  let authUrl: string = data.authorization_url;
+  // In dev, TIM returns a Docker-internal tara-mock URL that the browser
+  // can't reach directly. Rewrite it to go through the local dev proxy.
+  // In production the IdP URL is already public — the regex is a no-op.
+  authUrl = authUrl.replace(
+    /https?:\/\/tara-mock:\d+/,
+    `${window.location.origin}/tara`,
+  );
+  window.location.href = authUrl;
+}
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -104,7 +122,7 @@ export function LoginPage() {
                   <Button
                     id="Default"
                     visualType="secondary"
-                    onClick={() => (window.location.href = AUTH_URL)}
+                    onClick={() => startLogin()}
                     className={styles['login-button']}
                   >
                     {t('auth.login', 'Sisene süsteemi')}
@@ -137,7 +155,7 @@ export function LoginPage() {
                   <Button
                     id="Default"
                     visualType="secondary"
-                    onClick={() => (window.location.href = AUTH_URL)}
+                    onClick={() => startLogin()}
                     className={styles['login-button']}
                   >
                     {t('auth.login', 'Sisene süsteemi')}

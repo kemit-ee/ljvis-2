@@ -30,11 +30,6 @@ expire_tim_session:
 
 return_clear_cookie:
   headers:
-    Set-Cookie:
-      customJwtCookie: ""
-      Max-Age: 0
-      Path: /
-      Domain: "[#DOMAIN]"
-      SameSite: "Lax"
+    Set-Cookie: "customJwtCookie=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0"
   return: "logged out"
   next: end
