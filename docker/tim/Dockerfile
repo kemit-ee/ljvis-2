@@ -22,6 +22,9 @@ RUN mkdir -p /opt/tim/keys && chmod 700 /opt/tim/keys
 COPY docker/tim/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Windows alternative command if upper command fails
+#RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
+
 COPY docker/tim/tim.yaml /app/tim.yaml
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
