@@ -166,6 +166,17 @@ export const deleteDriveRestForm = (
     { id, form_number, old_status },
   );
 
+export const deleteTechnicalCheckForm = (
+  scope: 'vehicle' | 'trailer',
+  id: string,
+  form_number: string,
+  old_status: string,
+) =>
+  post<TechnicalCheckForm[]>(
+    `/v1/control-forms/${scope}-technical/edit/delete`,
+    { id, form_number, old_status },
+  );
+
 export const getDriveRestFormSnapshot = (
   scope: 'driver' | 'teammate',
   id: string,
@@ -334,6 +345,24 @@ export const saveAdrFormXroadFields = (data: {
     `/v1/control-forms/adr-form/edit/xroad/save-xroad-fields`,
     data,
   );
+
+export const deleteTransportInterruptionForm = (id: string, old_status: string) =>
+  post<TransportInterruptionForm[]>(
+    `/v1/control-forms/transport-interruption/edit/delete`,
+    { id, old_status },
+  );
+
+export const deleteAdrForm = (id: string, old_status: string) =>
+  post<AdrForm[]>(
+    `/v1/control-forms/adr-form/edit/delete`,
+    { id, old_status },
+  );
+
+export const deleteGoodReputeForm = (id: string, old_status: string) =>
+  post<GoodReputeForm[]>(`/v1/control-forms/good-repute/edit/delete`, {
+    id,
+    old_status,
+  });
 
 export const getGoodReputeForm = (id: string) =>
   get<GoodReputeForm>(`/v1/control-forms/good-repute`, { q: id });

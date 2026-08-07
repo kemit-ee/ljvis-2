@@ -26,6 +26,7 @@ import {
   deleteCompoundForm,
   updateDriveRestForm,
   getDriveRestFormSnapshot,
+  deleteTechnicalCheckForm,
 } from '../../api';
 import {
   serializeDriveRestFormValues,
@@ -66,7 +67,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const [loadingEntry, setLoadingEntry] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const isFetching = useRef(false);
-  const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | null>(null);
+  const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | null>(null);
 
   const [activeTab, setActiveTab] = useState(
     entryType === 'driver' ? 'tab-driver' : 'tab-teammate',
@@ -155,6 +156,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const full = item?.id ? await getTechnicalCheckForm('vehicle', item.id).catch(() => null) : null;
         vehicle.setForm(full);
         if (full) setOpenTabs((prev) => prev.includes('tab-vehicle-technical-check') ? prev : [...prev, 'tab-vehicle-technical-check']);
+        if (full?.status === 'saved') vehicle.setEditActive(true);
       })
       .catch(console.error)
       .finally(() => vehicle.setLoaded(true));
@@ -165,6 +167,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const full = item?.id ? await getTechnicalCheckForm('trailer', item.id).catch(() => null) : null;
         trailer.setForm(full);
         if (full) setOpenTabs((prev) => prev.includes('tab-trailer-technical-check') ? prev : [...prev, 'tab-trailer-technical-check']);
+        if (full?.status === 'saved') trailer.setEditActive(true);
       })
       .catch(console.error)
       .finally(() => trailer.setLoaded(true));
@@ -214,12 +217,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
-  const anyEditActive =
-    (openTabs.includes('tab-driver') && driver.editActive) ||
-    (openTabs.includes('tab-teammate') && teammate.editActive) ||
-    vehicle.editActive ||
-    trailer.editActive ||
-    compoundEditActive;
+  const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || compoundEditActive;
 
   const addFormDropdown =
     canEdit && addableTabs.length > 0 && anyEditActive ? (
@@ -370,12 +368,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     }
   }, [compoundForm?.status]);
 
-  const handleRemove = (tabId: 'tab-driver' | 'tab-teammate') => {
-    const form = tabId === 'tab-driver' ? driver.form : teammate.form;
-    if (!form || form.status === undefined) {
+  const handleRemove = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check') => {
+    const subForm = tabId === 'tab-driver' ? driver : tabId === 'tab-teammate' ? teammate : tabId === 'tab-vehicle-technical-check' ? vehicle : trailer;
+    if (!subForm.form || subForm.form.status === undefined) {
       setOpenTabs((prev) => prev.filter((t) => t !== tabId));
-      if (tabId === 'tab-driver') { driver.setForm(null); driver.setEditActive(false); }
-      if (tabId === 'tab-teammate') { teammate.setForm(null); teammate.setEditActive(false); }
+      subForm.setForm(null);
+      subForm.setEditActive(false);
       setActiveTab('tab-compound');
       return;
     }
@@ -384,18 +382,38 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   const handleRemoveConfirmed = async () => {
     if (!removeConfirmTab) return;
-    const form = removeConfirmTab === 'tab-driver' ? driver.form : teammate.form;
-    const scope = removeConfirmTab === 'tab-driver' ? 'driver' : 'teammate';
+    const tab = removeConfirmTab;
     setRemoveConfirmTab(null);
-    if (form?.id && form?.subFormNumber) {
-      try {
-        await deleteDriveRestForm(scope, String(form.id), form.subFormNumber, form.status ?? '');
-      } catch (e) {
-        console.error('Delete sub-form failed', e);
-        return;
+    if (tab === 'tab-driver' || tab === 'tab-teammate') {
+      const scope = tab === 'tab-driver' ? 'driver' : 'teammate';
+      const subForm = tab === 'tab-driver' ? driver : teammate;
+      if (subForm.form?.id && subForm.form?.subFormNumber) {
+        try {
+          await deleteDriveRestForm(scope, String(subForm.form.id), subForm.form.subFormNumber, subForm.form.status ?? '');
+        } catch (e) {
+          console.error('Delete sub-form failed', e);
+          return;
+        }
       }
+      subForm.setForm(null);
+      subForm.setEditActive(false);
+    } else {
+      const scope = tab === 'tab-vehicle-technical-check' ? 'vehicle' : 'trailer';
+      const subForm = tab === 'tab-vehicle-technical-check' ? vehicle : trailer;
+      if (subForm.form?.id && subForm.form?.subFormNumber) {
+        try {
+          await deleteTechnicalCheckForm(scope, String(subForm.form.id), subForm.form.subFormNumber, subForm.form.status ?? '');
+        } catch (e) {
+          console.error('Delete sub-form failed', e);
+          return;
+        }
+      }
+      subForm.setForm(null);
+      subForm.setEditActive(false);
     }
-    if (compoundFormKey) navigate(`/control-forms/compound/${compoundFormKey}`);
+    setOpenTabs((prev) => prev.filter((t) => t !== tab));
+    setActiveTab('tab-compound');
+    navigate(`/control-forms/compound/${compoundFormKey}`);
   };
 
   const canDelete =
@@ -421,6 +439,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           teammate.form.subFormNumber,
           teammate.form.status ?? '',
         );
+      }
+      if (vehicle.form?.id && vehicle.form?.subFormNumber) {
+        await deleteTechnicalCheckForm('vehicle', String(vehicle.form.id), vehicle.form.subFormNumber, vehicle.form.status ?? '');
+      }
+      if (trailer.form?.id && trailer.form?.subFormNumber) {
+        await deleteTechnicalCheckForm('trailer', String(trailer.form.id), trailer.form.subFormNumber, trailer.form.status ?? '');
       }
       if (compoundForm?.id && compoundForm.formNumber) {
         await deleteCompoundForm(
@@ -677,64 +701,39 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           <Tabs.Trigger id="tab-compound">
             {t('forms.compound.generalPart')}
           </Tabs.Trigger>
-          {openTabs.includes('tab-driver') && (
-            <Tabs.Trigger id="tab-driver">
-              <span style={{ position: 'relative' }}>
-                {t('forms.sp_driver_form')}
-                {hasTabErrors('tab-driver') && (
-                  <StatusIndicator type="danger" position="top-right" />
-                )}
-              </span>
-              {driver.editActive && openTabs.length > 1 && (
-                <ClosingButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemove('tab-driver');
-                  }}
-                />
-              )}
-            </Tabs.Trigger>
-          )}
-          {openTabs.includes('tab-teammate') && (
-            <Tabs.Trigger id="tab-teammate">
-              <span style={{ position: 'relative' }}>
-                {t('forms.sp_teammate_form')}
-                {hasTabErrors('tab-teammate') && (
-                  <StatusIndicator type="danger" position="top-right" />
-                )}
-              </span>
-              {teammate.editActive && openTabs.length > 1 && (
-                <ClosingButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemove('tab-teammate');
-                  }}
-                />
-              )}
-            </Tabs.Trigger>
-          )}
-          {openTabs.includes('tab-vehicle-technical-check') && (
-            <Tabs.Trigger id="tab-vehicle-technical-check">
-              <span style={{ position: 'relative' }}>
-                {t('forms.technical_check.vehicleTitle')}
-                {hasTabErrors('tab-vehicle-technical-check') && (
-                  <StatusIndicator type="danger" position="top-right" />
-                )}
-              </span>
-            </Tabs.Trigger>
-          )}
-          {openTabs.includes('tab-trailer-technical-check') && (
-            <Tabs.Trigger id="tab-trailer-technical-check">
-              <span style={{ position: 'relative' }}>
-                {t('forms.technical_check.trailerTitle')}
-                {hasTabErrors('tab-trailer-technical-check') && (
-                  <StatusIndicator type="danger" position="top-right" />
-                )}
-              </span>
-            </Tabs.Trigger>
-          )}
+          {(() => {
+            const tabSubForms = { 'tab-driver': driver, 'tab-teammate': teammate, 'tab-vehicle-technical-check': vehicle, 'tab-trailer-technical-check': trailer } as const;
+            const tabsWithStatus = openTabs.filter((tid) => tid !== 'tab-compound' && (tabSubForms as Record<string, typeof driver>)[tid]?.form != null).length;
+            return (['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check'] as const).map((tid) => {
+              if (!openTabs.includes(tid)) return null;
+              const subForm = tid === 'tab-driver' ? driver : tid === 'tab-teammate' ? teammate : tid === 'tab-vehicle-technical-check' ? vehicle : trailer;
+              const label =
+                tid === 'tab-driver'
+                  ? t('forms.sp_driver_form')
+                  : tid === 'tab-teammate'
+                    ? t('forms.sp_teammate_form')
+                    : tid === 'tab-vehicle-technical-check'
+                      ? t('forms.technical_check.vehicleTitle')
+                      : t('forms.technical_check.trailerTitle');
+              return (
+                <Tabs.Trigger key={tid} id={tid}>
+                  <span style={{ position: 'relative' }}>
+                    {label}
+                    {hasTabErrors(tid) && <StatusIndicator type="danger" position="top-right" />}
+                  </span>
+                  {subForm.editActive && (tabsWithStatus > 1 || !subForm.form) && (
+                    <ClosingButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(tid);
+                      }}
+                    />
+                  )}
+                </Tabs.Trigger>
+              );
+            });
+          })()}
           {isDesktop && addFormDropdown && (
             <div
               style={{
@@ -910,7 +909,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 {t('common.edit')}
               </Button>
             )}
-          {(compoundEditActive || driver.editActive || teammate.editActive || vehicle.editActive || trailer.editActive) && (
+          {anyEditActive && (
             <Button type="button" onClick={handleSaveAll}>
               {t('common.save')}
             </Button>

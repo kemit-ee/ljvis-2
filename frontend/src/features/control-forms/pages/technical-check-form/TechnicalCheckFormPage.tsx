@@ -4,7 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm } from '../../types';
-import { getTechnicalCheckForm, getTechnicalCheckFormSnapshot, deleteCompoundForm, listTechnicalCheckFormsByCompoundFormKey, getDriveRestFormByCompoundFormKey, updateDriveRestForm, saveTechnicalCheckForm } from '../../api';
+import {
+  getTechnicalCheckForm,
+  getTechnicalCheckFormSnapshot,
+  deleteCompoundForm,
+  listTechnicalCheckFormsByCompoundFormKey,
+  getDriveRestFormByCompoundFormKey,
+  updateDriveRestForm,
+  saveTechnicalCheckForm,
+  deleteTechnicalCheckForm,
+  deleteDriveRestForm,
+} from '../../api';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -64,6 +74,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const [openTabs, setOpenTabs] = useState<string[]>([tabId]);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
+  const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | null>(null);
 
   const hasTabErrors = (tid: string) => validatedTabs.has(tid) && (tabErrors[tid] ?? false);
 
@@ -313,10 +324,93 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       (compoundForm != null && compoundForm.status !== 'deleted'));
 
   const handleDelete = async () => {
+    if (driver.form?.id && driver.form?.subFormNumber) {
+      await deleteDriveRestForm(
+        'driver',
+        String(driver.form.id),
+        driver.form.subFormNumber,
+        driver.form.status ?? '',
+      );
+    }
+    if (teammate.form?.id && teammate.form?.subFormNumber) {
+      await deleteDriveRestForm(
+        'teammate',
+        String(teammate.form.id),
+        teammate.form.subFormNumber,
+        teammate.form.status ?? '',
+      );
+    }
+    if (vehicle.form?.id && vehicle.form?.subFormNumber) {
+      await deleteTechnicalCheckForm(
+        'vehicle',
+        String(vehicle.form.id),
+        vehicle.form.subFormNumber,
+        vehicle.form.status ?? '',
+      );
+    }
+    if (trailer.form?.id && trailer.form?.subFormNumber) {
+      await deleteTechnicalCheckForm(
+        'trailer',
+        String(trailer.form.id),
+        trailer.form.subFormNumber,
+        trailer.form.status ?? '',
+      );
+    }
     if (compoundForm?.id && compoundForm.formNumber) {
-      await deleteCompoundForm(String(compoundForm.id), compoundForm.formNumber, compoundForm.status ?? '').catch(console.error);
+      await deleteCompoundForm(
+        String(compoundForm.id),
+        compoundForm.formNumber,
+        compoundForm.status ?? '',
+      ).catch(console.error);
     }
     navigate('/');
+  };
+
+  const handleRemove = (tid: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check') => {
+    const subForm = tid === 'tab-driver' ? driver : tid === 'tab-teammate' ? teammate : tid === 'tab-vehicle-technical-check' ? vehicle : trailer;
+    if (!subForm.form || subForm.form.status === undefined) {
+      setOpenTabs((prev) => prev.filter((t) => t !== tid));
+      subForm.setForm(null);
+      subForm.setEditActive(false);
+      setActiveTab(tabId);
+      return;
+    }
+    setRemoveConfirmTab(tid);
+  };
+
+  const handleRemoveConfirmed = async () => {
+    if (!removeConfirmTab) return;
+    const tab = removeConfirmTab;
+    setRemoveConfirmTab(null);
+    if (tab === 'tab-driver' || tab === 'tab-teammate') {
+      const scope = tab === 'tab-driver' ? 'driver' : 'teammate';
+      const subForm = tab === 'tab-driver' ? driver : teammate;
+      if (subForm.form?.id && subForm.form?.subFormNumber) {
+        try {
+          await deleteDriveRestForm(scope, String(subForm.form.id), subForm.form.subFormNumber, subForm.form.status ?? '');
+        } catch (e) {
+          console.error('Delete sub-form failed', e);
+          return;
+        }
+      }
+      subForm.setForm(null);
+      subForm.setEditActive(false);
+    } else {
+      const scope = tab === 'tab-vehicle-technical-check' ? 'vehicle' : 'trailer';
+      const subForm = tab === 'tab-vehicle-technical-check' ? vehicle : trailer;
+      if (subForm.form?.id && subForm.form?.subFormNumber) {
+        try {
+          await deleteTechnicalCheckForm(scope, String(subForm.form.id), subForm.form.subFormNumber, subForm.form.status ?? '');
+        } catch (e) {
+          console.error('Delete sub-form failed', e);
+          return;
+        }
+      }
+      subForm.setForm(null);
+      subForm.setEditActive(false);
+    }
+    setOpenTabs((prev) => prev.filter((t) => t !== tab));
+    setActiveTab(tabId);
   };
 
   const sharedCompoundProps = {
@@ -353,7 +447,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   return (
     <div>
-      <DeleteConfirmModal subForm isOpen={false} onClose={() => {}} onDelete={handleDelete} />
+      <DeleteConfirmModal subForm isOpen={removeConfirmTab !== null} onClose={() => setRemoveConfirmTab(null)} onDelete={handleRemoveConfirmed} />
       {showSavedAlert && !showConfirmedAlert && (
         <Alert icon="check_circle" className="mb-1" onClose={() => setShowSavedAlert(false)} type="success" size="small">
           {t('forms.savedNote')}
@@ -374,7 +468,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.compound_form')}>
           <Tabs.Trigger id="tab-compound">{t('forms.compound.generalPart')}</Tabs.Trigger>
-          {(['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check'] as const).map((tid) => {
+          {(() => {
+            const tabSubForms = { 'tab-driver': driver, 'tab-teammate': teammate, 'tab-vehicle-technical-check': vehicle, 'tab-trailer-technical-check': trailer } as const;
+            const tabsWithStatus = openTabs.filter((tid) => tid !== 'tab-compound' && (tabSubForms as Record<string, typeof driver>)[tid]?.form != null).length;
+            return (['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check'] as const).map((tid) => {
             if (!openTabs.includes(tid)) return null;
             const subForm = tid === 'tab-driver' ? driver : tid === 'tab-teammate' ? teammate : tid === 'tab-vehicle-technical-check' ? vehicle : trailer;
             const label =
@@ -385,8 +482,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                   : tid === 'tab-vehicle-technical-check'
                     ? t('forms.technical_check.vehicleTitle')
                     : t('forms.technical_check.trailerTitle');
-            const canClose =
-              subForm.editActive && !subForm.form && openTabs.length > 1;
+            const canClose = subForm.editActive && (tabsWithStatus > 1 || !subForm.form);
             return (
               <Tabs.Trigger key={tid} id={tid}>
                 <span style={{ position: 'relative' }}>
@@ -398,17 +494,14 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                     size="small"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setOpenTabs((prev) => prev.filter((t) => t !== tid));
-                      subForm.setForm(null);
-                      subForm.setEditActive(false);
-                      subForm.setLoaded(false);
-                      setActiveTab(tabId);
+                      handleRemove(tid);
                     }}
                   />
                 )}
               </Tabs.Trigger>
             );
-          })}
+          });
+          })()}
           {isDesktop && addFormDropdown && (
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', marginRight: '1rem' }}>
               {addFormDropdown}
