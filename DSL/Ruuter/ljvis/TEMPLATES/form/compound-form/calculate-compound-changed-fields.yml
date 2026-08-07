@@ -188,6 +188,10 @@ buildAuditData:
     new_inspector_organisation_id: ${incoming.body.inspector_organisation_id}
     new_inspector_unit: ${incoming.body.inspector_unit}
     new_inspector_profession: ${incoming.body.inspector_profession}
+  next: computeChangedFlags
+
+computeChangedFlags:
+  assign:
     control_date_changed: ${new_control_date != old_control_date}
     control_time_changed: ${new_control_time != old_control_time}
     control_country_code_changed: ${new_control_country_code != old_control_country_code}

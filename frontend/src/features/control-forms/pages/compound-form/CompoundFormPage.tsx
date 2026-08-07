@@ -15,7 +15,7 @@ import { useCompoundForm } from './useCompoundForm';
 import { useCompoundFormDetail } from './useCompoundFormDetail';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
+import { BREAKPOINTS, FORM_TYPE, ALL_FORM_TABS } from '../../../../constants/constants';
 import {
   deleteCompoundForm,
   getCompoundFormSnapshot,
@@ -23,15 +23,19 @@ import {
   deleteDriveRestForm,
   updateDriveRestForm,
   listTechnicalCheckFormsByCompoundFormKey,
+  getTechnicalCheckForm,
   listTransportInterruptionFormsByCompoundFormKey,
   listAdrFormsByCompoundFormKey,
+  saveTechnicalCheckForm,
 } from '../../api';
 import type {
   DriveRestForm,
   TechnicalCheckFormListItem,
   TechnicalCheckVariant,
   TransportInterruptionFormListItem,
-  AdrFormListItem, } from '../../types';
+  AdrFormListItem,
+  TechnicalCheckForm,
+} from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 import { DriveRestFormViewCard } from '../../components/DriveRestForm/DriveRestFormViewCard';
@@ -44,6 +48,12 @@ import {
   serializeDriveRestFormValues,
   createDriveRestValidationSchema,
 } from '../drive-rest-form/useDriveRestForm';
+import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm.ts';
+import {
+  TechnicalCheckFormEditCard,
+  type TechnicalCheckFormEditCardRef,
+} from '../../components/TechnicalCheckForm/TechnicalCheckFormEditCard.tsx';
+import {TechnicalCheckFormViewCard} from "../../components/TechnicalCheckForm/TechnicalCheckFormViewCard.tsx";
 
 /**
  * LJVIS2-72: minimal navigation into the vehicle/trailer technical-check
@@ -216,22 +226,32 @@ export function CompoundFormPage() {
 
   const [driverForm, setDriverForm] = useState<DriveRestForm | null>(null);
   const [teammateForm, setTeammateForm] = useState<DriveRestForm | null>(null);
+  const [vehicleTechnicalCheckForm, setVehicleTechnicalCheckForm] = useState<TechnicalCheckForm | null>(null);
+  const [trailerTechnicalCheckForm, setTrailerTechnicalCheckForm] = useState<TechnicalCheckForm | null>(null);
   const [subFormsLoaded, setSubFormsLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState('tab-compound');
   const [driverEditActive, setDriverEditActive] = useState(false);
   const [teammateEditActive, setTeammateEditActive] = useState(false);
+  const [vehicleTechnicalCheckEditActive, setVehicleTechnicalCheckEditActive] =
+    useState(false);
+  const [trailerTechnicalCheckEditActive, setTrailerTechnicalCheckEditActive] =
+    useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
   const [driverDraft, setDriverDraft] = useState<DriveRestForm | null>(null);
-  const [teammateDraft, setTeammateDraft] = useState<DriveRestForm | null>(
-    null,
-  );
+  const [teammateDraft, setTeammateDraft] = useState<DriveRestForm | null>(null);
+  const [vehicleTechnicalCheckDraft, setVehicleTechnicalCheckDraft] = useState<TechnicalCheckForm | null>(null);
+  const [trailerTechnicalCheckDraft, setTrailerTechnicalCheckDraft] = useState<TechnicalCheckForm | null>(null);
   const driverDraftRef = useRef<DriveRestForm | null>(null);
   const teammateDraftRef = useRef<DriveRestForm | null>(null);
+  const vehicleTechnicalCheckDraftRef = useRef<TechnicalCheckForm | null>(null);
+  const trailerTechnicalCheckDraftRef = useRef<TechnicalCheckForm | null>(null);
   const driverEditCardRef = useRef<DriveRestFormEditCardRef | null>(null);
   const teammateEditCardRef = useRef<DriveRestFormEditCardRef | null>(null);
+  const vehicleTechnicalCheckEditCardRef = useRef<TechnicalCheckFormEditCardRef | null>(null);
+  const trailerTechnicalCheckEditCardRef = useRef<TechnicalCheckFormEditCardRef | null>(null);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
-  const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | null>(null);
+  const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | null>(null);
 
   const hasTabErrors = (tabId: string) => {
     if (!validatedTabs.has(tabId)) return false;
@@ -261,15 +281,32 @@ export function CompoundFormPage() {
     Promise.all([
       getDriveRestFormByCompoundFormKey('driver', compoundFormKey),
       getDriveRestFormByCompoundFormKey('teammate', compoundFormKey),
+      listTechnicalCheckFormsByCompoundFormKey('vehicle', compoundFormKey),
+      listTechnicalCheckFormsByCompoundFormKey('trailer', compoundFormKey),
     ])
-      .then(([driver, teammate]) => {
+      .then(async ([driver, teammate, vehicleList, trailerList]) => {
         setDriverForm(driver);
         setTeammateForm(teammate);
+        const vehicleItem = Array.isArray(vehicleList) ? vehicleList[0] : null;
+        const trailerItem = Array.isArray(trailerList) ? trailerList[0] : null;
+        const vehicleFull = vehicleItem?.id
+          ? await getTechnicalCheckForm('vehicle', vehicleItem.id).catch(() => null)
+          : null;
+        const trailerFull = trailerItem?.id
+          ? await getTechnicalCheckForm('trailer', trailerItem.id).catch(() => null)
+          : null;
+        setVehicleTechnicalCheckForm(vehicleFull);
+        setTrailerTechnicalCheckForm(trailerFull);
         const anySubFormSaved =
-          driver?.status === 'saved' || teammate?.status === 'saved';
+          driver?.status === 'saved' ||
+          teammate?.status === 'saved' ||
+          vehicleFull?.status === 'saved' ||
+          trailerFull?.status === 'saved';
         if (anySubFormSaved) {
           if (driver) setDriverEditActive(hasPermission('sp_driver_form.write'));
           if (teammate) setTeammateEditActive(hasPermission('sp_teammate_form.write'));
+          if (vehicleFull) setVehicleTechnicalCheckEditActive(hasPermission('vehicle_technical_form.write'));
+          if (trailerFull) setTrailerTechnicalCheckEditActive(hasPermission('trailer_technical_form.write'));
         }
       })
       .catch(console.error)
@@ -279,11 +316,13 @@ export function CompoundFormPage() {
   const checkAndAutoConfirmCompound = (
     latestDriver: DriveRestForm | null,
     latestTeammate: DriveRestForm | null,
+    latestVehicleTechnicalCheck: TechnicalCheckForm | null,
+    latestTrailerTechnicalCheck: TechnicalCheckForm | null,
   ) => {
     if (!form || form.status === 'confirmed') return;
-    const forms = [latestDriver, latestTeammate].filter(
+    const forms = [latestDriver, latestTeammate, latestVehicleTechnicalCheck, latestTrailerTechnicalCheck].filter(
       Boolean,
-    ) as DriveRestForm[];
+    ) as { status?: string }[];
     if (forms.length === 0) return;
     const allConfirmed = forms.every((f) => f.status === 'confirmed');
     if (allConfirmed) {
@@ -291,36 +330,75 @@ export function CompoundFormPage() {
     }
   };
 
-  const refetchSubForm = (scope: 'driver' | 'teammate', onDone?: () => void) => {
+  const refetchSubForm = (scope: 'driver' | 'teammate' | 'vehicle-technical-check' | 'trailer-technical-check', onDone?: () => void) => {
     if (!form?.id) return;
-    const siblingScope = scope === 'driver' ? 'teammate' : 'driver';
-    getDriveRestFormByCompoundFormKey(scope, Number(form.id))
-      .then((res) => {
-        if (scope === 'driver') setDriverForm(res);
-        else setTeammateForm(res);
-        getDriveRestFormByCompoundFormKey(siblingScope, Number(form.id))
-          .then((sibling) => {
-            const driver = scope === 'driver' ? res : sibling;
-            const teammate = scope === 'teammate' ? res : sibling;
-            const anySubFormSaved =
-              driver?.status === 'saved' || teammate?.status === 'saved';
-            if (anySubFormSaved) {
-              if (driver) setDriverEditActive(true);
-              if (teammate) setTeammateEditActive(true);
-            } else {
-              if (scope === 'driver') setDriverEditActive(res?.status === 'saved');
-              else setTeammateEditActive(res?.status === 'saved');
-            }
-            checkAndAutoConfirmCompound(driver, teammate);
-          })
-          .catch(console.error);
-        onDone?.();
-      })
-      .catch(console.error);
+    const compoundFormKey = Number(form.id);
+    if (scope === 'driver' || scope === 'teammate') {
+      const driveScope = scope as 'driver' | 'teammate';
+      getDriveRestFormByCompoundFormKey(driveScope, compoundFormKey)
+        .then((res) => {
+          if (scope === 'driver') setDriverForm(res);
+          else setTeammateForm(res);
+          const latestDriver = scope === 'driver' ? res : driverForm;
+          const latestTeammate = scope === 'teammate' ? res : teammateForm;
+          const anySubFormSaved =
+            latestDriver?.status === 'saved' ||
+            latestTeammate?.status === 'saved' ||
+            vehicleTechnicalCheckForm?.status === 'saved' ||
+            trailerTechnicalCheckForm?.status === 'saved';
+          if (anySubFormSaved) {
+            if (latestDriver) setDriverEditActive(true);
+            if (latestTeammate) setTeammateEditActive(true);
+            if (vehicleTechnicalCheckForm) setVehicleTechnicalCheckEditActive(true);
+            if (trailerTechnicalCheckForm) setTrailerTechnicalCheckEditActive(true);
+          } else {
+            setDriverEditActive(latestDriver?.status === 'saved');
+            setTeammateEditActive(latestTeammate?.status === 'saved');
+            setVehicleTechnicalCheckEditActive(vehicleTechnicalCheckForm?.status === 'saved');
+            setTrailerTechnicalCheckEditActive(trailerTechnicalCheckForm?.status === 'saved');
+          }
+          checkAndAutoConfirmCompound(latestDriver, latestTeammate, vehicleTechnicalCheckForm, trailerTechnicalCheckForm);
+          onDone?.();
+        })
+        .catch(console.error);
+    } else {
+      const variant: TechnicalCheckVariant = scope === 'vehicle-technical-check' ? 'vehicle' : 'trailer';
+      listTechnicalCheckFormsByCompoundFormKey(variant, compoundFormKey)
+        .then(async (list) => {
+          const item = Array.isArray(list) ? list[0] : null;
+          const full = item?.id
+            ? await getTechnicalCheckForm(variant, item.id).catch(() => null)
+            : null;
+          if (scope === 'vehicle-technical-check') setVehicleTechnicalCheckForm(full);
+          else setTrailerTechnicalCheckForm(full);
+          const latestVehicle = scope === 'vehicle-technical-check' ? full : vehicleTechnicalCheckForm;
+          const latestTrailer = scope === 'trailer-technical-check' ? full : trailerTechnicalCheckForm;
+          const anySubFormSaved =
+            driverForm?.status === 'saved' ||
+            teammateForm?.status === 'saved' ||
+            latestVehicle?.status === 'saved' ||
+            latestTrailer?.status === 'saved';
+          if (anySubFormSaved) {
+            if (driverForm) setDriverEditActive(true);
+            if (teammateForm) setTeammateEditActive(true);
+            if (latestVehicle) setVehicleTechnicalCheckEditActive(true);
+            if (latestTrailer) setTrailerTechnicalCheckEditActive(true);
+          } else {
+            setDriverEditActive(driverForm?.status === 'saved');
+            setTeammateEditActive(teammateForm?.status === 'saved');
+            setVehicleTechnicalCheckEditActive(latestVehicle?.status === 'saved');
+            setTrailerTechnicalCheckEditActive(latestTrailer?.status === 'saved');
+          }
+          checkAndAutoConfirmCompound(driverForm, teammateForm, latestVehicle, latestTrailer);
+          onDone?.();
+        })
+        .catch(console.error);
+    }
   };
 
   const handleSubFormSaveAll = async () => {
     const driveRestSchema = createDriveRestValidationSchema(t);
+    const tehnicalCheckSchema = createTechnicalCheckValidationSchema(t);
     const newTabErrors: Record<string, boolean> = {};
     const editableTabs: string[] = [];
 
@@ -334,6 +412,21 @@ export function CompoundFormPage() {
       const data = teammateDraftRef.current ?? teammateForm ?? {};
       newTabErrors['tab-teammate'] = !(await driveRestSchema.isValid(data));
     }
+    if (vehicleTechnicalCheckEditActive) {
+      editableTabs.push('tab-vehicle-technical-check');
+      const data = vehicleTechnicalCheckDraftRef.current ?? vehicleTechnicalCheckForm ?? {};
+      newTabErrors['tab-vehicle-technical-check'] =
+        !(await tehnicalCheckSchema.isValid(data));
+    }
+    if (trailerTechnicalCheckEditActive) {
+      editableTabs.push('tab-trailer-technical-check');
+      const data =
+        trailerTechnicalCheckDraftRef.current ??
+        trailerTechnicalCheckForm ??
+        {};
+      newTabErrors['tab-trailer-technical-check'] =
+        !(await tehnicalCheckSchema.isValid(data));
+    }
 
     setTabErrors(newTabErrors);
     setValidatedTabs((prev) => {
@@ -345,6 +438,10 @@ export function CompoundFormPage() {
     if (activeTab === 'tab-driver') driverEditCardRef.current?.validateForm?.();
     if (activeTab === 'tab-teammate')
       teammateEditCardRef.current?.validateForm?.();
+    if (activeTab === 'tab-vehicle-technical-check')
+      vehicleTechnicalCheckEditCardRef.current?.validateForm?.();
+    if (activeTab === 'tab-trailer-technical-check')
+      trailerTechnicalCheckEditCardRef.current?.validateForm?.();
 
     const anySubFormHasErrors = Object.values(newTabErrors).some(Boolean);
     if (anySubFormHasErrors) return;
@@ -404,48 +501,105 @@ export function CompoundFormPage() {
           .catch(console.error);
       }
     }
+    if (vehicleTechnicalCheckEditActive) {
+      const vehicleTechnicalCheckIsNew = !vehicleTechnicalCheckForm;
+      const vehicleTechnicalCheckIsChanged = vehicleTechnicalCheckDraft !== null;
+      if (
+        vehicleTechnicalCheckEditCardRef.current &&
+        (vehicleTechnicalCheckIsNew || vehicleTechnicalCheckIsChanged)
+      ) {
+        vehicleTechnicalCheckEditCardRef.current.save();
+      } else if (
+        !vehicleTechnicalCheckEditCardRef.current &&
+        vehicleTechnicalCheckDraftRef.current &&
+        (vehicleTechnicalCheckIsNew || vehicleTechnicalCheckIsChanged)
+      ) {
+        const serialized = serializeDriveRestFormValues(
+          vehicleTechnicalCheckDraftRef.current as Partial<TechnicalCheckForm> &
+            Record<string, unknown>,
+          vehicleTechnicalCheckForm?.status === 'confirmed' ? 'confirmed' : 'saved',
+        );
+        saveTechnicalCheckForm(
+          'vehicle',
+          serialized as unknown as TechnicalCheckForm,
+        )
+          .then(() => {
+            setShowSavedAlert(true);
+            window.scrollTo(0, 0);
+            refetchSubForm('vehicle-technical-check', () => {
+              vehicleTechnicalCheckDraftRef.current = null;
+              setVehicleTechnicalCheckDraft(null);
+            });
+          })
+          .catch(console.error);
+      }
+    }
+    if (trailerTechnicalCheckEditActive) {
+      const trailerTechnicalCheckIsNew = !trailerTechnicalCheckForm;
+      const trailerTechnicalCheckIsChanged = trailerTechnicalCheckDraft !== null;
+      if (
+        trailerTechnicalCheckEditCardRef.current &&
+        (trailerTechnicalCheckIsNew || trailerTechnicalCheckIsChanged)
+      ) {
+        trailerTechnicalCheckEditCardRef.current.save();
+      } else if (
+        !trailerTechnicalCheckEditCardRef.current &&
+        trailerTechnicalCheckDraftRef.current &&
+        (trailerTechnicalCheckIsNew || trailerTechnicalCheckIsChanged)
+      ) {
+        const serialized = serializeDriveRestFormValues(
+          trailerTechnicalCheckDraftRef.current as Partial<TechnicalCheckForm> &
+            Record<string, unknown>,
+          trailerTechnicalCheckForm?.status === 'confirmed' ? 'confirmed' : 'saved',
+        );
+        saveTechnicalCheckForm(
+          'trailer',
+          serialized as unknown as TechnicalCheckForm,
+        )
+          .then(() => {
+            setShowSavedAlert(true);
+            window.scrollTo(0, 0);
+            refetchSubForm('trailer-technical-check', () => {
+              trailerTechnicalCheckDraftRef.current = null;
+              setTrailerTechnicalCheckDraft(null);
+            });
+          })
+          .catch(console.error);
+      }
+    }
   };
 
   const canEdit =
-    hasPermission('foreign_violation_form.write') && form?.status !== 'deleted';
+    hasPermission('compound_form.write') && form?.status !== 'deleted';
 
-  const addableTabs: {
-    tabId: 'tab-driver' | 'tab-teammate';
-    labelKey: string;
-  }[] = [
-    ...(!driverForm && !driverEditActive
-      ? [
-          {
-            tabId: 'tab-driver' as const,
-            labelKey: 'forms.driver_drive_rest_form',
-          },
-        ]
-      : []),
-    ...(!teammateForm && !teammateEditActive
-      ? [
-          {
-            tabId: 'tab-teammate' as const,
-            labelKey: 'forms.teammate_drive_rest_form',
-          },
-        ]
-      : []),
-  ];
+  const addableTabs = ALL_FORM_TABS.filter((tab) => !(
+    (tab.tabId === 'tab-driver' && (driverForm || driverEditActive)) ||
+    (tab.tabId === 'tab-teammate' && (teammateForm || teammateEditActive)) ||
+    (tab.tabId === 'tab-vehicle-technical-check' && (vehicleTechnicalCheckForm || vehicleTechnicalCheckEditActive)) ||
+    (tab.tabId === 'tab-trailer-technical-check' && (trailerTechnicalCheckForm || trailerTechnicalCheckEditActive))
+  ));
 
-  const addTab = (tabId: 'tab-driver' | 'tab-teammate') => {
+  const addTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check') => {
     if (tabId === 'tab-driver') setDriverEditActive(true);
     if (tabId === 'tab-teammate') setTeammateEditActive(true);
+    if (tabId === 'tab-vehicle-technical-check') setVehicleTechnicalCheckEditActive(true);
+    if (tabId === 'tab-trailer-technical-check') setTrailerTechnicalCheckEditActive(true);
     setActiveTab(tabId);
   };
 
   const subFormCount =
     (driverForm && (driverForm.status === 'saved' || driverForm.status === 'confirmed') ? 1 : 0) +
-    (teammateForm && (teammateForm.status === 'saved' || teammateForm.status === 'confirmed') ? 1 : 0);
+    (teammateForm && (teammateForm.status === 'saved' || teammateForm.status === 'confirmed') ? 1 : 0) +
+    (vehicleTechnicalCheckForm && (vehicleTechnicalCheckForm.status === 'saved' || vehicleTechnicalCheckForm.status === 'confirmed') ? 1 : 0) +
+    (trailerTechnicalCheckForm && (trailerTechnicalCheckForm.status === 'saved' || trailerTechnicalCheckForm.status === 'confirmed') ? 1 : 0);
 
-  const handleRemove = (tabId: 'tab-driver' | 'tab-teammate') => {
+  const handleRemove = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check') => {
     const subForm = tabId === 'tab-driver' ? driverForm : teammateForm;
     if (!subForm || subForm.status === undefined) {
       if (tabId === 'tab-driver') { setDriverForm(null); setDriverEditActive(false); }
       if (tabId === 'tab-teammate') { setTeammateForm(null); setTeammateEditActive(false); }
+      if (tabId === 'tab-vehicle-technical-check') { setVehicleTechnicalCheckForm(null); setVehicleTechnicalCheckEditActive(false); }
+      if (tabId === 'tab-trailer-technical-check') { setTrailerTechnicalCheckForm(null); setTrailerTechnicalCheckEditActive(false); }
       setActiveTab('tab-compound');
       return;
     }
@@ -454,19 +608,28 @@ export function CompoundFormPage() {
 
   const handleRemoveConfirmed = async () => {
     if (!removeConfirmTab) return;
-    const subForm = removeConfirmTab === 'tab-driver' ? driverForm : teammateForm;
-    const scope = removeConfirmTab === 'tab-driver' ? 'driver' : 'teammate';
+    const tab = removeConfirmTab;
     setRemoveConfirmTab(null);
-    if (subForm?.id && subForm?.subFormNumber) {
-      try {
-        await deleteDriveRestForm(scope, String(subForm.id), subForm.subFormNumber, subForm.status ?? '');
-      } catch (e) {
-        console.error('Delete sub-form failed', e);
-        return;
+    if (tab === 'tab-driver' || tab === 'tab-teammate') {
+      const scope = tab === 'tab-driver' ? 'driver' : 'teammate';
+      const subForm = tab === 'tab-driver' ? driverForm : teammateForm;
+      if (subForm?.id && subForm?.subFormNumber) {
+        try {
+          await deleteDriveRestForm(scope, String(subForm.id), subForm.subFormNumber, subForm.status ?? '');
+        } catch (e) {
+          console.error('Delete sub-form failed', e);
+          return;
+        }
       }
+      if (scope === 'driver') { setDriverForm(null); setDriverEditActive(false); }
+      if (scope === 'teammate') { setTeammateForm(null); setTeammateEditActive(false); }
+    } else if (tab === 'tab-vehicle-technical-check') {
+      setVehicleTechnicalCheckForm(null);
+      setVehicleTechnicalCheckEditActive(false);
+    } else if (tab === 'tab-trailer-technical-check') {
+      setTrailerTechnicalCheckForm(null);
+      setTrailerTechnicalCheckEditActive(false);
     }
-    if (scope === 'driver') { setDriverForm(null); setDriverEditActive(false); }
-    if (scope === 'teammate') { setTeammateForm(null); setTeammateEditActive(false); }
     setActiveTab('tab-compound');
     navigate(`/control-forms/compound/${id}`);
   };
@@ -680,6 +843,14 @@ export function CompoundFormPage() {
     hasPermission('sp_teammate_form.write') &&
     hasPermission('control_form.view_unpublished') &&
     teammateForm?.status === 'saved';
+  const canConfirmVehicleTehnicalCheck =
+    hasPermission('vehicle_technical_form.write') &&
+    hasPermission('control_form.view_unpublished') &&
+    vehicleTechnicalCheckForm?.status === 'saved';
+  const canConfirmTrailerTechnicalCheck =
+    hasPermission('vehicle_technical_form.write') &&
+    hasPermission('control_form.view_unpublished') &&
+    trailerTechnicalCheckForm?.status === 'saved';
   const canDeleteAll =
     hasPermission('control_form.delete') &&
     ((driverForm != null && driverForm.status !== 'deleted') ||
@@ -869,6 +1040,44 @@ export function CompoundFormPage() {
               )}
             </Tabs.Trigger>
           )}
+          {(vehicleTechnicalCheckForm || vehicleTechnicalCheckEditActive) && (
+            <Tabs.Trigger id="tab-vehicle-technical-check">
+              <span style={{ position: 'relative' }}>
+                {t('forms.technical_check.vehicleTitle')}
+                {hasTabErrors('tab-vehicle-technical-check') && (
+                  <StatusIndicator type="danger" position="top-right" />
+                )}
+              </span>
+              {vehicleTechnicalCheckEditActive && subFormCount > 1 && (
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove('tab-vehicle-technical-check');
+                  }}
+                />
+              )}
+            </Tabs.Trigger>
+          )}
+          {(trailerTechnicalCheckForm || trailerTechnicalCheckEditActive) && (
+            <Tabs.Trigger id="tab-trailer-technical-check">
+              <span style={{ position: 'relative' }}>
+                {t('forms.technical_check.trailerTitle')}
+                {hasTabErrors('tab-trailer-technical-check') && (
+                  <StatusIndicator type="danger" position="top-right" />
+                )}
+              </span>
+              {trailerTechnicalCheckEditActive && subFormCount > 1 && (
+                <ClosingButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemove('tab-trailer-technical-check');
+                  }}
+                />
+              )}
+            </Tabs.Trigger>
+          )}
           {isDesktop && addFormDropdown && (
             <div
               style={{
@@ -999,6 +1208,134 @@ export function CompoundFormPage() {
                   setTeammateDraft(next);
                 }}
                 initialValidate={validatedTabs.has('tab-teammate')}
+              />
+            )}
+          </Tabs.Content>
+        )}
+
+        {(vehicleTechnicalCheckForm || vehicleTechnicalCheckEditActive) && (
+          <Tabs.Content id="tab-vehicle-technical-check" className="p-1">
+            {vehicleTechnicalCheckForm && !vehicleTechnicalCheckEditActive ? (
+              <TechnicalCheckFormViewCard
+                scope="vehicle"
+                form={vehicleTechnicalCheckForm}
+                canEdit={
+                  canEditSubForms &&
+                  vehicleTechnicalCheckForm.status !== 'deleted'
+                }
+                onEdit={() => setVehicleTechnicalCheckEditActive(true)}
+                formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
+              />
+            ) : (
+              <TechnicalCheckFormEditCard
+                ref={vehicleTechnicalCheckEditCardRef}
+                scope="vehicle"
+                form={vehicleTechnicalCheckForm ?? {}}
+                compoundFormKey={Number(form.id)}
+                onSaved={() => {
+                  setTabErrors((p) => ({
+                    ...p,
+                    'tab-vehicle-technical-check': false,
+                  }));
+                  setShowSavedAlert(true);
+                  window.scrollTo(0, 0);
+                  if (!vehicleTechnicalCheckForm) resetCompoundFormToSaved();
+                  refetchSubForm('vehicle-technical-check', () => {
+                    vehicleTechnicalCheckDraftRef.current = null;
+                    setVehicleTechnicalCheckDraft(null);
+                  });
+                }}
+                onCancel={() => {
+                  setVehicleTechnicalCheckEditActive(false);
+                  vehicleTechnicalCheckDraftRef.current = null;
+                  setVehicleTechnicalCheckDraft(null);
+                }}
+                canConfirm={canConfirmVehicleTehnicalCheck}
+                onConfirm={() => {
+                  refetchSubForm('vehicle-technical-check', () => {
+                    setVehicleTechnicalCheckEditActive(false);
+                    vehicleTechnicalCheckDraftRef.current = null;
+                    setVehicleTechnicalCheckDraft(null);
+                  });
+                }}
+                formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
+                onValuesChange={(v) => {
+                  const next = {
+                    ...(vehicleTechnicalCheckDraftRef.current ??
+                      vehicleTechnicalCheckForm ??
+                      {}),
+                    ...v,
+                  } as TechnicalCheckForm;
+                  vehicleTechnicalCheckDraftRef.current = next;
+                  setVehicleTechnicalCheckDraft(next);
+                }}
+                initialValidate={validatedTabs.has(
+                  'tab-vehicle-technical-check',
+                )}
+              />
+            )}
+          </Tabs.Content>
+        )}
+
+        {(trailerTechnicalCheckForm || trailerTechnicalCheckEditActive) && (
+          <Tabs.Content id="tab-trailer-technical-check" className="p-1">
+            {trailerTechnicalCheckForm && !trailerTechnicalCheckEditActive ? (
+              <TechnicalCheckFormViewCard
+                scope="trailer"
+                form={trailerTechnicalCheckForm}
+                canEdit={
+                  canEditSubForms &&
+                  trailerTechnicalCheckForm.status !== 'deleted'
+                }
+                onEdit={() => setTrailerTechnicalCheckEditActive(true)}
+                formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
+              />
+            ) : (
+              <TechnicalCheckFormEditCard
+                ref={trailerTechnicalCheckEditCardRef}
+                scope="trailer"
+                form={trailerTechnicalCheckForm ?? {}}
+                compoundFormKey={Number(form.id)}
+                onSaved={() => {
+                  setTabErrors((p) => ({
+                    ...p,
+                    'tab-trailer-technical-check': false,
+                  }));
+                  setShowSavedAlert(true);
+                  window.scrollTo(0, 0);
+                  if (!trailerTechnicalCheckForm) resetCompoundFormToSaved();
+                  refetchSubForm('trailer-technical-check', () => {
+                    trailerTechnicalCheckDraftRef.current = null;
+                    setTrailerTechnicalCheckDraft(null);
+                  });
+                }}
+                onCancel={() => {
+                  setTrailerTechnicalCheckEditActive(false);
+                  trailerTechnicalCheckDraftRef.current = null;
+                  setTrailerTechnicalCheckDraft(null);
+                }}
+                canConfirm={canConfirmTrailerTechnicalCheck}
+                onConfirm={() => {
+                  refetchSubForm('trailer-technical-check', () => {
+                    setTrailerTechnicalCheckEditActive(false);
+                    trailerTechnicalCheckDraftRef.current = null;
+                    setTrailerTechnicalCheckDraft(null);
+                  });
+                }}
+                formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
+                onValuesChange={(v) => {
+                  const next = {
+                    ...(trailerTechnicalCheckDraftRef.current ??
+                      trailerTechnicalCheckForm ??
+                      {}),
+                    ...v,
+                  } as TechnicalCheckForm;
+                  trailerTechnicalCheckDraftRef.current = next;
+                  setTrailerTechnicalCheckDraft(next);
+                }}
+                initialValidate={validatedTabs.has(
+                  'tab-trailer-technical-check',
+                )}
               />
             )}
           </Tabs.Content>

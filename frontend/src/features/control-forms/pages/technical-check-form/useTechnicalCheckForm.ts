@@ -40,6 +40,19 @@ const computeAutoResult = (defects: PartDefectEntry[]): 'ok' | 'extraordinary_in
   return 'ok';
 };
 
+export function createTechnicalCheckValidationSchema(
+  t: (key: string) => string,
+) {
+  return Yup.object({
+    proceedingReferenceNumber: Yup.string().when('proceedingType', {
+      is: (proceedingType: string) => !!proceedingType,
+      then: (schema) => schema.required(t('forms.technical_check.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    notes: Yup.string().max(2000, t('forms.technical_check.validation.notesMaxLength')),
+  });
+}
+
 export function useTechnicalCheckForm(
   variant: TechnicalCheckVariant,
   form: TechnicalCheckForm | undefined,
@@ -80,14 +93,7 @@ export function useTechnicalCheckForm(
       : all;
   }, [getByCode, variant]);
 
-  const validationSchema = Yup.object({
-    proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => !!proceedingType,
-      then: (schema) => schema.required(t('forms.technical_check.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
-    notes: Yup.string().max(2000, t('forms.technical_check.validation.notesMaxLength')),
-  });
+  const validationSchema = createTechnicalCheckValidationSchema(t);
 
   const formik = useFormik({
     enableReinitialize: true,

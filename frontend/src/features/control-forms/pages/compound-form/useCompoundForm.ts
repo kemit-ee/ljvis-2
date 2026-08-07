@@ -57,7 +57,6 @@ export function useCompoundForm(
   const { getByCode, getChildren } = useClassifiers();
 
   const WRITE_SUFFIX = '.write';
-  const FORM_SP_PREFIX = 'sp_';
 
   const incrementFormNumber = (formNumber: string): string => {
     const match = formNumber.match(/^(.+\/)([0-9]+)$/);
@@ -518,9 +517,9 @@ export function useCompoundForm(
 
   const buildAvailableForms = (permissions: string[]): ControlForm[] =>
       permissions
-          .filter((p) => p.startsWith(FORM_SP_PREFIX))
+          .filter((p) => p.endsWith(WRITE_SUFFIX))
           .map((p) => p.replace(WRITE_SUFFIX, ''))
-          .filter((key) => !!FORM_CONFIG[key])
+          .filter((key) => !!FORM_CONFIG[key] && FORM_CONFIG[key].hasParent)
           .map((key) => ({
             labelKey: FORM_CONFIG[key].labelKey,
             route: FORM_CONFIG[key].route,

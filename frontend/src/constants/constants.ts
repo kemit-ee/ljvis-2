@@ -9,7 +9,19 @@ export const FORM_TYPE = {
   DRIVER: 'drive-rest-form/driver',
   TEAMMATE: 'drive-rest-form/teammate',
   GOOD_REPUTE: 'good-repute',
+  VEHICLE_TECHNICAL_CHECK: 'vehicle-technical',
+  TRAILER_TECHNICAL_CHECK: 'trailer-technical',
 } as const;
+
+export const ALL_FORM_TABS: {
+  tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check';
+  labelKey: string;
+}[] = [
+  { tabId: 'tab-driver', labelKey: 'forms.driver_drive_rest_form' },
+  { tabId: 'tab-teammate', labelKey: 'forms.teammate_drive_rest_form' },
+  { tabId: 'tab-vehicle-technical-check', labelKey: 'forms.technical_check.vehicleTitle' },
+  { tabId: 'tab-trailer-technical-check', labelKey: 'forms.technical_check.trailerTitle' },
+];
 
 export const FORM_ROUTE: Record<string, string> = {
   [FORM_TYPE.FOREIGN_VIOLATION]: 'foreign-violation',

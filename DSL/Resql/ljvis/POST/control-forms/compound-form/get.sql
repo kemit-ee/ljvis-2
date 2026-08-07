@@ -105,7 +105,7 @@ SELECT
   form_number,
   status,
   control_date,
-  control_time,
+  control_time::TEXT AS control_time,
   control_country_code,
   county,
   city,

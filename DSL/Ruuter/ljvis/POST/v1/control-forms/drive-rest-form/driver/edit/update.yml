@@ -195,6 +195,10 @@ getCompoundForm:
 extractDriverCodes:
   assign:
     compound_drivers: "${JSON.parse(compoundFormRes.response.body[0].drivers)}"
+  next: extractDriverPersonalCodes
+
+extractDriverPersonalCodes:
+  assign:
     driver1_personal_code_ee: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeEe || '') : ''}"
     driver1_personal_code_foreign: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeForeign || '') : ''}"
     driver2_personal_code_ee: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeEe || '') : ''}"

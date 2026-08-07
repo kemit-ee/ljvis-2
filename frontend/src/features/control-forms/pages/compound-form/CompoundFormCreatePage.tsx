@@ -26,7 +26,12 @@ import {
   StatusIndicator,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm, emptyTrailer } from './useCompoundForm';
-import type { Trailer, DriveRestForm, Driver } from '../../types';
+import type {
+  Trailer,
+  DriveRestForm,
+  Driver,
+  TechnicalCheckForm,
+} from '../../types';
 
 type TrailerTouched = (Partial<Record<keyof Trailer, boolean>> | undefined)[];
 type TrailerErrors = (Partial<Record<keyof Trailer, string>> | undefined)[];
@@ -37,8 +42,11 @@ import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
 import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
+import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../technical-check-form/TechnicalCheckFormCreatePage';
+import type { TechnicalCheckVariant } from '../../types';
 import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '../drive-rest-form/useDriveRestForm';
-import { insertDriveRestForm } from '../../api';
+import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
+import { insertDriveRestForm, saveTechnicalCheckForm } from '../../api';
 
 interface FormRef {
   handleSubmit?: (overrideCompoundFormKey?: number) => void;
@@ -47,6 +55,9 @@ interface FormRef {
   hasErrors?: () => boolean;
   validateForm?: () => void;
 }
+
+const DRIVE_REST_ROUTES = ['/sp-driver', '/sp-teammate'] as const;
+const TECHNICAL_CHECK_ROUTES = ['/vehicle-technical', '/trailer-technical'] as const;
 
 const ROUTE_TO_TAB: Record<
   string,
@@ -62,6 +73,16 @@ const ROUTE_TO_TAB: Record<
     type: 'teammate',
     labelKey: 'forms.teammate_drive_rest_form',
   },
+  '/vehicle-technical': {
+    tabId: 'tab-vehicle-technical',
+    type: 'vehicle',
+    labelKey: 'forms.technical_check.vehicleTitle',
+  },
+  '/trailer-technical': {
+    tabId: 'tab-trailer-technical',
+    type: 'trailer',
+    labelKey: 'forms.technical_check.trailerTitle',
+  },
 };
 
 export function CompoundFormCreatePage() {
@@ -70,10 +91,10 @@ export function CompoundFormCreatePage() {
   const [searchParams] = useSearchParams();
   const type = searchParams.get('type');
 
-  const initialTab =
-    type && ROUTE_TO_TAB[`/sp-${type}`]
-      ? ROUTE_TO_TAB[`/sp-${type}`].tabId
-      : null;
+  const initialTabRoute = type
+    ? (ROUTE_TO_TAB[`/sp-${type}`] ? `/sp-${type}` : ROUTE_TO_TAB[`/${type}`] ? `/${type}` : null)
+    : null;
+  const initialTab = initialTabRoute ? ROUTE_TO_TAB[initialTabRoute].tabId : null;
 
   const [activeTab, setActiveTab] = useState(initialTab ?? 'tab-1');
   const [openTabs, setOpenTabs] = useState<string[]>(
@@ -158,17 +179,25 @@ export function CompoundFormCreatePage() {
     // saved snapshot — this guarantees the same result regardless of
     // whether a tab is currently mounted (active) or not
     const driveRestSchema = createDriveRestValidationSchema(t);
+    const technicalCheckSchema = createTechnicalCheckValidationSchema(t);
     const newTabErrors: Record<string, boolean> = {};
     for (const tabId of openTabs) {
-      newTabErrors[tabId] = !(await driveRestSchema
-        .isValid(savedFormData.current[tabId] ?? {}));
+      const isTechnicalCheck = TECHNICAL_CHECK_ROUTES.some(
+        (route) => ROUTE_TO_TAB[route].tabId === tabId,
+      );
+      const schema = isTechnicalCheck ? technicalCheckSchema : driveRestSchema;
+      const formRef = formRefs.current[tabId]?.current;
+      if (formRef?.hasErrors !== undefined) {
+        newTabErrors[tabId] = formRef.hasErrors();
+      } else {
+        newTabErrors[tabId] = !(await schema.isValid(savedFormData.current[tabId] ?? {}));
+      }
     }
     setTabErrors(newTabErrors);
 
-    // If a drive-rest tab is currently mounted, also trigger its own
-    // validation so inline field error messages show up immediately
-    if (activeTab !== 'tab-1') {
-      formRefs.current[activeTab]?.current?.validateForm?.();
+    // Trigger each open tab's own validation so inline field errors show up
+    for (const tabId of openTabs) {
+      formRefs.current[tabId]?.current?.validateForm?.();
     }
 
     // Mark the main form and all currently open sub-forms as validated
@@ -2066,8 +2095,9 @@ export function CompoundFormCreatePage() {
             </form>
           </div>
         </Tabs.Content>
-        {Object.values(ROUTE_TO_TAB).map(({ tabId, type: tabType }) =>
-          openTabs.includes(tabId) ? (
+        {DRIVE_REST_ROUTES.map((route) => {
+          const { tabId, type: tabType } = ROUTE_TO_TAB[route];
+          return openTabs.includes(tabId) ? (
             <Tabs.Content key={tabId} id={tabId} className="p-1">
               <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
                 <DriveRestFormCreatePage
@@ -2091,8 +2121,36 @@ export function CompoundFormCreatePage() {
                 />
               </div>
             </Tabs.Content>
-          ) : null,
-        )}
+          ) : null;
+        })}
+        {TECHNICAL_CHECK_ROUTES.map((route) => {
+          const { tabId, type: tabType } = ROUTE_TO_TAB[route];
+          return openTabs.includes(tabId) ? (
+            <Tabs.Content key={tabId} id={tabId} className="p-1">
+              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+                <TechnicalCheckFormCreatePage
+                  type={tabType as TechnicalCheckVariant}
+                  compoundFormKey={compoundFormId ?? undefined}
+                  initialValidate={validatedTabs.has(tabId)}
+                  onValuesChange={(values) => {
+                    savedFormData.current[tabId] = values as Partial<DriveRestForm>;
+                  }}
+                  ref={(ref) => {
+                    formRefs.current[tabId].current = ref as TechnicalCheckFormCreatePageRef;
+                  }}
+                  onSaved={(id) => {
+                    if (id) {
+                      savedDriveRestFormsRef.current = new Set(
+                        savedDriveRestFormsRef.current,
+                      ).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(id);
+                    }
+                  }}
+                />
+              </div>
+            </Tabs.Content>
+          ) : null;
+        })}
       </Tabs>
 
       <div className="page-actions mt-1">
@@ -2150,27 +2208,49 @@ export function CompoundFormCreatePage() {
                     check();
                   });
                 } else {
-                  const tabType = Object.values(ROUTE_TO_TAB).find(
+                  const tabDef = Object.values(ROUTE_TO_TAB).find(
                     (t) => t.tabId === tabId,
-                  )?.type as 'driver' | 'teammate' | undefined;
-                  if (tabType) {
-                    const values = {
-                      ...savedFormData.current[tabId],
-                      compoundFormKey: id,
-                    };
-                    const trimmedValues = serializeDriveRestFormValues(
-                      values,
-                      'saved',
-                    );
-                    const result = await insertDriveRestForm(
-                      tabType,
-                      trimmedValues as unknown as DriveRestForm,
-                    );
-                    if (result[0]?.id) {
-                      savedDriveRestFormsRef.current = new Set(
-                        savedDriveRestFormsRef.current,
-                      ).add(tabId);
-                      savedSubFormIdsRef.current[tabId] = String(result[0].id);
+                  );
+                  const isTechnicalCheck = TECHNICAL_CHECK_ROUTES.some(
+                    (route) => ROUTE_TO_TAB[route].tabId === tabId,
+                  );
+                  if (tabDef) {
+                    if (isTechnicalCheck) {
+                      const variant = tabDef.type as TechnicalCheckVariant;
+                      const values = {
+                        ...savedFormData.current[tabId],
+                        compoundFormKey: id,
+                      };
+                      const result = await saveTechnicalCheckForm(
+                        variant,
+                        values as unknown as TechnicalCheckForm,
+                      );
+                      if ((result[0] as { id?: string })?.id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String((result[0] as { id?: string }).id);
+                      }
+                    } else {
+                      const tabType = tabDef.type as 'driver' | 'teammate';
+                      const values = {
+                        ...savedFormData.current[tabId],
+                        compoundFormKey: id,
+                      };
+                      const trimmedValues = serializeDriveRestFormValues(
+                        values,
+                        'saved',
+                      );
+                      const result = await insertDriveRestForm(
+                        tabType,
+                        trimmedValues as unknown as DriveRestForm,
+                      );
+                      if (result[0]?.id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String(result[0].id);
+                      }
                     }
                   }
                 }
