@@ -8,9 +8,8 @@ import type {CompoundForm, Trailer, Driver, ControlForm} from '../../types';
 import { listOrganisations } from '../../../organisations/api';
 import { listStructureUnits } from '../../../structure-units/api';
 import {
-  insertCompoundForm,
-  updateCompoundForm,
   confirmCompoundForm,
+  saveCompoundForm,
 } from '../../api';
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
@@ -386,7 +385,7 @@ export function useCompoundForm(
             await confirmCompoundForm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else {
-            await updateCompoundForm(trimmedValues as unknown as CompoundForm);
+            await saveCompoundForm(trimmedValues as unknown as CompoundForm);
             if (forceSaved && onResetToSaved) {
               onResetToSaved();
             } else {
@@ -394,7 +393,7 @@ export function useCompoundForm(
             }
           }
         } else {
-          const result = await insertCompoundForm(
+          const result = await saveCompoundForm(
             trimmedValues as unknown as CompoundForm,
           );
           onSaved(result[0]?.id);

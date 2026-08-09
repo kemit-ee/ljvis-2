@@ -48,21 +48,15 @@ export const deleteForeignViolationForm = (
     { id, form_number, old_status },
   );
 
-export const insertCompoundForm = (data: CompoundForm) =>
-  post<CompoundForm[]>(
-    `/v1/control-forms/compound-form/edit/insert`,
-    data as unknown as Record<string, unknown>,
-  );
-
 export const getCompoundForm = (id: number, subFormId?: number) =>
   get<CompoundForm>(
     `/v1/control-forms/compound-form`,
     subFormId != null ? { q: String(id), subFormId: String(subFormId) } : { q: String(id) },
   );
 
-export const updateCompoundForm = (data: CompoundForm) =>
+export const saveCompoundForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
-    `/v1/control-forms/compound-form/edit/update`,
+    `/v1/control-forms/compound-form/edit/save`,
     data as unknown as Record<string, unknown>,
   );
 
