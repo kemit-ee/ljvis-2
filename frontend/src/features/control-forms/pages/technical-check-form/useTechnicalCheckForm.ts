@@ -62,6 +62,7 @@ export function useTechnicalCheckForm(
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const compoundFormKeyOverride = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode, getChildren } = useClassifiers();
 
@@ -103,12 +104,16 @@ export function useTechnicalCheckForm(
       subFormNumber: form?.subFormNumber ?? '',
       version: form?.version ?? 1,
       status: form?.status ?? 'saved',
-      partsSummary: (Array.isArray(form?.partsSummary)
-        ? form.partsSummary
-        : parts.map((p) => ({ partCode: p.code, status: 'not_checked' }))) as PartSummaryEntry[],
-      partsDefects: (Array.isArray(form?.partsDefects)
-        ? form.partsDefects
-        : []) as PartDefectEntry[],
+      partsSummary: (() => {
+        const raw = form?.partsSummary;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return (Array.isArray(parsed) ? parsed : parts.map((p) => ({ partCode: p.code, status: 'not_checked' }))) as PartSummaryEntry[];
+      })(),
+      partsDefects: (() => {
+        const raw = form?.partsDefects;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return (Array.isArray(parsed) ? parsed : []) as PartDefectEntry[];
+      })(),
       resultType: form?.resultType ?? 'ok',
       resultTransportInterruption: form?.resultTransportInterruption ?? false,
       eraYvMntRegnr: form?.eraYvMntRegnr ?? false,
@@ -118,7 +123,11 @@ export function useTechnicalCheckForm(
       eraYvMntRebuilt: form?.eraYvMntRebuilt ?? false,
       proceedingType: form?.proceedingType ?? '',
       proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
-      violations: (Array.isArray(form?.violations) ? form.violations : []) as string[],
+      violations: (() => {
+        const raw = form?.violations;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return (Array.isArray(parsed) ? parsed : []) as string[];
+      })(),
       notes: form?.notes ?? '',
       extraordinaryInspectionDate: form?.extraordinaryInspectionDate ?? '',
       enforcementDecision: form?.enforcementDecision ?? '',
@@ -132,11 +141,13 @@ export function useTechnicalCheckForm(
         pendingConfirm.current = false;
         const payload = {
           ...values,
-          id: form?.id,
+          id: form?.id ?? '',
+          compoundFormKey: compoundFormKeyOverride.current ?? values.compoundFormKey,
           partsSummary: JSON.stringify(values.partsSummary ?? []),
           partsDefects: JSON.stringify(values.partsDefects ?? []),
           violations: JSON.stringify(values.violations ?? []),
         } as unknown as TechnicalCheckForm;
+        compoundFormKeyOverride.current = undefined;
         const result = isConfirming
           ? await confirmTechnicalCheckForm(variant, payload)
           : await saveTechnicalCheckForm(variant, payload);
@@ -306,5 +317,6 @@ export function useTechnicalCheckForm(
     isDrivingBanTriggerActive,
     triggerConfirm,
     formError,
+    compoundFormKeyOverride,
   };
 }

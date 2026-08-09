@@ -100,7 +100,6 @@ export function CompoundFormCreatePage() {
   const [openTabs, setOpenTabs] = useState<string[]>(
     initialTab ? [initialTab] : [],
   );
-  const [compoundFormId, setCompoundFormId] = useState<number | null>(null);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
 
@@ -162,7 +161,6 @@ export function CompoundFormCreatePage() {
   const handleSaved = (id?: string) => {
     if (id) {
       compoundFormIdRef.current = Number(id);
-      setCompoundFormId(Number(id));
     }
   };
 
@@ -228,7 +226,10 @@ export function CompoundFormCreatePage() {
 
   const handleTabChange = (newTab: string) => {
     if (activeTab !== 'tab-1' && formRefs.current[activeTab]?.current) {
-      savedFormData.current[activeTab] = formRefs.current[activeTab].current.getFormData?.() ?? {};
+      const data = formRefs.current[activeTab].current.getFormData?.();
+      if (data !== undefined) {
+        savedFormData.current[activeTab] = data;
+      }
     }
     // Restore new tab form data immediately
     if (newTab !== 'tab-1' && savedFormData.current[newTab]) {
@@ -2102,7 +2103,7 @@ export function CompoundFormCreatePage() {
               <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
                 <DriveRestFormCreatePage
                   type={tabType}
-                  compoundFormKey={compoundFormId ?? undefined}
+                  compoundFormKey={undefined}
                   initialValidate={validatedTabs.has(tabId)}
                   onValuesChange={(values) => {
                     savedFormData.current[tabId] = values;
@@ -2130,7 +2131,7 @@ export function CompoundFormCreatePage() {
               <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
                 <TechnicalCheckFormCreatePage
                   type={tabType as TechnicalCheckVariant}
-                  compoundFormKey={compoundFormId ?? undefined}
+                  compoundFormKey={undefined}
                   initialValidate={validatedTabs.has(tabId)}
                   onValuesChange={(values) => {
                     savedFormData.current[tabId] = values as Partial<DriveRestForm>;
@@ -2217,9 +2218,13 @@ export function CompoundFormCreatePage() {
                   if (tabDef) {
                     if (isTechnicalCheck) {
                       const variant = tabDef.type as TechnicalCheckVariant;
+                      const raw = savedFormData.current[tabId] as Partial<TechnicalCheckForm>;
                       const values = {
-                        ...savedFormData.current[tabId],
+                        ...raw,
                         compoundFormKey: id,
+                        partsSummary: JSON.stringify(raw.partsSummary ?? []),
+                        partsDefects: JSON.stringify(raw.partsDefects ?? []),
+                        violations: JSON.stringify(raw.violations ?? []),
                       };
                       const result = await saveTechnicalCheckForm(
                         variant,

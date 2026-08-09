@@ -33,17 +33,15 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
       setResultType,
       toggleViolation,
       triggerConfirm,
+      compoundFormKeyOverride,
     } = useTechnicalCheckForm(type, initialData, (id) => onSaved?.(id), compoundFormKey);
 
     useImperativeHandle(ref, () => ({
       handleSubmit: (overrideCompoundFormKey?: number) => {
         if (overrideCompoundFormKey !== undefined) {
-          void formik
-            .setFieldValue('compoundFormKey', overrideCompoundFormKey)
-            .then(() => formik.handleSubmit());
-        } else {
-          formik.handleSubmit();
+          compoundFormKeyOverride.current = overrideCompoundFormKey;
         }
+        formik.handleSubmit();
       },
       hasErrors: () => Object.keys(formik.errors).length > 0,
       isDirty: () => formik.dirty,
