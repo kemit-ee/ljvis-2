@@ -60,6 +60,20 @@ export async function get<T>(
   return json!.response;
 }
 
+// Ruuter's declaration.allowlist.body check requires every declared field
+// to be *present* as a key in the JSON body (Rust Ruuter's `contains_key`
+// check — see DEBUG_NOTES.md). `JSON.stringify` silently drops object keys
+// whose value is `undefined` (e.g. `form?.id` on a new, unsaved form), which
+// makes a legitimate "create" request fail with "Field missing: <field>".
+// Serialize with a replacer that turns `undefined` into `null` so the key
+// always survives — `null` is what the DSLs already treat as "no value /
+// new record" (e.g. the `id == null` branch that routes to insert).
+function stringifyBody(body: Record<string, unknown>): string {
+  return JSON.stringify(body, (_key, value) =>
+    value === undefined ? null : value,
+  );
+}
+
 export async function post<T>(
   path: string,
   body: Record<string, unknown>,
@@ -68,7 +82,7 @@ export async function post<T>(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(body),
+    body: stringifyBody(body),
   });
   const json = (await res.json().catch(() => null)) as RuuterResponse<T> | null;
   if (!res.ok) {
@@ -91,7 +105,7 @@ export async function postSilent<T>(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(body),
+    body: stringifyBody(body),
   });
   const json = (await res.json().catch(() => null)) as RuuterResponse<T> | null;
   if (!res.ok) {
@@ -112,7 +126,7 @@ export async function put<T>(
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify(body),
+    body: stringifyBody(body),
   });
   const json = (await res.json().catch(() => null)) as RuuterResponse<T> | null;
   if (!res.ok) {

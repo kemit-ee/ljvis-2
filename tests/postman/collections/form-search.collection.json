@@ -146,7 +146,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"inspectorName\":\"CI Search Inspector\",\"inspectionDate\":\"{{fs_inspection_date}}\",\"inspectionType\":\"cargo\",\"companyName\":\"{{fs_company_name}}\",\"companyRegCode\":\"19283746\",\"vehicleCount\":\"2\",\"totalDriversCount\":\"3\",\"controlsMatrix\":\"[]\",\"violations\":\"[]\",\"prescriptionComposed\":\"false\"}"
+          "raw": "{\"inspectorName\":\"CI Search Inspector\",\"inspectionDate\":\"{{fs_inspection_date}}\",\"inspectionType\":\"cargo\",\"companyName\":\"{{fs_company_name}}\",\"companyRegCode\":\"19283746\",\"vehicleCount\":\"2\",\"totalDriversCount\":\"3\",\"controlsMatrix\":\"[]\",\"violations\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"\",\"punishedPersonFirstName\":\"\",\"punishedPersonLastName\":\"\",\"proceedingReferenceNumber\":\"\",\"id\":null}"
         }
       }
     },

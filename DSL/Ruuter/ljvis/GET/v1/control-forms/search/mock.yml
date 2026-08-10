@@ -1,12 +1,3 @@
-declaration:
-  call: declare
-  version: 0.1
-  description: "LJVIS2-9 form search — static mock for FE development without a DB. Returns the raw result array (each row carries a `total` window-count), matching list.yml."
-  method: get
-  accepts: json
-  returns: json
-  namespace: control-forms
-
 mock_step:
   call: reflect.mock
   args:

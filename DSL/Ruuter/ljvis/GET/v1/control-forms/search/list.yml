@@ -1,6 +1,5 @@
 declaration:
-  call: declare
-  version: 0.1
+  version: "1.0"
   description: "LJVIS2-9 cross-entity form search. Returns a paged, filtered list of forms the caller is allowed to see (row-level by read permission)."
   method: get
   accepts: json
@@ -52,8 +51,8 @@ declaration:
         description: "Form lifecycle status"
 
 getAuthority:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: u
