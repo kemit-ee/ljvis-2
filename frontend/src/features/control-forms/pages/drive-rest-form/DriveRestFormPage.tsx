@@ -181,7 +181,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const item = Array.isArray(list) ? list[0] : null;
         const full = item?.id ? await getTechnicalCheckForm(scope, item.id).catch(() => null) : null;
         subForm.setForm(full);
-        if (full?.status === 'saved') subForm.setEditActive(true);
+        subForm.setEditActive(false);
         onDone?.();
       })
       .catch(console.error);
@@ -254,7 +254,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     setLoadingEntry(true);
     getDriveRestForm(entryType, Number(id))
       .then((res) => {
-        if (!res || !res.compoundFormKey) {
+        if (!res || !res.compoundFormKey || res.status === 'deleted') {
           setLoadError(true);
           return;
         }
@@ -905,6 +905,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                   setCompoundEditActive(true);
                   if (driver.form) driver.setEditActive(true);
                   if (teammate.form) teammate.setEditActive(true);
+                  if (vehicle.form) vehicle.setEditActive(true);
+                  if (trailer.form) trailer.setEditActive(true);
                 }}
               >
                 {t('common.edit')}

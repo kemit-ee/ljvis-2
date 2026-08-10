@@ -100,7 +100,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     setLoading(true);
     getTechnicalCheckForm(variant, id)
       .then((res) => {
-        if (!res || !res.compoundFormKey) { setLoadError(true); return; }
+        if (!res || !res.compoundFormKey || res.status === 'deleted') { setLoadError(true); return; }
         setCompoundFormKey(Number(res.compoundFormKey));
         if (variant === 'vehicle') { vehicle.setForm(res); vehicle.setLoaded(true); }
         else { trailer.setForm(res); trailer.setLoaded(true); }
@@ -177,7 +177,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     window.scrollTo(0, 0);
   };
 
-  const subFormsAllConfirmed = vehicle.form?.status === 'confirmed' && trailer.form?.status === 'confirmed';
+  const subFormsAllConfirmed = [vehicle.form, trailer.form, driver.form, teammate.form]
+    .filter(Boolean)
+    .every((f) => f?.status === 'confirmed');
 
   const {
     formik,
@@ -226,7 +228,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         const item = Array.isArray(list) ? list[0] : null;
         const full = item?.id ? await getTechnicalCheckForm(scope, item.id).catch(() => null) : null;
         subForm.setForm(full);
-        if (full?.status === 'saved') subForm.setEditActive(true);
+        subForm.setEditActive(false);
         onDone?.();
       })
       .catch(console.error);
@@ -235,7 +237,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const refetchDriveRest = (subForm: typeof driver, scope: 'driver' | 'teammate', onDone?: () => void) => {
     if (!compoundFormKey) return;
     getDriveRestFormByCompoundFormKey(scope, compoundFormKey)
-      .then((res) => { subForm.setForm(res ?? null); if (res?.status === 'saved') subForm.setEditActive(true); onDone?.(); })
+      .then((res) => { subForm.setForm(res ?? null); subForm.setEditActive(false); onDone?.(); })
       .catch(console.error);
   };
 

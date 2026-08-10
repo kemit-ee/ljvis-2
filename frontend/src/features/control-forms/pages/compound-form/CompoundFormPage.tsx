@@ -332,7 +332,7 @@ export function CompoundFormPage() {
     getDriveRestFormByCompoundFormKey(scope, compoundFormKey)
       .then((res) => {
         subForm.setForm(res);
-        if (res?.status === 'saved') subForm.setEditActive(true);
+        subForm.setEditActive(false);
         const latestDriver = scope === 'driver' ? res : driver.form;
         const latestTeammate = scope === 'teammate' ? res : teammate.form;
         checkAndAutoConfirmCompound(latestDriver, latestTeammate, vehicle.form, trailer.form);
@@ -350,7 +350,7 @@ export function CompoundFormPage() {
         const item = Array.isArray(list) ? list[0] : null;
         const full = item?.id ? await getTechnicalCheckForm(scope, item.id).catch(() => null) : null;
         subForm.setForm(full);
-        if (full?.status === 'saved') subForm.setEditActive(true);
+        subForm.setEditActive(false);
         const latestVehicle = scope === 'vehicle' ? full : vehicle.form;
         const latestTrailer = scope === 'trailer' ? full : trailer.form;
         checkAndAutoConfirmCompound(driver.form, teammate.form, latestVehicle, latestTrailer);
@@ -482,7 +482,16 @@ export function CompoundFormPage() {
       subForm.setForm(null);
       subForm.setEditActive(false);
     } else {
+      const scope: TechnicalCheckVariant = tab === 'tab-vehicle-technical-check' ? 'vehicle' : 'trailer';
       const subForm = tab === 'tab-vehicle-technical-check' ? vehicle : trailer;
+      if (subForm.form?.id && subForm.form?.subFormNumber) {
+        try {
+          await deleteTechnicalCheckForm(scope, String(subForm.form.id), subForm.form.subFormNumber, subForm.form.status ?? '');
+        } catch (e) {
+          console.error('Delete sub-form failed', e);
+          return;
+        }
+      }
       subForm.setForm(null);
       subForm.setEditActive(false);
     }

@@ -233,7 +233,7 @@ export const listTechnicalCheckFormsByCompoundFormKey = (
   get<TechnicalCheckFormListItem[]>(
     `/v1/control-forms/${technicalCheckPath(variant)}/get-by-compound-form-key`,
     { compoundFormKey: String(compoundFormKey) },
-  );
+  ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const saveTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
