@@ -112,12 +112,18 @@ export const getCompoundFormSnapshot = (id: string, formKey: string) =>
     formKey,
   });
 
-export const insertDriveRestForm = (
+export const saveDriveRestForm = (scope: 'driver' | 'teammate', data: DriveRestForm) =>
+  post<DriveRestForm[]>(
+    `/v1/control-forms/drive-rest-form/${scope}/edit/save`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const confirmDriveRestForm = (
   scope: 'driver' | 'teammate',
   data: DriveRestForm,
 ) =>
   post<DriveRestForm[]>(
-    `/v1/control-forms/drive-rest-form/${scope}/edit/insert`,
+    `/v1/control-forms/drive-rest-form/${scope}/edit/confirm`,
     data as unknown as Record<string, unknown>,
   );
 
@@ -125,15 +131,6 @@ export const getDriveRestForm = (scope: 'driver' | 'teammate', id: number) =>
   get<DriveRestForm>(`/v1/control-forms/${scope}-form`, {
     q: String(id),
   });
-
-export const updateDriveRestForm = (
-  scope: 'driver' | 'teammate',
-  data: DriveRestForm,
-) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/drive-rest-form/${scope}/edit/update`,
-    data as unknown as Record<string, unknown>,
-  );
 
 export const getDriveRestFormByCompoundFormKey = (
   scope: 'driver' | 'teammate',

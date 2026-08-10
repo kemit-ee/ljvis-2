@@ -46,7 +46,7 @@ import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } fr
 import type { TechnicalCheckVariant } from '../../types';
 import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '../drive-rest-form/useDriveRestForm';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
-import { insertDriveRestForm, saveTechnicalCheckForm } from '../../api';
+import { saveDriveRestForm, saveTechnicalCheckForm } from '../../api';
 
 interface FormRef {
   handleSubmit?: (overrideCompoundFormKey?: number) => void;
@@ -2246,7 +2246,7 @@ export function CompoundFormCreatePage() {
                         values,
                         'saved',
                       );
-                      const result = await insertDriveRestForm(
+                      const result = await saveDriveRestForm(
                         tabType,
                         trimmedValues as unknown as DriveRestForm,
                       );

@@ -24,7 +24,7 @@ import {
   getDriveRestFormByCompoundFormKey,
   deleteDriveRestForm,
   deleteCompoundForm,
-  updateDriveRestForm,
+  saveDriveRestForm,
   getDriveRestFormSnapshot,
   deleteTechnicalCheckForm,
 } from '../../api';
@@ -496,7 +496,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             draft as Partial<DriveRestForm> & Record<string, unknown>,
             driver.form?.status === 'confirmed' ? 'confirmed' : 'saved',
           );
-          updateDriveRestForm('driver', serialized as unknown as DriveRestForm)
+          saveDriveRestForm('driver', serialized as unknown as DriveRestForm)
             .then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchDriver(() => { driver.draftRef.current = null; driver.setDraft(null); }); })
             .catch(console.error);
         },
@@ -510,7 +510,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             draft as Partial<DriveRestForm> & Record<string, unknown>,
             teammate.form?.status === 'confirmed' ? 'confirmed' : 'saved',
           );
-          updateDriveRestForm('teammate', serialized as unknown as DriveRestForm)
+          saveDriveRestForm('teammate', serialized as unknown as DriveRestForm)
             .then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTeammate(() => { teammate.draftRef.current = null; teammate.setDraft(null); }); })
             .catch(console.error);
         },

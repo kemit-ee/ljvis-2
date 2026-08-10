@@ -22,7 +22,7 @@ import {
   getDriveRestFormByCompoundFormKey,
   deleteDriveRestForm,
   deleteTechnicalCheckForm,
-  updateDriveRestForm,
+  saveDriveRestForm,
   listTechnicalCheckFormsByCompoundFormKey,
   getTechnicalCheckForm,
   listTransportInterruptionFormsByCompoundFormKey,
@@ -518,7 +518,7 @@ export function CompoundFormPage() {
         schema: createDriveRestValidationSchema(t) as ReturnType<typeof createDriveRestValidationSchema>,
         fallbackSave: (draft) => {
           const serialized = serializeDriveRestFormValues(draft as Partial<DriveRestForm> & Record<string, unknown>, driver.form?.status === 'confirmed' ? 'confirmed' : 'saved');
-          updateDriveRestForm('driver', serialized as unknown as DriveRestForm).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!driver.form) resetCompoundFormToSaved(); refetchDriveRest('driver', () => { driver.draftRef.current = null; driver.setDraft(null); }); }).catch(console.error);
+          saveDriveRestForm('driver', serialized as unknown as DriveRestForm).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!driver.form) resetCompoundFormToSaved(); refetchDriveRest('driver', () => { driver.draftRef.current = null; driver.setDraft(null); }); }).catch(console.error);
         },
       },
       {
@@ -527,7 +527,7 @@ export function CompoundFormPage() {
         schema: createDriveRestValidationSchema(t) as ReturnType<typeof createDriveRestValidationSchema>,
         fallbackSave: (draft) => {
           const serialized = serializeDriveRestFormValues(draft as Partial<DriveRestForm> & Record<string, unknown>, teammate.form?.status === 'confirmed' ? 'confirmed' : 'saved');
-          updateDriveRestForm('teammate', serialized as unknown as DriveRestForm).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!teammate.form) resetCompoundFormToSaved(); refetchDriveRest('teammate', () => { teammate.draftRef.current = null; teammate.setDraft(null); }); }).catch(console.error);
+          saveDriveRestForm('teammate', serialized as unknown as DriveRestForm).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!teammate.form) resetCompoundFormToSaved(); refetchDriveRest('teammate', () => { teammate.draftRef.current = null; teammate.setDraft(null); }); }).catch(console.error);
         },
       },
     ],
