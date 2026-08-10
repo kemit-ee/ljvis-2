@@ -136,6 +136,7 @@ export function UserGroupListPage() {
           </div>
           <Table
             id="user-groups-table"
+            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}

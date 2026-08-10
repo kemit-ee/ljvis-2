@@ -19,7 +19,7 @@ import type { FormSearchRow } from '../../types';
 import { useFormSearch } from './useFormSearch';
 import { FormSearchFilters } from './FormSearchFilters';
 import { FORM_TYPE_META, resolveFormRoute } from './formSearchMeta';
-import styles from './FormSearch.module.css';
+import './FormSearch.module.css';
 
 const columnHelper = createColumnHelper<FormSearchRow>();
 
@@ -128,7 +128,7 @@ export function FormSearchPage() {
               e.stopPropagation();
               openRow(info.row.original);
             }}
-            className={styles['table-link']}
+            className="table-link"
           >
             {t('common.look')}
           </a>
@@ -155,6 +155,7 @@ export function FormSearchPage() {
           />
           <Table
             id="form-search-table"
+            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}

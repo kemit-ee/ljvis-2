@@ -194,6 +194,7 @@ export function UserGroupAddUserPage() {
 
             <Table
               id="users-table"
+              className="ljvis-table"
               data={availableUsers}
               columns={columns}
               isLoading={isLoading}
