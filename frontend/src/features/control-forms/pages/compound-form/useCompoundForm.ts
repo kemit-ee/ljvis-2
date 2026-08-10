@@ -53,6 +53,10 @@ export function useCompoundForm(
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
   const pendingForceSaved = useRef(false);
+  const subFormsAllConfirmedRef = useRef(subFormsAllConfirmed);
+  useEffect(() => {
+    subFormsAllConfirmedRef.current = subFormsAllConfirmed;
+  });
   const { getByCode, getChildren } = useClassifiers();
 
   const WRITE_SUFFIX = '.write';
@@ -344,7 +348,7 @@ export function useCompoundForm(
         pendingConfirm.current = false;
         const forceSaved = pendingForceSaved.current;
         pendingForceSaved.current = false;
-        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmed ?? true);
+        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedRef.current ?? true);
         const nextStatus = isConfirming
           ? 'confirmed'
           : isReconfirmedEdit

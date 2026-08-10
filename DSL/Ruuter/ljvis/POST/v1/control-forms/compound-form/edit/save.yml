@@ -222,22 +222,6 @@ extractResult:
 parseChangedFieldsResult:
   assign:
     changed_fields_result: ${parsed_result.changed_fields}
-  next: getCurrentFormForStatus
-
-getCurrentFormForStatus:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
-    headers:
-      type: json
-    body:
-      id: ${id}
-  result: currentFormRes
-  next: extractCurrentStatus
-
-extractCurrentStatus:
-  assign:
-    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
   next: check_driver1_personal_code_not_empty_update
 
 check_driver1_personal_code_not_empty_insert:
@@ -413,7 +397,7 @@ updateForm:
     body:
       key: ${id}
       formNumber: ${form_number}
-      status: ${current_status}
+      status: saved
       controlDate: ${control_date}
       controlTime: ${control_time}
       controlCountryCode: ${control_country_code}

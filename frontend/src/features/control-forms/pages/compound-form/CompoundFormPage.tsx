@@ -362,9 +362,16 @@ export function CompoundFormPage() {
   const canEdit =
     hasPermission('compound_form.write') && form?.status !== 'deleted';
 
-  const subFormsAllConfirmed = [driver.form, teammate.form, vehicle.form, trailer.form]
-    .filter(Boolean)
-    .every((f) => f?.status === 'confirmed');
+  const hasNewUnsavedSubForm =
+    (openTabs.includes('tab-driver') && !driver.form) ||
+    (openTabs.includes('tab-teammate') && !teammate.form) ||
+    (openTabs.includes('tab-vehicle-technical-check') && !vehicle.form) ||
+    (openTabs.includes('tab-trailer-technical-check') && !trailer.form);
+  const subFormsAllConfirmed =
+    !hasNewUnsavedSubForm &&
+    [driver.form, teammate.form, vehicle.form, trailer.form]
+      .filter(Boolean)
+      .every((f) => f?.status === 'confirmed');
   const canDelete =
     hasPermission('control_form.delete') && form?.status !== 'deleted';
   const canConfirm =
@@ -383,10 +390,10 @@ export function CompoundFormPage() {
 
   const handleConfirmed = () => {
     setIsEditActive(false);
-    driver.setEditActive(driver.form?.status === 'saved');
-    teammate.setEditActive(teammate.form?.status === 'saved');
-    vehicle.setEditActive(vehicle.form?.status === 'saved');
-    trailer.setEditActive(trailer.form?.status === 'saved');
+    driver.setEditActive(false);
+    teammate.setEditActive(false);
+    vehicle.setEditActive(false);
+    trailer.setEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
     refetch();
@@ -430,6 +437,7 @@ export function CompoundFormPage() {
 
   const resetCompoundFormToSaved = () => {
     if (!form || form.status !== 'confirmed') return;
+    if (isEditActive) return;
     triggerSaveAsSaved();
   };
 
