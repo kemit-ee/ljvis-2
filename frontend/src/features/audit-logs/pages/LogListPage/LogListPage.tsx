@@ -144,6 +144,7 @@ export function LogListPage() {
           </div>
           <Table
             id="logs-table"
+            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}

@@ -95,6 +95,7 @@ export function FormVersionsTable({
         </Heading>
         <Table
           id="form-versions-table"
+          className="ljvis-table"
           data={snapshots}
           columns={columns}
           placeholder={{ children: t('common.tableIsEmpty') }}

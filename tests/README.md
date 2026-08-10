@@ -112,6 +112,7 @@ via API, with no shared state between collections.
 tests/postman/
 ├── collections/
 │   ├── classifiers.collection.json
+│   ├── form-search.collection.json
 │   ├── labour-inspection.collection.json
 │   ├── organisations.collection.json
 │   ├── permissions.collection.json
@@ -135,6 +136,7 @@ tests/postman/
 | **transport-interruption** | Transport interruption sub-form (LJVIS2-74): edit/save (403, 422 required, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments, all 4 legalBases codes), confirm (403, 200, already_confirmed 422), UPPERCASE transform of headerText/interruptionReason/personApplications/residenceAddressLine/terminationCondition |
 | **adr-form** | ADR (ohtlik veos) sub-form (LJVIS2-141): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump), re-save after confirm still allowed |
 | **good-repute-form** | Hea maine (good repute) independent form (LJVIS2-136): edit/save (403, 422 required/future-date/conditional unfit dates + date ordering, 200 create+version=1), UPPERCASE transform of personalCode/firstName/lastName/placeOfBirth/certificateNumber, read/get (403/404/200), re-save while saved (version unchanged — no-bump rule), confirm (403, 200 version unchanged, already_confirmed 422), edit-after-confirm (422 form_locked_after_confirm) |
+| **form-search** | Cross-entity form search (LJVIS2-9): 403 without any form read permission, unfiltered search (content+total), formType filter, companyName (ILIKE) filter, date-range inclusive/exclusive, pagination (pageSize=1), sorting, and deleted-form hidden from results. Creates + deletes its own labour-inspection act. |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
 | **permissions** | `GET /permissions/list` — verify seeded permissions (39), check `user_group.update`, vehicle/trailer/transport-interruption/adr/good-repute form permissions present |
 | **users** | List (admin/403), check-exists, insert (success/409/422/403), get, update, set-groups, get-groups |

@@ -926,7 +926,6 @@
       "validation": {
         "required": "Required field",
         "minorViolationsCount": "Allowed up to three-digit number",
-
         "api": {
           "required": "Required field"
         }
@@ -948,7 +947,8 @@
     "administration": "Administration",
     "userGroups": "User Groups",
     "classifiers": "Klassifikaatorid",
-    "logs": "Logs"
+    "logs": "Logs",
+    "search": "Search"
   },
   "users": {
     "title": "Users",
@@ -1168,5 +1168,48 @@
     "cookies": "Cookies",
     "privacy": "Privacy policy",
     "logoAlt": "COMING"
+  },
+  "search": {
+    "title": "Search",
+    "clear": "Clear",
+    "filters": {
+      "dateFrom": "Control date from",
+      "dateTo": "Control date to",
+      "formType": "Form type",
+      "vehicleRegNr": "Vehicle registration",
+      "companyRegCode": "Company registry code",
+      "companyName": "Company name",
+      "driver": "Driver (personal code or name)",
+      "county": "County",
+      "hasViolation": "Violation",
+      "status": "Status"
+    },
+    "columns": {
+      "formType": "Form type",
+      "formNumber": "Number",
+      "status": "Status",
+      "mainDate": "Control date",
+      "county": "County",
+      "vehicleRegNr": "Reg. no.",
+      "companyName": "Carrier",
+      "inspector": "Official"
+    },
+    "formType": {
+      "compound": "Compound form",
+      "foreignViolation": "Foreign violation",
+      "labourInspection": "Labour inspection form",
+      "goodRepute": "Good repute",
+      "spDriver": "Driving/rest time (driver)",
+      "spTeammate": "Driving/rest time (co-driver)",
+      "vehicleTechnical": "Technical compliance (vehicle)",
+      "trailerTechnical": "Technical compliance (trailer)",
+      "adr": "Dangerous goods (ADR)",
+      "kv": "Transport interruption"
+    },
+    "status": {
+      "saved": "Saved",
+      "confirmed": "Confirmed",
+      "published": "Published"
+    }
   }
 }

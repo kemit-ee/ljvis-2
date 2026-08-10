@@ -276,7 +276,8 @@
     "administration": "Haldus",
     "userGroups": "Kasutajagrupid",
     "classifiers": "Klassifikaatorid",
-    "logs": "Logid"
+    "logs": "Logid",
+    "search": "Otsing"
   },
   "desktop": {
     "title": "Töölaud",
@@ -1267,5 +1268,48 @@
     "cookies": "Küpsised",
     "privacy": "Privaatsussätted",
     "logoAlt": "Euroopa Sotsiaalfond"
+  },
+  "search": {
+    "title": "Otsing",
+    "clear": "Tühjenda",
+    "filters": {
+      "dateFrom": "Kontrolli kuupäev alates",
+      "dateTo": "Kontrolli kuupäev kuni",
+      "formType": "Vormi tüüp",
+      "vehicleRegNr": "Sõiduki registreerimismärk",
+      "companyRegCode": "Ettevõtte registrikood",
+      "companyName": "Ettevõtte nimi",
+      "driver": "Juht (isikukood või nimi)",
+      "county": "Maakond",
+      "hasViolation": "Rikkumine",
+      "status": "Staatus"
+    },
+    "columns": {
+      "formType": "Vormi tüüp",
+      "formNumber": "Number",
+      "status": "Staatus",
+      "mainDate": "Kontrolli kuupäev",
+      "county": "Maakond",
+      "vehicleRegNr": "Reg. märk",
+      "companyName": "Vedaja",
+      "inspector": "Ametnik"
+    },
+    "formType": {
+      "compound": "Koondvorm",
+      "foreignViolation": "Välisriigi rikkumine",
+      "labourInspection": "Tööinspektsiooni kontrollvorm",
+      "goodRepute": "Hea maine",
+      "spDriver": "Sõidu- ja puhkeaeg (juht)",
+      "spTeammate": "Sõidu- ja puhkeaeg (kaassõitja)",
+      "vehicleTechnical": "Tehnonõuetele vastavus (sõiduk)",
+      "trailerTechnical": "Tehnonõuetele vastavus (haagis)",
+      "adr": "Ohtlik veos (ADR)",
+      "kv": "Autoveo katkestamine"
+    },
+    "status": {
+      "saved": "Salvestatud",
+      "confirmed": "Kinnitatud",
+      "published": "Avaldatud"
+    }
   }
 }

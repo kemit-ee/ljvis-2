@@ -1,11 +1,5 @@
-:global(#form-versions-table) td,
-:global(#form-versions-table) th {
-  border-left: 1px solid #e5e7eb;
-}
-
 :global(#form-versions-table) td:first-child,
 :global(#form-versions-table) th:first-child {
-  border-left: none;
   width: 5% !important;
   max-width: 5% !important;
 }

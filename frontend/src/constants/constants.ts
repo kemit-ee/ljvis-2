@@ -28,6 +28,20 @@ export const PERMISSIONS = {
   AUDIT_READ: 'audit.read',
 } as const;
 
+export const FORM_READ_PERMISSIONS: string[] = [
+  'control_form.view_unpublished',
+  'compound_form.read',
+  'foreign_violation_form.read',
+  'labour_inspection_form.read',
+  'good_repute_form.read',
+  'sp_driver_form.read',
+  'sp_teammate_form.read',
+  'vehicle_technical_form.read',
+  'trailer_technical_form.read',
+  'adr_form.read',
+  'transport_interruption_form.read',
+];
+
 export const DESKTOP = {
   DASHBOARD_MANUAL_ADD: 'DASHBOARD_MANUAL_ADD',
   DASHBOARD_EXCLUDED: 'DASHBOARD_EXCLUDED',
