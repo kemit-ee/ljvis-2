@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single good repute form snapshot by snapshot ID, for the read-only historical version view (LJVIS2-136)."
   method: get
   accepts: json

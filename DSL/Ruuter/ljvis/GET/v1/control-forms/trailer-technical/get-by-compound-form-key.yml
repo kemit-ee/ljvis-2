@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "List latest snapshots of all trailer technical-check sub-forms linked to a compound form key"
   method: get
   accepts: json

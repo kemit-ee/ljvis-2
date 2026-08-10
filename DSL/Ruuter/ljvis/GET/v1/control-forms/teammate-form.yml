@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single drive rest form (teammate) by key"
   method: get
   accepts: json
@@ -85,8 +85,8 @@ checkShouldLog:
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/sp-teammate-form/log-sp-teammate-view"
-  requestType: templates
+  template: "templates/audit/form/sp-teammate-form/log-sp-teammate-view"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

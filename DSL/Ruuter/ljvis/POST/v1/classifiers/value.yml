@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create a new classifier value"
   method: post
   accepts: json
@@ -20,11 +20,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -35,9 +34,9 @@ extractRequestData:
     name: "${incoming.body.name}"
     valid_from: "${incoming.body.validFrom}"
     valid_until: "${incoming.body.validUntil ?? ''}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    created_by: "${auth_user.personalcode || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getClassifierCode
 
 getClassifierCode:
@@ -74,15 +73,18 @@ insertClassifierValue:
 
 buildAuditData:
   assign:
-    classifier_code: ${classifier_code}
     classifier_value_id: "${insertRes.response.body[0].id}"
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}"
     log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "classifier_value.add"
     event_category: "classifier_management"

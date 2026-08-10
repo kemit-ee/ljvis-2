@@ -18,6 +18,7 @@ import { ClassifierValueEditPage } from './features/classifiers/pages/Classifier
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
 import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDetailPage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
+import { AuthCallback } from './features/auth/AuthCallback';
 import { ForeignViolationFormCreatePage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormCreatePage';
 import { ForeignViolationFormPage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormPage';
 import { CompoundFormCreatePage } from './features/control-forms/pages/compound-form/CompoundFormCreatePage';
@@ -39,6 +40,11 @@ function AppRoutes() {
 
   if (loading) {
     return <div>Loading...</div>;
+  }
+
+  // Handle OAuth callback before auth check — user is not yet authenticated
+  if (window.location.pathname === '/auth/callback') {
+    return <AuthCallback />;
   }
 
   if (!user) {

@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Save the X-tee block fields on an already-confirmed trailer technical-check sub-form. Requires control_form.edit_locked (enforced by .guard); additionally requires the sub-form's current status to be confirmed. Updates the latest snapshot row in place — does not bump version. LJVIS2-72 §4/§5."
   method: post
   accepts: json
@@ -18,8 +18,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -68,8 +68,8 @@ buildLogDescription:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create or update a good repute form (hea maine vorm) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136). Confirmed forms can only be re-saved by a user with control_form.edit_locked."
   method: post
   accepts: json
@@ -34,8 +34,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -59,8 +59,8 @@ extractRequestData:
   next: validateForm
 
 validateForm:
-  template: "[#LJVIS_PROJECT_LAYER]/form/good-repute/validate-good-repute-form"
-  requestType: templates
+  template: "templates/form/good-repute/validate-good-repute-form"
+  requestType: GET
   body:
     personalCode: ${personal_code}
     firstName: ${first_name}

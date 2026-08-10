@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "List active file attachments for a trailer technical check form"
   method: get
   accepts: json
@@ -13,8 +13,8 @@ declaration:
         description: "Logical form number to list files for"
 
 getFiles:
-  template: "[#LJVIS_PROJECT_LAYER]/files/list"
-  requestType: templates
+  template: "templates/files/list"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

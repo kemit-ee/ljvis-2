@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "0.1"
   description: "TEST ONLY — Generate a TIM-signed JWT by personalCode. Mounted via docker-compose only; NOT baked into the Docker image; NOT deployed to production Helm."
   method: post
   accepts: json
@@ -21,11 +21,13 @@ validate_input:
 generate_jwt:
   call: http.post
   args:
-    url: "[#LJVIS_TIM]/jwt/custom-jwt-generate"
+    url: "[#LJVIS_TIM]/jwt/custom/generate"
     headers:
       type: json
+      X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
     body:
       content:
+        sub: ${incoming.body.personalCode}
         personalCode: ${incoming.body.personalCode}
         authenticatedAs: ${incoming.body.personalCode}
         authMethod: "mID"
@@ -36,7 +38,7 @@ generate_jwt:
 
 check_result:
   switch:
-    - condition: ${200 <= jwt_result.response.statusCodeValue && jwt_result.response.statusCodeValue < 300}
+    - condition: ${200 <= jwt_result.response.status && jwt_result.response.status < 300}
       next: return_token
   next: jwt_error
 

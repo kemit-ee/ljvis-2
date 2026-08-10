@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single labour inspection form (labour_inspection_form) by ID"
   method: get
   accepts: json
@@ -13,8 +13,8 @@ declaration:
         description: "Labour inspection form ID"
 
 checkAuthority:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -63,8 +63,8 @@ checkShouldLog:
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/labour-inspection/log-labour-inspection-view"
-  requestType: templates
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-view"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "List all classifiers"
   method: get
   accepts: json
@@ -22,11 +22,10 @@ declaration:
         description: "Sorting"
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -36,9 +35,9 @@ extractRequestData:
     page: "${incoming.params.page ?? 1}"
     pageSize: "${incoming.params.pageSize ?? 20}"
     sorting: "${incoming.params.sorting ?? 'name asc'}"
-    created_by: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
+    created_by: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getClassifiers
 
 getClassifiers:
@@ -59,6 +58,10 @@ checkAuditCondition:
   assign:
     should_log_audit: "${search.length >= 3}"
     result_count: "${res.response.body && res.response.body[0] ? res.response.body[0].total : 0}"
+  next: setAuditContent
+
+setAuditContent:
+  assign:
     description: "Klassifikaatorite nimekiri, otsingutermin '${search}', tulemusi ${result_count}"
     log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count}}"
   next: conditionalAudit
@@ -70,8 +73,8 @@ conditionalAudit:
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "classifier.list.search"
     event_category: "classifier_management"

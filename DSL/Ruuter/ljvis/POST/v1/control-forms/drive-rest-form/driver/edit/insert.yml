@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Insert drive rest form for driver"
   method: post
   accepts: json
@@ -76,11 +76,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -119,9 +118,9 @@ extractRequestData:
     enforcement_decision: "${incoming.body.enforcementDecision}"
     proceeding_closure_basis: "${incoming.body.proceedingClosureBasis}"
     notes: "${incoming.body.notes}"
-    created_by: "${auth_user.response.body.personalCode || ''}"
-    actor_name: "${auth_user.response.body.firstName || ''} ${auth_user.response.body.lastName || ''}"
-    actor_personal_code: "${auth_user.response.body.personalCode || ''}"
+    created_by: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: insertForm
 
 insertForm:
@@ -195,8 +194,8 @@ extractDriverCodes:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/sp-driver-form/log-sp-driver-create-update"
-  requestType: templates
+  template: "templates/audit/form/sp-driver-form/log-sp-driver-create-update"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

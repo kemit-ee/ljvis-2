@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get good repute form (hea maine vorm) by key (latest snapshot). LJVIS2-136."
   method: get
   accepts: json

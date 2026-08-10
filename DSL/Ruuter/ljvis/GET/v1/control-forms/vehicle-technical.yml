@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get vehicle technical-check sub-form by id (latest snapshot). Logs a view event only when the viewing user differs from the sub-form's creator (LJVIS2-72 §7)."
   method: get
   accepts: json
@@ -13,11 +13,10 @@ declaration:
         description: "Vehicle technical sub-form ID"
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: fetchForm
 
@@ -40,7 +39,7 @@ checkFound:
 
 checkViewerDiffersFromCreator:
   switch:
-    - condition: ${res.response.body[0].createdBy != null && res.response.body[0].createdBy !== auth_user.response.body.personalCode}
+    - condition: ${res.response.body[0].createdBy != null && res.response.body[0].createdBy !== auth_user.personalcode}
       next: logView
   next: returnSuccess
 
@@ -50,8 +49,8 @@ logView:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

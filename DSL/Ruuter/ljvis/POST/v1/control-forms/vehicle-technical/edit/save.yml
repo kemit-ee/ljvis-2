@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create or update the vehicle technical-check sub-form (mootorsõiduki tehnovorm, LJVIS2-72) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
   method: post
   accepts: json
@@ -40,8 +40,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -50,7 +50,7 @@ get_user_context:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    compound_form_key: "${incoming.body.compoundFormKey}"
+    compound_form_key: ${incoming.body.compoundFormKey}
     parts_summary: "${incoming.body.partsSummary || '[]'}"
     parts_defects: "${incoming.body.partsDefects || '[]'}"
     result_type: "${incoming.body.resultType || 'ok'}"
@@ -169,8 +169,8 @@ buildLogDescription:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

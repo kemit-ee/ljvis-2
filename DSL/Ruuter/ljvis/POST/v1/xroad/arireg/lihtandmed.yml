@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Search Ariregister company data (lihtandmed_v3) via XTR"
   method: post
   accepts: json
@@ -18,12 +18,20 @@ declaration:
 validate:
   switch:
     - condition: "${incoming.body.registryCode == null && incoming.body.companyName == null}"
-      return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"At least one of registryCode or companyName is required\"}"
-      status: 400
+      next: returnMissingParam
     - condition: "${incoming.body.maxResults != null && (incoming.body.maxResults < 1 || incoming.body.maxResults > 100)}"
-      return: "{\"error\": \"INVALID_PARAMETER\", \"message\": \"maxResults must be between 1 and 100\"}"
-      status: 400
+      next: returnInvalidParam
   next: assignParams
+
+returnMissingParam:
+  status: 400
+  return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"At least one of registryCode or companyName is required\"}"
+  next: end
+
+returnInvalidParam:
+  status: 400
+  return: "{\"error\": \"INVALID_PARAMETER\", \"message\": \"maxResults must be between 1 and 100\"}"
+  next: end
 
 assignParams:
   assign:
@@ -50,7 +58,7 @@ callXtr:
 
 checkXtrStatus:
   switch:
-    - condition: "${xtrResponse.response.statusCodeValue < 200 || xtrResponse.response.statusCodeValue >= 300}"
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
       next: logFailure
   next: logSuccess
 
@@ -82,7 +90,7 @@ logFailure:
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
-      error_message: "${'XTR HTTP ' + xtrResponse.response.statusCodeValue}"
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
   result: logResult
   next: returnError
 

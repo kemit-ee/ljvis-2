@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Delete teammate form"
   method: post
   accepts: json
@@ -16,8 +16,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -46,8 +46,8 @@ deleteForm:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/log-form-delete"
-  requestType: templates
+  template: "templates/audit/form/log-form-delete"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
