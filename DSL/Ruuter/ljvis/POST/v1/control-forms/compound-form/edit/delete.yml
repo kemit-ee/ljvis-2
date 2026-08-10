@@ -30,8 +30,6 @@ extractRequestData:
     old_status: "${incoming.body.old_status}"
     status: "deleted"
     created_by: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
   next: deleteForm
 
 deleteForm:
@@ -55,8 +53,6 @@ logAuditEvent:
   body:
     form_number: ${form_number}
     old_status: ${old_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
