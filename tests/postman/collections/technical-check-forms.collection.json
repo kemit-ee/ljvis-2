@@ -1,13 +1,13 @@
 {
   "info": {
-    "name": "LJVIS — Vehicle/Trailer Technical Check Forms",
+    "name": "LJVIS \u2014 Vehicle/Trailer Technical Check Forms",
     "_postman_id": "ljvis-technical-check-forms-v1",
     "description": "Functional tests for /control-forms/{vehicle-technical|trailer-technical} endpoints (LJVIS2-72). Covers permission boundaries (vehicle_technical_form.write/read, trailer_technical_form.write/read, control_form.edit_locked), backend validation (compoundFormKey required, notes max length, trailer-exclusion of vehicle-only codes), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data), and the X-tee fields block. Self-contained: authenticates and creates its own compound form + sub-forms.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "[Auth] Login — Super Admin",
+      "name": "[Auth] Login \u2014 Super Admin",
       "request": {
         "method": "POST",
         "header": [
@@ -49,7 +49,7 @@
       ]
     },
     {
-      "name": "[Auth] Login — No-perm User",
+      "name": "[Auth] Login \u2014 No-perm User",
       "request": {
         "method": "POST",
         "header": [
@@ -91,7 +91,7 @@
       ]
     },
     {
-      "name": "[Auth] Login — Officer (no edit_locked)",
+      "name": "[Auth] Login \u2014 Officer (no edit_locked)",
       "request": {
         "method": "POST",
         "header": [
@@ -182,7 +182,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/save — no permission → 403",
+      "name": "POST vehicle-technical/edit/save \u2014 no permission \u2192 403",
       "request": {
         "method": "POST",
         "header": [
@@ -211,7 +211,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -226,7 +226,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/save — missing compoundFormKey → 422 required",
+      "name": "POST vehicle-technical/edit/save \u2014 missing compoundFormKey \u2192 422 required",
       "request": {
         "method": "POST",
         "header": [
@@ -255,7 +255,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null, \"compoundFormKey\": null}"
+          "raw": "{\"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"id\": null, \"compoundFormKey\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -274,7 +274,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/save — notes over 2000 chars → 422 max_length_2000",
+      "name": "POST vehicle-technical/edit/save \u2014 notes over 2000 chars \u2192 422 max_length_2000",
       "request": {
         "method": "POST",
         "header": [
@@ -303,7 +303,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"{{long_string_2001}}\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"{{long_string_2001}}\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -330,7 +330,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/save — create → 200, save id/subFormNumber, version=1",
+      "name": "POST vehicle-technical/edit/save \u2014 create \u2192 200, save id/subFormNumber, version=1",
       "request": {
         "method": "POST",
         "header": [
@@ -359,7 +359,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_0\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI vehicle technical form\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_0\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI vehicle technical form\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -384,7 +384,7 @@
       ]
     },
     {
-      "name": "GET vehicle-technical — no permission → 403",
+      "name": "GET vehicle-technical \u2014 no permission \u2192 403",
       "request": {
         "method": "GET",
         "header": [
@@ -424,7 +424,7 @@
       ]
     },
     {
-      "name": "GET vehicle-technical — not found → 404",
+      "name": "GET vehicle-technical \u2014 not found \u2192 404",
       "request": {
         "method": "GET",
         "header": [
@@ -464,7 +464,7 @@
       ]
     },
     {
-      "name": "GET vehicle-technical — happy path, verify fields",
+      "name": "GET vehicle-technical \u2014 happy path, verify fields",
       "request": {
         "method": "GET",
         "header": [
@@ -511,7 +511,7 @@
       ]
     },
     {
-      "name": "GET vehicle-technical/get-by-compound-form-key — happy path",
+      "name": "GET vehicle-technical/get-by-compound-form-key \u2014 happy path",
       "request": {
         "method": "GET",
         "header": [
@@ -559,7 +559,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/save — re-save while saved → 200, version stays 1",
+      "name": "POST vehicle-technical/edit/save \u2014 re-save while saved \u2192 200, version stays 1",
       "request": {
         "method": "POST",
         "header": [
@@ -588,7 +588,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_vtf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_0\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI vehicle technical form updated\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"compoundFormKey\": \"{{created_tcf_compound_key}}\"}"
+          "raw": "{\"id\": \"{{created_vtf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_0\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI vehicle technical form updated\", \"files\": \"[]\", \"compoundFormKey\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -608,7 +608,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields — form not confirmed yet → 422",
+      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields \u2014 form not confirmed yet \u2192 422",
       "request": {
         "method": "POST",
         "header": [
@@ -656,7 +656,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/confirm — no permission → 403",
+      "name": "POST vehicle-technical/edit/confirm \u2014 no permission \u2192 403",
       "request": {
         "method": "POST",
         "header": [
@@ -685,7 +685,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_vtf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\"}"
+          "raw": "{\"id\": \"{{created_vtf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -700,7 +700,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/confirm — happy path → 200, status confirmed, version unchanged",
+      "name": "POST vehicle-technical/edit/confirm \u2014 happy path \u2192 200, status confirmed, version unchanged",
       "request": {
         "method": "POST",
         "header": [
@@ -729,7 +729,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_vtf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_0\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI vehicle technical form confirmed\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\"}"
+          "raw": "{\"id\": \"{{created_vtf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_0\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI vehicle technical form confirmed\", \"files\": \"[]\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -748,7 +748,7 @@
       ]
     },
     {
-      "name": "GET vehicle-technical — status is confirmed after confirm",
+      "name": "GET vehicle-technical \u2014 status is confirmed after confirm",
       "request": {
         "method": "GET",
         "header": [
@@ -791,7 +791,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/confirm — already confirmed → 422 already_confirmed",
+      "name": "POST vehicle-technical/edit/confirm \u2014 already confirmed \u2192 422 already_confirmed",
       "request": {
         "method": "POST",
         "header": [
@@ -820,7 +820,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_vtf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\"}"
+          "raw": "{\"id\": \"{{created_vtf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -838,7 +838,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields — no control_form.edit_locked → 403",
+      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields \u2014 no control_form.edit_locked \u2192 403",
       "request": {
         "method": "POST",
         "header": [
@@ -883,7 +883,7 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields — happy path (confirmed status) → 200",
+      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields \u2014 happy path (confirmed status) \u2192 200",
       "request": {
         "method": "POST",
         "header": [
@@ -913,7 +913,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_vtf_id}}\", \"extraordinaryInspectionDate\": \"2024-05-01\", \"enforcementDecision\": \"Otsus jõustunud\", \"proceedingClosureBasis\": \"Menetlus lõpetatud\"}"
+          "raw": "{\"id\": \"{{created_vtf_id}}\", \"extraordinaryInspectionDate\": \"2024-05-01\", \"enforcementDecision\": \"Otsus j\u00f5ustunud\", \"proceedingClosureBasis\": \"Menetlus l\u00f5petatud\"}"
         }
       },
       "event": [
@@ -932,7 +932,7 @@
       ]
     },
     {
-      "name": "GET vehicle-technical — X-tee fields persisted, version unchanged",
+      "name": "GET vehicle-technical \u2014 X-tee fields persisted, version unchanged",
       "request": {
         "method": "GET",
         "header": [
@@ -969,7 +969,7 @@
               "var raw = pm.response.json();",
               "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('extraordinaryInspectionDate persisted', () => pm.expect(body.extraordinaryInspectionDate).to.eql('2024-05-01'));",
-              "pm.test('enforcementDecision persisted', () => pm.expect(body.enforcementDecision).to.eql('Otsus jõustunud'));",
+              "pm.test('enforcementDecision persisted', () => pm.expect(body.enforcementDecision).to.eql('Otsus j\u00f5ustunud'));",
               "pm.test('version still 1', () => pm.expect(Number(body.version)).to.eql(1));"
             ]
           }
@@ -977,7 +977,7 @@
       ]
     },
     {
-      "name": "POST trailer-technical/edit/save — CAA_2 (vehicle-only part) → 422 code_not_applicable_to_trailer",
+      "name": "POST trailer-technical/edit/save \u2014 CAA_2 (vehicle-only part) \u2192 422 code_not_applicable_to_trailer",
       "request": {
         "method": "POST",
         "header": [
@@ -1006,7 +1006,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_2\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_2\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -1024,7 +1024,7 @@
       ]
     },
     {
-      "name": "POST trailer-technical/edit/save — MSI203 (vehicle-only violation) → 422 code_not_applicable_to_trailer",
+      "name": "POST trailer-technical/edit/save \u2014 MSI203 (vehicle-only violation) \u2192 422 code_not_applicable_to_trailer",
       "request": {
         "method": "POST",
         "header": [
@@ -1053,7 +1053,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[\\\"MSI203\\\"]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[\\\"MSI203\\\"]\", \"notes\": \"\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -1071,7 +1071,7 @@
       ]
     },
     {
-      "name": "POST trailer-technical/edit/save — create with allowed part → 200",
+      "name": "POST trailer-technical/edit/save \u2014 create with allowed part \u2192 200",
       "request": {
         "method": "POST",
         "header": [
@@ -1100,7 +1100,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -1124,7 +1124,7 @@
       ]
     },
     {
-      "name": "GET trailer-technical — happy path",
+      "name": "GET trailer-technical \u2014 happy path",
       "request": {
         "method": "GET",
         "header": [
@@ -1168,7 +1168,7 @@
       ]
     },
     {
-      "name": "POST trailer-technical/edit/confirm — MSI203 vehicle-only violation → 422 code_not_applicable_to_trailer",
+      "name": "POST trailer-technical/edit/confirm \u2014 MSI203 vehicle-only violation \u2192 422 code_not_applicable_to_trailer",
       "request": {
         "method": "POST",
         "header": [
@@ -1197,7 +1197,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[\\\"MSI203\\\"]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\"}"
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[\\\"MSI203\\\"]\", \"notes\": \"\", \"files\": \"[]\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -1215,7 +1215,7 @@
       ]
     },
     {
-      "name": "POST trailer-technical/edit/confirm — happy path → 200, status confirmed, version unchanged",
+      "name": "POST trailer-technical/edit/confirm \u2014 happy path \u2192 200, status confirmed, version unchanged",
       "request": {
         "method": "POST",
         "header": [
@@ -1244,7 +1244,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form confirmed\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\"}"
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form confirmed\", \"files\": \"[]\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -1263,7 +1263,7 @@
       ]
     },
     {
-      "name": "POST trailer-technical/edit/save — officer (no edit_locked) saves confirmed form → 422 form_locked",
+      "name": "POST trailer-technical/edit/save \u2014 officer (no edit_locked) saves confirmed form \u2192 422 form_locked",
       "request": {
         "method": "POST",
         "header": [
@@ -1292,7 +1292,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"Should not save\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"compoundFormKey\": \"{{created_tcf_compound_key}}\"}"
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"Should not save\", \"files\": \"[]\", \"compoundFormKey\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -1310,7 +1310,7 @@
       ]
     },
     {
-      "name": "POST trailer-technical/edit/save — admin (edit_locked) saves confirmed form → 200, version bumps to 2",
+      "name": "POST trailer-technical/edit/save \u2014 admin (edit_locked) saves confirmed form \u2192 200, version bumps to 2",
       "request": {
         "method": "POST",
         "header": [
@@ -1339,7 +1339,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form re-saved after confirm\", \"files\": \"[]\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"compoundFormKey\": \"{{created_tcf_compound_key}}\"}"
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form re-saved after confirm\", \"files\": \"[]\", \"compoundFormKey\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
         }
       },
       "event": [
@@ -1352,6 +1352,274 @@
               "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
               "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(Number(row.version)).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST vehicle-technical/edit/delete \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "vehicle-technical",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_vtf_id}}\", \"form_number\": \"{{created_vtf_sub_form_number}}\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 403 without control_form.delete', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST vehicle-technical/edit/delete \u2014 happy path \u2192 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "vehicle-technical",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_vtf_id}}\", \"form_number\": \"{{created_vtf_sub_form_number}}\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET vehicle-technical \u2014 deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical?q={{created_vtf_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "vehicle-technical"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_vtf_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST trailer-technical/edit/delete \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/trailer-technical/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "trailer-technical",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"form_number\": \"test\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 403 without control_form.delete', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST trailer-technical/edit/delete \u2014 happy path \u2192 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/trailer-technical/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "trailer-technical",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"form_number\": \"test\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET trailer-technical \u2014 deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/trailer-technical?q={{created_ttf_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "trailer-technical"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_ttf_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
             ]
           }
         }
