@@ -5,26 +5,35 @@ import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { usePersonSearch } from '../../../xroad/hooks/usePersonSearch';
-import { FORM_TYPE } from '../../../../constants/constants';
+import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import { useGoodReputeForm } from './useGoodReputeForm';
 import { useGoodReputeFormDetail } from './useGoodReputeFormDetail';
-import { getGoodReputeFormSnapshot } from '../../api';
+import {
+  deleteGoodReputeForm,
+  getGoodReputeFormSnapshot,
+} from '../../api';
 import type { GoodReputeForm } from '../../types';
 import { GoodReputeFormFields } from '../../components/GoodRepute/GoodReputeFormFields';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
+import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
 
 export function GoodReputeFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { hasPermission } = useAuth();
   const { getByCode } = useClassifiers();
 
-  const countryOptions = getByCode('RTK').map((c) => ({ value: c.code, label: c.name }));
+  const countryOptions = getByCode('COUNTRY').map((c) => ({
+    value: c.code,
+    label: c.name,
+  }));
 
   const forbidden = !(
     hasPermission('good_repute_form.read') ||
@@ -63,12 +72,13 @@ export function GoodReputeFormPage() {
 
   const canEdit =
     hasPermission('good_repute_form.write') &&
-    form?.status !== 'deleted' &&
-    form?.status !== 'confirmed';
+    form?.status !== 'deleted';
   const canConfirm =
     hasPermission('good_repute_form.write') &&
     form?.status !== 'deleted' &&
     form?.status !== 'confirmed';
+  const canDelete =
+    hasPermission('control_form.delete') && form?.status !== 'deleted';
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');
@@ -86,13 +96,23 @@ export function GoodReputeFormPage() {
     refetch();
   };
 
+  const handleDelete = async () => {
+    if (!id || !form) return;
+    try {
+      await deleteGoodReputeForm(id, form.status ?? '');
+      navigate(`/`, { state: { justCreated: true } });
+    } catch (e) {
+      console.error('Delete failed', e);
+    }
+  };
+
   const { formik, triggerConfirm, formError } = useGoodReputeForm(
     form ?? undefined,
     handleEditSaved,
     handleConfirmed,
   );
 
-  const { searchByPersonalCode, loading: searchLoading, error: searchError, notFound: searchNotFound } =
+  const { searchByPersonalCode, loading: searchLoading, error: searchError, setError: setSearchError, notFound: searchNotFound, setNotFound: setSearchNotFound } =
     usePersonSearch({
       onPersonFound: (person) => {
         formik.setFieldValue('firstName', person.firstName);
@@ -124,18 +144,38 @@ export function GoodReputeFormPage() {
           </Heading>
         </div>
         <GoodReputeFormFields
-          formik={{
-            values: snapshot,
-            errors: {},
-            setFieldValue: () => Promise.resolve(),
-          } as never}
+          formik={
+            {
+              values: snapshot,
+              errors: {},
+              touched: {},
+              setFieldValue: () => Promise.resolve(),
+            } as never
+          }
           readOnly
           countryOptions={countryOptions}
           onSearchPerson={() => {}}
           searchLoading={false}
           searchError={false}
+          onSearchErrorClose={() => {}}
           searchNotFound={false}
+          onSearchNotFoundClose={() => {}}
+          isDesktop={isDesktop}
         />
+
+        <FileUploadBlock
+          formPath="good-repute"
+          formNumber={snapshot.formNumber}
+          disabled={true}
+        />
+
+        {id && (
+          <FormVersionsTable
+            formId={id}
+            formType={FORM_TYPE.GOOD_REPUTE}
+            refreshKey={versionsRefreshKey}
+          />
+        )}
       </div>
     );
   }
@@ -147,12 +187,24 @@ export function GoodReputeFormPage() {
   return (
     <div>
       {showSavedAlert && (
-        <Alert icon="check_circle" className="mb-1" onClose={() => setShowSavedAlert(false)} type="success" size="small">
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowSavedAlert(false)}
+          type="success"
+          size="small"
+        >
           {t('forms.savedNote')}
         </Alert>
       )}
       {showConfirmedAlert && (
-        <Alert icon="check_circle" className="mb-1" onClose={() => setShowConfirmedAlert(false)} type="success" size="small">
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowConfirmedAlert(false)}
+          type="success"
+          size="small"
+        >
           {t('forms.confirmedNote')}
         </Alert>
       )}
@@ -162,13 +214,19 @@ export function GoodReputeFormPage() {
         </Alert>
       )}
 
-      <Button visualType="link" onClick={() => navigate('/')} iconLeft="arrow_back">
+      <Button
+        visualType="link"
+        onClick={() => navigate('/')}
+        iconLeft="arrow_back"
+      >
         {t('common.back')}
       </Button>
 
       <div className="card-main">
         <Heading element="h1">
-          {form.formNumber ? `${form.formNumber}/${form.version ?? 1}` : t('forms.good_repute.title')}
+          {form.formNumber
+            ? `${form.formNumber}/${form.version ?? 1}`
+            : t('forms.good_repute.title')}
         </Heading>
       </div>
 
@@ -177,10 +235,15 @@ export function GoodReputeFormPage() {
           formik={formik as never}
           readOnly={!isEditActive}
           countryOptions={countryOptions}
-          onSearchPerson={() => searchByPersonalCode(formik.values.personalCode)}
+          onSearchPerson={() =>
+            searchByPersonalCode(formik.values.personalCode)
+          }
           searchLoading={searchLoading}
           searchError={searchError}
+          onSearchErrorClose={() => setSearchError(false)}
           searchNotFound={searchNotFound}
+          onSearchNotFoundClose={() => setSearchNotFound(false)}
+          isDesktop={isDesktop}
         />
 
         <FileUploadBlock
@@ -188,6 +251,14 @@ export function GoodReputeFormPage() {
           formNumber={form.formNumber}
           disabled={!isEditActive}
         />
+
+        {id && (
+          <FormVersionsTable
+            formId={id}
+            formType={FORM_TYPE.GOOD_REPUTE}
+            refreshKey={versionsRefreshKey}
+          />
+        )}
 
         <div className="page-actions">
           <div className="page-actions-buttons">
@@ -211,10 +282,14 @@ export function GoodReputeFormPage() {
                     {t('common.confirm')}
                   </AsyncButton>
                 )}
+                {canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
               </>
             ) : (
               canEdit && (
-                <AsyncButton type="button" onClick={() => setIsEditActive(true)}>
+                <AsyncButton
+                  type="button"
+                  onClick={() => setIsEditActive(true)}
+                >
                   {t('common.edit')}
                 </AsyncButton>
               )
@@ -222,14 +297,6 @@ export function GoodReputeFormPage() {
           </div>
         </div>
       </form>
-
-      {id && (
-        <FormVersionsTable
-          formId={id}
-          formType={FORM_TYPE.GOOD_REPUTE}
-          refreshKey={versionsRefreshKey}
-        />
-      )}
     </div>
   );
 }

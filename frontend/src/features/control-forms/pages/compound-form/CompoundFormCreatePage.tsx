@@ -36,6 +36,7 @@ import type {
 type TrailerTouched = (Partial<Record<keyof Trailer, boolean>> | undefined)[];
 type TrailerErrors = (Partial<Record<keyof Trailer, string>> | undefined)[];
 type DriverErrors = (Partial<Record<keyof Driver, string>> | undefined)[];
+type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
@@ -166,12 +167,21 @@ export function CompoundFormCreatePage() {
 
   const validateAllForms = async (): Promise<boolean> => {
     // Validate compound form (tab-1) - mark all fields as touched to show errors
-    const touched: Record<string, boolean> = {};
+    const touched: Record<string, unknown> = {};
     Object.keys(formik.values).forEach(key => {
-      touched[key] = true;
+      const val = formik.values[key as keyof typeof formik.values];
+      if (Array.isArray(val)) {
+        touched[key] = val.map((item) =>
+          item && typeof item === 'object'
+            ? Object.fromEntries(Object.keys(item).map((k) => [k, true]))
+            : true,
+        );
+      } else {
+        touched[key] = true;
+      }
     });
-    formik.setTouched(touched);
-    await formik.validateForm();
+    formik.setTouched(touched as never);
+    const compoundErrors = await formik.validateForm();
 
     // Validate all drive-rest forms against the shared schema using the
     // saved snapshot — this guarantees the same result regardless of
@@ -206,7 +216,7 @@ export function CompoundFormCreatePage() {
       return next;
     });
 
-    const compoundFormHasErrors = Object.keys(formik.errors).length > 0;
+    const compoundFormHasErrors = Object.keys(compoundErrors).length > 0;
     const anyTabHasErrors = Object.values(newTabErrors).some(hasError => hasError);
 
     return !compoundFormHasErrors && !anyTabHasErrors;
@@ -542,7 +552,10 @@ export function CompoundFormCreatePage() {
                                 val && !Array.isArray(val)
                                   ? (val as { value: string }).value
                                   : '';
-                              formik.setFieldValue('controlCountryCode', newCode);
+                              formik.setFieldValue(
+                                'controlCountryCode',
+                                newCode,
+                              );
                               if (newCode !== 'EE') {
                                 formik.setFieldValue('county', '');
                                 formik.setFieldValue('city', '');
@@ -619,7 +632,10 @@ export function CompoundFormCreatePage() {
                                   : '';
                               formik.setFieldValue('city', v);
                             }}
-                            disabled={!formik.values.county || formik.values.controlCountryCode !== 'EE'}
+                            disabled={
+                              !formik.values.county ||
+                              formik.values.controlCountryCode !== 'EE'
+                            }
                           />
                         </div>
                         <Text id="road_type">
@@ -1664,7 +1680,9 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.errors.drivers as DriverErrors)?.[0]
+                          {...((formik.touched.drivers as DriverTouched)?.[0]
+                            ?.firstName &&
+                          (formik.errors.drivers as DriverErrors)?.[0]
                             ?.firstName
                             ? {
                                 helper: {
@@ -1687,8 +1705,9 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.errors.drivers as DriverErrors)?.[0]
-                            ?.lastName
+                          {...((formik.touched.drivers as DriverTouched)?.[0]
+                            ?.lastName &&
+                          (formik.errors.drivers as DriverErrors)?.[0]?.lastName
                             ? {
                                 helper: {
                                   text: (
@@ -1712,7 +1731,9 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.errors.drivers as DriverErrors)?.[0]
+                          {...((formik.touched.drivers as DriverTouched)?.[0]
+                            ?.personalCodeForeign &&
+                          (formik.errors.drivers as DriverErrors)?.[0]
                             ?.personalCodeForeign
                             ? {
                                 helper: {
@@ -1794,6 +1815,8 @@ export function CompoundFormCreatePage() {
                             placeholder={t('common.dateFieldPlaceholder')}
                             required
                             inputProps={
+                              (formik.touched.drivers as DriverTouched)?.[0]
+                                ?.birthDate &&
                               (formik.errors.drivers as DriverErrors)?.[0]
                                 ?.birthDate
                                 ? {
@@ -1953,17 +1976,21 @@ export function CompoundFormCreatePage() {
                               }}
                               placeholder={t('common.dateFieldPlaceholder')}
                               required
-                              {...((formik.touched.drivers as DriverTouched)?.[1]
-                                ?.birthDate &&
-                              (formik.errors.drivers as DriverErrors)?.[1]?.birthDate
-                                ? {
-                                    helper: {
-                                      text: (formik.errors.drivers as DriverErrors)[1]
-                                        .birthDate,
-                                      type: 'error' as const,
-                                    },
-                                  }
-                                : {})}
+                              inputProps={
+                                (formik.touched.drivers as DriverTouched)?.[1]
+                                  ?.birthDate &&
+                                (formik.errors.drivers as DriverErrors)?.[1]
+                                  ?.birthDate
+                                  ? {
+                                      helper: {
+                                        text: (
+                                          formik.errors.drivers as DriverErrors
+                                        )?.[1]?.birthDate,
+                                        type: 'error' as const,
+                                      },
+                                    }
+                                  : undefined
+                              }
                             />
                           </div>
                         </div>
@@ -2134,10 +2161,12 @@ export function CompoundFormCreatePage() {
                   compoundFormKey={undefined}
                   initialValidate={validatedTabs.has(tabId)}
                   onValuesChange={(values) => {
-                    savedFormData.current[tabId] = values as Partial<DriveRestForm>;
+                    savedFormData.current[tabId] =
+                      values as Partial<DriveRestForm>;
                   }}
                   ref={(ref) => {
-                    formRefs.current[tabId].current = ref as TechnicalCheckFormCreatePageRef;
+                    formRefs.current[tabId].current =
+                      ref as TechnicalCheckFormCreatePageRef;
                   }}
                   onSaved={(id) => {
                     if (id) {
@@ -2218,7 +2247,9 @@ export function CompoundFormCreatePage() {
                   if (tabDef) {
                     if (isTechnicalCheck) {
                       const variant = tabDef.type as TechnicalCheckVariant;
-                      const raw = savedFormData.current[tabId] as Partial<TechnicalCheckForm>;
+                      const raw = savedFormData.current[
+                        tabId
+                      ] as Partial<TechnicalCheckForm>;
                       const values = {
                         ...raw,
                         compoundFormKey: id,
@@ -2234,7 +2265,9 @@ export function CompoundFormCreatePage() {
                         savedDriveRestFormsRef.current = new Set(
                           savedDriveRestFormsRef.current,
                         ).add(tabId);
-                        savedSubFormIdsRef.current[tabId] = String((result[0] as { id?: string }).id);
+                        savedSubFormIdsRef.current[tabId] = String(
+                          (result[0] as { id?: string }).id,
+                        );
                       }
                     } else {
                       const tabType = tabDef.type as 'driver' | 'teammate';
@@ -2254,7 +2287,9 @@ export function CompoundFormCreatePage() {
                         savedDriveRestFormsRef.current = new Set(
                           savedDriveRestFormsRef.current,
                         ).add(tabId);
-                        savedSubFormIdsRef.current[tabId] = String(result[0].id);
+                        savedSubFormIdsRef.current[tabId] = String(
+                          result[0].id,
+                        );
                       }
                     }
                   }

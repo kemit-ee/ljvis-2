@@ -500,6 +500,8 @@ export function LabourInspectionFormFields({
                                   type="button"
                                   color="danger"
                                   icon="delete"
+                                  visualType="neutral"
+                                  size="small"
                                   onClick={() => removeViolation(idx)}
                                 >
                                   {t('common.remove')}

@@ -91,7 +91,7 @@ export function FileUploadBlock({
   };
 
   return (
-    <div>
+    <div className="mb-1">
       <FileUpload
         name={`${formPath}-files`}
         label={t('forms.shared.files.label')}
