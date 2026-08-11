@@ -27,5 +27,5 @@ declaration:
 INSERT INTO xroad.xroad_integration_log
     (service_code, request_xml, response_xml, duration_ms, success, error_message)
 VALUES
-    (:service_code, :request_xml, :response_xml, :duration_ms, :success, :error_message)
+    (:service_code, :request_xml, :response_xml, :duration_ms::INTEGER, :success, :error_message)
 RETURNING id;
