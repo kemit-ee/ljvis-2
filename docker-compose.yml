@@ -78,15 +78,14 @@ services:
     build:
       context: .
       dockerfile: docker/data-mapper/Dockerfile
-    platform: linux/amd64
-    environment:
-      - PORT=3005
-      - CONTENT_FOLDER=/data
-    volumes:
-      - ./DSL:/data
-      - ./DSL/DMapper/ljvis/hbs:/workspace/app/views/ljvis
     ports:
       - 3005:3005
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3005/healthz > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 15s
     networks:
       - ljvisnetwork
 
