@@ -23,3 +23,11 @@ ALTER TABLE forms.kv_form ADD CONSTRAINT chk_kv_status
 ALTER TABLE forms.adr_form DROP CONSTRAINT IF EXISTS chk_adr_status;
 ALTER TABLE forms.adr_form ADD CONSTRAINT chk_adr_status
   CHECK (status IN ('saved', 'confirmed', 'published', 'deleted'));
+
+-- good_repute_form
+ALTER TABLE forms.labour_inspection_form
+DROP CONSTRAINT chk_lif_status;
+
+ALTER TABLE forms.labour_inspection_form
+    ADD CONSTRAINT chk_lif_status CHECK (status IN ('saved', 'confirmed', 'published', 'deleted'));
+
