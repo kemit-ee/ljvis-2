@@ -377,6 +377,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       setOpenTabs((prev) => prev.filter((t) => t !== tid));
       subForm.setForm(null);
       subForm.setEditActive(false);
+      subForm.resetDraft();
       setActiveTab(tabId);
       return;
     }

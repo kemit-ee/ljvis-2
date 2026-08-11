@@ -11,6 +11,8 @@ export interface SubFormHandle<T, Ref = unknown> {
   draft: T | null;
   setDraft: (v: T | null) => void;
   draftRef: React.MutableRefObject<T | null>;
+  resetDraft: () => void;
+  setDraftValue: (v: T) => void;
   editCardRef: React.MutableRefObject<Ref | null>;
 }
 
@@ -40,5 +42,8 @@ export function useSubForm<T extends { status?: string }, Ref = unknown>(
     }
   }, [form?.status]);
 
-  return { form, setForm, loaded, setLoaded, editActive, setEditActive, draft, setDraft, draftRef, editCardRef };
+  const resetDraft = () => { draftRef.current = null; setDraft(null); };
+  const setDraftValue = (v: T) => { draftRef.current = v; setDraft(v); };
+
+  return { form, setForm, loaded, setLoaded, editActive, setEditActive, draft, setDraft, draftRef, resetDraft, setDraftValue, editCardRef };
 }

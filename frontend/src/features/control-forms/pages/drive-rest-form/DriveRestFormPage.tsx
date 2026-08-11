@@ -375,6 +375,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       setOpenTabs((prev) => prev.filter((t) => t !== tabId));
       subForm.setForm(null);
       subForm.setEditActive(false);
+      subForm.resetDraft();
       setActiveTab('tab-compound');
       return;
     }
