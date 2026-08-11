@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20260806100000-rollback ignore:true
+-- changeset ljvis:20260806110000-rollback ignore:true
 -- Rollback: restore original status CHECK constraints without 'deleted'.
 
 ALTER TABLE forms.vehicle_technical_form DROP CONSTRAINT IF EXISTS chk_vtf_status;
