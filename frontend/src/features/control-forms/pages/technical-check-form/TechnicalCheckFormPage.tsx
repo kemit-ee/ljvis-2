@@ -7,13 +7,10 @@ import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm } from '.
 import {
   getTechnicalCheckForm,
   getTechnicalCheckFormSnapshot,
-  deleteCompoundForm,
   listTechnicalCheckFormsByCompoundFormKey,
   getDriveRestFormByCompoundFormKey,
   saveDriveRestForm,
   saveTechnicalCheckForm,
-  deleteTechnicalCheckForm,
-  deleteDriveRestForm,
 } from '../../api';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
@@ -33,7 +30,7 @@ import { SubFormTab } from '../../components/SubFormTab/SubFormTab';
 import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '../drive-rest-form/useDriveRestForm';
 import { createTechnicalCheckValidationSchema } from './useTechnicalCheckForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
-import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab } from '../../hooks/useSubFormEditActive';
+import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab } from '../../hooks/useSubFormEditActive';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
@@ -78,7 +75,6 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const [openTabs, setOpenTabs] = useState<string[]>([tabId]);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
-  const [removeConfirmTab, setRemoveConfirmTab] = useState<'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | null>(null);
 
   const hasTabErrors = (tid: string) => validatedTabs.has(tid) && (tabErrors[tid] ?? false);
 
@@ -340,7 +336,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
   const addFormDropdown =
-    canEditSubForms() && addableTabs.length > 0 && anyEditActive ? (
+    canEdit && addableTabs.length > 0 && anyEditActive ? (
       <Dropdown width="max-content">
         <Dropdown.Trigger>
           <Button iconRight="keyboard_arrow_down" visualType="secondary" disabled={addableTabs.length === 0}>
@@ -365,109 +361,18 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       (teammate.form != null && teammate.form.status !== 'deleted') ||
       (compoundForm != null && compoundForm.status !== 'deleted'));
 
-  const handleDelete = async () => {
-    if (driver.form?.id && driver.form?.subFormNumber) {
-      await deleteDriveRestForm(
-        'driver',
-        String(driver.form.id),
-        driver.form.subFormNumber,
-        driver.form.status ?? '',
-      );
-    }
-    if (teammate.form?.id && teammate.form?.subFormNumber) {
-      await deleteDriveRestForm(
-        'teammate',
-        String(teammate.form.id),
-        teammate.form.subFormNumber,
-        teammate.form.status ?? '',
-      );
-    }
-    if (vehicle.form?.id && vehicle.form?.subFormNumber) {
-      await deleteTechnicalCheckForm(
-        'vehicle',
-        String(vehicle.form.id),
-        vehicle.form.subFormNumber,
-        vehicle.form.status ?? '',
-      );
-    }
-    if (trailer.form?.id && trailer.form?.subFormNumber) {
-      await deleteTechnicalCheckForm(
-        'trailer',
-        String(trailer.form.id),
-        trailer.form.subFormNumber,
-        trailer.form.status ?? '',
-      );
-    }
-    if (compoundForm?.id && compoundForm.formNumber) {
-      await deleteCompoundForm(
-        String(compoundForm.id),
-        compoundForm.formNumber,
-        compoundForm.status ?? '',
-      ).catch(console.error);
-    }
-    navigate('/');
-  };
+  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, compoundForm });
 
-  const handleRemove = (tid: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check') => {
-    const subForm = tid === 'tab-driver' ? driver : tid === 'tab-teammate' ? teammate : tid === 'tab-vehicle-technical-check' ? vehicle : trailer;
-    if (!subForm.form || subForm.form.status === undefined) {
-      setOpenTabs((prev) => prev.filter((t) => t !== tid));
-      subForm.setForm(null);
-      subForm.setEditActive(false);
-      subForm.resetDraft();
-      setActiveTab(tabId);
-      return;
-    }
-    setRemoveConfirmTab(tid);
-  };
-
-  const handleRemoveConfirmed = async () => {
-    if (!removeConfirmTab) return;
-    const tab = removeConfirmTab;
-    setRemoveConfirmTab(null);
-    if (tab === 'tab-driver' || tab === 'tab-teammate') {
-      const scope = tab === 'tab-driver' ? 'driver' : 'teammate';
-      const subForm = tab === 'tab-driver' ? driver : teammate;
-      if (subForm.form?.id && subForm.form?.subFormNumber) {
-        try {
-          await deleteDriveRestForm(scope, String(subForm.form.id), subForm.form.subFormNumber, subForm.form.status ?? '');
-        } catch (e) {
-          console.error('Delete sub-form failed', e);
-          return;
-        }
-      }
-      subForm.setForm(null);
-      subForm.setEditActive(false);
-    } else {
-      const scope = tab === 'tab-vehicle-technical-check' ? 'vehicle' : 'trailer';
-      const subForm = tab === 'tab-vehicle-technical-check' ? vehicle : trailer;
-      if (subForm.form?.id && subForm.form?.subFormNumber) {
-        try {
-          await deleteTechnicalCheckForm(scope, String(subForm.form.id), subForm.form.subFormNumber, subForm.form.status ?? '');
-        } catch (e) {
-          console.error('Delete sub-form failed', e);
-          return;
-        }
-      }
-      subForm.setForm(null);
-      subForm.setEditActive(false);
-    }
-    const driverForm = tab === 'tab-driver' ? null : driver.form;
-    const teammateForm = tab === 'tab-teammate' ? null : teammate.form;
-    const vehicleForm =
-      tab === 'tab-vehicle-technical-check' ? null : vehicle.form;
-    const trailerForm =
-      tab === 'tab-trailer-technical-check' ? null : trailer.form;
-    checkAndAutoConfirmCompound(
-      driverForm,
-      teammateForm,
-      vehicleForm,
-      trailerForm,
-    );
-    setOpenTabs((prev) => prev.filter((t) => t !== tab));
-    setActiveTab('tab-compound');
-    navigate(`/control-forms/compound/${compoundFormKey}`);
-  };
+  const { removeConfirmTab, setRemoveConfirmTab, handleRemove, handleRemoveConfirmed } = useRemoveSubFormTab({
+    driver,
+    teammate,
+    vehicle,
+    trailer,
+    setOpenTabs,
+    setActiveTab,
+    checkAndAutoConfirm: checkAndAutoConfirmCompound,
+    navigateAfterRemove: () => navigate(`/control-forms/compound/${compoundFormKey}`),
+  });
 
   const sharedCompoundProps = {
     isDesktop,
