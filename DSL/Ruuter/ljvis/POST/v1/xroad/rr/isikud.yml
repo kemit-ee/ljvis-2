@@ -1,0 +1,164 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Query Rahvastikuregister (RR) for person data by isikukood.
+    RR's dde/v1/isikud service is REST-native X-Road (not SOAP), so it is called
+    directly by Ruuter via this LJVIS subsystem's own local X-Road Security Server
+    using the X-Road Message Protocol for REST — it does NOT go through the XTR
+    component, which only wraps legacy XRoad SOAP services (see
+    https://github.com/buerokratt/XTR and docs.x-road.global REST protocol).
+    Service identifier: ee-test/GOV/70008440/rr/dde/v1/isikud.
+    Returns firstName/lastName/citizenship/dateOfBirth/personStatus, or null data
+    if no match. See LJVIS2-54.
+  method: post
+  accepts: json
+  returns: json
+  namespace: xroad
+  allowlist:
+    body:
+      - field: personalCode
+        type: string
+
+validateInput:
+  switch:
+    - condition: "${incoming.body.personalCode == null || !(/^[1-6][0-9]{10}$/.test(incoming.body.personalCode.trim()))}"
+      next: returnInvalidPersonalCode
+  next: get_user_context
+
+# X-Road-UserId (the official who initiated the query) is a mandatory header on
+# every RR REST call, so we need the authenticated LJVIS user's personal code.
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: assignParams
+
+assignParams:
+  assign:
+    personal_code: "${incoming.body.personalCode.trim()}"
+    x_road_user_id: "${'EE' + (auth_user.personalcode || '')}"
+    start_time: "${new Date().getTime()}"
+  next: callRr
+
+# X-Road Message Protocol for REST (docs.x-road.global): the consumer calls its
+# own local Security Server at /r1/<instance>/<class>/<member>/<subsystem>/<service...>
+# and identifies itself via the mandatory X-Road-Client header — there is no API
+# key/bearer token in X-Road, auth is handled by the Security Server (mutual TLS
+# between security servers + access-rights granted to our subsystem by RR).
+callRr:
+  call: http.post
+  args:
+    url: "[#XROAD_SECURITY_SERVER]/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/dde/v1/isikud"
+    headers:
+      type: json
+      X-Road-Client: "[#XROAD_INSTANCE]/GOV/70006317/ljvis"
+      X-Road-UserId: ${x_road_user_id}
+      RR-Request-Reason: "avalik"
+    body:
+      isikukoodid:
+        - ${personal_code}
+      andmevaljad:
+        isikuandmed:
+          - Isikukood
+          - Eesnimi
+          - Perekonnanimi
+          - PohiKodakondsus
+          - SynniKuupaev
+          - IsikuStaatus
+  result: rrResponse
+  next: checkRrStatus
+
+checkRrStatus:
+  switch:
+    - condition: "${rrResponse.response.status < 200 || rrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "rr.dde.v1"
+      request_xml: "${'personalCode=' + personal_code}"
+      response_xml: "${JSON.stringify(rrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: logResult
+  next: mapResponse
+
+# RR returns a JSON array of Isikuandmed (max 20, one per requested isikukood);
+# an empty array means "not found" — that is a valid, non-error result (HTTP 200).
+mapResponse:
+  assign:
+    person: "${(rrResponse.response.body && rrResponse.response.body.length > 0) ? rrResponse.response.body[0] : null}"
+  next: checkPersonFound
+
+checkPersonFound:
+  switch:
+    - condition: "${person == null}"
+      next: returnEmptyResult
+  next: buildFoundResult
+
+# eesnimi/perekonnanimi are plain strings; pohiKodakondsus/isikuStaatus are
+# RR "Kodifikaator" objects ({kood, elemendiKood, nimetus}) — elemendiKood is the
+# lowest-level classifier element code (e.g. country ISO numeric-3, status letter),
+# nimetus is the Estonian display name. synniKuupaev arrives as yyyy-MM-dd and is
+# reformatted to pp.kk.aaaa per the task spec.
+buildFoundResult:
+  assign:
+    person_result: >-
+      ${JSON.stringify({
+        data: {
+          personalCode: person.isikukood || personal_code,
+          firstName: person.eesnimi || '',
+          lastName: person.perekonnanimi || '',
+          citizenshipCode: (person.pohiKodakondsus && person.pohiKodakondsus.riik && person.pohiKodakondsus.riik.elemendiKood) || '',
+          citizenshipName: (person.pohiKodakondsus && person.pohiKodakondsus.riik && person.pohiKodakondsus.riik.nimetus) || '',
+          dateOfBirth: person.synniKuupaev ? person.synniKuupaev.split('-').reverse().join('.') : '',
+          personStatus: (person.isikuStaatus && person.isikuStaatus.elemendiKood) || ''
+        }
+      })}
+  next: returnFoundResult
+
+returnFoundResult:
+  status: 200
+  return: ${person_result}
+  next: end
+
+returnEmptyResult:
+  return: '{"data": null}'
+  status: 200
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "rr.dde.v1"
+      request_xml: "${'personalCode=' + personal_code}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'RR HTTP ' + rrResponse.response.status}"
+  result: logResult
+  next: returnRrError
+
+returnRrError:
+  status: 502
+  return: '{"error": "RR_ERROR", "message": "Rahvastikuregistri päring ebaõnnestus"}'
+  next: end
+
+returnInvalidPersonalCode:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "personalCode is required and must be a valid Estonian isikukood (11 digits, starting with 1-6)"}'
+  next: end

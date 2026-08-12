@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Check if a personal code is already in use"
   method: post
   accepts: json
@@ -11,9 +11,6 @@ declaration:
       - field: personalCode
         type: string
         description: "Personal code to check"
-      - field: id
-        type: string
-        description: "Optional: UUID of the user being updated (excluded from check)"
 
 extractRequestData:
   assign:

@@ -1,0 +1,26 @@
+server:
+  bind: "0.0.0.0:8090"
+  max_body_bytes: 1048576
+  request_timeout_seconds: 30
+
+sql_dir: "/DSL"
+
+project_datasource_map:
+  ljvis: ljvis
+
+allow_datasource_header: true
+
+datasources:
+  - name: ljvis
+    url: "postgres://database:5432/ljvis_db"
+    username: "ljvis"
+    password_env: "RESQL_DB_PASSWORD"
+    max_connections: 10
+    acquire_timeout_seconds: 5
+
+cors:
+  allowed_origins: "*"
+
+logging:
+  level: "info,resql=debug"
+  format: "text"

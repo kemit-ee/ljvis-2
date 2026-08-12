@@ -543,6 +543,7 @@ export function UserGroupDetailPage() {
           </div>
           <Table
             id="users-table"
+            className="ljvis-table"
             data={users}
             columns={userColumns}
             isLoading={isLoading}

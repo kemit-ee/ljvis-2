@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Insert drive rest form for driver"
   method: post
   accepts: json
@@ -68,8 +68,6 @@ declaration:
         type: string
       - field: erruPoints
         type: string
-      - field: files
-        type: string
       - field: enforcementDecision
         type: string
       - field: proceedingClosureBasis
@@ -78,8 +76,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -117,11 +115,10 @@ extractRequestData:
     atp_violation_found: "${incoming.body.atpViolationFound}"
     atp_violation_description: "${incoming.body.atpViolationDescription}"
     erru_points: "${incoming.body.erruPoints}"
-    files: "${incoming.body.files}"
     enforcement_decision: "${incoming.body.enforcementDecision}"
     proceeding_closure_basis: "${incoming.body.proceedingClosureBasis}"
     notes: "${incoming.body.notes}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
   next: insertForm
@@ -163,7 +160,6 @@ insertForm:
       atpViolationFound: ${atp_violation_found}
       atpViolationDescription: ${atp_violation_description}
       erruPoints: ${erru_points}
-      files: ${files}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
       notes: ${notes}
@@ -198,8 +194,8 @@ extractDriverCodes:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/sp-driver-form/log-sp-driver-create-update"
-  requestType: templates
+  template: "templates/audit/form/sp-driver-form/log-sp-driver-create-update"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

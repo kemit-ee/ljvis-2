@@ -1,0 +1,641 @@
+{
+  "info": {
+    "name": "LJVIS — Form Search (LJVIS2-9)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Cross-entity form search (LJVIS2-9). Endpoint returns the raw result array (each row carries a total window-count). Verifies 403 without form read permission, unfiltered search, formType/companyName/date-range filters, pagination, sorting, and that deleted forms are hidden."
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create labour-inspection act (searchable form)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('fs_company_name', 'CI Search ' + Date.now());",
+              "pm.environment.set('fs_inspection_date', '2024-03-14');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var d = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof d === 'string') { try { d = JSON.parse(d); } catch (e) {} }",
+              "var row = Array.isArray(d) ? d[0] : d;",
+              "pm.environment.set('fs_lif_id', String(row.id));",
+              "pm.environment.set('fs_lif_form_number', String(row.formNumber));",
+              "pm.test('Created act has id + formNumber', () => {",
+              "  pm.expect(row.id).to.not.be.undefined;",
+              "  pm.expect(row.formNumber).to.be.a('string').and.not.empty;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\":\"CI Search Inspector\",\"inspectionDate\":\"{{fs_inspection_date}}\",\"inspectionType\":\"cargo\",\"companyName\":\"{{fs_company_name}}\",\"companyRegCode\":\"19283746\",\"vehicleCount\":\"2\",\"totalDriversCount\":\"3\",\"controlsMatrix\":\"[]\",\"violations\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"\",\"punishedPersonFirstName\":\"\",\"punishedPersonLastName\":\"\",\"proceedingReferenceNumber\":\"\",\"id\":null}"
+        }
+      }
+    },
+    {
+      "name": "GET search/list — no form read permission → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Forbidden 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — admin, no filters → 200, non-empty",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
+              "pm.test('Non-empty result + total>0', () => {",
+              "  pm.expect(rows).to.be.an('array').and.not.empty;",
+              "  pm.expect(total).to.be.above(0);",
+              "});",
+              "pm.test('Rows expose formType/formNumber/status', () => {",
+              "  var r = rows[0];",
+              "  pm.expect(r).to.have.property('formType');",
+              "  pm.expect(r).to.have.property('formNumber');",
+              "  pm.expect(r).to.have.property('status');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — formType=labour_inspection → only labour rows",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?formType=labour_inspection",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "formType",
+              "value": "labour_inspection"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
+              "pm.test('All rows are labour_inspection', () => {",
+              "  rows.forEach(r => pm.expect(r.formType).to.eql('labour_inspection'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — companyName filter finds created act",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?companyName={{fs_company_name}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "companyName",
+              "value": "{{fs_company_name}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
+              "pm.test('Finds our created act by key', () => {",
+              "  var keys = rows.map(r => String(r.formKey));",
+              "  pm.expect(keys).to.include(pm.environment.get('fs_lif_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — date range covering control date includes act",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?companyName={{fs_company_name}}&dateFrom=2024-03-14&dateTo=2024-03-14",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "companyName",
+              "value": "{{fs_company_name}}"
+            },
+            {
+              "key": "dateFrom",
+              "value": "2024-03-14"
+            },
+            {
+              "key": "dateTo",
+              "value": "2024-03-14"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
+              "pm.test('Act present in inclusive range', () => {",
+              "  var keys = rows.map(r => String(r.formKey));",
+              "  pm.expect(keys).to.include(pm.environment.get('fs_lif_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — date range excluding control date hides act",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?companyName={{fs_company_name}}&dateFrom=2025-01-01",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "companyName",
+              "value": "{{fs_company_name}}"
+            },
+            {
+              "key": "dateFrom",
+              "value": "2025-01-01"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
+              "pm.test('Act absent from non-matching range', () => {",
+              "  var keys = rows.map(r => String(r.formKey));",
+              "  pm.expect(keys).to.not.include(pm.environment.get('fs_lif_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — pageSize=1 → at most 1 row, total unchanged",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?pageSize=1",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "pageSize",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
+              "pm.test('At most 1 row, total reflects full set', () => {",
+              "  pm.expect(rows.length).to.be.at.most(1);",
+              "  pm.expect(total).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — sorting=main_date asc → 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?sorting=main_date asc",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "sorting",
+              "value": "main_date asc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
+              "pm.test('Result is an array', () => pm.expect(rows).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete labour-inspection act → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{fs_lif_id}}\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — deleted act hidden from results",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?companyName={{fs_company_name}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "companyName",
+              "value": "{{fs_company_name}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
+              "pm.test('Deleted act no longer in results', () => {",
+              "  var keys = rows.map(r => String(r.formKey));",
+              "  pm.expect(keys).to.not.include(pm.environment.get('fs_lif_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import { post } from '../../shared/api/client';
-import type { XRoadCompany, XRoadAssociatedPerson } from './types';
+import type { XRoadCompany, XRoadAssociatedPerson, XRoadPerson } from './types';
 
 interface LihtandmedCompanyRaw {
   ariregistri_kood: string;
@@ -104,6 +104,19 @@ export const searchCompanyByName = async (
     ? keha.ettevotjad.item
     : [keha.ettevotjad.item];
   return items.map(mapCompany);
+};
+
+interface RrIsikudRawResponse {
+  data: XRoadPerson | null;
+}
+
+export const searchPersonByCode = async (
+  personalCode: string,
+): Promise<XRoadPerson | null> => {
+  const raw = await post<RrIsikudRawResponse>('/v1/xroad/rr/isikud', {
+    personalCode,
+  });
+  return raw?.data ?? null;
 };
 
 export const getAssociatedPersons = async (

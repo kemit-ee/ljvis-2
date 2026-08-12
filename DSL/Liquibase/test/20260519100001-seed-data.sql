@@ -50,9 +50,23 @@ INSERT INTO users.permission (code, description, created_by) VALUES ('sp_teammat
 INSERT INTO users.permission (code, description, created_by) VALUES ('sp_teammate_form.read',    'Meeskonnaliikme sõidu- ja puhkeaja alamvormi andmete lugemine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('labour_inspection_form.write',   'Tööinspektsiooni kontrollakti loomine, täitmine, salvestamine ja kinnitamine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('labour_inspection_form.read',    'Tööinspektsiooni kontrollakti andmete lugemine', 'ljvis2');
+<<<<<<< HEAD
 INSERT INTO users.permission (code, description, created_by) VALUES ('ctud.read',                      'ERRU tegevusloa kontrolli (CTUD) päringu ja selle vastuse vaatamine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('ctud.create',                    'ERRU tegevusloa kontrolli (CTUD) väljamineva päringu koostamine ja mustandi salvestamine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('ctud.send',                      'ERRU tegevusloa kontrolli (CTUD) päringu saatmine ERRU-sse', 'ljvis2');
+=======
+INSERT INTO users.permission (code, description, created_by) VALUES ('vehicle_technical_form.write',   'Mootorsõiduki tehnonõuetele vastavuse alamvormi täitmine ja salvestamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('vehicle_technical_form.read',    'Mootorsõiduki tehnonõuetele vastavuse alamvormi andmete lugemine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('trailer_technical_form.write',   'Haagise tehnonõuetele vastavuse alamvormi täitmine ja salvestamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('trailer_technical_form.read',    'Haagise tehnonõuetele vastavuse alamvormi andmete lugemine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('adr_form.write',   'ADR (ohtlik veos) alamvormi täitmine ja salvestamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('adr_form.read',    'ADR (ohtlik veos) alamvormi andmete lugemine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('transport_interruption_form.write',   'Autoveo katkestamise alamvormi täitmine ja salvestamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('transport_interruption_form.read',    'Autoveo katkestamise alamvormi andmete lugemine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('good_repute_form.write',   'Hea maine vormi täitmine, salvestamine ja failide üleslaadimine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('good_repute_form.read',    'Hea maine vormi andmete lugemine ja failide allalaadimine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('xtee.query.rahvastikuregister',    'Rahvastikuregistri päring isiku andmete leidmiseks isikukoodi alusel', 'ljvis2');
+>>>>>>> origin/dev
 
 -- user_groups — single full snapshot per group (v2: organisations + permissions embedded as JSONB)
 -- user_group_key = 1: Super Admin Group
@@ -61,7 +75,11 @@ VALUES (
     nextval('users.seq_user_group_key'),
     'Super Admin Group',
     ARRAY[1, 2, 3]::BIGINT[],
+<<<<<<< HEAD
     ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.read','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','ctud.read','ctud.create','ctud.send']::TEXT[],
+=======
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.read','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','compound_form.read','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','adr_form.write','adr_form.read','transport_interruption_form.write','transport_interruption_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister']::TEXT[],
+>>>>>>> origin/dev
     'ljvis2'
 );
 

@@ -34,5 +34,5 @@ export interface ClassifierEntry {
   description?: string;
   validFrom?: string;
   validUntil?: string | null;
-  isValid: boolean;
+  isValid?: boolean;
 }

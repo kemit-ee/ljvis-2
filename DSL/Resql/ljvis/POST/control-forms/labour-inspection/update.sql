@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row. version is always computed server-side as latest version + 1 (never trusts client input); uq_lif_form_number_version guards against any duplicate."
+  description: "Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row. version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed) data."
   method: post
   accepts: json
   returns: json
@@ -52,11 +52,12 @@ declaration:
         type: number
 */
 -- `latest` reads form_number and current version from the most recent
--- snapshot of this act, then increments by 1. uq_lif_form_number_version
--- (partial unique index WHERE status <> 'deleted') catches any duplicate
--- if a concurrent double-save somehow slips through.
+-- snapshot of this act. version only increments when the snapshot being
+-- re-saved is already locked (status <> 'saved') — see edit/save.yml's
+-- edit_locked gate for confirmed data.
 WITH latest AS (
-  SELECT form_number, version + 1 AS version
+  SELECT form_number,
+         CASE WHEN status = 'saved' THEN version ELSE version + 1 END AS version
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :key::BIGINT
   ORDER BY created_at DESC

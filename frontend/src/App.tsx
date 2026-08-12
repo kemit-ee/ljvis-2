@@ -18,6 +18,7 @@ import { ClassifierValueEditPage } from './features/classifiers/pages/Classifier
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
 import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDetailPage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
+import { AuthCallback } from './features/auth/AuthCallback';
 import { ForeignViolationFormCreatePage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormCreatePage';
 import { ForeignViolationFormPage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormPage';
 import { CompoundFormCreatePage } from './features/control-forms/pages/compound-form/CompoundFormCreatePage';
@@ -27,6 +28,13 @@ import { LabourInspectionFormPage } from './features/control-forms/pages/labour-
 import { CtudListPage } from './features/erru/pages/ctud/CtudListPage';
 import { CtudFormCreatePage } from './features/erru/pages/ctud/CtudFormCreatePage';
 import { CtudFormPage } from './features/erru/pages/ctud/CtudFormPage';
+import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
+import { TransportInterruptionFormPage } from './features/control-forms/pages/transport-interruption-form/TransportInterruptionFormPage';
+import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage';
+import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-repute-form/GoodReputeFormCreatePage';
+import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
+import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
+import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -35,6 +43,11 @@ function AppRoutes() {
 
   if (loading) {
     return <div>Loading...</div>;
+  }
+
+  // Handle OAuth callback before auth check — user is not yet authenticated
+  if (window.location.pathname === '/auth/callback') {
+    return <AuthCallback />;
   }
 
   if (!user) {
@@ -46,6 +59,7 @@ function AppRoutes() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DesktopPage />} />
+          <Route path="/search" element={<FormSearchPage />} />
           <Route path="/users" element={<UserListPage />} />
           <Route path="/users/new" element={<UserCreatePage />} />
           <Route path="/users/:id" element={<UserDetailPage />} />
@@ -93,6 +107,22 @@ function AppRoutes() {
             element={<CompoundFormPage />}
           />
           <Route
+            path="/control-forms/sp-driver/:id"
+            element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
+            path="/control-forms/sp-driver/:id/:snapshotId"
+            element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
+            path="/control-forms/sp-teammate/:id"
+            element={<DriveRestFormPage entryType="teammate" />}
+          />
+          <Route
+            path="/control-forms/sp-teammate/:id/:snapshotId"
+            element={<DriveRestFormPage entryType="teammate" />}
+          />
+          <Route
             path="/control-forms/labour-inspection/new"
             element={<LabourInspectionFormCreatePage />}
           />
@@ -108,6 +138,63 @@ function AppRoutes() {
           <Route path="/erru/ctud" element={<CtudListPage />} />
           <Route path="/erru/ctud/new" element={<CtudFormCreatePage />} />
           <Route path="/erru/ctud/:id" element={<CtudFormPage />} />
+          <Route
+            path="/control-forms/vehicle-technical/new/:compoundFormKey"
+            element={<TechnicalCheckFormPage variant="vehicle" />}
+          />
+          <Route
+            path="/control-forms/vehicle-technical/:id"
+            element={<TechnicalCheckFormPage variant="vehicle" />}
+          />
+          <Route
+            path="/control-forms/vehicle-technical/:id/:snapshotId"
+            element={<TechnicalCheckFormPage variant="vehicle" />}
+          />
+          <Route
+            path="/control-forms/trailer-technical/new/:compoundFormKey"
+            element={<TechnicalCheckFormPage variant="trailer" />}
+          />
+          <Route
+            path="/control-forms/trailer-technical/:id"
+            element={<TechnicalCheckFormPage variant="trailer" />}
+          />
+          <Route
+            path="/control-forms/trailer-technical/:id/:snapshotId"
+            element={<TechnicalCheckFormPage variant="trailer" />}
+          />
+          <Route
+            path="/control-forms/transport-interruption/new/:compoundFormKey"
+            element={<TransportInterruptionFormPage />}
+          />
+          <Route
+            path="/control-forms/transport-interruption/:id"
+            element={<TransportInterruptionFormPage />}
+          />
+          <Route
+            path="/control-forms/transport-interruption/:id/:snapshotId"
+            element={<TransportInterruptionFormPage />}
+          />
+          <Route
+            path="/control-forms/adr/new/:compoundFormKey"
+            element={<AdrFormPage />}
+          />
+          <Route path="/control-forms/adr/:id" element={<AdrFormPage />} />
+          <Route
+            path="/control-forms/adr/:id/:snapshotId"
+            element={<AdrFormPage />}
+          />
+          <Route
+            path="/control-forms/good-repute/new"
+            element={<GoodReputeFormCreatePage />}
+          />
+          <Route
+            path="/control-forms/good-repute/:id"
+            element={<GoodReputeFormPage />}
+          />
+          <Route
+            path="/control-forms/good-repute/:id/:snapshotId"
+            element={<GoodReputeFormPage />}
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

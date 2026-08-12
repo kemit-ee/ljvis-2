@@ -1,3 +1,13 @@
+export interface FormAttachment {
+  id: string;
+  formNumber?: string;
+  fileName: string;
+  s3Key?: string;
+  status?: string;
+  createdAt?: string;
+  createdBy?: string;
+}
+
 export interface ControlsMatrixRow {
   /** classifier_value_key of a TRANSPORT_TYPE classifier value. */
   transportClass: number;
@@ -207,7 +217,6 @@ export interface DriveRestForm {
   atpViolationFound?: string;
   atpViolationDescription?: string;
   erruPoints?: string[];
-  files?: string[];
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
   notes?: string;
@@ -271,3 +280,216 @@ export type MassDimensionMeasurement = {
   allowedValue: string;
   excessValue: string;
 };
+
+/** LJVIS2-72: shared "vehicle" | "trailer" technical roadworthiness check sub-form. */
+export type TechnicalCheckVariant = 'vehicle' | 'trailer';
+
+export type PartSummaryStatus = 'not_checked' | 'checked' | 'non_compliant';
+
+export type PartSummaryEntry = {
+  /** TECHNICAL_CHECK level-1 classifier value code, e.g. "CAA_1". */
+  partCode: string;
+  status: PartSummaryStatus;
+};
+
+export type PartSeverity = 'VO' | 'OV' | 'EOV';
+
+export type PartDefectEntry = {
+  partCode: string;
+  /** TECHNICAL_CHECK level-2 classifier value code, e.g. "CAA_1.1". */
+  defectCode: string;
+  severity: PartSeverity;
+};
+
+export interface TechnicalCheckForm {
+  id?: string;
+  compoundFormKey?: number;
+  subFormNumber?: string;
+  version?: number;
+  status?: string;
+  partsSummary?: PartSummaryEntry[];
+  partsDefects?: PartDefectEntry[];
+  resultType?: string;
+  resultTransportInterruption?: boolean;
+  eraYvMntRegnr?: boolean;
+  eraYvMntVintin?: boolean;
+  eraYvMntAxles?: boolean;
+  eraYvMntPlaces?: boolean;
+  eraYvMntRebuilt?: boolean;
+  proceedingType?: string;
+  proceedingReferenceNumber?: string;
+  violations?: string[];
+  notes?: string;
+  extraordinaryInspectionDate?: string;
+  enforcementDecision?: string;
+  proceedingClosureBasis?: string;
+  createdBy?: string;
+}
+
+export interface TechnicalCheckFormListItem {
+  id: string;
+  subFormNumber: string;
+  version: number;
+  status: string;
+  resultType: string;
+}
+
+/** LJVIS2-74: autoveo katkestamise kontrollvorm (transport-interruption / kv_form) sub-form. */
+export interface TransportInterruptionForm {
+  id?: string;
+  compoundFormKey?: number;
+  subFormNumber?: string;
+  version?: number;
+  status?: string;
+  headerText?: string;
+  residenceCountry?: string;
+  residenceRegion?: string;
+  residenceCity?: string;
+  residenceAddressLine?: string;
+  residencePostalCode?: string;
+  interruptionReason?: string;
+  legalBases?: string[];
+  terminationCondition?: string;
+  personApplications?: string;
+  createdBy?: string;
+}
+
+export interface TransportInterruptionFormListItem {
+  id: string;
+  subFormNumber: string;
+  version: number;
+  status: string;
+}
+
+/** LJVIS2-141: ADR (ohtlik veos) kontrollvormi alamvorm. */
+export type AdrDriverAssistant = {
+  personalCodeEe?: string;
+  personalCodeForeign?: string;
+  firstName?: string;
+  lastName?: string;
+  citizenshipCode?: string;
+  birthDate?: string;
+};
+
+export type AdrAddress = {
+  countryCode?: string;
+  county?: string;
+  city?: string;
+  street?: string;
+  postalCode?: string;
+};
+
+export type DangerousGoodEntry = {
+  unNumber: string;
+  packagingGroup: string;
+  quantity: string;
+  unitCode: string;
+};
+
+export type AdrInfringementCheckStatus =
+  | ''
+  | 'checked'
+  | 'not_possible'
+  | 'not_applicable';
+
+export type AdrInfringementEntry = {
+  classifierValueKey: number;
+  checkStatus: AdrInfringementCheckStatus;
+  riskCategory?: string;
+  adrProvision?: string;
+  notes?: string;
+};
+
+export interface AdrForm {
+  id?: string;
+  compoundFormKey?: number;
+  subFormNumber?: string;
+  version?: number;
+  status?: string;
+  driverAssistant?: AdrDriverAssistant;
+  driverAdrCertificateNumber?: string;
+  crewAdrCertificateNumber?: string;
+  assistantAdrCertificateNumber?: string;
+  lastLoadAddress?: AdrAddress;
+  lastLoadDate?: string;
+  nextLoadAddress?: AdrAddress;
+  dangerousGoods?: DangerousGoodEntry[];
+  exemptionApplied?: boolean;
+  exemptionAdrProvision?: string;
+  containerType?: string;
+  infringements?: AdrInfringementEntry[];
+  otherViolations?: string;
+  resultType?: string;
+  proceedingType?: string;
+  proceedingReferenceNumber?: string;
+  correctiveMeasures?: string[];
+  sealOpened?: boolean;
+  sealOpenedDate?: string;
+  sealInstalledDate?: string;
+  notes?: string;
+  enforcementDecision?: string;
+  proceedingClosureBasis?: string;
+  createdBy?: string;
+}
+
+export interface AdrFormListItem {
+  id: string;
+  subFormNumber: string;
+  version: number;
+  status: string;
+  resultType: string;
+}
+
+/** LJVIS2-136: hea maine vorm (veokorraldusjuhi hea maine nõudele mittevastavus). Independent form — no parent compound form. */
+export interface GoodReputeForm {
+  id?: string;
+  /** Immutable core form number, format mv-AAAA-NNNNN (no /V suffix — see `version`). */
+  formNumber?: string;
+  version?: number;
+  status?: string;
+  personalCode: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  placeOfBirth?: string;
+  certificateNumber: string;
+  certificateIssueDate: string;
+  certificateCountryCode: string;
+  fitnessStatus: string;
+  unfitFromDate?: string;
+  unfitUntilDate?: string;
+  createdBy?: string;
+}
+
+export interface FormSearchRow {
+  formType: string;
+  formKey: number;
+  compoundFormKey: number | null;
+  formNumber: string;
+  status: string;
+  mainDate: string | null;
+  county: string | null;
+  vehicleRegNr: string | null;
+  companyRegCode: string | null;
+  companyName: string | null;
+  driverSearch: string | null;
+  inspectorOrgId: string | null;
+  inspectorName: string | null;
+  hasViolation: boolean;
+  /** Total row count of the full result set (window COUNT), present on every row. */
+  total?: number;
+}
+
+export interface FormSearchFilters {
+  dateFrom: string;
+  dateTo: string;
+  formType: string;
+  vehicleRegNr: string;
+  companyRegCode: string;
+  companyName: string;
+  driver: string;
+  county: string;
+  /** '' = any, 'true' = has violation, 'false' = no violation */
+  hasViolation: string;
+  status: string;
+}

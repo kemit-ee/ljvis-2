@@ -113,9 +113,12 @@ tests/postman/
 ├── collections/
 │   ├── classifiers.collection.json
 │   ├── erru-ctud.collection.json
+│   ├── form-search.collection.json
 │   ├── labour-inspection.collection.json
 │   ├── organisations.collection.json
 │   ├── permissions.collection.json
+│   ├── technical-check-forms.collection.json
+│   ├── transport-interruption.collection.json
 │   ├── users.collection.json
 │   └── user-groups.collection.json
 ├── ci-stack-environment.json
@@ -131,8 +134,13 @@ tests/postman/
 | **classifiers** | List (search/pagination), get (403/success), get-values (403/success with status), edit/update (403/422/200), values/insert (403/200), values/update (403/200) |
 | **erru-ctud** | Create draft (403 without `ctud.create`, 422 validation matrix: min-two-of-three search criteria / `unknown` name / missing registration country / missing or 1-char target country / missing source+purpose / max length, 200 create with `version=1` and generated `CTUD-EE-AAAA-NNNNN`), get (403/404/200 with upper-cased text and `ctudFrom=EE`), revise (200 `version=2` with unchanged `businessCaseId`, 422 missing id, 422 `not_editable` once sent), list (403, `{content,total}`, one row per request not per snapshot, `direction` filter, OR-group name-or-licence), send (403 without `ctud.send` **and no snapshot written**, DE→`Found` with 2 licences + true copy + vehicle list, LV→`NotFound`, PL→`Timeout`, GR→`NotAvailable` — both still `responded`, not `error` — FI→transport failure `error`, retry-from-error allowed, 422 `not_sendable` on re-send, 404), inbound machine endpoint on `ruuter-internal` (Found + `Grey` risk, replay of the same `technicalId` returns the same answer and creates **no** duplicate, NotFound, `requestAllVehicles=false`, 400 `InvalidData` for each missing ERRU envelope field, 400 for fewer than two criteria and for `unknown`) |
 | **labour-inspection** | Create/edit/save (403, 422 required/future-date/max-length, 200 create+version=1), get (403/404/200), re-save (200, version increments), confirm (403, 200, already_confirmed 422, violations-present 422), edit-after-confirm (422 form_locked_after_confirm), delete (403/200, deleted still readable) |
+| **technical-check-forms** | Vehicle/trailer technical check sub-forms (LJVIS2-72): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), trailer-only exclusion of vehicle codes (422 code_not_applicable_to_trailer), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump) |
+| **transport-interruption** | Transport interruption sub-form (LJVIS2-74): edit/save (403, 422 required, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments, all 4 legalBases codes), confirm (403, 200, already_confirmed 422), UPPERCASE transform of headerText/interruptionReason/personApplications/residenceAddressLine/terminationCondition |
+| **adr-form** | ADR (ohtlik veos) sub-form (LJVIS2-141): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump), re-save after confirm still allowed |
+| **good-repute-form** | Hea maine (good repute) independent form (LJVIS2-136): edit/save (403, 422 required/future-date/conditional unfit dates + date ordering, 200 create+version=1), UPPERCASE transform of personalCode/firstName/lastName/placeOfBirth/certificateNumber, read/get (403/404/200), re-save while saved (version unchanged — no-bump rule), confirm (403, 200 version unchanged, already_confirmed 422), edit-after-confirm (422 form_locked_after_confirm) |
+| **form-search** | Cross-entity form search (LJVIS2-9): 403 without any form read permission, unfiltered search (content+total), formType filter, companyName (ILIKE) filter, date-range inclusive/exclusive, pagination (pageSize=1), sorting, and deleted-form hidden from results. Creates + deletes its own labour-inspection act. |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
-| **permissions** | `GET /permissions/list` — verify seeded permissions, check `user_group.update` present |
+| **permissions** | `GET /permissions/list` — verify seeded permissions (39), check `user_group.update`, vehicle/trailer/transport-interruption/adr/good-repute form permissions present |
 | **users** | List (admin/403), check-exists, insert (success/409/422/403), get, update, set-groups, get-groups |
 | **user-groups** | List (admin/403), get, get-organisations/permissions/users, insert (success/422/403), get-available-users, update-name, set-organisations, set-permissions, add-users, delete-user |
 
@@ -143,6 +151,10 @@ tests/postman/
 | classifiers | Super Admin, No-perm (403 tests) | classifier ID |
 | erru-ctud | Super Admin (`ctud.read`+`create`+`send`), Org Admin (`ctud.read`+`create`, **no** `ctud.send`), No-perm (403 tests) | none — creates its own requests; needs `internal_api_url` for the inbound endpoint |
 | labour-inspection | Super Admin, No-perm (403 tests) | none — creates its own acts |
+| technical-check-forms | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-forms |
+| transport-interruption | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-form |
+| adr-form | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-form |
+| good-repute-form | Super Admin, No-perm (403 tests) | none — creates its own independent forms |
 | organisations | Super Admin | — |
 | permissions | Super Admin | — |
 | users | Super Admin, No-perm (403 tests) | org ID, group ID |

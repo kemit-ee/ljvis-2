@@ -1,0 +1,39 @@
+declaration:
+
+  version: "1.0"
+  description: "Get good repute form (hea maine vorm) by key (latest snapshot). LJVIS2-136."
+  method: get
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "Good repute form key"
+
+fetchForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
+    headers:
+      type: json
+    body:
+      id: ${incoming.params.q}
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length !== 1}
+      next: returnNotFound
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end

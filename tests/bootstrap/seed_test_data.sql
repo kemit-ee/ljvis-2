@@ -54,6 +54,19 @@ INSERT INTO users.permission (code, description, created_by) VALUES
     ('ctud.read',                        'ERRU tegevusloa kontrolli (CTUD) päringu ja selle vastuse vaatamine', 'bootstrap'),
     ('ctud.create',                      'ERRU tegevusloa kontrolli (CTUD) väljamineva päringu koostamine ja mustandi salvestamine', 'bootstrap'),
     ('ctud.send',                        'ERRU tegevusloa kontrolli (CTUD) päringu saatmine ERRU-sse', 'bootstrap')
+    ('control_form.edit_locked',         'Kinnitatud vormi X-tee andmevahetuskihi plokkide muutmine (administraator)', 'bootstrap'),
+    ('compound_form.write',              'Koondvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('vehicle_technical_form.write',     'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('vehicle_technical_form.read',      'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi andmete lugemine', 'bootstrap'),
+    ('trailer_technical_form.write',     'Haagise tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('trailer_technical_form.read',      'Haagise tehnonõuetele vastavuse kontrollvormi andmete lugemine', 'bootstrap'),
+    ('transport_interruption_form.write','Autoveo katkestamise kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('transport_interruption_form.read', 'Autoveo katkestamise kontrollvormi andmete lugemine', 'bootstrap'),
+    ('adr_form.write',                   'ADR (ohtlik veos) kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('adr_form.read',                    'ADR (ohtlik veos) kontrollvormi andmete lugemine', 'bootstrap'),
+    ('good_repute_form.write',           'Hea maine vormi loomine, täitmine, salvestamine ja failide üleslaadimine', 'bootstrap'),
+    ('good_repute_form.read',            'Hea maine vormi andmete lugemine ja failide allalaadimine', 'bootstrap'),
+    ('xtee.query.rahvastikuregister',    'Rahvastikuregistri päring isiku andmete leidmiseks isikukoodi alusel', 'bootstrap')
 ON CONFLICT (code) DO NOTHING;
 
 -- ============================================================
@@ -65,7 +78,7 @@ SELECT
     'Super Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation),
-    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','ctud.read','ctud.create','ctud.send']::TEXT[],
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister', 'ctud.read','ctud.create','ctud.send']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Super Admin Group');
 
@@ -78,6 +91,20 @@ SELECT
     ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','ctud.read','ctud.create']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Local Admin Group');
+
+-- Regular officer (kontrolliametnik): has write/read on the control-form sub-forms
+-- but NOT control_form.edit_locked — needed to manually distinguish officer vs.
+-- administrator behaviour (LJVIS2-72 UC-13, UC-30, UC-42; also used to verify that
+-- confirmed/published sub-forms cannot be re-saved without edit_locked).
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
+SELECT
+    nextval('users.seq_user_group_key'),
+    'Officer Group',
+    (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
+     FROM users.organisation WHERE code = 'PPA'),
+    ARRAY['classifier.read','control_form.view_unpublished','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','labour_inspection_form.write','labour_inspection_form.read','xtee.query.rahvastikuregister']::TEXT[],
+    'bootstrap'
+WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Officer Group');
 
 -- ============================================================
 -- Users  (v2: single snapshot INSERT per user)
@@ -100,6 +127,28 @@ SELECT
 FROM users.organisation o
 WHERE o.code = 'PPA'
   AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60001019906');
+
+-- Regular officer (no control_form.edit_locked) — see 'Officer Group' above.
+-- NOTE: personal code is intentionally NOT '60001017869' (pc_user) — that
+-- identity is reused across every Postman collection as the "no permission"
+-- user (expects 403), so it must remain unassigned to any user_group.
+INSERT INTO users.user_account (
+    user_account_key, personal_code, first_name, last_name,
+    organisation_id, organisation_name, structural_unit, job_title,
+    email, phone, access_start, status, user_groups, created_by
+)
+SELECT
+    nextval('users.seq_user_account_key'),
+    '60002020202', 'Mari', 'Tamm',
+    o.id, o.name, 'LÕUNA PREFEKTUUR', 'Kontrolliametnik',
+    'mari.tamm@ljvis.test', '55500002', '2024-01-01', 'active',
+    (SELECT ARRAY[ug.user_group_key]
+     FROM users.user_group ug WHERE ug.name = 'Officer Group'
+     ORDER BY ug.created_at DESC LIMIT 1),
+    'bootstrap'
+FROM users.organisation o
+WHERE o.code = 'PPA'
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60002020202');
 
 -- ============================================================
 -- Classifiers  (v2: single snapshot INSERT per classifier)

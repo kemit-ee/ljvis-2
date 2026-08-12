@@ -15,7 +15,7 @@
     },
     {
       "key": "resql_ljvis_url",
-      "value": "http://localhost:9090/ljvis",
+      "value": "http://localhost:9087/ljvis",
       "enabled": true
     },
     {
@@ -40,7 +40,18 @@
       "enabled": true
     },
     {
+      "key": "pc_officer",
+      "value": "60002020202",
+      "enabled": true,
+      "description": "Regular officer (Mari Tamm) — has *_form.write/read but NOT control_form.edit_locked; used to verify confirmed/published sub-forms cannot be re-saved without edit_locked."
+    },
+    {
       "key": "cookie_admin",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "cookie_officer",
       "value": "",
       "enabled": true
     },
@@ -234,6 +245,60 @@
       "value": "",
       "type": "default",
       "enabled": true
+    },
+    {
+      "key": "created_tcf_compound_key",
+      "value": "",
+      "enabled": true,
+      "description": "compound_form_key created during Technical Check Forms tests setup"
+    },
+    {
+      "key": "created_vtf_id",
+      "value": "",
+      "enabled": true,
+      "description": "vehicle_technical_form_key created during Technical Check Forms tests"
+    },
+    {
+      "key": "created_vtf_sub_form_number",
+      "value": "",
+      "enabled": true,
+      "description": "sub_form_number of the vehicle technical form created during tests"
+    },
+    {
+      "key": "created_ttf_id",
+      "value": "",
+      "enabled": true,
+      "description": "trailer_technical_form_key created during Technical Check Forms tests"
+    },
+    {
+      "key": "long_string_2001",
+      "value": "",
+      "enabled": true,
+      "description": "2211-char string, built at runtime (pre-request script: long_string_201.repeat(11)) — used to trigger max_length_2000 in Technical Check Forms tests"
+    },
+    {
+      "key": "fs_company_name",
+      "value": "",
+      "enabled": true,
+      "description": "Unique company name for form-search test act"
+    },
+    {
+      "key": "fs_inspection_date",
+      "value": "",
+      "enabled": true,
+      "description": "Control/inspection date of the form-search test act"
+    },
+    {
+      "key": "fs_lif_id",
+      "value": "",
+      "enabled": true,
+      "description": "labour_inspection_form_key created by form-search tests"
+    },
+    {
+      "key": "fs_lif_form_number",
+      "value": "",
+      "enabled": true,
+      "description": "form_number created by form-search tests"
     }
   ],
   "_postman_variable_scope": "environment"

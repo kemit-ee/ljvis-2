@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Update classifier"
   method: post
   accepts: json
@@ -16,8 +16,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -50,8 +50,8 @@ setClassifierCode:
   next: calculateChangedFields
 
 calculateChangedFields:
-  template: "[#LJVIS_PROJECT_LAYER]/classifier/calculate-classifier-changed-fields"
-  requestType: templates
+  template: "templates/classifier/calculate-classifier-changed-fields"
+  requestType: GET
   body:
     classifier_id: ${id}
     name: ${name}
@@ -60,8 +60,8 @@ calculateChangedFields:
   next: validateClassifier
 
 validateClassifier:
-  template: "[#LJVIS_PROJECT_LAYER]/classifier/validate-classifier-fields"
-  requestType: templates
+  template: "templates/classifier/validate-classifier-fields"
+  requestType: GET
   body:
     name: ${name}
     description: ${description}
@@ -91,13 +91,17 @@ updateClassifier:
 buildAuditEvent:
   assign:
     changed_fields: ${changedFieldsResult}
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     description: "Klassifikaator '${classifier_code}' (ID ${id}), muudetud väljad: ${changed_fields}"
     log_content: "{\"classifierId\":${id},\"classifierCode\":\"${classifier_code}\",\"changedFields\":${changed_fields}}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "classifier.update"
     event_category: "classifier_management"

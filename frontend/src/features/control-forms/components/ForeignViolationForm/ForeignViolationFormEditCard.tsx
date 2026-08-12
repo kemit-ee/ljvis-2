@@ -1073,6 +1073,7 @@ export function ForeignViolationFormEditCard({
           <FormFiles
             formType="foreign-violation-form"
             formNumber={formik.values.formNumber}
+            canEdit={true}
           />
         </Col>
       </Row>

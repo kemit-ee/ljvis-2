@@ -1,0 +1,85 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: drive/rest teammate sub-form save event"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: sp_teammate_form_key
+        type: number
+      - field: compound_form_key
+        type: number
+      - field: sub_form_number
+        type: string
+      - field: result_type
+        type: string
+      - field: proceeding_type
+        type: string
+      - field: driver1PersonalCodeEe
+        type: string
+      - field: driver1PersonalCodeForeign
+        type: string
+      - field: driver2PersonalCodeEe
+        type: string
+      - field: driver2PersonalCodeForeign
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildDriver1Code:
+  assign:
+    driver1_ee: "${incoming.body.driver1PersonalCodeEe != null && incoming.body.driver1PersonalCodeEe != '' ? incoming.body.driver1PersonalCodeEe : '-'}"
+    driver1_foreign: "${incoming.body.driver1PersonalCodeForeign != null && incoming.body.driver1PersonalCodeForeign != '' ? incoming.body.driver1PersonalCodeForeign : '-'}"
+  next: buildDriver1CodePart2
+
+buildDriver1CodePart2:
+  assign:
+    driver1_code: "${driver1_ee}/${driver1_foreign}"
+  next: buildDriver2Part
+
+buildDriver2Part:
+  assign:
+    driver2_ee: "${incoming.body.driver2PersonalCodeEe != null && incoming.body.driver2PersonalCodeEe != '' ? incoming.body.driver2PersonalCodeEe : '-'}"
+    driver2_foreign: "${incoming.body.driver2PersonalCodeForeign != null && incoming.body.driver2PersonalCodeForeign != '' ? incoming.body.driver2PersonalCodeForeign : '-'}"
+  next: buildDriver2PartPart2
+
+buildDriver2PartPart2:
+  assign:
+    driver2_part: "${(incoming.body.driver2PersonalCodeEe != null && incoming.body.driver2PersonalCodeEe != '') || (incoming.body.driver2PersonalCodeForeign != null && incoming.body.driver2PersonalCodeForeign != '') ? ', teise isiku isikukood: ' + driver2_ee + '/' + driver2_foreign : ''}"
+    log_content_driver2_part: "${(incoming.body.driver2PersonalCodeEe != null && incoming.body.driver2PersonalCodeEe != '') || (incoming.body.driver2PersonalCodeForeign != null && incoming.body.driver2PersonalCodeForeign != '') ? ',\"driver2PersonalCodeEe\":\"' + driver2_ee + '\",\"driver2PersonalCodeForeign\":\"' + driver2_foreign + '\"' : ''}"
+  next: buildProceedingTypePart
+
+buildProceedingTypePart:
+  assign:
+    proceeding_type_part: "${incoming.body.proceeding_type != null && incoming.body.proceeding_type != '' ? ', menetluse liik: ' + incoming.body.proceeding_type : ''}"
+    log_content_proceeding_type_part: "${incoming.body.proceeding_type != null && incoming.body.proceeding_type != '' ? ',\"proceedingType\":\"' + incoming.body.proceeding_type + '\"' : ''}"
+  next: buildAudit
+
+buildAudit:
+  assign:
+    description: "Sõidu- ja puhkeaja alamvorm (kaassõitja) salvestatud, alamvormi number: ${incoming.body.sub_form_number}, koondvormi võti: ${incoming.body.compound_form_key}, alamvormi võti: ${incoming.body.sp_teammate_form_key}, kontrolli tulemus: ${incoming.body.result_type}${proceeding_type_part}, juhi isikukood: ${driver1_code}${driver2_part}"
+    log_content: "{\"spTeammateFormKey\":\"${incoming.body.sp_teammate_form_key}\",\"compoundFormKey\":\"${incoming.body.compound_form_key}\",\"subFormNumber\":\"${incoming.body.sub_form_number}\",\"resultType\":\"${incoming.body.result_type}\",\"driver1PersonalCodeEe\":\"${driver1_ee}\",\"driver1PersonalCodeForeign\":\"${driver1_foreign}\"${log_content_driver2_part}${log_content_proceeding_type_part}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.sp_teammate_form.save"
+    event_category: "control_form"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

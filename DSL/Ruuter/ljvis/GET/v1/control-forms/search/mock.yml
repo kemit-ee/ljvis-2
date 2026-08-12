@@ -1,0 +1,41 @@
+mock_step:
+  call: reflect.mock
+  args:
+    response:
+      content:
+        - formType: "compound"
+          formKey: 1001
+          compoundFormKey: 1001
+          formNumber: "koond-2026-00001"
+          status: "confirmed"
+          mainDate: "2026-07-15"
+          county: "Harju maakond"
+          vehicleRegNr: "123ABC"
+          companyRegCode: "10000001"
+          companyName: "Näidis Transport OÜ"
+          driverSearch: "38001085718 mari maasikas"
+          inspectorOrgId: "PPA"
+          inspectorName: "Jaan Kontroll"
+          hasViolation: false
+          total: 2
+        - formType: "foreign_violation"
+          formKey: 2002
+          compoundFormKey: null
+          formNumber: "vr-2026-00007"
+          status: "published"
+          mainDate: "2026-06-30"
+          county: "Tartu maakond"
+          vehicleRegNr: "999ZZZ"
+          companyRegCode: "20000002"
+          companyName: "Rikkuja AS"
+          driverSearch: "hans mueller"
+          inspectorOrgId: "PPA"
+          inspectorName: "Kati Ametnik"
+          hasViolation: true
+          total: 2
+      total: 2
+  result: mock_data
+
+returnSuccess:
+  return: ${mock_data.response.body}
+  next: end
