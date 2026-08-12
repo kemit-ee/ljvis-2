@@ -11,25 +11,20 @@ declaration:
         type: string
         description: "CTUD request logical key (ctud_request_key)"
 
-checkAuthority:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: checkPermission
-
-checkPermission:
-  switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('ctud.read')}
-      next: extractRequestData
-  next: returnForbidden
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
+  next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.params.q || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
   next: checkIdPresent
 
 checkIdPresent:
@@ -100,7 +95,4 @@ returnNotFound:
   return: "ctud request not found"
   next: end
 
-returnForbidden:
-  status: 403
-  return: "forbidden"
-  next: end
+
