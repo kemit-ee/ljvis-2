@@ -57,7 +57,7 @@ import { TechnicalCheckFormViewCard } from '../../components/TechnicalCheckForm/
 import { SubFormTab } from '../../components/SubFormTab/SubFormTab';
 import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
-import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, canConfirmActiveSubForm, subFormsAllConfirmed as getSubFormsStatus, addTab } from '../../hooks/useSubFormEditActive';
+import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab } from '../../hooks/useSubFormEditActive';
 
 
 /**
@@ -504,6 +504,8 @@ export function CompoundFormPage() {
     }
   };
 
+  const { canEdit: canEditSubForms, canConfirm: canConfirmSubform } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer });
+
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -583,32 +585,6 @@ export function CompoundFormPage() {
     formType: FORM_TYPE.COMPOUND,
     versionsRefreshKey,
   };
-
-  const canEditSubForms = () => {
-    const tabFormPermission: Record<
-      string,
-      { form: { id?: unknown; status?: string } | null; perm: string }
-    > = {
-      'tab-driver': { form: driver.form, perm: 'sp_driver_form.write' },
-      'tab-teammate': { form: teammate.form, perm: 'sp_teammate_form.write' },
-      'tab-vehicle-technical-check': {
-        form: vehicle.form,
-        perm: 'vehicle_technical_form.write',
-      },
-      'tab-trailer-technical-check': {
-        form: trailer.form,
-        perm: 'trailer_technical_form.write',
-      },
-    };
-    const entry = tabFormPermission[activeTab];
-    if (!entry) return false;
-    return (
-      !!entry.form?.id &&
-      hasPermission(entry.perm)
-    );
-  };
-
-  const canConfirmSubform = () => canConfirmActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, hasPermission });
 
   const canDeleteAll =
     hasPermission('control_form.delete') &&

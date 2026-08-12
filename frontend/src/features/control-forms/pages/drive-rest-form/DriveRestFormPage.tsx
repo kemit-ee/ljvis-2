@@ -48,7 +48,7 @@ import { TechnicalCheckFormViewCard } from '../../components/TechnicalCheckForm/
 import { TechnicalCheckFormEditCard, type TechnicalCheckFormEditCardRef } from '../../components/TechnicalCheckForm/TechnicalCheckFormEditCard';
 import { listTechnicalCheckFormsByCompoundFormKey, getTechnicalCheckForm, saveTechnicalCheckForm } from '../../api';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
-import { useSubFormEditActive, makeCheckAndAutoConfirm, canConfirmActiveSubForm, subFormsAllConfirmed as getSubFormsStatus, addTab } from '../../hooks/useSubFormEditActive';
+import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab } from '../../hooks/useSubFormEditActive';
 
 interface DriveRestFormPageProps {
   entryType: 'driver' | 'teammate';
@@ -60,7 +60,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const canEdit = hasPermission('foreign_violation_form.write');
+  const canEdit = hasPermission('compound_form.write');
 
   const [compoundFormKey, setCompoundFormKey] = useState<number | undefined>(
     undefined,
@@ -88,6 +88,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const trailer = useSubForm<TechnicalCheckForm, TechnicalCheckFormEditCardRef>({ permPrefix: 'trailer_technical_form' });
   const driver = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_driver_form' });
   const teammate = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_teammate_form' });
+
+  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer });
 
   const forbidden = !(
     ((entryType === 'driver' && hasPermission('sp_driver_form.read')) ||
@@ -196,7 +198,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || compoundEditActive;
 
   const addFormDropdown =
-    canEdit && addableTabs.length > 0 && anyEditActive ? (
+    canEditSubForms() && addableTabs.length > 0 && anyEditActive ? (
       <Dropdown width="max-content">
         <Dropdown.Trigger>
           <Button
@@ -504,7 +506,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     ],
   });
 
-  const canConfirm = () => canConfirmActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, hasPermission });
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm, triggerConfirm: triggerConfirmCompound });
 
@@ -745,7 +746,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           open={openTabs.includes('tab-driver')}
           subForm={driver}
           renderView={(form) => (
-            <DriveRestFormViewCard scope="driver" form={form} canEdit={canEdit && form.status !== 'deleted'} onEdit={() => driver.setEditActive(true)} formType={FORM_TYPE.DRIVER} />
+            <DriveRestFormViewCard scope="driver" form={form} canEdit={canEditSubForms() && form.status !== 'deleted'} onEdit={() => driver.setEditActive(true)} formType={FORM_TYPE.DRIVER} />
           )}
           renderEdit={(form, ref) => (
             <DriveRestFormEditCard
@@ -769,7 +770,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           open={openTabs.includes('tab-teammate')}
           subForm={teammate}
           renderView={(form) => (
-            <DriveRestFormViewCard scope="teammate" form={form} canEdit={canEdit && form.status !== 'deleted'} onEdit={() => teammate.setEditActive(true)} formType={FORM_TYPE.TEAMMATE} />
+            <DriveRestFormViewCard scope="teammate" form={form} canEdit={canEditSubForms() && form.status !== 'deleted'} onEdit={() => teammate.setEditActive(true)} formType={FORM_TYPE.TEAMMATE} />
           )}
           renderEdit={(form, ref) => (
             <DriveRestFormEditCard
@@ -793,7 +794,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           open={openTabs.includes('tab-vehicle-technical-check')}
           subForm={vehicle}
           renderView={(form) => (
-            <TechnicalCheckFormViewCard scope="vehicle" form={form} canEdit={canEdit && form.status !== 'deleted'} onEdit={() => vehicle.setEditActive(true)} formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK} />
+            <TechnicalCheckFormViewCard scope="vehicle" form={form} canEdit={canEditSubForms() && form.status !== 'deleted'} onEdit={() => vehicle.setEditActive(true)} formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK} />
           )}
           renderEdit={(form, ref) => (
             <TechnicalCheckFormEditCard
@@ -817,7 +818,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           open={openTabs.includes('tab-trailer-technical-check')}
           subForm={trailer}
           renderView={(form) => (
-            <TechnicalCheckFormViewCard scope="trailer" form={form} canEdit={canEdit && form.status !== 'deleted'} onEdit={() => trailer.setEditActive(true)} formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK} />
+            <TechnicalCheckFormViewCard scope="trailer" form={form} canEdit={canEditSubForms() && form.status !== 'deleted'} onEdit={() => trailer.setEditActive(true)} formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK} />
           )}
           renderEdit={(form, ref) => (
             <TechnicalCheckFormEditCard

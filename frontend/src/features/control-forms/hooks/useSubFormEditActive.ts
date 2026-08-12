@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type React from 'react';
 import type { DriveRestForm, TechnicalCheckForm, CompoundForm } from '../types';
 import type { SubFormHandle } from './useSubForm';
+import { useAuth } from '../../auth/AuthContext';
 
 type StatusForm = { status?: string } | null | undefined;
 
@@ -152,6 +153,41 @@ export function canConfirmActiveSubForm({
   const entry = tabFormPermission[activeTab];
   if (!entry) return false;
   return !!entry.form?.id && entry.form.status === 'saved' && hasPermission(entry.perm);
+}
+
+export function canEditActiveSubForm({
+  activeTab,
+  driver,
+  teammate,
+  vehicle,
+  trailer,
+  hasPermission,
+}: CanConfirmActiveSubFormOptions): boolean {
+  const tabFormPermission: Record<string, { form: { id?: unknown; status?: string } | null; perm: string }> = {
+    'tab-driver': { form: driver.form, perm: 'sp_driver_form.write' },
+    'tab-teammate': { form: teammate.form, perm: 'sp_teammate_form.write' },
+    'tab-vehicle-technical-check': { form: vehicle.form, perm: 'vehicle_technical_form.write' },
+    'tab-trailer-technical-check': { form: trailer.form, perm: 'trailer_technical_form.write' },
+  };
+  const entry = tabFormPermission[activeTab];
+  if (!entry) return false;
+  return !!entry.form?.id && hasPermission(entry.perm);
+}
+
+interface UseSubFormPermissionsOptions {
+  activeTab: string;
+  driver: SubFormWithStatus;
+  teammate: SubFormWithStatus;
+  vehicle: SubFormWithStatus;
+  trailer: SubFormWithStatus;
+}
+
+export function useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer }: UseSubFormPermissionsOptions) {
+  const { hasPermission } = useAuth();
+  return {
+    canEdit: () => canEditActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, hasPermission }),
+    canConfirm: () => canConfirmActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, hasPermission }),
+  };
 }
 
 interface MakeCheckAndAutoConfirmOptions {
