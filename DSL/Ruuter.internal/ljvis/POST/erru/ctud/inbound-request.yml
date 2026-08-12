@@ -1,6 +1,5 @@
 declaration:
-  call: declare
-  version: 0.1
+  version: "1.0"
   description: |
     Serve an INBOUND CTUD request from another member state and answer it synchronously (LJVIS2-144).
     Fully automatic: no user is involved, no ctud.* permission is required, and the served request

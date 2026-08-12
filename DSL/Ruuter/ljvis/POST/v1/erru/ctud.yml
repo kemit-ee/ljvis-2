@@ -1,6 +1,5 @@
 declaration:
-  call: declare
-  version: 0.1
+  version: "1.0"
   description: "Create a new outgoing CTUD request draft (LJVIS2-143). POST is creation per docs/rest-api-design-guide.md section 1; revising an existing draft is PUT /v1/erru/ctud. Validation is delegated to the shared TEMPLATES/erru/ctud/validate-ctud-request template so the create, revise and inbound paths cannot drift. status ('initiated'), direction ('outgoing'), ctud_from ('EE') and business_case_id are all assigned server-side in append-draft.sql and are never accepted from the client. Text fields are upper-cased per the application-wide rule."
   method: post
   accepts: json
@@ -28,8 +27,8 @@ declaration:
         type: string
 
 checkAuthority:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -57,8 +56,8 @@ extractRequestData:
   next: validateRequest
 
 validateRequest:
-  template: "[#LJVIS_PROJECT_LAYER]/erru/ctud/validate-ctud-request"
-  requestType: templates
+  template: "templates/erru/ctud/validate-ctud-request"
+  requestType: GET
   body:
     ctudTo: ${ctud_to}
     originatingAuthority: ${originating_authority}
@@ -114,8 +113,8 @@ extractInsertResult:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/erru/ctud/log-ctud-request-save"
-  requestType: templates
+  template: "templates/audit/erru/ctud/log-ctud-request-save"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

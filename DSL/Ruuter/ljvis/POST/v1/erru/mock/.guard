@@ -9,6 +9,14 @@
 # Safe because the mock is unreachable in production: ERRU_CTUD_ENDPOINT points at XTR
 # there, and nothing else references this path. If you want it gone from production
 # entirely, drop DSL/Ruuter/ljvis/POST/v1/erru/mock/ from the deployed image.
+#
+# override_ancestors is required: Rust Ruuter stacks ancestor guards by default (unlike
+# the Java Ruuter parity model where a nested guard replaced its ancestors), so without
+# this the parent POST/.guard cookie check would still run and reject the unauthenticated
+# mock call with 403 before this guard's own "allow" is ever considered.
+declaration:
+  override_ancestors: true
+
 allow_mock:
   return: "success"
   status: 200

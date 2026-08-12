@@ -1,6 +1,5 @@
 declaration:
-  call: declare
-  version: 0.1
+  version: "1.0"
   description: "Send a CTUD request to one member state and store the synchronous response (LJVIS2-144). CTUD is a synchronous single-country exchange: the target country's answer arrives within the same call, so there is no acknowledgement state and no waiting view. The flow is initiated|error -> sent -> responded, each step appending exactly one snapshot via append-transition.sql, whose whitelist rejects any other starting state. Timeout and NotAvailable are outcomes of a SUCCESSFUL exchange (set by the ERRU Hub) and therefore lead to 'responded', not 'error' — only a transport failure or a schema-invalid message leads to 'error', from which the send may be retried. Every outbound call is logged to xroad.xroad_integration_log the same way the Ariregister integration does it. The ERRU endpoint is resolved from the ERRU_CTUD_ENDPOINT constant, which points at the in-repo mock hub in dev/CI and at XTR in production."
   method: post
   accepts: json
@@ -12,8 +11,8 @@ declaration:
         type: string
 
 checkAuthority:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -128,7 +127,7 @@ callErru:
 
 checkErruStatus:
   switch:
-    - condition: ${erru_res.response == null || erru_res.response.statusCodeValue == null || erru_res.response.statusCodeValue >= 400}
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
       next: logIntegrationFailure
   next: logIntegrationSuccess
 
@@ -256,8 +255,8 @@ markErrorMissingStatus:
   next: logAuditError
 
 logAuditSend:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/erru/ctud/log-ctud-request-send"
-  requestType: templates
+  template: "templates/audit/erru/ctud/log-ctud-request-send"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
@@ -273,8 +272,8 @@ logAuditSend:
   next: returnResponded
 
 logAuditError:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/erru/ctud/log-ctud-request-send"
-  requestType: templates
+  template: "templates/audit/erru/ctud/log-ctud-request-send"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

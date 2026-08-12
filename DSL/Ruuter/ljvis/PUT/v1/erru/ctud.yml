@@ -1,6 +1,5 @@
 declaration:
-  call: declare
-  version: 0.1
+  version: "1.0"
   description: "Revise an existing outgoing CTUD request draft (LJVIS2-143). PUT is full update per docs/rest-api-design-guide.md section 1, with the id in the request body. Appends a new snapshot with version + 1; nothing is ever updated in place. Editability is enforced in append-draft-revision.sql, which yields zero rows unless the latest snapshot is status='initiated' AND direction='outgoing' — so a sent request and an inbound request are both rejected with 422 not_editable regardless of the caller's permissions."
   method: put
   accepts: json
@@ -30,8 +29,8 @@ declaration:
         type: string
 
 checkAuthority:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -66,8 +65,8 @@ checkIdPresent:
   next: validateRequest
 
 validateRequest:
-  template: "[#LJVIS_PROJECT_LAYER]/erru/ctud/validate-ctud-request"
-  requestType: templates
+  template: "templates/erru/ctud/validate-ctud-request"
+  requestType: GET
   body:
     ctudTo: ${ctud_to}
     originatingAuthority: ${originating_authority}
@@ -125,8 +124,8 @@ extractReviseResult:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/erru/ctud/log-ctud-request-save"
-  requestType: templates
+  template: "templates/audit/erru/ctud/log-ctud-request-save"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

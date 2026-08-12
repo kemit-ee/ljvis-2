@@ -20,7 +20,7 @@ internal_requests:
   allowed_urls: []
   allowed_ips: []
 
-http_codes_allow_list: [200, 201, 202, 400, 401, 403, 500]
+http_codes_allow_list: [200, 201, 202, 400, 401, 403, 404, 409, 422, 500, 502]
 
 logging:
   display_request_content: true

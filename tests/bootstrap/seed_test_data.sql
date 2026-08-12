@@ -53,7 +53,7 @@ INSERT INTO users.permission (code, description, created_by) VALUES
     ('control_form.delete',              'Koondvormi kustutamine koos kõigi alamvormidega', 'bootstrap'),
     ('ctud.read',                        'ERRU tegevusloa kontrolli (CTUD) päringu ja selle vastuse vaatamine', 'bootstrap'),
     ('ctud.create',                      'ERRU tegevusloa kontrolli (CTUD) väljamineva päringu koostamine ja mustandi salvestamine', 'bootstrap'),
-    ('ctud.send',                        'ERRU tegevusloa kontrolli (CTUD) päringu saatmine ERRU-sse', 'bootstrap')
+    ('ctud.send',                        'ERRU tegevusloa kontrolli (CTUD) päringu saatmine ERRU-sse', 'bootstrap'),
     ('control_form.edit_locked',         'Kinnitatud vormi X-tee andmevahetuskihi plokkide muutmine (administraator)', 'bootstrap'),
     ('compound_form.write',              'Koondvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
     ('vehicle_technical_form.write',     'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
