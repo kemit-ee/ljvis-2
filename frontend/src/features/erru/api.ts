@@ -1,6 +1,9 @@
 import { get, post, put } from '../../shared/api/client';
 import type { ListParams, PagedResponse } from '../../hooks/usePaginatedList';
 import type {
+  CgrRequest,
+  CgrRequestWrite,
+  CgrSaveResult,
   CtudListFilters,
   CtudRequest,
   CtudRequestListItem,
@@ -62,4 +65,36 @@ export function updateCtudRequest(
  */
 export function sendCtudRequest(id: string): Promise<CtudSaveResult> {
   return post<CtudSaveResult>('/v1/erru/ctud/send', { id });
+}
+
+/**
+ * CGR (Check Good Repute / Mainepäring) — vorm stage only (LJVIS2-138). Send (-139) and
+ * list (-140) land in later stages.
+ *
+ * URLs are nested one level deeper than CTUD's bare '/v1/erru/ctud' — CGR needs its own
+ * guard-isolated directory, since cgr.create and ctud.create can't share a Ruuter guard
+ * on the same bare 'erru/' directory. See DSL/Ruuter/ljvis/POST/v1/erru/cgr/draft/.guard.
+ */
+
+/** Get one CGR request — always the latest snapshot. */
+export function getCgrRequest(id: string): Promise<CgrRequest> {
+  return get<CgrRequest>('/v1/erru/cgr/get', { q: id });
+}
+
+/**
+ * Create an outgoing CGR draft. businessCaseId, status, direction and cgrFrom are
+ * server-assigned. "Kopeeri päring" (LJVIS2-140) is not a separate endpoint — the caller
+ * reads the source request via getCgrRequest and passes its tm-/certificate-prefixed
+ * fields here.
+ */
+export function createCgrRequest(body: CgrRequestWrite): Promise<CgrSaveResult> {
+  return post<CgrSaveResult>('/v1/erru/cgr/draft/create', { ...body });
+}
+
+/** Revise an outgoing CGR draft — appends a new snapshot with version + 1. */
+export function updateCgrRequest(
+  id: string,
+  body: CgrRequestWrite,
+): Promise<CgrSaveResult> {
+  return put<CgrSaveResult>('/v1/erru/cgr/draft/revise', { id, ...body });
 }

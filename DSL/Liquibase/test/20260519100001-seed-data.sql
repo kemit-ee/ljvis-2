@@ -64,6 +64,9 @@ INSERT INTO users.permission (code, description, created_by) VALUES ('xtee.query
 INSERT INTO users.permission (code, description, created_by) VALUES ('ctud.read',                      'ERRU tegevusloa kontrolli (CTUD) päringu ja selle vastuse vaatamine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('ctud.create',                    'ERRU tegevusloa kontrolli (CTUD) väljamineva päringu koostamine ja mustandi salvestamine', 'ljvis2');
 INSERT INTO users.permission (code, description, created_by) VALUES ('ctud.send',                      'ERRU tegevusloa kontrolli (CTUD) päringu saatmine ERRU-sse', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('cgr.read',                       'ERRU mainepäringu (CGR) päringu ja liikmesriikide koondvastuse vaatamine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('cgr.create',                     'ERRU mainepäringu (CGR) väljamineva päringu koostamine ja mustandi salvestamine, sealhulgas olemasoleva päringu kopeerimine', 'ljvis2');
+INSERT INTO users.permission (code, description, created_by) VALUES ('cgr.send',                       'ERRU mainepäringu (CGR) päringu saatmine ERRU-sse, sealhulgas riigipõhine uuestisaatmine', 'ljvis2');
 
 -- user_groups — single full snapshot per group (v2: organisations + permissions embedded as JSONB)
 -- user_group_key = 1: Super Admin Group
@@ -72,7 +75,7 @@ VALUES (
     nextval('users.seq_user_group_key'),
     'Super Admin Group',
     ARRAY[1, 2, 3]::BIGINT[],
-    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.read','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','compound_form.read','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','adr_form.write','adr_form.read','transport_interruption_form.write','transport_interruption_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister','ctud.read','ctud.create','ctud.send']::TEXT[],
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.read','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','compound_form.read','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','adr_form.write','adr_form.read','transport_interruption_form.write','transport_interruption_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister','ctud.read','ctud.create','ctud.send','cgr.read','cgr.create','cgr.send']::TEXT[],
     'ljvis2'
 );
 
@@ -82,7 +85,7 @@ VALUES (
     nextval('users.seq_user_group_key'),
     'Local Admin Group',
     ARRAY[1]::BIGINT[],
-    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','ctud.read','ctud.create']::TEXT[],
+    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','ctud.read','ctud.create','cgr.read','cgr.create']::TEXT[],
     'ljvis2'
 );
 

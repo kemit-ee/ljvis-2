@@ -1,0 +1,90 @@
+declaration:
+  version: "1.0"
+  description: "MOCK ERRU hub for CGR (Check Good Repute / Mainepäring) request/response — dev and CI only (ERRU_CGR_ENDPOINT points at XTR in production). Unlike CTUD (one country → one response), CGR is a BROADCAST operation: every other member state must respond. The mock returns an array of member_state entries (member_states field) matching the structure of the ERRU 3.5 CheckGoodRepute_Response body. Scenario selection is by cgrTo: ZZ (broadcast) returns 4 entries with mixed statuses covering every downstream rendering branch (Found/NotFound/Timeout/NotAvailable). A specific country code returns a single-entry array for that country. Special cgrTo=FI returns HTTP 502 so the transport-failure branch is exercisable. Per LJVIS2-139 spec §3: ERRU v2.4 member states appear as NotAvailable ('Sihtriik ei ole kättesaadav'). Response shape: member_states is the top-level key containing the array; each entry has memberStateCode, statusCode, statusMessage, plus transportManagerDetails when statusCode=Found. transportManagerDetails shape follows ERRU 3.5 CheckGoodRepute_ResponseBodyMemberState from legacy CheckGoodRepute_Types.cs."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: cgrTo
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: tmFirstName
+        type: string
+      - field: tmFamilyName
+        type: string
+      - field: tmDateOfBirth
+        type: string
+      - field: tmPlaceOfBirth
+        type: string
+      - field: tmFirstNameSearchKey
+        type: string
+      - field: tmFamilyNameSearchKey
+        type: string
+      - field: certificateNumber
+        type: string
+      - field: certificateIssueDate
+        type: string
+      - field: certificateIssueCountry
+        type: string
+
+selectScenario:
+  switch:
+    - condition: ${('' + (incoming.body.cgrTo || '')).toUpperCase() === 'FI'}
+      next: returnTransportFailure
+    - condition: ${('' + (incoming.body.cgrTo || '')).toUpperCase() === 'ZZ'}
+      next: returnBroadcast
+    - condition: ${('' + (incoming.body.cgrTo || '')).toUpperCase() === 'DE'}
+      next: returnSingleFound
+    - condition: ${('' + (incoming.body.cgrTo || '')).toUpperCase() === 'LV'}
+      next: returnSingleNotFound
+    - condition: ${('' + (incoming.body.cgrTo || '')).toUpperCase() === 'PL'}
+      next: returnSingleTimeout
+    - condition: ${('' + (incoming.body.cgrTo || '')).toUpperCase() === 'GR'}
+      next: returnSingleNotAvailable
+  next: returnSingleFoundGeneric
+
+# Broadcast: returns 4 entries with mixed statuses — DE=Found (full transport manager details),
+# FR=NotFound, SE=Timeout, PL=NotAvailable (ERRU v2.4 country). These four cover every
+# rendering branch the frontend must handle in the member_states table.
+returnBroadcast:
+  return: '{"memberStates":[{"memberStateCode":"DE","statusCode":"Found","statusMessage":"","transportManagerDetails":{"respondingAuthority":"DE-BAG","searchMethod":"NYSIIS","nameDetails":{"firstName":"Hans","familyName":"Mueller","dateOfBirth":"1975-03-12","placeOfBirth":"Berlin"},"addressDetails":{"address":"Hauptstrasse 12","postCode":"50667","city":"Koeln","country":"DE"},"certificateDetails":{"certificateNumber":"DE-CPC-2018-44512","certificateIssueDate":"2018-06-01","certificateIssueCountry":"DE","certificateValidity":"Valid","fitness":{"fitnessStatus":"Fit","unfitStartDate":null,"unfitEndDate":null}},"transportUndertakings":{"totalManagedUndertakings":1,"totalManagedVehicles":18,"undertaking":[{"transportUndertakingName":"Rhein Spedition GmbH","communityLicenceNumber":"DE-CL-2019-55821","communityLicenceStatus":"Active","numberOfVehicles":18,"address":{"address":"Hauptstrasse 12","postCode":"50667","city":"Koeln","country":"DE"}}]}}},{"memberStateCode":"FR","statusCode":"NotFound","statusMessage":"Le responsable de transport n''a pas ete trouve","transportManagerDetails":null},{"memberStateCode":"SE","statusCode":"Timeout","statusMessage":"Member state did not respond within the allowed time","transportManagerDetails":null},{"memberStateCode":"PL","statusCode":"NotAvailable","statusMessage":"Member state is not yet available on ERRU 3.5","transportManagerDetails":null}]}'
+  next: end
+
+# Single-country DE: Found with full transport manager details
+returnSingleFound:
+  return: '{"memberStates":[{"memberStateCode":"DE","statusCode":"Found","statusMessage":"","transportManagerDetails":{"respondingAuthority":"DE-BAG","searchMethod":"NYSIIS","nameDetails":{"firstName":"Hans","familyName":"Mueller","dateOfBirth":"1975-03-12","placeOfBirth":"Berlin"},"addressDetails":{"address":"Hauptstrasse 12","postCode":"50667","city":"Koeln","country":"DE"},"certificateDetails":{"certificateNumber":"DE-CPC-2018-44512","certificateIssueDate":"2018-06-01","certificateIssueCountry":"DE","certificateValidity":"Valid","fitness":{"fitnessStatus":"Fit","unfitStartDate":null,"unfitEndDate":null}},"transportUndertakings":{"totalManagedUndertakings":1,"totalManagedVehicles":18,"undertaking":[{"transportUndertakingName":"Rhein Spedition GmbH","communityLicenceNumber":"DE-CL-2019-55821","communityLicenceStatus":"Active","numberOfVehicles":18,"address":{"address":"Hauptstrasse 12","postCode":"50667","city":"Koeln","country":"DE"}}]}}}]}'
+  next: end
+
+# Single-country LV: NotFound
+returnSingleNotFound:
+  return: '{"memberStates":[{"memberStateCode":"LV","statusCode":"NotFound","statusMessage":"Transport manager not found in Latvian register","transportManagerDetails":null}]}'
+  next: end
+
+# Single-country PL: Timeout
+returnSingleTimeout:
+  return: '{"memberStates":[{"memberStateCode":"PL","statusCode":"Timeout","statusMessage":"Member state did not respond within the allowed time","transportManagerDetails":null}]}'
+  next: end
+
+# Single-country GR: NotAvailable (ERRU v2.4, not yet on ERRU 3.5)
+returnSingleNotAvailable:
+  return: '{"memberStates":[{"memberStateCode":"GR","statusCode":"NotAvailable","statusMessage":"Member state is not yet available on ERRU 3.5","transportManagerDetails":null}]}'
+  next: end
+
+# Any other single country → Found with minimal generic payload
+returnSingleFoundGeneric:
+  return: '{"memberStates":[{"memberStateCode":"XX","statusCode":"Found","statusMessage":"","transportManagerDetails":{"respondingAuthority":"XX-CA","searchMethod":"NYSIIS","nameDetails":{"firstName":"Generic","familyName":"Person","dateOfBirth":"1980-01-01","placeOfBirth":"Capital"},"addressDetails":{"address":"Main Street 1","postCode":"00001","city":"Capital","country":"XX"},"certificateDetails":{"certificateNumber":"XX-CPC-2020-00001","certificateIssueDate":"2020-01-01","certificateIssueCountry":"XX","certificateValidity":"Valid","fitness":{"fitnessStatus":"Fit","unfitStartDate":null,"unfitEndDate":null}},"transportUndertakings":{"totalManagedUndertakings":1,"totalManagedVehicles":5,"undertaking":[{"transportUndertakingName":"Generic Transport Ltd","communityLicenceNumber":"XX-CL-2020-00001","communityLicenceStatus":"Active","numberOfVehicles":5,"address":{"address":"Main Street 1","postCode":"00001","city":"Capital","country":"XX"}}]}}}]}'
+  next: end
+
+# FI: simulate transport-layer failure (HTTP 502) so the 'error' branch in send.yml
+# can be exercised. Ruuter serves this as a 502 status to the caller.
+returnTransportFailure:
+  status: 502
+  return: '{"error":"ERRU hub simulation: transport failure"}'
+  next: end

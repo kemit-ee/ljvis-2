@@ -40,6 +40,11 @@ echo Running collection: erru-ctud.collection.json
 call newman run "%COL%\erru-ctud.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-ctud.html"
 
 echo.
+
+echo Running collection: erru-cgr.collection.json
+call newman run "%COL%\erru-cgr.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-cgr.html"
+
+echo.
 echo All collections passed.
 echo HTML reports:
 dir "%REPORT_DIR%\*.html" /b

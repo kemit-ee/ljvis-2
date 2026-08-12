@@ -1,0 +1,32 @@
+{{#with requests.[0]}}
+{
+        "id": "{{this.id}}",
+        "version": {{this.version}},
+        "direction": "{{this.direction}}",
+        "status": "{{this.status}}",
+        "businessCaseId": "{{this.businessCaseId}}",
+        "technicalId": {{#if this.technicalId}}"{{this.technicalId}}"{{else}}null{{/if}},
+        "workflowId": {{#if this.workflowId}}"{{this.workflowId}}"{{else}}null{{/if}},
+        "sentAt": {{#if this.sentAt}}"{{this.sentAt}}"{{else}}null{{/if}},
+        "cgrFrom": {{#if this.cgrFrom}}"{{this.cgrFrom}}"{{else}}null{{/if}},
+        "cgrTo": {{#if this.cgrTo}}"{{this.cgrTo}}"{{else}}null{{/if}},
+        "originatingAuthority": {{#if this.originatingAuthority}}"{{this.originatingAuthority}}"{{else}}null{{/if}},
+        "requestSource": {{#if this.requestSource}}"{{this.requestSource}}"{{else}}null{{/if}},
+        "requestPurpose": {{#if this.requestPurpose}}"{{this.requestPurpose}}"{{else}}null{{/if}},
+        "tmFirstName": {{#if this.tmFirstName}}"{{this.tmFirstName}}"{{else}}null{{/if}},
+        "tmFamilyName": {{#if this.tmFamilyName}}"{{this.tmFamilyName}}"{{else}}null{{/if}},
+        "tmDateOfBirth": {{#if this.tmDateOfBirth}}"{{this.tmDateOfBirth}}"{{else}}null{{/if}},
+        "tmPlaceOfBirth": {{#if this.tmPlaceOfBirth}}"{{this.tmPlaceOfBirth}}"{{else}}null{{/if}},
+        "tmFirstNameSearchKey": {{#if this.tmFirstNameSearchKey}}"{{this.tmFirstNameSearchKey}}"{{else}}null{{/if}},
+        "tmFamilyNameSearchKey": {{#if this.tmFamilyNameSearchKey}}"{{this.tmFamilyNameSearchKey}}"{{else}}null{{/if}},
+        "certificateNumber": {{#if this.certificateNumber}}"{{this.certificateNumber}}"{{else}}null{{/if}},
+        "certificateIssueDate": {{#if this.certificateIssueDate}}"{{this.certificateIssueDate}}"{{else}}null{{/if}},
+        "certificateIssueCountry": {{#if this.certificateIssueCountry}}"{{this.certificateIssueCountry}}"{{else}}null{{/if}},
+        "memberStates": {{#if this.memberStates}}{{{this.memberStates}}}{{else}}null{{/if}},
+        "handlerPersonalCode": {{#if this.handlerPersonalCode}}"{{this.handlerPersonalCode}}"{{else}}null{{/if}},
+        "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}},
+        "errorMessage": {{#if this.errorMessage}}"{{this.errorMessage}}"{{else}}null{{/if}},
+        "createdAt": "{{this.createdAt}}",
+        "createdBy": "{{this.createdBy}}"
+}
+{{/with}}

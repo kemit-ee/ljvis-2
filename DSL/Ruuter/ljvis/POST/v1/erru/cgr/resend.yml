@@ -1,0 +1,275 @@
+declaration:
+  version: "1.0"
+  description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be in the 'sent' terminal state. Only the entry for the specified memberStateCode is updated in the member_states JSONB; all other countries' responses and the workflow_id are preserved unchanged. A new snapshot is appended (sent → sent transition). ERRU v2.4 member states appear as NotAvailable in the mock and must be stored as-is. The ERRU_CGR_ENDPOINT constant is used, identical to send.yml."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: memberStateCode
+        type: string
+
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${('' + (incoming.body.id || '')).trim()}"
+    member_state_code: "${('' + (incoming.body.memberStateCode || '')).trim().toUpperCase()}"
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+  next: checkParams
+
+checkParams:
+  switch:
+    - condition: ${!id}
+      next: returnIdRequired
+    - condition: ${!member_state_code}
+      next: returnMemberStateRequired
+  next: getRequest
+
+getRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: current
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${current.response.body.length != 1}
+      next: returnNotFound
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    cur_status: "${current.response.body[0].status}"
+    cur_direction: "${current.response.body[0].direction}"
+    business_case_id: "${current.response.body[0].businessCaseId}"
+    cgr_to: "${current.response.body[0].cgrTo || 'ZZ'}"
+    tm_first_name: "${current.response.body[0].tmFirstName || ''}"
+    tm_family_name: "${current.response.body[0].tmFamilyName || ''}"
+    tm_date_of_birth: "${current.response.body[0].tmDateOfBirth || ''}"
+    tm_place_of_birth: "${current.response.body[0].tmPlaceOfBirth || ''}"
+    tm_first_name_search_key: "${current.response.body[0].tmFirstNameSearchKey || ''}"
+    tm_family_name_search_key: "${current.response.body[0].tmFamilyNameSearchKey || ''}"
+    certificate_number: "${current.response.body[0].certificateNumber || ''}"
+    certificate_issue_date: "${current.response.body[0].certificateIssueDate || ''}"
+    certificate_issue_country: "${current.response.body[0].certificateIssueCountry || ''}"
+    existing_member_states: "${current.response.body[0].memberStates || '[]'}"
+    cgr_wf_id: "${current.response.body[0].workflowId || ''}"
+  next: checkResendable
+
+# Resend is only valid for a sent outgoing request.
+checkResendable:
+  switch:
+    - condition: ${cur_direction !== 'outgoing'}
+      next: returnNotResendable
+    - condition: ${cur_status !== 'sent'}
+      next: returnNotResendable
+  next: prepareOutbound
+
+prepareOutbound:
+  assign:
+    start_time: "${new Date().getTime()}"
+  next: callErru
+
+callErru:
+  call: http.post
+  args:
+    url: "[#ERRU_CGR_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      cgrTo: ${member_state_code}
+      businessCaseId: ${business_case_id}
+      technicalId: ""
+      workflowId: ""
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+  result: erru_res
+  next: checkErruStatus
+
+checkErruStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+      next: logIntegrationFailure
+  next: logIntegrationSuccess
+
+logIntegrationSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/cgr/resend"
+      request_xml: "${'businessCaseId=' + business_case_id + ' memberState=' + member_state_code}"
+      response_xml: "${JSON.stringify(erru_res.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: log_ok
+  next: checkResponseEnvelope
+
+logIntegrationFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/cgr/resend"
+      request_xml: "${'businessCaseId=' + business_case_id + ' memberState=' + member_state_code}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "ERRU transport failure during resend"
+  result: log_fail
+  next: markError
+
+checkResponseEnvelope:
+  switch:
+    - condition: ${erru_res.response.body != null && erru_res.response.body.response != null}
+      next: extractErruResponseEnveloped
+  next: extractErruResponseDirect
+
+extractErruResponseEnveloped:
+  assign:
+    new_member_states: "${JSON.parse(erru_res.response.body.response).memberStates || []}"
+  next: checkNewMemberStates
+
+extractErruResponseDirect:
+  assign:
+    new_member_states: "${erru_res.response.body.memberStates || []}"
+  next: checkNewMemberStates
+
+checkNewMemberStates:
+  switch:
+    - condition: ${!new_member_states || !Array.isArray(new_member_states) || new_member_states.length === 0}
+      next: markError
+  next: mergeResponse
+
+# Merge: replace only the entry for member_state_code in existing_member_states.
+# If the code was not previously in the array (unusual, but safe), append it.
+mergeResponse:
+  assign:
+    merged_array: "${(arr => { var upd = new_member_states[0]; var ok = false; var res = arr.map(function(e) { if (e.memberStateCode === member_state_code) { ok = true; return upd; } return e; }); if (!ok) res.push(upd); return res; })(JSON.parse(existing_member_states || '[]'))}"
+  next: storeResent
+
+storeResent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "sent"
+      memberStates: "${JSON.stringify(merged_array)}"
+      tmFirstNameSearchKey: ""
+      tmFamilyNameSearchKey: ""
+      errorMessage: ""
+      created_by: ${actor_personal_code}
+  result: stored_res
+  next: logAuditResend
+
+markError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "error"
+      memberStates: ""
+      tmFirstNameSearchKey: ""
+      tmFamilyNameSearchKey: ""
+      errorMessage: "ERRU transport failure during resend — retry permitted"
+      created_by: "system"
+  result: error_res
+  next: logAuditError
+
+logAuditResend:
+  template: "templates/audit/erru/cgr/log-cgr-request-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    cgr_to: ${member_state_code}
+    result_status: "resent"
+    member_state_count: "1"
+    tm_first_name: ${tm_first_name}
+    tm_family_name: ${tm_family_name}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_ok
+  next: returnResent
+
+logAuditError:
+  template: "templates/audit/erru/cgr/log-cgr-request-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    cgr_to: ${member_state_code}
+    result_status: "error"
+    member_state_count: "0"
+    tm_first_name: ${tm_first_name}
+    tm_family_name: ${tm_family_name}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_err
+  next: returnError
+
+returnResent:
+  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, workflowId: cgr_wf_id, updatedMemberState: member_state_code, memberStates: merged_array})}"
+  next: end
+
+returnError:
+  status: 502
+  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure during resend — retry permitted"}'
+  next: end
+
+returnIdRequired:
+  status: 400
+  return: '{"valid":false,"field":"id","code":"required","message":"id on kohustuslik"}'
+  next: end
+
+returnMemberStateRequired:
+  status: 400
+  return: '{"valid":false,"field":"memberStateCode","code":"required","message":"memberStateCode on kohustuslik"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"CGR päring ei leitud"}'
+  next: end
+
+returnNotResendable:
+  status: 422
+  return: '{"valid":false,"code":"not_resendable","message":"Uuestisaatmine on võimalik ainult saadetud olekus päringutel"}'
+  next: end

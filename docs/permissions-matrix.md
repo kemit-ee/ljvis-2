@@ -56,6 +56,9 @@ changelog:
 | `ctud`         | `read`                    | `ctud.read`                              | View an ERRU CTUD (transport-undertaking-data) request and the target country's response, including the request list. |
 | `ctud`         | `create`                  | `ctud.create`                            | Compose and save an outgoing ERRU CTUD request draft. Editing is possible only while the request is `initiated`. |
 | `ctud`         | `send`                    | `ctud.send`                              | Send an ERRU CTUD request to the target member state. Serving *inbound* requests needs no permission — it is an automatic system process. |
+| `cgr`          | `read`                    | `cgr.read`                               | View an ERRU CGR (check good repute / mainepäring) request and the per-member-state response, including the request list. |
+| `cgr`          | `create`                  | `cgr.create`                             | Compose and save an outgoing ERRU CGR request draft, including creating a new draft as a copy of an existing request ("Kopeeri päring"). |
+| `cgr`          | `send`                    | `cgr.send`                               | Send an ERRU CGR request to the target member state(s), including a per-country resend to a member state that has not yet answered. Serving *inbound* requests needs no permission — it is an automatic system process. |
 
 ## 2. API endpoint access matrix
 

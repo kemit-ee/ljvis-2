@@ -76,11 +76,16 @@ BEGIN
                 ('CTUD_REQUEST_PURPOSE',     'Control',                   'Järelevalve'),
                 ('CTUD_REQUEST_PURPOSE',     'Heartbeat',                 'Elumärk'),
                 ('CTUD_REQUEST_PURPOSE',     'Other',                     'Muu'),
-                -- CTUD_SEARCH_METHOD
+                -- CTUD_SEARCH_METHOD (ctudTransportUndertakingType/@searchMethod, real ERRU 3.5 XSD —
+                -- .ai/ERRU_DOCS/ERRU 3.0 tehniline spetsifikatsioon/.../3.0/CheckTransportUndertakingData_Types.xsd.
+                -- Corrected from the earlier 2.4-derived guess: no 'TrueCopy' value exists on this
+                -- attribute (a true-copy number is just an alternate community-licence-number search
+                -- input, not a distinct search-method outcome); 'Name' is actually 'CompanyName'; 'Local'
+                -- was missing entirely.
+                ('CTUD_SEARCH_METHOD',       'CompanyName',               'Veoettevõtja nime järgi'),
                 ('CTUD_SEARCH_METHOD',       'CommunityLicence',          'Ühenduse tegevusloa numbri järgi'),
-                ('CTUD_SEARCH_METHOD',       'TrueCopy',                  'Kinnitatud ärakirja numbri järgi'),
-                ('CTUD_SEARCH_METHOD',       'Name',                      'Veoettevõtja nime järgi'),
                 ('CTUD_SEARCH_METHOD',       'VehicleRegistration',       'Sõiduki registreerimisnumbri järgi'),
+                ('CTUD_SEARCH_METHOD',       'Local',                     'Siseriikliku andmestiku järgi'),
                 -- COMMUNITY_LICENCE_STATUS (globalCommunityLicenceStatusType)
                 ('COMMUNITY_LICENCE_STATUS', 'Active',                    'Kehtiv'),
                 ('COMMUNITY_LICENCE_STATUS', 'Suspended',                 'Peatatud'),
@@ -89,15 +94,23 @@ BEGIN
                 ('COMMUNITY_LICENCE_STATUS', 'LostOrStolen',              'Kaotatud või varastatud'),
                 ('COMMUNITY_LICENCE_STATUS', 'Annulled',                  'Tühistatud'),
                 ('COMMUNITY_LICENCE_STATUS', 'Returned',                  'Tagastatud'),
-                -- COMMUNITY_LICENCE_TYPE (globalCommunityLicenceType, 3.5 compact codes)
+                -- COMMUNITY_LICENCE_TYPE (globalCommunityLicenceType). Compact codes per the LJVIS2-144
+                -- task example ("CommunityLicenceGoods"), which differs from the real ERRU 3.5 XSD's
+                -- long literal strings ("Community licence for goods transport") — kept as the task's
+                -- own contract, not silently switched to the XSD spelling; see .ai/erru-full-plan.md
+                -- §"Открытые вопросы" for this task-vs-spec discrepancy. The 5th value below (light
+                -- goods vehicles ≤3.5t) was added in ERRU 3.1 and is genuinely missing until now.
                 ('COMMUNITY_LICENCE_TYPE',   'CommunityLicencePassenger', 'Ühenduse tegevusluba sõitjate veoks'),
                 ('COMMUNITY_LICENCE_TYPE',   'NationalLicencePassenger',  'Riigisisene tegevusluba sõitjate veoks'),
                 ('COMMUNITY_LICENCE_TYPE',   'CommunityLicenceGoods',     'Ühenduse tegevusluba veose veoks'),
+                ('COMMUNITY_LICENCE_TYPE',   'CommunityLicenceGoodsLight','Ühenduse tegevusluba veose veoks (kuni 3,5t sõidukid)'),
                 ('COMMUNITY_LICENCE_TYPE',   'NationalLicenceGoods',      'Riigisisene tegevusluba veose veoks'),
-                -- RISK_BAND
-                ('RISK_BAND',                'Green',                     'Roheline'),
-                ('RISK_BAND',                'Yellow',                    'Kollane'),
+                -- RISK_BAND (globalRiskBandType, real ERRU 3.5 XSD: Red/Amber/Green/Grey). Corrected
+                -- from the earlier guess 'Yellow', which is not a valid ERRU wire value — confirmed
+                -- also by MOVEHUB's own simulated test data (ErruTestData.xml) using 'Amber'.
                 ('RISK_BAND',                'Red',                       'Punane'),
+                ('RISK_BAND',                'Amber',                     'Kollakas'),
+                ('RISK_BAND',                'Green',                     'Roheline'),
                 ('RISK_BAND',                'Grey',                      'Hall'),
                 -- COMPETENT_AUTHORITY (ERRU wire codes)
                 ('COMPETENT_AUTHORITY',      'EE-PPA',                    'Politsei- ja Piirivalveamet'),

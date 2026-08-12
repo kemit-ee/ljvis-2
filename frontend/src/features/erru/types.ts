@@ -146,3 +146,124 @@ export function isCtudEditable(r: Pick<CtudRequest, 'status' | 'direction'>): bo
 export function isCtudSendable(r: Pick<CtudRequest, 'status' | 'direction'>): boolean {
   return r.direction === 'outgoing' && (r.status === 'initiated' || r.status === 'error');
 }
+
+/**
+ * ERRU CGR (Check Good Repute / Mainepäring) types.
+ *
+ * Mirrors erru.cgr_request. Vorm stage (LJVIS2-138) only for now — send (-139) and list
+ * (-140) land in later stages; CgrStatus therefore only has the values reachable without
+ * sending. cgrTo can be a real country or the broadcast marker 'ZZ' ("Kõik riigid" — not
+ * part of the COUNTRY classifier, rendered as a special case, see useCgrForm.ts).
+ */
+export type CgrDirection = 'outgoing' | 'incoming';
+
+export type CgrStatus = 'initiated' | 'sent' | 'received' | 'answered' | 'error';
+
+export interface CgrMemberStateTransportManagerDetails {
+  respondingAuthority?: string | null;
+  searchMethod?: string | null;
+  nameDetails?: {
+    familyName?: string | null;
+    firstName?: string | null;
+    dateOfBirth?: string | null;
+    placeOfBirth?: string | null;
+  } | null;
+  addressDetails?: {
+    address?: string | null;
+    postCode?: string | null;
+    city?: string | null;
+    country?: string | null;
+  } | null;
+  certificateDetails?: {
+    certificateNumber?: string | null;
+    certificateIssueDate?: string | null;
+    certificateIssueCountry?: string | null;
+    certificateValidity?: string | null;
+    fitness?: {
+      fitnessStatus?: string | null;
+      unfitStartDate?: string | null;
+      unfitEndDate?: string | null;
+    } | null;
+  } | null;
+  transportUndertakings?: {
+    totalManagedUndertakings?: number | null;
+    totalManagedVehicles?: number | null;
+    undertaking?: Array<{
+      transportUndertakingName?: string | null;
+      communityLicenceNumber?: string | null;
+      communityLicenceStatus?: string | null;
+      numberOfVehicles?: number | null;
+      address?: {
+        address?: string | null;
+        postCode?: string | null;
+        city?: string | null;
+        country?: string | null;
+      } | null;
+    }> | null;
+  } | null;
+}
+
+export interface CgrMemberState {
+  memberStateCode: string;
+  statusCode: 'Found' | 'NotFound' | 'Timeout' | 'NotAvailable';
+  statusMessage?: string | null;
+  transportManagerDetails?: CgrMemberStateTransportManagerDetails | null;
+}
+
+export interface CgrRequest {
+  id: string;
+  version: number;
+  direction: CgrDirection;
+  status: CgrStatus;
+  businessCaseId: string;
+  technicalId: string | null;
+  workflowId: string | null;
+  sentAt: string | null;
+  cgrFrom: string | null;
+  cgrTo: string | null;
+  originatingAuthority: string | null;
+  requestSource: string | null;
+  requestPurpose: string | null;
+  tmFirstName: string | null;
+  tmFamilyName: string | null;
+  tmDateOfBirth: string | null;
+  tmPlaceOfBirth: string | null;
+  tmFirstNameSearchKey: string | null;
+  tmFamilyNameSearchKey: string | null;
+  certificateNumber: string | null;
+  certificateIssueDate: string | null;
+  certificateIssueCountry: string | null;
+  memberStates: CgrMemberState[] | null;
+  handlerPersonalCode: string | null;
+  handlerName: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+  createdBy: string;
+}
+
+/** Editable fields of an outgoing CGR draft (7A name block and/or 7B certificate block). */
+export interface CgrRequestWrite {
+  cgrTo: string;
+  originatingAuthority: string;
+  requestSource: string;
+  requestPurpose: string;
+  tmFirstName: string;
+  tmFamilyName: string;
+  tmDateOfBirth: string;
+  tmPlaceOfBirth: string;
+  certificateNumber: string;
+  certificateIssueDate: string;
+  certificateIssueCountry: string;
+}
+
+export interface CgrSaveResult {
+  id: number;
+  businessCaseId: string;
+  version: number;
+  status: CgrStatus;
+}
+
+/** A CGR draft is editable only while it is an outgoing draft, same rule as CTUD. */
+export function isCgrEditable(r: Pick<CgrRequest, 'status' | 'direction'>): boolean {
+  return r.direction === 'outgoing' && r.status === 'initiated';
+}

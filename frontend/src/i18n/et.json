@@ -1361,6 +1361,45 @@
         "draft_not_created": "Mustandi salvestamine ebaõnnestus",
         "send_failed": "Päringu saatmine ebaõnnestus"
       }
+    },
+    "cgr": {
+      "notFound": "Mainepäringut ei leitud",
+      "form": {
+        "titleOutgoing": "Mainepäring (MS → ERRU)",
+        "titleInbound": "Mainepäring (ERRU → MS)",
+        "titleNew": "Uus mainepäring (MS → ERRU)",
+        "headerBlock": "Päringu päis ja osapooled",
+        "nameBlock": "Veokorraldusjuhi otsing (7A)",
+        "certificateBlock": "Kutsetunnistuse otsing (7B)",
+        "cgrFrom": "Taotlev liikmesriik",
+        "cgrTo": "Sihtliikmesriik",
+        "cgrToAll": "Kõik riigid (ZZ)",
+        "cgrToHint": "Kui sihtliikmesriiki ei valita, saadetakse päring kõigile liikmesriikidele.",
+        "originatingAuthority": "Taotluse esitanud pädev asutus",
+        "requestSource": "Päringu allikas",
+        "requestPurpose": "Päringu eesmärk",
+        "tmFirstName": "Eesnimi",
+        "tmFamilyName": "Perekonnanimi",
+        "tmDateOfBirth": "Sünniaeg",
+        "tmPlaceOfBirth": "Sünnikoht",
+        "certificateNumber": "Ametialase pädevuse tunnistuse number",
+        "certificateIssueDate": "Ametialase pädevuse tunnistuse väljaandmise kuupäev",
+        "certificateIssueCountry": "Ametialase pädevuse tunnistuse väljastanud riik",
+        "searchChoiceHint": "Kui puuduvad kutseoskuse tunnistuse andmed, siis veokorraldaja andmed on kohustuslikud (ja vastupidi).",
+        "copyRequest": "Kopeeri päring",
+        "readOnly": "ainult lugemiseks",
+        "version": "Versioon {{version}}"
+      },
+      "validation": {
+        "required": "Väli on kohustuslik",
+        "search_choice_required": "Täidetud peab olema veokorraldusjuhi otsing (7A) või kutsetunnistuse otsing (7B)",
+        "name_block_incomplete": "Veokorraldusjuhi otsingu väljad (eesnimi, perekonnanimi, sünniaeg) tuleb täita koos",
+        "certificate_block_incomplete": "Kutsetunnistuse otsingu väljad (number, väljaandmise kuupäev, riik) tuleb täita koos",
+        "invalid_country_code": "Riigi kood peab olema kahetäheline",
+        "max_length_exceeded": "Välja pikkus on ületatud",
+        "not_editable": "Saadetud või sissetulevat päringut ei saa muuta",
+        "draft_not_created": "Mustandi salvestamine ebaõnnestus"
+      }
     }
   },
   "search": {

@@ -85,6 +85,11 @@ newman run "$COL/erru-ctud.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/erru-ctud.html"
 
+newman run "$COL/erru-cgr.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/erru-cgr.html"
+
 newman run "$COL/technical-check-forms.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \

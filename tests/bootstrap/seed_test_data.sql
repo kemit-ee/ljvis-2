@@ -54,6 +54,9 @@ INSERT INTO users.permission (code, description, created_by) VALUES
     ('ctud.read',                        'ERRU tegevusloa kontrolli (CTUD) päringu ja selle vastuse vaatamine', 'bootstrap'),
     ('ctud.create',                      'ERRU tegevusloa kontrolli (CTUD) väljamineva päringu koostamine ja mustandi salvestamine', 'bootstrap'),
     ('ctud.send',                        'ERRU tegevusloa kontrolli (CTUD) päringu saatmine ERRU-sse', 'bootstrap'),
+    ('cgr.read',                         'ERRU mainepäringu (CGR) päringu ja liikmesriikide koondvastuse vaatamine', 'bootstrap'),
+    ('cgr.create',                       'ERRU mainepäringu (CGR) väljamineva päringu koostamine ja mustandi salvestamine, sealhulgas olemasoleva päringu kopeerimine', 'bootstrap'),
+    ('cgr.send',                         'ERRU mainepäringu (CGR) päringu saatmine ERRU-sse, sealhulgas riigipõhine uuestisaatmine', 'bootstrap'),
     ('control_form.edit_locked',         'Kinnitatud vormi X-tee andmevahetuskihi plokkide muutmine (administraator)', 'bootstrap'),
     ('compound_form.write',              'Koondvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
     ('vehicle_technical_form.write',     'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
@@ -78,7 +81,7 @@ SELECT
     'Super Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation),
-    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister', 'ctud.read','ctud.create','ctud.send']::TEXT[],
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister', 'ctud.read','ctud.create','ctud.send','cgr.read','cgr.create','cgr.send']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Super Admin Group');
 
@@ -88,7 +91,7 @@ SELECT
     'Local Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation WHERE code = 'JUM'),
-    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','ctud.read','ctud.create']::TEXT[],
+    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','ctud.read','ctud.create','cgr.read','cgr.create']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Local Admin Group');
 
@@ -127,6 +130,28 @@ SELECT
 FROM users.organisation o
 WHERE o.code = 'PPA'
   AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60001019906');
+
+-- Org Admin (60001017727 / pc_org_admin) — member of 'Local Admin Group'.
+-- Has ctud.read/create + cgr.read/create but NOT ctud.send/cgr.send — used across the
+-- ERRU Postman collections both for the negative "no send permission -> 403" case and,
+-- from the CGR collection onwards, for positive read/create assertions too.
+INSERT INTO users.user_account (
+    user_account_key, personal_code, first_name, last_name,
+    organisation_id, organisation_name, structural_unit, job_title,
+    email, phone, access_start, status, user_groups, created_by
+)
+SELECT
+    nextval('users.seq_user_account_key'),
+    '60001017727', 'Org', 'Admin',
+    o.id, o.name, 'JUM', 'Spetsialist',
+    'org.admin@ljvis.test', '55500003', '2024-01-01', 'active',
+    (SELECT ARRAY[ug.user_group_key]
+     FROM users.user_group ug WHERE ug.name = 'Local Admin Group'
+     ORDER BY ug.created_at DESC LIMIT 1),
+    'bootstrap'
+FROM users.organisation o
+WHERE o.code = 'JUM'
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60001017727');
 
 -- Regular officer (no control_form.edit_locked) — see 'Officer Group' above.
 -- NOTE: personal code is intentionally NOT '60001017869' (pc_user) — that
