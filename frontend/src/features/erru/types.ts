@@ -435,3 +435,39 @@ export interface RsiSaveResult {
 export function isRsiEditable(r: Pick<RsiMessage, 'status' | 'direction'>): boolean {
   return r.direction === 'outgoing' && r.status === 'initiated';
 }
+
+/**
+ * RSI message list item (LJVIS2-149) — one row per message (latest snapshot).
+ * Unlike CGR, shows BOTH incoming and outgoing; direction is a column, not a filter hard-code.
+ * responseStatusCode is a direct column from the latest snapshot (no broadcast ZZ derivation).
+ */
+export interface RsiMessageListItem {
+  id: string;
+  version: number;
+  direction: RsiDirection;
+  status: RsiStatus;
+  businessCaseId: string;
+  sentAt: string | null;
+  rsiFrom: string | null;
+  rsiTo: string | null;
+  vehicleRegistrationNumber: string | null;
+  responseStatusCode: RsiResponseStatusCode | null;
+  handlerName: string | null;
+}
+
+/**
+ * Filters of the RSI message list. All optional.
+ * businessCaseId and vehicleRegistrationNumber are OR-combined with each other;
+ * all other filters are AND-combined (spec: "VÕI-loogika nende vahel, JA-loogika ülejäänutega").
+ */
+export interface RsiListFilters {
+  businessCaseId?: string;
+  vehicleRegistrationNumber?: string;
+  sentFrom?: string;
+  sentUntil?: string;
+  rsiFrom?: string;
+  rsiTo?: string;
+  status?: string;
+  direction?: string;
+  handlerPersonalCode?: string;
+}

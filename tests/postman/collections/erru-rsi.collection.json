@@ -2783,6 +2783,470 @@
           }
         }
       ]
+    },
+    {
+      "name": "[List] 403 without rsi.read",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 without rsi.read', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Basic list — returns {content, total}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('has content array', () => pm.expect(b).to.have.property('content').that.is.an('array'));",
+              "pm.test('has total', () => pm.expect(b).to.have.property('total').that.is.a('number'));",
+              "pm.test('total >= 0', () => pm.expect(b.total).to.be.at.least(0));",
+              "pm.environment.set('rsi_list_total', b.total);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Filter direction=outgoing — subset of total",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?direction=outgoing",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "direction",
+              "value": "outgoing"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('all rows are outgoing', () => {",
+              "  b.content.forEach(r => pm.expect(r.direction).to.eql('outgoing'));",
+              "});",
+              "pm.environment.set('rsi_list_outgoing_total', b.total);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Filter direction=incoming — complements outgoing",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?direction=incoming",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "direction",
+              "value": "incoming"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('all rows are incoming', () => {",
+              "  b.content.forEach(r => pm.expect(r.direction).to.eql('incoming'));",
+              "});",
+              "var outgoing = parseInt(pm.environment.get('rsi_list_outgoing_total') || '0', 10);",
+              "var incoming = b.total;",
+              "var total = parseInt(pm.environment.get('rsi_list_total') || '0', 10);",
+              "pm.test('outgoing + incoming = total', () => pm.expect(outgoing + incoming).to.eql(total));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Filter by businessCaseId — finds the sent record",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?businessCaseId={{rsi_send_bci}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "{{rsi_send_bci}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('exactly 1 result', () => pm.expect(b.total).to.eql(1));",
+              "pm.test('businessCaseId matches', () => pm.expect(b.content[0].businessCaseId).to.include(pm.environment.get('rsi_send_bci')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Filter by vehicleRegistrationNumber — finds the record",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?vehicleRegistrationNumber=LV-TEST-SEND",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "vehicleRegistrationNumber",
+              "value": "LV-TEST-SEND"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('at least 1 result', () => pm.expect(b.total).to.be.at.least(1));",
+              "pm.test('vehicleRegistrationNumber matches', () => {",
+              "  b.content.forEach(r => pm.expect(r.vehicleRegistrationNumber).to.include('LV-TEST-SEND'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] OR: businessCaseId + vehicleRegistrationNumber — union of both",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?businessCaseId={{rsi_send_bci}}&vehicleRegistrationNumber=EE-MOCK-OK",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "{{rsi_send_bci}}"
+            },
+            {
+              "key": "vehicleRegistrationNumber",
+              "value": "EE-MOCK-OK"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('OR gives at least 2 results', () => pm.expect(b.total).to.be.at.least(2));",
+              "var ids = b.content.map(r => r.businessCaseId);",
+              "var vehNrs = b.content.map(r => r.vehicleRegistrationNumber);",
+              "var hasBci = ids.some(id => id && id.includes(pm.environment.get('rsi_send_bci') || ''));",
+              "var hasVeh = vehNrs.some(v => v && v.includes('EE-MOCK-OK'));",
+              "pm.test('contains row matching businessCaseId', () => pm.expect(hasBci).to.be.true);",
+              "pm.test('contains row matching vehicleRegistrationNumber', () => pm.expect(hasVeh).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] AND: vehicleRegistrationNumber + status=sent narrows result",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?vehicleRegistrationNumber=LV-TEST-SEND&status=sent",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "vehicleRegistrationNumber",
+              "value": "LV-TEST-SEND"
+            },
+            {
+              "key": "status",
+              "value": "sent"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('all rows are sent', () => {",
+              "  b.content.forEach(r => pm.expect(r.status).to.eql('sent'));",
+              "});",
+              "pm.test('all rows match vehicleRegistrationNumber', () => {",
+              "  b.content.forEach(r => pm.expect(r.vehicleRegistrationNumber).to.include('LV-TEST-SEND'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Responded record shows responseStatusCode",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?businessCaseId={{rsi_send_bci}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "{{rsi_send_bci}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('exactly 1 result', () => pm.expect(b.total).to.eql(1));",
+              "var row = b.content[0];",
+              "pm.test('status is responded', () => pm.expect(row.status).to.eql('responded'));",
+              "pm.test('responseStatusCode is OK', () => pm.expect(row.responseStatusCode).to.eql('OK'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Non-matching filter → 0 results",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?businessCaseId=EE-RSI-9999-DOES-NOT-EXIST",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "EE-RSI-9999-DOES-NOT-EXIST"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('total = 0', () => pm.expect(b.total).to.eql(0));",
+              "pm.test('content is empty array', () => pm.expect(b.content).to.eql([]));"
+            ]
+          }
+        }
+      ]
     }
   ],
   "description": ""

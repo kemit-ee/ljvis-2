@@ -28,6 +28,7 @@ export const PERMISSIONS = {
   AUDIT_READ: 'audit.read',
   CTUD_READ: 'ctud.read',
   CGR_READ: 'cgr.read',
+  RSI_READ: 'rsi.read',
 } as const;
 
 export const FORM_READ_PERMISSIONS: string[] = [

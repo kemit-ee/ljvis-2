@@ -280,7 +280,8 @@
     "erru": "ERRU",
     "ctud": "Tegevusloa kontrolli päringud",
     "cgr": "Mainepäringud",
-    "search": "Otsing"
+    "search": "Otsing",
+    "rsi": "RSI teated"
   },
   "desktop": {
     "title": "Töölaud",
@@ -1254,8 +1255,7 @@
     "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?",
     "download": "Laadi alla",
     "clear": "Tühista filtrid",
-    "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
-    "download": "Laadi alla"
+    "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?"
   },
   "xroad": {
     "companyPicker": {
@@ -1500,6 +1500,20 @@
         "address_incomplete": "Aadress, linn, riik ja sihtnumber tuleb täita koos",
         "not_editable": "Saadetud või sissetulevat teadet ei saa muuta",
         "draft_not_created": "Mustandi salvestamine ebaõnnestus"
+      },
+      "list": {
+        "title": "RSI teated",
+        "newMessage": "Uus tehnokontrolli teade",
+        "id": "Teate number",
+        "sentAt": "Saadetud",
+        "rsiFrom": "Saatnud riik",
+        "rsiTo": "Saadetud riik",
+        "vehicleRegistrationNumber": "Sõiduki reg.nr",
+        "status": "Staatus",
+        "handler": "Kasutaja",
+        "direction": "Suund",
+        "directionOutgoing": "Väljaminev",
+        "directionIncoming": "Sissetulev"
       }
     }
   },

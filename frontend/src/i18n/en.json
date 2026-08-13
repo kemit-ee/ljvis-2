@@ -952,7 +952,8 @@
     "erru": "ERRU",
     "ctud": "Transport undertaking data requests",
     "cgr": "Check good repute requests",
-    "search": "Search"
+    "search": "Search",
+    "rsi": "RSI messages"
   },
   "users": {
     "title": "Users",
@@ -1399,6 +1400,20 @@
         "address_incomplete": "Address, city, country and post code must be filled in together",
         "not_editable": "A sent or inbound message cannot be edited",
         "draft_not_created": "Saving the draft failed"
+      },
+      "list": {
+        "title": "RSI messages",
+        "newMessage": "New roadside inspection message",
+        "id": "Message ID",
+        "sentAt": "Sent",
+        "rsiFrom": "Sending country",
+        "rsiTo": "Destination country",
+        "vehicleRegistrationNumber": "Vehicle reg.nr",
+        "status": "Status",
+        "handler": "User",
+        "direction": "Direction",
+        "directionOutgoing": "Outgoing",
+        "directionIncoming": "Incoming"
       }
     },
     "search": {

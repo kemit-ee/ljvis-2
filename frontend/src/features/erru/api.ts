@@ -11,7 +11,9 @@ import type {
   CtudRequestListItem,
   CtudRequestWrite,
   CtudSaveResult,
+  RsiListFilters,
   RsiMessage,
+  RsiMessageListItem,
   RsiMessageWrite,
   RsiSaveResult,
 } from './types';
@@ -134,6 +136,26 @@ export function listCgrRequests(
  * (branches internally on presence of id, mirroring the control-forms save pattern) —
  * see POST/v1/erru/rsi/request/save.yml. No PUT here.
  */
+
+/**
+ * RSI message list (LJVIS2-149) — both incoming and outgoing.
+ * businessCaseId and vehicleRegistrationNumber are OR-combined (server-side); all other
+ * filters are AND-combined. Default sort is sent_at desc (newest first).
+ */
+export function listRsiMessages(
+  params: ListParams,
+  filters: RsiListFilters = {},
+): Promise<PagedResponse<RsiMessageListItem>> {
+  const query: Record<string, string> = {
+    page: params.page,
+    pageSize: params.pageSize,
+    sorting: params.sorting,
+  };
+  Object.entries(filters).forEach(([k, v]) => {
+    if (v) query[k] = v;
+  });
+  return get<PagedResponse<RsiMessageListItem>>('/v1/erru/rsi/search', query);
+}
 
 /** Get one RSI message — always the latest snapshot. */
 export function getRsiMessage(id: string): Promise<RsiMessage> {

@@ -31,6 +31,7 @@ import { CtudFormPage } from './features/erru/pages/ctud/CtudFormPage';
 import { CgrListPage } from './features/erru/pages/cgr/CgrListPage';
 import { CgrFormCreatePage } from './features/erru/pages/cgr/CgrFormCreatePage';
 import { CgrFormPage } from './features/erru/pages/cgr/CgrFormPage';
+import { RsiListPage } from './features/erru/pages/rsi/RsiListPage';
 import { RsiFormCreatePage } from './features/erru/pages/rsi/RsiFormCreatePage';
 import { RsiFormPage } from './features/erru/pages/rsi/RsiFormPage';
 import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
@@ -147,9 +148,8 @@ function AppRoutes() {
           <Route path="/erru/cgr" element={<CgrListPage />} />
           <Route path="/erru/cgr/new" element={<CgrFormCreatePage />} />
           <Route path="/erru/cgr/:id" element={<CgrFormPage />} />
-          {/* ERRU — RSI (tehnokontrolli teade). Vorm stage only (LJVIS2-147) —
-              list (LJVIS2-149) not wired yet, so these routes are reachable only
-              by direct URL until then. */}
+          {/* ERRU — RSI (tehnokontrolli teade) — list (LJVIS2-149) + form (LJVIS2-147/-148). */}
+          <Route path="/erru/rsi" element={<RsiListPage />} />
           <Route path="/erru/rsi/new" element={<RsiFormCreatePage />} />
           <Route path="/erru/rsi/:id" element={<RsiFormPage />} />
           <Route
