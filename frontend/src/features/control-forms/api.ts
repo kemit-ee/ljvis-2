@@ -310,7 +310,7 @@ export const listAdrFormsByCompoundFormKey = (compoundFormKey: number) =>
   get<AdrFormListItem[]>(
     `/v1/control-forms/adr-form/get-by-compound-form-key`,
     { compoundFormKey: String(compoundFormKey) },
-  );
+  ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const getAdrFormSnapshot = (id: string, formKey: string) =>
   get<AdrForm>(`/v1/control-forms/adr-form/get-snapshot`, { id, formKey });

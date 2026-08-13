@@ -346,12 +346,7 @@ export function CompoundFormPage() {
     triggerSaveAsSaved();
   };
 
-  const ALL_FORM_TABS_WITH_ADR = [
-    ...ALL_FORM_TABS,
-    { tabId: 'tab-adr' as const, labelKey: 'forms.adr.title' },
-  ];
-
-  const addableTabs = ALL_FORM_TABS_WITH_ADR.filter((tab) => !openTabs.includes(tab.tabId));
+  const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
   const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr') =>
     addTab(tabId, { driver, teammate, vehicle, trailer, adr, setOpenTabs, setActiveTab });
