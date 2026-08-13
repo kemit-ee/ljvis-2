@@ -10,7 +10,7 @@ Süsteemi sisenemiseks kasutatakse Eesti autentimisteenust TARA. Sisselogimisleh
    - **Ametnikule** — transpordiametnikule.
 3. Teid suunatakse TARA autentimiskeskkonda.
 4. Sisestage isikukood ja autentige end (Smart-ID, Mobiil-ID või ID-kaart).
-5. Pärase edukat autentimist suunatakse Teid tagasi LJVIS2 töölauale.
+5. Pärast edukat autentimist suunatakse Teid tagasi LJVIS2 töölauale.
 
 ```mermaid
 sequenceDiagram

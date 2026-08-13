@@ -37,7 +37,7 @@ Otsinguparameetrid saadetakse HTTP GET päringuga lõpp-punkti `/v1/users/{scope
 
 ## 4. Uue kasutaja loomine
 
-Uue kasutaja lisamiseks ava kasutajate nimekirja lehel nupp **Lisa kasutaja** (või mine otse aadressile `/users/new`). Avaanex lehele `UserCreatePage`. Järgmised väljad on kohustuslikud (tärniga tähistatud):
+Uue kasutaja lisamiseks ava kasutajate nimekirja lehel nupp **Lisa kasutaja** (või mine otse aadressile `/users/new`). Avaneb leht `UserCreatePage`. Järgmised väljad on kohustuslikud (tärniga tähistatud):
 
 - **Eesnimi** (`firstName`) — kuni 200 tähemärki.
 - **Perekonnanimi** (`lastName`) — kuni 200 tähemärki.
@@ -54,7 +54,7 @@ Pärast vajalike väljade täitmist vajuta **Salvesta**. Kui kõik andmed on kor
 
 ## 5. Kasutaja muutmine
 
-Olemasoleva kasutaja muutmiseks klõpsa kasutajate nimekirjas soovitud kasutaja real. Avaanex detailvaates (`/users/{id}`) kuvatakse kasutaja põhiandmed ja grupiliikmelisused.
+Olemasoleva kasutaja muutmiseks klõpsa kasutajate nimekirjas soovitud kasutaja real. Avanevas detailvaates (`/users/{id}`) kuvatakse kasutaja põhiandmed ja grupiliikmelisused.
 
 Muutmiseks:
 

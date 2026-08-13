@@ -68,7 +68,7 @@ Otsinguparameetrid saadetakse HTTP GET päringuga lõpp-punkti `/v1/users/{scope
 
 ## 4. Uue kasutaja loomine
 
-Uue kasutaja lisamiseks ava kasutajate nimekirja lehel nupp **Lisa kasutaja** (või mine otse aadressile `/users/new`). Avaanex lehele `UserCreatePage`. Järgmised väljad on kohustuslikud (tärniga tähistatud):
+Uue kasutaja lisamiseks ava kasutajate nimekirja lehel nupp **Lisa kasutaja** (või mine otse aadressile `/users/new`). Avaneb leht `UserCreatePage`. Järgmised väljad on kohustuslikud (tärniga tähistatud):
 
 - **Eesnimi** (`firstName`) — kuni 200 tähemärki.
 - **Perekonnanimi** (`lastName`) — kuni 200 tähemärki.
@@ -85,7 +85,7 @@ Pärast vajalike väljade täitmist vajuta **Salvesta**. Kui kõik andmed on kor
 
 ## 5. Kasutaja muutmine
 
-Olemasoleva kasutaja muutmiseks klõpsa kasutajate nimekirjas soovitud kasutaja real. Avaanex detailvaates (`/users/{id}`) kuvatakse kasutaja põhiandmed ja grupiliikmelisused.
+Olemasoleva kasutaja muutmiseks klõpsa kasutajate nimekirjas soovitud kasutaja real. Avanevas detailvaates (`/users/{id}`) kuvatakse kasutaja põhiandmed ja grupiliikmelisused.
 
 Muutmiseks:
 
@@ -796,7 +796,7 @@ curl -X GET "https://<base-url>/v1/logs/verify?from=01JAB2C3D4E5F6G7H8J9K0M1N2" 
 
 ## Manuste haldus ja S3 hoiustamine
 
-Selles jaos kirjeldatakse, kuidas vormidega seotud failid tehniliselt töölevad, millised on piirangud ning kuidas neid ajalooliselt jälgida.
+Selles jaos kirjeldatakse, kuidas vormidega seotud failid tehniliselt töötavad, millised on piirangud ning kuidas nende ajalugu jälgida.
 
 ## Lubatud failiformaadid ja suurused
 
@@ -814,7 +814,7 @@ const MAX_SIZE_MB = 10;
 | `.png` | `image/png` |
 | `.tiff` | `image/tiff` |
 
-S3 proxy konfiguratsioonis (`docker-compose.yml`) on vaikimisi lubatud MIME-tüübid laiemad:
+S3-puhverserveri seadistuses (`docker-compose.yml`) on vaikimisi lubatud MIME-tüüpide loend laiem:
 
 - `application/pdf`
 - `image/jpeg`
@@ -844,9 +844,9 @@ flowchart LR
     A[Vormivaade] --> B[Failid plokk]
     B --> C[Vali fail]
     C --> D[UploadFormFile API]
-    D --> E[Salvesta DB kirje]
+    D --> E[Salvesta andmebaasikirje]
     E --> F[Kuva loendis]
-    F --> G[Allalaadimine presigned URLiga]
+    F --> G[Allalaadimine eelsigneeritud lingi abil]
 ```
 
 ## Tehniline hoiustamine
@@ -894,11 +894,11 @@ Iga üleslaadimise ja kustutamise tegevus jääb kirja tabelisse `forms.form_att
 - kes faili üles laadis või kustutas
 - millised failid on aktiivsed ja millised kustutatud
 
-Kui sama nimega fail uuesti üles laetakse, luuakse uus andmebaasi kirje, kuid S3 võti jääb samaks. Seega näitab `forms.form_attachment` üleslaadimiste ajalugu, kuid mitte alati iga versiooni sisu (kui S3 versioning ei ole lubatud).
+Kui sama nimega fail uuesti üles laetakse, luuakse uus andmebaasi kirje, kuid S3 võti jääb samaks. Seega näitab `forms.form_attachment` üleslaadimiste ajalugu, kuid mitte alati iga versiooni sisu (kui S3 versioonihaldus ei ole lubatud).
 
-### S3 versioning
+### S3 versioonihaldus
 
-Kui S3 bucketis on lubatud **S3 versioning**, salvestatakse sama võtme all ka varasemad versioonid. See võimaldab administraatoril taastada või vaadata vanemaid faile otse S3 konsooli või AWS CLI kaudu.
+Kui S3-hoidlas on lubatud **S3 versioonihaldus**, salvestatakse sama võtme all ka varasemad versioonid. See võimaldab administraatoril taastada või vaadata vanemaid faile otse S3 konsooli või AWS CLI kaudu.
 
 Näide S3 CLI-ga vanemate versioonide vaatamiseks:
 
@@ -943,7 +943,7 @@ Iga sündmus sisaldab faili nime, vormi numbrit, `s3_key`-d ja tegija andmeid.
 |---|---|---|
 | POST | `/v1/<form-type>/files/upload` | Lisa uus manus |
 | GET/POST | `/v1/<form-type>/files/list` | Loetle aktiivsed manused |
-| GET/POST | `/v1/<form-type>/files/download` | Hangi presigned allalaadimise URL |
+| GET/POST | `/v1/<form-type>/files/download` | Hangi eelsigneeritud allalaadimislink |
 | POST/DELETE | `/v1/<form-type>/files/delete` | Märgista manus kustutatuks |
 
 Täpsemad autentimise, parameetrite ja `curl` näidised on dokumendis [`07-api-info.md`](./07-api-info.md).
