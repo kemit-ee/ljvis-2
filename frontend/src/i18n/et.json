@@ -279,6 +279,7 @@
     "logs": "Logid",
     "erru": "ERRU",
     "ctud": "Tegevusloa kontrolli päringud",
+    "cgr": "Mainepäringud",
     "search": "Otsing"
   },
   "desktop": {
@@ -1364,6 +1365,21 @@
     },
     "cgr": {
       "notFound": "Mainepäringut ei leitud",
+      "list": {
+        "title": "CGR mainepäringud",
+        "newRequest": "Uus mainepäring",
+        "id": "Päringu number",
+        "sentAt": "Saadetud",
+        "tmFirstName": "Eesnimi",
+        "tmFamilyName": "Perekonnanimi",
+        "cgrTo": "Sihtriik",
+        "status": "Staatus",
+        "handler": "Kasutaja"
+      },
+      "filters": {
+        "sentFrom": "Saadetud alates",
+        "sentUntil": "Saadetud kuni"
+      },
       "form": {
         "titleOutgoing": "Mainepäring (MS → ERRU)",
         "titleInbound": "Mainepäring (ERRU → MS)",

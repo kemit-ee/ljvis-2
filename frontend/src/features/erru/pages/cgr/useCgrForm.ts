@@ -45,8 +45,10 @@ export function useCgrForm(
     requestPurpose: Yup.string().required(required),
     tmFirstName: Yup.string().max(100, t(`${T}.max_length_exceeded`)),
     tmFamilyName: Yup.string().max(100, t(`${T}.max_length_exceeded`)),
+    tmDateOfBirth: Yup.string(),
     tmPlaceOfBirth: Yup.string().max(200, t(`${T}.max_length_exceeded`)),
     certificateNumber: Yup.string().max(100, t(`${T}.max_length_exceeded`)),
+    certificateIssueDate: Yup.string(),
     certificateIssueCountry: Yup.string().test(
       'valid-country-code',
       t(`${T}.invalid_country_code`),

@@ -111,9 +111,12 @@ via API, with no shared state between collections.
 ```
 tests/postman/
 ├── collections/
+│   ├── adr-form.collection.json
 │   ├── classifiers.collection.json
+│   ├── erru-cgr.collection.json
 │   ├── erru-ctud.collection.json
 │   ├── form-search.collection.json
+│   ├── good-repute-form.collection.json
 │   ├── labour-inspection.collection.json
 │   ├── organisations.collection.json
 │   ├── permissions.collection.json
@@ -123,23 +126,24 @@ tests/postman/
 │   └── user-groups.collection.json
 ├── ci-stack-environment.json
 ├── dev-stack-environment.json
-└── run-all.sh
+├── run-all.sh
+└── run-all.bat
 ```
 
 `run-all.sh` (Linux/Mac) or `run-all.bat` (Windows) run them in order. To add a new feature, create a new
-`<feature>.collection.json` in `collections/` and add it to `run-all.sh` (Linux/Mac) and `run-all.bat` (Windows).
+`<feature>.collection.json` in `collections/` and add it to both `run-all.sh` and `run-all.bat`.
 
 | Collection | What it covers |
 |---|---|
 | **classifiers** | List (search/pagination), get (403/success), get-values (403/success with status), edit/update (403/422/200), values/insert (403/200), values/update (403/200) |
-| **erru-ctud** | Create draft (403 without `ctud.create`, 422 validation matrix: min-two-of-three search criteria / `unknown` name / missing registration country / missing or 1-char target country / missing source+purpose / max length, 200 create with `version=1` and generated `CTUD-EE-AAAA-NNNNN`), get (403/404/200 with upper-cased text and `ctudFrom=EE`), revise (200 `version=2` with unchanged `businessCaseId`, 422 missing id, 422 `not_editable` once sent), list (403, `{content,total}`, one row per request not per snapshot, `direction` filter, OR-group name-or-licence), send (403 without `ctud.send` **and no snapshot written**, DE→`Found` with 2 licences + true copy + vehicle list, LV→`NotFound`, PL→`Timeout`, GR→`NotAvailable` — both still `responded`, not `error` — FI→transport failure `error`, retry-from-error allowed, 422 `not_sendable` on re-send, 404), inbound machine endpoint on `ruuter-internal` (Found + `Grey` risk, replay of the same `technicalId` returns the same answer and creates **no** duplicate, NotFound, `requestAllVehicles=false`, 400 `InvalidData` for each missing ERRU envelope field, 400 for fewer than two criteria and for `unknown`) |
-| **erru-cgr** | Vorm stage only (send/list not yet implemented). Create draft with 7A-only / 7B-only (200, `version=1`, `CGR-EE-AAAA-NNNNN`), 7A upper-cased on read, `cgrFrom` always EE, empty `cgrTo` defaults to broadcast `ZZ`, 422 validation matrix (`search_choice_required` when neither 7A nor 7B is complete, `name_block_incomplete`/`certificate_block_incomplete` for a partially-filled block, `required`/`invalid_country_code`), revise (200 `version=2` with `cgrTo`/name/purpose changed, unchanged `businessCaseId`, 422 missing id, 422 `not_editable` for a non-existent key), 403 without `cgr.create`/`cgr.read` **with no side effect** (draft version unchanged after a rejected revise) |
 | **labour-inspection** | Create/edit/save (403, 422 required/future-date/max-length, 200 create+version=1), get (403/404/200), re-save (200, version increments), confirm (403, 200, already_confirmed 422, violations-present 422), edit-after-confirm (422 form_locked_after_confirm), delete (403/200, deleted still readable) |
+| **erru-ctud** | CTUD outgoing requests (LJVIS2-138): draft create (200+403+422 validations), get (200/403/404), revise (403/422/200), list with filters (direction, name OR licence), send (403; DE Found/LV NotFound/PL Timeout/GR NotAvailable/FI error outcomes), resend, retry from error; inbound serving (Found/NotFound, replay dedup, 400 validations for missing fields). Creates its own data. |
+| **erru-cgr** | CGR outgoing requests (LJVIS2-139, LJVIS2-140): draft create (7A name / 7B certificate / broadcast ZZ, 422 validations), revise (403/422/200), authZ (403 per role), send (broadcast ZZ→4 countries, single DE Found, FI error→retry), resend, inbound (name/certificate Found+Fit, replay dedup, 400 validations); list (filter AND-combined, broadcast ZZ display, outgoing-only, sorting). Creates its own isolated data. |
 | **technical-check-forms** | Vehicle/trailer technical check sub-forms (LJVIS2-72): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), trailer-only exclusion of vehicle codes (422 code_not_applicable_to_trailer), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump) |
 | **transport-interruption** | Transport interruption sub-form (LJVIS2-74): edit/save (403, 422 required, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments, all 4 legalBases codes), confirm (403, 200, already_confirmed 422), UPPERCASE transform of headerText/interruptionReason/personApplications/residenceAddressLine/terminationCondition |
 | **adr-form** | ADR (ohtlik veos) sub-form (LJVIS2-141): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump), re-save after confirm still allowed |
 | **good-repute-form** | Hea maine (good repute) independent form (LJVIS2-136): edit/save (403, 422 required/future-date/conditional unfit dates + date ordering, 200 create+version=1), UPPERCASE transform of personalCode/firstName/lastName/placeOfBirth/certificateNumber, read/get (403/404/200), re-save while saved (version unchanged — no-bump rule), confirm (403, 200 version unchanged, already_confirmed 422), edit-after-confirm (422 form_locked_after_confirm) |
-| **form-search** | Cross-entity form search (LJVIS2-9): 403 without any form read permission, unfiltered search (content+total), formType filter, companyName (ILIKE) filter, date-range inclusive/exclusive, pagination (pageSize=1), sorting, and deleted-form hidden from results. Creates + deletes its own labour-inspection act. |
+| **form-search** | Cross-entity form search (LJVIS2-9): 403 without any form read permission, unfiltered search (content+total), formType filter, companyName (ILIKE) filter, date-range inclusive/exclusive, pagination (pageSize=1), sorting, deleted-form hidden from results. Creates + deletes its own labour-inspection act. |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
 | **permissions** | `GET /permissions/list` — verify seeded permissions (39), check `user_group.update`, vehicle/trailer/transport-interruption/adr/good-repute form permissions present |
 | **users** | List (admin/403), check-exists, insert (success/409/422/403), get, update, set-groups, get-groups |
@@ -150,13 +154,14 @@ tests/postman/
 | Collection | Auth roles used | Setup queries |
 |---|---|---|
 | classifiers | Super Admin, No-perm (403 tests) | classifier ID |
-| erru-ctud | Super Admin (`ctud.read`+`create`+`send`), Org Admin (`ctud.read`+`create`, **no** `ctud.send`), No-perm (403 tests) | none — creates its own requests; needs `internal_api_url` for the inbound endpoint |
-| erru-cgr | Super Admin (`cgr.read`+`create`+`send`), Org Admin (`cgr.read`+`create`, **no** `cgr.send`), No-perm (403 tests) | none — creates its own drafts |
 | labour-inspection | Super Admin, No-perm (403 tests) | none — creates its own acts |
+| erru-ctud | Super Admin (ctud.read+create+send), Org Admin (no send), No-perm (403 tests) | none — creates its own drafts |
+| erru-cgr | Super Admin (cgr.read+create+send), Org Admin (no send), No-perm (403 tests) | none — creates its own drafts |
 | technical-check-forms | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-forms |
 | transport-interruption | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-form |
 | adr-form | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-form |
 | good-repute-form | Super Admin, No-perm (403 tests) | none — creates its own independent forms |
+| form-search | Super Admin, No-perm (403 tests) | none — creates and deletes its own labour-inspection act |
 | organisations | Super Admin | — |
 | permissions | Super Admin | — |
 | users | Super Admin, No-perm (403 tests) | org ID, group ID |
@@ -210,9 +215,7 @@ Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`)
 
 1. Create `tests/postman/collections/<feature>.collection.json`.
 2. Start with `[Auth]` login requests and `[Setup]` queries to resolve IDs.
-3. Add the collection to `tests/postman/run-all.sh` **and** `run-all.bat`.
-4. If the feature has an endpoint on `ruuter-internal`, target it with `{{internal_api_url}}`
-   (CI `http://localhost:9089`, dev `http://localhost:8089`) rather than `{{api_url}}`.
+3. Add the collection to `tests/postman/run-all.sh`.
 
 See `.skills/generate-functional-tests/SKILL.md` for the full guide on
 conventions, test case taxonomy, and JSON structure reference.

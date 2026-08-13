@@ -1,7 +1,9 @@
 import { get, post, put } from '../../shared/api/client';
 import type { ListParams, PagedResponse } from '../../hooks/usePaginatedList';
 import type {
+  CgrListFilters,
   CgrRequest,
+  CgrRequestListItem,
   CgrRequestWrite,
   CgrSaveResult,
   CtudListFilters,
@@ -97,4 +99,26 @@ export function updateCgrRequest(
   body: CgrRequestWrite,
 ): Promise<CgrSaveResult> {
   return put<CgrSaveResult>('/v1/erru/cgr/draft/revise', { id, ...body });
+}
+
+/**
+ * List CGR requests (LJVIS2-140) — OUTGOING ONLY per the task specification; direction
+ * is not a filter here (contrast with listCtudRequests). All filters are optional and
+ * AND-combined, including tmFirstName/tmFamilyName (separate fields, server-side).
+ * `search` from usePaginatedList is mapped onto businessCaseId.
+ */
+export function listCgrRequests(
+  params: ListParams,
+  filters: CgrListFilters = {},
+): Promise<PagedResponse<CgrRequestListItem>> {
+  const query: Record<string, string> = {
+    page: params.page,
+    pageSize: params.pageSize,
+    sorting: params.sorting,
+  };
+  if (params.search) query.businessCaseId = params.search;
+  Object.entries(filters).forEach(([k, v]) => {
+    if (v) query[k] = v;
+  });
+  return get<PagedResponse<CgrRequestListItem>>('/v1/erru/cgr/search', query);
 }

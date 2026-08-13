@@ -98,6 +98,15 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.CGR_READ)) {
+      items.push({
+        children: t('nav.cgr'),
+        icon: 'fact_check',
+        to: '/erru/cgr',
+        isActive: pathname.startsWith('/erru/cgr'),
+      });
+    }
+
     if (hasPermission(PERMISSIONS.AUDIT_READ)) {
       adminSubItems.push({
         children: t('nav.logs'),

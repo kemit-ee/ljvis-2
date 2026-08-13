@@ -150,10 +150,9 @@ export function isCtudSendable(r: Pick<CtudRequest, 'status' | 'direction'>): bo
 /**
  * ERRU CGR (Check Good Repute / Mainepäring) types.
  *
- * Mirrors erru.cgr_request. Vorm stage (LJVIS2-138) only for now — send (-139) and list
- * (-140) land in later stages; CgrStatus therefore only has the values reachable without
- * sending. cgrTo can be a real country or the broadcast marker 'ZZ' ("Kõik riigid" — not
- * part of the COUNTRY classifier, rendered as a special case, see useCgrForm.ts).
+ * Mirrors erru.cgr_request. cgrTo can be a real country or the broadcast marker 'ZZ'
+ * ("Kõik riigid" — not part of the COUNTRY classifier, rendered as a special case, see
+ * useCgrForm.ts / CgrListPage.tsx).
  */
 export type CgrDirection = 'outgoing' | 'incoming';
 
@@ -266,4 +265,37 @@ export interface CgrSaveResult {
 /** A CGR draft is editable only while it is an outgoing draft, same rule as CTUD. */
 export function isCgrEditable(r: Pick<CgrRequest, 'status' | 'direction'>): boolean {
   return r.direction === 'outgoing' && r.status === 'initiated';
+}
+
+/**
+ * CGR request list row (LJVIS2-140). The list is OUTGOING ONLY per the task
+ * specification ("Eesti saadetud... väljaminevad päringud") — unlike the CTUD list,
+ * there is no direction column/filter here; search.sql hard-codes direction='outgoing'.
+ * responseStatusCode is derived server-side: populated only for a single-country send
+ * (cgrTo <> 'ZZ') with exactly one member_states entry; always null for a broadcast
+ * request — the per-country breakdown is shown only in the request detail view.
+ */
+export interface CgrRequestListItem {
+  id: string;
+  version: number;
+  status: CgrStatus;
+  businessCaseId: string;
+  sentAt: string | null;
+  tmFirstName: string | null;
+  tmFamilyName: string | null;
+  cgrTo: string | null;
+  responseStatusCode: CgrMemberState['statusCode'] | null;
+  handlerName: string | null;
+}
+
+/** Filters of the CGR request list. All optional and AND-combined (see search.sql). */
+export interface CgrListFilters {
+  businessCaseId?: string;
+  tmFirstName?: string;
+  tmFamilyName?: string;
+  sentFrom?: string;
+  sentUntil?: string;
+  cgrTo?: string;
+  status?: string;
+  handlerPersonalCode?: string;
 }

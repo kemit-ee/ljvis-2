@@ -27,6 +27,7 @@ export const PERMISSIONS = {
   CLASSIFIER_LIST: 'classifier.list',
   AUDIT_READ: 'audit.read',
   CTUD_READ: 'ctud.read',
+  CGR_READ: 'cgr.read',
 } as const;
 
 export const FORM_READ_PERMISSIONS: string[] = [

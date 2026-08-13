@@ -1529,7 +1529,8 @@
      "script": {
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-       "pm.environment.set('cgr_id_de', pm.response.json().response.id);"
+       "pm.environment.set('cgr_id_de', pm.response.json().response.id);",
+       "pm.environment.set('cgr_case_de', pm.response.json().response.businessCaseId);"
       ]
      }
     }
@@ -2297,6 +2298,482 @@
      "script": {
       "exec": [
        "pm.test('400 when originatingAuthority missing', () => pm.response.to.have.status(400));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[List] Create isolated draft for filter tests",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "draft",
+      "create"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"cgrTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Listtest\", \"tmFamilyName\": \"Filterview\", \"tmDateOfBirth\": \"1990-06-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var body = pm.response.json().response;",
+       "pm.environment.set('cgr_list_id', String(body.id));",
+       "pm.environment.set('cgr_list_case', body.businessCaseId);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[List] Returns {content,total}",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?page=1&pageSize=50",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "search"
+     ],
+     "query": [
+      {
+       "key": "page",
+       "value": "1"
+      },
+      {
+       "key": "pageSize",
+       "value": "50"
+      }
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var raw = pm.response.json();",
+       "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+       "pm.test('has content array', () => pm.expect(body.content).to.be.an('array'));",
+       "pm.test('has total', () => pm.expect(body.total).to.be.a('number'));",
+       "pm.test('one row per request (no snapshot duplicates)', () => {",
+       "  var ids = body.content.map(r => r.id);",
+       "  pm.expect(new Set(ids).size).to.eql(ids.length); });"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[AuthZ] List without cgr.read → 403",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_noperm}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/search",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "search"
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[List] Filter tmFirstName+tmFamilyName AND-combined → matches isolated draft",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?tmFirstName=Listtest&tmFamilyName=Filterview&businessCaseId={{cgr_list_case}}&pageSize=50",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "search"
+     ],
+     "query": [
+      {
+       "key": "tmFirstName",
+       "value": "Listtest"
+      },
+      {
+       "key": "tmFamilyName",
+       "value": "Filterview"
+      },
+      {
+       "key": "businessCaseId",
+       "value": "{{cgr_list_case}}"
+      },
+      {
+       "key": "pageSize",
+       "value": "50"
+      }
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var raw = pm.response.json();",
+       "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+       "pm.test('exactly one match', () => pm.expect(body.content.length).to.eql(1));",
+       "pm.test('matches the isolated draft', () => pm.expect(body.content[0].businessCaseId).to.eql(pm.environment.get('cgr_list_case')));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[List] tmFirstName matches but tmFamilyName mismatched → empty (AND, not OR)",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?tmFirstName=Listtest&tmFamilyName=NoSuchFamily&pageSize=50",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "search"
+     ],
+     "query": [
+      {
+       "key": "tmFirstName",
+       "value": "Listtest"
+      },
+      {
+       "key": "tmFamilyName",
+       "value": "NoSuchFamily"
+      },
+      {
+       "key": "pageSize",
+       "value": "50"
+      }
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var raw = pm.response.json();",
+       "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+       "pm.test('no matches — AND semantics confirmed', () => pm.expect(body.content.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[List] Broadcast request shows cgrTo=ZZ",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?businessCaseId={{cgr_send_case}}&pageSize=50",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "search"
+     ],
+     "query": [
+      {
+       "key": "businessCaseId",
+       "value": "{{cgr_send_case}}"
+      },
+      {
+       "key": "pageSize",
+       "value": "50"
+      }
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var raw = pm.response.json();",
+       "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+       "pm.test('exactly one match', () => pm.expect(body.content.length).to.eql(1));",
+       "pm.test('cgrTo is ZZ', () => pm.expect(body.content[0].cgrTo).to.eql('ZZ'));",
+       "pm.test('status is sent', () => pm.expect(body.content[0].status).to.eql('sent'));",
+       "pm.test('responseStatusCode is null for broadcast (breakdown only in detail view)', () => pm.expect(body.content[0].responseStatusCode).to.be.null);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[List] Single-country sent request shows responseStatusCode",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?businessCaseId={{cgr_case_de}}&pageSize=50",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "search"
+     ],
+     "query": [
+      {
+       "key": "businessCaseId",
+       "value": "{{cgr_case_de}}"
+      },
+      {
+       "key": "pageSize",
+       "value": "50"
+      }
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var raw = pm.response.json();",
+       "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+       "pm.test('exactly one match', () => pm.expect(body.content.length).to.eql(1));",
+       "var row = body.content[0];",
+       "pm.test('cgrTo is DE (single country)', () => pm.expect(row.cgrTo).to.eql('DE'));",
+       "pm.test('responseStatusCode is Found', () => pm.expect(row.responseStatusCode).to.eql('Found'));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[List] Inbound requests excluded — list is outgoing-only",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?businessCaseId=LV-CGR-NEWMAN-1&pageSize=50",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "search"
+     ],
+     "query": [
+      {
+       "key": "businessCaseId",
+       "value": "LV-CGR-NEWMAN-1"
+      },
+      {
+       "key": "pageSize",
+       "value": "50"
+      }
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var raw = pm.response.json();",
+       "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+       "pm.test('inbound request not in outgoing-only list', () => pm.expect(body.content.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[List] Sorting by businessCaseId asc is honoured",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?sorting=business_case_id asc&pageSize=50",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "search"
+     ],
+     "query": [
+      {
+       "key": "sorting",
+       "value": "business_case_id asc"
+      },
+      {
+       "key": "pageSize",
+       "value": "50"
+      }
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var raw = pm.response.json();",
+       "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+       "pm.test('sorted ascending', () => {",
+       "  var ids = body.content.map(r => r.businessCaseId);",
+       "  var sorted = [...ids].sort();",
+       "  pm.expect(ids).to.eql(sorted); });"
       ]
      }
     }

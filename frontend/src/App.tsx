@@ -28,6 +28,7 @@ import { LabourInspectionFormPage } from './features/control-forms/pages/labour-
 import { CtudListPage } from './features/erru/pages/ctud/CtudListPage';
 import { CtudFormCreatePage } from './features/erru/pages/ctud/CtudFormCreatePage';
 import { CtudFormPage } from './features/erru/pages/ctud/CtudFormPage';
+import { CgrListPage } from './features/erru/pages/cgr/CgrListPage';
 import { CgrFormCreatePage } from './features/erru/pages/cgr/CgrFormCreatePage';
 import { CgrFormPage } from './features/erru/pages/cgr/CgrFormPage';
 import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
@@ -140,9 +141,8 @@ function AppRoutes() {
           <Route path="/erru/ctud" element={<CtudListPage />} />
           <Route path="/erru/ctud/new" element={<CtudFormCreatePage />} />
           <Route path="/erru/ctud/:id" element={<CtudFormPage />} />
-          {/* ERRU — CGR (mainepäring). Vorm stage only (LJVIS2-138) — list (-140,
-              bare "/erru/cgr") lands in a later stage, so "new"/":id" are reachable
-              only via direct URL / copyFrom for now. */}
+          {/* ERRU — CGR (mainepäring). List (LJVIS2-140) is OUTGOING requests only. */}
+          <Route path="/erru/cgr" element={<CgrListPage />} />
           <Route path="/erru/cgr/new" element={<CgrFormCreatePage />} />
           <Route path="/erru/cgr/:id" element={<CgrFormPage />} />
           <Route

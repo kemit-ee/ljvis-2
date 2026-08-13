@@ -951,6 +951,7 @@
     "logs": "Logs",
     "erru": "ERRU",
     "ctud": "Transport undertaking data requests",
+    "cgr": "Check good repute requests",
     "search": "Search"
   },
   "users": {
@@ -1263,6 +1264,21 @@
     },
     "cgr": {
       "notFound": "CGR request not found",
+      "list": {
+        "title": "Check good repute requests",
+        "newRequest": "New CGR request",
+        "id": "ID",
+        "sentAt": "Sent",
+        "tmFirstName": "First name",
+        "tmFamilyName": "Family name",
+        "cgrTo": "Target member state",
+        "status": "Status",
+        "handler": "User"
+      },
+      "filters": {
+        "sentFrom": "Sent from",
+        "sentUntil": "Sent until"
+      },
       "form": {
         "titleOutgoing": "Check Good Repute (MS → ERRU)",
         "titleInbound": "Check Good Repute (ERRU → MS)",
