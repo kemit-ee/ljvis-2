@@ -30,7 +30,8 @@ def request(method, path, data=None, headers=None):
         h.update(headers)
     req = urllib.request.Request(url, data=data, headers=h, method=method)
     with urllib.request.urlopen(req, timeout=30, context=SSL_CTX) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+        body = resp.read().decode("utf-8")
+        return json.loads(body) if body.strip() else None
 
 
 def api_error(e):
