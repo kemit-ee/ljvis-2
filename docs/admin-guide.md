@@ -540,7 +540,7 @@ Kui `from` ja `to` ära jätta, kontrollitakse kogu ahel. konkreetse vahemiku ko
 
 > **Märkus:** See funktsioon on arendamisel (LJVIS2-152).
 
-Administraatorid ja volitatud ametnikud saavad vaadata kõigi Eesti ettevõtete riskitasemete loendit.
+Administraatorid ja volitatud ametnikud saavad vaadata kõigi Eesti ettevõtete riskitasemete loendit. Samuti saavad nad avada iga ettevõtte detailvaate, mis kuvab sama teavet, mida ettevõtja esindaja näeb oma ettevõtte kohta.
 
 ## Ligipääs
 

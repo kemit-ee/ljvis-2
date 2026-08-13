@@ -1289,6 +1289,8 @@ Kontrollid, mille `sp_applicability` on `not_checked` või `not_applied` ning tu
 
 Ettevõtte esindaja saab sisselogides vaadata oma ettevõtte riskitaset. Süsteem kontrollib TARA autentimise järel, kas isikul on äriregistri andmetel ettevõtja esindaja õigus.
 
+Sama riskiteavet saavad vaadata ka administraatorid ja volitatud ametnikud — kas kõigi ettevõtete loendina või konkreetse ettevõtte detailvaates.
+
 ```mermaid
 sequenceDiagram
     autonumber
