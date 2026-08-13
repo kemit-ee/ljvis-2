@@ -1,111 +1,89 @@
 #!/bin/bash
-# Create Confluence child pages for LJVIS2 user and admin guides under an existing parent page.
-# The pages contain only descriptive text, the EU logo, and links to the Markdown and DOCX files on GitHub.
-# Run from the repo root: CONFLUENCE_TOKEN=<token> bash scripts/upload-to-confluence.sh
+exec python3 -u - "$@" <<'PY'
+import json
+import os
+import ssl
+import sys
+import urllib.error
+import urllib.request
 
-set -euo pipefail
+TOKEN = os.environ.get("CONFLUENCE_TOKEN", "")
+if not TOKEN:
+    print("Usage: CONFLUENCE_TOKEN=<your-token> python3 scripts/upload-to-confluence.sh")
+    sys.exit(1)
 
-TOKEN="${CONFLUENCE_TOKEN:-}"
-if [[ -z "$TOKEN" ]]; then
-  echo "Usage: CONFLUENCE_TOKEN=<your-token> bash scripts/upload-to-confluence.sh"
-  exit 1
-fi
+BASE = "https://wiki.kemit.ee"
+SPACE = "LIA"
+PARENT_ID = 258229822
+BRANCH = "dev"
+GITHUB_BASE = f"https://github.com/kemit-ee/ljvis-2/blob/{BRANCH}/docs"
+LOGO_URL = "https://wiki.kemit.ee/download/attachments/258229842/Rahastanud_EL_kaksiklogod_EST_hor_color_RGB.jpg"
 
-BASE="https://wiki.kemit.ee"
-SPACE="LIA"
-PARENT_ID="258229822"
-BRANCH="dev"
-GITHUB_BASE="https://github.com/kemit-ee/ljvis-2/blob/${BRANCH}/docs"
-LOGO_URL="https://wiki.kemit.ee/download/attachments/258229842/Rahastanud_EL_kaksiklogod_EST_hor_color_RGB.jpg"
+# Confluence internal instance may use a self-signed cert; use unverified context to avoid SSL errors.
+SSL_CTX = ssl._create_unverified_context()
 
-build_payload() {
-  python3 - "$@" <<'PY'
-import json, sys
-logo, desc, md, docx, title, space, parent = sys.argv[1:8]
-body = (
-    f'<ac:image ac:align="center"><ri:url ri:value="{logo}" /></ac:image>'
-    f'<p>{desc}</p>'
-    f'<p>Markdown versioon on saadaval <a href="{md}">GitHubis</a> '
-    f'ja DOCX-fail <a href="{docx}">siit</a>.</p>'
-)
-payload = {
-    "type": "page",
-    "title": title,
-    "space": {"key": space},
-    "ancestors": [{"id": int(parent)}],
-    "body": {
-        "storage": {
-            "value": body,
-            "representation": "storage"
-        }
+
+def create_page(title: str, description: str, md_url: str, docx_url: str):
+    body = (
+        f'<ac:image ac:align="center"><ri:url ri:value="{LOGO_URL}" /></ac:image>'
+        f'<p>{description}</p>'
+        f'<p>Markdown versioon on saadaval <a href="{md_url}">GitHubis</a> '
+        f'ja DOCX-fail <a href="{docx_url}">siit</a>.</p>'
+    )
+    payload = {
+        "type": "page",
+        "title": title,
+        "space": {"key": SPACE},
+        "ancestors": [{"id": PARENT_ID}],
+        "body": {
+            "storage": {
+                "value": body,
+                "representation": "storage",
+            }
+        },
     }
-}
-print(json.dumps(payload, ensure_ascii=False))
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(
+        f"{BASE}/rest/api/content",
+        data=data,
+        headers={
+            "Authorization": f"Bearer {TOKEN}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30, context=SSL_CTX) as resp:
+            response = json.loads(resp.read().decode("utf-8"))
+            print(f"    Leht loodud, ID: {response['id']}")
+    except urllib.error.HTTPError as e:
+        print(f"    Viga: HTTP {e.code}")
+        try:
+            print(e.read().decode("utf-8"))
+        except Exception:
+            pass
+        sys.exit(1)
+    except Exception as e:
+        print(f"    Viga: {e}")
+        sys.exit(1)
+
+
+print('==> Loon alamlehe "LJVIS2 kasutajajuhend"...')
+create_page(
+    "LJVIS2 kasutajajuhend",
+    "LJVIS2 kasutajajuhend kirjeldab süsteemi kasutamist järelevalveametnikele ja ettevõtja esindajatele.",
+    f"{GITHUB_BASE}/user-guide.md",
+    f"{GITHUB_BASE}/user-guide.docx",
+)
+
+print('==> Loon alamlehe "LJVIS2 administraatorijuhend"...')
+create_page(
+    "LJVIS2 administraatorijuhend",
+    "LJVIS2 administraatorijuhend kirjeldab kasutajahaldust, kasutajagruppe, klassifikaatoreid, auditilogi, S3 failihoidlat ja API lõpp-punkte.",
+    f"{GITHUB_BASE}/admin-guide.md",
+    f"{GITHUB_BASE}/admin-guide.docx",
+)
+
+print("")
+print(f"Valmis! Vaata tulemust: {BASE}/pages/viewpage.action?pageId={PARENT_ID}")
 PY
-}
-
-api_post() {
-  local payload="$1"
-  local tmp_resp
-  tmp_resp=$(mktemp)
-  local tmp_err
-  tmp_err=$(mktemp)
-  local http_code
-
-  http_code=$(curl -sSL -m 30 -X POST \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "Content-Type: application/json" \
-    -o "$tmp_resp" \
-    -w "%{http_code}" \
-    -d "$payload" \
-    "$BASE/rest/api/content" 2>"$tmp_err") || true
-
-  if [[ -z "$http_code" ]]; then
-    echo "    Viga: curl ei saanud Confluence'i poole pöörduda"
-    cat "$tmp_err"
-    echo ""
-    rm -f "$tmp_resp" "$tmp_err"
-    exit 1
-  fi
-
-  if [[ "$http_code" -ne 200 ]]; then
-    echo "    Viga: HTTP $http_code"
-    [[ -s "$tmp_resp" ]] && cat "$tmp_resp"
-    [[ -s "$tmp_err" ]] && cat "$tmp_err"
-    echo ""
-    rm -f "$tmp_resp" "$tmp_err"
-    exit 1
-  fi
-
-  cat "$tmp_resp"
-  rm -f "$tmp_resp" "$tmp_err"
-}
-
-create_page() {
-  local title="$1"
-  local description="$2"
-  local github_md="$3"
-  local github_docx="$4"
-
-  echo ""
-  echo "==> Loon alamlehe '$title'..."
-  PAYLOAD=$(build_payload "$LOGO_URL" "$description" "$github_md" "$github_docx" "$title" "$SPACE" "$PARENT_ID")
-  PAGE=$(api_post "$PAYLOAD")
-  PAGE_ID=$(echo "$PAGE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'])")
-  echo "    Leht loodud, ID: $PAGE_ID"
-}
-
-create_page \
-  "LJVIS2 kasutajajuhend" \
-  "LJVIS2 kasutajajuhend kirjeldab süsteemi kasutamist järelevalveametnikele ja ettevõtja esindajatele." \
-  "$GITHUB_BASE/user-guide.md" \
-  "$GITHUB_BASE/user-guide.docx"
-
-create_page \
-  "LJVIS2 administraatorijuhend" \
-  "LJVIS2 administraatorijuhend kirjeldab kasutajahaldust, kasutajagruppe, klassifikaatoreid, auditilogi, S3 failihoidlat ja API lõpp-punkte." \
-  "$GITHUB_BASE/admin-guide.md" \
-  "$GITHUB_BASE/admin-guide.docx"
-
-echo ""
-echo "Valmis! Vaata tulemust: $BASE/pages/viewpage.action?pageId=$PARENT_ID"
