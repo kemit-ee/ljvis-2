@@ -48,23 +48,37 @@ api_post() {
   local payload="$1"
   local tmp_resp
   tmp_resp=$(mktemp)
+  local tmp_err
+  tmp_err=$(mktemp)
   local http_code
-  http_code=$(curl -sSL -X POST \
+
+  http_code=$(curl -sSL -m 30 -X POST \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
     -o "$tmp_resp" \
     -w "%{http_code}" \
-    "$BASE/rest/api/content" \
-    -d "$payload")
-  if [[ "$http_code" -ne 200 ]]; then
-    echo "    Viga: HTTP $http_code"
-    cat "$tmp_resp"
+    -d "$payload" \
+    "$BASE/rest/api/content" 2>"$tmp_err") || true
+
+  if [[ -z "$http_code" ]]; then
+    echo "    Viga: curl ei saanud Confluence'i poole pöörduda"
+    cat "$tmp_err"
     echo ""
-    rm -f "$tmp_resp"
+    rm -f "$tmp_resp" "$tmp_err"
     exit 1
   fi
+
+  if [[ "$http_code" -ne 200 ]]; then
+    echo "    Viga: HTTP $http_code"
+    [[ -s "$tmp_resp" ]] && cat "$tmp_resp"
+    [[ -s "$tmp_err" ]] && cat "$tmp_err"
+    echo ""
+    rm -f "$tmp_resp" "$tmp_err"
+    exit 1
+  fi
+
   cat "$tmp_resp"
-  rm -f "$tmp_resp"
+  rm -f "$tmp_resp" "$tmp_err"
 }
 
 create_page() {
