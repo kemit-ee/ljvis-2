@@ -101,11 +101,11 @@ def update_index(user_id, admin_id):
         f'<p>Siin leiad LJVIS2 juhendid.</p>'
         f'<p>LJVIS2 kasutajajuhend Confluence\'is: '
         f'<a href="{BASE}/pages/viewpage.action?pageId={user_id}">LJVIS2 kasutajajuhend</a> ; '
-        f'LJVIS2 kasutajajuhend GitHubis: '
+        f'GitHubis: '
         f'<a href="{GITHUB_BASE}/user-guide.md">Markdown</a></p>'
         f'<p>LJVIS2 Administraatorijuhend Confluence\'is: '
         f'<a href="{BASE}/pages/viewpage.action?pageId={admin_id}">LJVIS2 Administraatorijuhend</a> ; '
-        f'LJVIS2 Administraatorijuhend GitHubis: '
+        f'GitHubis: '
         f'<a href="{GITHUB_BASE}/admin-guide.md">Markdown</a></p>'
     )
 
