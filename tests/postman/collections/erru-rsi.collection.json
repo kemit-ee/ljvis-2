@@ -1,0 +1,2789 @@
+{
+  "info": {
+    "name": "LJVIS — ERRU RSI",
+    "_postman_id": "ljvis-erru-rsi-v1",
+    "description": "Functional tests for the ERRU RSI module, Stage 6 (LJVIS2-147): create/revise draft, GET, permission boundaries (rsi.read / rsi.create), optional block semantics (driver block closed by default, identificationDetails choice: transport_undertaking and owner sub-types), checkedItems round-trip, and all field-level validation codes.\n\nRuuter-on-Rust allowlist contract: every field listed in the endpoint allowlist MUST be present as a key in the request body — the key may be absent causes 500 'Field missing: <field>'. The value may be either \"\" (empty string) or null — both are treated identically by the extractRequestData DSL step (via `incoming.body.field || ''`) and produce NULL in the database via NULLIF(:field, ''). Newman tests use \"\" for optional fields; the frontend may send null — both are correct.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin (rsi.read+create+send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — Org Admin (rsi.read+create, NO send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_org_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_rsi_nosend', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Minimal required fields (no driver, no identificationDetails) → 200 initiated v1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"N3\", \"vehicleRegistrationNumber\": \"123abc\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA Tallinn\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"true\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.test('version is 1', () => pm.expect(body.version).to.eql(1));",
+              "pm.test('businessCaseId matches EE-RSI-YYYY-NNNNN', () => pm.expect(body.businessCaseId).to.match(/^EE-RSI-\\d{4}-\\d{5}$/));",
+              "pm.environment.set('rsi_id_min', body.id);",
+              "pm.environment.set('rsi_case_min', body.businessCaseId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify minimal draft: uppercased, rsiFrom=EE, rsiTo=LV, optional fields null",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_id_min}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_id_min}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.test('direction is outgoing', () => pm.expect(body.direction).to.eql('outgoing'));",
+              "pm.test('rsiFrom is EE', () => pm.expect(body.rsiFrom).to.eql('EE'));",
+              "pm.test('rsiTo = LV (derived from vehicleRegistrationCountry)', () => pm.expect(body.rsiTo).to.eql('LV'));",
+              "pm.test('vehicleRegistrationNumber uppercased', () => pm.expect(body.vehicleRegistrationNumber).to.eql('123ABC'));",
+              "pm.test('originatingAuthority uppercased', () => pm.expect(body.originatingAuthority).to.eql('EE-PPA'));",
+              "pm.test('inspectionPassed is boolean false', () => pm.expect(body.inspectionPassed).to.eql(false));",
+              "pm.test('driverFirstName is null (optional block empty)', () => pm.expect(body.driverFirstName).to.be.null);",
+              "pm.test('identificationDetails is null (optional block empty)', () => pm.expect(body.identificationDetails).to.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Draft with driver block (firstName + familyName + licenceNumber) → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"N3\", \"vehicleRegistrationNumber\": \"456DEF\", \"vehicleRegistrationCountry\": \"DE\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"Jaan\", \"driverFamilyName\": \"Tamm\", \"driverLicenceNumber\": \"a1234b\", \"driverLicenceCountry\": \"ee\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA Tallinn\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"true\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.environment.set('rsi_id_driver', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify driver block: names and licenceCountry uppercased",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_id_driver}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_id_driver}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('driverFirstName uppercased', () => pm.expect(body.driverFirstName).to.eql('JAAN'));",
+              "pm.test('driverFamilyName uppercased', () => pm.expect(body.driverFamilyName).to.eql('TAMM'));",
+              "pm.test('driverLicenceNumber uppercased', () => pm.expect(body.driverLicenceNumber).to.eql('A1234B'));",
+              "pm.test('driverLicenceCountry uppercased', () => pm.expect(body.driverLicenceCountry).to.eql('EE'));",
+              "pm.test('rsiTo = DE (derived from vehicleRegistrationCountry)', () => pm.expect(body.rsiTo).to.eql('DE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Draft with identificationDetails transport_undertaking + address → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"N2\", \"vehicleRegistrationNumber\": \"789GHI\", \"vehicleRegistrationCountry\": \"FI\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"{\\\"isVehicleHolder\\\":\\\"transport_undertaking\\\",\\\"transportUndertakingName\\\":\\\"AS Transport OU\\\",\\\"communityLicenceNumber\\\":\\\"EE-LIC-12345\\\",\\\"address\\\":{\\\"address\\\":\\\"Parnu mnt 10\\\",\\\"city\\\":\\\"Tallinn\\\",\\\"country\\\":\\\"EE\\\",\\\"postCode\\\":\\\"10141\\\"}}\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Narva\", \"inspectionDatetime\": \"2026-08-14T12:00:00Z\", \"inspectionAuthorityOrName\": \"PPA Narva\", \"inspectionPassed\": \"true\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.environment.set('rsi_id_idt', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify identificationDetails transport_undertaking stored as JSONB",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_id_idt}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_id_idt}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('identificationDetails is not null', () => pm.expect(body.identificationDetails).to.not.be.null);",
+              "pm.test('isVehicleHolder = transport_undertaking', () => pm.expect(body.identificationDetails.isVehicleHolder).to.eql('transport_undertaking'));",
+              "pm.test('transportUndertakingName stored', () => pm.expect(body.identificationDetails.transportUndertakingName).to.eql('AS Transport OU'));",
+              "pm.test('address.city stored', () => pm.expect(body.identificationDetails.address.city).to.eql('Tallinn'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Draft with checkedItems array → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"M2\", \"vehicleRegistrationNumber\": \"CHECKED1\", \"vehicleRegistrationCountry\": \"PL\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Parnu\", \"inspectionDatetime\": \"2026-08-14T14:00:00Z\", \"inspectionAuthorityOrName\": \"PPA Parnu\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"true\", \"vehicleProhibitionOrRestriction\": \"true\", \"checkedItems\": \"[{\\\"partCode\\\":\\\"CAA_1\\\",\\\"status\\\":\\\"failed\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"Major\\\"}]},{\\\"partCode\\\":\\\"CAA_2\\\",\\\"status\\\":\\\"not_applicable\\\",\\\"defects\\\":[]}]\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.environment.set('rsi_id_checked', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify checkedItems round-trip: array of 2 items stored as JSONB",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_id_checked}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_id_checked}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('checkedItems is not null', () => pm.expect(body.checkedItems).to.not.be.null);",
+              "pm.test('checkedItems has 2 items', () => pm.expect(body.checkedItems).to.have.lengthOf(2));",
+              "pm.test('first item partCode = CAA_1', () => pm.expect(body.checkedItems[0].partCode).to.eql('CAA_1'));",
+              "pm.test('first item has 1 defect', () => pm.expect(body.checkedItems[0].defects).to.have.lengthOf(1));",
+              "pm.test('defect severity = Major', () => pm.expect(body.checkedItems[0].defects[0].severity).to.eql('Major'));",
+              "pm.test('second item has no defects', () => pm.expect(body.checkedItems[1].defects).to.have.lengthOf(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Update inspectionLocation on minimal draft → version 2, businessCaseId unchanged",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{rsi_id_min}}\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"N3\", \"vehicleRegistrationNumber\": \"123abc\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn harbour\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA Tallinn\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"true\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('version incremented to 2', () => pm.expect(body.version).to.eql(2));",
+              "pm.test('status still initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.test('businessCaseId unchanged', () => pm.expect(body.businessCaseId).to.eql(pm.environment.get('rsi_case_min')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify revision: inspectionLocation uppercased = TALLINN HARBOUR, version = 2",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_id_min}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_id_min}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('version is 2 after revision', () => pm.expect(body.version).to.eql(2));",
+              "pm.test('inspectionLocation uppercased after revision', () => pm.expect(body.inspectionLocation).to.eql('TALLINN HARBOUR'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Non-existent key (99999999) → 422 not_editable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"99999999\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"N3\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"true\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is not_editable', () => pm.expect(body.code).to.eql('not_editable'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Permissions] No-perm user on save → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"NOPERM\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Forbidden without rsi.create', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Permissions] No-perm user on GET → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_id_min}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_id_min}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Forbidden without rsi.read', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Permissions] Org Admin (rsi.read+create, no send) CAN create drafts → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_rsi_nosend}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"ORGADM1\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Org Admin can create RSI draft', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is initiated', () => pm.expect(body.status).to.eql('initiated'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Missing originatingAuthority → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is originatingAuthority', () => pm.expect(body.field).to.eql('originatingAuthority'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Missing vehicleRegistrationNumber → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is vehicleRegistrationNumber', () => pm.expect(body.field).to.eql('vehicleRegistrationNumber'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Missing vehicleRegistrationCountry → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is vehicleRegistrationCountry', () => pm.expect(body.field).to.eql('vehicleRegistrationCountry'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] vehicleRegistrationCountry = 'LVA' (3 chars) → 422 invalid_country_code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LVA\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is vehicleRegistrationCountry', () => pm.expect(body.field).to.eql('vehicleRegistrationCountry'));",
+              "pm.test('code is invalid_country_code', () => pm.expect(body.code).to.eql('invalid_country_code'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Driver firstName only (no familyName) → 422 driver_block_incomplete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"Jaan\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is driver_block_incomplete', () => pm.expect(body.code).to.eql('driver_block_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Missing inspectionLocation → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is inspectionLocation', () => pm.expect(body.field).to.eql('inspectionLocation'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Missing inspectionDatetime → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is inspectionDatetime', () => pm.expect(body.field).to.eql('inspectionDatetime'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Missing inspectionPassed → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is inspectionPassed', () => pm.expect(body.field).to.eql('inspectionPassed'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] identificationDetails with invalid holder type → 422 holder_type_invalid",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"{\\\"isVehicleHolder\\\":\\\"unknown_type\\\"}\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is identificationDetails', () => pm.expect(body.field).to.eql('identificationDetails'));",
+              "pm.test('code is holder_type_invalid', () => pm.expect(body.code).to.eql('holder_type_invalid'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] identificationDetails transport_undertaking without name/licence → 422 undertaking_block_incomplete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"{\\\"isVehicleHolder\\\":\\\"transport_undertaking\\\",\\\"address\\\":{\\\"address\\\":\\\"St 1\\\",\\\"city\\\":\\\"Tallinn\\\",\\\"country\\\":\\\"EE\\\",\\\"postCode\\\":\\\"10001\\\"}}\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is undertaking_block_incomplete', () => pm.expect(body.code).to.eql('undertaking_block_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] identificationDetails owner + company without companyName → 422 company_name_required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"{\\\"isVehicleHolder\\\":\\\"owner\\\",\\\"isNaturalPerson\\\":\\\"company\\\",\\\"address\\\":{\\\"address\\\":\\\"St 1\\\",\\\"city\\\":\\\"Tallinn\\\",\\\"country\\\":\\\"EE\\\",\\\"postCode\\\":\\\"10001\\\"}}\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is company_name_required', () => pm.expect(body.code).to.eql('company_name_required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] identificationDetails owner + natural_person without names → 422 owner_name_required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"{\\\"isVehicleHolder\\\":\\\"owner\\\",\\\"isNaturalPerson\\\":\\\"natural_person\\\",\\\"address\\\":{\\\"address\\\":\\\"St 1\\\",\\\"city\\\":\\\"Tallinn\\\",\\\"country\\\":\\\"EE\\\",\\\"postCode\\\":\\\"10001\\\"}}\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is owner_name_required', () => pm.expect(body.code).to.eql('owner_name_required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] identificationDetails transport_undertaking complete name/licence but no address → 422 address_incomplete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"\", \"vehicleRegistrationNumber\": \"123ABC\", \"vehicleRegistrationCountry\": \"LV\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"{\\\"isVehicleHolder\\\":\\\"transport_undertaking\\\",\\\"transportUndertakingName\\\":\\\"AS OU\\\",\\\"communityLicenceNumber\\\":\\\"LIC123\\\"}\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Tallinn\", \"inspectionDatetime\": \"2026-08-14T10:00:00Z\", \"inspectionAuthorityOrName\": \"PPA\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"false\", \"vehicleProhibitionOrRestriction\": \"false\", \"checkedItems\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is address_incomplete', () => pm.expect(body.code).to.eql('address_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft for send test (LV, with CAA_10 to verify exclusion) → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"LV-SEND-001\",\n  \"vehicleRegistrationCountry\": \"LV\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"CAA_1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"CAA_1.1\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"CAA_10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"200 initiated\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"initiated\");",
+              "    pm.expect(b.version).to.eql(1);",
+              "    pm.expect(b.businessCaseId).to.match(/^EE-RSI-/);",
+              "    pm.environment.set(\"rsi_send_id\", String(b.id));",
+              "    pm.environment.set(\"rsi_send_bci\", b.businessCaseId);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Without rsi.send permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_rsi_nosend}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{rsi_send_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"403 forbidden\", function() {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Send draft to LV (async ACK) → 200 sent, NOT responded",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{rsi_send_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"200 sent (async: no responseStatusCode in body)\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"sent\");",
+              "    pm.expect(b.workflowId).to.be.a(\"string\").and.not.empty;",
+              "    pm.expect(b.businessCaseId).to.eql(pm.environment.get(\"rsi_send_bci\"));",
+              "    pm.environment.set(\"rsi_send_wf_id\", b.workflowId);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify after send: status=sent, workflowId set, responseStatusCode=null",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_send_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_send_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status=sent, workflowId set, responseStatusCode null\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"sent\");",
+              "    pm.expect(b.workflowId).to.eql(pm.environment.get(\"rsi_send_wf_id\"));",
+              "    pm.expect(b.responseStatusCode).to.be.null;",
+              "    pm.expect(b.version).to.eql(2);",
+              "    var items = Array.isArray(b.checkedItems) ? b.checkedItems : JSON.parse(b.checkedItems || \"[]\");",
+              "    var hasCaa10 = items.some(function(i){ return i.partCode === \"CAA_10\"; });",
+              "    pm.expect(hasCaa10).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Re-send already-sent draft → 422 not_sendable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{rsi_send_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"422 not_sendable (RSI has no resend)\", function() {",
+              "    pm.response.to.have.status(422);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.code).to.eql(\"not_sendable\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Missing id → 400 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 id required\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.code).to.eql(\"required\");",
+              "    pm.expect(b.field).to.eql(\"id\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Non-existent id → 404",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"999999999\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"404 not found\", function() {",
+              "    pm.response.to.have.status(404);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.code).to.eql(\"not_found\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft for FI transport-failure test → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"FI-SEND-FAIL\",\n  \"vehicleRegistrationCountry\": \"FI\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"CAA_1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"CAA_1.1\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"CAA_10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"200 initiated\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"initiated\");",
+              "    pm.environment.set(\"rsi_fi_id\", String(b.id));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Send to FI → 502 send_failed, request transitions to error",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{rsi_fi_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"502 send_failed\", function() {",
+              "    pm.response.to.have.status(502);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.code).to.eql(\"send_failed\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify FI draft is in error state (no retry possible)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_fi_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_fi_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status=error, not retryable\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"error\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Retry from error state → 422 not_sendable (no retry in RSI)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{rsi_fi_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"422 not_sendable — error is terminal for RSI\", function() {",
+              "    pm.response.to.have.status(422);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.code).to.eql(\"not_sendable\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[InboundResponse] Missing workflowId → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-response",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-response"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"workflowId\": \"\",\n  \"responseStatusCode\": \"OK\",\n  \"responseStatusMessage\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 workflowId required\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"InvalidData\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[InboundResponse] Missing responseStatusCode → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-response",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-response"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"workflowId\": \"00000000-0000-0000-0000-000000000001\",\n  \"responseStatusCode\": \"\",\n  \"responseStatusMessage\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 responseStatusCode required\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"InvalidData\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[InboundResponse] Unknown workflowId → 404",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-response",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-response"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"workflowId\": \"00000000-0000-0000-0000-000000000001\",\n  \"responseStatusCode\": \"OK\",\n  \"responseStatusMessage\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"404 unknown workflowId\", function() {",
+              "    pm.response.to.have.status(404);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"NotFound\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[InboundResponse] OK response for sent draft → status=responded",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-response",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-response"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"workflowId\": \"{{rsi_send_wf_id}}\",\n  \"responseStatusCode\": \"OK\",\n  \"responseStatusMessage\": \"Vehicle found\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"responded successfully\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"responded\");",
+              "    pm.expect(b.responseStatusCode).to.eql(\"OK\");",
+              "    pm.expect(b.workflowId).to.eql(pm.environment.get(\"rsi_send_wf_id\"));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify after inbound-response: status=responded, responseStatusCode=OK",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_send_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_send_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status=responded, responseStatusCode=OK\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"responded\");",
+              "    pm.expect(b.responseStatusCode).to.eql(\"OK\");",
+              "    pm.expect(b.version).to.eql(3);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[InboundResponse] Duplicate response → 200 already_responded (not re-applied)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-response",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-response"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"workflowId\": \"{{rsi_send_wf_id}}\",\n  \"responseStatusCode\": \"NotFound\",\n  \"responseStatusMessage\": \"duplicate\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"200 already_responded — idempotent\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"already_responded\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify after duplicate inbound-response: still responded, responseStatusCode unchanged",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/get?q={{rsi_send_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{rsi_send_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status still responded, responseStatusCode still OK (not overwritten)\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"responded\");",
+              "    pm.expect(b.responseStatusCode).to.eql(\"OK\");",
+              "    pm.expect(b.version).to.eql(3);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] EE-registered vehicle (EE-MOCK-OK, country=EE) → OK, stored received+answered",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000001\",\n  \"workflowId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000002\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"LV\",\n  \"businessCaseId\": \"LV-RSI-2026-00001\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"EE-MOCK-OK\",\n  \"vehicleRegistrationCountry\": \"EE\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"OK response\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"OK\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] REPLAY same technicalId → same OK answer, no duplicate stored",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000001\",\n  \"workflowId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000002\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"LV\",\n  \"businessCaseId\": \"LV-RSI-2026-00001\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"EE-MOCK-OK\",\n  \"vehicleRegistrationCountry\": \"EE\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"replay: same OK answer\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"OK\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Non-EE vehicle (LV-1234, country=LV) → NotFound",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000003\",\n  \"workflowId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000002\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"LV\",\n  \"businessCaseId\": \"LV-RSI-2026-00002\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"LV-1234\",\n  \"vehicleRegistrationCountry\": \"LV\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"NotFound for non-EE vehicle\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"NotFound\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing technicalId → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"\",\n  \"workflowId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000002\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"LV\",\n  \"businessCaseId\": \"LV-RSI-2026-00001\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"EE-MOCK-OK\",\n  \"vehicleRegistrationCountry\": \"EE\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 missing technicalId\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"InvalidData\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing workflowId → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"7fb58d57-f3ca-4654-9275-77f99e295b8b\",\n  \"workflowId\": \"\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"LV\",\n  \"businessCaseId\": \"LV-RSI-2026-00001\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"EE-MOCK-OK\",\n  \"vehicleRegistrationCountry\": \"EE\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 missing workflowId\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"InvalidData\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing from → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"0019f917-5c97-4bee-8cb8-644aff8b7fda\",\n  \"workflowId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000002\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"\",\n  \"businessCaseId\": \"LV-RSI-2026-00001\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"EE-MOCK-OK\",\n  \"vehicleRegistrationCountry\": \"EE\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 missing from\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"InvalidData\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing businessCaseId → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"17694017-2c00-43c4-b245-d675c375151b\",\n  \"workflowId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000002\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"LV\",\n  \"businessCaseId\": \"\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"EE-MOCK-OK\",\n  \"vehicleRegistrationCountry\": \"EE\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 missing businessCaseId\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"InvalidData\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing vehicleRegistrationNumber → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"38b8f72a-509c-4aa8-beea-ffc86b0782c4\",\n  \"workflowId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000002\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"LV\",\n  \"businessCaseId\": \"LV-RSI-2026-00001\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"\",\n  \"vehicleRegistrationCountry\": \"EE\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 missing vehicleRegistrationNumber\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"InvalidData\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing vehicleRegistrationCountry → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/rsi/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "rsi",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"technicalId\": \"20b4a0d2-7162-4fb5-b303-a0eaebe8c6f6\",\n  \"workflowId\": \"aaaaaaaa-bbbb-cccc-dddd-000000000002\",\n  \"sentAt\": \"2026-08-14T09:00:00Z\",\n  \"from\": \"LV\",\n  \"businessCaseId\": \"LV-RSI-2026-00001\",\n  \"originatingAuthority\": \"LV-CSDD\",\n  \"requestSource\": \"RSI\",\n  \"requestPurpose\": \"Control\",\n  \"vehicleRegistrationNumber\": \"EE-MOCK-OK\",\n  \"vehicleRegistrationCountry\": \"\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"inspectionLocation\": \"Riga border\",\n  \"inspectionDatetime\": \"2026-08-14T08:00:00Z\",\n  \"inspectionAuthorityOrName\": \"CSDD\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"true\",\n  \"checkedItems\": \"[{\\\"itemType\\\":1,\\\"infringementStatus\\\":\\\"infringement\\\",\\\"defects\\\":[]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 missing vehicleRegistrationCountry\", function() {",
+              "    pm.response.to.have.status(400);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.statusCode).to.eql(\"InvalidData\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "description": ""
+}

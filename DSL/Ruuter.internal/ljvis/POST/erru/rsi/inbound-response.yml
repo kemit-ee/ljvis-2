@@ -1,0 +1,160 @@
+declaration:
+  version: "1.0"
+  description: |
+    Receive an ASYNCHRONOUS RSI (RoadSideInspection) response from the ERRU hub
+    (LJVIS2-148 §7.2). RSI is asynchronous — unlike CGR or CTUD, the hub does NOT
+    return the vehicle register result in the same call as the send. Instead, the hub
+    delivers the result later as a separate HTTP call correlated by workflowId. This
+    endpoint receives that deferred response.
+
+    Flow:
+      1. Validate required fields: workflowId, responseStatusCode.
+      2. Look up the outgoing 'sent' RSI message by workflowId (get-by-workflow-id.sql).
+      3. If not found → return error (unknown workflowId, stale or spurious response).
+      4. If already 'responded' (duplicate response) → log and return OK without
+         re-applying (uq_rsi_outbound_response_workflow_id prevents DB duplicates too).
+      5. Append a 'responded' snapshot via append-transition.sql (sent → responded),
+         carrying responseStatusCode and responseStatusMessage.
+      6. Write audit (rsi.inbound_response.receive) directly to Resql — ruuter-internal
+         cannot reach the main Ruuter instance's TEMPLATES/audit chain.
+
+    Idempotency: uq_rsi_outbound_response_workflow_id (partial unique index on workflow_id
+    WHERE direction='outgoing' AND status='responded') ensures that even if this endpoint
+    is called twice for the same workflowId, only the first write succeeds. The second
+    call detects zero rows from append-transition and returns OK without re-applying.
+
+    TODO(M2M): OAuth2 machine-token auth. Until Ruuter supports client_credentials this
+    runs on ruuter-internal (port 8089, allowedIPs 127.0.0.1 only) following the CGR/CTUD
+    inbound-request precedent.
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: workflowId
+        type: string
+      - field: responseStatusCode
+        type: string
+      - field: responseStatusMessage
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnMissingWorkflowId
+    - condition: ${!(('' + (incoming.body.responseStatusCode || '')).trim())}
+      next: returnMissingStatusCode
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    response_status_code: "${('' + (incoming.body.responseStatusCode || '')).trim()}"
+    response_status_message: "${('' + (incoming.body.responseStatusMessage || '')).trim()}"
+  next: findByWorkflowId
+
+findByWorkflowId:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/get-by-workflow-id"
+    headers:
+      type: json
+    body:
+      workflow_id: ${workflow_id}
+  result: found_res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${found_res.response.body == null || found_res.response.body.length != 1}
+      next: returnUnknownWorkflowId
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    request_key: "${found_res.response.body[0].id}"
+    cur_status: "${found_res.response.body[0].status}"
+    business_case_id: "${found_res.response.body[0].businessCaseId}"
+  next: checkAlreadyResponded
+
+# Duplicate response: the unique index uq_rsi_outbound_response_workflow_id will reject
+# the INSERT anyway, but we detect it early here so we can return a clean OK rather than
+# a confusing empty-body result.
+checkAlreadyResponded:
+  switch:
+    - condition: ${cur_status === 'responded'}
+      next: returnAlreadyResponded
+  next: storeResponded
+
+storeResponded:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${request_key}
+      newStatus: "responded"
+      responseStatusCode: ${response_status_code}
+      responseStatusMessage: ${response_status_message}
+      errorMessage: ""
+      created_by: "system"
+  result: responded_res
+  next: checkStored
+
+checkStored:
+  switch:
+    - condition: ${responded_res.response.body == null || responded_res.response.body.length != 1}
+      next: returnAlreadyResponded
+  next: buildAudit
+
+buildAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "RSI asünkroonse vastuse vastuvõtmine: juhtum ${business_case_id}, workflowId ${workflow_id}, tulemus ${response_status_code}"
+    audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, workflowId: workflow_id || null, responseStatusCode: response_status_code || null, responseStatusMessage: response_status_message || null})}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "rsi.inbound_response.receive"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU RSI inbound response service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnOk
+
+returnOk:
+  return: "${JSON.stringify({status: 'responded', businessCaseId: business_case_id, workflowId: workflow_id, responseStatusCode: response_status_code})}"
+  next: end
+
+returnAlreadyResponded:
+  return: "${JSON.stringify({status: 'already_responded', businessCaseId: business_case_id || null, workflowId: workflow_id, responseStatusCode: response_status_code})}"
+  next: end
+
+returnUnknownWorkflowId:
+  status: 404
+  return: '{"statusCode":"NotFound","statusMessage":"No outgoing RSI message found for this workflowId"}'
+  next: end
+
+returnMissingWorkflowId:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"workflowId is required"}'
+  next: end
+
+returnMissingStatusCode:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"responseStatusCode is required"}'
+  next: end

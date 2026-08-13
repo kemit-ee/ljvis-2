@@ -11,6 +11,9 @@ import type {
   CtudRequestListItem,
   CtudRequestWrite,
   CtudSaveResult,
+  RsiMessage,
+  RsiMessageWrite,
+  RsiSaveResult,
 } from './types';
 
 /**
@@ -121,4 +124,30 @@ export function listCgrRequests(
     if (v) query[k] = v;
   });
   return get<PagedResponse<CgrRequestListItem>>('/v1/erru/cgr/search', query);
+}
+
+/**
+ * RSI (RoadSideInspection / Tehnokontrolli teade) — vorm stage only (LJVIS2-147).
+ * Eeltäitmine/saatmine (-148) and list (-149) land in later stages.
+ *
+ * Unlike CTUD/CGR, there is a SINGLE unified save endpoint for both create and revise
+ * (branches internally on presence of id, mirroring the control-forms save pattern) —
+ * see POST/v1/erru/rsi/request/save.yml. No PUT here.
+ */
+
+/** Get one RSI message — always the latest snapshot. */
+export function getRsiMessage(id: string): Promise<RsiMessage> {
+  return get<RsiMessage>('/v1/erru/rsi/get', { q: id });
+}
+
+/**
+ * Create or revise an outgoing RSI draft. businessCaseId, status, direction, rsiFrom and
+ * rsiTo are server-assigned/derived — never accepted from the client. Pass `id` to revise
+ * an existing draft, or leave it empty to create a new one.
+ */
+export function saveRsiMessage(
+  id: string,
+  body: RsiMessageWrite,
+): Promise<RsiSaveResult> {
+  return post<RsiSaveResult>('/v1/erru/rsi/request/save', { id, ...body });
 }

@@ -299,3 +299,139 @@ export interface CgrListFilters {
   status?: string;
   handlerPersonalCode?: string;
 }
+
+/**
+ * ERRU RSI (RoadSideInspection / Tehnokontrolli teade) types (LJVIS2-146/-147).
+ *
+ * Mirrors erru.rsi_message. Unlike CGR, rsiTo is always a single member state (derived
+ * from vehicleRegistrationCountry) — there is no broadcast marker. Unlike CTUD/CGR, RSI
+ * is ASYNCHRONOUS: 'sent' does not carry a response — it arrives later as a separately
+ * correlated message (see LJVIS2-148, a later stage), stored in 'responded'.
+ */
+export type RsiDirection = 'outgoing' | 'incoming';
+
+export type RsiStatus = 'initiated' | 'sent' | 'responded' | 'received' | 'answered' | 'error';
+
+export type RsiResponseStatusCode = 'OK' | 'NotFound';
+
+export type RsiVehicleHolderType = 'transport_undertaking' | 'owner';
+export type RsiOwnerType = 'company' | 'natural_person';
+
+export interface RsiAddress {
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  postCode?: string | null;
+}
+
+/**
+ * Optional "Veoettevõtja või omaniku andmed" choice block. undefined/null when the block
+ * was never opened on the form (LJVIS2-147 §Plokk "Veoettevõtja või omaniku andmed").
+ */
+export interface RsiIdentificationDetails {
+  isVehicleHolder: RsiVehicleHolderType;
+  isNaturalPerson?: RsiOwnerType | null;
+  transportUndertakingName?: string | null;
+  communityLicenceNumber?: string | null;
+  companyName?: string | null;
+  firstName?: string | null;
+  familyName?: string | null;
+  registrationCertificate?: string | null;
+  address: RsiAddress;
+}
+
+export type RsiCheckedItemStatus = 'not_checked' | 'checked' | 'non_compliant';
+export type RsiDefectSeverity = 'VO' | 'OV' | 'EOV';
+
+export interface RsiCheckedItemDefect {
+  defectCode: string;
+  severity: RsiDefectSeverity;
+}
+
+/** National shape until sent (TECHNICAL_CHECK classifier codes); CAA_10 never present. */
+export interface RsiCheckedItem {
+  partCode: string;
+  status: RsiCheckedItemStatus;
+  defects: RsiCheckedItemDefect[];
+}
+
+export interface RsiMessage {
+  id: string;
+  version: number;
+  direction: RsiDirection;
+  status: RsiStatus;
+  businessCaseId: string;
+  technicalId: string | null;
+  workflowId: string | null;
+  sentAt: string | null;
+  rsiFrom: string | null;
+  rsiTo: string | null;
+  originatingAuthority: string | null;
+  requestSource: string | null;
+  requestPurpose: string | null;
+  vehicleCategory: string | null;
+  vehicleRegistrationNumber: string | null;
+  vehicleRegistrationCountry: string | null;
+  vehicleIdentificationNumber: string | null;
+  odometerReading: number | null;
+  driverFirstName: string | null;
+  driverFamilyName: string | null;
+  driverLicenceNumber: string | null;
+  driverLicenceCountry: string | null;
+  identificationDetails: RsiIdentificationDetails | null;
+  inspectionIdentifier: string | null;
+  inspectionLocation: string | null;
+  inspectionDatetime: string | null;
+  inspectionAuthorityOrName: string | null;
+  inspectionPassed: boolean;
+  ptiRequested: boolean;
+  vehicleProhibitionOrRestriction: boolean;
+  checkedItems: RsiCheckedItem[] | null;
+  responseStatusCode: RsiResponseStatusCode | null;
+  responseStatusMessage: string | null;
+  handlerPersonalCode: string | null;
+  handlerName: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+  createdBy: string;
+}
+
+/** Editable fields of an outgoing RSI draft (LJVIS2-147). */
+export interface RsiMessageWrite {
+  originatingAuthority: string;
+  requestSource: string;
+  requestPurpose: string;
+  vehicleCategory: string;
+  vehicleRegistrationNumber: string;
+  vehicleRegistrationCountry: string;
+  vehicleIdentificationNumber: string;
+  odometerReading: string;
+  driverFirstName: string;
+  driverFamilyName: string;
+  driverLicenceNumber: string;
+  driverLicenceCountry: string;
+  /** JSON-stringified RsiIdentificationDetails, or '' when the block is closed. */
+  identificationDetails: string;
+  inspectionIdentifier: string;
+  inspectionLocation: string;
+  inspectionDatetime: string;
+  inspectionAuthorityOrName: string;
+  /** Sent as the literal strings 'true'/'false' — Ruuter allowlist coerces booleans to '' otherwise. */
+  inspectionPassed: string;
+  ptiRequested: string;
+  vehicleProhibitionOrRestriction: string;
+  /** JSON-stringified RsiCheckedItem[]. */
+  checkedItems: string;
+}
+
+export interface RsiSaveResult {
+  id: number;
+  businessCaseId: string;
+  version: number;
+  status: RsiStatus;
+}
+
+/** An RSI draft is editable only while it is an outgoing draft, same rule as CTUD/CGR. */
+export function isRsiEditable(r: Pick<RsiMessage, 'status' | 'direction'>): boolean {
+  return r.direction === 'outgoing' && r.status === 'initiated';
+}

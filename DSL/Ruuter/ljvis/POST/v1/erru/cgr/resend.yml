@@ -1,6 +1,6 @@
 declaration:
   version: "1.0"
-  description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be in the 'sent' terminal state. Only the entry for the specified memberStateCode is updated in the member_states JSONB; all other countries' responses and the workflow_id are preserved unchanged. A new snapshot is appended (sent → sent transition). ERRU v2.4 member states appear as NotAvailable in the mock and must be stored as-is. The ERRU_CGR_ENDPOINT constant is used, identical to send.yml."
+  description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be in the 'sent' terminal state. Only the entry for the specified memberStateCode is updated in the member_states JSONB; all other countries' responses and the workflow_id are preserved unchanged. A new snapshot is appended (sent → sent transition). ERRU v2.4 member states appear as NotAvailable in the mock and must be stored as-is. The ERRU_CGR_ENDPOINT constant is used, identical to send.yml. On a transport failure (or a response missing memberStates) the request is NOT transitioned to 'error' — the already-sent broadcast and other countries' answers remain valid, so the status stays 'sent' and a retry of the resend is immediately possible; only an audit entry is logged and 502 is returned."
   method: post
   accepts: json
   returns: json
@@ -146,7 +146,7 @@ logIntegrationFailure:
       success: false
       error_message: "ERRU transport failure during resend"
   result: log_fail
-  next: markError
+  next: logAuditResendFailed
 
 checkResponseEnvelope:
   switch:
@@ -167,7 +167,7 @@ extractErruResponseDirect:
 checkNewMemberStates:
   switch:
     - condition: ${!new_member_states || !Array.isArray(new_member_states) || new_member_states.length === 0}
-      next: markError
+      next: logAuditResendFailed
   next: mergeResponse
 
 # Merge: replace only the entry for member_state_code in existing_member_states.
@@ -194,23 +194,6 @@ storeResent:
   result: stored_res
   next: logAuditResend
 
-markError:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
-    headers:
-      type: json
-    body:
-      key: ${id}
-      newStatus: "error"
-      memberStates: ""
-      tmFirstNameSearchKey: ""
-      tmFamilyNameSearchKey: ""
-      errorMessage: "ERRU transport failure during resend — retry permitted"
-      created_by: "system"
-  result: error_res
-  next: logAuditError
-
 logAuditResend:
   template: "templates/audit/erru/cgr/log-cgr-request-send"
   requestType: GET
@@ -228,7 +211,11 @@ logAuditResend:
   result: audit_ok
   next: returnResent
 
-logAuditError:
+# Transport failure or a malformed ERRU response during resend does NOT transition the
+# request to 'error': the previously stored broadcast/other countries' answers are still
+# valid and the request stays 'sent', so the caller can immediately retry the resend.
+# Only an audit trail entry is written and 502 is returned.
+logAuditResendFailed:
   template: "templates/audit/erru/cgr/log-cgr-request-send"
   requestType: GET
   headers:
@@ -236,7 +223,7 @@ logAuditError:
   body:
     business_case_id: ${business_case_id}
     cgr_to: ${member_state_code}
-    result_status: "error"
+    result_status: "resend_failed"
     member_state_count: "0"
     tm_first_name: ${tm_first_name}
     tm_family_name: ${tm_family_name}

@@ -6,9 +6,12 @@
 # Sending a user cookie to an external endpoint would be wrong, so instead of weakening
 # send.yml this narrower guard lets the stub be reached.
 #
-# Safe because the mock is unreachable in production: ERRU_CTUD_ENDPOINT points at XTR
-# there, and nothing else references this path. If you want it gone from production
-# entirely, drop DSL/Ruuter/ljvis/POST/v1/erru/mock/ from the deployed image.
+# Safe because the mock is unreachable in production: ERRU_CTUD_ENDPOINT/ERRU_CGR_ENDPOINT
+# point at XTR there, and nothing else references this path. As defence-in-depth, the
+# repo-root .dockerignore excludes this directory from every Docker build context, so it
+# cannot ship in any built image even if a constant were ever misconfigured; local/CI
+# compose files restore it via a bind-mount of the whole DSL/Ruuter/ljvis tree from the
+# host (bind mounts are unaffected by .dockerignore).
 #
 # override_ancestors is required: Rust Ruuter stacks ancestor guards by default (unlike
 # the Java Ruuter parity model where a nested guard replaced its ancestors), so without

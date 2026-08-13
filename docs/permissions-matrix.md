@@ -59,6 +59,9 @@ changelog:
 | `cgr`          | `read`                    | `cgr.read`                               | View an ERRU CGR (check good repute / mainepäring) request and the per-member-state response, including the request list. |
 | `cgr`          | `create`                  | `cgr.create`                             | Compose and save an outgoing ERRU CGR request draft, including creating a new draft as a copy of an existing request ("Kopeeri päring"). |
 | `cgr`          | `send`                    | `cgr.send`                               | Send an ERRU CGR request to the target member state(s), including a per-country resend to a member state that has not yet answered. Serving *inbound* requests needs no permission — it is an automatic system process. |
+| `rsi`          | `read`                    | `rsi.read`                               | View an ERRU RSI (roadside inspection / tehnokontrolli teade) message and its response, including the request list. Mirrors `ctud.read`/`cgr.read` — the specification (LJVIS2-149) names a separate `rsi.list`, but it is deliberately folded into `rsi.read` for consistency with the rest of the ERRU family (list is "read, plural"). |
+| `rsi`          | `create`                  | `rsi.create`                             | Compose and save an outgoing ERRU RSI message draft, including pre-filling it from a published negative technical-check card ("Lisa RSI teade"). |
+| `rsi`          | `send`                    | `rsi.send`                               | Send an ERRU RSI message to the vehicle's registration member state. RSI is single-attempt: a failed send has no retry, a brand-new message must be composed. Serving *inbound* requests and receiving the separately-correlated response need no permission — both are automatic system processes. |
 
 ## 2. API endpoint access matrix
 

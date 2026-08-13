@@ -299,6 +299,42 @@
       "value": "",
       "enabled": true,
       "description": "form_number created by form-search tests"
+    },
+    {
+      "key": "rsi_send_id",
+      "value": "",
+      "enabled": true,
+      "description": "RSI message key for send/inbound-response tests"
+    },
+    {
+      "key": "rsi_send_bci",
+      "value": "",
+      "enabled": true,
+      "description": "businessCaseId для RSI send-теста"
+    },
+    {
+      "key": "rsi_send_wf_id",
+      "value": "",
+      "enabled": true,
+      "description": "workflowId для inbound-response корреляции"
+    },
+    {
+      "key": "rsi_fi_id",
+      "value": "",
+      "enabled": true,
+      "description": "RSI draft for FI transport-failure test"
+    },
+    {
+      "key": "rsi_inbound_count_before",
+      "value": "",
+      "enabled": true,
+      "description": "baseline row count for RSI inbound dedup test"
+    },
+    {
+      "key": "cookie_rsi_nosend",
+      "value": "",
+      "enabled": true,
+      "description": "Org Admin cookie: rsi.read+create but NOT rsi.send"
     }
   ],
   "_postman_variable_scope": "environment"

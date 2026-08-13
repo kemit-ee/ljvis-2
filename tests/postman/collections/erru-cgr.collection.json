@@ -1398,7 +1398,8 @@
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "var body = pm.response.json().response;",
        "pm.test('workflowId preserved after resend', () => pm.expect(body.workflowId).to.eql(pm.environment.get('cgr_send_workflow')));",
-       "pm.test('version incremented (new snapshot)', () => pm.expect(body.version).to.be.above(1));"
+       "pm.test('version incremented (new snapshot)', () => pm.expect(body.version).to.be.above(1));",
+       "pm.environment.set('cgr_send_version', String(body.version));"
       ]
      }
     }
@@ -1485,6 +1486,142 @@
      "script": {
       "exec": [
        "pm.test('Resend forbidden for nosend user', () => pm.response.to.have.status(403));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[Resend] Resend to FI (transport failure) → 502, request NOT moved to error",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/resend",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "resend"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{cgr_send_id}}\", \"memberStateCode\": \"FI\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Transport failure returns 502', () => pm.response.to.have.status(502));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[Resend] Verify: still 'sent' after failed resend (not degraded to error)",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_send_id}}",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "get"
+     ],
+     "query": [
+      {
+       "key": "q",
+       "value": "{{cgr_send_id}}"
+      }
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "var body = pm.response.json().response;",
+       "pm.test('status is still sent, not error', () => pm.expect(body.status).to.eql('sent'));",
+       "pm.test('no new snapshot appended on transport failure', () => pm.expect(String(body.version)).to.eql(pm.environment.get('cgr_send_version')));",
+       "var de = body.memberStates.find(e => e.memberStateCode === 'DE');",
+       "pm.test('other countries unaffected', () => pm.expect(de.statusCode).to.eql('Found'));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[Resend] Retry to FI is immediately possible (no not_resendable lock)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     },
+     {
+      "key": "Cookie",
+      "value": "{{cookie_admin}}"
+     }
+    ],
+    "url": {
+     "raw": "{{api_url}}/ljvis/v1/erru/cgr/resend",
+     "host": [
+      "{{api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "v1",
+      "erru",
+      "cgr",
+      "resend"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{cgr_send_id}}\", \"memberStateCode\": \"FI\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Retry is handled as a transport failure again (502), not blocked as not_resendable (422)', () => pm.response.to.have.status(502));"
       ]
      }
     }
