@@ -34,6 +34,7 @@ Iga lõik kirjutatakse eraldi faili ja lõpus ühendatakse kokku `docs/user-guid
 - [x] `docs/admin-guide/05-auditilogi.md` — auditilogi lugemine + päringute näited (valmis fail: `docs/admin-guide/05-auditilogi.md`)
 - [x] `docs/admin-guide/06-riskihindamine-admin.md` — planeeritud administraatori vaade (valmis fail: `docs/admin-guide/06-riskihindamine-admin.md`)
 - [x] `docs/admin-guide/07-api-info.md` — peamised REST/Ruuter endpointid (curl näited) (valmis fail: `docs/admin-guide/07-api-info.md`)
+- [x] `docs/admin-guide/08-manused.md` — manuste haldus ja S3 hoiustamine (valmis fail: `docs/admin-guide/08-manused.md`)
 - [x] `docs/admin-guide.md` (ühendatud lõplik Markdown) (valmis fail: `docs/admin-guide.md`)
 
 ## Väljundfailid
