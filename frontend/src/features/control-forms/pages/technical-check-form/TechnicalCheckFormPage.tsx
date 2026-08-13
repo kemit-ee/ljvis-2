@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
-import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm } from '../../types';
+import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm } from '../../types';
 import {
   getTechnicalCheckForm,
   getTechnicalCheckFormSnapshot,
@@ -11,6 +11,9 @@ import {
   getDriveRestFormByCompoundFormKey,
   saveDriveRestForm,
   saveTechnicalCheckForm,
+  listAdrFormsByCompoundFormKey,
+  getAdrForm,
+  saveAdrForm,
 } from '../../api';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
@@ -25,11 +28,14 @@ import { TechnicalCheckFormEditCard, type TechnicalCheckFormEditCardRef } from '
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
 import { DriveRestFormViewCard } from '../../components/DriveRestForm/DriveRestFormViewCard.tsx';
 import { DriveRestFormEditCard, type DriveRestFormEditCardRef } from '../../components/DriveRestForm/DriveRestFormEditCard.tsx';
+import { AdrFormViewCard } from '../../components/AdrForm/AdrFormViewCard';
+import { AdrFormEditCard, type AdrFormEditCardRef } from '../../components/AdrForm/AdrFormEditCard';
 import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { SubFormTab } from '../../components/SubFormTab/SubFormTab';
 import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '../drive-rest-form/useDriveRestForm';
 import { createTechnicalCheckValidationSchema } from './useTechnicalCheckForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
+import { createAdrValidationSchema } from '../adr-form/useAdrForm';
 import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab } from '../../hooks/useSubFormEditActive';
 
 interface TechnicalCheckFormPageProps {
@@ -84,8 +90,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const teammate = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({
     permPrefix: 'sp_teammate_form',
   });
+  const adr = useSubForm<AdrForm, AdrFormEditCardRef>({ permPrefix: 'adr_form' });
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, hasPermission });
   
   useEffect(() => {
     if (!snapshotId || !id) return;
@@ -141,6 +148,16 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         if (res) setOpenTabs((prev) => prev.includes('tab-teammate') ? prev : [...prev, 'tab-teammate']);
       })
       .finally(() => teammate.setLoaded(true));
+
+    listAdrFormsByCompoundFormKey(compoundFormKey)
+      .then(async (list) => {
+        const item = Array.isArray(list) ? list[0] : null;
+        const full = item?.id ? await getAdrForm(item.id).catch(() => null) : null;
+        adr.setForm(full);
+        if (full) setOpenTabs((prev) => prev.includes('tab-adr') ? prev : [...prev, 'tab-adr']);
+      })
+      .catch(console.error)
+      .finally(() => adr.setLoaded(true));
   }, [compoundFormKey]);
 
   const {
@@ -178,7 +195,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     window.scrollTo(0, 0);
   };
 
-  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer });
+  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr });
 
   const {
     formik,
@@ -221,9 +238,22 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     }
   }, [compoundForm?.status]);
 
-  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer });
+  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr });
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm, triggerConfirm: triggerConfirmCompound });
+
+  const refetchAdr = (onDone?: () => void) => {
+    if (!compoundFormKey) return;
+    listAdrFormsByCompoundFormKey(compoundFormKey)
+      .then(async (list) => {
+        const item = Array.isArray(list) ? list[0] : null;
+        const full = item?.id ? await getAdrForm(item.id).catch(() => null) : null;
+        adr.setForm(full);
+        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full);
+        onDone?.();
+      })
+      .catch(console.error);
+  };
 
   const refetchTechCheck = (subForm: typeof vehicle, scope: TechnicalCheckVariant, onDone?: () => void) => {
     if (!compoundFormKey) return;
@@ -239,6 +269,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           teammate.form,
           latestVehicle,
           latestTrailer,
+          adr.form
         );
         onDone?.();
       })
@@ -256,6 +287,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           latestTeammate,
           vehicle.form,
           trailer.form,
+          adr.form
         );
         onDone?.(); })
       .catch(console.error);
@@ -306,6 +338,17 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           saveDriveRestForm('teammate', serialized as unknown as DriveRestForm).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchDriveRest(teammate, 'teammate', () => { teammate.draftRef.current = null; teammate.setDraft(null); }); handleSubformEditActive();}).catch(console.error);
         },
       },
+      {
+        tabId: 'tab-adr',
+        subForm: adr as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
+        schema: createAdrValidationSchema(t) as ReturnType<typeof createAdrValidationSchema>,
+        fallbackSave: (draft) => {
+          const d = draft as AdrForm;
+          const isBlank = (obj: Record<string, unknown>) => Object.values(obj).every((v) => v == null || v === '');
+          const payload = { ...d, id: adr.form?.id, driverAssistant: d.driverAssistant && !isBlank(d.driverAssistant as Record<string, unknown>) ? JSON.stringify(d.driverAssistant) : '', lastLoadAddress: d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>) ? JSON.stringify(d.lastLoadAddress) : '', nextLoadAddress: d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>) ? JSON.stringify(d.nextLoadAddress) : '', dangerousGoods: JSON.stringify(d.dangerousGoods ?? []), infringements: JSON.stringify((d.infringements ?? []).filter((e) => !!(e as { checkStatus?: string }).checkStatus)), correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []) } as unknown as AdrForm;
+          saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchAdr(() => { adr.draftRef.current = null; adr.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
+        },
+      },
     ],
   });
 
@@ -314,13 +357,15 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       | 'tab-driver'
       | 'tab-teammate'
       | 'tab-vehicle-technical-check'
-      | 'tab-trailer-technical-check',
+      | 'tab-trailer-technical-check'
+      | 'tab-adr',
   ) =>
     addTab(tabId, {
       driver,
       teammate,
       vehicle,
       trailer,
+      adr,
       setOpenTabs,
       setActiveTab,
     });
@@ -330,6 +375,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     trailer.editActive ||
     driver.editActive ||
     teammate.editActive ||
+    adr.editActive ||
     compoundEditActive;
   const canEdit = hasPermission('compound_form.write');
 
@@ -361,13 +407,14 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       (teammate.form != null && teammate.form.status !== 'deleted') ||
       (compoundForm != null && compoundForm.status !== 'deleted'));
 
-  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, compoundForm });
+  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, compoundForm });
 
   const { removeConfirmTab, setRemoveConfirmTab, handleRemove, handleRemoveConfirmed } = useRemoveSubFormTab({
     driver,
     teammate,
     vehicle,
     trailer,
+    adr,
     setOpenTabs,
     setActiveTab,
     checkAndAutoConfirm: checkAndAutoConfirmCompound,
@@ -430,11 +477,11 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         <Tabs.List aria-label={t('forms.compound_form')}>
           <Tabs.Trigger id="tab-compound">{t('forms.compound.generalPart')}</Tabs.Trigger>
           {(() => {
-            const tabSubForms = { 'tab-driver': driver, 'tab-teammate': teammate, 'tab-vehicle-technical-check': vehicle, 'tab-trailer-technical-check': trailer } as const;
-            const tabsWithStatus = openTabs.filter((tid) => tid !== 'tab-compound' && (tabSubForms as Record<string, typeof driver>)[tid]?.form != null).length;
-            return (['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check'] as const).map((tid) => {
+            const tabSubForms: Record<string, { form: unknown; editActive: boolean }> = { 'tab-driver': driver, 'tab-teammate': teammate, 'tab-vehicle-technical-check': vehicle, 'tab-trailer-technical-check': trailer, 'tab-adr': adr };
+            const tabsWithStatus = openTabs.filter((tid) => tid !== 'tab-compound' && tabSubForms[tid]?.form != null).length;
+            return (['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check', 'tab-adr'] as const).map((tid) => {
             if (!openTabs.includes(tid)) return null;
-            const subForm = tid === 'tab-driver' ? driver : tid === 'tab-teammate' ? teammate : tid === 'tab-vehicle-technical-check' ? vehicle : trailer;
+            const subForm = tabSubForms[tid];
             const label =
               tid === 'tab-driver'
                 ? t('forms.driver_drive_rest_form')
@@ -442,7 +489,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                   ? t('forms.teammate_drive_rest_form')
                   : tid === 'tab-vehicle-technical-check'
                     ? t('forms.technical_check.vehicleTitle')
-                    : t('forms.technical_check.trailerTitle');
+                    : tid === 'tab-adr'
+                      ? t('forms.adr.title')
+                      : t('forms.technical_check.trailerTitle');
             const canClose = subForm.editActive && (tabsWithStatus > 1 || !subForm.form);
             return (
               <Tabs.Trigger key={tid} id={tid}>
@@ -607,6 +656,38 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
             />
           )}
         />
+
+        <SubFormTab
+          id="tab-adr"
+          open={openTabs.includes('tab-adr')}
+          subForm={adr}
+          renderView={(form) => (
+            <AdrFormViewCard
+              form={form}
+              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              onEdit={() => adr.setEditActive(true)}
+              formType={FORM_TYPE.ADR}
+            />
+          )}
+          renderEdit={(form, ref) => (
+            <AdrFormEditCard
+              ref={ref}
+              form={adr.draft ?? form}
+              compoundFormKey={compoundFormKey!}
+              onSaved={() => {
+                setShowSavedAlert(true);
+                window.scrollTo(0, 0);
+                refetchAdr(() => { adr.draftRef.current = null; adr.setDraft(null); });
+              }}
+              onCancel={() => { adr.setEditActive(false); adr.resetDraft(); }}
+              canConfirm={canConfirm()}
+              onConfirm={() => {}}
+              formType={FORM_TYPE.ADR}
+              onValuesChange={(v) => { const next = { ...(adr.draftRef.current ?? form), ...v } as AdrForm; adr.draftRef.current = next; adr.setDraft(next); }}
+              initialValidate={false}
+            />
+          )}
+        />
       </Tabs>
 
       <div className="page-actions mt-1">
@@ -623,6 +704,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                   if (trailer.form) trailer.setEditActive(true);
                   if (driver.form) driver.setEditActive(true);
                   if (teammate.form) teammate.setEditActive(true);
+                  if (adr.form) adr.setEditActive(true);
                 }}
               >
                 {t('common.edit')}

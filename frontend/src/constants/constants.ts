@@ -11,16 +11,18 @@ export const FORM_TYPE = {
   GOOD_REPUTE: 'good-repute',
   VEHICLE_TECHNICAL_CHECK: 'vehicle-technical',
   TRAILER_TECHNICAL_CHECK: 'trailer-technical',
+  ADR: 'adr-form',
 } as const;
 
 export const ALL_FORM_TABS: {
-  tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check';
+  tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr';
   labelKey: string;
 }[] = [
   { tabId: 'tab-driver', labelKey: 'forms.driver_drive_rest_form' },
   { tabId: 'tab-teammate', labelKey: 'forms.teammate_drive_rest_form' },
   { tabId: 'tab-vehicle-technical-check', labelKey: 'forms.technical_check.vehicleTitle' },
   { tabId: 'tab-trailer-technical-check', labelKey: 'forms.technical_check.trailerTitle' },
+  { tabId: 'tab-adr', labelKey: 'forms.adr.title' },
 ];
 
 export const FORM_ROUTE: Record<string, string> = {

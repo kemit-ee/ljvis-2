@@ -1,10 +1,10 @@
 import { useEffect, useCallback, useState } from 'react';
 import type React from 'react';
-import type { DriveRestForm, TechnicalCheckForm, CompoundForm } from '../types';
+import type { DriveRestForm, TechnicalCheckForm, AdrForm, CompoundForm } from '../types';
 import type { SubFormHandle } from './useSubForm';
 import { useAuth } from '../../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { deleteDriveRestForm, deleteTechnicalCheckForm, deleteCompoundForm } from '../api';
+import { deleteDriveRestForm, deleteTechnicalCheckForm, deleteAdrForm, deleteCompoundForm } from '../api';
 
 type StatusForm = { status?: string } | null | undefined;
 
@@ -13,12 +13,14 @@ export function isAnySubFormSaved(
   teammateForm: StatusForm,
   vehicleForm: StatusForm,
   trailerForm: StatusForm,
+  adrForm?: StatusForm,
 ): boolean {
   return (
     driverForm?.status === 'saved' ||
     teammateForm?.status === 'saved' ||
     vehicleForm?.status === 'saved' ||
-    trailerForm?.status === 'saved'
+    trailerForm?.status === 'saved' ||
+    adrForm?.status === 'saved'
   );
 }
 
@@ -27,6 +29,7 @@ interface UseSubFormEditActiveOptions {
   teammate: Pick<SubFormHandle<DriveRestForm>, 'form' | 'setEditActive'>;
   vehicle: Pick<SubFormHandle<TechnicalCheckForm>, 'form' | 'setEditActive'>;
   trailer: Pick<SubFormHandle<TechnicalCheckForm>, 'form' | 'setEditActive'>;
+  adr?: Pick<SubFormHandle<AdrForm>, 'form' | 'setEditActive'>;
   hasPermission: (perm: string) => boolean;
 }
 
@@ -35,10 +38,11 @@ export function useSubFormEditActive({
   teammate,
   vehicle,
   trailer,
+  adr,
   hasPermission,
 }: UseSubFormEditActiveOptions): () => void {
   const handleSubformEditActive = () => {
-    if (isAnySubFormSaved(driver.form, teammate.form, vehicle.form, trailer.form)) {
+    if (isAnySubFormSaved(driver.form, teammate.form, vehicle.form, trailer.form, adr?.form)) {
       if (driver.form)
         driver.setEditActive(
           hasPermission('sp_driver_form.write') || !hasPermission('sp_driver_form.read'),
@@ -55,6 +59,10 @@ export function useSubFormEditActive({
         trailer.setEditActive(
           hasPermission('trailer_technical_form.write') || !hasPermission('trailer_technical_form.read'),
         );
+      if (adr?.form)
+        adr.setEditActive(
+          hasPermission('adr_form.write') || !hasPermission('adr_form.read'),
+        );
     } else {
       if (driver.form?.status !== undefined)
         driver.setEditActive(driver.form.status === 'saved');
@@ -64,6 +72,8 @@ export function useSubFormEditActive({
         vehicle.setEditActive(vehicle.form.status === 'saved');
       if (trailer.form?.status !== undefined)
         trailer.setEditActive(trailer.form.status === 'saved');
+      if (adr?.form?.status !== undefined)
+        adr.setEditActive(adr.form.status === 'saved');
     }
   };
 
@@ -74,6 +84,7 @@ export function useSubFormEditActive({
     teammate.form?.status,
     vehicle.form?.status,
     trailer.form?.status,
+    adr?.form?.status,
   ]);
 
   return handleSubformEditActive;
@@ -85,6 +96,7 @@ interface SubFormsAllConfirmedOptions {
   teammate: Pick<SubFormHandle<{ status?: string }>, 'form'>;
   vehicle: Pick<SubFormHandle<{ status?: string }>, 'form'>;
   trailer: Pick<SubFormHandle<{ status?: string }>, 'form'>;
+  adr?: Pick<SubFormHandle<{ status?: string }>, 'form'>;
 }
 
 export function subFormsAllConfirmed({
@@ -93,37 +105,41 @@ export function subFormsAllConfirmed({
   teammate,
   vehicle,
   trailer,
+  adr,
 }: SubFormsAllConfirmedOptions): { hasNewUnsavedSubForm: boolean; subFormsAllConfirmed: boolean } {
   const hasNewUnsavedSubForm =
     (openTabs.includes('tab-driver') && !driver.form) ||
     (openTabs.includes('tab-teammate') && !teammate.form) ||
     (openTabs.includes('tab-vehicle-technical-check') && !vehicle.form) ||
-    (openTabs.includes('tab-trailer-technical-check') && !trailer.form);
+    (openTabs.includes('tab-trailer-technical-check') && !trailer.form) ||
+    (openTabs.includes('tab-adr') && !adr?.form);
   const allConfirmed =
     !hasNewUnsavedSubForm &&
-    [driver.form, teammate.form, vehicle.form, trailer.form]
+    [driver.form, teammate.form, vehicle.form, trailer.form, adr?.form]
       .filter(Boolean)
       .every((f) => f?.status === 'confirmed');
   return { hasNewUnsavedSubForm, subFormsAllConfirmed: allConfirmed };
 }
 
-export type SubFormTabId = 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check';
+export type SubFormTabId = 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr';
 
 interface AddTabOptions {
   driver: Pick<SubFormHandle<{ status?: string }>, 'setLoaded' | 'setEditActive'>;
   teammate: Pick<SubFormHandle<{ status?: string }>, 'setLoaded' | 'setEditActive'>;
   vehicle: Pick<SubFormHandle<{ status?: string }>, 'setLoaded' | 'setEditActive'>;
   trailer: Pick<SubFormHandle<{ status?: string }>, 'setLoaded' | 'setEditActive'>;
+  adr?: Pick<SubFormHandle<{ status?: string }>, 'setLoaded' | 'setEditActive'>;
   setOpenTabs: React.Dispatch<React.SetStateAction<string[]>>;
   setActiveTab: (tab: string) => void;
 }
 
-export function addTab(tabId: SubFormTabId, { driver, teammate, vehicle, trailer, setOpenTabs, setActiveTab }: AddTabOptions): void {
+export function addTab(tabId: SubFormTabId, { driver, teammate, vehicle, trailer, adr, setOpenTabs, setActiveTab }: AddTabOptions): void {
   setOpenTabs((prev) => (prev.includes(tabId) ? prev : [...prev, tabId]));
   if (tabId === 'tab-driver') { driver.setLoaded(true); driver.setEditActive(true); }
   if (tabId === 'tab-teammate') { teammate.setLoaded(true); teammate.setEditActive(true); }
   if (tabId === 'tab-vehicle-technical-check') { vehicle.setLoaded(true); vehicle.setEditActive(true); }
   if (tabId === 'tab-trailer-technical-check') { trailer.setLoaded(true); trailer.setEditActive(true); }
+  if (tabId === 'tab-adr' && adr) { adr.setLoaded(true); adr.setEditActive(true); }
   setActiveTab(tabId);
 }
 
@@ -135,6 +151,7 @@ interface CanConfirmActiveSubFormOptions {
   teammate: SubFormWithStatus;
   vehicle: SubFormWithStatus;
   trailer: SubFormWithStatus;
+  adr?: SubFormWithStatus;
   hasPermission: (perm: string) => boolean;
 }
 
@@ -144,6 +161,7 @@ export function canConfirmActiveSubForm({
   teammate,
   vehicle,
   trailer,
+  adr,
   hasPermission,
 }: CanConfirmActiveSubFormOptions): boolean {
   const tabFormPermission: Record<string, { form: { id?: unknown; status?: string } | null; perm: string }> = {
@@ -151,6 +169,7 @@ export function canConfirmActiveSubForm({
     'tab-teammate': { form: teammate.form, perm: 'sp_teammate_form.write' },
     'tab-vehicle-technical-check': { form: vehicle.form, perm: 'vehicle_technical_form.write' },
     'tab-trailer-technical-check': { form: trailer.form, perm: 'trailer_technical_form.write' },
+    'tab-adr': { form: adr?.form ?? null, perm: 'adr_form.write' },
   };
   const entry = tabFormPermission[activeTab];
   if (!entry) return false;
@@ -163,6 +182,7 @@ export function canEditActiveSubForm({
   teammate,
   vehicle,
   trailer,
+  adr,
   hasPermission,
 }: CanConfirmActiveSubFormOptions): boolean {
   const tabFormPermission: Record<string, { form: { id?: unknown; status?: string } | null; perm: string }> = {
@@ -170,6 +190,7 @@ export function canEditActiveSubForm({
     'tab-teammate': { form: teammate.form, perm: 'sp_teammate_form.write' },
     'tab-vehicle-technical-check': { form: vehicle.form, perm: 'vehicle_technical_form.write' },
     'tab-trailer-technical-check': { form: trailer.form, perm: 'trailer_technical_form.write' },
+    'tab-adr': { form: adr?.form ?? null, perm: 'adr_form.write' },
   };
   const entry = tabFormPermission[activeTab];
   if (!entry) return false;
@@ -182,13 +203,14 @@ interface UseSubFormPermissionsOptions {
   teammate: SubFormWithStatus;
   vehicle: SubFormWithStatus;
   trailer: SubFormWithStatus;
+  adr?: SubFormWithStatus;
 }
 
-export function useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer }: UseSubFormPermissionsOptions) {
+export function useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr }: UseSubFormPermissionsOptions) {
   const { hasPermission } = useAuth();
   return {
-    canEdit: () => canEditActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, hasPermission }),
-    canConfirm: () => canConfirmActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, hasPermission }),
+    canEdit: () => canEditActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, adr, hasPermission }),
+    canConfirm: () => canConfirmActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, adr, hasPermission }),
   };
 }
 
@@ -204,10 +226,11 @@ interface DeleteAllSubFormsOptions {
   teammate: SubFormWithDeletion;
   vehicle: SubFormWithDeletion;
   trailer: SubFormWithDeletion;
+  adr?: SubFormWithDeletion;
   compoundForm: Pick<CompoundForm, 'id' | 'formNumber' | 'status'> | null | undefined;
 }
 
-export function useDeleteAllSubForms({ driver, teammate, vehicle, trailer, compoundForm }: DeleteAllSubFormsOptions) {
+export function useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, compoundForm }: DeleteAllSubFormsOptions) {
   const navigate = useNavigate();
   return useCallback(async () => {
     if (driver.form?.id && driver.form?.subFormNumber) {
@@ -222,11 +245,14 @@ export function useDeleteAllSubForms({ driver, teammate, vehicle, trailer, compo
     if (trailer.form?.id && trailer.form?.subFormNumber) {
       await deleteTechnicalCheckForm('trailer', String(trailer.form.id), trailer.form.subFormNumber, trailer.form.status ?? '');
     }
+    if (adr?.form?.id && adr.form?.subFormNumber) {
+      await deleteAdrForm(String(adr.form.id), adr.form.status ?? '').catch(console.error);
+    }
     if (compoundForm?.id && compoundForm.formNumber) {
       await deleteCompoundForm(String(compoundForm.id), compoundForm.formNumber, compoundForm.status ?? '').catch(console.error);
     }
     navigate('/');
-  }, [driver, teammate, vehicle, trailer, compoundForm, navigate]);
+  }, [driver, teammate, vehicle, trailer, adr, compoundForm, navigate]);
 }
 
 interface SubFormForRemoval {
@@ -241,6 +267,7 @@ interface UseRemoveSubFormTabOptions {
   teammate: SubFormForRemoval;
   vehicle: SubFormForRemoval;
   trailer: SubFormForRemoval;
+  adr: SubFormForRemoval;
   setOpenTabs: React.Dispatch<React.SetStateAction<string[]>>;
   setActiveTab: (tab: string) => void;
   checkAndAutoConfirm: (
@@ -248,6 +275,7 @@ interface UseRemoveSubFormTabOptions {
     teammate: DriveRestForm | null,
     vehicle: TechnicalCheckForm | null,
     trailer: TechnicalCheckForm | null,
+    adr: AdrForm | null,
   ) => void;
   navigateAfterRemove: (tab: SubFormTabId) => void;
   onEditActiveChange?: (value: boolean) => void;
@@ -258,6 +286,7 @@ export function useRemoveSubFormTab({
   teammate,
   vehicle,
   trailer,
+  adr,
   setOpenTabs,
   setActiveTab,
   checkAndAutoConfirm,
@@ -267,7 +296,7 @@ export function useRemoveSubFormTab({
   const [removeConfirmTab, setRemoveConfirmTab] = useState<SubFormTabId | null>(null);
 
   const handleRemove = (tabId: SubFormTabId) => {
-    const subForm = tabId === 'tab-driver' ? driver : tabId === 'tab-teammate' ? teammate : tabId === 'tab-vehicle-technical-check' ? vehicle : trailer;
+    const subForm = tabId === 'tab-driver' ? driver : tabId === 'tab-teammate' ? teammate : tabId === 'tab-vehicle-technical-check' ? vehicle : tabId === 'tab-adr' ? (adr ?? trailer) : trailer;
     if (!subForm.form || subForm.form.status === undefined) {
       setOpenTabs((prev) => prev.filter((t) => t !== tabId));
       subForm.setForm(null);
@@ -296,6 +325,17 @@ export function useRemoveSubFormTab({
       }
       subForm.setForm(null);
       subForm.setEditActive(false);
+    } else if (tab === 'tab-adr') {
+      if (adr?.form?.id) {
+        try {
+          await deleteAdrForm(String(adr.form.id), adr.form.status ?? '');
+        } catch (e) {
+          console.error('Delete sub-form failed', e);
+          return;
+        }
+      }
+      adr?.setForm(null);
+      adr?.setEditActive(false);
     } else {
       const scope = tab === 'tab-vehicle-technical-check' ? 'vehicle' : 'trailer';
       const subForm = tab === 'tab-vehicle-technical-check' ? vehicle : trailer;
@@ -314,15 +354,17 @@ export function useRemoveSubFormTab({
     const teammateForm = tab === 'tab-teammate' ? null : teammate.form;
     const vehicleForm = tab === 'tab-vehicle-technical-check' ? null : vehicle.form;
     const trailerForm = tab === 'tab-trailer-technical-check' ? null : trailer.form;
+    const adrForm = tab === 'tab-adr' ? null : adr.form;
     checkAndAutoConfirm(
       driverForm as DriveRestForm | null,
       teammateForm as DriveRestForm | null,
       vehicleForm as TechnicalCheckForm | null,
       trailerForm as TechnicalCheckForm | null,
+      adrForm as AdrForm | null,
     );
     setOpenTabs((prev) => prev.filter((t) => t !== tab));
     setActiveTab('tab-compound');
-    onEditActiveChange?.(isAnySubFormSaved(driverForm, teammateForm, vehicleForm, trailerForm));
+    onEditActiveChange?.(isAnySubFormSaved(driverForm, teammateForm, vehicleForm, trailerForm, adrForm));
     navigateAfterRemove(tab);
   };
 
@@ -338,9 +380,10 @@ export function makeCheckAndAutoConfirm({
     latestTeammate: DriveRestForm | null,
     latestVehicle: TechnicalCheckForm | null,
     latestTrailer: TechnicalCheckForm | null,
+    latestAdr: AdrForm | null,
   ) => {
     if (!compoundForm || compoundForm.status === 'confirmed') return;
-    const forms = [latestDriver, latestTeammate, latestVehicle, latestTrailer].filter(
+    const forms = [latestDriver, latestTeammate, latestVehicle, latestTrailer, latestAdr].filter(
       Boolean,
     ) as { status?: string }[];
     if (forms.length === 0) return;

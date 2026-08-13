@@ -16,6 +16,25 @@ import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 
 const NOTES_MAX_LENGTH = 4000;
 
+export function createAdrValidationSchema(t: (key: string, opts?: Record<string, unknown>) => string) {
+  return Yup.object({
+    proceedingReferenceNumber: Yup.string().when('proceedingType', {
+      is: (proceedingType: string) => !!proceedingType,
+      then: (schema) => schema.required(t('forms.adr.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    exemptionAdrProvision: Yup.string().when('exemptionApplied', {
+      is: true,
+      then: (schema) => schema.required(t('forms.adr.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    notes: Yup.string().max(
+      NOTES_MAX_LENGTH,
+      t('forms.adr.validation.notesMaxLength', { max: NOTES_MAX_LENGTH }),
+    ),
+  });
+}
+
 // RESQL returns JSONB columns cast via `::text`, so object/array fields
 // arrive over the wire as JSON-encoded strings, not real objects/arrays.
 // Normalize defensively regardless of which shape we get.
@@ -64,22 +83,7 @@ export function useAdrForm(
     [getByCode],
   );
 
-  const validationSchema = Yup.object({
-    proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => !!proceedingType,
-      then: (schema) => schema.required(t('forms.adr.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
-    exemptionAdrProvision: Yup.string().when('exemptionApplied', {
-      is: true,
-      then: (schema) => schema.required(t('forms.adr.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
-    notes: Yup.string().max(
-      NOTES_MAX_LENGTH,
-      t('forms.adr.validation.notesMaxLength', { max: NOTES_MAX_LENGTH }),
-    ),
-  });
+  const validationSchema = createAdrValidationSchema(t);
 
   const formik = useFormik({
     enableReinitialize: true,
