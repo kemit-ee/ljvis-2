@@ -14,7 +14,7 @@ All audit events are written to the `audit.audit_event` table via RESQL (`POST [
 | `event_type` | Action type (see list below) |
 | `event_category` | Domain: `user_management`, `user_group_management`, `classifier_management`, `control_form_management` |
 | `actor_name` | Actor's display name (sourced from JWT at write time) |
-| `actor_personal_code_hash` | SHA-256 hash of the actor's personal code, keyed with the audit salt: `digest(personalCode \|\| audit_salt, 'sha256')`. Computed by RESQL at INSERT time. Cleartext personal codes are never stored. |
+| `actor_personal_code_hash` | SHA-256 of the actor's personal code via `audit.hash_personal_code()`: `digest(personalCode \|\| audit_salt, 'sha256')`. Salt is stored in `audit.config`. Computed by RESQL at INSERT time. Cleartext personal codes are never stored. |
 | `description` | Human-readable Estonian description of the event |
 | `log_content` | JSONB object with event-specific structured data |
 | `created_at` | `timestamptz`, default `now()`. Server-authoritative event timestamp. Also referred to as `event_time_server` in the API contract — the two names refer to the same column. |
@@ -65,7 +65,7 @@ Every Ruuter YML follows the same template:
 
 
 > **NB!** On write operations the event is logged **before** the response is returned (step 4 before 5).
-> On read operations (list, view) the event is logged **after** the RESQL response arrives. Personal codes are hashed with `sha256(personalCode || audit_salt)` in the `buildAuditLog` step before the `insert_audit_event` call — cleartext personal codes never reach the `audit.audit_event` table (see `logging-spec.md` §6 and item 19).
+> On read operations (list, view) the event is logged **after** the RESQL response arrives. Personal codes are hashed via `audit.hash_personal_code()` (`sha256(personalCode || audit_salt)`, salt from `audit.config`) in the `buildAuditLog` step before the `insert_audit_event` call — cleartext personal codes never reach the `audit.audit_event` table (see `logging-spec.md` §6 and item 19).
 
 ---
 
