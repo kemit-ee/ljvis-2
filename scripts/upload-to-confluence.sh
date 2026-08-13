@@ -1,6 +1,7 @@
 #!/bin/bash
-# Upload LJVIS2 user guide and admin guide DOCX files to Confluence (wiki.kemit.ee)
-# Run from the repo root: bash scripts/upload-to-confluence.sh
+# Create Confluence child pages for LJVIS2 user and admin guides under an existing parent page.
+# The pages contain only descriptive text, the EU logo, and links to the Markdown and DOCX files on GitHub.
+# Run from the repo root: CONFLUENCE_TOKEN=<token> bash scripts/upload-to-confluence.sh
 
 set -euo pipefail
 
@@ -12,33 +13,18 @@ fi
 
 BASE="https://wiki.kemit.ee"
 SPACE="LIA"
-BRANCH="feature/rust-ruuter-compat"
+PARENT_ID="258229822"
+BRANCH="dev"
 GITHUB_BASE="https://github.com/kemit-ee/ljvis-2/blob/${BRANCH}/docs"
 
-echo "==> Loon vanemlehe 'LJVIS2 kasutusjuhendid'..."
-PARENT=$(curl -fsSL -X POST \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  "$BASE/rest/api/content" \
-  -d "{
-    \"type\": \"page\",
-    \"title\": \"LJVIS2 kasutusjuhendid\",
-    \"space\": { \"key\": \"$SPACE\" },
-    \"body\": {
-      \"storage\": {
-        \"value\": \"<p>LJVIS2 kasutaja- ja administraatorijuhendid. Juhendid on saadaval ka Markdownina GitHubis.</p>\",
-        \"representation\": \"storage\"
-      }
-    }
-  }")
-PARENT_ID=$(echo "$PARENT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'])")
-echo "    Vanemlehe ID: $PARENT_ID"
+LOGO_URL="https://wiki.kemit.ee/download/attachments/258229842/Rahastanud_EL_kaksiklogod_EST_hor_color_RGB.jpg?version=1&amp;modificationDate=1773758668398&amp;api=v2"
+LOGO_XML="<ac:image><ri:url ri:value=\"$LOGO_URL\" /></ac:image>"
 
-create_page_and_attach() {
+create_page() {
   local title="$1"
   local description="$2"
-  local github_link="$3"
-  local docx_file="$4"
+  local github_md="$3"
+  local github_docx="$4"
 
   echo ""
   echo "==> Loon alamlehe '$title'..."
@@ -53,34 +39,26 @@ create_page_and_attach() {
       \"ancestors\": [{ \"id\": $PARENT_ID }],
       \"body\": {
         \"storage\": {
-          \"value\": \"<p>$description Markdown versioon on saadaval <a href=\\\"$github_link\\\">GitHubis</a>.</p>\",
+          \"value\": \"$LOGO_XML<p>$description Markdown versioon on saadaval <a href=\\\"$github_md\\\">GitHubis</a> ja DOCX-fail <a href=\\\"$github_docx\\\">siit</a>.</p>\",
           \"representation\": \"storage\"
         }
       }
     }")
   PAGE_ID=$(echo "$PAGE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'])")
-  echo "    Lehe ID: $PAGE_ID"
-
-  echo "==> Laadin manuse: $docx_file ..."
-  curl -fsSL -X POST \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "X-Atlassian-Token: no-check" \
-    -F "file=@$docx_file;type=application/vnd.openxmlformats-officedocument.wordprocessingml.document" \
-    "$BASE/rest/api/content/$PAGE_ID/child/attachment" > /dev/null
-  echo "    Manus lisatud."
+  echo "    Leht loodud, ID: $PAGE_ID"
 }
 
-create_page_and_attach \
+create_page \
   "LJVIS2 kasutajajuhend" \
-  "LJVIS2 kasutajajuhend kirjeldab süsteemi kasutamist tee ametnikele ja ettevõtja esindajatele." \
+  "LJVIS2 kasutajajuhend kirjeldab süsteemi kasutamist järelevalveametnikele ja ettevõtja esindajatele." \
   "$GITHUB_BASE/user-guide.md" \
-  "docs/user-guide.docx"
+  "$GITHUB_BASE/user-guide.docx"
 
-create_page_and_attach \
+create_page \
   "LJVIS2 administraatorijuhend" \
-  "LJVIS2 administraatorijuhend kirjeldab kasutajahaldust, klassifikaatoreid, auditilogi ja S3 failihoidlat." \
+  "LJVIS2 administraatorijuhend kirjeldab kasutajahaldust, kasutajagruppe, klassifikaatoreid, auditilogi, S3 failihoidlat ja API lõpp-punkte." \
   "$GITHUB_BASE/admin-guide.md" \
-  "docs/admin-guide.docx"
+  "$GITHUB_BASE/admin-guide.docx"
 
 echo ""
-echo "Valmis! Vaata tulemust: $BASE/spaces/$SPACE"
+echo "Valmis! Vaata tulemust: $BASE/pages/viewpage.action?pageId=$PARENT_ID"
