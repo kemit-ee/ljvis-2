@@ -16,9 +16,33 @@ SPACE="LIA"
 PARENT_ID="258229822"
 BRANCH="dev"
 GITHUB_BASE="https://github.com/kemit-ee/ljvis-2/blob/${BRANCH}/docs"
-
 LOGO_URL="https://wiki.kemit.ee/download/attachments/258229842/Rahastanud_EL_kaksiklogod_EST_hor_color_RGB.jpg"
-LOGO_XML="<ac:image ac:align=\"center\"><ri:url ri:value=\"$LOGO_URL\" /></ac:image>"
+
+build_payload() {
+  python3 - "$@" <<'PY'
+import json, sys
+logo, desc, md, docx, title, space, parent = sys.argv[1:8]
+body = (
+    f'<ac:image ac:align="center"><ri:url ri:value="{logo}" /></ac:image>'
+    f'<p>{desc}</p>'
+    f'<p>Markdown versioon on saadaval <a href="{md}">GitHubis</a> '
+    f'ja DOCX-fail <a href="{docx}">siit</a>.</p>'
+)
+payload = {
+    "type": "page",
+    "title": title,
+    "space": {"key": space},
+    "ancestors": [{"id": int(parent)}],
+    "body": {
+        "storage": {
+            "value": body,
+            "representation": "storage"
+        }
+    }
+}
+print(json.dumps(payload, ensure_ascii=False))
+PY
+}
 
 api_post() {
   local payload="$1"
@@ -51,18 +75,8 @@ create_page() {
 
   echo ""
   echo "==> Loon alamlehe '$title'..."
-  PAGE=$(api_post "{
-    \"type\": \"page\",
-    \"title\": \"$title\",
-    \"space\": { \"key\": \"$SPACE\" },
-    \"ancestors\": [{ \"id\": $PARENT_ID }],
-    \"body\": {
-      \"storage\": {
-        \"value\": \"$LOGO_XML<p>$description</p><p>Markdown versioon on saadaval <a href=\\\"$github_md\\\">GitHubis</a> ja DOCX-fail <a href=\\\"$github_docx\\\">siit</a>.</p>\",
-        \"representation\": \"storage\"
-      }
-    }
-  }")
+  PAYLOAD=$(build_payload "$LOGO_URL" "$description" "$github_md" "$github_docx" "$title" "$SPACE" "$PARENT_ID")
+  PAGE=$(api_post "$PAYLOAD")
   PAGE_ID=$(echo "$PAGE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'])")
   echo "    Leht loodud, ID: $PAGE_ID"
 }
