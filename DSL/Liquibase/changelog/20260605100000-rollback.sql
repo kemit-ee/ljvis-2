@@ -6,4 +6,5 @@ DROP FUNCTION  IF EXISTS audit.chain();
 DROP FUNCTION  IF EXISTS audit.generate_ulid();
 DROP TABLE     IF EXISTS audit.chain_tip    CASCADE;
 DROP TABLE     IF EXISTS audit.audit_event  CASCADE;
-ALTER DATABASE ${DB_NAME} RESET app.audit_salt;
+DROP FUNCTION  IF EXISTS audit.hash_personal_code(TEXT);
+DROP TABLE     IF EXISTS audit.config CASCADE;
