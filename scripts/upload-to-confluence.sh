@@ -12,7 +12,7 @@ fi
 
 BASE="https://wiki.kemit.ee"
 SPACE="LIA"
-BRANCH="feature/rust-ruuter-compat"
+BRANCH="dev"
 GITHUB_BASE="https://github.com/kemit-ee/ljvis-2/blob/${BRANCH}/docs"
 
 echo "==> Loon vanemlehe 'LJVIS2 kasutusjuhendid'..."
@@ -39,6 +39,7 @@ create_page_and_attach() {
   local description="$2"
   local github_link="$3"
   local docx_file="$4"
+  local docx_github_link="${github_link%.md}.docx"
 
   echo ""
   echo "==> Loon alamlehe '$title'..."
@@ -53,7 +54,7 @@ create_page_and_attach() {
       \"ancestors\": [{ \"id\": $PARENT_ID }],
       \"body\": {
         \"storage\": {
-          \"value\": \"<p>$description Markdown versioon on saadaval <a href=\\\"$github_link\\\">GitHubis</a>.</p>\",
+          \"value\": \"<p>$description Markdown versioon on saadaval <a href=\\\"$github_link\\\">GitHubis</a>. DOCX-fail on saadaval <a href=\\\"$docx_github_link\\\">siit</a>.</p>\",
           \"representation\": \"storage\"
         }
       }
