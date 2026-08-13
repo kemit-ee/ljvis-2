@@ -6,7 +6,6 @@ import ssl
 import sys
 import urllib.error
 import urllib.request
-import urllib.parse
 
 TOKEN = os.environ.get("CONFLUENCE_TOKEN", "")
 if not TOKEN:
@@ -15,7 +14,9 @@ if not TOKEN:
 
 BASE = "https://wiki.kemit.ee"
 SPACE = "LIA"
-PARENT_ID = 258229822
+USER_PARENT_ID = 258229842   # LJVIS+2+Kasutusjuhend
+ADMIN_PARENT_ID = 258229822  # LJVIS+2+-+Juhendid
+INDEX_PAGE_ID = 258229822    # linkide leht
 BRANCH = "dev"
 GITHUB_BASE = f"https://github.com/kemit-ee/ljvis-2/blob/{BRANCH}/docs"
 LOGO_URL = "https://wiki.kemit.ee/download/attachments/258229842/Rahastanud_EL_kaksiklogod_EST_hor_color_RGB.jpg"
@@ -42,28 +43,21 @@ def api_error(e):
         pass
 
 
-def find_page(title):
-    q = urllib.parse.urlencode({"spaceKey": SPACE, "title": title, "status": "current"})
-    try:
-        resp = request("GET", f"/rest/api/content?{q}")
-        results = resp.get("results", [])
-        return results[0] if results else None
-    except urllib.error.HTTPError as e:
-        api_error(e)
-        return None
-
-
 def delete_page(page_id):
-    print(f"    Kustutan vana lehe (ID: {page_id})...")
+    print(f"    Kustutan lehe ID: {page_id}...")
     try:
         request("DELETE", f"/rest/api/content/{page_id}")
+        print("    Kustutatud.")
         return True
     except urllib.error.HTTPError as e:
+        if e.code == 404:
+            print("    Lehte ei leitud (juba kustutatud).")
+            return True
         api_error(e)
         return False
 
 
-def create_page(title, description, md_url, docx_url):
+def create_page(title, description, md_url, docx_url, parent_id):
     body = (
         f'<ac:image ac:align="center"><ri:url ri:value="{LOGO_URL}" /></ac:image>'
         f'<p>{description}</p>'
@@ -74,7 +68,7 @@ def create_page(title, description, md_url, docx_url):
         "type": "page",
         "title": title,
         "space": {"key": SPACE},
-        "ancestors": [{"id": PARENT_ID}],
+        "ancestors": [{"id": parent_id}],
         "body": {
             "storage": {
                 "value": body,
@@ -86,35 +80,87 @@ def create_page(title, description, md_url, docx_url):
     try:
         resp = request("POST", "/rest/api/content", data=data, headers={"Content-Type": "application/json"})
         print(f"    Leht loodud, ID: {resp['id']}")
+        return resp["id"]
     except urllib.error.HTTPError as e:
         api_error(e)
         sys.exit(1)
 
 
-def ensure_page(title, description, md_url, docx_url):
-    print(f'==> Loon/kustutan lehe "{title}"...')
-    existing = find_page(title)
-    if existing:
-        if not delete_page(existing["id"]):
-            print("    Ei saanud vana lehte kustutada. Katkestan.")
-            sys.exit(1)
-    create_page(title, description, md_url, docx_url)
+def update_index(user_id, admin_id):
+    print(f'==> Uuendan linkide lehte (ID: {INDEX_PAGE_ID})...')
+    try:
+        current = request("GET", f"/rest/api/content/{INDEX_PAGE_ID}?expand=version,body.storage")
+    except urllib.error.HTTPError as e:
+        api_error(e)
+        sys.exit(1)
+
+    current_version = current["version"]["number"]
+    title = current["title"]
+
+    new_body = (
+        f'<p>Siin leiad LJVIS2 juhendid.</p>'
+        f'<p>LJVIS2 kasutajajuhend Confluence\'is: '
+        f'<a href="{BASE}/pages/viewpage.action?pageId={user_id}">LJVIS2 kasutajajuhend</a> ; '
+        f'LJVIS2 kasutajajuhend GitHubis: '
+        f'<a href="{GITHUB_BASE}/user-guide.md">Markdown</a></p>'
+        f'<p>LJVIS2 Administraatorijuhend Confluence\'is: '
+        f'<a href="{BASE}/pages/viewpage.action?pageId={admin_id}">LJVIS2 Administraatorijuhend</a> ; '
+        f'LJVIS2 Administraatorijuhend GitHubis: '
+        f'<a href="{GITHUB_BASE}/admin-guide.md">Markdown</a></p>'
+    )
+
+    payload = {
+        "id": str(INDEX_PAGE_ID),
+        "type": "page",
+        "title": title,
+        "body": {
+            "storage": {
+                "value": new_body,
+                "representation": "storage",
+            }
+        },
+        "version": {"number": current_version + 1},
+    }
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    try:
+        request("PUT", f"/rest/api/content/{INDEX_PAGE_ID}", data=data, headers={"Content-Type": "application/json"})
+        print("    Linkide leht uuendatud.")
+    except urllib.error.HTTPError as e:
+        api_error(e)
+        sys.exit(1)
 
 
-ensure_page(
+print('==> Kustutan vana kasutajajuhendi (333202413)...')
+if not delete_page(333202413):
+    sys.exit(1)
+
+print('==> Kustutan vana administraatorijuhendi (333202414)...')
+if not delete_page(333202414):
+    sys.exit(1)
+
+print('==> Loon kasutajajuhendi lehe (258229842 alla)...')
+user_id = create_page(
     "LJVIS2 kasutajajuhend",
     "LJVIS2 kasutajajuhend kirjeldab süsteemi kasutamist järelevalveametnikele ja ettevõtja esindajatele.",
     f"{GITHUB_BASE}/user-guide.md",
     f"{GITHUB_BASE}/user-guide.docx",
+    USER_PARENT_ID,
 )
 
-ensure_page(
-    "LJVIS2 administraatorijuhend",
+print('==> Loon administraatorijuhendi lehe (258229822 alla)...')
+admin_id = create_page(
+    "LJVIS2 Administraatorijuhend",
     "LJVIS2 administraatorijuhend kirjeldab kasutajahaldust, kasutajagruppe, klassifikaatoreid, auditilogi, S3 failihoidlat ja API lõpp-punkte.",
     f"{GITHUB_BASE}/admin-guide.md",
     f"{GITHUB_BASE}/admin-guide.docx",
+    ADMIN_PARENT_ID,
 )
 
+update_index(user_id, admin_id)
+
 print("")
-print(f"Valmis! Vaata tulemust: {BASE}/pages/viewpage.action?pageId={PARENT_ID}")
+print("Valmis!")
+print(f"  Kasutajajuhend: {BASE}/pages/viewpage.action?pageId={user_id}")
+print(f"  Administraatorijuhend: {BASE}/pages/viewpage.action?pageId={admin_id}")
+print(f"  Linkide leht: {BASE}/pages/viewpage.action?pageId={INDEX_PAGE_ID}")
 PY
