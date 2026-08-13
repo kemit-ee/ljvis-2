@@ -3,6 +3,8 @@ import type { AdrForm } from '../../types';
 import { useAdrForm } from './useAdrForm';
 import { AdrFormFields } from './AdrFormFields';
 import { usePersonSearch } from '../../../xroad/hooks/usePersonSearch';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
+import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 
 interface Props {
@@ -14,7 +16,7 @@ interface Props {
 }
 
 export interface AdrFormCreatePageRef {
-  handleSubmit: () => void;
+  handleSubmit: (overrideCompoundFormKey?: number) => void;
   getFormData: () => Partial<AdrForm>;
   setFormData: (data: Partial<AdrForm>) => void;
   hasErrors: () => boolean;
@@ -27,6 +29,7 @@ export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>(
   ({ initialData, compoundFormKey, onSaved, onValuesChange, initialValidate }, ref) => {
     const {
       formik,
+      pendingCompoundFormKey,
       triggerConfirm,
       formError,
       counties,
@@ -41,7 +44,9 @@ export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>(
       getInfringement,
     } = useAdrForm(initialData, (id) => onSaved?.(id), compoundFormKey);
 
-    const { searchByPersonalCode, loading: searchLoading, error: searchError, notFound: searchNotFound } =
+    const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+
+    const { searchByPersonalCode, loading: searchLoading, error: searchError, setError: setSearchError, notFound: searchNotFound, setNotFound: setSearchNotFound } =
       usePersonSearch({
         onPersonFound: (person) => {
           setDriverAssistant({
@@ -56,7 +61,12 @@ export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>(
       });
 
     useImperativeHandle(ref, () => ({
-      handleSubmit: () => formik.handleSubmit(),
+      handleSubmit: (overrideCompoundFormKey?: number) => {
+        if (overrideCompoundFormKey !== undefined) {
+          pendingCompoundFormKey.current = overrideCompoundFormKey;
+        }
+        formik.handleSubmit();
+      },
       getFormData: () => formik.values,
       setFormData: (data: Partial<AdrForm>) => {
         (Object.keys(data) as Array<keyof AdrForm>).forEach((key) => {
@@ -116,8 +126,11 @@ export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>(
           formError={formError}
           searchLoading={searchLoading}
           searchError={searchError}
+          onSearchErrorClose={() => setSearchError(false)}
           searchNotFound={searchNotFound}
+          onSearchNotFoundClose={() => setSearchNotFound(false)}
           onSearch={searchByPersonalCode}
+          isDesktop={isDesktop}
         />
       </form>
     );

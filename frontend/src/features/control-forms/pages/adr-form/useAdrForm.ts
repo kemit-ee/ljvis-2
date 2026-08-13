@@ -28,6 +28,15 @@ export function createAdrValidationSchema(t: (key: string, opts?: Record<string,
       then: (schema) => schema.required(t('forms.adr.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
+    dangerousGoods: Yup.array().of(
+      Yup.object({
+        quantity: Yup.string().test(
+          'no-trailing-separator',
+          t('forms.adr.dangerousGoods.quantityInvalid'),
+          (val) => !val || !/[.,]$/.test(val),
+        ),
+      }),
+    ),
     notes: Yup.string().max(
       NOTES_MAX_LENGTH,
       t('forms.adr.validation.notesMaxLength', { max: NOTES_MAX_LENGTH }),
@@ -71,6 +80,7 @@ export function useAdrForm(
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const pendingCompoundFormKey = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode } = useClassifiers();
 
@@ -97,9 +107,9 @@ export function useAdrForm(
       driverAdrCertificateNumber: form?.driverAdrCertificateNumber ?? '',
       crewAdrCertificateNumber: form?.crewAdrCertificateNumber ?? '',
       assistantAdrCertificateNumber: form?.assistantAdrCertificateNumber ?? '',
-      lastLoadAddress: toObject<AdrAddress>(form?.lastLoadAddress, {}),
+      lastLoadAddress: toObject<AdrAddress>(form?.lastLoadAddress, { countryCode: 'EE' }),
       lastLoadDate: form?.lastLoadDate ?? '',
-      nextLoadAddress: toObject<AdrAddress>(form?.nextLoadAddress, {}),
+      nextLoadAddress: toObject<AdrAddress>(form?.nextLoadAddress, { countryCode: 'EE' }),
       dangerousGoods: toArray<DangerousGoodEntry>(form?.dangerousGoods),
       exemptionApplied: form?.exemptionApplied ?? false,
       exemptionAdrProvision: form?.exemptionAdrProvision ?? '',
@@ -123,6 +133,8 @@ export function useAdrForm(
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
+        const overrideKey = pendingCompoundFormKey.current;
+        pendingCompoundFormKey.current = undefined;
         // Empty driver-assistant / address blocks are sent as null so the
         // backend stores them as SQL NULL rather than an empty-but-present
         // JSON object (LJVIS2-141 §4.3/4.5/4.6: these blocks are optional).
@@ -130,7 +142,8 @@ export function useAdrForm(
           Object.values(obj).every((v) => v == null || v === '');
         const payload = {
           ...values,
-          id: form?.id,
+          id: form?.id ?? '',
+          compoundFormKey: overrideKey ?? values.compoundFormKey,
           driverAssistant: isBlank(values.driverAssistant)
             ? ''
             : JSON.stringify(values.driverAssistant),
@@ -236,6 +249,7 @@ export function useAdrForm(
 
   return {
     formik,
+    pendingCompoundFormKey,
     triggerConfirm,
     formError,
     counties,

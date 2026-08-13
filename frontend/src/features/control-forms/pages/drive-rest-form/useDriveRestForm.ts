@@ -113,6 +113,7 @@ export function useDriveRestForm(
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const pendingCompoundFormKey = useRef<number | undefined>(undefined);
 
   const { getByCode } = useClassifiers();
 
@@ -258,9 +259,13 @@ export function useDriveRestForm(
           ? incrementSubFormNumber(subFormNumberString)
           : subFormNumberString;
 
+        const overrideKey = pendingCompoundFormKey.current;
+        pendingCompoundFormKey.current = undefined;
+
         const trimmedValues = {
           ...serializeDriveRestFormValues(values, nextStatus),
           subFormNumber: nextSubFormNumber,
+          compoundFormKey: overrideKey ?? values.compoundFormKey,
         };
 
         const result = isConfirming
@@ -289,6 +294,7 @@ export function useDriveRestForm(
 
   return {
     formik,
+    pendingCompoundFormKey,
     cargoCabotageViolations,
     passengerCabotageViolations,
     transportClasses,

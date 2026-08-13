@@ -3,6 +3,8 @@ import type { AdrForm } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { useAdrForm } from '../../pages/adr-form/useAdrForm';
 import { AdrFormFields } from '../../pages/adr-form/AdrFormFields';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
+import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 interface AdrFormViewCardProps {
   form: AdrForm;
@@ -25,6 +27,8 @@ export function AdrFormViewCard({ form, formType }: AdrFormViewCardProps) {
     setInfringement,
     getInfringement,
   } = useAdrForm(form, () => {}, form.compoundFormKey ? Number(form.compoundFormKey) : undefined);
+
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   return (
     <Card className="mb-1">
@@ -50,6 +54,7 @@ export function AdrFormViewCard({ form, formType }: AdrFormViewCardProps) {
           setInfringement={setInfringement}
           getInfringement={getInfringement}
           canEdit={false}
+          isDesktop={isDesktop}
         />
 
         {form.id && <FormVersionsTable formId={form.id} formType={formType} />}
