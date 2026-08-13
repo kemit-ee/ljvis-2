@@ -58,9 +58,7 @@ INSERT INTO audit.audit_event (
     :event_type,
     :event_category,
     :actor_name,
-    CASE WHEN :actor_personal_code IS NOT NULL AND :actor_personal_code <> ''
-         THEN digest(:actor_personal_code || current_setting('app.audit_salt', true), 'sha256')
-         ELSE NULL END,
+    audit.hash_personal_code(:actor_personal_code),
     :description,
     :log_content::json,
     :created_by,
