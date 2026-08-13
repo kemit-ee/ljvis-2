@@ -19,9 +19,10 @@ Iga lõik kirjutatakse eraldi faili ja lõpus ühendatakse kokku `docs/user-guid
 - [x] `docs/user-guide/11-vorm-adr.md` — ADR vorm + kohustuslikud väljad (valmis fail: `docs/user-guide/11-vorm-adr.md`)
 - [x] `docs/user-guide/12-vorm-hea-maine.md` — hea maine vorm + kohustuslikud väljad (valmis fail: `docs/user-guide/12-vorm-hea-maine.md`)
 - [x] `docs/user-guide/13-vorm-soidu-puhkeaeg.md` — sõidu- ja puhkeaeg (driver/teammate) + kohustuslikud väljad (valmis fail: `docs/user-guide/13-vorm-soidu-puhkeaeg.md`)
-- [ ] `docs/user-guide/14-failide-lisamine.md` — manuste üleslaadimine
-- [ ] `docs/user-guide/15-vormide-vaatamine-ajalugu.md` — versioonid ja muudatuste võrdlus
-- [ ] `docs/user-guide/16-riskihindamine.md` — planeeritud riskihindamine
+- [x] `docs/user-guide/14-failide-lisamine.md` — manuste üleslaadimine (valmis fail: `docs/user-guide/14-failide-lisamine.md`)
+- [x] `docs/user-guide/15-vormide-vaatamine-ajalugu.md` — versioonid ja muudatuste võrdlus (valmis fail: `docs/user-guide/15-vormide-vaatamine-ajalugu.md`)
+- [x] `docs/user-guide/16-riskihindamine.md` — planeeritud riskihindamine (valmis fail: `docs/user-guide/16-riskihindamine.md`)
+- [x] `docs/user-guide/17-auditilogi.md` — auditilogi vaatamine (valmis fail: `docs/user-guide/17-auditilogi.md`)
 - [x] `docs/user-guide.md` (ühendatud lõplik Markdown) (valmis fail: `docs/user-guide.md`)
 
 ## Administraatorijuhendi osad
@@ -37,8 +38,8 @@ Iga lõik kirjutatakse eraldi faili ja lõpus ühendatakse kokku `docs/user-guid
 
 ## Väljundfailid
 
-- [ ] `docs/user-guide.md` (ühendatud)
-- [ ] `docs/admin-guide.md` (ühendatud)
+- [x] `docs/user-guide.md` (ühendatud) (valmis fail: `docs/user-guide.md`)
+- [x] `docs/admin-guide.md` (ühendatud) (valmis fail: `docs/admin-guide.md`)
 - [x] `docs/user-guide.docx` (valmis fail: `docs/user-guide.docx`)
 - [x] `docs/admin-guide.docx` (valmis fail: `docs/admin-guide.docx`)
 
