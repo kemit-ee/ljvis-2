@@ -37,7 +37,7 @@ Pärast sisselogimist määrab süsteem, millised menüüpunktid kuvatakse. See 
 | Üldadministraator | `user.list.admin`, `user_group.list.admin`, `classifier.list`, `audit.read` | Kõik |
 | Organisatsiooni admin | `user.list.local`, `user_group.list.local` | Oma organisatsioon |
 | Ametnik | `foreign_violation_form.write` jms | Kontrollaktide täitmine |
-| Ettevõtja esindaja | — (tulevikus riskivaade) | Oma ettevõtte andmed |
+| Ettevõtja esindaja | — (riskivaade) | Oma ettevõtte andmed |
 
 ## Väljalogimine
 
