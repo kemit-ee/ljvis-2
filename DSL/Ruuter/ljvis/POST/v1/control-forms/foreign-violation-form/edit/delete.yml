@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Delete foreign violation form"
   method: post
   accepts: json
@@ -16,10 +16,11 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -29,7 +30,7 @@ extractRequestData:
     form_number: "${incoming.body.form_number}"
     old_status: "${incoming.body.old_status}"
     status: "deleted"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
   next: deleteForm
 
 deleteForm:
@@ -46,8 +47,8 @@ deleteForm:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/log-form-delete"
-  requestType: templates
+  template: "templates/audit/form/log-form-delete"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

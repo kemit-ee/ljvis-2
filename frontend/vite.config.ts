@@ -39,6 +39,19 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
+        '/tara': {
+          target: 'https://localhost:8888',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/tara/, ''),
+        },
+        // TARA-Mock's HTML uses <base href="/"> so form posts to "back"
+        // resolve as /back relative to the root.
+        '/back': {
+          target: 'https://localhost:8888',
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
   };

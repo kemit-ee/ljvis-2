@@ -410,6 +410,59 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
+  /v1/classifier-values:
+    get:
+      tags: [classifier-values]
+      operationId: getClassifierValuesFlat
+      x-permissions:
+        anyOf: []
+      summary: Flat list of all classifier values (FE bulk cache source).
+      description: |
+        Returns the latest snapshot of every classifier value across all
+        classifiers, flattened, with validity metadata. No specific
+        permission required — only a valid authenticated session
+        (`/v1/.guard`). This is the primary source consumed once at login
+        by the frontend `ClassifierProvider` cache (see
+        `docs/classifier-caching.md`); use it for any form dropdown/picker
+        that must work regardless of the user's `classifier.read` grant.
+      responses:
+        '200':
+          description: Flat classifier value list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifierValueDataListResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/classifiers/bundle:
+    get:
+      tags: [classifiers]
+      operationId: getClassifiersBundle
+      x-permissions:
+        anyOf: [classifier.read]
+      summary: Bulk bundle of all classifiers with their values, grouped.
+      description: |
+        Returns every classifier together with its values (latest snapshot,
+        with validity), including classifier-level metadata (`classifierId`,
+        `classifierName`). Requires `classifier.read`, which is only granted
+        to admin-scoped user groups in seed data — do **not** use this for
+        data that regular form users need (see `docs/classifier-caching.md`
+        for the permission-gap this caused historically). Reserved for
+        admin/validity-aware tooling.
+      responses:
+        '200':
+          description: Full classifier + value bundle.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassifierBundleListResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
   # ── Organisations & Permissions ───────────────────────────────────
 
   /v1/organisations:
@@ -2110,6 +2163,102 @@ components:
         validFrom: "2020-01-01"
         validUntil: null
         isValid: true
+
+    ClassifierValueDataItem:
+      type: object
+      required: [classifierValueKey, classifierCode, code, name, parentKey, isValid]
+      properties:
+        classifierValueKey:
+          type: integer
+          format: int64
+        classifierCode:
+          type: string
+          description: Code of the classifier this value belongs to.
+        code:
+          type: string
+        name:
+          type: string
+        parentKey:
+          type: integer
+          format: int64
+          nullable: true
+          description: classifierValueKey of the parent value, or null for top-level values.
+        description:
+          type: string
+          nullable: true
+        validFrom:
+          type: string
+          format: date
+          nullable: true
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+        isValid:
+          type: boolean
+      example:
+        classifierValueKey: 501
+        classifierCode: "DRIVING_VIOLATION"
+        code: "MSI"
+        name: "Most serious infringements"
+        parentKey: null
+        description: null
+        validFrom: "2026-07-10"
+        validUntil: null
+        isValid: true
+
+    ClassifierValueDataListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/ClassifierValueDataItem'
+
+    ClassifierBundleItem:
+      type: object
+      required: [classifierId, classifierCode, classifierName, classifierValueId, parentKey, code, name, isValid]
+      properties:
+        classifierId:
+          type: integer
+          format: int64
+        classifierCode:
+          type: string
+        classifierName:
+          type: string
+        classifierValueId:
+          type: integer
+          format: int64
+        parentKey:
+          type: integer
+          format: int64
+          nullable: true
+        code:
+          type: string
+        name:
+          type: string
+        validFrom:
+          type: string
+          format: date
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+        isValid:
+          type: boolean
+      example:
+        classifierId: 12
+        classifierCode: "DRIVING_VIOLATION"
+        classifierName: "Driving violations"
+        classifierValueId: 501
+        parentKey: null
+        code: "MSI"
+        name: "Most serious infringements"
+        validFrom: "2026-07-10"
+        validUntil: null
+        isValid: true
+
+    ClassifierBundleListResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/ClassifierBundleItem'
 
     AdminOrganisationsListResponse:
       type: object

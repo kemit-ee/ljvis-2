@@ -1,0 +1,47 @@
+declaration:
+
+  version: "1.0"
+  description: "Upload a file attachment for a transport-interruption sub-form"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: formNumber
+        type: string
+      - field: fileName
+        type: string
+      - field: fileBase64
+        type: string
+      - field: mimetype
+        type: string
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: uploadFile
+
+uploadFile:
+  template: "templates/files/upload"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "transport-interruption"
+    form_number: ${incoming.body.formNumber}
+    file_name: ${incoming.body.fileName}
+    file_base64: ${incoming.body.fileBase64}
+    mimetype: ${incoming.body.mimetype}
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  result: uploadResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${uploadResult}
+  status: 200
+  next: end

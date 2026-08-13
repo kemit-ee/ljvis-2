@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get classifier values by classifier ID"
   method: get
   accepts: json

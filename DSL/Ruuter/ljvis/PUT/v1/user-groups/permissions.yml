@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Replace all permission links for a user group"
   method: put
   accepts: json
@@ -19,8 +19,8 @@ declaration:
         description: "Array of removed permission IDs"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -78,18 +78,13 @@ listAllPermissions:
 
 returnSuccess:
   assign:
-    all_perms: ${JSON.parse(JSON.stringify(allPermsRes.response.body ?? []))}
-    added_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.addedPermissionIds ?? []))}
-    removed_ids_arr: ${JSON.parse(JSON.stringify(incoming.body.removedPermissionIds ?? []))}
-    added_codes: ${JSON.stringify(all_perms.filter(p => added_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
-    removed_codes: ${JSON.stringify(all_perms.filter(p => removed_ids_arr.map(String).includes(String(p.id))).map(p => p.code))}
     description: "Kasutajagrupi ${group_name} muutmine: õigused"
-    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":${added_codes},\"removedPermissionCodes\":${removed_codes},\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+    log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.update"
     event_category: "user_group_management"

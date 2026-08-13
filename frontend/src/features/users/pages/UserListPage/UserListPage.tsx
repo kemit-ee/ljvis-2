@@ -234,6 +234,7 @@ export function UserListPage() {
           </div>
           <Table
             id="users-table"
+            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}

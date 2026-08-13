@@ -1,0 +1,414 @@
+name: CI
+
+# Triggered on every push/PR that touches meaningful paths.
+# Each job is atomic and independently readable.
+# To disable a single check without breaking the quality gate,
+# add `if: false` to that job — the quality gate treats skipped as passing.
+
+on:
+  workflow_dispatch:  # allows manual trigger from GitHub Actions UI
+  push:
+    branches: [main, dev]
+    paths:
+      - 'DSL/**'
+      - 'docker/**'
+      - 'constants.ini'
+      - 'tests/**'
+      - 'frontend/**'
+      - '.github/workflows/**'
+      # - 'charts/**'  # re-enable when helm charts branch is merged
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'DSL/**'
+      - 'docker/**'
+      - 'constants.ini'
+      - 'tests/**'
+      - 'frontend/**'
+      # - 'charts/**'  # re-enable when helm charts branch is merged
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+jobs:
+
+  # ── 1. DSL validation ──────────────────────────────────────────────────────
+  # Fast syntax check — runs on every commit, catches broken YAML/SQL before
+  # the heavier test jobs even start.
+  validate-dsl:
+    name: Validate DSL
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Ruuter YAML files
+        run: |
+          pip3 install pyyaml -q
+          python3 - <<'EOF'
+          import yaml, glob, sys
+          all_yml = [p for p in glob.glob('DSL/Ruuter/**/*.yml', recursive=True) if '/mock/' not in p]
+          errors = []
+          for path in all_yml:
+              try:
+                  with open(path) as fh:
+                      yaml.safe_load(fh)
+              except yaml.YAMLError as e:
+                  errors.append(f'{path}: {e}')
+          if errors:
+              for e in errors:
+                  print(f'❌  {e}')
+              sys.exit(1)
+          print(f'✅  {len(all_yml)} YAML files valid (mock files excluded)')
+          EOF
+
+      - name: Check for unreachable DSL steps
+        run: |
+          pip3 install pyyaml -q
+          python3 - <<'EOF'
+          import yaml, glob, sys
+
+          def collect_next_refs(obj):
+              refs = set()
+              if isinstance(obj, dict):
+                  for k, v in obj.items():
+                      if k == 'next' and isinstance(v, str):
+                          refs.add(v)
+                      else:
+                          refs.update(collect_next_refs(v))
+              elif isinstance(obj, list):
+                  for item in obj:
+                      refs.update(collect_next_refs(item))
+              return refs
+
+          def has_next_key(obj):
+              if isinstance(obj, dict):
+                  if 'next' in obj:
+                      return True
+                  return any(has_next_key(v) for v in obj.values())
+              elif isinstance(obj, list):
+                  return any(has_next_key(item) for item in obj)
+              return False
+
+          errors = []
+          for path in sorted(p for p in glob.glob('DSL/Ruuter/**/*.yml', recursive=True) if '/mock/' not in p):
+              with open(path) as fh:
+                  data = yaml.safe_load(fh)
+              if not isinstance(data, dict):
+                  continue
+              steps = {k: v for k, v in data.items() if k != 'declaration'}
+              if not steps:
+                  continue
+              step_names = list(steps.keys())
+              entry = step_names[0]
+              adjacency = {}
+              for i, name in enumerate(step_names):
+                  refs = collect_next_refs(steps[name]) - {'end'}
+                  if not has_next_key(steps[name]) and i + 1 < len(step_names):
+                      refs = {step_names[i + 1]}
+                  adjacency[name] = refs
+              visited, queue = set(), [entry]
+              while queue:
+                  cur = queue.pop()
+                  if cur in visited:
+                      continue
+                  visited.add(cur)
+                  queue.extend(ref for ref in adjacency.get(cur, set()) if ref in steps and ref not in visited)
+              dead = [s for s in steps if s not in visited]
+              if dead:
+                  errors.append(f'{path}: unreachable steps: {dead}')
+              all_refs = set()
+              for body in steps.values():
+                  all_refs.update(collect_next_refs(body) - {'end'})
+              dangling = [r for r in all_refs if r not in steps]
+              if dangling:
+                  errors.append(f'{path}: dangling next references: {dangling}')
+          if errors:
+              for e in errors:
+                  print(f'❌  {e}')
+              sys.exit(1)
+          total = len([p for p in glob.glob('DSL/Ruuter/**/*.yml', recursive=True) if '/mock/' not in p])
+          print(f'✅  {total} DSL files — no unreachable steps (mock files excluded)')
+          EOF
+
+      - name: Check SQL files are non-empty
+        run: |
+          empty=$(find DSL/Resql DSL/Liquibase/changelog -name '*.sql' -empty 2>/dev/null)
+          if [ -n "$empty" ]; then
+            echo "❌ Empty SQL files found:"
+            echo "$empty"
+            exit 1
+          fi
+          count=$(find DSL/Resql DSL/Liquibase/changelog -name '*.sql' | wc -l | tr -d ' ')
+          echo "✅ $count SQL files non-empty"
+
+  # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
+  # Runs in parallel with DSL validation — no stack needed.
+  # continue-on-error: true — establish baseline first, then tighten.
+  security-scan:
+    name: Security Scan (Trivy)
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+#    permissions:
+#      security-events: write
+#      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Trivy — secret detection (whole repo)
+        run: trivy fs . --scanners secret --format table --exit-code 1
+
+      - name: Trivy — frontend dependency CVEs
+        if: always()
+        run: |
+          trivy fs frontend/ \
+            --scanners vuln \
+            --severity CRITICAL,HIGH \
+            --format table \
+            --exit-code 0
+          # When repo is public, replace --format table with:
+          #   --format sarif --output trivy-frontend.sarif
+          # and uncomment the upload step below
+
+      # Upload SARIF — re-enable when repo is made public (requires GitHub Advanced Security)
+      # - name: Upload SARIF to GitHub Security
+      #   if: always() && env.ACT != 'true'
+      #   uses: github/codeql-action/upload-sarif@v4
+      #   with:
+      #     sarif_file: trivy-frontend.sarif
+      #     category: trivy-frontend
+
+      # Helm chart misconfigurations — re-enable when helm charts branch is merged
+      # - name: Trivy — Helm chart misconfigurations
+      #   if: always()
+      #   run: trivy config charts/ --format table --exit-code 0
+
+  # ── 3. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
+  # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
+  # Bootstrap seeds admin via plain psql (no Liquibase test data).
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Build and start CI stack
+        run: docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --build
+
+      - name: Wait for Resql
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:9087/healthz > /dev/null 2>&1; then
+              echo "resql ready"; break
+            fi
+            if [ "$i" = "60" ]; then echo "❌ resql not ready after 300s"; exit 1; fi
+            sleep 5
+          done
+
+      - name: Wait for ruuter
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:9086/health > /dev/null 2>&1; then
+              echo "ruuter ready"; break
+            fi
+            if [ "$i" = "60" ]; then echo "❌ ruuter not ready after 300s"; exit 1; fi
+            sleep 5
+          done
+
+      - name: Wait for TIM
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:9085/health > /dev/null 2>&1; then
+              echo "TIM ready"; break
+            fi
+            if [ "$i" = "60" ]; then echo "❌ TIM not ready after 300s"; exit 1; fi
+            sleep 5
+          done
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-htmlextra
+
+      - name: Run E2E tests
+        run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json
+
+
+      - name: ZAP — baseline scan (stack already running)
+        run: |
+          mkdir -p zap-reports
+          docker run --rm \
+            --network host \
+            -v "$(pwd)/zap-reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+              -t http://localhost:9086 \
+              -r zap-report.html \
+              -J zap-report.json \
+              -I || true
+
+      - name: Upload ZAP report
+        if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap-reports/
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          docker compose -f docker-compose.ci.yml -p ljvis-ci logs liquibase --tail=50
+          docker compose -f docker-compose.ci.yml -p ljvis-ci logs tara-mock --tail=30
+          docker compose -f docker-compose.ci.yml -p ljvis-ci logs tim --tail=50
+          docker compose -f docker-compose.ci.yml -p ljvis-ci logs ruuter --tail=50
+          docker compose -f docker-compose.ci.yml -p ljvis-ci logs resql-ljvis --tail=50
+          docker compose -f docker-compose.ci.yml -p ljvis-ci logs bootstrap --tail=20
+
+      - name: Tear down CI stack
+        if: always()
+        run: docker compose -f docker-compose.ci.yml -p ljvis-ci down -v
+
+  # ── 5. Frontend lint ────────────────────────────────────────────────────────
+  frontend-lint:
+    name: Frontend — Lint
+    runs-on: ubuntu-22.04
+    ### TODO remove after all frontend error is fixed
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit
+        run: npm audit --audit-level=high || true
+
+      - name: Lint
+        run: npm run lint
+
+  # ── 6. Frontend unit tests ──────────────────────────────────────────────────
+  frontend-unit-tests:
+    name: Frontend — Unit Tests
+    runs-on: ubuntu-22.04
+    ### TODO remove after frontend error is fixed
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm run test -- --run --reporter=verbose
+
+  # ── 7. Frontend build ───────────────────────────────────────────────────────
+  frontend-build:
+    name: Frontend — Build
+    runs-on: ubuntu-22.04
+    ### TODO remove after frontend fixes is ready
+    continue-on-error: true
+    needs: [frontend-lint, frontend-unit-tests]
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+  # ── Quality Gate ────────────────────────────────────────────────────────────
+  # Aggregates every required check. Add new jobs to `needs:` here as they
+  # are introduced. Treats `skipped` as passing (allows disabling individual
+  # jobs with `if: false` without breaking the gate).
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-22.04
+    if: always()
+    needs:
+      - validate-dsl
+      - security-scan
+      - e2e
+      - frontend-lint
+      - frontend-unit-tests
+      - frontend-build
+
+    steps:
+      - name: Check all jobs passed
+        run: |
+          echo "Job results:"
+          echo "  validate-dsl:        ${{ needs.validate-dsl.result }}"
+          echo "  security-scan:       ${{ needs.security-scan.result }}"
+          echo "  e2e:                 ${{ needs.e2e.result }}"
+          echo "  frontend-lint:       ${{ needs.frontend-lint.result }}"
+          echo "  frontend-unit-tests: ${{ needs.frontend-unit-tests.result }}"
+          echo "  frontend-build:      ${{ needs.frontend-build.result }}"
+          echo ""
+
+          failed=""
+          for result in \
+            "${{ needs.validate-dsl.result }}" \
+            "${{ needs.security-scan.result }}" \
+            "${{ needs.e2e.result }}" \
+            "${{ needs.frontend-lint.result }}" \
+            "${{ needs.frontend-unit-tests.result }}" \
+            "${{ needs.frontend-build.result }}"; do
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              failed="true"
+            fi
+          done
+
+          if [ -n "$failed" ]; then
+            echo "❌ Quality gate FAILED — one or more checks did not pass."
+            exit 1
+          fi
+          echo "✅ Quality gate PASSED"

@@ -1,9 +1,10 @@
-# Data Mapper, Handlebars transformation service, carrying this service's mappings.
-# Multi-arch base pulled through the Harbor Docker Hub proxy.
-# Pinned by digest because :alpha is a moving tag. Refresh with:
-#   docker buildx imagetools inspect turnerrainer/datamapper:alpha
-FROM harbor.kemitaws.ee/dockerhub/turnerrainer/datamapper@sha256:91d53188a2e65b258ebdd7ad0b195d1a6b2b4b5b527bdaa0cf6d5219ee96a9b0
-# dsl_path is set to /data/DMapper by the chart, which makes ljvis the project and
-# ljvis/hbs/<view>.hbs the template. The whole DSL tree is copied so the layout matches
-# the monorepo one-to-one.
-COPY DSL /data
+# The Rust DataMapper renderer requires a literal `.hbs` extension;
+# this DSL tree ships `.handlebars`. Rename in a throwaway stage so
+# the source tree under DSL/ stays untouched.
+FROM busybox:1.36-uclibc AS prep
+COPY DSL/DMapper/ljvis /tmp/ljvis
+RUN find /tmp/ljvis -name '*.handlebars' -exec sh -c 'mv "$1" "${1%.handlebars}.hbs"' _ {} \;
+
+FROM turnerrainer/datamapper:alpha
+COPY docker/data-mapper/datamapper.yaml /app/datamapper.yaml
+COPY --from=prep /tmp/ljvis /app/DSL/ljvis

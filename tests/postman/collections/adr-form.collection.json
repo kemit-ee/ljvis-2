@@ -1,0 +1,1215 @@
+{
+  "info": {
+    "name": "LJVIS \u2014 ADR Form (Ohtlik Veos)",
+    "_postman_id": "ljvis-adr-form-v1",
+    "description": "Functional tests for /control-forms/adr-form endpoints (LJVIS2-141). Covers permission boundaries (adr_form.write/read, control_form.edit_locked), backend validation (compoundFormKey required, notes max length), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data), and the X-tee fields block. Self-contained: authenticates and creates its own compound form + ADR sub-form.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login \u2014 Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login \u2014 No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login \u2014 Officer (no edit_locked)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_officer}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_officer', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create compound form for ADR sub-form tests",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/insert",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "insert"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\":\"saved\",\"controlDate\":\"2024-01-01\",\"controlTime\":\"10:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"CI123ADR\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('id present', () => pm.expect(row.id).to.not.be.undefined);",
+              "pm.environment.set('created_adr_compound_key', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/save \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without adr_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/save \u2014 missing compoundFormKey \u2192 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"id\": null, \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is compoundFormKey', () => pm.expect(body.field).to.eql('compoundFormKey'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/save \u2014 notes over 4000 chars \u2192 422 max_length_4000",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"{{long_string_4001}}\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('long_string_4001', 'x'.repeat(4001));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is notes', () => pm.expect(body.field).to.eql('notes'));",
+              "pm.test('code is max_length_4000', () => pm.expect(body.code).to.eql('max_length_4000'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/save \u2014 create \u2192 200, save id/subFormNumber, version=1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[{\\\"unNumber\\\":\\\"1090\\\",\\\"packagingGroup\\\":\\\"II\\\",\\\"quantity\\\":100,\\\"unitCode\\\":\\\"L\\\"}]\", \"exemptionApplied\": false, \"infringements\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"sealOpened\": false, \"notes\": \"CI ADR form\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('Response has id, subFormNumber, version=1', () => {",
+              "  pm.expect(row.id).to.not.be.undefined;",
+              "  pm.expect(row.subFormNumber).to.be.a('string').and.not.empty;",
+              "  pm.expect(Number(row.version)).to.eql(1);",
+              "});",
+              "pm.test('subFormNumber starts with ov-', () => pm.expect(row.subFormNumber).to.match(/^ov-/));",
+              "pm.environment.set('created_adr_id', String(row.id));",
+              "pm.environment.set('created_adr_sub_form_number', String(row.subFormNumber));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET adr-form \u2014 no permission \u2192 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_adr_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without adr_form.read', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET adr-form \u2014 not found \u2192 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q=999999999",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "999999999"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 404 for nonexistent id', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET adr-form \u2014 happy path, verify fields",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_adr_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is saved', () => pm.expect(body.status).to.eql('saved'));",
+              "pm.test('version is 1', () => pm.expect(Number(body.version)).to.eql(1));",
+              "pm.test('notes match', () => pm.expect(body.notes).to.eql('CI ADR form'));",
+              "pm.test('resultType is ok', () => pm.expect(body.resultType).to.eql('ok'));",
+              "pm.test('subFormNumber matches', () => pm.expect(body.subFormNumber).to.eql(pm.environment.get('created_adr_sub_form_number')));",
+              "pm.test('compoundFormKey matches', () => pm.expect(Number(body.compoundFormKey)).to.eql(Number(pm.environment.get('created_adr_compound_key'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET adr-form/get-by-compound-form-key \u2014 happy path",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/get-by-compound-form-key?compoundFormKey={{created_adr_compound_key}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "get-by-compound-form-key"
+          ],
+          "query": [
+            {
+              "key": "compoundFormKey",
+              "value": "{{created_adr_compound_key}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('list contains created sub-form', () => {",
+              "  pm.expect(Array.isArray(body)).to.be.true;",
+              "  var found = body.find(r => String(r.id) === pm.environment.get('created_adr_id'));",
+              "  pm.expect(found).to.not.be.undefined;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/save \u2014 re-save while saved \u2192 200, version stays 1 (no-bump rule)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"CI ADR form updated\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version stays 1 (saved-state resave rule)', () => pm.expect(Number(row.version)).to.eql(1));",
+              "pm.test('subFormNumber unchanged', () => pm.expect(row.subFormNumber).to.eql(pm.environment.get('created_adr_sub_form_number')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/xroad/save-xroad-fields \u2014 form not confirmed yet \u2192 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/xroad/save-xroad-fields",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "xroad",
+            "save-xroad-fields"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"enforcementDecision\": \"otsus\", \"proceedingClosureBasis\": \"alus\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code is xroad_fields_require_confirmed_status', () => pm.expect(body.code).to.eql('xroad_fields_require_confirmed_status'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/confirm \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without adr_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/confirm \u2014 happy path \u2192 200, status confirmed, version unchanged",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[{\\\"unNumber\\\":\\\"1090\\\",\\\"packagingGroup\\\":\\\"II\\\",\\\"quantity\\\":100,\\\"unitCode\\\":\\\"L\\\"}]\", \"exemptionApplied\": false, \"infringements\": \"[{\\\"classifierValueKey\\\":1,\\\"checkStatus\\\":\\\"checked\\\",\\\"riskCategory\\\":\\\"I\\\",\\\"adrProvision\\\":\\\"ADR 1.1\\\",\\\"notes\\\":\\\"\\\"}]\", \"resultType\": \"misdemeanor_proceedings\", \"proceedingType\": \"expedited\", \"proceedingReferenceNumber\": \"REF-001\", \"correctiveMeasures\": \"[\\\"on_spot\\\"]\", \"sealOpened\": true, \"sealOpenedDate\": \"2024-01-01\", \"sealInstalledDate\": \"2024-01-01\", \"notes\": \"CI ADR form confirmed\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"otherViolations\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version unchanged by confirm', () => pm.expect(Number(row.version)).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET adr-form \u2014 status is confirmed after confirm",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_adr_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is confirmed', () => pm.expect(body.status).to.eql('confirmed'));",
+              "pm.test('resultType is misdemeanor_proceedings', () => pm.expect(body.resultType).to.eql('misdemeanor_proceedings'));",
+              "pm.test('sealOpened is true', () => pm.expect(body.sealOpened).to.eql(true));",
+              "pm.test('notes match', () => pm.expect(body.notes).to.eql('CI ADR form confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/confirm \u2014 already confirmed \u2192 422 already_confirmed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code is already_confirmed', () => pm.expect(body.code).to.eql('already_confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/xroad/save-xroad-fields \u2014 no control_form.edit_locked \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/xroad/save-xroad-fields",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "xroad",
+            "save-xroad-fields"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"enforcementDecision\": \"otsus\", \"proceedingClosureBasis\": \"alus\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without control_form.edit_locked', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/xroad/save-xroad-fields \u2014 happy path (confirmed status) \u2192 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/xroad/save-xroad-fields",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "xroad",
+            "save-xroad-fields"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"enforcementDecision\": \"Otsus j\u00f5ustunud\", \"proceedingClosureBasis\": \"Menetlus l\u00f5petatud\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version NOT incremented (still 1)', () => pm.expect(Number(row.version)).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET adr-form \u2014 X-tee fields persisted, version unchanged",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_adr_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('enforcementDecision persisted', () => pm.expect(body.enforcementDecision).to.eql('Otsus j\u00f5ustunud'));",
+              "pm.test('proceedingClosureBasis persisted', () => pm.expect(body.proceedingClosureBasis).to.eql('Menetlus l\u00f5petatud'));",
+              "pm.test('version still 1', () => pm.expect(Number(body.version)).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/save \u2014 officer (no edit_locked) saves confirmed form \u2192 422 form_locked",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"Should not save\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code is form_locked', () => pm.expect(body.code).to.eql('form_locked'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/save \u2014 admin (edit_locked) saves confirmed form \u2192 200, version bumps to 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"CI ADR form re-saved after confirm\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(Number(row.version)).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/delete \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"form_number\": \"{{created_adr_sub_form_number}}\", \"old_status\": \"saved\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "delete"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 403 without control_form.delete', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/delete \u2014 happy path \u2192 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"form_number\": \"{{created_adr_sub_form_number}}\", \"old_status\": \"saved\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form",
+            "edit",
+            "delete"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET adr-form \u2014 deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/adr-form?q={{created_adr_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "adr-form"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_adr_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

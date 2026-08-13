@@ -1,0 +1,100 @@
+declaration:
+  version: "1.0"
+  description: >
+    OAuth2 callback handler. Receives the authorization code from the
+    frontend AuthCallback component, exchanges it via TIM's session-based
+    callback, then generates a JWT cookie for the browser.
+    This follows TIM-on-Rust's API-first design: TIM returns JSON
+    (session_id + user_profile), and this DSL converts that into a
+    browser-compatible Set-Cookie response.
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: code
+        type: string
+        description: "Authorization code from IdP"
+      - field: state
+        type: string
+        description: "OAuth2 state parameter"
+
+validate_input:
+  switch:
+    - condition: ${incoming.body == null || incoming.body.code == null || incoming.body.state == null}
+      next: missing_params
+  next: call_tim_callback
+
+# Step 1: Exchange code via TIM's callback endpoint.
+# TIM validates state (single-use), exchanges code for tokens at the
+# IdP's token_endpoint, verifies the ID token (signature, iss, aud,
+# exp, nonce), creates a session, and returns JSON with session_id
+# and user_profile.
+call_tim_callback:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/auth/callback/tara"
+    query:
+      code: ${incoming.body.code}
+      state: ${incoming.body.state}
+  result: callback_result
+  next: check_callback
+
+check_callback:
+  switch:
+    - condition: ${200 <= callback_result.response.status && callback_result.response.status < 300}
+      next: generate_jwt
+  next: callback_error
+
+# Step 2: Generate a JWT with the user's profile.
+# TIM's callback returns user_profile with user_id, first_name, etc.
+# We pass these as JWT claims, matching the shape expected by
+# check-user-authority and /jwt/userinfo.
+generate_jwt:
+  call: http.post
+  args:
+    url: "[#LJVIS_TIM]/jwt/custom/generate"
+    headers:
+      type: json
+      X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
+    body:
+      content:
+        sub: ${callback_result.response.body.user_profile.user_id}
+        personalCode: ${callback_result.response.body.user_profile.user_id}
+        authenticatedAs: ${callback_result.response.body.user_profile.user_id}
+        authMethod: "TARA"
+      expirationInMinutes: 480
+      JWTName: "customJwtCookie"
+  result: jwt_result
+  next: check_jwt
+
+check_jwt:
+  switch:
+    - condition: ${200 <= jwt_result.response.status && jwt_result.response.status < 300}
+      next: return_token
+  next: jwt_error
+
+# Step 3: Return OK with Set-Cookie header.
+# The JWT is set as an HttpOnly cookie so the browser sends it
+# automatically on subsequent requests.
+return_token:
+  headers:
+    Set-Cookie: "customJwtCookie=${jwt_result.response.body.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=28800"
+  return: "ok"
+  next: end
+
+callback_error:
+  status: 401
+  return: "Authentication failed"
+  next: end
+
+jwt_error:
+  status: 500
+  return: "JWT generation failed"
+  next: end
+
+missing_params:
+  status: 400
+  return: "code and state are required"
+  next: end

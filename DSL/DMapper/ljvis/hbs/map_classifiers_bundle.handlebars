@@ -1,0 +1,16 @@
+[
+    {{#each values}}
+    {
+        "classifierId": "{{this.classifierId}}",
+        "classifierCode": "{{this.classifierCode}}",
+        "classifierName": "{{this.classifierName}}",
+        "classifierValueId": {{#if this.classifierValueId}}"{{this.classifierValueId}}"{{else}}null{{/if}},
+        "parentKey": {{#if this.parentKey}}"{{this.parentKey}}"{{else}}null{{/if}},
+        "code": {{#if this.code}}"{{this.code}}"{{else}}null{{/if}},
+        "name": {{#if this.name}}"{{this.name}}"{{else}}null{{/if}},
+        "validFrom": {{#if this.validFrom}}"{{this.validFrom}}"{{else}}null{{/if}},
+        "validUntil": {{#if this.validUntil}}"{{this.validUntil}}"{{else}}null{{/if}},
+        "isValid": "{{this.isValid}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+]

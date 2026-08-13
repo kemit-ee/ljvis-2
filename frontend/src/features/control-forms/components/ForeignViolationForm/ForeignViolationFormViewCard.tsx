@@ -676,6 +676,7 @@ export function ForeignViolationFormViewCard({
           <FormFiles
             formType="foreign-violation-form"
             formNumber={form.formNumber}
+            canEdit={false}
           />
         </Col>
       </Row>

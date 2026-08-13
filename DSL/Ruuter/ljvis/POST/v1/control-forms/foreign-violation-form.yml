@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create a new foreign violation form"
   method: post
   accepts: json
@@ -88,14 +88,12 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
-      - field: files
-        type: string
       - field: status
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -144,11 +142,10 @@ extractRequestData:
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
-    files: "${incoming.body.files}"
     status: "${incoming.body.status}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
   next: insertForm
 
 insertForm:
@@ -199,7 +196,6 @@ insertForm:
       inspectorOrganisationId: ${inspector_organisation_id}
       inspectorUnit: ${inspector_unit}
       inspectorProfession: ${inspector_profession}
-      files: ${files}
       status: ${status}
       created_by: ${created_by}
   result: insertRes
@@ -211,8 +207,8 @@ extractResponseData:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-create"
-  requestType: templates
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-create"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

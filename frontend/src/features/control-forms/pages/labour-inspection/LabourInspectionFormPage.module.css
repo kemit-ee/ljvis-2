@@ -1,0 +1,13 @@
+.form-grid-desktop {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+.form-grid-mobile {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 100%;
+}

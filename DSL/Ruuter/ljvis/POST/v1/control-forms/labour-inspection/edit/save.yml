@@ -1,0 +1,240 @@
+declaration:
+
+  version: "1.0"
+  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input — see extractRequestData / validateRequired / updateForm. Confirmed acts can only be re-saved by a user with control_form.edit_locked."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: inspectorName
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: inspectionType
+        type: string
+      - field: companyName
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: vehicleCount
+        type: string
+      - field: totalDriversCount
+        type: string
+      - field: controlsMatrix
+        type: string
+      - field: prescriptionComposed
+        type: string
+      - field: punishedPersonIdCode
+        type: string
+      - field: punishedPersonFirstName
+        type: string
+      - field: punishedPersonLastName
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: violations
+        type: string
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    inspector_name: "${incoming.body.inspectorName || ''}"
+    inspection_date: "${incoming.body.inspectionDate || ''}"
+    inspection_type: "${incoming.body.inspectionType || ''}"
+    company_name: "${incoming.body.companyName || ''}"
+    company_reg_code: "${incoming.body.companyRegCode || ''}"
+    vehicle_count: "${incoming.body.vehicleCount || ''}"
+    total_drivers_count: "${incoming.body.totalDriversCount || ''}"
+    controls_matrix: "${incoming.body.controlsMatrix || '[]'}"
+    prescription_composed: "${incoming.body.prescriptionComposed || 'false'}"
+    punished_person_id_code: "${incoming.body.punishedPersonIdCode || ''}"
+    punished_person_first_name: "${incoming.body.punishedPersonFirstName || ''}"
+    punished_person_last_name: "${incoming.body.punishedPersonLastName || ''}"
+    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
+    violations: "${incoming.body.violations || '[]'}"
+    created_by: "${auth_user.personalcode || ''}"
+  next: validateForm
+
+validateForm:
+  template: "templates/form/labour-inspection/validate-labour-inspection-form"
+  requestType: GET
+  body:
+    inspectorName: ${inspector_name}
+    inspectionDate: ${inspection_date}
+    inspectionType: ${inspection_type}
+    companyName: ${company_name}
+    companyRegCode: ${company_reg_code}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+  next: checkIsCreate
+
+checkIsCreate:
+  switch:
+    - condition: ${id == null || id === ''}
+      next: insertForm
+  next: getCurrentFormForStatus
+
+insertForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/insert"
+    headers:
+      type: json
+    body:
+      status: saved
+      inspectorName: ${inspector_name}
+      inspectionDate: ${inspection_date}
+      inspectionType: ${inspection_type}
+      companyName: ${company_name}
+      companyRegCode: ${company_reg_code}
+      vehicleCount: ${vehicle_count}
+      totalDriversCount: ${total_drivers_count}
+      controlsMatrix: ${controls_matrix}
+      prescriptionComposed: ${prescription_composed}
+      punishedPersonIdCode: ${punished_person_id_code}
+      punishedPersonFirstName: ${punished_person_first_name}
+      punishedPersonLastName: ${punished_person_last_name}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      violations: ${violations}
+      created_by: ${created_by}
+  result: saveRes
+  next: logCreate
+
+logCreate:
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-create"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    akti_voti: ${saveRes.response.body[0].id}
+    form_number: ${saveRes.response.body[0].formNumber}
+    version: ${saveRes.response.body[0].version}
+    isikukood: ${punished_person_id_code}
+  result: audit_result
+  next: returnSuccess
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: extractCurrentStatus
+
+extractCurrentStatus:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormNotLocked
+
+checkFormNotLocked:
+  switch:
+    - condition: ${current_status === 'confirmed' && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+      next: returnFormLockedError
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "templates/form/labour-inspection/calculate-labour-inspection-changed-fields"
+  requestType: GET
+  body:
+    formId: ${id}
+    inspectorName: ${inspector_name}
+    inspectionDate: ${inspection_date}
+    inspectionType: ${inspection_type}
+    companyName: ${company_name}
+    companyRegCode: ${company_reg_code}
+    vehicleCount: ${vehicle_count}
+    totalDriversCount: ${total_drivers_count}
+    controlsMatrix: ${controls_matrix}
+    prescriptionComposed: ${prescription_composed}
+    punishedPersonIdCode: ${punished_person_id_code}
+    punishedPersonFirstName: ${punished_person_first_name}
+    punishedPersonLastName: ${punished_person_last_name}
+    proceedingReferenceNumber: ${proceeding_reference_number}
+    violations: ${violations}
+  result: changedFieldsResult
+  next: extractChangedFields
+
+extractChangedFields:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
+    changed_fields_result: ${parsed_result.changed_fields}
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: ${current_status}
+      inspectorName: ${inspector_name}
+      inspectionDate: ${inspection_date}
+      inspectionType: ${inspection_type}
+      companyName: ${company_name}
+      companyRegCode: ${company_reg_code}
+      vehicleCount: ${vehicle_count}
+      totalDriversCount: ${total_drivers_count}
+      controlsMatrix: ${controls_matrix}
+      prescriptionComposed: ${prescription_composed}
+      punishedPersonIdCode: ${punished_person_id_code}
+      punishedPersonFirstName: ${punished_person_first_name}
+      punishedPersonLastName: ${punished_person_last_name}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      violations: ${violations}
+      created_by: ${created_by}
+  result: saveRes
+  next: logUpdate
+
+logUpdate:
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    akti_voti: ${id}
+    form_number: ${saveRes.response.body[0].formNumber}
+    version: ${saveRes.response.body[0].version}
+    changed_fields: ${changed_fields_result}
+    isikukood: ${punished_person_id_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${saveRes.response.body}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end
+
+returnFormLockedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_confirm"}'
+  next: end

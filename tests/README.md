@@ -112,8 +112,12 @@ via API, with no shared state between collections.
 tests/postman/
 ├── collections/
 │   ├── classifiers.collection.json
+│   ├── form-search.collection.json
+│   ├── labour-inspection.collection.json
 │   ├── organisations.collection.json
 │   ├── permissions.collection.json
+│   ├── technical-check-forms.collection.json
+│   ├── transport-interruption.collection.json
 │   ├── users.collection.json
 │   └── user-groups.collection.json
 ├── ci-stack-environment.json
@@ -127,8 +131,14 @@ tests/postman/
 | Collection | What it covers |
 |---|---|
 | **classifiers** | List (search/pagination), get (403/success), get-values (403/success with status), edit/update (403/422/200), values/insert (403/200), values/update (403/200) |
+| **labour-inspection** | Create/edit/save (403, 422 required/future-date/max-length, 200 create+version=1), get (403/404/200), re-save (200, version increments), confirm (403, 200, already_confirmed 422, violations-present 422), edit-after-confirm (422 form_locked_after_confirm), delete (403/200, deleted still readable) |
+| **technical-check-forms** | Vehicle/trailer technical check sub-forms (LJVIS2-72): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), trailer-only exclusion of vehicle codes (422 code_not_applicable_to_trailer), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump) |
+| **transport-interruption** | Transport interruption sub-form (LJVIS2-74): edit/save (403, 422 required, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments, all 4 legalBases codes), confirm (403, 200, already_confirmed 422), UPPERCASE transform of headerText/interruptionReason/personApplications/residenceAddressLine/terminationCondition |
+| **adr-form** | ADR (ohtlik veos) sub-form (LJVIS2-141): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump), re-save after confirm still allowed |
+| **good-repute-form** | Hea maine (good repute) independent form (LJVIS2-136): edit/save (403, 422 required/future-date/conditional unfit dates + date ordering, 200 create+version=1), UPPERCASE transform of personalCode/firstName/lastName/placeOfBirth/certificateNumber, read/get (403/404/200), re-save while saved (version unchanged — no-bump rule), confirm (403, 200 version unchanged, already_confirmed 422), edit-after-confirm (422 form_locked_after_confirm) |
+| **form-search** | Cross-entity form search (LJVIS2-9): 403 without any form read permission, unfiltered search (content+total), formType filter, companyName (ILIKE) filter, date-range inclusive/exclusive, pagination (pageSize=1), sorting, and deleted-form hidden from results. Creates + deletes its own labour-inspection act. |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
-| **permissions** | `GET /permissions/list` — verify seeded permissions, check `user_group.update` present |
+| **permissions** | `GET /permissions/list` — verify seeded permissions (39), check `user_group.update`, vehicle/trailer/transport-interruption/adr/good-repute form permissions present |
 | **users** | List (admin/403), check-exists, insert (success/409/422/403), get, update, set-groups, get-groups |
 | **user-groups** | List (admin/403), get, get-organisations/permissions/users, insert (success/422/403), get-available-users, update-name, set-organisations, set-permissions, add-users, delete-user |
 
@@ -137,6 +147,11 @@ tests/postman/
 | Collection | Auth roles used | Setup queries |
 |---|---|---|
 | classifiers | Super Admin, No-perm (403 tests) | classifier ID |
+| labour-inspection | Super Admin, No-perm (403 tests) | none — creates its own acts |
+| technical-check-forms | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-forms |
+| transport-interruption | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-form |
+| adr-form | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-form |
+| good-repute-form | Super Admin, No-perm (403 tests) | none — creates its own independent forms |
 | organisations | Super Admin | — |
 | permissions | Super Admin | — |
 | users | Super Admin, No-perm (403 tests) | org ID, group ID |
@@ -166,7 +181,7 @@ Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`)
 
 | Group | Key permissions |
 |---|---|
-| Super Admin Group | `user.list.admin`, `user.read.admin`, `user.edit.admin`, `user_group.list.admin`, `user_group.update`, `organisation.list`, `permission.list`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit` |
+| Super Admin Group | `user.list.admin`, `user.read.admin`, `user.edit.admin`, `user_group.list.admin`, `user_group.update`, `organisation.list`, `permission.list`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit`, `labour_inspection_form.write`, `labour_inspection_form.read`, `control_form.view_unpublished`, `control_form.delete` |
 | Local Admin Group | `user.list.local`, `user.read.local`, `user.edit.local`, `user_group.list.local`, `user_group.update`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit` |
 
 ### Classifiers

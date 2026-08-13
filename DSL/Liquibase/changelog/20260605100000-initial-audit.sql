@@ -118,4 +118,4 @@ CREATE INDEX idx_ae_actor_personal_code_hash ON audit.audit_event (actor_persona
 CREATE INDEX idx_ae_log_content_gin         ON audit.audit_event USING GIN (log_content);
 
 -- 6. app.audit_salt database parameter (value injected by Liquibase from AUDIT_SALT env var)
-ALTER DATABASE ${DB_NAME} SET app.audit_salt = '${AUDIT_SALT}';
+ALTER DATABASE ljvis_db SET app.audit_salt = '${AUDIT_SALT}';

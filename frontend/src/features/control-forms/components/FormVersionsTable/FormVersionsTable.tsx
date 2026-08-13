@@ -7,12 +7,13 @@ import { getFormSnapshots } from '../../api.ts';
 import type { FormSnapshot } from '../../types.ts';
 import { formatDateTime } from '../../../../hooks/dateUtils.ts';
 import { Link } from 'react-router-dom';
-import { FORM_STATUS_KEY } from '../../../../constants/constants.ts';
+import { FORM_STATUS_KEY, FORM_ROUTE } from '../../../../constants/constants.ts';
 import '../FormVersionsTable/FormVersionsTable.module.css';
 
 interface FormVersionsTableProps {
   formId: string;
   formType: string;
+  refreshKey?: number;
 }
 
 const columnHelper = createColumnHelper<FormSnapshot>();
@@ -20,6 +21,7 @@ const columnHelper = createColumnHelper<FormSnapshot>();
 export function FormVersionsTable({
   formId,
   formType,
+  refreshKey,
 }: FormVersionsTableProps) {
   const { t } = useTranslation();
   const [snapshots, setSnapshots] = useState<FormSnapshot[]>([]);
@@ -28,7 +30,7 @@ export function FormVersionsTable({
     getFormSnapshots(formId, formType)
       .then((res) => setSnapshots(Array.isArray(res) ? res : []))
       .catch(console.error);
-  }, [formId]);
+  }, [formId, refreshKey]);
 
   const columns = useMemo(
     () => [
@@ -67,7 +69,7 @@ export function FormVersionsTable({
         id: 'open',
         header: '',
         cell: (info) => {
-          const formPath = formType.replace(/-form$/, '');
+          const formPath = FORM_ROUTE[formType] ?? formType.replace(/-form$/, '');
           return (
             <Link
               to={`/control-forms/${formPath}/${formId}/${info.row.original.snapshotId}`}
@@ -93,6 +95,7 @@ export function FormVersionsTable({
         </Heading>
         <Table
           id="form-versions-table"
+          className="ljvis-table"
           data={snapshots}
           columns={columns}
           placeholder={{ children: t('common.tableIsEmpty') }}

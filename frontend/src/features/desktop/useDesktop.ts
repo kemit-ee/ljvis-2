@@ -9,36 +9,33 @@ const FORM_WRITE_SUFFIX = '_form.write';
 const COMPOUND_FORM_KEY = 'compound_form';
 const SP_PREFIX = 'sp_';
 
+const toControlForm = (key: string): ControlForm => ({
+  labelKey: FORM_CONFIG[key].labelKey,
+  route: FORM_CONFIG[key].route,
+  hasParent: FORM_CONFIG[key].hasParent,
+  parentKey: FORM_CONFIG[key].parentKey,
+  typeParam: FORM_CONFIG[key].typeParam,
+});
+
 const buildAvailableForms = (permissions: string[]): ControlForm[] => {
-  const forms = permissions
+  const formKeys = permissions
     .filter((p) => p.endsWith(FORM_WRITE_SUFFIX))
     .map((p) => p.replace(WRITE_SUFFIX, ''))
     .filter((key) => !!FORM_CONFIG[key])
-    .filter((key) => FORM_CONFIG[key].showOnDashboard)
-    .map((key) => ({
-      key,
-      labelKey: FORM_CONFIG[key].labelKey,
-      route: FORM_CONFIG[key].route,
-      hasParent: FORM_CONFIG[key].hasParent,
-      parentKey: FORM_CONFIG[key].parentKey,
-      typeParam: FORM_CONFIG[key].typeParam,
-    }));
+    .filter((key) => FORM_CONFIG[key].showOnDashboard);
 
-  const hasCompound = forms.some((f) => f.key === COMPOUND_FORM_KEY);
-
-  if (!hasCompound) {
-    return forms.map(({ key: _key, ...rest }) => rest);
+  if (!formKeys.includes(COMPOUND_FORM_KEY)) {
+    return formKeys.map(toControlForm);
   }
 
+  const spKeys = formKeys.filter((k) => k.startsWith(SP_PREFIX));
   const result: ControlForm[] = [];
-  for (const form of forms) {
-    if (form.key.startsWith(SP_PREFIX)) continue;
-    const { key: _key, ...rest } = form;
-    result.push(rest);
-    if (form.key === COMPOUND_FORM_KEY) {
-      forms
-        .filter((f) => f.key.startsWith(SP_PREFIX))
-        .forEach(({ key: _k, ...spRest }) => result.push(spRest));
+
+  for (const key of formKeys) {
+    if (key.startsWith(SP_PREFIX)) continue;
+    result.push(toControlForm(key));
+    if (key === COMPOUND_FORM_KEY) {
+      spKeys.forEach((k) => result.push(toControlForm(k)));
     }
   }
   return result;

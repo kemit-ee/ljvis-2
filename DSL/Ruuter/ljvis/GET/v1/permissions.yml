@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "List all permissions (fixed set)"
   method: get
   accepts: json

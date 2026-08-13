@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get version history snapshots for a control form"
   method: get
   accepts: json

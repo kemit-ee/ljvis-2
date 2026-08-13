@@ -1,11 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import {
-  Button,
   Card,
   DateField,
   Heading,
   Select,
-  Tabs,
   Text,
   TextField,
   TimeField,
@@ -37,7 +35,6 @@ interface CompoundFormViewCardProps {
 export function CompoundFormViewCard({
   form,
   isDesktop,
-  canEdit,
   orgOptions,
   structureUnits,
   roads,
@@ -46,8 +43,6 @@ export function CompoundFormViewCard({
   counties,
   citiesParishes,
   companyCitiesParishes,
-  onEdit,
-  isSnapshot,
   formType,
 }: CompoundFormViewCardProps) {
   const { t } = useTranslation();
@@ -74,22 +69,17 @@ export function CompoundFormViewCard({
       : [];
 
   return (
-    <div>
-      <div className="page-header">
-        <div className="page-header-title">
-          <Heading element="h1">
-            {(form.formNumber ?? '').split('/')[0]}
-          </Heading>
+    <Card className="mb-1">
+      <Card.Content>
+        <div className="mb-1">
+          <div className="page-header-title">
+            <Heading element="h1" color="primary">
+              {(form.formNumber ?? '').split('/')[0]}
+            </Heading>
+          </div>
         </div>
-      </div>
 
-      <Tabs defaultValue="tab-1">
-        <Tabs.List aria-label={t('forms.compound_form')}>
-          <Tabs.Trigger id="tab-1">
-            {t('forms.compound.generalPart')}
-          </Tabs.Trigger>
-        </Tabs.List>
-        <Tabs.Content id="tab-1" className="p-1">
+        <div className="p-0">
           {/* Kontrolli koht */}
           <Card className="mb-1">
             <Card.Content>
@@ -654,25 +644,8 @@ export function CompoundFormViewCard({
           {form.id && (
             <FormVersionsTable formId={form.id} formType={formType} />
           )}
-        </Tabs.Content>
-      </Tabs>
-
-      {!isSnapshot && (
-        <div className="page-actions mt-1">
-          <div className="page-actions-buttons">
-            {canEdit && (
-              <Button
-                iconLeft="edit"
-                visualType="secondary"
-                type="button"
-                onClick={onEdit}
-              >
-                {t('common.edit')}
-              </Button>
-            )}
-          </div>
         </div>
-      )}
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

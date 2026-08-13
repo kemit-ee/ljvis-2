@@ -14,15 +14,15 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     hasParent: false,
     showOnDashboard: true,
   },
-  ti_kontrollkaart_form: {
-    labelKey: 'forms.ti_kontrollkaart_form',
-    route: '/ti-kontrollkaart',
+  labour_inspection_form: {
+    labelKey: 'forms.labour_inspection_form',
+    route: '/labour-inspection',
     hasParent: false,
     showOnDashboard: true,
   },
-  reputation_noncompliance_form: {
-    labelKey: 'forms.reputation_noncompliance_form',
-    route: '/reputation-noncompliance',
+  good_repute_form: {
+    labelKey: 'forms.good_repute_form',
+    route: '/good-repute',
     hasParent: false,
     showOnDashboard: true,
   },

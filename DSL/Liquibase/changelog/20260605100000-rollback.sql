@@ -6,4 +6,4 @@ DROP FUNCTION  IF EXISTS audit.chain();
 DROP FUNCTION  IF EXISTS audit.generate_ulid();
 DROP TABLE     IF EXISTS audit.chain_tip    CASCADE;
 DROP TABLE     IF EXISTS audit.audit_event  CASCADE;
-ALTER DATABASE ${DB_NAME} RESET app.audit_salt;
+ALTER DATABASE ljvis_db RESET app.audit_salt;

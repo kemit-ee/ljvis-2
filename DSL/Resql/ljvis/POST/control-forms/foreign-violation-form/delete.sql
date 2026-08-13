@@ -65,8 +65,7 @@ WITH latest AS (
     inspector_last_name,
     inspector_organisation_id,
     inspector_unit,
-    inspector_profession,
-    files
+    inspector_profession
   FROM forms.foreign_violation_form
   WHERE foreign_violation_form_key = :id::BIGINT
   ORDER BY foreign_violation_form_key, created_at DESC
@@ -116,7 +115,6 @@ INSERT INTO forms.foreign_violation_form (
   inspector_organisation_id,
   inspector_unit,
   inspector_profession,
-  files,
   created_by
 )
 SELECT
@@ -164,7 +162,6 @@ SELECT
   l.inspector_organisation_id,
   l.inspector_unit,
   l.inspector_profession,
-  l.files,
   :created_by
 FROM latest l
 RETURNING foreign_violation_form_key AS id, form_number;

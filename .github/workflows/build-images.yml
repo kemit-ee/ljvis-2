@@ -1,0 +1,87 @@
+name: Build and publish LJVIS service images
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'docker/**'
+      - 'DSL/**'
+      - 'frontend/**'
+      - 'constants.ini'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image name and tag
+        run: |
+          IMAGE_BASE="${REGISTRY}/$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')"
+          TAG="${GITHUB_REF_NAME}-${GITHUB_SHA::7}"
+          echo "IMAGE_BASE=$IMAGE_BASE" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      - name: Build and push resql-ljvis
+        run: |
+          docker build -f docker/resql-ljvis/Dockerfile \
+            -t $IMAGE_BASE/resql-ljvis:$TAG -t $IMAGE_BASE/resql-ljvis:latest .
+          docker push $IMAGE_BASE/resql-ljvis --all-tags
+
+      - name: Build and push ruuter
+        run: |
+          docker build -f docker/ruuter/Dockerfile \
+            -t $IMAGE_BASE/ruuter:$TAG -t $IMAGE_BASE/ruuter:latest .
+          docker push $IMAGE_BASE/ruuter --all-tags
+
+      - name: Build and push ruuter-internal
+        run: |
+          docker build -f docker/ruuter-internal/Dockerfile \
+            -t $IMAGE_BASE/ruuter-internal:$TAG -t $IMAGE_BASE/ruuter-internal:latest .
+          docker push $IMAGE_BASE/ruuter-internal --all-tags
+
+      - name: Build and push data-mapper
+        run: |
+          docker build -f docker/data-mapper/Dockerfile \
+            -t $IMAGE_BASE/data-mapper:$TAG -t $IMAGE_BASE/data-mapper:latest .
+          docker push $IMAGE_BASE/data-mapper --all-tags
+
+      - name: Build and push liquibase
+        run: |
+          docker build -f docker/liquibase/Dockerfile \
+            -t $IMAGE_BASE/liquibase:$TAG -t $IMAGE_BASE/liquibase:latest .
+          docker push $IMAGE_BASE/liquibase --all-tags
+
+      - name: Build and push frontend
+        run: |
+          docker build -f frontend/Dockerfile \
+            -t $IMAGE_BASE/frontend:$TAG -t $IMAGE_BASE/frontend:latest frontend/
+          docker push $IMAGE_BASE/frontend --all-tags
+
+      - name: Print image tags
+        run: |
+          echo "✅ All images pushed with tag: $TAG"
+          echo ""
+          echo "Images:"
+          echo "  $IMAGE_BASE/resql-ljvis:$TAG"
+          echo "  $IMAGE_BASE/ruuter:$TAG"
+          echo "  $IMAGE_BASE/ruuter-internal:$TAG"
+          echo "  $IMAGE_BASE/data-mapper:$TAG"
+          echo "  $IMAGE_BASE/liquibase:$TAG"
+          echo "  $IMAGE_BASE/frontend:$TAG"

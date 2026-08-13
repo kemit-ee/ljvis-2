@@ -1,8 +1,8 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { useAuth } from '../../../auth/AuthContext';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type {
   DriveRestForm,
   TransportClass,
@@ -12,70 +12,12 @@ import type {
   Violation,
   MassDimensionMeasurement,
 } from '../../types';
-import { insertDriveRestForm } from '../../api';
+import { insertDriveRestForm, updateDriveRestForm } from '../../api';
 
-export function useDriveRestForm(
-  form: DriveRestForm | undefined,
-  onSaved: (id?: string) => void,
-  type: 'driver' | 'teammate' = 'driver',
+export function createDriveRestValidationSchema(
+  t: (key: string) => string,
 ) {
-  const { t } = useTranslation();
-  const pendingConfirm = useRef(false);
-
-  const { classifierValues } = useAuth();
-
-  const cargoCabotageViolations = useMemo(
-    () =>
-      classifierValues.filter(
-        (v) => v.classifierCode === 'CARGO_CABOTAGE_VIOLATION',
-      ),
-    [classifierValues],
-  );
-
-  const passengerCabotageViolations = useMemo(
-    () =>
-      classifierValues.filter(
-        (v) => v.classifierCode === 'PASSENGER_CABOTAGE_VIOLATION',
-      ),
-    [classifierValues],
-  );
-
-  const transportClasses = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'TRANSPORT_CLASS'),
-    [classifierValues],
-  );
-
-  const docRightChecks = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'DOC_RIGHT_CHECK'),
-    [classifierValues],
-  );
-
-  const docRightOtherDocs = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'OTHER_DOCUMENTS'),
-    [classifierValues],
-  );
-
-  const tachographTypes = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'TACHOGRAPH_TYPES'),
-    [classifierValues],
-  );
-
-  const drivingViolations = useMemo(
-    () =>
-      classifierValues.filter((v) => v.classifierCode === 'DRIVING_VIOLATION'),
-    [classifierValues],
-  );
-
-  const massDimensions = useMemo(
-    () => classifierValues.filter((v) => v.classifierCode === 'MASS_DIMENSION'),
-    [classifierValues],
-  );
-
-  const validationSchema = Yup.object({
+  return Yup.object({
     transportType: Yup.string().required(
       t('forms.sp_form.validation.required'),
     ),
@@ -83,13 +25,13 @@ export function useDriveRestForm(
       t('forms.sp_form.validation.required'),
     ),
     proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => proceedingType !== undefined,
+      is: (proceedingType: string) => !!proceedingType,
       then: (schema) =>
         schema.required(t('forms.sp_form.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
     atpViolationDescription: Yup.string().when('atpViolationFound', {
-      is: 'Jah',
+      is: 'true',
       then: (schema) =>
         schema.required(t('forms.sp_form.validation.required')),
       otherwise: (schema) => schema.optional(),
@@ -107,12 +49,120 @@ export function useDriveRestForm(
       },
     ),
   });
+}
+
+export function serializeDriveRestFormValues(
+  values: Partial<DriveRestForm> & Record<string, unknown>,
+  status: string,
+) {
+  const filteredOtherDocuments = Array.isArray(values.otherDocuments)
+    ? (values.otherDocuments as OtherDocument[]).filter(
+        (doc) => doc.result === 'NOUETEKOHANE' || doc.result === 'PUUDUB'
+      )
+    : [];
+
+  return {
+    ...values,
+    status,
+    transportClasses: Array.isArray(values.transportClasses)
+      ? JSON.stringify(values.transportClasses)
+      : (values.transportClasses ?? '[]'),
+    cabotageViolations: Array.isArray(values.cabotageViolations)
+      ? JSON.stringify(values.cabotageViolations)
+      : (values.cabotageViolations ?? '[]'),
+    documentChecks: Array.isArray(values.documentChecks)
+      ? JSON.stringify(
+          (values.documentChecks as DocumentCheck[]).map((e) => ({
+            documentCode: e.documentCode || e.level2Code,
+            documentName: e.documentName || e.level2Name,
+            severityCode: e.severityCode || e.level3Name,
+            violationCode: e.violationCode || e.level3Code,
+          })),
+        )
+      : (values.documentChecks ?? '[]'),
+    otherDocuments: JSON.stringify(filteredOtherDocuments),
+    violations5612006: Array.isArray(values.violations5612006)
+      ? JSON.stringify(values.violations5612006)
+      : (values.violations5612006 ?? '[]'),
+    violations1652014: Array.isArray(values.violations1652014)
+      ? JSON.stringify(values.violations1652014)
+      : (values.violations1652014 ?? '[]'),
+    violations200215: Array.isArray(values.violations200215)
+      ? JSON.stringify(values.violations200215)
+      : (values.violations200215 ?? '[]'),
+    violations5932008: Array.isArray(values.violations5932008)
+      ? JSON.stringify(values.violations5932008)
+      : (values.violations5932008 ?? '[]'),
+    violations20201057: Array.isArray(values.violations20201057)
+      ? JSON.stringify(values.violations20201057)
+      : (values.violations20201057 ?? '[]'),
+    massDimensionMeasurements: Array.isArray(values.massDimensionMeasurements)
+      ? JSON.stringify(values.massDimensionMeasurements)
+      : (values.massDimensionMeasurements ?? '[]'),
+    erruPoints: Array.isArray(values.erruPoints)
+      ? JSON.stringify(values.erruPoints)
+      : (values.erruPoints ?? '[]'),
+  };
+}
+
+export function useDriveRestForm(
+  form: DriveRestForm | undefined,
+  onSaved: (id?: string) => void,
+  type: 'driver' | 'teammate',
+  compoundFormKey?: number,
+) {
+  const { t } = useTranslation();
+  const pendingConfirm = useRef(false);
+
+  const { getByCode } = useClassifiers();
+
+  const cargoCabotageViolations = useMemo(
+    () => getByCode('CARGO_CABOTAGE_VIOLATION'),
+    [getByCode],
+  );
+
+  const passengerCabotageViolations = useMemo(
+    () => getByCode('PASSENGER_CABOTAGE_VIOLATION'),
+    [getByCode],
+  );
+
+  const transportClasses = useMemo(
+    () => getByCode('TRANSPORT_CLASS'),
+    [getByCode],
+  );
+
+  const docRightChecks = useMemo(
+    () => getByCode('DOC_RIGHT_CHECK'),
+    [getByCode],
+  );
+
+  const docRightOtherDocs = useMemo(
+    () => getByCode('OTHER_DOCUMENTS'),
+    [getByCode],
+  );
+
+  const tachographTypes = useMemo(
+    () => getByCode('TACHOGRAPH_TYPES'),
+    [getByCode],
+  );
+
+  const drivingViolations = useMemo(
+    () => getByCode('DRIVING_VIOLATION'),
+    [getByCode],
+  );
+
+  const massDimensions = useMemo(
+    () => getByCode('MASS_DIMENSION'),
+    [getByCode],
+  );
+
+  const validationSchema = createDriveRestValidationSchema(t);
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
       id: form?.id ?? '',
-      compoundFormKey: form?.compoundFormKey ?? 1,
+      compoundFormKey: form?.compoundFormKey,
       subFormNumber: form?.subFormNumber ?? '',
       status: form?.status ?? 'saved',
       selectionStatus: form?.selectionStatus ?? 'active',
@@ -180,17 +230,12 @@ export function useDriveRestForm(
         : typeof form?.massDimensionMeasurements === 'string'
           ? JSON.parse(form.massDimensionMeasurements)
           : []) as MassDimensionMeasurement[],
-      atpViolationFound: form?.atpViolationFound ?? '',
+      atpViolationFound: String(form?.atpViolationFound),
       atpViolationDescription: form?.atpViolationDescription ?? '',
       erruPoints: (Array.isArray(form?.erruPoints)
         ? form.erruPoints
         : typeof form?.erruPoints === 'string'
           ? JSON.parse(form.erruPoints)
-          : []) as string[],
-      files: (Array.isArray(form?.files)
-        ? form.files
-        : typeof form?.files === 'string'
-          ? JSON.parse(form.files)
           : []) as string[],
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
@@ -198,76 +243,32 @@ export function useDriveRestForm(
     },
     validationSchema,
     onSubmit: async (values) => {
-      if (!formik.isValid) {
-        return;
-      }
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
-        const nextStatus = isConfirming ? 'confirmed' : 'saved';
-
-        const filteredOtherDocuments = Array.isArray(values.otherDocuments)
-          ? (values.otherDocuments as OtherDocument[]).filter(
-              (doc) => doc.result === 'NOUETEKOHANE' || doc.result === 'PUUDUB'
-            )
-          : [];
+        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const nextStatus =
+          isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
+        const subFormNumberString = form?.subFormNumber ?? '';
+        const incrementSubFormNumber = (n: string): string => {
+          const match = n.match(/^(.+\/)([0-9]+)$/);
+          return match ? `${match[1]}${parseInt(match[2], 10) + 1}` : n;
+        };
+        const nextSubFormNumber = isReconfirmedEdit
+          ? incrementSubFormNumber(subFormNumberString)
+          : subFormNumberString;
 
         const trimmedValues = {
-          ...values,
-          status: nextStatus,
-          transportClasses: Array.isArray(values.transportClasses)
-            ? JSON.stringify(values.transportClasses)
-            : (values.transportClasses ?? '[]'),
-          cabotageViolations: Array.isArray(values.cabotageViolations)
-            ? JSON.stringify(values.cabotageViolations)
-            : (values.cabotageViolations ?? '[]'),
-          documentChecks: Array.isArray(values.documentChecks)
-            ? JSON.stringify(
-                (values.documentChecks as DocumentCheck[]).map((e) => ({
-                  documentCode: e.documentCode || e.level2Code,
-                  documentName: e.documentName || e.level2Name,
-                  severityCode: e.severityCode || e.level3Name,
-                  violationCode: e.violationCode || e.level3Code,
-                })),
-              )
-            : (values.documentChecks ?? '[]'),
-          otherDocuments: JSON.stringify(filteredOtherDocuments),
-          violations5612006: Array.isArray(values.violations5612006)
-            ? JSON.stringify(values.violations5612006)
-            : (values.violations5612006 ?? '[]'),
-          violations1652014: Array.isArray(values.violations1652014)
-            ? JSON.stringify(values.violations1652014)
-            : (values.violations1652014 ?? '[]'),
-          violations200215: Array.isArray(values.violations200215)
-            ? JSON.stringify(values.violations200215)
-            : (values.violations200215 ?? '[]'),
-          violations5932008: Array.isArray(values.violations5932008)
-            ? JSON.stringify(values.violations5932008)
-            : (values.violations5932008 ?? '[]'),
-          violations20201057: Array.isArray(values.violations20201057)
-            ? JSON.stringify(values.violations20201057)
-            : (values.violations20201057 ?? '[]'),
-          massDimensionMeasurements: Array.isArray(
-            values.massDimensionMeasurements,
-          )
-            ? JSON.stringify(values.massDimensionMeasurements)
-            : (values.massDimensionMeasurements ?? '[]'),
-          erruPoints: Array.isArray(values.erruPoints)
-            ? JSON.stringify(values.erruPoints)
-            : (values.erruPoints ?? '[]'),
-          files: Array.isArray(values.files)
-            ? JSON.stringify(values.files)
-            : (values.files ?? '[]'),
+          ...serializeDriveRestFormValues(values, nextStatus),
+          subFormNumber: nextSubFormNumber,
         };
 
         if (values.id) {
-          // if (isConfirming) {
-          //   await confirmDriveRestForm(trimmedValues as unknown as DriveRestForm);
-          //   onConfirmed?.();
-          // } else {
-          //   await updateDriveRestForm(trimmedValues as unknown as DriveRestForm);
-          //   onSaved(values.id);
-          // }
+          const result = await updateDriveRestForm(
+            type,
+            trimmedValues as unknown as DriveRestForm,
+          );
+          onSaved(result[0]?.id);
         } else {
           const result = await insertDriveRestForm(
             type,
@@ -275,14 +276,20 @@ export function useDriveRestForm(
           );
           onSaved(result[0]?.id);
         }
-
-        console.log('Form submitted:', trimmedValues);
-        onSaved(values.id);
       } catch (e) {
         console.error('Save failed', e);
       }
     },
   });
+
+  // Sync compoundFormKey via setFieldValue instead of initialValues, so
+  // saving the general form (which assigns compoundFormKey afterwards)
+  // doesn't trigger enableReinitialize and wipe out the already-filled sub-form
+  useEffect(() => {
+    if (compoundFormKey !== undefined) {
+      formik.setFieldValue('compoundFormKey', compoundFormKey);
+    }
+  }, [compoundFormKey]);
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;

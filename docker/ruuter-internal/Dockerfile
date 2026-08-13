@@ -1,5 +1,5 @@
-# Ruuter, internal router. Same multi-arch base as docker/ruuter, different DSL.
-# Pinned by digest because :rc is a moving tag. Refresh with:
-#   docker buildx imagetools inspect turnerrainer/ruuter:rc
-FROM harbor.kemitaws.ee/dockerhub/turnerrainer/ruuter@sha256:bfdf6e385c34a44aed783a6889d3e1a57389c445a704e6e2cf94964e399b5202
-COPY DSL/Ruuter.internal/ljvis /DSL/ljvis
+FROM turnerrainer/ruuter:rc
+RUN rm -rf /app/DSL/samples
+COPY DSL/Ruuter.internal/ljvis /app/DSL/ljvis
+COPY constants.ini /app/constants.ini
+COPY ruuter-internal.yaml /app/ruuter.yaml

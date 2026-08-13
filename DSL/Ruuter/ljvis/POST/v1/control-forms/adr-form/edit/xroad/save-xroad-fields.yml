@@ -1,0 +1,92 @@
+declaration:
+
+  version: "1.0"
+  description: "Save the X-tee block fields (enforcement_decision, proceeding_closure_basis) on an already-confirmed ADR sub-form. Requires control_form.edit_locked (enforced by .guard); additionally requires the sub-form's current status to be confirmed. Updates the latest snapshot row in place — does not bump version. LJVIS2-141 §4.14."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: enforcementDecision
+        type: string
+      - field: proceedingClosureBasis
+        type: string
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: fetchCurrentForm
+
+fetchCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.id}
+  result: currentFormRes
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: checkStatusConfirmed
+
+checkStatusConfirmed:
+  switch:
+    - condition: ${currentFormRes.response.body[0].status !== 'confirmed'}
+      next: returnNotConfirmedError
+  next: updateXroadFields
+
+updateXroadFields:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/update-xroad-fields"
+    headers:
+      type: json
+    body:
+      key: ${incoming.body.id}
+      enforcementDecision: ${incoming.body.enforcementDecision || ''}
+      proceedingClosureBasis: ${incoming.body.proceedingClosureBasis || ''}
+  result: updateRes
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "ADR alamvormi X-tee väljad salvestatud, alamvormi võti=${incoming.body.id}, koondvormi võti=${currentFormRes.response.body[0].compoundFormKey}, alamvormi number=${updateRes.response.body[0].subFormNumber}/${updateRes.response.body[0].version}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.adr.save_xroad"
+    event_category: "control_form"
+    description: ${description}
+    log_content: "{\"subFormKey\":${incoming.body.id}}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${updateRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnNotConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"xroad_fields_require_confirmed_status"}'
+  next: end

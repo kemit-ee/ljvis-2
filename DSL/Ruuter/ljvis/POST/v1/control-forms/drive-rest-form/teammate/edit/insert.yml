@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Insert drive rest form for teammate"
   method: post
   accepts: json
@@ -62,8 +62,6 @@ declaration:
         type: string
       - field: erruPoints
         type: string
-      - field: files
-        type: string
       - field: enforcementDecision
         type: string
       - field: proceedingClosureBasis
@@ -72,8 +70,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -108,11 +106,12 @@ extractRequestData:
     atp_violation_found: "${incoming.body.atpViolationFound}"
     atp_violation_description: "${incoming.body.atpViolationDescription}"
     erru_points: "${incoming.body.erruPoints}"
-    files: "${incoming.body.files}"
     enforcement_decision: "${incoming.body.enforcementDecision}"
     proceeding_closure_basis: "${incoming.body.proceedingClosureBasis}"
     notes: "${incoming.body.notes}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: insertForm
 
 insertForm:
@@ -149,7 +148,6 @@ insertForm:
       atpViolationFound: ${atp_violation_found}
       atpViolationDescription: ${atp_violation_description}
       erruPoints: ${erru_points}
-      files: ${files}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
       notes: ${notes}
@@ -159,7 +157,48 @@ insertForm:
 
 extractResponseData:
   assign:
-    sp_driver_form_key: "${insertRes.response.body[0].id || ''}"
+    sp_teammate_form_key: "${insertRes.response.body[0].id || ''}"
+    sub_form_number: "${insertRes.response.body[0].subFormNumber || ''}"
+  next: getCompoundForm
+
+getCompoundForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${compound_form_key}
+  result: compoundFormRes
+  next: extractDriverCodes
+
+extractDriverCodes:
+  assign:
+    compound_drivers: "${JSON.parse(compoundFormRes.response.body[0].drivers)}"
+    driver1_personal_code_ee: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeEe || '') : ''}"
+    driver1_personal_code_foreign: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeForeign || '') : ''}"
+    driver2_personal_code_ee: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeEe || '') : ''}"
+    driver2_personal_code_foreign: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeForeign || '') : ''}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/sp-teammate-form/log-sp-teammate-create-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    sp_teammate_form_key: ${sp_teammate_form_key}
+    compound_form_key: ${compound_form_key}
+    sub_form_number: ${sub_form_number}
+    result_type: ${result_type}
+    proceeding_type: ${proceeding_type}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

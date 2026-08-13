@@ -94,8 +94,6 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
-      - field: files
-        type: string
       - field: created_by
         type: string
   response:
@@ -150,7 +148,6 @@ INSERT INTO forms.foreign_violation_form (
   inspector_organisation_id,
   inspector_unit,
   inspector_profession,
-  files,
   created_by
 )
 VALUES (
@@ -198,7 +195,6 @@ VALUES (
   :inspectorOrganisationId,
   :inspectorUnit,
   :inspectorProfession,
-  :files::json,
   :created_by
 )
 RETURNING foreign_violation_form_key AS id, form_number;

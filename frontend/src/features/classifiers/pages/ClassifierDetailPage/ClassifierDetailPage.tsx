@@ -265,6 +265,7 @@ export function ClassifierDetailPage() {
             </div>
             <Table
               id="classifiers-values-table"
+              className="ljvis-table"
               data={filteredClassifierValues}
               columns={classifierValueColumns}
               isLoading={loading}

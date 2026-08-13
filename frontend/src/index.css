@@ -81,6 +81,12 @@ nav[aria-label='Main navigation'] {
   margin-bottom: 1.5rem;
 }
 
+.confirm-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .page-actions-buttons {
   display: flex;
   gap: 0.5rem;
@@ -202,4 +208,26 @@ nav[aria-label='Main navigation'] {
 
 .gap-1 {
   gap: 1rem;
+}
+
+/* ─── Common table chrome (ljvis-table) ─── */
+
+.ljvis-table td,
+.ljvis-table th {
+  border-left: 1px solid #e5e7eb;
+}
+
+.ljvis-table td:first-child,
+.ljvis-table th:first-child {
+  border-left: none;
+}
+
+.ljvis-table td:last-child,
+.ljvis-table th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}
+
+.ljvis-table tr:has(.additional-group-row-marker) {
+  border-top: none;
 }

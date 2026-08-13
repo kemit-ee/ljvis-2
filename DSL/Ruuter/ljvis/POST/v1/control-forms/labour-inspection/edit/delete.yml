@@ -1,0 +1,69 @@
+declaration:
+
+  version: "1.0"
+  description: "Delete labour inspection form (labour_inspection_form)"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: old_status
+        type: string
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: checkDeletePermission
+
+checkDeletePermission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('control_form.delete')}
+      next: extractRequestData
+  next: returnForbidden
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    old_status: "${incoming.body.old_status}"
+    status: "deleted"
+    created_by: "${auth_user.personalcode}"
+  next: deleteForm
+
+deleteForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/delete"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      status: ${status}
+      created_by: ${created_by}
+  result: deleteRes
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/log-form-delete"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: "${deleteRes.response.body[0].formNumber}/${deleteRes.response.body[0].version || 1}"
+    old_status: ${old_status}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${deleteRes.response.body}
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "forbidden"
+  next: end

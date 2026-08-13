@@ -1,0 +1,26 @@
+declaration:
+
+  version: "1.0"
+  description: "List active file attachments for a transport-interruption sub-form"
+  method: get
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: form_number
+        type: string
+        description: "Logical form number to list files for"
+
+getFiles:
+  template: "templates/files/list"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: "${incoming.params.form_number}"
+  result: listResult
+
+returnSuccess:
+  return: ${listResult}
+  status: 200

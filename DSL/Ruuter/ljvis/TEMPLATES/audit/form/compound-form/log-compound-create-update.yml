@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Audit: compound form create event"
   method: post
   accepts: json
@@ -20,6 +20,10 @@ declaration:
       - field: driver2PersonalCodeEe
         type: string
       - field: driver2PersonalCodeForeign
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
         type: string
 
 buildDriver1Code:
@@ -44,13 +48,15 @@ buildAudit:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
     event_type: "control_form.general_section.save"
     event_category: "control_form"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

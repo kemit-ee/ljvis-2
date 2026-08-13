@@ -5,7 +5,19 @@ export const BREAKPOINTS = {
 export const FORM_TYPE = {
   FOREIGN_VIOLATION: 'foreign-violation-form',
   COMPOUND: 'compound-form',
+  LABOUR_INSPECTION: 'labour-inspection',
+  DRIVER: 'drive-rest-form/driver',
+  TEAMMATE: 'drive-rest-form/teammate',
+  GOOD_REPUTE: 'good-repute',
 } as const;
+
+export const FORM_ROUTE: Record<string, string> = {
+  [FORM_TYPE.FOREIGN_VIOLATION]: 'foreign-violation',
+  [FORM_TYPE.COMPOUND]: 'compound',
+  [FORM_TYPE.LABOUR_INSPECTION]: 'labour-inspection',
+  [FORM_TYPE.DRIVER]: 'sp-driver',
+  [FORM_TYPE.TEAMMATE]: 'sp-teammate',
+};
 
 export const PERMISSIONS = {
   USER_LIST_ADMIN: 'user.list.admin',
@@ -15,6 +27,20 @@ export const PERMISSIONS = {
   CLASSIFIER_LIST: 'classifier.list',
   AUDIT_READ: 'audit.read',
 } as const;
+
+export const FORM_READ_PERMISSIONS: string[] = [
+  'control_form.view_unpublished',
+  'compound_form.read',
+  'foreign_violation_form.read',
+  'labour_inspection_form.read',
+  'good_repute_form.read',
+  'sp_driver_form.read',
+  'sp_teammate_form.read',
+  'vehicle_technical_form.read',
+  'trailer_technical_form.read',
+  'adr_form.read',
+  'transport_interruption_form.read',
+];
 
 export const DESKTOP = {
   DASHBOARD_MANUAL_ADD: 'DASHBOARD_MANUAL_ADD',

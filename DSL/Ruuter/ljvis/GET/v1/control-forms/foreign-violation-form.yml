@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get a single foreign violation form by ID"
   method: get
   accepts: json
@@ -57,8 +57,8 @@ checkShouldLog:
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/foreign-violation/log-foreign-violation-view"
-  requestType: templates
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-view"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

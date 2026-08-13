@@ -1,7 +1,5 @@
-# PostgreSQL data directory (docker-compose volume, repo root only).
-# Anchored with a leading slash: an unanchored `data/` also matches
-# architecture/data/, which holds tracked data-model documentation.
-/data/
+# PostgreSQL data directory (docker volume)
+data/
 
 # IntelliJ IDEA
 .idea/
@@ -12,8 +10,7 @@
 
 # Node (frontend has its own .gitignore, but just in case)
 node_modules/
-# TIM PostgreSQL data directory (docker-compose volume, repo root only).
-/tim-db/
+tim-db/
 
 # Docker
 *.log

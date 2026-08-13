@@ -110,6 +110,7 @@ export function ClassifierListPage() {
           </div>
           <Table
             id="classifiers-table"
+            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}

@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Update compound form"
   method: post
   accepts: json
@@ -102,10 +102,11 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -157,12 +158,12 @@ extractRequestData:
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
   next: calculateChangedFields
 
 calculateChangedFields:
-  template: "[#LJVIS_PROJECT_LAYER]/form/compound-form/calculate-compound-changed-fields"
-  requestType: templates
+  template: "templates/form/compound-form/calculate-compound-changed-fields"
+  requestType: GET
   body:
     form_id: ${key}
     control_date: ${control_date}
@@ -210,6 +211,10 @@ calculateChangedFields:
 extractResult:
   assign:
     parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
     changed_fields_result: ${parsed_result.changed_fields}
   next: check_driver1_personal_code_not_empty
 
@@ -225,8 +230,8 @@ skip_pc1_validation:
   next: check_driver2_personal_code_not_empty
 
 validate_driver1_personal_code_format:
-  template: "[#LJVIS_PROJECT_LAYER]/validate/estonian-personal-code"
-  requestType: templates
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
@@ -244,8 +249,8 @@ skip_pc2_validation:
   next: check_pc_results
 
 validate_driver2_personal_code_format:
-  template: "[#LJVIS_PROJECT_LAYER]/validate/estonian-personal-code"
-  requestType: templates
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result
@@ -324,8 +329,8 @@ checkStatus:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-create-update"
-  requestType: templates
+  template: "templates/audit/form/compound-form/log-compound-create-update"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
@@ -338,8 +343,8 @@ logAuditEvent:
   next: returnSuccess
 
 logAuditEventLocked:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/form/compound-form/log-compound-update-locked"
-  requestType: templates
+  template: "templates/audit/form/compound-form/log-compound-update-locked"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:

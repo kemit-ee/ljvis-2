@@ -1,0 +1,38 @@
+declaration:
+
+  version: "1.0"
+  description: "Delete a file attachment for a foreign violation form"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: deleteFile
+
+deleteFile:
+  template: "templates/files/delete"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: ${incoming.body.id}
+    form_type: "foreign-violation-form"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  result: deleteResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${deleteResult}
+  status: 200
+  next: end

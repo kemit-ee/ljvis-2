@@ -1,6 +1,6 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Delete a user from a user group"
   method: delete
   accepts: json
@@ -14,8 +14,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -25,8 +25,8 @@ extractRequestData:
   assign:
     user_group_id: "${incoming.params.q}"
     user_id: "${incoming.params.userId}"
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: getUserGroup
 
 getUserGroup:
@@ -74,15 +74,19 @@ getRemovedUserPersonalCode:
 
 buildAuditEvent:
   assign:
-    removed_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
-    removed_personal_codes_str: ${ (personalCodesRes.response.body ?? []).map(u => "'" + u.personalCode + "'").join(', ') }
-    description: "Kasutajagrupi ${group_name} muutmine: eemaldatud kasutajad: ${removed_personal_codes_str}"
+    removed_personal_codes_json: "[]"
+    removed_personal_codes_str: ""
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
+    description: "Kasutajagrupi ${group_name} muutmine: eemaldatud kasutajad"
     log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":${removed_personal_codes_json},\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.update"
     event_category: "user_group_management"
