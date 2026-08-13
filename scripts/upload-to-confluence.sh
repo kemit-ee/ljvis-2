@@ -17,8 +17,31 @@ PARENT_ID="258229822"
 BRANCH="dev"
 GITHUB_BASE="https://github.com/kemit-ee/ljvis-2/blob/${BRANCH}/docs"
 
-LOGO_URL="https://wiki.kemit.ee/download/attachments/258229842/Rahastanud_EL_kaksiklogod_EST_hor_color_RGB.jpg?version=1&amp;modificationDate=1773758668398&amp;api=v2"
-LOGO_XML="<ac:image><ri:url ri:value=\"$LOGO_URL\" /></ac:image>"
+LOGO_URL="https://wiki.kemit.ee/download/attachments/258229842/Rahastanud_EL_kaksiklogod_EST_hor_color_RGB.jpg"
+LOGO_XML="<ac:image ac:align=\"center\"><ri:url ri:value=\"$LOGO_URL\" /></ac:image>"
+
+api_post() {
+  local payload="$1"
+  local tmp_resp
+  tmp_resp=$(mktemp)
+  local http_code
+  http_code=$(curl -sSL -X POST \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -o "$tmp_resp" \
+    -w "%{http_code}" \
+    "$BASE/rest/api/content" \
+    -d "$payload")
+  if [[ "$http_code" -ne 200 ]]; then
+    echo "    Viga: HTTP $http_code"
+    cat "$tmp_resp"
+    echo ""
+    rm -f "$tmp_resp"
+    exit 1
+  fi
+  cat "$tmp_resp"
+  rm -f "$tmp_resp"
+}
 
 create_page() {
   local title="$1"
@@ -28,22 +51,18 @@ create_page() {
 
   echo ""
   echo "==> Loon alamlehe '$title'..."
-  PAGE=$(curl -fsSL -X POST \
-    -H "Authorization: Bearer $TOKEN" \
-    -H "Content-Type: application/json" \
-    "$BASE/rest/api/content" \
-    -d "{
-      \"type\": \"page\",
-      \"title\": \"$title\",
-      \"space\": { \"key\": \"$SPACE\" },
-      \"ancestors\": [{ \"id\": $PARENT_ID }],
-      \"body\": {
-        \"storage\": {
-          \"value\": \"$LOGO_XML<p>$description Markdown versioon on saadaval <a href=\\\"$github_md\\\">GitHubis</a> ja DOCX-fail <a href=\\\"$github_docx\\\">siit</a>.</p>\",
-          \"representation\": \"storage\"
-        }
+  PAGE=$(api_post "{
+    \"type\": \"page\",
+    \"title\": \"$title\",
+    \"space\": { \"key\": \"$SPACE\" },
+    \"ancestors\": [{ \"id\": $PARENT_ID }],
+    \"body\": {
+      \"storage\": {
+        \"value\": \"$LOGO_XML<p>$description</p><p>Markdown versioon on saadaval <a href=\\\"$github_md\\\">GitHubis</a> ja DOCX-fail <a href=\\\"$github_docx\\\">siit</a>.</p>\",
+        \"representation\": \"storage\"
       }
-    }")
+    }
+  }")
   PAGE_ID=$(echo "$PAGE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'])")
   echo "    Leht loodud, ID: $PAGE_ID"
 }
