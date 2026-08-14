@@ -133,6 +133,8 @@ export function useAdrForm(
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
+        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
         const overrideKey = pendingCompoundFormKey.current;
         pendingCompoundFormKey.current = undefined;
         // Empty driver-assistant / address blocks are sent as null so the
@@ -142,6 +144,7 @@ export function useAdrForm(
           Object.values(obj).every((v) => v == null || v === '');
         const payload = {
           ...values,
+          status: nextStatus,
           id: form?.id ?? '',
           compoundFormKey: overrideKey ?? values.compoundFormKey,
           driverAssistant: isBlank(values.driverAssistant)

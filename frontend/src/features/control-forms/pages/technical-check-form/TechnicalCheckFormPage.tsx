@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
-import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm } from '../../types';
+import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem } from '../../types';
 import {
   getTechnicalCheckForm,
   getTechnicalCheckFormSnapshot,
@@ -14,6 +14,9 @@ import {
   listAdrFormsByCompoundFormKey,
   getAdrForm,
   saveAdrForm,
+  listTransportInterruptionFormsByCompoundFormKey,
+  getTransportInterruptionForm,
+  saveTransportInterruptionForm,
 } from '../../api';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
@@ -30,6 +33,8 @@ import { DriveRestFormViewCard } from '../../components/DriveRestForm/DriveRestF
 import { DriveRestFormEditCard, type DriveRestFormEditCardRef } from '../../components/DriveRestForm/DriveRestFormEditCard.tsx';
 import { AdrFormViewCard } from '../../components/AdrForm/AdrFormViewCard';
 import { AdrFormEditCard, type AdrFormEditCardRef } from '../../components/AdrForm/AdrFormEditCard';
+import { TransportInterruptionFormViewCard } from '../../components/TransportInterruptionForm/TransportInterruptionFormViewCard';
+import { TransportInterruptionFormEditCard, type TransportInterruptionFormEditCardRef } from '../../components/TransportInterruptionForm/TransportInterruptionFormEditCard';
 import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { SubFormTab } from '../../components/SubFormTab/SubFormTab';
 import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '../drive-rest-form/useDriveRestForm';
@@ -91,8 +96,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     permPrefix: 'sp_teammate_form',
   });
   const adr = useSubForm<AdrForm, AdrFormEditCardRef>({ permPrefix: 'adr_form' });
+  const transportInterruption = useSubForm<TransportInterruptionForm, TransportInterruptionFormEditCardRef>({ permPrefix: 'transport_interruption_form' });
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission });
   
   useEffect(() => {
     if (!snapshotId || !id) return;
@@ -158,6 +164,16 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       })
       .catch(console.error)
       .finally(() => adr.setLoaded(true));
+
+    listTransportInterruptionFormsByCompoundFormKey(compoundFormKey)
+      .then(async (list) => {
+        const item = Array.isArray(list) ? (list as TransportInterruptionFormListItem[])[0] : null;
+        const full = item?.id ? await getTransportInterruptionForm(item.id).catch(() => null) : null;
+        transportInterruption.setForm(full ?? null);
+        if (full) setOpenTabs((prev) => prev.includes('tab-transport-interruption') ? prev : [...prev, 'tab-transport-interruption']);
+      })
+      .catch(console.error)
+      .finally(() => transportInterruption.setLoaded(true));
   }, [compoundFormKey]);
 
   const {
@@ -195,7 +211,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     window.scrollTo(0, 0);
   };
 
-  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr });
+  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const {
     formik,
@@ -238,9 +254,22 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     }
   }, [compoundForm?.status]);
 
-  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr });
+  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm, triggerConfirm: triggerConfirmCompound });
+
+  const refetchTransportInterruption = (onDone?: () => void) => {
+    if (!compoundFormKey) return;
+    listTransportInterruptionFormsByCompoundFormKey(compoundFormKey)
+      .then(async (list) => {
+        const item = Array.isArray(list) ? (list as TransportInterruptionFormListItem[])[0] : null;
+        const full = item?.id ? await getTransportInterruptionForm(item.id).catch(() => null) : null;
+        transportInterruption.setForm(full ?? null);
+        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
+        onDone?.();
+      })
+      .catch(console.error);
+  };
 
   const refetchAdr = (onDone?: () => void) => {
     if (!compoundFormKey) return;
@@ -249,7 +278,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         const item = Array.isArray(list) ? list[0] : null;
         const full = item?.id ? await getAdrForm(item.id).catch(() => null) : null;
         adr.setForm(full);
-        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full);
+        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -269,7 +298,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           teammate.form,
           latestVehicle,
           latestTrailer,
-          adr.form
+          adr.form,
+          transportInterruption.form
         );
         onDone?.();
       })
@@ -287,7 +317,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           latestTeammate,
           vehicle.form,
           trailer.form,
-          adr.form
+          adr.form,
+          transportInterruption.form
         );
         onDone?.(); })
       .catch(console.error);
@@ -349,6 +380,15 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchAdr(() => { adr.draftRef.current = null; adr.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
         },
       },
+      {
+        tabId: 'tab-transport-interruption',
+        subForm: transportInterruption as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
+        fallbackSave: (draft) => {
+          const d = draft as TransportInterruptionForm;
+          const payload = { ...d, id: transportInterruption.form?.id, legalBases: JSON.stringify(d.legalBases ?? []) } as unknown as TransportInterruptionForm;
+          saveTransportInterruptionForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTransportInterruption(() => { transportInterruption.draftRef.current = null; transportInterruption.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
+        },
+      },
     ],
   });
 
@@ -358,7 +398,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       | 'tab-teammate'
       | 'tab-vehicle-technical-check'
       | 'tab-trailer-technical-check'
-      | 'tab-adr',
+      | 'tab-adr'
+      | 'tab-transport-interruption',
   ) =>
     addTab(tabId, {
       driver,
@@ -366,6 +407,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       vehicle,
       trailer,
       adr,
+      transportInterruption,
       setOpenTabs,
       setActiveTab,
     });
@@ -376,6 +418,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     driver.editActive ||
     teammate.editActive ||
     adr.editActive ||
+    transportInterruption.editActive ||
     compoundEditActive;
   const canEdit = hasPermission('compound_form.write');
 
@@ -405,9 +448,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       (trailer.form != null && trailer.form.status !== 'deleted') ||
       (driver.form != null && driver.form.status !== 'deleted') ||
       (teammate.form != null && teammate.form.status !== 'deleted') ||
+      (transportInterruption.form != null && transportInterruption.form.status !== 'deleted') ||
       (compoundForm != null && compoundForm.status !== 'deleted'));
 
-  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, compoundForm });
+  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, transportInterruption, compoundForm });
 
   const { removeConfirmTab, setRemoveConfirmTab, handleRemove, handleRemoveConfirmed } = useRemoveSubFormTab({
     driver,
@@ -415,6 +459,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     vehicle,
     trailer,
     adr,
+    transportInterruption,
     setOpenTabs,
     setActiveTab,
     checkAndAutoConfirm: checkAndAutoConfirmCompound,
@@ -477,9 +522,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         <Tabs.List aria-label={t('forms.compound_form')}>
           <Tabs.Trigger id="tab-compound">{t('forms.compound.generalPart')}</Tabs.Trigger>
           {(() => {
-            const tabSubForms: Record<string, { form: unknown; editActive: boolean }> = { 'tab-driver': driver, 'tab-teammate': teammate, 'tab-vehicle-technical-check': vehicle, 'tab-trailer-technical-check': trailer, 'tab-adr': adr };
+            const tabSubForms: Record<string, { form: unknown; editActive: boolean }> = { 'tab-driver': driver, 'tab-teammate': teammate, 'tab-vehicle-technical-check': vehicle, 'tab-trailer-technical-check': trailer, 'tab-adr': adr, 'tab-transport-interruption': transportInterruption };
             const tabsWithStatus = openTabs.filter((tid) => tid !== 'tab-compound' && tabSubForms[tid]?.form != null).length;
-            return (['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check', 'tab-adr'] as const).map((tid) => {
+            return (['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check', 'tab-adr', 'tab-transport-interruption'] as const).map((tid) => {
             if (!openTabs.includes(tid)) return null;
             const subForm = tabSubForms[tid];
             const label =
@@ -491,7 +536,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                     ? t('forms.technical_check.vehicleTitle')
                     : tid === 'tab-adr'
                       ? t('forms.adr.title')
-                      : t('forms.technical_check.trailerTitle');
+                      : tid === 'tab-transport-interruption'
+                        ? t('forms.transport_interruption.title')
+                        : t('forms.technical_check.trailerTitle');
             const canClose = subForm.editActive && (tabsWithStatus > 1 || !subForm.form);
             return (
               <Tabs.Trigger key={tid} id={tid}>
@@ -688,6 +735,39 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
             />
           )}
         />
+
+        <SubFormTab
+          id="tab-transport-interruption"
+          open={openTabs.includes('tab-transport-interruption')}
+          subForm={transportInterruption}
+          renderView={(form) => (
+            <TransportInterruptionFormViewCard
+              form={form}
+              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              onEdit={() => transportInterruption.setEditActive(true)}
+              formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+            />
+          )}
+          renderEdit={(form, ref) => (
+            <TransportInterruptionFormEditCard
+              ref={ref}
+              form={transportInterruption.draft ?? form}
+              compoundFormKey={compoundFormKey!}
+              onSaved={() => {
+                setTabErrors((p) => ({ ...p, 'tab-transport-interruption': false }));
+                setShowSavedAlert(true);
+                window.scrollTo(0, 0);
+                refetchTransportInterruption(() => { transportInterruption.draftRef.current = null; transportInterruption.setDraft(null); });
+              }}
+              onCancel={() => { transportInterruption.setEditActive(false); transportInterruption.resetDraft(); }}
+              canConfirm={canConfirm()}
+              onConfirm={() => {}}
+              formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+              onValuesChange={(v) => { const next = { ...(transportInterruption.draftRef.current ?? form), ...v } as TransportInterruptionForm; transportInterruption.draftRef.current = next; transportInterruption.setDraft(next); }}
+              initialValidate={validatedTabs.has('tab-transport-interruption')}
+            />
+          )}
+        />
       </Tabs>
 
       <div className="page-actions mt-1">
@@ -705,6 +785,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                   if (driver.form) driver.setEditActive(true);
                   if (teammate.form) teammate.setEditActive(true);
                   if (adr.form) adr.setEditActive(true);
+                  if (transportInterruption.form) transportInterruption.setEditActive(true);
                 }}
               >
                 {t('common.edit')}

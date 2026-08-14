@@ -488,7 +488,7 @@
       }
     },
     "transport_interruption": {
-      "title": "Autovedu on katkestatud",
+      "title": "Autoveo katkestamine",
       "sectionTitle": "Autoveo katkestamise kontrollvorm",
       "addNew": "Lisa autoveo katkestamise kontrollvorm",
       "header": {

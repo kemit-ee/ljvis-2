@@ -27,12 +27,15 @@ import {
   listAdrFormsByCompoundFormKey,
   getAdrForm,
   saveAdrForm,
+  listTransportInterruptionFormsByCompoundFormKey,
+  getTransportInterruptionForm,
+  saveTransportInterruptionForm,
 } from '../../api';
 import {
   serializeDriveRestFormValues,
   createDriveRestValidationSchema,
 } from './useDriveRestForm';
-import type { DriveRestForm, TechnicalCheckForm, AdrForm } from '../../types';
+import type { DriveRestForm, TechnicalCheckForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem } from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 import { DriveRestFormViewCard } from '../../components/DriveRestForm/DriveRestFormViewCard';
@@ -48,6 +51,8 @@ import { TechnicalCheckFormViewCard } from '../../components/TechnicalCheckForm/
 import { TechnicalCheckFormEditCard, type TechnicalCheckFormEditCardRef } from '../../components/TechnicalCheckForm/TechnicalCheckFormEditCard';
 import { AdrFormViewCard } from '../../components/AdrForm/AdrFormViewCard';
 import { AdrFormEditCard, type AdrFormEditCardRef } from '../../components/AdrForm/AdrFormEditCard';
+import { TransportInterruptionFormViewCard } from '../../components/TransportInterruptionForm/TransportInterruptionFormViewCard';
+import { TransportInterruptionFormEditCard, type TransportInterruptionFormEditCardRef } from '../../components/TransportInterruptionForm/TransportInterruptionFormEditCard';
 import { listTechnicalCheckFormsByCompoundFormKey, getTechnicalCheckForm, saveTechnicalCheckForm } from '../../api';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
@@ -91,8 +96,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const driver = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_driver_form' });
   const teammate = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_teammate_form' });
   const adr = useSubForm<AdrForm, AdrFormEditCardRef>({ permPrefix: 'adr_form' });
+  const transportInterruption = useSubForm<TransportInterruptionForm, TransportInterruptionFormEditCardRef>({ permPrefix: 'transport_interruption_form' });
 
-  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr });
+  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const forbidden = !(
     ((entryType === 'driver' && hasPermission('sp_driver_form.read')) ||
@@ -111,7 +117,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     return tabErrors[tabId] ?? false;
   };
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission });
 
   useEffect(() => {
     if (!snapshotId) return;
@@ -125,8 +131,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       .finally(() => setSnapshotLoading(false));
   }, [snapshotId, id]);
 
-  const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr') =>
-    addTab(tabId, { driver, teammate, vehicle, trailer, adr, setOpenTabs, setActiveTab });
+  const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr' | 'tab-transport-interruption') =>
+    addTab(tabId, { driver, teammate, vehicle, trailer, adr, transportInterruption, setOpenTabs, setActiveTab });
 
   // Load vehicle and trailer technical check forms once compoundFormKey is known
   useEffect(() => {
@@ -160,7 +166,30 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       })
       .catch(console.error)
       .finally(() => adr.setLoaded(true));
+
+    listTransportInterruptionFormsByCompoundFormKey(compoundFormKey)
+      .then(async (list) => {
+        const item = Array.isArray(list) ? (list as TransportInterruptionFormListItem[])[0] : null;
+        const full = item?.id ? await getTransportInterruptionForm(item.id).catch(() => null) : null;
+        transportInterruption.setForm(full ?? null);
+        if (full) setOpenTabs((prev) => prev.includes('tab-transport-interruption') ? prev : [...prev, 'tab-transport-interruption']);
+      })
+      .catch(console.error)
+      .finally(() => transportInterruption.setLoaded(true));
   }, [compoundFormKey]);
+
+  const refetchTransportInterruption = (onDone?: () => void) => {
+    if (!compoundFormKey) return;
+    listTransportInterruptionFormsByCompoundFormKey(compoundFormKey)
+      .then(async (list) => {
+        const item = Array.isArray(list) ? (list as TransportInterruptionFormListItem[])[0] : null;
+        const full = item?.id ? await getTransportInterruptionForm(item.id).catch(() => null) : null;
+        transportInterruption.setForm(full ?? null);
+        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
+        onDone?.();
+      })
+      .catch(console.error);
+  };
 
   const refetchAdr = (onDone?: () => void) => {
     if (!compoundFormKey) return;
@@ -169,7 +198,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const item = Array.isArray(list) ? list[0] : null;
         const full = item?.id ? await getAdrForm(item.id).catch(() => null) : null;
         adr.setForm(full);
-        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full);
+        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -184,7 +213,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         subForm.setForm(full);
         const latestVehicle = scope === 'vehicle' ? full : vehicle.form;
         const latestTrailer = scope === 'trailer' ? full : trailer.form;
-        checkAndAutoConfirmCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form);
+        checkAndAutoConfirmCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -221,7 +250,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
-  const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || adr.editActive || compoundEditActive;
+  const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || adr.editActive || transportInterruption.editActive || compoundEditActive;
 
   const addFormDropdown =
     canEdit && addableTabs.length > 0 && anyEditActive ? (
@@ -321,7 +350,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     triggerCompoundSaveAsSaved();
   };
 
-  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr });
+  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const {
     formik,
@@ -378,6 +407,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     vehicle,
     trailer,
     adr,
+    transportInterruption,
     setOpenTabs,
     setActiveTab,
     checkAndAutoConfirm: checkAndAutoConfirmCompound,
@@ -390,10 +420,11 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       (teammate.form != null && teammate.form.status !== 'deleted') ||
       (compoundForm != null && compoundForm.status !== 'deleted') ||
       (vehicle.form != null && vehicle.form.status !== 'deleted') ||
-      (trailer.form != null && trailer.form.status !== 'deleted')
+      (trailer.form != null && trailer.form.status !== 'deleted') ||
+      (transportInterruption.form != null && transportInterruption.form.status !== 'deleted')
     );
 
-  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, compoundForm });
+  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, transportInterruption, compoundForm });
 
   const handleSaveAll = createSaveAllHandler({
     activeTab,
@@ -461,6 +492,15 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchAdr(() => { adr.draftRef.current = null; adr.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
         },
       },
+      {
+        tabId: 'tab-transport-interruption',
+        subForm: transportInterruption as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
+        fallbackSave: (draft) => {
+          const d = draft as TransportInterruptionForm;
+          const payload = { ...d, id: transportInterruption.form?.id, legalBases: JSON.stringify(d.legalBases ?? []) } as unknown as TransportInterruptionForm;
+          saveTransportInterruptionForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTransportInterruption(() => { transportInterruption.draftRef.current = null; transportInterruption.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
+        },
+      },
     ],
   });
 
@@ -472,7 +512,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         driver.setForm(res);
         getDriveRestFormByCompoundFormKey('teammate', compoundFormKey)
           .then((tm) => {
-            checkAndAutoConfirmCompound(res, tm, vehicle.form, trailer.form, adr.form);
+            checkAndAutoConfirmCompound(res, tm, vehicle.form, trailer.form, adr.form, transportInterruption.form);
           })
           .catch(console.error);
         onDone?.();
@@ -487,7 +527,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         teammate.setForm(res);
         getDriveRestFormByCompoundFormKey('driver', compoundFormKey)
           .then((dr) => {
-            checkAndAutoConfirmCompound(dr, res, vehicle.form, trailer.form, adr.form);
+            checkAndAutoConfirmCompound(dr, res, vehicle.form, trailer.form, adr.form, transportInterruption.form);
           })
           .catch(console.error);
         onDone?.();
@@ -606,9 +646,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             {t('forms.compound.generalPart')}
           </Tabs.Trigger>
           {(() => {
-            const tabSubForms: Record<string, { form: unknown; editActive: boolean }> = { 'tab-driver': driver, 'tab-teammate': teammate, 'tab-vehicle-technical-check': vehicle, 'tab-trailer-technical-check': trailer, 'tab-adr': adr };
+            const tabSubForms: Record<string, { form: unknown; editActive: boolean }> = { 'tab-driver': driver, 'tab-teammate': teammate, 'tab-vehicle-technical-check': vehicle, 'tab-trailer-technical-check': trailer, 'tab-adr': adr, 'tab-transport-interruption': transportInterruption };
             const tabsWithStatus = openTabs.filter((tid) => tid !== 'tab-compound' && tabSubForms[tid]?.form != null).length;
-            return (['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check', 'tab-adr'] as const).map((tid) => {
+            return (['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-trailer-technical-check', 'tab-adr', 'tab-transport-interruption'] as const).map((tid) => {
               if (!openTabs.includes(tid)) return null;
               const subForm = tabSubForms[tid];
               const label =
@@ -620,7 +660,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                       ? t('forms.technical_check.vehicleTitle')
                       : tid === 'tab-adr'
                         ? t('forms.adr.title')
-                        : t('forms.technical_check.trailerTitle');
+                        : tid === 'tab-transport-interruption'
+                          ? t('forms.transport_interruption.title')
+                          : t('forms.technical_check.trailerTitle');
               return (
                 <Tabs.Trigger key={tid} id={tid}>
                   <span style={{ position: 'relative' }}>
@@ -828,6 +870,39 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           )}
         />
 
+        <SubFormTab
+          id="tab-transport-interruption"
+          open={openTabs.includes('tab-transport-interruption')}
+          subForm={transportInterruption}
+          renderView={(form) => (
+            <TransportInterruptionFormViewCard
+              form={form}
+              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              onEdit={() => transportInterruption.setEditActive(true)}
+              formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+            />
+          )}
+          renderEdit={(form, ref) => (
+            <TransportInterruptionFormEditCard
+              ref={ref}
+              form={transportInterruption.draft ?? form}
+              compoundFormKey={compoundFormKey!}
+              onSaved={() => {
+                setTabErrors((p) => ({ ...p, 'tab-transport-interruption': false }));
+                setShowSavedAlert(true);
+                window.scrollTo(0, 0);
+                refetchTransportInterruption(() => { transportInterruption.draftRef.current = null; transportInterruption.setDraft(null); });
+              }}
+              onCancel={() => { transportInterruption.setEditActive(false); transportInterruption.resetDraft(); }}
+              canConfirm={canConfirm()}
+              onConfirm={() => {}}
+              formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+              onValuesChange={(v) => { const next = { ...(transportInterruption.draftRef.current ?? form), ...v } as TransportInterruptionForm; transportInterruption.draftRef.current = next; transportInterruption.setDraft(next); }}
+              initialValidate={validatedTabs.has('tab-transport-interruption')}
+            />
+          )}
+        />
+
       </Tabs>
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
@@ -846,6 +921,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                   if (vehicle.form) vehicle.setEditActive(true);
                   if (trailer.form) trailer.setEditActive(true);
                   if (adr.form) adr.setEditActive(true);
+                  if (transportInterruption.form) transportInterruption.setEditActive(true);
                 }}
               >
                 {t('common.edit')}

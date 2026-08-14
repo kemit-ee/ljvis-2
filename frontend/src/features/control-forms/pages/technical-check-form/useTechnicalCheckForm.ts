@@ -139,8 +139,11 @@ export function useTechnicalCheckForm(
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
+        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
         const payload = {
           ...values,
+          status: nextStatus,
           id: form?.id ?? '',
           compoundFormKey: compoundFormKeyOverride.current ?? values.compoundFormKey,
           partsSummary: JSON.stringify(values.partsSummary ?? []),

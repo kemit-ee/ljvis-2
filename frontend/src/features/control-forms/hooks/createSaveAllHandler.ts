@@ -4,7 +4,7 @@ import type { SubFormHandle } from './useSubForm';
 interface SubFormSaveConfig<T, Ref extends { save: () => void; validateForm?: () => void }> {
   tabId: string;
   subForm: SubFormHandle<T, Ref>;
-  schema: ObjectSchema<Record<string, unknown>>;
+  schema?: ObjectSchema<Record<string, unknown>>;
   fallbackSave?: (draft: T, form: T | null) => void;
 }
 
@@ -35,7 +35,7 @@ export function createSaveAllHandler(options: CreateSaveAllHandlerOptions) {
       if (!subForm.editActive) continue;
       editableTabs.push(tabId);
       const data = (subForm.draftRef.current ?? subForm.form ?? {}) as Record<string, unknown>;
-      newTabErrors[tabId] = !(await schema.isValid(data));
+      newTabErrors[tabId] = schema ? !(await schema.isValid(data)) : false;
     }
 
     setTabErrors(newTabErrors);
@@ -56,10 +56,11 @@ export function createSaveAllHandler(options: CreateSaveAllHandlerOptions) {
 
     for (const { subForm, fallbackSave } of subForms) {
       if (!subForm.editActive) continue;
-      if (subForm.editCardRef.current) {
+      if (fallbackSave) {
+        const draft = (subForm.draftRef.current ?? subForm.form) as Parameters<typeof fallbackSave>[0];
+        if (draft) fallbackSave(draft, subForm.form);
+      } else if (subForm.editCardRef.current) {
         subForm.editCardRef.current.save();
-      } else if (subForm.draftRef.current && fallbackSave) {
-        fallbackSave(subForm.draftRef.current, subForm.form);
       }
     }
   };

@@ -268,10 +268,9 @@ export const saveTechnicalCheckFormXroadFields = (
   );
 
 export const getTransportInterruptionForm = (id: string) =>
-  get<TransportInterruptionForm>(
-    `/v1/control-forms/transport-interruption`,
-    { q: id },
-  );
+  get<TransportInterruptionForm>(`/v1/control-forms/transport-interruption`, {
+    q: id,
+  });
 
 export const listTransportInterruptionFormsByCompoundFormKey = (
   compoundFormKey: number,
@@ -279,7 +278,7 @@ export const listTransportInterruptionFormsByCompoundFormKey = (
   get<TransportInterruptionFormListItem[]>(
     `/v1/control-forms/transport-interruption/get-by-compound-form-key`,
     { compoundFormKey: String(compoundFormKey) },
-  );
+  ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const getTransportInterruptionFormSnapshot = (id: string, formKey: string) =>
   get<TransportInterruptionForm>(

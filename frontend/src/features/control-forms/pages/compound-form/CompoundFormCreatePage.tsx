@@ -46,11 +46,13 @@ import styles from './CompoundFormPage.module.css';
 import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../technical-check-form/TechnicalCheckFormCreatePage';
 import { AdrFormCreatePage, type AdrFormCreatePageRef } from '../adr-form/AdrFormCreatePage';
+import { TransportInterruptionFormCreatePage, type TransportInterruptionFormCreatePageRef } from '../transport-interruption-form/TransportInterruptionFormCreatePage';
 import type { TechnicalCheckVariant } from '../../types';
 import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '../drive-rest-form/useDriveRestForm';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
-import { saveDriveRestForm, saveTechnicalCheckForm, saveAdrForm } from '../../api';
+import { saveDriveRestForm, saveTechnicalCheckForm, saveAdrForm, saveTransportInterruptionForm } from '../../api';
+import type { TransportInterruptionForm } from '../../types';
 
 interface FormRef {
   handleSubmit?: (overrideCompoundFormKey?: number) => void;
@@ -63,6 +65,7 @@ interface FormRef {
 const DRIVE_REST_ROUTES = ['/sp-driver', '/sp-teammate'] as const;
 const TECHNICAL_CHECK_ROUTES = ['/vehicle-technical', '/trailer-technical'] as const;
 const ADR_ROUTES = ['/adr'] as const;
+const TRANSPORT_INTERRUPTION_ROUTES = ['/transport-interruption'] as const;
 
 const ROUTE_TO_TAB: Record<
   string,
@@ -92,6 +95,11 @@ const ROUTE_TO_TAB: Record<
     tabId: 'tab-adr',
     type: 'adr',
     labelKey: 'forms.adr.title',
+  },
+  '/transport-interruption': {
+    tabId: 'tab-transport-interruption',
+    type: 'transport-interruption',
+    labelKey: 'forms.transport_interruption.title',
   },
 };
 
@@ -203,15 +211,18 @@ export function CompoundFormCreatePage() {
       const isAdr = ADR_ROUTES.some(
         (route) => ROUTE_TO_TAB[route].tabId === tabId,
       );
-      const isTechnicalCheck = !isAdr && TECHNICAL_CHECK_ROUTES.some(
+      const isTransportInterruption = TRANSPORT_INTERRUPTION_ROUTES.some(
         (route) => ROUTE_TO_TAB[route].tabId === tabId,
       );
-      const schema = isAdr ? adrSchema : isTechnicalCheck ? technicalCheckSchema : driveRestSchema;
+      const isTechnicalCheck = !isAdr && !isTransportInterruption && TECHNICAL_CHECK_ROUTES.some(
+        (route) => ROUTE_TO_TAB[route].tabId === tabId,
+      );
+      const schema = isAdr ? adrSchema : isTransportInterruption ? null : isTechnicalCheck ? technicalCheckSchema : driveRestSchema;
       const formRef = formRefs.current[tabId]?.current;
       if (formRef?.hasErrors !== undefined) {
         newTabErrors[tabId] = formRef.hasErrors();
       } else {
-        newTabErrors[tabId] = !(await schema.isValid(savedFormData.current[tabId] ?? {}));
+        newTabErrors[tabId] = schema ? !(await schema.isValid(savedFormData.current[tabId] ?? {})) : false;
       }
     }
     setTabErrors(newTabErrors);
@@ -2221,6 +2232,33 @@ export function CompoundFormCreatePage() {
             </Tabs.Content>
           ) : null;
         })}
+        {TRANSPORT_INTERRUPTION_ROUTES.map((route) => {
+          const { tabId } = ROUTE_TO_TAB[route];
+          return openTabs.includes(tabId) ? (
+            <Tabs.Content key={tabId} id={tabId} className="p-1">
+              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+                <TransportInterruptionFormCreatePage
+                  compoundFormKey={undefined}
+                  initialValidate={validatedTabs.has(tabId)}
+                  onValuesChange={(values) => {
+                    savedFormData.current[tabId] = values as Partial<DriveRestForm>;
+                  }}
+                  ref={(ref) => {
+                    formRefs.current[tabId].current = ref as TransportInterruptionFormCreatePageRef;
+                  }}
+                  onSaved={(id) => {
+                    if (id) {
+                      savedDriveRestFormsRef.current = new Set(
+                        savedDriveRestFormsRef.current,
+                      ).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(id);
+                    }
+                  }}
+                />
+              </div>
+            </Tabs.Content>
+          ) : null;
+        })}
       </Tabs>
 
       <div className="page-actions mt-1">
@@ -2284,7 +2322,10 @@ export function CompoundFormCreatePage() {
                   const isAdrTab = ADR_ROUTES.some(
                     (route) => ROUTE_TO_TAB[route].tabId === tabId,
                   );
-                  const isTechnicalCheck = !isAdrTab && TECHNICAL_CHECK_ROUTES.some(
+                  const isTransportInterruptionTab = TRANSPORT_INTERRUPTION_ROUTES.some(
+                    (route) => ROUTE_TO_TAB[route].tabId === tabId,
+                  );
+                  const isTechnicalCheck = !isAdrTab && !isTransportInterruptionTab && TECHNICAL_CHECK_ROUTES.some(
                     (route) => ROUTE_TO_TAB[route].tabId === tabId,
                   );
                   if (tabDef) {
@@ -2338,6 +2379,22 @@ export function CompoundFormCreatePage() {
                         variant,
                         values as unknown as TechnicalCheckForm,
                       );
+                      if ((result[0] as { id?: string })?.id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String(
+                          (result[0] as { id?: string }).id,
+                        );
+                      }
+                    } else if (isTransportInterruptionTab) {
+                      const raw = savedFormData.current[tabId] as Partial<TransportInterruptionForm>;
+                      const payload = {
+                        ...raw,
+                        compoundFormKey: id,
+                        legalBases: JSON.stringify(raw.legalBases ?? []),
+                      } as unknown as TransportInterruptionForm;
+                      const result = await saveTransportInterruptionForm(payload);
                       if ((result[0] as { id?: string })?.id) {
                         savedDriveRestFormsRef.current = new Set(
                           savedDriveRestFormsRef.current,
