@@ -83,13 +83,29 @@ checkSendable:
   next: prepareOutbound
 
 # Convert checked_items from national TECHNICAL_CHECK format to ERRU rsiCheckedItemType.
-# Rule: CAA_10 is excluded (no ERRU equivalent, per LJVIS2-148 §4.1).
-# partCode suffix → itemType number (CAA_1→1, CAA_2→2, ..., CAA_11→11, etc.).
+# Rule: CAA_10 is excluded (no ERRU equivalent, per LJVIS2-148 §4.1). ERRU itemType is only
+# defined for the integers 0-10 plus 20 (RoadSideInspection_Types.xsd) — CAA_1..CAA_9 map
+# directly to itemType 1..9, but CAA_11 is a SPECIAL CASE that maps to itemType 20 (not 11,
+# which is not even a valid ERRU value), per LJVIS2-148 §4.1: "CAA_11 ... teisendatakse
+# saatmisel itemType väärtuseks 20".
 # Severity: VO→Minor, OV→Major, EOV→Dangerous (ERRU rsiFailedAssessmentType XSD values).
+#
+# NOTE: this conversion is deliberately split into several small assign steps, each with a
+# short expression. A single large IIFE combining the full parse+filter+map+ternary logic
+# in one `${...}` expression was found to silently fail once enough OTHER variables had
+# already accumulated earlier in this same flow — Ruuter-on-Rust's template evaluator
+# returned the literal unevaluated template text instead of raising an error, which went
+# unnoticed because no test inspected the actual outbound payload (only the final status).
+# Splitting the transformation avoids the failure and is easier to unit-debug step by step.
 prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
-    erru_checked_items: "${(function() { var items = typeof checked_items_raw === 'string' ? JSON.parse(checked_items_raw) : (Array.isArray(checked_items_raw) ? checked_items_raw : []); var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; return JSON.stringify(items.filter(function(i){return i.partCode !== 'CAA_10';}).map(function(i){ var n = parseInt((i.partCode||'').replace('CAA_',''),10); var defects = (i.defects||[]).map(function(d){return {defectCode:d.defectCode,severity:sevMap[d.severity]||d.severity};}); return {itemType:n,infringementStatus:i.status==='non_compliant'?'infringement':'none',defects:defects};})); })()"
+    checked_items_array: "${typeof checked_items_raw === 'string' ? JSON.parse(checked_items_raw) : (Array.isArray(checked_items_raw) ? checked_items_raw : [])}"
+  next: convertCheckedItems
+
+convertCheckedItems:
+  assign:
+    erru_checked_items: "${JSON.stringify(checked_items_array.filter(function(i){return i.partCode !== 'CAA_10';}).map(function(i){ var itemTypeMap = {'CAA_11': 20}; var n = itemTypeMap[i.partCode] !== undefined ? itemTypeMap[i.partCode] : parseInt((i.partCode||'').replace('CAA_',''),10); var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; var defects = (i.defects||[]).map(function(d){return {defectCode:d.defectCode,severity:sevMap[d.severity]||d.severity};}); return {itemType:n,infringementStatus:i.status==='non_compliant'?'infringement':'none',defects:defects};}))}"
   next: callErru
 
 callErru:
@@ -134,7 +150,7 @@ logIntegrationSuccess:
       type: json
     body:
       service_code: "erru/rsi/request"
-      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to}"
+      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + erru_checked_items}"
       response_xml: "${JSON.stringify(erru_res.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
@@ -150,7 +166,7 @@ logIntegrationFailure:
       type: json
     body:
       service_code: "erru/rsi/request"
-      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to}"
+      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + erru_checked_items}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
       success: false

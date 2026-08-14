@@ -1,6 +1,6 @@
 declaration:
   version: "1.0"
-  description: "Pre-fill a new outgoing RSI draft from a vehicle technical-check form (eeltäitmine, LJVIS2-148 §4.1). Reads the vehicle technical-check sub-form to extract the vehicle registration number, VIN, and checked parts (parts_summary JSONB). Maps parts_summary to the RSI checked_items national format; CAA_10 is excluded (it has no ERRU equivalent and must never appear in an RSI message, per LJVIS2-148 §4.1). The vehicle registration country, inspection details, and other RSI envelope fields are provided by the caller (the frontend has this context from the compound form). inspection_passed is always false — RSI notifications are issued only for negative inspection results (spec §Plokk Kontrolltulemused). Delegates to the same append-draft.sql as save.yml — there is no separate build SQL query (see append-draft.sql §description comment). Covered by the POST/v1/erru/rsi/request/.guard (rsi.create permission)."
+  description: "Pre-fill a new outgoing RSI draft from a vehicle technical-check form (eeltäitmine, LJVIS2-148 §4.1). Reads the vehicle technical-check sub-form for the checked parts (parts_summary JSONB) and its parent compound_form (via compound_form_key) for the vehicle registration number and VIN — forms.vehicle_technical_form itself does NOT store the registration number/VIN: era_yv_mnt_regnr/era_yv_mnt_vintin are unrelated boolean checkboxes ('Erakorraline ülevaatus TA täpsustus: Registreerimisnumber/VIN-kood', shown only when result=extraordinary_inspection_ta) — an earlier version of this endpoint read those two booleans by mistake, which meant eeltäitmine could never produce a real vehicle registration number. Maps parts_summary to the RSI checked_items national format; CAA_10 is excluded (it has no ERRU equivalent and must never appear in an RSI message, per LJVIS2-148 §4.1). The vehicle registration country, category, inspection details, and other RSI envelope fields are provided by the caller when present (the frontend has this context from the compound form already loaded), falling back to the compound_form's own vehicle_country_code/vehicle_category_code when the caller omits them. inspection_passed is always false — RSI notifications are issued only for negative inspection results (spec §Plokk Kontrolltulemused). Delegates to the same append-draft.sql as save.yml — there is no separate build SQL query (see append-draft.sql §description comment). Covered by the POST/v1/erru/rsi/request/.guard (rsi.create permission)."
   method: post
   accepts: json
   returns: json
@@ -54,8 +54,6 @@ checkFormIdPresent:
   switch:
     - condition: ${!form_id}
       next: returnFormIdRequired
-    - condition: ${!vehicle_registration_country}
-      next: returnCountryRequired
   next: getForm
 
 getForm:
@@ -78,11 +76,63 @@ checkFormFound:
 # Map parts_summary (TECHNICAL_CHECK national format) → RSI checked_items national format,
 # filtering out CAA_10 (no ERRU equivalent). parts_summary uses the same shape as
 # checked_items: [{partCode, status, defects:[{defectCode, severity}]}].
+# NOTE: era_yv_mnt_regnr/era_yv_mnt_vintin on vehicle_technical_form are unrelated boolean
+# checkboxes, NOT the registration number/VIN — those live on the parent compound_form,
+# fetched separately below via compound_form_key.
+# NOTE 2: the JSON-parse-then-filter conversion is deliberately split into two small assign
+# steps rather than one large IIFE — see POST/v1/erru/rsi/send.yml §prepareOutbound comment
+# for why: Ruuter-on-Rust's template evaluator silently fails on a single large `${...}`
+# expression once enough OTHER variables have already accumulated earlier in the same flow,
+# returning the literal unevaluated template text instead of raising an error.
 extractFormData:
   assign:
-    vehicle_registration_number: "${(form_res.response.body[0].eraYvMntRegnr || '').trim()}"
-    vehicle_identification_number: "${(form_res.response.body[0].eraYvMntVintin || '').trim()}"
-    checked_items_raw: "${(function() { var ps = form_res.response.body[0].partsSummary; var arr = typeof ps === 'string' ? JSON.parse(ps || '[]') : (Array.isArray(ps) ? ps : []); return JSON.stringify(arr.filter(function(i){return i.partCode !== 'CAA_10';})); })()"
+    compound_form_key: "${('' + (form_res.response.body[0].compoundFormKey || '')).trim()}"
+    parts_summary_array: "${(function(){ var ps = form_res.response.body[0].partsSummary; return typeof ps === 'string' ? JSON.parse(ps || '[]') : (Array.isArray(ps) ? ps : []); })()}"
+  next: convertCheckedItems
+
+convertCheckedItems:
+  assign:
+    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return i.partCode !== 'CAA_10';}))}"
+  next: checkCompoundFormKeyPresent
+
+checkCompoundFormKeyPresent:
+  switch:
+    - condition: ${!compound_form_key}
+      next: returnCompoundFormNotFound
+  next: getCompoundForm
+
+getCompoundForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${compound_form_key}
+  result: compound_res
+  next: checkCompoundFormFound
+
+checkCompoundFormFound:
+  switch:
+    - condition: ${compound_res.response.body == null || compound_res.response.body.length != 1}
+      next: returnCompoundFormNotFound
+  next: extractCompoundFormData
+
+# The registration country/category are accepted from the caller (frontend already has the
+# open compound_form in context) but fall back to the compound_form's own values so eeltäitmine
+# still works if the caller omits them.
+extractCompoundFormData:
+  assign:
+    vehicle_registration_number: "${(compound_res.response.body[0].vehicleRegNr || '').trim()}"
+    vehicle_identification_number: "${(compound_res.response.body[0].vehicleVin || '').trim()}"
+    vehicle_registration_country: "${vehicle_registration_country || (compound_res.response.body[0].vehicleCountryCode || '').trim().toUpperCase()}"
+    vehicle_category: "${vehicle_category || (compound_res.response.body[0].vehicleCategoryCode || '').trim()}"
+  next: checkVehicleRegCountryPresent
+
+checkVehicleRegCountryPresent:
+  switch:
+    - condition: ${!vehicle_registration_country}
+      next: returnCountryRequired
   next: checkVehicleRegNumber
 
 checkVehicleRegNumber:
@@ -122,6 +172,7 @@ createDraft:
       checkedItems: ${checked_items_raw}
       handlerPersonalCode: ${actor_personal_code}
       handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
   result: draft_res
   next: checkDraftCreated
 
@@ -169,6 +220,11 @@ returnVehicleRegRequired:
 returnFormNotFound:
   status: 404
   return: '{"valid":false,"code":"not_found","message":"Kontrollkaart ei leitud"}'
+  next: end
+
+returnCompoundFormNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"Koondvormi ei leitud"}'
   next: end
 
 returnCreateFailed:

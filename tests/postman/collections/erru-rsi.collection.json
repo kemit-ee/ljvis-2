@@ -3013,7 +3013,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?vehicleRegistrationNumber=LV-TEST-SEND",
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?vehicleRegistrationNumber=LV-SEND-001",
           "host": [
             "{{api_url}}"
           ],
@@ -3027,7 +3027,7 @@
           "query": [
             {
               "key": "vehicleRegistrationNumber",
-              "value": "LV-TEST-SEND"
+              "value": "LV-SEND-001"
             }
           ]
         }
@@ -3042,7 +3042,7 @@
               "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('at least 1 result', () => pm.expect(b.total).to.be.at.least(1));",
               "pm.test('vehicleRegistrationNumber matches', () => {",
-              "  b.content.forEach(r => pm.expect(r.vehicleRegistrationNumber).to.include('LV-TEST-SEND'));",
+              "  b.content.forEach(r => pm.expect(r.vehicleRegistrationNumber).to.include('LV-SEND-001'));",
               "});"
             ]
           }
@@ -3114,7 +3114,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?vehicleRegistrationNumber=LV-TEST-SEND&status=sent",
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/search?vehicleRegistrationNumber=LV-SEND-001&status=sent",
           "host": [
             "{{api_url}}"
           ],
@@ -3128,7 +3128,7 @@
           "query": [
             {
               "key": "vehicleRegistrationNumber",
-              "value": "LV-TEST-SEND"
+              "value": "LV-SEND-001"
             },
             {
               "key": "status",
@@ -3149,7 +3149,7 @@
               "  b.content.forEach(r => pm.expect(r.status).to.eql('sent'));",
               "});",
               "pm.test('all rows match vehicleRegistrationNumber', () => {",
-              "  b.content.forEach(r => pm.expect(r.vehicleRegistrationNumber).to.include('LV-TEST-SEND'));",
+              "  b.content.forEach(r => pm.expect(r.vehicleRegistrationNumber).to.include('LV-SEND-001'));",
               "});"
             ]
           }
