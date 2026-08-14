@@ -116,6 +116,15 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.NCR_LIST)) {
+      items.push({
+        children: t('nav.ncr'),
+        icon: 'gpp_bad',
+        to: '/erru/ncr',
+        isActive: pathname.startsWith('/erru/ncr'),
+      });
+    }
+
     if (hasPermission(PERMISSIONS.AUDIT_READ)) {
       adminSubItems.push({
         children: t('nav.logs'),

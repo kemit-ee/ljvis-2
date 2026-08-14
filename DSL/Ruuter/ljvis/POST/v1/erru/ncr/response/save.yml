@@ -1,0 +1,170 @@
+declaration:
+  version: "1.0"
+  description: "Save/revise the Estonian response draft to an INCOMING NCR message (LJVIS2-63).
+    Moves the message to status 'answer_drafted'. Coverage validation (LJVIS2-63 §4 'Vastust ei
+    saa salvestada enne, kui igale taotletud karistusele on lisatud sellega seotud kehtestatud
+    karistus') is enforced HERE, before calling append-response-draft.sql: every
+    penaltyRequestedIdentifier from the case's serious_infringements[].penaltiesRequested[] must
+    appear in the submitted responsePenaltiesImposed[] EXACTLY ONCE — missing or duplicated
+    identifiers both fail with 422 penalty_coverage_incomplete. isImposed=false entries have
+    penaltyTypeImposed stripped server-side regardless of what the client submitted (LJVIS2-63
+    §4 'Määrati karistus = Ei peidab ja tühjendab [Kehtestatud karistuse] välja')."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+      - field: respondingAuthority
+        type: string
+      - field: responseStatusCode
+        type: string
+      - field: responseStatusMessage
+        type: string
+      - field: responseNumberOfVehicles
+        type: string
+      - field: responseCommunityLicenceStatus
+        type: string
+      - field: responseAddress
+        type: string
+      - field: responsePenaltiesImposed
+        type: string
+
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    business_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    responding_authority: "${(incoming.body.respondingAuthority || '').trim().toUpperCase()}"
+    response_status_code: "${(incoming.body.responseStatusCode || '').trim()}"
+    response_status_message: "${(incoming.body.responseStatusMessage || '').trim()}"
+    response_number_of_vehicles: "${('' + (incoming.body.responseNumberOfVehicles || '')).trim()}"
+    response_community_licence_status: "${(incoming.body.responseCommunityLicenceStatus || '').trim()}"
+    response_address: "${('' + (incoming.body.responseAddress || '')).trim()}"
+    response_penalties_imposed_raw: "${('' + (incoming.body.responsePenaltiesImposed || '')).trim() || '[]'}"
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${business_case_id === ''}
+      next: returnNotFound
+  next: getCase
+
+getCase:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/get"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+  result: caseRes
+  next: checkCaseFound
+
+checkCaseFound:
+  switch:
+    - condition: ${caseRes.response.body.length === 0}
+      next: returnNotFound
+  next: validateCoverage
+
+validateCoverage:
+  assign:
+    current_snapshot: "${caseRes.response.body[caseRes.response.body.length - 1]}"
+    requested_ids: "${(JSON.parse(caseRes.response.body[caseRes.response.body.length - 1].seriousInfringements || '[]')).flatMap(si => (si.penaltiesRequested || []).map(p => '' + p.penaltyRequestedIdentifier))}"
+    submitted_imposed: "${JSON.parse(response_penalties_imposed_raw)}"
+    imposed_ids: "${(JSON.parse(response_penalties_imposed_raw)).map(p => '' + p.penaltyRequestedIdentifier)}"
+  next: checkCoverage
+
+checkCoverage:
+  assign:
+    coverage_ok: "${requested_ids.length === imposed_ids.length && requested_ids.every(id => imposed_ids.filter(i => i === id).length === 1) && imposed_ids.every(id => requested_ids.includes(id))}"
+  next: decideCoverage
+
+decideCoverage:
+  switch:
+    - condition: ${!coverage_ok}
+      next: returnCoverageIncomplete
+  next: sanitizeImposed
+
+sanitizeImposed:
+  assign:
+    sanitized_imposed: "${JSON.stringify(submitted_imposed.map(p => p.isImposed ? p : Object.assign({}, p, {penaltyTypeImposed: null})))}"
+  next: saveResponse
+
+saveResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-response-draft"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      respondingAuthority: ${responding_authority}
+      responseStatusCode: ${response_status_code}
+      responseStatusMessage: ${response_status_message}
+      responseNumberOfVehicles: ${response_number_of_vehicles}
+      responseCommunityLicenceStatus: ${response_community_licence_status}
+      responseAddress: ${response_address}
+      responsePenaltiesImposed: ${sanitized_imposed}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkSaveResult
+
+checkSaveResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnNotEditable
+  next: extractSaveResult
+
+extractSaveResult:
+  assign:
+    new_version: "${res.response.body[0].version}"
+    new_status: "${res.response.body[0].status}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/ncr/log-ncr-response-save"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    changed_fields: "vastuse väljad"
+    status: ${new_status}
+    version: "${'' + new_version}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "ncr case not found"
+  next: end
+
+returnNotEditable:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"status","code":"not_editable"}'
+  next: end
+
+returnCoverageIncomplete:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"responsePenaltiesImposed","code":"penalty_coverage_incomplete"}'
+  next: end

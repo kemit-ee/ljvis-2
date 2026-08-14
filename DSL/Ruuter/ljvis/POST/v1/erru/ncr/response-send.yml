@@ -1,0 +1,269 @@
+declaration:
+  version: "1.0"
+  description: "Send the Estonian response draft to an incoming NCR message (LJVIS2-64 §4.5).
+    Sendable states: 'answer_drafted' (first send) or 'error' (retry). Sending is blocked
+    while the message is 'forwarded' (LJVIS2-62 §4 'Kui teade on olekus Suunatud menetlusse,
+    ei saa vastust saata enne, kui seotud välisriigi rikkumise vorm on eemaldatud') — that
+    state simply is not in the sendable set, so it naturally falls into 422 not_sendable. On
+    success the message becomes 'answered'; on ack failure or transport failure it becomes
+    'error' and can be retried. Note the path is POST /v1/erru/ncr/response-send (not nested
+    under response/) so it can be protected by the ncr.send guard at erru/ncr/.guard, distinct
+    from erru/ncr/response/.guard (ncr.respond) which protects only response/save.yml."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    business_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${business_case_id === ''}
+      next: returnIdRequired
+  next: getCase
+
+getCase:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/get"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+  result: caseRes
+  next: checkCaseFound
+
+checkCaseFound:
+  switch:
+    - condition: ${caseRes.response.body.length === 0}
+      next: returnNotFound
+  next: checkSendable
+
+checkSendable:
+  assign:
+    current: "${caseRes.response.body[caseRes.response.body.length - 1]}"
+  next: checkSendableState
+
+checkSendableState:
+  switch:
+    - condition: ${current.direction !== 'incoming'}
+      next: returnNotSendable
+    - condition: ${current.status !== 'answer_drafted' && current.status !== 'error'}
+      next: returnNotSendable
+  next: callErru
+
+callErru:
+  call: http.post
+  args:
+    url: "[#ERRU_NCR_RESPONSE_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      ncrTo: ${current.ncrFrom}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${current.originatingAuthority}
+      respondingAuthority: ${current.respondingAuthority}
+      responseStatusCode: ${current.responseStatusCode}
+  result: erru_res
+  next: checkErruStatus
+
+checkErruStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+      next: markError
+  next: extractAck
+
+extractAck:
+  assign:
+    ack_body: "${erru_res.response.body != null && erru_res.response.body.response != null ? JSON.parse(erru_res.response.body.response) : erru_res.response.body}"
+  next: checkAckStatusCode
+
+checkAckStatusCode:
+  assign:
+    ack_status_code: "${(ack_body && ack_body.statusCode) || 'NotAvailable'}"
+  next: decideAckOutcome
+
+decideAckOutcome:
+  switch:
+    - condition: ${ack_status_code === 'OK'}
+      next: storeAnswered
+  next: markErrorAfterNegativeAck
+
+storeAnswered:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      newStatus: "answered"
+      technicalId: ""
+      workflowId: ""
+      sentAt: ""
+      ackStatusCode: ${ack_status_code}
+
+      ackStatusMessage: ""
+      respondingAuthority: ""
+      transportUndertakingName: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseNumberOfVehicles: ""
+      responseCommunityLicenceStatus: ""
+      responseAddress: ""
+      responsePenaltiesImposed: ""
+      errorMessage: ""
+      created_by: ${actor_personal_code}
+  result: answered_res
+  next: checkAnsweredStored
+
+checkAnsweredStored:
+  switch:
+    - condition: ${answered_res.response.body == null || answered_res.response.body.length != 1}
+      next: returnNotSendable
+  next: logAuditSent
+
+logAuditSent:
+  template: "templates/audit/erru/ncr/log-ncr-response-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    result_status: "answered"
+    ack_status_code: ${ack_status_code}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_ok
+  next: returnAnswered
+
+markErrorAfterNegativeAck:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      newStatus: "error"
+      technicalId: ""
+      workflowId: ""
+      sentAt: ""
+      ackStatusCode: ""
+
+      ackStatusMessage: ""
+      respondingAuthority: ""
+      transportUndertakingName: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseNumberOfVehicles: ""
+      responseCommunityLicenceStatus: ""
+      responseAddress: ""
+      responsePenaltiesImposed: ""
+      errorMessage: "${'ERRU NCR negative acknowledgement on response send: ' + ack_status_code}"
+      created_by: ${actor_personal_code}
+  result: neg_res
+  next: logAuditNegativeAck
+
+logAuditNegativeAck:
+  template: "templates/audit/erru/ncr/log-ncr-response-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    result_status: "error"
+    ack_status_code: ${ack_status_code}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_neg
+  next: returnAckError
+
+markError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      newStatus: "error"
+      technicalId: ""
+      workflowId: ""
+      sentAt: ""
+      ackStatusCode: ""
+
+      ackStatusMessage: ""
+      respondingAuthority: ""
+      transportUndertakingName: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseNumberOfVehicles: ""
+      responseCommunityLicenceStatus: ""
+      responseAddress: ""
+      responsePenaltiesImposed: ""
+      errorMessage: "ERRU NCR transport failure while sending the response"
+      created_by: ${actor_personal_code}
+  result: error_res
+  next: logAuditTransportError
+
+logAuditTransportError:
+  template: "templates/audit/erru/ncr/log-ncr-response-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    result_status: "error"
+    ack_status_code: "transport_failure"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_err
+  next: returnTransportError
+
+returnAnswered:
+  return: "${JSON.stringify({businessCaseId: business_case_id, status: 'answered', ackStatusCode: ack_status_code})}"
+  next: end
+
+returnAckError:
+  status: 502
+  return: '{"valid":false,"code":"send_failed","message":"ERRU NCR negative acknowledgement — response transitioned to error"}'
+  next: end
+
+returnTransportError:
+  status: 502
+  return: '{"valid":false,"code":"send_failed","message":"ERRU NCR transport failure — response transitioned to error"}'
+  next: end
+
+returnIdRequired:
+  status: 400
+  return: '{"valid":false,"field":"businessCaseId","code":"required"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "ncr case not found"
+  next: end
+
+returnNotSendable:
+  status: 422
+  return: '{"valid":false,"code":"not_sendable","message":"Vastust ei saa saata praeguses olekus (answer_drafted või error on saadetavad)"}'
+  next: end

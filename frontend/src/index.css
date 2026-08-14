@@ -231,3 +231,8 @@ nav[aria-label='Main navigation'] {
 .ljvis-table tr:has(.additional-group-row-marker) {
   border-top: none;
 }
+
+/* NCR list (LJVIS2-65): rows with at least one serious infringement are highlighted red. */
+.ncr-row-infringement td {
+  background-color: #fdecea;
+}

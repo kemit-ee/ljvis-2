@@ -1,0 +1,180 @@
+declaration:
+  version: "1.0"
+  description: "Create or update an OUTGOING NCR request draft (LJVIS2-63) — single unified save
+    endpoint, branches internally on presence of businessCaseId, mirroring the RSI/CTUD save
+    pattern. status ('initiated'), direction ('outgoing') and ncr_from ('EE') are assigned
+    server-side and never accepted from the client; business_case_id is generated on create
+    and immutable on revise. Revising is rejected (422 not_editable) unless the current
+    snapshot is status='initiated' AND direction='outgoing' — append-request-draft-revision.sql
+    enforces this with an empty INSERT..SELECT. minorInfringement/seriousInfringements arrive as
+    JSON text with seriousInfringements[].category/infringementType ALREADY split by the
+    frontend (from the combined EU_INFRINGEMENT classifier code, e.g. MSI302 -> category=MSI,
+    infringementType=302) — this endpoint does not re-derive that split. The Pass/CleanCheck
+    infringement-clearing rule (LJVIS2-63 §4) is enforced server-side inside the Resql query,
+    not just here, so a stale client payload can never smuggle infringement data past a
+    checkResult=Pass save."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: ncrTo
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: checkResult
+        type: string
+      - field: checkDate
+        type: string
+      - field: minorInfringement
+        type: string
+      - field: seriousInfringements
+        type: string
+
+getActorFromTim:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: timRes
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    business_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    originating_authority: "${(incoming.body.originatingAuthority || '').trim().toUpperCase()}"
+    request_source: "${(incoming.body.requestSource || 'RSI').trim()}"
+    request_purpose: "${(incoming.body.requestPurpose || 'Control').trim()}"
+    ncr_to: "${(incoming.body.ncrTo || '').trim().toUpperCase()}"
+    transport_undertaking_name: "${(incoming.body.transportUndertakingName || '').trim().toUpperCase()}"
+    community_licence_number: "${(incoming.body.communityLicenceNumber || '').trim().toUpperCase()}"
+    vehicle_registration_number: "${(incoming.body.vehicleRegistrationNumber || '').trim().toUpperCase()}"
+    vehicle_registration_country: "${(incoming.body.vehicleRegistrationCountry || '').trim().toUpperCase()}"
+    check_result: "${(incoming.body.checkResult || '').trim()}"
+    check_date: "${('' + (incoming.body.checkDate || '')).trim()}"
+    minor_infringement: "${('' + (incoming.body.minorInfringement || '')).trim()}"
+    serious_infringements: "${('' + (incoming.body.seriousInfringements || '')).trim() || '[]'}"
+    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+  next: checkBranch
+
+checkBranch:
+  switch:
+    - condition: ${business_case_id === ''}
+      next: insertDraft
+  next: reviseDraft
+
+insertDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-request-draft"
+    headers:
+      type: json
+    body:
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      ncrTo: ${ncr_to}
+      transportUndertakingName: ${transport_undertaking_name}
+      communityLicenceNumber: ${community_licence_number}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      checkResult: ${check_result}
+      checkDate: ${check_date}
+      minorInfringement: ${minor_infringement}
+      seriousInfringements: ${serious_infringements}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkInsertResult
+
+checkInsertResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnInsertFailed
+  next: extractSaveResult
+
+reviseDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-request-draft-revision"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      ncrTo: ${ncr_to}
+      transportUndertakingName: ${transport_undertaking_name}
+      communityLicenceNumber: ${community_licence_number}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      checkResult: ${check_result}
+      checkDate: ${check_date}
+      minorInfringement: ${minor_infringement}
+      seriousInfringements: ${serious_infringements}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkReviseResult
+
+checkReviseResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnNotEditable
+  next: extractSaveResult
+
+extractSaveResult:
+  assign:
+    result_business_case_id: "${res.response.body[0].businessCaseId}"
+    new_version: "${res.response.body[0].version}"
+    new_status: "${res.response.body[0].status}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/ncr/log-ncr-request-save"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${result_business_case_id}
+    changed_fields: "${business_case_id === '' ? 'kõik (uus päring)' : 'päringu väljad'}"
+    status: ${new_status}
+    version: "${'' + new_version}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnNotEditable:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"status","code":"not_editable"}'
+  next: end
+
+returnInsertFailed:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"transportUndertakingName","code":"draft_not_created"}'
+  next: end

@@ -1,0 +1,30 @@
+# NCR needs ncr.read, not ctud.read — override the parent GET/v1/erru/.guard
+# (which is ctud-specific) instead of stacking on top of it. Protects every
+# GET file directly under erru/ncr/ (get.yml) — later stages (search.yml) will
+# need the same permission, so no further nesting is required here.
+declaration:
+  override_ancestors: true
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('ncr.read')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

@@ -34,6 +34,9 @@ import { CgrFormPage } from './features/erru/pages/cgr/CgrFormPage';
 import { RsiListPage } from './features/erru/pages/rsi/RsiListPage';
 import { RsiFormCreatePage } from './features/erru/pages/rsi/RsiFormCreatePage';
 import { RsiFormPage } from './features/erru/pages/rsi/RsiFormPage';
+import { NcrListPage } from './features/erru/pages/ncr/NcrListPage';
+import { NcrFormCreatePage } from './features/erru/pages/ncr/NcrFormCreatePage';
+import { NcrFormPage } from './features/erru/pages/ncr/NcrFormPage';
 import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
 import { TransportInterruptionFormPage } from './features/control-forms/pages/transport-interruption-form/TransportInterruptionFormPage';
 import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage';
@@ -152,6 +155,10 @@ function AppRoutes() {
           <Route path="/erru/rsi" element={<RsiListPage />} />
           <Route path="/erru/rsi/new" element={<RsiFormCreatePage />} />
           <Route path="/erru/rsi/:id" element={<RsiFormPage />} />
+          {/* ERRU — NCR (kontrollitulemuse teade), LJVIS2-62/-63/-64/-65. */}
+          <Route path="/erru/ncr" element={<NcrListPage />} />
+          <Route path="/erru/ncr/new" element={<NcrFormCreatePage />} />
+          <Route path="/erru/ncr/:businessCaseId" element={<NcrFormPage />} />
           <Route
             path="/control-forms/vehicle-technical/new/:compoundFormKey"
             element={<TechnicalCheckFormPage variant="vehicle" />}

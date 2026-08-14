@@ -1,0 +1,183 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { saveNcrRequest } from '../../api';
+import type { NcrMessage, NcrSeriousInfringement } from '../../types';
+import { applyValidationError } from '../../../../shared/api/errors';
+
+const T = 'erru.ncr.validation';
+
+const emptySeriousInfringement: NcrSeriousInfringement = {
+  category: 'MSI',
+  infringementType: '',
+  dateOfInfringement: '',
+  detectionCheckDate: '',
+  appealPossible: true,
+  penaltiesImposed: [],
+  penaltiesRequested: [],
+};
+
+/**
+ * Editable outgoing NCR request draft (LJVIS2-63 §4). Only used while the case is
+ * status='initiated' (checked by the caller, NcrFormPage). "Edukalt läbitud kontroll"
+ * Jah/Ei drives checkResult (Pass/Fail) and shows/hides minorInfringement +
+ * "Rasked rikkumised ja karistused" — switching back to Jah clears both, enforced
+ * server-side too (append-request-draft*.sql), not just here.
+ */
+export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (businessCaseId: string) => void) {
+  const { t } = useTranslation();
+  const [formError, setFormError] = useState<string | null>(null);
+  const required = t(`${T}.required`);
+
+  const validationSchema = Yup.object({
+    originatingAuthority: Yup.string().required(required),
+    ncrTo: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
+    transportUndertakingName: Yup.string().required(required),
+    communityLicenceNumber: Yup.string().required(required),
+    vehicleRegistrationNumber: Yup.string().required(required),
+    vehicleRegistrationCountry: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
+    checkDate: Yup.string().required(required),
+  });
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      originatingAuthority: message?.originatingAuthority ?? '',
+      requestSource: message?.requestSource ?? 'RSI',
+      requestPurpose: message?.requestPurpose ?? 'Control',
+      ncrTo: message?.ncrTo ?? '',
+      transportUndertakingName: message?.transportUndertakingName ?? '',
+      communityLicenceNumber: message?.communityLicenceNumber ?? '',
+      vehicleRegistrationNumber: message?.vehicleRegistrationNumber ?? '',
+      vehicleRegistrationCountry: message?.vehicleRegistrationCountry ?? '',
+      checkPassed: message?.checkResult ? message.checkResult !== 'Fail' : true,
+      checkDate: message?.checkDate ?? '',
+      minorInfringementDate: message?.minorInfringement?.dateOfInfringement ?? '',
+      minorInfringementCount:
+        message?.minorInfringement?.numberOfInfringements != null
+          ? String(message.minorInfringement.numberOfInfringements)
+          : '',
+      seriousInfringements: message?.seriousInfringements ?? [],
+    },
+    validationSchema,
+    onSubmit: async (values, { setFieldError }) => {
+      setFormError(null);
+      try {
+        const checkResult = values.checkPassed ? 'Pass' : 'Fail';
+        const minorInfringement =
+          !values.checkPassed && (values.minorInfringementDate || values.minorInfringementCount)
+            ? JSON.stringify({
+                dateOfInfringement: values.minorInfringementDate,
+                numberOfInfringements: Number(values.minorInfringementCount || 0),
+              })
+            : '';
+        const seriousInfringements = values.checkPassed ? '[]' : JSON.stringify(values.seriousInfringements);
+
+        const result = await saveNcrRequest({
+          businessCaseId: message?.businessCaseId ?? '',
+          originatingAuthority: values.originatingAuthority,
+          requestSource: values.requestSource,
+          requestPurpose: values.requestPurpose,
+          ncrTo: values.ncrTo,
+          transportUndertakingName: values.transportUndertakingName,
+          communityLicenceNumber: values.communityLicenceNumber,
+          vehicleRegistrationNumber: values.vehicleRegistrationNumber,
+          vehicleRegistrationCountry: values.vehicleRegistrationCountry,
+          checkResult,
+          checkDate: values.checkDate,
+          minorInfringement,
+          seriousInfringements,
+        });
+        onSaved(result.businessCaseId);
+      } catch (e) {
+        const handled = applyValidationError(e, setFieldError, (code) => t(`${T}.${code}`), setFormError);
+        if (!handled) console.error('NCR request save failed', e);
+      }
+    },
+  });
+
+  const addSeriousInfringement = () => {
+    formik.setFieldValue('seriousInfringements', [
+      ...formik.values.seriousInfringements,
+      { ...emptySeriousInfringement },
+    ]);
+  };
+
+  const removeSeriousInfringement = (index: number) => {
+    formik.setFieldValue(
+      'seriousInfringements',
+      formik.values.seriousInfringements.filter((_, i) => i !== index),
+    );
+  };
+
+  const updateSeriousInfringement = (index: number, patch: Partial<NcrSeriousInfringement>) => {
+    const items = formik.values.seriousInfringements.map((si, i) => (i === index ? { ...si, ...patch } : si));
+    formik.setFieldValue('seriousInfringements', items);
+  };
+
+  const addPenaltyImposed = (index: number) => {
+    const items = formik.values.seriousInfringements.map((si, i) =>
+      i === index
+        ? {
+            ...si,
+            penaltiesImposed: [
+              ...si.penaltiesImposed,
+              {
+                penaltyImposedIdentifier: si.penaltiesImposed.length + 1,
+                penaltyTypeImposed: '',
+                finalDecisionDate: '',
+                isExecuted: 'Unknown' as const,
+              },
+            ],
+          }
+        : si,
+    );
+    formik.setFieldValue('seriousInfringements', items);
+  };
+
+  const removePenaltyImposed = (siIndex: number, penaltyIndex: number) => {
+    const items = formik.values.seriousInfringements.map((si, i) =>
+      i === siIndex
+        ? { ...si, penaltiesImposed: si.penaltiesImposed.filter((_, j) => j !== penaltyIndex) }
+        : si,
+    );
+    formik.setFieldValue('seriousInfringements', items);
+  };
+
+  const addPenaltyRequested = (index: number) => {
+    const items = formik.values.seriousInfringements.map((si, i) =>
+      i === index
+        ? {
+            ...si,
+            penaltiesRequested: [
+              ...si.penaltiesRequested,
+              { penaltyRequestedIdentifier: si.penaltiesRequested.length + 1, penaltyTypeRequested: '' },
+            ],
+          }
+        : si,
+    );
+    formik.setFieldValue('seriousInfringements', items);
+  };
+
+  const removePenaltyRequested = (siIndex: number, penaltyIndex: number) => {
+    const items = formik.values.seriousInfringements.map((si, i) =>
+      i === siIndex
+        ? { ...si, penaltiesRequested: si.penaltiesRequested.filter((_, j) => j !== penaltyIndex) }
+        : si,
+    );
+    formik.setFieldValue('seriousInfringements', items);
+  };
+
+  return {
+    formik,
+    formError,
+    addSeriousInfringement,
+    removeSeriousInfringement,
+    updateSeriousInfringement,
+    addPenaltyImposed,
+    removePenaltyImposed,
+    addPenaltyRequested,
+    removePenaltyRequested,
+  };
+}

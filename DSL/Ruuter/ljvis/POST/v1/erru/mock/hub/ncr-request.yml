@@ -1,0 +1,59 @@
+declaration:
+  version: "1.0"
+  description: "MOCK ERRU hub for NCR (NotifyCheckResult) request send — dev and CI only
+    (ERRU_NCR_ENDPOINT points at XTR in production). Unlike RSI, NCR's acknowledgement is
+    SYNCHRONOUS — this mock returns the ack (statusCode OK/Timeout/NotAvailable) directly in
+    the same call, per LJVIS2-64 §4.2 'Vastuvõtukinnitus saabub sünkroonselt sama saatmise
+    käigus'. The substantive response (statusCode OK/NotFound + penalty outcome) is NOT
+    returned here — it arrives later via the separate inbound-response endpoint, exercised
+    directly by Newman. Scenario selection is by ncrTo: FI -> HTTP 502 (transport failure);
+    NO -> ack Timeout; IS -> ack NotAvailable; everything else -> ack OK."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: ncrTo
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: checkResult
+        type: string
+
+selectScenario:
+  switch:
+    - condition: ${('' + (incoming.body.ncrTo || '')).toUpperCase() === 'FI'}
+      next: returnTransportFailure
+    - condition: ${('' + (incoming.body.ncrTo || '')).toUpperCase() === 'NO'}
+      next: returnAckTimeout
+    - condition: ${('' + (incoming.body.ncrTo || '')).toUpperCase() === 'IS'}
+      next: returnAckNotAvailable
+  next: returnAckOk
+
+returnAckOk:
+  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"OK","statusMessage":""}'
+  next: end
+
+returnAckTimeout:
+  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"Timeout","statusMessage":"Destination member state did not respond in time"}'
+  next: end
+
+returnAckNotAvailable:
+  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"NotAvailable","statusMessage":"Destination member state service unavailable"}'
+  next: end
+
+returnTransportFailure:
+  status: 502
+  return: '{"error":"ERRU hub simulation: transport failure"}'
+  next: end

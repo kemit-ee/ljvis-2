@@ -45,6 +45,9 @@ call newman run "%COL%\erru-cgr.collection.json" -e "%ENV%" --delay-request 300 
 echo Running collection: erru-rsi.collection.json
 call newman run "%COL%\erru-rsi.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-rsi.html"
 
+echo Running collection: erru-ncr.collection.json
+call newman run "%COL%\erru-ncr.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-ncr.html"
+
 echo Running collection: technical-check-forms.collection.json
 call newman run "%COL%\technical-check-forms.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\technical-check-forms.html"
 

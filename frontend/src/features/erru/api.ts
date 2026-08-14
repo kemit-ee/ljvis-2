@@ -11,6 +11,13 @@ import type {
   CtudRequestListItem,
   CtudRequestWrite,
   CtudSaveResult,
+  NcrBuildRequest,
+  NcrCase,
+  NcrCaseListItem,
+  NcrListFilters,
+  NcrRequestWrite,
+  NcrResponseWrite,
+  NcrSaveResult,
   RsiListFilters,
   RsiMessage,
   RsiMessageListItem,
@@ -172,4 +179,64 @@ export function saveRsiMessage(
   body: RsiMessageWrite,
 ): Promise<RsiSaveResult> {
   return post<RsiSaveResult>('/v1/erru/rsi/request/save', { id, ...body });
+}
+
+/**
+ * NCR (NotifyCheckResult / Kontrollitulemuse teade) — LJVIS2-62/-63/-64.
+ *
+ * Get returns the FULL snapshot history keyed by businessCaseId (not the latest row) —
+ * see NcrCase. request/save and response/save are the two "vorm" (Stage 10) endpoints;
+ * request/build, send and response-send are the "tegevused" (Stage 11) endpoints. send
+ * lives at /v1/erru/ncr/send (not request/send) and response-send at
+ * /v1/erru/ncr/response-send (not response/send) — a deliberate deviation from the
+ * spec's literal paths so ncr.send can be its own guard, isolated from ncr.create
+ * (request/.guard) and ncr.respond (response/.guard). See send.yml/response-send.yml.
+ */
+export function getNcrCase(businessCaseId: string): Promise<NcrCase> {
+  return get<NcrCase>('/v1/erru/ncr/get', { q: businessCaseId });
+}
+
+/** Create (businessCaseId='') or revise (existing businessCaseId) an outgoing NCR draft. */
+export function saveNcrRequest(body: NcrRequestWrite): Promise<NcrSaveResult> {
+  return post<NcrSaveResult>('/v1/erru/ncr/request/save', { ...body });
+}
+
+/** Save/revise the Estonian response draft to an incoming NCR message. */
+export function saveNcrResponse(body: NcrResponseWrite): Promise<NcrSaveResult> {
+  return post<NcrSaveResult>('/v1/erru/ncr/response/save', { ...body });
+}
+
+/** Eeltäitmine: build a new outgoing NCR draft from an SP/TH control-form sub-form. */
+export function buildNcrRequest(body: NcrBuildRequest): Promise<NcrSaveResult> {
+  return post<NcrSaveResult>('/v1/erru/ncr/request/build', { ...body });
+}
+
+/** Send the outgoing NCR request draft to ERRU (initiated/error -> sent -> acknowledged). */
+export function sendNcrRequest(businessCaseId: string): Promise<{ businessCaseId: string; status: string; ackStatusCode: string; workflowId?: string }> {
+  return post('/v1/erru/ncr/send', { businessCaseId });
+}
+
+/** Send the composed response to an incoming NCR message (answer_drafted/error -> answered). */
+export function sendNcrResponse(businessCaseId: string): Promise<{ businessCaseId: string; status: string; ackStatusCode: string }> {
+  return post('/v1/erru/ncr/response-send', { businessCaseId });
+}
+
+/**
+ * NCR case list (LJVIS2-65) — both incoming and outgoing, one row per case. All filters
+ * are AND-combined (unlike RSI/CGR's OR-pair — NCR has only one text filter). Protected
+ * by the ncr.list permission (distinct from ncr.read). Default sort is sent_at desc.
+ */
+export function listNcrCases(
+  params: ListParams,
+  filters: NcrListFilters = {},
+): Promise<PagedResponse<NcrCaseListItem>> {
+  const query: Record<string, string> = {
+    page: params.page,
+    pageSize: params.pageSize,
+    sorting: params.sorting,
+  };
+  Object.entries(filters).forEach(([k, v]) => {
+    if (v) query[k] = v;
+  });
+  return get<PagedResponse<NcrCaseListItem>>('/v1/erru/ncr/list/search', query);
 }

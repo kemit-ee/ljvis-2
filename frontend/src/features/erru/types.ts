@@ -471,3 +471,230 @@ export interface RsiListFilters {
   direction?: string;
   handlerPersonalCode?: string;
 }
+
+/**
+ * ERRU NCR (NotifyCheckResult / Kontrollitulemuse teade) types (LJVIS2-62/-63/-64).
+ *
+ * NCR is the most structurally complex ERRU family: a bilateral exchange where the
+ * inspecting MS reports a check result (possibly with penalties already imposed and
+ * penalties requested) and the registration MS answers with its own imposed-penalty
+ * decisions. Unlike RSI/CGR/CTUD, the "get" endpoint returns the FULL snapshot history
+ * (NcrCase.snapshots), not just the latest row — the last element is the current state,
+ * the whole array backs the read-only "Juhtumi teadete loend" (LJVIS2-63 §4).
+ */
+export type NcrDirection = 'outgoing' | 'incoming';
+
+export type NcrStatus =
+  | 'initiated'
+  | 'sent'
+  | 'acknowledged'
+  | 'responded'
+  | 'received'
+  | 'viewed'
+  | 'answer_drafted'
+  | 'forwarded'
+  | 'answered'
+  | 'error';
+
+export type NcrCheckResult = 'Pass' | 'Fail' | 'CleanCheck';
+export type NcrInfringementCategory = 'MSI' | 'VSI' | 'SI';
+export type NcrIsExecuted = 'Yes' | 'No' | 'Unknown';
+
+export interface NcrMinorInfringement {
+  dateOfInfringement: string;
+  numberOfInfringements: number;
+}
+
+/** Penalty the INSPECTING member state itself already imposed at the roadside. */
+export interface NcrPenaltyImposed {
+  penaltyImposedIdentifier: number;
+  penaltyTypeImposed: string;
+  finalDecisionDate: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  isExecuted: NcrIsExecuted;
+  notExecutedReason?: string | null;
+}
+
+/** Penalty the inspecting MS requests the REGISTRATION member state to impose. */
+export interface NcrPenaltyRequested {
+  penaltyRequestedIdentifier: number;
+  penaltyTypeRequested: string;
+  duration?: number | null;
+}
+
+export interface NcrSeriousInfringement {
+  category: NcrInfringementCategory;
+  infringementType: string;
+  dateOfInfringement: string;
+  detectionCheckDate: string;
+  appealPossible: boolean;
+  penaltiesImposed: NcrPenaltyImposed[];
+  penaltiesRequested: NcrPenaltyRequested[];
+}
+
+/** Registration MS's answer to one requested penalty — always keyed by the requested id. */
+export interface NcrResponsePenaltyImposed {
+  penaltyRequestedIdentifier: number;
+  authorityImposingPenalty: string;
+  isImposed: boolean;
+  penaltyTypeImposed: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  reason?: string | null;
+}
+
+export interface NcrResponseAddress {
+  address?: string | null;
+  postCode?: string | null;
+  city?: string | null;
+  country?: string | null;
+}
+
+/** One snapshot of an NCR message (INSERT-only — see erru.ncr_message). */
+export interface NcrMessage {
+  id: string;
+  version: number;
+  direction: NcrDirection;
+  status: NcrStatus;
+  preForwardingStatus: string | null;
+  businessCaseId: string;
+  technicalId: string | null;
+  workflowId: string | null;
+  sentAt: string | null;
+  ncrFrom: string | null;
+  ncrTo: string | null;
+  originatingAuthority: string | null;
+  requestSource: string | null;
+  requestPurpose: string | null;
+  ackStatusCode: string | null;
+  ackStatusMessage: string | null;
+  ackReceivedAt: string | null;
+  responseStatusCode: string | null;
+  responseStatusMessage: string | null;
+  transportUndertakingName: string | null;
+  communityLicenceNumber: string | null;
+  vehicleRegistrationNumber: string | null;
+  vehicleRegistrationCountry: string | null;
+  checkResult: NcrCheckResult | null;
+  checkDate: string | null;
+  minorInfringement: NcrMinorInfringement | null;
+  seriousInfringements: NcrSeriousInfringement[];
+  responsePenaltiesImposed: NcrResponsePenaltyImposed[] | null;
+  respondingAuthority: string | null;
+  responseNumberOfVehicles: number | null;
+  responseCommunityLicenceStatus: string | null;
+  responseAddress: NcrResponseAddress | null;
+  linkedForeignViolationFormKey: number | null;
+  handlerPersonalCode: string | null;
+  handlerName: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+  createdBy: string;
+}
+
+/** GET /v1/erru/ncr/get response — the whole snapshot history of one case. */
+export interface NcrCase {
+  snapshots: NcrMessage[];
+}
+
+/** Editable fields of an outgoing NCR request draft (LJVIS2-63). */
+export interface NcrRequestWrite {
+  businessCaseId: string;
+  originatingAuthority: string;
+  requestSource: string;
+  requestPurpose: string;
+  ncrTo: string;
+  transportUndertakingName: string;
+  communityLicenceNumber: string;
+  vehicleRegistrationNumber: string;
+  vehicleRegistrationCountry: string;
+  checkResult: string;
+  checkDate: string;
+  /** JSON-stringified NcrMinorInfringement, or '' when checkResult is Pass/CleanCheck. */
+  minorInfringement: string;
+  /** JSON-stringified NcrSeriousInfringement[], or '[]' when checkResult is Pass/CleanCheck. */
+  seriousInfringements: string;
+}
+
+/** Editable fields of the Estonian response draft to an incoming NCR message (LJVIS2-63). */
+export interface NcrResponseWrite {
+  businessCaseId: string;
+  respondingAuthority: string;
+  responseStatusCode: string;
+  responseStatusMessage: string;
+  responseNumberOfVehicles: string;
+  responseCommunityLicenceStatus: string;
+  /** JSON-stringified NcrResponseAddress, or ''. */
+  responseAddress: string;
+  /** JSON-stringified NcrResponsePenaltyImposed[]. */
+  responsePenaltiesImposed: string;
+}
+
+export interface NcrSaveResult {
+  id: number;
+  businessCaseId: string;
+  version: number;
+  status: NcrStatus;
+}
+
+/** Eeltäitmine input (LJVIS2-64 §4.1) — "Lisa NCR vorm" from an SP/TH control-form sub-form. */
+export interface NcrBuildRequest {
+  spFormKey: string;
+  spFormType: 'driver' | 'teammate';
+  originatingAuthority: string;
+  requestSource: string;
+  requestPurpose: string;
+  ncrTo: string;
+}
+
+/** Outgoing draft: editable only while status='initiated' (LJVIS2-63 §4). */
+export function isNcrRequestEditable(m: Pick<NcrMessage, 'status' | 'direction'>): boolean {
+  return m.direction === 'outgoing' && m.status === 'initiated';
+}
+
+/** Incoming response draft: editable while status is 'viewed' or 'answer_drafted'. */
+export function isNcrResponseEditable(m: Pick<NcrMessage, 'status' | 'direction'>): boolean {
+  return m.direction === 'incoming' && (m.status === 'viewed' || m.status === 'answer_drafted');
+}
+
+/** Outgoing request sendable from 'initiated' (first send) or 'error' (retry). */
+export function isNcrRequestSendable(m: Pick<NcrMessage, 'status' | 'direction'>): boolean {
+  return m.direction === 'outgoing' && (m.status === 'initiated' || m.status === 'error');
+}
+
+/** Incoming response sendable from 'answer_drafted' (first send) or 'error' (retry). */
+export function isNcrResponseSendable(m: Pick<NcrMessage, 'status' | 'direction'>): boolean {
+  return m.direction === 'incoming' && (m.status === 'answer_drafted' || m.status === 'error');
+}
+
+/**
+ * NCR case list item (LJVIS2-65) — one row per case (ncr_message_key), latest snapshot.
+ * hasInfringement drives the red-row highlight (computed server-side from
+ * serious_infringements presence).
+ */
+export interface NcrCaseListItem {
+  id: string;
+  version: number;
+  direction: NcrDirection;
+  status: NcrStatus;
+  businessCaseId: string;
+  sentAt: string | null;
+  ncrFrom: string | null;
+  ncrTo: string | null;
+  transportUndertakingName: string | null;
+  handlerName: string | null;
+  hasInfringement: boolean;
+}
+
+/** Filters of the NCR case list. All optional, AND-combined (LJVIS2-65 §4 "Filtrid"). */
+export interface NcrListFilters {
+  businessCaseId?: string;
+  sentFrom?: string;
+  sentUntil?: string;
+  ncrFrom?: string;
+  ncrTo?: string;
+  status?: string;
+  direction?: string;
+  handlerPersonalCode?: string;
+}

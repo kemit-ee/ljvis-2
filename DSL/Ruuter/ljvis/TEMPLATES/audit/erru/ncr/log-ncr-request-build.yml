@@ -1,0 +1,44 @@
+declaration:
+  version: "1.0"
+  description: "Audit: outgoing NCR request draft built (eeltäitud) from an SP control-form
+    sub-form (LJVIS2-64 §4.1). Logged on every successful 'Lisa NCR vorm' action."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: sp_form_key
+        type: string
+      - field: sp_form_type
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "NCR päringu eeltäitmine: juhtum ${incoming.body.business_case_id || '-'}, lähtevorm ${incoming.body.sp_form_type || '-'} #${incoming.body.sp_form_key || '-'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['spFormKey', incoming.body.sp_form_key || null], ['spFormType', incoming.body.sp_form_type || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "ncr.request.build"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end
