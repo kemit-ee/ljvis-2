@@ -119,6 +119,9 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
             label={t('erru.cgr.form.tmDateOfBirth')}
             selected={dateValue(formik.values.tmDateOfBirth)}
             onSelect={(v) => formik.setFieldValue('tmDateOfBirth', toIsoDate(v as Date | undefined))}
+            monthYearSelectType="grid"
+            initialView="years"
+            disableFuture
             {...err('tmDateOfBirth')}
           />
 
@@ -152,6 +155,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
             onSelect={(v) =>
               formik.setFieldValue('certificateIssueDate', toIsoDate(v as Date | undefined))
             }
+            monthYearSelectType="grid"
             {...err('certificateIssueDate')}
           />
 

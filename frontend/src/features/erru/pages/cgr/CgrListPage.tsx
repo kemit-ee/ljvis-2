@@ -168,6 +168,7 @@ export function CgrListPage() {
               selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
               onSelect={(v) => setFilter('sentFrom', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
+              monthYearSelectType="grid"
             />
             <DateField
               id="cgr-filter-sent-until"
@@ -175,6 +176,7 @@ export function CgrListPage() {
               selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}
               onSelect={(v) => setFilter('sentUntil', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
+              monthYearSelectType="grid"
             />
             <Select
               id="cgr-filter-to"

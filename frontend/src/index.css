@@ -78,6 +78,7 @@ nav[aria-label='Main navigation'] {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  margin-top: 1rem;
   margin-bottom: 1.5rem;
 }
 

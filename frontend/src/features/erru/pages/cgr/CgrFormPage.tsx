@@ -8,13 +8,14 @@ import { isCgrEditable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { DetailRow } from '../../components/shared/DetailRow';
+import { PageActions } from '../../../../shared/components/PageActions';
 
 /**
  * CGR request detail. Vorm stage only (LJVIS2-138) — the member-state response block
  * (LJVIS2-139) and the "Saada"/per-country resend actions land once sending is wired up
  * in a later stage. Modes:
- *  - outgoing draft ("Salvestatud") → editable, Save (+ "Kopeeri päring" once sent)
- *  - anything else (sent outgoing, inbound)  → read-only
+ *  - outgoing draft ("Salvestatud") → editable, Save + "Kopeeri päring"
+ *  - anything else (sent outgoing, inbound)  → read-only + "Kopeeri päring" (if canEdit)
  */
 export function CgrFormPage() {
   const { t } = useTranslation();
@@ -26,8 +27,8 @@ export function CgrFormPage() {
   const canRead = hasAnyPermission(['cgr.read']);
   const canEdit = hasAnyPermission(['cgr.create']);
 
-  const { request, isLoading, notFound } = useCgrRequestDetail(id);
-  const form = useCgrForm(request, () => navigate(`/erru/cgr/${id}`));
+  const { request, isLoading, notFound, reload } = useCgrRequestDetail(id);
+  const form = useCgrForm(request, () => reload());
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
@@ -65,16 +66,17 @@ export function CgrFormPage() {
         <form onSubmit={form.formik.handleSubmit}>
           <CgrRequestFields form={form} />
           {form.formError && <Text modifiers="bold">{form.formError}</Text>}
-          <div className="page-actions">
-            <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
-                {t('common.back')}
-              </Button>
-              <Button type="submit" disabled={form.formik.isSubmitting}>
-                {t('common.save')}
-              </Button>
-            </div>
-          </div>
+          <PageActions>
+            <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
+              {t('common.back')}
+            </Button>
+            <Button type="submit" disabled={form.formik.isSubmitting}>
+              {t('common.save')}
+            </Button>
+            <Button visualType="secondary" onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}>
+              {t('erru.cgr.form.copyRequest')}
+            </Button>
+          </PageActions>
         </form>
       ) : (
         <>
@@ -111,18 +113,16 @@ export function CgrFormPage() {
               />
             </Card.Content>
           </Card>
-          <div className="page-actions">
-            <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
-                {t('common.back')}
+          <PageActions>
+            <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
+              {t('common.back')}
+            </Button>
+            {canEdit && (
+              <Button onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}>
+                {t('erru.cgr.form.copyRequest')}
               </Button>
-              {canEdit && (
-                <Button onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}>
-                  {t('erru.cgr.form.copyRequest')}
-                </Button>
-              )}
-            </div>
-          </div>
+            )}
+          </PageActions>
         </>
       )}
     </div>

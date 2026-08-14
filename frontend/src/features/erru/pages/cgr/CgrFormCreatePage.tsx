@@ -7,6 +7,7 @@ import { CgrRequestFields } from '../../components/Cgr/CgrRequestFields';
 import { useAuth } from '../../../auth/AuthContext';
 import { getCgrRequest } from '../../api';
 import type { CgrRequest } from '../../types';
+import { PageActions } from '../../../../shared/components/PageActions';
 
 /**
  * New outgoing CGR request. Also serves "Kopeeri päring" (LJVIS2-140): when opened with
@@ -63,16 +64,14 @@ export function CgrFormCreatePage() {
 
       {form.formError && <Text modifiers="bold">{form.formError}</Text>}
 
-      <div className="page-actions">
-        <div className="page-actions-buttons">
-          <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
-            {t('common.back')}
-          </Button>
-          <Button type="submit" disabled={form.formik.isSubmitting}>
-            {t('common.save')}
-          </Button>
-        </div>
-      </div>
+      <PageActions>
+        <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
+          {t('common.back')}
+        </Button>
+        <Button type="submit" disabled={form.formik.isSubmitting}>
+          {t('common.save')}
+        </Button>
+      </PageActions>
     </form>
   );
 }

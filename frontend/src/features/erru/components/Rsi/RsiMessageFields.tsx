@@ -331,6 +331,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             required
             selected={dateValue(formik.values.inspectionDate)}
             onSelect={(v) => formik.setFieldValue('inspectionDate', toIsoDate(v as Date | undefined))}
+            monthYearSelectType="grid"
             {...err('inspectionDate')}
           />
           <TimeField
