@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
+import { AppTable } from '../../../../shared/components/AppTable';
 import {
   Button,
   Card,
@@ -16,7 +16,7 @@ import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { RsiMessageListItem } from '../../types';
 import { useRsiList } from './useRsiList';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 
 const columnHelper = createColumnHelper<RsiMessageListItem>();
 
@@ -29,7 +29,7 @@ export function RsiListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const { getByCode, getValue } = useClassifiers();
+  const { label, options } = useClassifierLabel();
 
   const forbidden = !hasAnyPermission(['rsi.read']);
   const canCreate = hasAnyPermission(['rsi.create']);
@@ -53,24 +53,8 @@ export function RsiListPage() {
     [navigate],
   );
 
-  const label = useCallback(
-    (classifier: string, code: string | null | undefined) =>
-      code ? (getValue(classifier, code)?.name ?? code) : '—',
-    [getValue],
-  );
-
-  const countryOptions = useMemo(
-    () => getByCode('COUNTRY').map((c) => ({ value: c.code, label: c.name })),
-    [getByCode],
-  );
-  const statusOptions = useMemo(
-    () =>
-      getByCode('RSI_REQUEST_STATUS').map((c) => ({
-        value: c.code,
-        label: c.name,
-      })),
-    [getByCode],
-  );
+  const countryOptions = useMemo(() => options('COUNTRY'), [options]);
+  const statusOptions = useMemo(() => options('RSI_REQUEST_STATUS'), [options]);
   const directionOptions = [
     { value: 'outgoing', label: t('erru.rsi.list.directionOutgoing') },
     { value: 'incoming', label: t('erru.rsi.list.directionIncoming') },
@@ -233,9 +217,8 @@ export function RsiListPage() {
             </div>
           </div>
 
-          <Table
+          <AppTable
             id="rsi-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
@@ -246,7 +229,6 @@ export function RsiListPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{ children: t('common.tableIsEmpty') }}
           />
         </Card.Content>
       </Card>

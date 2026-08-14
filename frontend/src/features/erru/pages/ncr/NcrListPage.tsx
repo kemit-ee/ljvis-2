@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
+import { AppTable } from '../../../../shared/components/AppTable';
 import {
   Button,
   Card,
@@ -16,7 +16,7 @@ import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NcrCaseListItem } from '../../types';
 import { useNcrList } from './useNcrList';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 
 const columnHelper = createColumnHelper<NcrCaseListItem & { rowClassName?: string }>();
 
@@ -30,7 +30,7 @@ export function NcrListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const { getByCode, getValue } = useClassifiers();
+  const { label, options } = useClassifierLabel();
 
   const forbidden = !hasAnyPermission(['ncr.list']);
   const canCreate = hasAnyPermission(['ncr.create']);
@@ -54,20 +54,8 @@ export function NcrListPage() {
     [navigate],
   );
 
-  const label = useCallback(
-    (classifier: string, code: string | null | undefined) =>
-      code ? (getValue(classifier, code)?.name ?? code) : '—',
-    [getValue],
-  );
-
-  const countryOptions = useMemo(
-    () => getByCode('COUNTRY').map((c) => ({ value: c.code, label: c.name })),
-    [getByCode],
-  );
-  const statusOptions = useMemo(
-    () => getByCode('NCR_REQUEST_STATUS').map((c) => ({ value: c.code, label: c.name })),
-    [getByCode],
-  );
+  const countryOptions = useMemo(() => options('COUNTRY'), [options]);
+  const statusOptions = useMemo(() => options('NCR_REQUEST_STATUS'), [options]);
   const directionOptions = [
     { value: 'outgoing', label: t('erru.ncr.list.directionOutgoing') },
     { value: 'incoming', label: t('erru.ncr.list.directionIncoming') },
@@ -214,9 +202,8 @@ export function NcrListPage() {
             </div>
           </div>
 
-          <Table
+          <AppTable
             id="ncr-table"
-            className="ljvis-table"
             data={rows}
             columns={columns}
             isLoading={isLoading}
@@ -227,7 +214,6 @@ export function NcrListPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{ children: t('common.tableIsEmpty') }}
           />
         </Card.Content>
       </Card>

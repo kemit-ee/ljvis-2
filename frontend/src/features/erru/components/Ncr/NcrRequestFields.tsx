@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Card, ChoiceGroup, Heading, Select, Text, TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { classifierOptions, fieldError, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
 import type { useNcrRequestForm } from '../../pages/ncr/useNcrRequestForm';
 
 type NcrRequestFormApi = ReturnType<typeof useNcrRequestForm>;
@@ -33,16 +34,10 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const penaltyTypeRequested = getByCode('NCR_PENALTY_TYPE_REQUESTED');
   const isExecutedOptions = getByCode('NCR_IS_EXECUTED');
 
-  const opts = (list: { code: string; name: string }[]) => list.map((c) => ({ value: c.code, label: c.name }));
-  const selected = (list: { code: string; name: string }[], code: string) =>
-    opts(list).find((o) => o.value === code) ?? null;
-  const pick = (o: unknown) => (o as { value?: string } | null)?.value ?? '';
-
-  const err = (field: string) => {
-    const touched = (formik.touched as Record<string, unknown>)[field];
-    const error = (formik.errors as Record<string, unknown>)[field];
-    return touched && error ? { helper: { text: String(error), type: 'error' as const } } : {};
-  };
+  const opts = classifierOptions;
+  const selected = selectedClassifierOption;
+  const pick = pickOptionValue;
+  const err = (field: string) => fieldError(formik, field);
 
   return (
     <>

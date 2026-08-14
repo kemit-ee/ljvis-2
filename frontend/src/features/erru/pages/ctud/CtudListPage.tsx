@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
+import { AppTable } from '../../../../shared/components/AppTable';
 import {
   Button,
   Card,
@@ -16,7 +16,7 @@ import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CtudRequestListItem } from '../../types';
 import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 
 const columnHelper = createColumnHelper<CtudRequestListItem>();
 
@@ -24,7 +24,7 @@ export function CtudListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const { getByCode, getValue } = useClassifiers();
+  const { label, options } = useClassifierLabel();
 
   const forbidden = !hasAnyPermission(['ctud.read']);
   const canCreate = hasAnyPermission(['ctud.create']);
@@ -48,34 +48,9 @@ export function CtudListPage() {
     [navigate],
   );
 
-  /** Codes are stored in English; Estonian labels come from the classifiers. */
-  const label = useCallback(
-    (classifier: string, code: string | null | undefined) =>
-      code ? (getValue(classifier, code)?.name ?? code) : '—',
-    [getValue],
-  );
-
-  const countryOptions = useMemo(
-    () =>
-      getByCode('COUNTRY').map((c) => ({ value: c.code, label: c.name })),
-    [getByCode],
-  );
-  const statusOptions = useMemo(
-    () =>
-      getByCode('CTUD_REQUEST_STATUS').map((c) => ({
-        value: c.code,
-        label: c.name,
-      })),
-    [getByCode],
-  );
-  const directionOptions = useMemo(
-    () =>
-      getByCode('CTUD_DIRECTION').map((c) => ({
-        value: c.code,
-        label: c.name,
-      })),
-    [getByCode],
-  );
+  const countryOptions = useMemo(() => options('COUNTRY'), [options]);
+  const statusOptions = useMemo(() => options('CTUD_REQUEST_STATUS'), [options]);
+  const directionOptions = useMemo(() => options('CTUD_DIRECTION'), [options]);
 
   const columns = useMemo(
     () => [
@@ -255,9 +230,8 @@ export function CtudListPage() {
             </div>
           </div>
 
-          <Table
+          <AppTable
             id="ctud-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
@@ -268,7 +242,6 @@ export function CtudListPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{ children: t('common.tableIsEmpty') }}
           />
         </Card.Content>
       </Card>

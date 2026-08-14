@@ -2,7 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
+import { AppTable } from '../../../../shared/components/AppTable';
 import {
   Button,
   Card,
@@ -16,7 +16,7 @@ import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CgrRequestListItem } from '../../types';
 import { useCgrList } from './useCgrList';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 
 const columnHelper = createColumnHelper<CgrRequestListItem>();
 
@@ -29,7 +29,7 @@ export function CgrListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const { getByCode, getValue } = useClassifiers();
+  const { label, options } = useClassifierLabel();
 
   const forbidden = !hasAnyPermission(['cgr.read']);
   const canCreate = hasAnyPermission(['cgr.create']);
@@ -53,13 +53,6 @@ export function CgrListPage() {
     [navigate],
   );
 
-  /** Codes are stored in English; Estonian labels come from the classifiers. */
-  const label = useCallback(
-    (classifier: string, code: string | null | undefined) =>
-      code ? (getValue(classifier, code)?.name ?? code) : '—',
-    [getValue],
-  );
-
   /** ZZ is the broadcast marker ("Kõik riigid") — not part of the COUNTRY classifier. */
   const cgrToLabel = useCallback(
     (code: string | null | undefined) =>
@@ -67,19 +60,8 @@ export function CgrListPage() {
     [label, t],
   );
 
-  const countryOptions = useMemo(
-    () =>
-      getByCode('COUNTRY').map((c) => ({ value: c.code, label: c.name })),
-    [getByCode],
-  );
-  const statusOptions = useMemo(
-    () =>
-      getByCode('CGR_REQUEST_STATUS').map((c) => ({
-        value: c.code,
-        label: c.name,
-      })),
-    [getByCode],
-  );
+  const countryOptions = useMemo(() => options('COUNTRY'), [options]);
+  const statusOptions = useMemo(() => options('CGR_REQUEST_STATUS'), [options]);
 
   const columns = useMemo(
     () => [
@@ -226,9 +208,8 @@ export function CgrListPage() {
             </div>
           </div>
 
-          <Table
+          <AppTable
             id="cgr-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
@@ -239,7 +220,6 @@ export function CgrListPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{ children: t('common.tableIsEmpty') }}
           />
         </Card.Content>
       </Card>

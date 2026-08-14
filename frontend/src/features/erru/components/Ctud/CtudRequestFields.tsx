@@ -6,6 +6,7 @@ import {
   TextField,
   Text,
 } from '@tedi-design-system/react/tedi';
+import { classifierOptions, fieldError, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
 import type { useCtudForm } from '../../pages/ctud/useCtudForm';
 
 type CtudFormApi = ReturnType<typeof useCtudForm>;
@@ -19,20 +20,10 @@ export function CtudRequestFields({ form }: { form: CtudFormApi }) {
   const { t } = useTranslation();
   const { formik, countries, authorities, requestSources, requestPurposes } = form;
 
-  /** tedi expects `helper` as an object, not a bare string. */
-  const err = (field: keyof typeof formik.values) =>
-    formik.touched[field] && formik.errors[field]
-      ? { helper: { text: String(formik.errors[field]), type: 'error' as const } }
-      : {};
-
-  const opts = (list: { code: string; name: string }[]) =>
-    list.map((c) => ({ value: c.code, label: c.name }));
-
-  /** tedi Select works with option objects, not raw code strings. */
-  const selected = (list: { code: string; name: string }[], code: string) =>
-    opts(list).find((o) => o.value === code) ?? null;
-
-  const pick = (o: unknown) => (o as { value?: string } | null)?.value ?? '';
+  const err = (field: keyof typeof formik.values) => fieldError(formik, field);
+  const opts = classifierOptions;
+  const selected = selectedClassifierOption;
+  const pick = pickOptionValue;
 
   const yesNoOptions = [
     { value: 'true', label: t('common.yes') },

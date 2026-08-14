@@ -6,8 +6,8 @@ import { useCgrForm } from './useCgrForm';
 import { CgrRequestFields } from '../../components/Cgr/CgrRequestFields';
 import { isCgrEditable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { DetailRow } from '../../components/Ctud/DetailRow';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { DetailRow } from '../../components/shared/DetailRow';
 
 /**
  * CGR request detail. Vorm stage only (LJVIS2-138) — the member-state response block
@@ -21,7 +21,7 @@ export function CgrFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const { getValue } = useClassifiers();
+  const { label } = useClassifierLabel();
 
   const canRead = hasAnyPermission(['cgr.read']);
   const canEdit = hasAnyPermission(['cgr.create']);
@@ -32,9 +32,6 @@ export function CgrFormPage() {
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !request) return <Text>{t('erru.cgr.notFound')}</Text>;
-
-  const label = (classifier: string, code: string | null | undefined) =>
-    code ? (getValue(classifier, code)?.name ?? code) : '—';
 
   const cgrToLabel = (code: string | null | undefined) =>
     code === 'ZZ' ? t('erru.cgr.form.cgrToAll') : label('COUNTRY', code);

@@ -8,6 +8,13 @@ import {
   Text,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import {
+  classifierOptions,
+  fieldError,
+  parseIsoDate,
+  pickOptionValue,
+  selectedClassifierOption,
+} from '../../utils/fieldHelpers';
 import type { useCgrForm } from '../../pages/cgr/useCgrForm';
 
 type CgrFormApi = ReturnType<typeof useCgrForm>;
@@ -22,22 +29,11 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
   const { t } = useTranslation();
   const { formik, countries, authorities, requestSources, requestPurposes } = form;
 
-  /** tedi expects `helper` as an object, not a bare string. */
-  const err = (field: keyof typeof formik.values) =>
-    formik.touched[field] && formik.errors[field]
-      ? { helper: { text: String(formik.errors[field]), type: 'error' as const } }
-      : {};
-
-  const opts = (list: { code: string; name: string }[]) =>
-    list.map((c) => ({ value: c.code, label: c.name }));
-
-  /** tedi Select works with option objects, not raw code strings. */
-  const selected = (list: { code: string; name: string }[], code: string) =>
-    opts(list).find((o) => o.value === code) ?? null;
-
-  const pick = (o: unknown) => (o as { value?: string } | null)?.value ?? '';
-
-  const dateValue = (v?: string) => (v ? new Date(v) : undefined);
+  const err = (field: keyof typeof formik.values) => fieldError(formik, field);
+  const opts = classifierOptions;
+  const selected = selectedClassifierOption;
+  const pick = pickOptionValue;
+  const dateValue = parseIsoDate;
 
   return (
     <>

@@ -6,8 +6,8 @@ import { useRsiForm } from './useRsiForm';
 import { RsiMessageFields } from '../../components/Rsi/RsiMessageFields';
 import { isRsiEditable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { DetailRow } from '../../components/Ctud/DetailRow';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { DetailRow } from '../../components/shared/DetailRow';
 
 /**
  * RSI message detail. Vorm stage only (LJVIS2-147) — send (LJVIS2-148) and the
@@ -21,7 +21,7 @@ export function RsiFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const { getValue } = useClassifiers();
+  const { label } = useClassifierLabel();
 
   const canRead = hasAnyPermission(['rsi.read']);
   const canEdit = hasAnyPermission(['rsi.create']);
@@ -32,9 +32,6 @@ export function RsiFormPage() {
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !message) return <Text>{t('erru.rsi.notFound')}</Text>;
-
-  const label = (classifier: string, code: string | null | undefined) =>
-    code ? (getValue(classifier, code)?.name ?? code) : '—';
 
   const editable = isRsiEditable(message) && canEdit;
   const isInbound = message.direction === 'incoming';

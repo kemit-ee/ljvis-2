@@ -7,7 +7,7 @@ import { useNcrRequestForm } from './useNcrRequestForm';
 import { useNcrResponseForm } from './useNcrResponseForm';
 import { NcrRequestFields } from '../../components/Ncr/NcrRequestFields';
 import { NcrResponseFields } from '../../components/Ncr/NcrResponseFields';
-import { DetailRow } from '../../components/Ctud/DetailRow';
+import { DetailRow } from '../../components/shared/DetailRow';
 import {
   isNcrRequestEditable,
   isNcrRequestSendable,
@@ -16,7 +16,7 @@ import {
 } from '../../types';
 import { sendNcrRequest, sendNcrResponse } from '../../api';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 
 /**
  * NCR case detail (LJVIS2-63 §4 "NCR sõnumi vorm" + LJVIS2-64 §4.2/4.5 send actions).
@@ -36,7 +36,7 @@ export function NcrFormPage() {
   const { businessCaseId } = useParams();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const { getValue } = useClassifiers();
+  const { label } = useClassifierLabel();
   const [sendError, setSendError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
@@ -53,9 +53,6 @@ export function NcrFormPage() {
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !current) return <Text>{t('erru.ncr.notFound')}</Text>;
-
-  const label = (classifier: string, code: string | null | undefined) =>
-    code ? (getValue(classifier, code)?.name ?? code) : '—';
 
   const isInbound = current.direction === 'incoming';
   const requestEditable = isNcrRequestEditable(current) && canCreate;

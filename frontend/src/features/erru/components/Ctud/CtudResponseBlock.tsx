@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import type { CtudRequest } from '../../types';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { DetailRow } from './DetailRow';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { DetailRow } from '../shared/DetailRow';
 
 /**
  * Read-only "Päringu vastus" block. Always read-only: the answer comes from an external
@@ -11,10 +11,7 @@ import { DetailRow } from './DetailRow';
  */
 export function CtudResponseBlock({ request }: { request: CtudRequest }) {
   const { t } = useTranslation();
-  const { getValue } = useClassifiers();
-
-  const label = (classifier: string, code: string | null | undefined) =>
-    code ? (getValue(classifier, code)?.name ?? code) : '—';
+  const { label } = useClassifierLabel();
 
   if (!request.responseStatusCode) return null;
   const rc = request.responseContent;

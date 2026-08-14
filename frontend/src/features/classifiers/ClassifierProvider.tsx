@@ -67,8 +67,15 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
   }, [user, fetchValues]);
 
   const getByCode = useCallback(
-    (classifierCode: string) =>
-      values.filter((v) => v.classifierCode === classifierCode),
+    (classifierCode: string) => {
+      const seen = new Set<string>();
+      return values.filter((v) => {
+        if (v.classifierCode !== classifierCode) return false;
+        if (seen.has(v.code)) return false;
+        seen.add(v.code);
+        return true;
+      });
+    },
     [values],
   );
 

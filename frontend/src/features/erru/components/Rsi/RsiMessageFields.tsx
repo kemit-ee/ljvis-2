@@ -10,6 +10,13 @@ import {
   TimeField,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import {
+  classifierOptions,
+  fieldError,
+  parseIsoDate,
+  pickOptionValue,
+  selectedClassifierOption,
+} from '../../utils/fieldHelpers';
 import type { useRsiForm } from '../../pages/rsi/useRsiForm';
 import { RsiCheckedItemsTable } from './RsiCheckedItemsTable';
 
@@ -39,18 +46,11 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
     removeDefect,
   } = form;
 
-  const err = (field: string) => {
-    const touched = (formik.touched as Record<string, unknown>)[field];
-    const error = (formik.errors as Record<string, unknown>)[field];
-    return touched && error ? { helper: { text: String(error), type: 'error' as const } } : {};
-  };
-
-  const opts = (list: { code: string; name: string }[]) =>
-    list.map((c) => ({ value: c.code, label: c.name }));
-  const selected = (list: { code: string; name: string }[], code: string) =>
-    opts(list).find((o) => o.value === code) ?? null;
-  const pick = (o: unknown) => (o as { value?: string } | null)?.value ?? '';
-  const dateValue = (v?: string) => (v ? new Date(v) : undefined);
+  const err = (field: string) => fieldError(formik, field);
+  const opts = classifierOptions;
+  const selected = selectedClassifierOption;
+  const pick = pickOptionValue;
+  const dateValue = parseIsoDate;
 
   const yesNo = [
     { id: 'yes', value: 'true', label: t('common.yes') },

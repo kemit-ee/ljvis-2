@@ -13,8 +13,8 @@ import { CtudRequestFields } from '../../components/Ctud/CtudRequestFields';
 import { CtudResponseBlock } from '../../components/Ctud/CtudResponseBlock';
 import { isCtudEditable, isCtudSendable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { DetailRow } from '../../components/Ctud/DetailRow';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { DetailRow } from '../../components/shared/DetailRow';
 
 /**
  * CTUD request detail. Renders the three modes defined by the specification:
@@ -27,7 +27,7 @@ export function CtudFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
-  const { getValue } = useClassifiers();
+  const { label } = useClassifierLabel();
 
   const canRead = hasAnyPermission(['ctud.read']);
   const canEdit = hasAnyPermission(['ctud.create']);
@@ -40,9 +40,6 @@ export function CtudFormPage() {
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !request) return <Text>{t('erru.ctud.notFound')}</Text>;
-
-  const label = (classifier: string, code: string | null | undefined) =>
-    code ? (getValue(classifier, code)?.name ?? code) : '—';
 
   const editable = isCtudEditable(request) && canEdit;
   const sendable = isCtudSendable(request) && canSend;
@@ -125,9 +122,7 @@ function CtudReadOnlyDetails({
   request: NonNullable<ReturnType<typeof useCtudRequestDetail>['request']>;
 }) {
   const { t } = useTranslation();
-  const { getValue } = useClassifiers();
-  const label = (c: string, code: string | null | undefined) =>
-    code ? (getValue(c, code)?.name ?? code) : '—';
+  const { label } = useClassifierLabel();
 
   return (
     <Card className="mt-05">
