@@ -1,6 +1,4 @@
-import { useCallback, useState } from 'react';
-import { usePaginatedList } from '../../../../hooks/usePaginatedList';
-import type { ListParams } from '../../../../hooks/usePaginatedList';
+import { useFilteredList } from '../../../../hooks/useFilteredList';
 import { listRsiMessages } from '../../api';
 import type { RsiListFilters, RsiMessageListItem } from '../../types';
 
@@ -11,32 +9,7 @@ import type { RsiListFilters, RsiMessageListItem } from '../../types';
  * Mirrors useCgrList.ts / useCtudList.ts.
  */
 export function useRsiList() {
-  const [draftFilters, setDraftFilters] = useState<RsiListFilters>({});
-  const [appliedFilters, setAppliedFilters] = useState<RsiListFilters>({});
-
-  const fetchFn = useCallback(
-    (params: ListParams) => listRsiMessages(params, appliedFilters),
-    [appliedFilters],
-  );
-
-  const list = usePaginatedList<RsiMessageListItem>(fetchFn, {
+  return useFilteredList<RsiMessageListItem, RsiListFilters>(listRsiMessages, {
     defaultSort: 'sent_at desc',
   });
-
-  const setFilter = useCallback((key: keyof RsiListFilters, value: string) => {
-    setDraftFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  const applyFilters = useCallback(() => {
-    setAppliedFilters(draftFilters);
-    list.setPagination((p) => ({ ...p, pageIndex: 0 }));
-  }, [draftFilters, list]);
-
-  const resetFilters = useCallback(() => {
-    setDraftFilters({});
-    setAppliedFilters({});
-    list.setPagination((p) => ({ ...p, pageIndex: 0 }));
-  }, [list]);
-
-  return { ...list, draftFilters, setFilter, applyFilters, resetFilters };
 }

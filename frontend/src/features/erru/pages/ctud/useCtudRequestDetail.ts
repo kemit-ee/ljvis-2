@@ -1,33 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useEntityDetail } from '../../../../hooks/useEntityDetail';
 import { getCtudRequest, sendCtudRequest } from '../../api';
 import type { CtudRequest } from '../../types';
 
 /** Loads one CTUD request and exposes the send action. */
 export function useCtudRequestDetail(id: string | undefined) {
-  const [request, setRequest] = useState<CtudRequest | undefined>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const { entity, isLoading, notFound, reload } = useEntityDetail<CtudRequest>(id, getCtudRequest);
   const [sendError, setSendError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
-
-  const load = useCallback(async () => {
-    if (!id) return;
-    setIsLoading(true);
-    setNotFound(false);
-    try {
-      setRequest(await getCtudRequest(id));
-    } catch (e) {
-      console.error('[useCtudRequestDetail] load failed', e);
-      setNotFound(true);
-      setRequest(undefined);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   /**
    * Sending is synchronous, so the stored state is final by the time this resolves.
@@ -45,9 +25,9 @@ export function useCtudRequestDetail(id: string | undefined) {
       console.error('[useCtudRequestDetail] send failed', e);
     } finally {
       setIsSending(false);
-      await load();
+      await reload();
     }
-  }, [id, load]);
+  }, [id, reload]);
 
-  return { request, isLoading, notFound, send, isSending, sendError, reload: load };
+  return { request: entity, isLoading, notFound, send, isSending, sendError, reload };
 }

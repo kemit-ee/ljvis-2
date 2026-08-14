@@ -1,6 +1,4 @@
-import { useCallback, useState } from 'react';
-import { usePaginatedList } from '../../../../hooks/usePaginatedList';
-import type { ListParams } from '../../../../hooks/usePaginatedList';
+import { useFilteredList } from '../../../../hooks/useFilteredList';
 import { listCgrRequests } from '../../api';
 import type { CgrListFilters, CgrRequestListItem } from '../../types';
 
@@ -11,34 +9,7 @@ import type { CgrListFilters, CgrRequestListItem } from '../../types';
  * Mirrors useCtudList.ts.
  */
 export function useCgrList() {
-  // what the user is editing
-  const [draftFilters, setDraftFilters] = useState<CgrListFilters>({});
-  // what is actually applied to the query
-  const [appliedFilters, setAppliedFilters] = useState<CgrListFilters>({});
-
-  const fetchFn = useCallback(
-    (params: ListParams) => listCgrRequests(params, appliedFilters),
-    [appliedFilters],
-  );
-
-  const list = usePaginatedList<CgrRequestListItem>(fetchFn, {
+  return useFilteredList<CgrRequestListItem, CgrListFilters>(listCgrRequests, {
     defaultSort: 'sent_at desc',
   });
-
-  const setFilter = useCallback((key: keyof CgrListFilters, value: string) => {
-    setDraftFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  const applyFilters = useCallback(() => {
-    setAppliedFilters(draftFilters);
-    list.setPagination((p) => ({ ...p, pageIndex: 0 }));
-  }, [draftFilters, list]);
-
-  const resetFilters = useCallback(() => {
-    setDraftFilters({});
-    setAppliedFilters({});
-    list.setPagination((p) => ({ ...p, pageIndex: 0 }));
-  }, [list]);
-
-  return { ...list, draftFilters, setFilter, applyFilters, resetFilters };
 }
