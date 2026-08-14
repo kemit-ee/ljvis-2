@@ -235,6 +235,7 @@ export function RsiListPage() {
 
           <Table
             id="rsi-table"
+            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}

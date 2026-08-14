@@ -228,6 +228,7 @@ export function CgrListPage() {
 
           <Table
             id="cgr-table"
+            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}

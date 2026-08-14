@@ -257,6 +257,7 @@ export function CtudListPage() {
 
           <Table
             id="ctud-table"
+            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}

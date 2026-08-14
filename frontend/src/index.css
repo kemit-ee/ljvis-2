@@ -236,3 +236,22 @@ nav[aria-label='Main navigation'] {
 .ncr-row-infringement td {
   background-color: #fdecea;
 }
+
+/* ─── Shared list filter bar (ERRU CGR/RSI/NCR/CTUD list pages) ───
+   Kept global (not per-page module) so every list page's filter row lines up
+   with the same rhythm as the rest of the app's tables/cards. */
+.filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
+}
