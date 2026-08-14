@@ -536,8 +536,19 @@
               "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
               "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
               "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
-              "var total = rows.length > 0 ? Number(rows[0].total || 0) : 0;",
-              "pm.test('Result is an array', () => pm.expect(rows).to.be.an('array'));"
+              "pm.test('Result is a non-empty array', () => {",
+              "  pm.expect(rows).to.be.an('array');",
+              "  pm.expect(rows.length).to.be.at.least(1, 'Created act must appear in sorted results');",
+              "});",
+              "pm.test('Created act is included in sorted results', () => {",
+              "  var keys = rows.map(r => String(r.formKey || r.id || ''));",
+              "  pm.expect(keys).to.include(pm.environment.get('fs_lif_id'));",
+              "});",
+              "pm.test('Rows are ordered ascending by mainDate', () => {",
+              "  var dates = rows.map(r => r.mainDate || r.inspectionDate).filter(Boolean);",
+              "  var sorted = [...dates].sort();",
+              "  pm.expect(dates).to.eql(sorted, 'main_date asc ordering not honoured');",
+              "});"
             ]
           }
         }

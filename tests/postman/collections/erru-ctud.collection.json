@@ -868,11 +868,18 @@
               "pm.test('Returns 200', () => pm.response.to.have.status(200));",
               "var raw = pm.response.json();",
               "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "pm.test('has content array', () => pm.expect(body.content).to.be.an('array'));",
-              "pm.test('has total', () => pm.expect(body.total).to.be.a('number'));",
+              "pm.test('has non-empty content array', () => {",
+              "  pm.expect(body.content).to.be.an('array');",
+              "  pm.expect(body.content.length).to.be.at.least(1, 'At least one CTUD record must be in the list');",
+              "});",
+              "pm.test('total is a positive number consistent with content', () => {",
+              "  pm.expect(body.total).to.be.a('number').and.be.above(0);",
+              "  pm.expect(body.total).to.be.at.least(body.content.length, 'total must be >= content.length');",
+              "});",
               "pm.test('one row per request (no snapshot duplicates)', () => {",
               "  var ids = body.content.map(r => r.id);",
-              "  pm.expect(new Set(ids).size).to.eql(ids.length); });"
+              "  pm.expect(new Set(ids).size).to.eql(ids.length);",
+              "});"
             ]
           }
         }
@@ -1202,7 +1209,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send handled', () => pm.expect([200,502]).to.include(pm.response.code));"
+              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -1526,7 +1533,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send handled', () => pm.expect([200,502]).to.include(pm.response.code));"
+              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -1665,7 +1672,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send handled', () => pm.expect([200,502]).to.include(pm.response.code));"
+              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -1804,7 +1811,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send handled', () => pm.expect([200,502]).to.include(pm.response.code));"
+              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -1943,7 +1950,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send handled', () => pm.expect([200,502]).to.include(pm.response.code));"
+              "pm.test('Send fails with 502 (FI mock triggers transport failure)', () => pm.response.to.have.status(502));"
             ]
           }
         }
