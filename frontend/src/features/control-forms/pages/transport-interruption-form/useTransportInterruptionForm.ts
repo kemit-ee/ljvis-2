@@ -58,7 +58,7 @@ export function useTransportInterruptionForm(
   // (classifier PPA_STRUCTURE_UNIT_ADDRESS, keyed by structural unit) only
   // when creating a brand-new sub-form; left blank if no match exists.
   const defaultHeaderText = useMemo(() => {
-    if (form) return form.headerText ?? '';
+    if (form && form.id !== '') return form.headerText ?? '';
     const structuralUnit = authUser?.structuralunit;
     if (!structuralUnit) return '';
     return getValue('PPA_STRUCTURE_UNIT_ADDRESS', structuralUnit)?.name ?? '';

@@ -423,7 +423,7 @@ export function CompoundFormPage() {
         schema: createTechnicalCheckValidationSchema(t) as ReturnType<typeof createTechnicalCheckValidationSchema>,
         fallbackSave: (draft) => {
           const d = draft as TechnicalCheckForm;
-          const payload = { ...d, id: vehicle.form?.id, partsSummary: JSON.stringify(d.partsSummary ?? []), partsDefects: JSON.stringify(d.partsDefects ?? []), violations: JSON.stringify(d.violations ?? []) } as unknown as TechnicalCheckForm;
+          const payload = { ...d, partsSummary: JSON.stringify(d.partsSummary ?? []), partsDefects: JSON.stringify(d.partsDefects ?? []), violations: JSON.stringify(d.violations ?? []) } as unknown as TechnicalCheckForm;
           saveTechnicalCheckForm('vehicle', payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!vehicle.form) resetCompoundFormToSaved(); refetchTechCheck('vehicle', () => { vehicle.resetDraft(); }); handleSubformEditActive();}).catch(console.error);
         },
       },
@@ -433,7 +433,7 @@ export function CompoundFormPage() {
         schema: createTechnicalCheckValidationSchema(t) as ReturnType<typeof createTechnicalCheckValidationSchema>,
         fallbackSave: (draft) => {
           const d = draft as TechnicalCheckForm;
-          const payload = { ...d, id: trailer.form?.id, partsSummary: JSON.stringify(d.partsSummary ?? []), partsDefects: JSON.stringify(d.partsDefects ?? []), violations: JSON.stringify(d.violations ?? []) } as unknown as TechnicalCheckForm;
+          const payload = { ...d, partsSummary: JSON.stringify(d.partsSummary ?? []), partsDefects: JSON.stringify(d.partsDefects ?? []), violations: JSON.stringify(d.violations ?? []) } as unknown as TechnicalCheckForm;
           saveTechnicalCheckForm('trailer', payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!trailer.form) resetCompoundFormToSaved(); refetchTechCheck('trailer', () => { trailer.resetDraft(); }); handleSubformEditActive();}).catch(console.error);
         },
       },
@@ -464,7 +464,6 @@ export function CompoundFormPage() {
           const isBlank = (obj: Record<string, unknown>) => Object.values(obj).every((v) => v == null || v === '');
           const payload = {
             ...d,
-            id: adr.form?.id,
             driverAssistant: d.driverAssistant && !isBlank(d.driverAssistant as Record<string, unknown>) ? JSON.stringify(d.driverAssistant) : '',
             lastLoadAddress: d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>) ? JSON.stringify(d.lastLoadAddress) : '',
             nextLoadAddress: d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>) ? JSON.stringify(d.nextLoadAddress) : '',
@@ -472,7 +471,10 @@ export function CompoundFormPage() {
             infringements: JSON.stringify((d.infringements ?? []).filter((e) => !!(e as { checkStatus?: string }).checkStatus)),
             correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []),
           } as unknown as AdrForm;
-          saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!adr.form) resetCompoundFormToSaved(); refetchAdr(() => { adr.resetDraft(); }); handleSubformEditActive(); }).catch(console.error);
+          saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!adr.form) resetCompoundFormToSaved();
+          refetchAdr(() => {
+            adr.resetDraft();
+          }); handleSubformEditActive(); }).catch(console.error);
         },
       },
       {
@@ -483,8 +485,8 @@ export function CompoundFormPage() {
           const d = draft as TransportInterruptionForm;
           const payload = {
             ...d,
-            id: transportInterruption.form?.id,
-          } as TransportInterruptionForm;
+            legalBases: JSON.stringify(d.legalBases ?? [])
+          } as unknown as TransportInterruptionForm;
           saveTransportInterruptionForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!transportInterruption.form) resetCompoundFormToSaved(); refetchTransportInterruption(() => { transportInterruption.resetDraft(); }); handleSubformEditActive(); }).catch(console.error);
         },
       },
