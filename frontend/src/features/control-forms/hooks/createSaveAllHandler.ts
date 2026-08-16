@@ -34,7 +34,11 @@ export function createSaveAllHandler(options: CreateSaveAllHandlerOptions) {
     for (const { tabId, subForm, schema } of subForms) {
       if (!subForm.editActive) continue;
       editableTabs.push(tabId);
-      const data = (subForm.draftRef.current ?? subForm.form ?? {}) as Record<string, unknown>;
+      if (subForm.draftRef.current === null) {
+        newTabErrors[tabId] = false;
+        continue;
+      }
+      const data = subForm.draftRef.current as Record<string, unknown>;
       newTabErrors[tabId] = schema ? !(await schema.isValid(data)) : false;
     }
 
