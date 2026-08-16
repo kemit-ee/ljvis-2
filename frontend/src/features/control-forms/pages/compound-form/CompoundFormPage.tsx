@@ -758,7 +758,10 @@ export function CompoundFormPage() {
             {t('forms.compound.generalPart')}
           </Tabs.Trigger>
           {(() => {
-            const tabSubForms: Record<string, { form: unknown; editActive: boolean }> = {
+            const tabSubForms: Record<
+              string,
+              { form: unknown; editActive: boolean }
+            > = {
               'tab-driver': driver,
               'tab-teammate': teammate,
               'tab-vehicle-technical-check': vehicle,
@@ -767,9 +770,7 @@ export function CompoundFormPage() {
               'tab-transport-interruption': transportInterruption,
             };
             const tabsWithStatus = openTabs.filter(
-              (tid) =>
-                tid !== 'tab-compound' &&
-                tabSubForms[tid]?.form != null,
+              (tid) => tid !== 'tab-compound' && tabSubForms[tid]?.form != null,
             ).length;
             return (
               [
@@ -1122,7 +1123,10 @@ export function CompoundFormPage() {
               form={transportInterruption.draft ?? form}
               compoundFormKey={Number(id)}
               onSaved={() => {
-                setTabErrors((p) => ({ ...p, 'tab-transport-interruption': false }));
+                setTabErrors((p) => ({
+                  ...p,
+                  'tab-transport-interruption': false,
+                }));
                 setShowSavedAlert(true);
                 window.scrollTo(0, 0);
                 if (!transportInterruption.form) resetCompoundFormToSaved();
@@ -1159,6 +1163,7 @@ export function CompoundFormPage() {
             !anyEditActive &&
             form?.status !== 'deleted' && (
               <Button
+                iconLeft="edit"
                 type="button"
                 visualType="secondary"
                 onClick={() => {
@@ -1168,7 +1173,8 @@ export function CompoundFormPage() {
                   if (vehicle.form) vehicle.setEditActive(true);
                   if (trailer.form) trailer.setEditActive(true);
                   if (adr.form) adr.setEditActive(true);
-                  if (transportInterruption.form) transportInterruption.setEditActive(true);
+                  if (transportInterruption.form)
+                    transportInterruption.setEditActive(true);
                 }}
               >
                 {t('common.edit')}
@@ -1179,7 +1185,9 @@ export function CompoundFormPage() {
               {t('common.save')}
             </Button>
           )}
-          {canDeleteAll && <DeleteConfirmModal onDelete={handleDeleteAll} />}
+          {anyEditActive && canDeleteAll && (
+            <DeleteConfirmModal onDelete={handleDeleteAll} />
+          )}
         </div>
       </div>
     </div>

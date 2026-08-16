@@ -95,7 +95,7 @@ export function useLabourInspectionForm(
         pendingConfirm.current = false;
         const payload = {
           ...values,
-          id: form?.id,
+          id: form?.id ?? '',
           status: isConfirming ? 'confirmed' : 'saved',
           controlsMatrix: JSON.stringify(values.controlsMatrix ?? []),
           violations: JSON.stringify(values.violations ?? []),
