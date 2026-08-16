@@ -287,7 +287,9 @@ export function GoodReputeFormPage() {
             ) : (
               canEdit && (
                 <AsyncButton
+                  iconLeft="edit"
                   type="button"
+                  visualType="secondary"
                   onClick={() => setIsEditActive(true)}
                 >
                   {t('common.edit')}
