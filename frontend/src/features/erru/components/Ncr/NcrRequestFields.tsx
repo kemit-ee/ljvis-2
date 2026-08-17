@@ -278,7 +278,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                           updateSeriousInfringement(index, { penaltiesImposed: items });
                         }}
                       />
-                      <Button visualType="secondary" onClick={() => removePenaltyImposed(index, pIndex)} type="button">
+                      <Button visualType="secondary" className="mt-05" onClick={() => removePenaltyImposed(index, pIndex)} type="button">
                         {t('common.remove')}
                       </Button>
                     </div>
@@ -326,7 +326,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                           updateSeriousInfringement(index, { penaltiesRequested: items });
                         }}
                       />
-                      <Button visualType="secondary" onClick={() => removePenaltyRequested(index, pIndex)} type="button">
+                      <Button visualType="secondary" className="mt-05" onClick={() => removePenaltyRequested(index, pIndex)} type="button">
                         {t('common.remove')}
                       </Button>
                     </div>
