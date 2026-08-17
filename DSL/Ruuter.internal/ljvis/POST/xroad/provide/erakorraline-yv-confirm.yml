@@ -1,0 +1,172 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    X-tee pakutav teenus ErakorralineYVconfirm (v1): võtab vastu välissüsteemi
+    kinnitused erakorralise tehnoülevaatuse tulemuste kohta ja salvestab need
+    vehicle_technical_form X-tee väljadesse in-place (ei loo uut snapshot'i).
+    Atomaarne: ühe elemendi ebaõnnestumisel terve batch ebaõnnestub.
+    Idempotentne: korduspäring sama kombinatsiooniga annab sama tulemuse.
+    Vt docs/xtee/04-erakorraline-yv-confirm.md.
+  method: post
+  accepts: json
+  returns: json
+  namespace: xroad
+
+# Samm 1: X-Road-Client päise kontroll
+validateXRoadClient:
+  switch:
+    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
+      next: returnMissingHeader
+  next: validateItems
+
+# Samm 2: Kinnita et confirmed.item[] on olemas ja ei ole tühi
+validateItems:
+  switch:
+    - condition: "${incoming.body.confirmed == null || incoming.body.confirmed.item == null || incoming.body.confirmed.item.length === 0}"
+      next: returnMissingItems
+  next: assignParams
+
+# Samm 3: Kogu elemendid ja initsialiseeri loendurid
+assignParams:
+  assign:
+    items: "${incoming.body.confirmed.item}"
+    total: "${incoming.body.confirmed.item.length}"
+    processed: 0
+    current_index: 0
+    start_time: "${new Date().getTime()}"
+  next: validateItem
+
+# Samm 4: Valideeri kõik elemendid ENNE töötlemist (fail-fast)
+# Atomaarsuse tagamiseks — kui üks element on vigane, ei töödelda ühtegi
+validateItem:
+  switch:
+    - condition: "${current_index >= total}"
+      next: processItem     # kõik valideeritud, alusta töötlemist
+    - condition: "${items[current_index].inspection_id == null || items[current_index].inspection_id == ''}"
+      next: returnInvalidItem
+    - condition: "${items[current_index].code == null || !(['INSPECTION_DATE','ENFORCEMENT_DECISION','CLOSURE_BASIS'].indexOf(String(items[current_index].code)) >= 0)}"
+      next: returnInvalidCode
+    - condition: "${items[current_index].value == null || items[current_index].value == ''}"
+      next: returnInvalidItem
+  next: advanceValidation
+
+advanceValidation:
+  assign:
+    current_index: "${current_index + 1}"
+  next: validateItem
+
+# Samm 5: Lähtesta indeks töötlemiseks
+processItem:
+  assign:
+    current_index: 0
+  next: processNextItem
+
+# Samm 6: Töötle iga element järjestikku
+processNextItem:
+  switch:
+    - condition: "${current_index >= total}"
+      next: logSuccess    # kõik elemendid töödeldud
+  next: updateXroadField
+
+# Samm 7: Kutsu Resql-i UPDATE — üks element korraga
+updateXroadField:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/provide/erakorraline-yv-confirm-update"
+    headers:
+      type: json
+    body:
+      inspectionId: "${items[current_index].inspection_id}"
+      code: "${items[current_index].code}"
+      value: "${items[current_index].value}"
+  result: updateResult
+  next: checkUpdateResult
+
+# Samm 8: Kontrolli kas uuendus õnnestus
+checkUpdateResult:
+  switch:
+    - condition: "${updateResult.response.status < 200 || updateResult.response.status >= 300}"
+      next: logFailure
+    # Tühi RETURNING = inspection_id ei leitud vm status != confirmed
+    - condition: "${updateResult.response.body == null || updateResult.response.body.length === 0}"
+      next: returnNotFound
+  next: advanceProcessing
+
+# Suurenda loendureid ja liigu järgmise elemendi juurde
+advanceProcessing:
+  assign:
+    processed: "${processed + 1}"
+    current_index: "${current_index + 1}"
+  next: processNextItem
+
+# Samm 9a: Logi edukas täitmine
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.erakorraline-yv-confirm"
+      request_xml: "${'items=' + total}"
+      response_xml: "${'confirmed=' + processed}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: logResult
+  next: returnSuccess
+
+returnSuccess:
+  status: 200
+  return: "${JSON.stringify({confirmed: processed})}"
+  next: end
+
+# Samm 9b: Logi ebaõnnestumine
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.erakorraline-yv-confirm"
+      request_xml: "${'items=' + total}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Resql HTTP ' + updateResult.response.status}"
+  result: logResult
+  next: returnServerError
+
+# Veavastused
+returnMissingHeader:
+  status: 400
+  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
+  next: end
+
+returnMissingItems:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "confirmed.item must be a non-empty array"}'
+  next: end
+
+returnInvalidItem:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "Each item requires inspection_id, code and value"}'
+  next: end
+
+returnInvalidCode:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS"}'
+  next: end
+
+# inspection_id ei leitud vm vorm ei ole 'confirmed' staatuses
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND", "message": "inspection_id not found or form is not in confirmed status"}'
+  next: end
+
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end
