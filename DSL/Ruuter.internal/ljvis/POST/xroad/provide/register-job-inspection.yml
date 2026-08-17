@@ -1,0 +1,207 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    X-tee pakutav teenus RegisterJobInspection (v1): võtab vastu Tööinspektsiooni
+    töökontrolli andmed (vana WSDL RegisterJobInspectionRequestType) ja salvestab
+    forms.labour_inspection_form tabelisse. Idempotentne: sama kontrolli_id uuesti
+    saatmine ei tekita duplikaati (INSERT ON CONFLICT DO NOTHING).
+    Vt docs/xtee/05-register-job-inspection.md.
+  method: post
+  accepts: json
+  returns: json
+  namespace: xroad
+
+# Samm 1: X-Road-Client päise kontroll
+validateXRoadClient:
+  switch:
+    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
+      next: returnMissingHeader
+  next: validateKontrollija
+
+# Samm 2: Valideeri kontrollija — WSDL väli 'kontrollija'
+validateKontrollija:
+  switch:
+    - condition: "${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}"
+      next: returnMissingKontrollija
+  next: validateKontrolliId
+
+# Samm 3: Valideeri kontrolli ID — WSDL väli 'kontrolli_id' (idempotentsuse võti)
+validateKontrolliId:
+  switch:
+    - condition: "${incoming.body.kontrolli_id == null}"
+      next: returnMissingKontrolliId
+  next: validateKontrolliKp
+
+# Samm 4: Valideeri kuupäev — peab olema parsitav
+validateKontrolliKp:
+  switch:
+    - condition: "${incoming.body.kontrolli_kp == null || incoming.body.kontrolli_kp == ''}"
+      next: returnMissingKontrolliKp
+    - condition: "${isNaN(new Date(incoming.body.kontrolli_kp).getTime())}"
+      next: returnInvalidKontrolliKp
+  next: validateTooandja
+
+# Samm 5: Valideeri tööandja andmed
+validateTooandja:
+  switch:
+    - condition: "${incoming.body.tooandja_nimi == null || incoming.body.tooandja_nimi == ''}"
+      next: returnMissingTooandja
+    - condition: "${incoming.body.tooandja_reg_kood == null || incoming.body.tooandja_reg_kood == ''}"
+      next: returnMissingTooandjaRegKood
+  next: validateKontrollimised
+
+# Samm 6: Valideeri kohustuslikud JSONB struktureeritud väljad
+validateKontrollimised:
+  switch:
+    - condition: "${incoming.body.kontrollimised == null}"
+      next: returnMissingKontrollimised
+    - condition: "${incoming.body.rikkumised == null}"
+      next: returnMissingRikkumised
+    - condition: "${incoming.body.koostatatud_ettekirjutus == null}"
+      next: returnMissingEttekirjutus
+  next: assignParams
+
+# Samm 7: Kogu parameetrid ja tuleta inspection_type
+# passenger: soitjate veol on täidetud; cargo: kõik muud juhud
+assignParams:
+  assign:
+    kontrollija: "${incoming.body.kontrollija.trim()}"
+    kontrolli_id: "${String(incoming.body.kontrolli_id)}"
+    kontrolli_kp: "${incoming.body.kontrolli_kp}"
+    tooandja_nimi: "${incoming.body.tooandja_nimi.trim()}"
+    tooandja_reg_kood: "${incoming.body.tooandja_reg_kood.trim()}"
+    soidukite_arv: "${incoming.body.soidukite_arv != null ? String(incoming.body.soidukite_arv) : ''}"
+    koostatatud_ettekirjutus: "${String(incoming.body.koostatatud_ettekirjutus)}"
+    kontrollimised_json: "${JSON.stringify(incoming.body.kontrollimised)}"
+    rikkumised_json: "${JSON.stringify(incoming.body.rikkumised)}"
+    vaarteomenetlus: "${incoming.body.vaarteomenetlus || ''}"
+    # Kontrolli liigi tuletus: kas soitjate veol on täidetud?
+    inspection_type: "${(incoming.body.kontrollimised && incoming.body.kontrollimised.kontrollitud_soitjate_veol) ? 'passenger' : 'cargo'}"
+    start_time: "${new Date().getTime()}"
+  next: insertInspection
+
+# Samm 8: Salvesta Resql-i kaudu (idempotentsus SQL-tasemel)
+insertInspection:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-insert"
+    headers:
+      type: json
+    body:
+      externalInspectionId: ${kontrolli_id}
+      inspectorName: ${kontrollija}
+      inspectionDate: ${kontrolli_kp}
+      inspectionType: ${inspection_type}
+      companyName: ${tooandja_nimi}
+      companyRegCode: ${tooandja_reg_kood}
+      vehicleCount: ${soidukite_arv}
+      prescriptionComposed: ${koostatatud_ettekirjutus}
+      controlsMatrix: ${kontrollimised_json}
+      violations: ${rikkumised_json}
+      proceedingReferenceNumber: ${vaarteomenetlus}
+      created_by: "xroad"
+  result: insertResult
+  next: checkInsertStatus
+
+# Samm 9: Kontrolli HTTP staatust
+checkInsertStatus:
+  switch:
+    - condition: "${insertResult.response.status < 200 || insertResult.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+# Samm 10a: Logi edukas salvestamine
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.register-job-inspection"
+      request_xml: "${'kontrolli_id=' + kontrolli_id + '&reg_kood=' + tooandja_reg_kood}"
+      response_xml: "${JSON.stringify(insertResult.response.body || {})}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: logResult
+  next: returnSuccess
+
+returnSuccess:
+  status: 200
+  return: '{"message": "Success"}'
+  next: end
+
+# Samm 10b: Logi ebaõnnestumine
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.register-job-inspection"
+      request_xml: "${'kontrolli_id=' + kontrolli_id}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Resql HTTP ' + insertResult.response.status}"
+  result: logResult
+  next: returnServerError
+
+# Veavastused
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end
+
+returnMissingHeader:
+  status: 400
+  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
+  next: end
+
+returnMissingKontrollija:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrollija is required"}'
+  next: end
+
+returnMissingKontrolliId:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrolli_id is required"}'
+  next: end
+
+returnMissingKontrolliKp:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrolli_kp is required"}'
+  next: end
+
+returnInvalidKontrolliKp:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "kontrolli_kp must be a valid date"}'
+  next: end
+
+returnMissingTooandja:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "tooandja_nimi is required"}'
+  next: end
+
+returnMissingTooandjaRegKood:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "tooandja_reg_kood is required"}'
+  next: end
+
+returnMissingKontrollimised:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrollimised is required"}'
+  next: end
+
+returnMissingRikkumised:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "rikkumised is required"}'
+  next: end
+
+returnMissingEttekirjutus:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "koostatatud_ettekirjutus is required"}'
+  next: end
