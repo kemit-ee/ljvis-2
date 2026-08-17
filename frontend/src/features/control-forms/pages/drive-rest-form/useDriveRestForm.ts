@@ -12,7 +12,7 @@ import type {
   Violation,
   MassDimensionMeasurement,
 } from '../../types';
-import { insertDriveRestForm, updateDriveRestForm } from '../../api';
+import { saveDriveRestForm, confirmDriveRestForm } from '../../api';
 
 export function createDriveRestValidationSchema(
   t: (key: string) => string,
@@ -113,6 +113,7 @@ export function useDriveRestForm(
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const pendingCompoundFormKey = useRef<number | undefined>(undefined);
 
   const { getByCode } = useClassifiers();
 
@@ -258,24 +259,19 @@ export function useDriveRestForm(
           ? incrementSubFormNumber(subFormNumberString)
           : subFormNumberString;
 
+        const overrideKey = pendingCompoundFormKey.current;
+        pendingCompoundFormKey.current = undefined;
+
         const trimmedValues = {
           ...serializeDriveRestFormValues(values, nextStatus),
           subFormNumber: nextSubFormNumber,
+          compoundFormKey: overrideKey ?? values.compoundFormKey,
         };
 
-        if (values.id) {
-          const result = await updateDriveRestForm(
-            type,
-            trimmedValues as unknown as DriveRestForm,
-          );
-          onSaved(result[0]?.id);
-        } else {
-          const result = await insertDriveRestForm(
-            type,
-            trimmedValues as unknown as DriveRestForm,
-          );
-          onSaved(result[0]?.id);
-        }
+        const result = isConfirming
+          ? await confirmDriveRestForm(type, trimmedValues as unknown as DriveRestForm)
+          : await saveDriveRestForm(type, trimmedValues as unknown as DriveRestForm);
+        onSaved(result[0]?.id);
       } catch (e) {
         console.error('Save failed', e);
       }
@@ -298,6 +294,7 @@ export function useDriveRestForm(
 
   return {
     formik,
+    pendingCompoundFormKey,
     cargoCabotageViolations,
     passengerCabotageViolations,
     transportClasses,

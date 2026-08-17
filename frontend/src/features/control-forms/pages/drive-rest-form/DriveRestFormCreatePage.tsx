@@ -34,17 +34,10 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
     useImperativeHandle(ref, () => ({
       formElement: formRef.current as HTMLFormElement,
       handleSubmit: (overrideCompoundFormKey?: number) => {
-        // If a compoundFormKey is provided at submit time (e.g. the general
-        // form was just saved), apply it and wait for it to land in formik's
-        // state before submitting, since setFieldValue updates state
-        // asynchronously and formik.values could otherwise still be stale.
         if (overrideCompoundFormKey !== undefined) {
-          void formik
-            .setFieldValue('compoundFormKey', overrideCompoundFormKey)
-            .then(() => formik.handleSubmit());
-        } else {
-          formik.handleSubmit();
+          pendingCompoundFormKey.current = overrideCompoundFormKey;
         }
+        formik.handleSubmit();
       },
       getFormData: () => {
         return formik.values;
@@ -82,6 +75,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
 
     const {
       formik,
+      pendingCompoundFormKey,
       cargoCabotageViolations,
       passengerCabotageViolations,
       transportClasses: transportClassItems,

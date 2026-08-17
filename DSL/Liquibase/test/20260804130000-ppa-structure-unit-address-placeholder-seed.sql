@@ -37,10 +37,10 @@ SELECT
     NULL,
     'system'
 FROM (VALUES
-    ('PÕHJA PREFEKTUUR', 'Põhja prefektuur [PLACEHOLDER], Tulika 19, 10613 Tallinn, e-post: pohja@politsei.ee [PLACEHOLDER], tel: 612 3000 [PLACEHOLDER]'),
-    ('IDA PREFEKTUUR',   'Ida prefektuur [PLACEHOLDER], Kreutzwaldi 58, 30322 Jõhvi, e-post: ida@politsei.ee [PLACEHOLDER], tel: 612 3000 [PLACEHOLDER]'),
-    ('LÕUNA PREFEKTUUR', 'Lõuna prefektuur [PLACEHOLDER], Riia 12, 51004 Tartu, e-post: louna@politsei.ee [PLACEHOLDER], tel: 612 3000 [PLACEHOLDER]'),
-    ('LÄÄNE PREFEKTUUR', 'Lääne prefektuur [PLACEHOLDER], Pärnu mnt 22, 80010 Pärnu, e-post: laane@politsei.ee [PLACEHOLDER], tel: 612 3000 [PLACEHOLDER]')
+    ('PPA_POHJA', 'Põhja prefektuur [PLACEHOLDER], Tulika 19, 10613 Tallinn, e-post: pohja@politsei.ee [PLACEHOLDER], tel: 612 3000 [PLACEHOLDER]'),
+    ('PPA_IDA',   'Ida prefektuur [PLACEHOLDER], Kreutzwaldi 58, 30322 Jõhvi, e-post: ida@politsei.ee [PLACEHOLDER], tel: 612 3000 [PLACEHOLDER]'),
+    ('PPA_LOUNA', 'Lõuna prefektuur [PLACEHOLDER], Riia 12, 51004 Tartu, e-post: louna@politsei.ee [PLACEHOLDER], tel: 612 3000 [PLACEHOLDER]'),
+    ('PPA_LAANE', 'Lääne prefektuur [PLACEHOLDER], Pärnu mnt 22, 80010 Pärnu, e-post: laane@politsei.ee [PLACEHOLDER], tel: 612 3000 [PLACEHOLDER]')
 ) AS t(code, header_text)
 WHERE NOT EXISTS (
     SELECT 1 FROM classifier.classifier_value existing

@@ -7,7 +7,6 @@ const WRITE_SUFFIX = '.write';
 const FORM_WRITE_SUFFIX = '_form.write';
 
 const COMPOUND_FORM_KEY = 'compound_form';
-const SP_PREFIX = 'sp_';
 
 const toControlForm = (key: string): ControlForm => ({
   labelKey: FORM_CONFIG[key].labelKey,
@@ -28,14 +27,14 @@ const buildAvailableForms = (permissions: string[]): ControlForm[] => {
     return formKeys.map(toControlForm);
   }
 
-  const spKeys = formKeys.filter((k) => k.startsWith(SP_PREFIX));
+  const subKeys = formKeys.filter((k) => FORM_CONFIG[k].hasParent);
   const result: ControlForm[] = [];
 
   for (const key of formKeys) {
-    if (key.startsWith(SP_PREFIX)) continue;
+    if (FORM_CONFIG[key].hasParent) continue;
     result.push(toControlForm(key));
     if (key === COMPOUND_FORM_KEY) {
-      spKeys.forEach((k) => result.push(toControlForm(k)));
+      subKeys.forEach((k) => result.push(toControlForm(k)));
     }
   }
   return result;

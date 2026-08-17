@@ -91,7 +91,10 @@ export function ControlsMatrixTable({
               }))}
               value={
                 selectedTransportClass
-                  ? { value: selectedTransportClass, label: labelFor(Number(selectedTransportClass)) }
+                  ? {
+                      value: selectedTransportClass,
+                      label: labelFor(Number(selectedTransportClass)),
+                    }
                   : null
               }
               onChange={(val) => {
@@ -114,69 +117,74 @@ export function ControlsMatrixTable({
         </div>
       )}
       {rows.length > 0 && (
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '0.5rem' }}>
-                {t('forms.labour_inspection.controlsMatrix.transportClass')}
-              </th>
-              {NUMERIC_COLUMNS.map((col) => (
-                <th
-                  key={col.key}
-                  style={{ textAlign: 'left', padding: '0.5rem', minWidth: 110 }}
-                >
-                  {t(col.labelKey)}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '0.5rem' }}>
+                  {t('forms.labour_inspection.controlsMatrix.transportClass')}
                 </th>
-              ))}
-              {!readOnly && <th />}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => (
-              <tr key={row.transportClass}>
-                <td style={{ padding: '0.5rem' }}>
-                  {labelFor(row.transportClass)}
-                </td>
                 {NUMERIC_COLUMNS.map((col) => (
-                  <td key={col.key} style={{ padding: '0.5rem' }}>
-                    {readOnly ? (
-                      <Text>{String(row[col.key] ?? 0)}</Text>
-                    ) : (
-                      <TextField
-                        id={`matrix-${index}-${col.key}`}
-                        label={t(col.labelKey)}
-                        hideLabel
-                        value={String(row[col.key] ?? 0)}
-                        onChange={(v) => {
-                          const numeric = v.replace(/\D/g, '');
-                          onUpdateRow(index, {
-                            [col.key]: parseInt(numeric, 10) || 0,
-                          });
-                        }}
-                        input={{ maxLength: 4 }}
-                      />
-                    )}
-                  </td>
+                  <th
+                    key={col.key}
+                    style={{
+                      textAlign: 'left',
+                      padding: '0.5rem',
+                      minWidth: 110,
+                    }}
+                  >
+                    {t(col.labelKey)}
+                  </th>
                 ))}
-                {!readOnly && (
-                  <td style={{ padding: '0.5rem' }}>
-                    <Button
-                      type="button"
-                      visualType="link"
-                      color="danger"
-                      icon="delete"
-                      onClick={() => onRemoveRow(index)}
-                    >
-                      {t('common.remove')}
-                    </Button>
-                  </td>
-                )}
+                {!readOnly && <th />}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => (
+                <tr key={row.transportClass}>
+                  <td style={{ padding: '0.5rem' }}>
+                    {labelFor(row.transportClass)}
+                  </td>
+                  {NUMERIC_COLUMNS.map((col) => (
+                    <td key={col.key} style={{ padding: '0.5rem' }}>
+                      {readOnly ? (
+                        <Text>{String(row[col.key] ?? 0)}</Text>
+                      ) : (
+                        <TextField
+                          id={`matrix-${index}-${col.key}`}
+                          label={t(col.labelKey)}
+                          hideLabel
+                          value={String(row[col.key] ?? 0)}
+                          onChange={(v) => {
+                            const numeric = v.replace(/\D/g, '');
+                            onUpdateRow(index, {
+                              [col.key]: parseInt(numeric, 10) || 0,
+                            });
+                          }}
+                          input={{ maxLength: 4 }}
+                        />
+                      )}
+                    </td>
+                  ))}
+                  {!readOnly && (
+                    <td style={{ padding: '0.5rem' }}>
+                      <Button
+                        type="button"
+                        visualType="neutral"
+                        color="danger"
+                        size="small"
+                        icon="delete"
+                        onClick={() => onRemoveRow(index)}
+                      >
+                        {t('common.remove')}
+                      </Button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

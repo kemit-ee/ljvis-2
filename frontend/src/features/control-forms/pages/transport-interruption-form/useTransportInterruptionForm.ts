@@ -41,6 +41,7 @@ export function useTransportInterruptionForm(
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
   const pendingConfirm = useRef(false);
+  const pendingCompoundFormKey = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode } = useClassifiers();
   const { getValue } = useClassifiers();
@@ -57,7 +58,7 @@ export function useTransportInterruptionForm(
   // (classifier PPA_STRUCTURE_UNIT_ADDRESS, keyed by structural unit) only
   // when creating a brand-new sub-form; left blank if no match exists.
   const defaultHeaderText = useMemo(() => {
-    if (form) return form.headerText ?? '';
+    if (form && form.id !== '') return form.headerText ?? '';
     const structuralUnit = authUser?.structuralunit;
     if (!structuralUnit) return '';
     return getValue('PPA_STRUCTURE_UNIT_ADDRESS', structuralUnit)?.name ?? '';
@@ -98,9 +99,15 @@ export function useTransportInterruptionForm(
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
+        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
+        const overrideKey = pendingCompoundFormKey.current;
+        pendingCompoundFormKey.current = undefined;
         const payload = {
           ...values,
-          id: form?.id,
+          status: nextStatus,
+          id: form?.id ?? '',
+          compoundFormKey: overrideKey ?? values.compoundFormKey,
           legalBases: JSON.stringify(values.legalBases ?? []),
         } as unknown as TransportInterruptionForm;
         const result = isConfirming
@@ -152,6 +159,7 @@ export function useTransportInterruptionForm(
 
   return {
     formik,
+    pendingCompoundFormKey,
     counties,
     addressValue,
     setAddressValue,
