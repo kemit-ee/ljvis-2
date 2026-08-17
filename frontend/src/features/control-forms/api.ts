@@ -274,17 +274,6 @@ export const confirmTechnicalCheckForm = (
     data as unknown as Record<string, unknown>,
   );
 
-export const deleteTechnicalCheckForm = (
-  variant: TechnicalCheckVariant,
-  id: string,
-  form_number: string,
-  old_status: string,
-) =>
-  post<TechnicalCheckForm[]>(
-    `/v1/control-forms/${technicalCheckPath(variant)}/edit/delete`,
-    { id, form_number, old_status },
-  );
-
 export const saveTechnicalCheckFormXroadFields = (
   variant: TechnicalCheckVariant,
   data: {
