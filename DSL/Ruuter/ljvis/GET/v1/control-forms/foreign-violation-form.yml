@@ -12,19 +12,19 @@ declaration:
         type: string
         description: "Foreign violation form ID"
 
-getActorFromTim:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
-  result: timRes
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
   next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.params.q}"
-    actor_personal_code: "${timRes.response.body.personalCode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: getForm
 
 getForm:
@@ -63,6 +63,8 @@ logAuditEvent:
     cookie: ${incoming.headers.cookie}
   body:
     form_number: ${form_number}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 

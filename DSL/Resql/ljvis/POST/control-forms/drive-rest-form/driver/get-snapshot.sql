@@ -80,8 +80,6 @@ declaration:
         type: string
       - field: erruPoints
         type: string
-      - field: files
-        type: string
       - field: enforcementDecision
         type: string
       - field: proceedingClosureBasis
@@ -124,7 +122,6 @@ SELECT
   atp_violation_found,
   atp_violation_description,
   erru_points::text AS erru_points,
-  files::text AS files,
   enforcement_decision,
   proceeding_closure_basis,
   notes,

@@ -12,20 +12,19 @@ declaration:
         type: string
         description: "sp_driver_form_key"
 
-getActorFromTim:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
-  result: timRes
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
   next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.params.q}"
-    actor_personal_code: "${timRes.response.body.personalCode || ''}"
-    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: getForm
 
 getForm:
@@ -82,7 +81,7 @@ checkShouldLog:
   switch:
     - condition: ${actor_personal_code != created_by}
       next: logAuditEvent
-  next: mapResponse
+  next: returnSuccess
 
 logAuditEvent:
   template: "templates/audit/form/sp-driver-form/log-sp-driver-view"
@@ -100,21 +99,10 @@ logAuditEvent:
     actor_name: ${actor_name}
     actor_personal_code: ${actor_personal_code}
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_sp_driver_form"
-    headers:
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${res.response.body[0]}
   next: end
 
 returnNotFound:
