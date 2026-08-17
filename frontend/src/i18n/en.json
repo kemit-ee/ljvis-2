@@ -1156,7 +1156,8 @@
     "cancel": "Cancel",
     "download": "Download",
     "space": " ",
-    "clear": "Clear filters"
+    "clear": "Clear filters",
+    "formHasErrors": "The form contains errors. Please check the fields marked in red."
   },
   "xroad": {
     "companyPicker": {

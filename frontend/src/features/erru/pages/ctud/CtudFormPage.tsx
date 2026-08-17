@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   Button,
   Card,
   Heading,
@@ -77,7 +78,16 @@ export function CtudFormPage() {
       {editable ? (
         <form onSubmit={form.formik.handleSubmit}>
           <CtudRequestFields form={form} />
-          {form.formError && <Text modifiers="bold">{form.formError}</Text>}
+          {form.formError && (
+            <Alert type="danger" size="small" className="mt-05">
+              {form.formError}
+            </Alert>
+          )}
+          {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
+            <Alert type="danger" size="small" className="mt-05">
+              {t('common.formHasErrors')}
+            </Alert>
+          )}
           <div className="page-actions">
             <div className="page-actions-buttons">
               <Button visualType="secondary" onClick={() => navigate('/erru/ctud')}>

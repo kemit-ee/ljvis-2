@@ -1256,7 +1256,8 @@
     "deleteConfirm": "Kas olete kindel, et soovite koondvormi kustutada?",
     "download": "Laadi alla",
     "clear": "Tühista filtrid",
-    "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?"
+    "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
+    "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju."
   },
   "xroad": {
     "companyPicker": {

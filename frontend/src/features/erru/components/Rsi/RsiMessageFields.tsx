@@ -12,6 +12,7 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import {
   classifierOptions,
+  dateFieldError,
   fieldError,
   parseIsoDate,
   pickOptionValue,
@@ -47,14 +48,18 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
   } = form;
 
   const err = (field: string) => fieldError(formik, field);
+  const dateErr = (field: string) => dateFieldError(formik, field);
   const opts = classifierOptions;
   const selected = selectedClassifierOption;
   const pick = pickOptionValue;
   const dateValue = parseIsoDate;
 
-  const yesNo = [
-    { id: 'yes', value: 'true', label: t('common.yes') },
-    { id: 'no', value: 'false', label: t('common.no') },
+  // Each ChoiceGroup needs its own items array with unique IDs — browsers resolve
+  // <label for="yes"> to the first matching id on the page, so shared ids across
+  // multiple radio groups cause all labels to target the first group's inputs.
+  const yesNo = (prefix: string) => [
+    { id: `${prefix}-yes`, value: 'true', label: t('common.yes') },
+    { id: `${prefix}-no`, value: 'false', label: t('common.no') },
   ];
 
   return (
@@ -332,14 +337,15 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             selected={dateValue(formik.values.inspectionDate)}
             onSelect={(v) => formik.setFieldValue('inspectionDate', toIsoDate(v as Date | undefined))}
             monthYearSelectType="grid"
-            {...err('inspectionDate')}
+            {...dateErr('inspectionDate')}
           />
           <TimeField
             id="rsi-inspection-time"
             label={t('erru.rsi.form.inspectionTime')}
+            required
             value={formik.values.inspectionTime || undefined}
             onChange={(v) => formik.setFieldValue('inspectionTime', v ?? '')}
-            {...err('inspectionTime')}
+            {...dateErr('inspectionTime')}
           />
           <TextField
             id="rsi-inspection-authority"
@@ -364,7 +370,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             direction="row"
             value={formik.values.inspectionPassed}
             onChange={(v) => formik.setFieldValue('inspectionPassed', v)}
-            items={yesNo}
+            items={yesNo('rsi-inspection-passed')}
             {...err('inspectionPassed')}
           />
           <ChoiceGroup
@@ -376,7 +382,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             direction="row"
             value={formik.values.ptiRequested}
             onChange={(v) => formik.setFieldValue('ptiRequested', v)}
-            items={yesNo}
+            items={yesNo('rsi-pti-requested')}
             {...err('ptiRequested')}
           />
           <ChoiceGroup
@@ -388,7 +394,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             direction="row"
             value={formik.values.vehicleProhibitionOrRestriction}
             onChange={(v) => formik.setFieldValue('vehicleProhibitionOrRestriction', v)}
-            items={yesNo}
+            items={yesNo('rsi-vehicle-prohibition')}
             {...err('vehicleProhibitionOrRestriction')}
           />
         </Card.Content>

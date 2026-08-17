@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useNcrRequestForm } from './useNcrRequestForm';
 import { NcrRequestFields } from '../../components/Ncr/NcrRequestFields';
 import { useAuth } from '../../../auth/AuthContext';
@@ -31,7 +31,16 @@ export function NcrFormCreatePage() {
 
       <NcrRequestFields form={form} />
 
-      {form.formError && <Text modifiers="bold">{form.formError}</Text>}
+      {form.formError && (
+        <Alert type="danger" size="small" className="mt-05">
+          {form.formError}
+        </Alert>
+      )}
+      {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
+        <Alert type="danger" size="small" className="mt-05">
+          {t('common.formHasErrors')}
+        </Alert>
+      )}
 
       <div className="page-actions">
         <div className="page-actions-buttons">

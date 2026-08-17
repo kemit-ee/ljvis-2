@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useNcrCase } from './useNcrCase';
 import { useNcrRequestForm } from './useNcrRequestForm';
 import { useNcrResponseForm } from './useNcrResponseForm';
@@ -113,7 +113,16 @@ export function NcrFormPage() {
       {requestEditable && (
         <form onSubmit={requestForm.formik.handleSubmit}>
           <NcrRequestFields form={requestForm} />
-          {requestForm.formError && <Text modifiers="bold">{requestForm.formError}</Text>}
+          {requestForm.formError && (
+            <Alert type="danger" size="small" className="mt-05">
+              {requestForm.formError}
+            </Alert>
+          )}
+          {requestForm.formik.submitCount > 0 && Object.keys(requestForm.formik.errors).length > 0 && (
+            <Alert type="danger" size="small" className="mt-05">
+              {t('common.formHasErrors')}
+            </Alert>
+          )}
           <div className="page-actions">
             <div className="page-actions-buttons">
               <Button visualType="secondary" onClick={() => navigate('/erru/ncr')}>
@@ -135,7 +144,16 @@ export function NcrFormPage() {
       {!requestEditable && responseEditable && (
         <form onSubmit={responseForm.formik.handleSubmit}>
           <NcrResponseFields form={responseForm} />
-          {responseForm.formError && <Text modifiers="bold">{responseForm.formError}</Text>}
+          {responseForm.formError && (
+            <Alert type="danger" size="small" className="mt-05">
+              {responseForm.formError}
+            </Alert>
+          )}
+          {responseForm.formik.submitCount > 0 && Object.keys(responseForm.formik.errors).length > 0 && (
+            <Alert type="danger" size="small" className="mt-05">
+              {t('common.formHasErrors')}
+            </Alert>
+          )}
           <div className="page-actions">
             <div className="page-actions-buttons">
               <Button visualType="secondary" onClick={() => navigate('/erru/ncr')}>

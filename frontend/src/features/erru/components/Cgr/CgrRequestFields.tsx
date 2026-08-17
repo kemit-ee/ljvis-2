@@ -10,6 +10,7 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import {
   classifierOptions,
+  dateFieldError,
   fieldError,
   parseIsoDate,
   pickOptionValue,
@@ -30,6 +31,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
   const { formik, countries, authorities, requestSources, requestPurposes } = form;
 
   const err = (field: keyof typeof formik.values) => fieldError(formik, field);
+  const dateErr = (field: keyof typeof formik.values) => dateFieldError(formik, field);
   const opts = classifierOptions;
   const selected = selectedClassifierOption;
   const pick = pickOptionValue;
@@ -122,7 +124,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
             monthYearSelectType="grid"
             initialView="years"
             disableFuture
-            {...err('tmDateOfBirth')}
+            {...dateErr('tmDateOfBirth')}
           />
 
           <TextField
@@ -156,7 +158,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
               formik.setFieldValue('certificateIssueDate', toIsoDate(v as Date | undefined))
             }
             monthYearSelectType="grid"
-            {...err('certificateIssueDate')}
+            {...dateErr('certificateIssueDate')}
           />
 
           <Select

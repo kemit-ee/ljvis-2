@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useCgrForm } from './useCgrForm';
 import { CgrRequestFields } from '../../components/Cgr/CgrRequestFields';
 import { useAuth } from '../../../auth/AuthContext';
@@ -62,7 +62,16 @@ export function CgrFormCreatePage() {
 
       <CgrRequestFields form={form} />
 
-      {form.formError && <Text modifiers="bold">{form.formError}</Text>}
+      {form.formError && (
+        <Alert type="danger" size="small" className="mt-05">
+          {form.formError}
+        </Alert>
+      )}
+      {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
+        <Alert type="danger" size="small" className="mt-05">
+          {t('common.formHasErrors')}
+        </Alert>
+      )}
 
       <PageActions>
         <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>

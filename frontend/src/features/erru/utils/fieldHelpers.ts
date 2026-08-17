@@ -21,12 +21,20 @@ export const pickOptionValue = (o: unknown) => (o as { value?: string } | null)?
 
 export const parseIsoDate = (v?: string) => (v ? new Date(v) : undefined);
 
-/** tedi expects `helper` as an object, not a bare string. */
-export function fieldError(
-  formik: { touched: Record<string, unknown>; errors: Record<string, unknown> },
-  field: string,
-) {
-  const touched = formik.touched[field];
+type FormikLike = { touched: Record<string, unknown>; errors: Record<string, unknown>; submitCount: number };
+
+const getError = (formik: FormikLike, field: string): string | null => {
   const error = formik.errors[field];
-  return touched && error ? { helper: { text: String(error), type: 'error' as const } } : {};
+  const showError = (!!formik.touched[field] || formik.submitCount > 0) && !!error;
+  return showError ? String(error) : null;
+};
+
+export function fieldError(formik: FormikLike, field: string) {
+  const error = getError(formik, field);
+  return error ? { helper: { text: error, type: 'error' as const } } : {};
+}
+
+export function dateFieldError(formik: FormikLike, field: string) {
+  const error = getError(formik, field);
+  return error ? { inputProps: { helper: { text: error, type: 'error' as const } } } : {};
 }

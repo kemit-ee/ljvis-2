@@ -1,6 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useRsiMessageDetail } from './useRsiMessageDetail';
 import { useRsiForm } from './useRsiForm';
 import { RsiMessageFields } from '../../components/Rsi/RsiMessageFields';
@@ -31,6 +32,20 @@ export function RsiFormPage() {
   const { message, isLoading, notFound, send, isSending, sendError, reload } =
     useRsiMessageDetail(id);
   const form = useRsiForm(message, () => reload());
+  const prevSubmitCount = useRef(0);
+
+  useEffect(() => {
+    const count = form.formik.submitCount;
+    if (count > prevSubmitCount.current && Object.keys(form.formik.errors).length > 0) {
+      prevSubmitCount.current = count;
+      setTimeout(() => {
+        const first =
+          document.querySelector<HTMLElement>('[aria-invalid="true"]') ??
+          document.querySelector<HTMLElement>('[class*="feedback-text--error"]');
+        first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }, [form.formik.submitCount, form.formik.errors]);
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
@@ -64,9 +79,15 @@ export function RsiFormPage() {
       {editable ? (
         <form onSubmit={form.formik.handleSubmit}>
           <RsiMessageFields form={form} />
-          {form.formError && <Text modifiers="bold">{form.formError}</Text>}
+          {form.formError && (
+            <Alert type="danger" size="small" className="mt-05">
+              {form.formError}
+            </Alert>
+          )}
           {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
-            <Text modifiers="bold">{t('erru.rsi.validation.formHasErrors')}</Text>
+            <Alert type="danger" size="small" className="mt-05">
+              {t('common.formHasErrors')}
+            </Alert>
           )}
           <PageActions>
             <Button visualType="secondary" onClick={() => navigate('/erru/rsi')}>

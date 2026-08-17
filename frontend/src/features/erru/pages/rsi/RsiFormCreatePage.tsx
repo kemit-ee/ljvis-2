@@ -1,6 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useRsiForm } from './useRsiForm';
 import { RsiMessageFields } from '../../components/Rsi/RsiMessageFields';
 import { useAuth } from '../../../auth/AuthContext';
@@ -14,8 +15,22 @@ export function RsiFormCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
+  const prevSubmitCount = useRef(0);
 
   const form = useRsiForm(undefined, (id) => navigate(id ? `/erru/rsi/${id}` : '/erru/rsi'));
+
+  useEffect(() => {
+    const count = form.formik.submitCount;
+    if (count > prevSubmitCount.current && Object.keys(form.formik.errors).length > 0) {
+      prevSubmitCount.current = count;
+      setTimeout(() => {
+        const first =
+          document.querySelector<HTMLElement>('[aria-invalid="true"]') ??
+          document.querySelector<HTMLElement>('[class*="feedback-text--error"]');
+        first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    }
+  }, [form.formik.submitCount, form.formik.errors]);
 
   if (!hasAnyPermission(['rsi.create'])) return <Text>{t('common.forbidden')}</Text>;
 
@@ -29,9 +44,15 @@ export function RsiFormCreatePage() {
 
       <RsiMessageFields form={form} />
 
-      {form.formError && <Text modifiers="bold">{form.formError}</Text>}
+      {form.formError && (
+        <Alert type="danger" size="small" className="mt-05">
+          {form.formError}
+        </Alert>
+      )}
       {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
-        <Text modifiers="bold">{t('erru.rsi.validation.formHasErrors')}</Text>
+        <Alert type="danger" size="small" className="mt-05">
+          {t('common.formHasErrors')}
+        </Alert>
       )}
 
       <div className="page-actions">
