@@ -1,19 +1,19 @@
 declaration:
 
   version: "1.0"
-  description: "Get version history snapshot for a drive rest form (teammate)"
-  method: post
+  description: "Get version history snapshot for a drive rest form (driver)"
+  method: get
   accepts: json
   returns: json
   namespace: control-forms
   allowlist:
-    body:
+    params:
       - field: id
         type: string
         description: "Snapshot ID"
       - field: formKey
         type: string
-        description: "sp_teammate_form_key"
+        description: "sp_driver_form_key"
 
 extractRequestData:
   assign:
@@ -24,26 +24,15 @@ extractRequestData:
 getSnapshot:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get-snapshot"
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get-snapshot"
     headers:
       type: json
     body:
       id: ${id}
       form_key: ${form_key}
   result: res
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_sp_teammate_form"
-    headers:
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${res.response.body[0]}
   next: end

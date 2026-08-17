@@ -8,7 +8,7 @@ authenticate:
 
 check:
   switch:
-    - condition: ${u.permissions != null && u.permissions.includes('foreign_violation_form.write')}
+    - condition: ${u.permissions != null && (u.permissions.includes('control_form.view_unpublished') || u.permissions.includes('sp_driver_form.read'))}
       next: allow
   next: deny
 
