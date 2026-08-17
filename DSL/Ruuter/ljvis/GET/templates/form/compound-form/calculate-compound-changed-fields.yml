@@ -110,6 +110,7 @@ debugDrivers:
 
 buildAuditData:
   assign:
+    old_control_date: "${res.response.body[0].controlDate || ''}"
     old_control_time: "${res.response.body[0].controlTime || ''}"
     old_control_country_code: "${res.response.body[0].controlCountryCode || ''}"
     old_county: "${res.response.body[0].county || ''}"

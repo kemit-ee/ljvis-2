@@ -495,7 +495,7 @@
       }
     },
     "transport_interruption": {
-      "title": "Autovedu on katkestatud",
+      "title": "Autoveo katkestamine",
       "sectionTitle": "Autoveo katkestamise kontrollvorm",
       "addNew": "Lisa autoveo katkestamise kontrollvorm",
       "header": {
@@ -560,6 +560,7 @@
         "unNumber": "ÜN-number",
         "packagingGroup": "Pakendirühm",
         "quantity": "Kogus",
+        "quantityInvalid": "Kogus ei tohi lõppeda koma ega punktiga",
         "unitCode": "Ühik"
       },
       "exemption": {
@@ -618,7 +619,8 @@
         "sealInstalledDate": "Plommi paigaldamise kuupäev"
       },
       "notes": {
-        "title": "Märkused"
+        "title": "Märkused",
+        "counter": "{{count}}/{{max}} tähemärki"
       },
       "xroad": {
         "title": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",

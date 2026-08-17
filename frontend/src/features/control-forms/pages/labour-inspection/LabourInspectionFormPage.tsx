@@ -64,9 +64,7 @@ export function LabourInspectionFormPage() {
   }, [form?.status]);
 
   const canEdit =
-    hasPermission('labour_inspection_form.write') &&
-    form?.status !== 'deleted' &&
-    form?.status !== 'confirmed';
+    hasPermission('labour_inspection_form.write') && form?.status !== 'deleted';
   const canDelete =
     hasPermission('control_form.delete') && form?.status !== 'deleted';
   const canConfirm =
@@ -223,6 +221,14 @@ export function LabourInspectionFormPage() {
           removeViolation={removeViolation}
         />
 
+        {id && (
+          <FormVersionsTable
+            formId={id}
+            formType={FORM_TYPE.LABOUR_INSPECTION}
+            refreshKey={versionsRefreshKey}
+          />
+        )}
+
         <div className="page-actions">
           <div className="page-actions-buttons">
             {isEditActive ? (
@@ -263,14 +269,6 @@ export function LabourInspectionFormPage() {
           </div>
         </div>
       </form>
-
-      {id && (
-        <FormVersionsTable
-          formId={id}
-          formType={FORM_TYPE.LABOUR_INSPECTION}
-          refreshKey={versionsRefreshKey}
-        />
-      )}
     </div>
   );
 }

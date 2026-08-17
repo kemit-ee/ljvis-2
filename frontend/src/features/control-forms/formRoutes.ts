@@ -54,17 +54,37 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     parentKey: 'compound_form',
     typeParam: 'teammate',
   },
-  sp_vehicle_tech_form: {
-    labelKey: 'forms.sp_vehicle_tech_form',
-    route: '/sp-vehicle-tech',
+  vehicle_technical_form: {
+    labelKey: 'forms.technical_check.vehicleTitle',
+    route: '/vehicle-technical',
     hasParent: true,
     showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'vehicle-technical',
   },
-  sp_trailer_tech_form: {
-    labelKey: 'forms.sp_trailer_tech_form',
-    route: '/sp-trailer-tech',
+  trailer_technical_form: {
+    labelKey: 'forms.technical_check.trailerTitle',
+    route: '/trailer-technical',
     hasParent: true,
     showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'trailer-technical',
+  },
+  adr_form: {
+    labelKey: 'forms.adr.title',
+    route: '/adr',
+    hasParent: true,
+    showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'adr',
+  },
+  transport_interruption_form: {
+    labelKey: 'forms.transport_interruption.title',
+    route: '/transport-interruption',
+    hasParent: true,
+    showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'transport-interruption',
   },
   sp_dangerous_goods_form: {
     labelKey: 'forms.sp_dangerous_goods_form',

@@ -26,19 +26,33 @@ import {
   StatusIndicator,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm, emptyTrailer } from './useCompoundForm';
-import type { Trailer, DriveRestForm, Driver } from '../../types';
+import type {
+  Trailer,
+  DriveRestForm,
+  Driver,
+  TechnicalCheckForm,
+  AdrForm,
+} from '../../types';
 
 type TrailerTouched = (Partial<Record<keyof Trailer, boolean>> | undefined)[];
 type TrailerErrors = (Partial<Record<keyof Trailer, string>> | undefined)[];
 type DriverErrors = (Partial<Record<keyof Driver, string>> | undefined)[];
+type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
 import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
+import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../technical-check-form/TechnicalCheckFormCreatePage';
+import { AdrFormCreatePage, type AdrFormCreatePageRef } from '../adr-form/AdrFormCreatePage';
+import { TransportInterruptionFormCreatePage, type TransportInterruptionFormCreatePageRef } from '../transport-interruption-form/TransportInterruptionFormCreatePage';
+import type { TechnicalCheckVariant } from '../../types';
 import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '../drive-rest-form/useDriveRestForm';
-import { insertDriveRestForm } from '../../api';
+import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
+import { createAdrValidationSchema } from '../adr-form/useAdrForm';
+import { saveDriveRestForm, saveTechnicalCheckForm, saveAdrForm, saveTransportInterruptionForm } from '../../api';
+import type { TransportInterruptionForm } from '../../types';
 
 interface FormRef {
   handleSubmit?: (overrideCompoundFormKey?: number) => void;
@@ -47,6 +61,11 @@ interface FormRef {
   hasErrors?: () => boolean;
   validateForm?: () => void;
 }
+
+const DRIVE_REST_ROUTES = ['/sp-driver', '/sp-teammate'] as const;
+const TECHNICAL_CHECK_ROUTES = ['/vehicle-technical', '/trailer-technical'] as const;
+const ADR_ROUTES = ['/adr'] as const;
+const TRANSPORT_INTERRUPTION_ROUTES = ['/transport-interruption'] as const;
 
 const ROUTE_TO_TAB: Record<
   string,
@@ -62,6 +81,26 @@ const ROUTE_TO_TAB: Record<
     type: 'teammate',
     labelKey: 'forms.teammate_drive_rest_form',
   },
+  '/vehicle-technical': {
+    tabId: 'tab-vehicle-technical',
+    type: 'vehicle',
+    labelKey: 'forms.technical_check.vehicleTitle',
+  },
+  '/trailer-technical': {
+    tabId: 'tab-trailer-technical',
+    type: 'trailer',
+    labelKey: 'forms.technical_check.trailerTitle',
+  },
+  '/adr': {
+    tabId: 'tab-adr',
+    type: 'adr',
+    labelKey: 'forms.adr.title',
+  },
+  '/transport-interruption': {
+    tabId: 'tab-transport-interruption',
+    type: 'transport-interruption',
+    labelKey: 'forms.transport_interruption.title',
+  },
 };
 
 export function CompoundFormCreatePage() {
@@ -70,16 +109,15 @@ export function CompoundFormCreatePage() {
   const [searchParams] = useSearchParams();
   const type = searchParams.get('type');
 
-  const initialTab =
-    type && ROUTE_TO_TAB[`/sp-${type}`]
-      ? ROUTE_TO_TAB[`/sp-${type}`].tabId
-      : null;
+  const initialTabRoute = type
+    ? (ROUTE_TO_TAB[`/sp-${type}`] ? `/sp-${type}` : ROUTE_TO_TAB[`/${type}`] ? `/${type}` : null)
+    : null;
+  const initialTab = initialTabRoute ? ROUTE_TO_TAB[initialTabRoute].tabId : null;
 
   const [activeTab, setActiveTab] = useState(initialTab ?? 'tab-1');
   const [openTabs, setOpenTabs] = useState<string[]>(
     initialTab ? [initialTab] : [],
   );
-  const [compoundFormId, setCompoundFormId] = useState<number | null>(null);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
 
@@ -141,34 +179,57 @@ export function CompoundFormCreatePage() {
   const handleSaved = (id?: string) => {
     if (id) {
       compoundFormIdRef.current = Number(id);
-      setCompoundFormId(Number(id));
     }
   };
 
   const validateAllForms = async (): Promise<boolean> => {
     // Validate compound form (tab-1) - mark all fields as touched to show errors
-    const touched: Record<string, boolean> = {};
+    const touched: Record<string, unknown> = {};
     Object.keys(formik.values).forEach(key => {
-      touched[key] = true;
+      const val = formik.values[key as keyof typeof formik.values];
+      if (Array.isArray(val)) {
+        touched[key] = val.map((item) =>
+          item && typeof item === 'object'
+            ? Object.fromEntries(Object.keys(item).map((k) => [k, true]))
+            : true,
+        );
+      } else {
+        touched[key] = true;
+      }
     });
-    formik.setTouched(touched);
-    await formik.validateForm();
+    formik.setTouched(touched as never);
+    const compoundErrors = await formik.validateForm();
 
     // Validate all drive-rest forms against the shared schema using the
     // saved snapshot — this guarantees the same result regardless of
     // whether a tab is currently mounted (active) or not
     const driveRestSchema = createDriveRestValidationSchema(t);
+    const technicalCheckSchema = createTechnicalCheckValidationSchema(t);
+    const adrSchema = createAdrValidationSchema(t);
     const newTabErrors: Record<string, boolean> = {};
     for (const tabId of openTabs) {
-      newTabErrors[tabId] = !(await driveRestSchema
-        .isValid(savedFormData.current[tabId] ?? {}));
+      const isAdr = ADR_ROUTES.some(
+        (route) => ROUTE_TO_TAB[route].tabId === tabId,
+      );
+      const isTransportInterruption = TRANSPORT_INTERRUPTION_ROUTES.some(
+        (route) => ROUTE_TO_TAB[route].tabId === tabId,
+      );
+      const isTechnicalCheck = !isAdr && !isTransportInterruption && TECHNICAL_CHECK_ROUTES.some(
+        (route) => ROUTE_TO_TAB[route].tabId === tabId,
+      );
+      const schema = isAdr ? adrSchema : isTransportInterruption ? null : isTechnicalCheck ? technicalCheckSchema : driveRestSchema;
+      const formRef = formRefs.current[tabId]?.current;
+      if (formRef?.hasErrors !== undefined) {
+        newTabErrors[tabId] = formRef.hasErrors();
+      } else {
+        newTabErrors[tabId] = schema ? !(await schema.isValid(savedFormData.current[tabId] ?? {})) : false;
+      }
     }
     setTabErrors(newTabErrors);
 
-    // If a drive-rest tab is currently mounted, also trigger its own
-    // validation so inline field error messages show up immediately
-    if (activeTab !== 'tab-1') {
-      formRefs.current[activeTab]?.current?.validateForm?.();
+    // Trigger each open tab's own validation so inline field errors show up
+    for (const tabId of openTabs) {
+      formRefs.current[tabId]?.current?.validateForm?.();
     }
 
     // Mark the main form and all currently open sub-forms as validated
@@ -179,7 +240,7 @@ export function CompoundFormCreatePage() {
       return next;
     });
 
-    const compoundFormHasErrors = Object.keys(formik.errors).length > 0;
+    const compoundFormHasErrors = Object.keys(compoundErrors).length > 0;
     const anyTabHasErrors = Object.values(newTabErrors).some(hasError => hasError);
 
     return !compoundFormHasErrors && !anyTabHasErrors;
@@ -199,7 +260,10 @@ export function CompoundFormCreatePage() {
 
   const handleTabChange = (newTab: string) => {
     if (activeTab !== 'tab-1' && formRefs.current[activeTab]?.current) {
-      savedFormData.current[activeTab] = formRefs.current[activeTab].current.getFormData?.() ?? {};
+      const data = formRefs.current[activeTab].current.getFormData?.();
+      if (data !== undefined) {
+        savedFormData.current[activeTab] = data;
+      }
     }
     // Restore new tab form data immediately
     if (newTab !== 'tab-1' && savedFormData.current[newTab]) {
@@ -512,7 +576,10 @@ export function CompoundFormCreatePage() {
                                 val && !Array.isArray(val)
                                   ? (val as { value: string }).value
                                   : '';
-                              formik.setFieldValue('controlCountryCode', newCode);
+                              formik.setFieldValue(
+                                'controlCountryCode',
+                                newCode,
+                              );
                               if (newCode !== 'EE') {
                                 formik.setFieldValue('county', '');
                                 formik.setFieldValue('city', '');
@@ -589,7 +656,10 @@ export function CompoundFormCreatePage() {
                                   : '';
                               formik.setFieldValue('city', v);
                             }}
-                            disabled={!formik.values.county || formik.values.controlCountryCode !== 'EE'}
+                            disabled={
+                              !formik.values.county ||
+                              formik.values.controlCountryCode !== 'EE'
+                            }
                           />
                         </div>
                         <Text id="road_type">
@@ -1634,7 +1704,9 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.errors.drivers as DriverErrors)?.[0]
+                          {...((formik.touched.drivers as DriverTouched)?.[0]
+                            ?.firstName &&
+                          (formik.errors.drivers as DriverErrors)?.[0]
                             ?.firstName
                             ? {
                                 helper: {
@@ -1657,8 +1729,9 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.errors.drivers as DriverErrors)?.[0]
-                            ?.lastName
+                          {...((formik.touched.drivers as DriverTouched)?.[0]
+                            ?.lastName &&
+                          (formik.errors.drivers as DriverErrors)?.[0]?.lastName
                             ? {
                                 helper: {
                                   text: (
@@ -1682,7 +1755,9 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('drivers', u);
                           }}
                           required
-                          {...((formik.errors.drivers as DriverErrors)?.[0]
+                          {...((formik.touched.drivers as DriverTouched)?.[0]
+                            ?.personalCodeForeign &&
+                          (formik.errors.drivers as DriverErrors)?.[0]
                             ?.personalCodeForeign
                             ? {
                                 helper: {
@@ -1764,6 +1839,8 @@ export function CompoundFormCreatePage() {
                             placeholder={t('common.dateFieldPlaceholder')}
                             required
                             inputProps={
+                              (formik.touched.drivers as DriverTouched)?.[0]
+                                ?.birthDate &&
                               (formik.errors.drivers as DriverErrors)?.[0]
                                 ?.birthDate
                                 ? {
@@ -1923,17 +2000,21 @@ export function CompoundFormCreatePage() {
                               }}
                               placeholder={t('common.dateFieldPlaceholder')}
                               required
-                              {...((formik.touched.drivers as DriverTouched)?.[1]
-                                ?.birthDate &&
-                              (formik.errors.drivers as DriverErrors)?.[1]?.birthDate
-                                ? {
-                                    helper: {
-                                      text: (formik.errors.drivers as DriverErrors)[1]
-                                        .birthDate,
-                                      type: 'error' as const,
-                                    },
-                                  }
-                                : {})}
+                              inputProps={
+                                (formik.touched.drivers as DriverTouched)?.[1]
+                                  ?.birthDate &&
+                                (formik.errors.drivers as DriverErrors)?.[1]
+                                  ?.birthDate
+                                  ? {
+                                      helper: {
+                                        text: (
+                                          formik.errors.drivers as DriverErrors
+                                        )?.[1]?.birthDate,
+                                        type: 'error' as const,
+                                      },
+                                    }
+                                  : undefined
+                              }
                             />
                           </div>
                         </div>
@@ -2066,13 +2147,14 @@ export function CompoundFormCreatePage() {
             </form>
           </div>
         </Tabs.Content>
-        {Object.values(ROUTE_TO_TAB).map(({ tabId, type: tabType }) =>
-          openTabs.includes(tabId) ? (
+        {DRIVE_REST_ROUTES.map((route) => {
+          const { tabId, type: tabType } = ROUTE_TO_TAB[route];
+          return openTabs.includes(tabId) ? (
             <Tabs.Content key={tabId} id={tabId} className="p-1">
               <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
                 <DriveRestFormCreatePage
                   type={tabType}
-                  compoundFormKey={compoundFormId ?? undefined}
+                  compoundFormKey={undefined}
                   initialValidate={validatedTabs.has(tabId)}
                   onValuesChange={(values) => {
                     savedFormData.current[tabId] = values;
@@ -2091,8 +2173,92 @@ export function CompoundFormCreatePage() {
                 />
               </div>
             </Tabs.Content>
-          ) : null,
-        )}
+          ) : null;
+        })}
+        {TECHNICAL_CHECK_ROUTES.map((route) => {
+          const { tabId, type: tabType } = ROUTE_TO_TAB[route];
+          return openTabs.includes(tabId) ? (
+            <Tabs.Content key={tabId} id={tabId} className="p-1">
+              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+                <TechnicalCheckFormCreatePage
+                  type={tabType as TechnicalCheckVariant}
+                  compoundFormKey={undefined}
+                  initialValidate={validatedTabs.has(tabId)}
+                  onValuesChange={(values) => {
+                    savedFormData.current[tabId] =
+                      values as Partial<DriveRestForm>;
+                  }}
+                  ref={(ref) => {
+                    formRefs.current[tabId].current =
+                      ref as TechnicalCheckFormCreatePageRef;
+                  }}
+                  onSaved={(id) => {
+                    if (id) {
+                      savedDriveRestFormsRef.current = new Set(
+                        savedDriveRestFormsRef.current,
+                      ).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(id);
+                    }
+                  }}
+                />
+              </div>
+            </Tabs.Content>
+          ) : null;
+        })}
+        {ADR_ROUTES.map((route) => {
+          const { tabId } = ROUTE_TO_TAB[route];
+          return openTabs.includes(tabId) ? (
+            <Tabs.Content key={tabId} id={tabId} className="p-1">
+              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+                <AdrFormCreatePage
+                  compoundFormKey={undefined}
+                  initialValidate={validatedTabs.has(tabId)}
+                  onValuesChange={(values) => {
+                    savedFormData.current[tabId] = values as Partial<DriveRestForm>;
+                  }}
+                  ref={(ref) => {
+                    formRefs.current[tabId].current = ref as AdrFormCreatePageRef;
+                  }}
+                  onSaved={(id) => {
+                    if (id) {
+                      savedDriveRestFormsRef.current = new Set(
+                        savedDriveRestFormsRef.current,
+                      ).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(id);
+                    }
+                  }}
+                />
+              </div>
+            </Tabs.Content>
+          ) : null;
+        })}
+        {TRANSPORT_INTERRUPTION_ROUTES.map((route) => {
+          const { tabId } = ROUTE_TO_TAB[route];
+          return openTabs.includes(tabId) ? (
+            <Tabs.Content key={tabId} id={tabId} className="p-1">
+              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+                <TransportInterruptionFormCreatePage
+                  compoundFormKey={undefined}
+                  initialValidate={validatedTabs.has(tabId)}
+                  onValuesChange={(values) => {
+                    savedFormData.current[tabId] = values as Partial<DriveRestForm>;
+                  }}
+                  ref={(ref) => {
+                    formRefs.current[tabId].current = ref as TransportInterruptionFormCreatePageRef;
+                  }}
+                  onSaved={(id) => {
+                    if (id) {
+                      savedDriveRestFormsRef.current = new Set(
+                        savedDriveRestFormsRef.current,
+                      ).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(id);
+                    }
+                  }}
+                />
+              </div>
+            </Tabs.Content>
+          ) : null;
+        })}
       </Tabs>
 
       <div className="page-actions mt-1">
@@ -2150,27 +2316,115 @@ export function CompoundFormCreatePage() {
                     check();
                   });
                 } else {
-                  const tabType = Object.values(ROUTE_TO_TAB).find(
+                  const tabDef = Object.values(ROUTE_TO_TAB).find(
                     (t) => t.tabId === tabId,
-                  )?.type as 'driver' | 'teammate' | undefined;
-                  if (tabType) {
-                    const values = {
-                      ...savedFormData.current[tabId],
-                      compoundFormKey: id,
-                    };
-                    const trimmedValues = serializeDriveRestFormValues(
-                      values,
-                      'saved',
-                    );
-                    const result = await insertDriveRestForm(
-                      tabType,
-                      trimmedValues as unknown as DriveRestForm,
-                    );
-                    if (result[0]?.id) {
-                      savedDriveRestFormsRef.current = new Set(
-                        savedDriveRestFormsRef.current,
-                      ).add(tabId);
-                      savedSubFormIdsRef.current[tabId] = String(result[0].id);
+                  );
+                  const isAdrTab = ADR_ROUTES.some(
+                    (route) => ROUTE_TO_TAB[route].tabId === tabId,
+                  );
+                  const isTransportInterruptionTab = TRANSPORT_INTERRUPTION_ROUTES.some(
+                    (route) => ROUTE_TO_TAB[route].tabId === tabId,
+                  );
+                  const isTechnicalCheck = !isAdrTab && !isTransportInterruptionTab && TECHNICAL_CHECK_ROUTES.some(
+                    (route) => ROUTE_TO_TAB[route].tabId === tabId,
+                  );
+                  if (tabDef) {
+                    if (isAdrTab) {
+                      const raw = savedFormData.current[tabId] as Partial<AdrForm>;
+                      const isBlank = (obj: Record<string, unknown>) =>
+                        Object.values(obj).every((v) => v == null || v === '');
+                      const values = {
+                        ...raw,
+                        compoundFormKey: id,
+                        driverAssistant:
+                          raw.driverAssistant && !isBlank(raw.driverAssistant as Record<string, unknown>)
+                            ? JSON.stringify(raw.driverAssistant)
+                            : '',
+                        lastLoadAddress:
+                          raw.lastLoadAddress && !isBlank(raw.lastLoadAddress as Record<string, unknown>)
+                            ? JSON.stringify(raw.lastLoadAddress)
+                            : '',
+                        nextLoadAddress:
+                          raw.nextLoadAddress && !isBlank(raw.nextLoadAddress as Record<string, unknown>)
+                            ? JSON.stringify(raw.nextLoadAddress)
+                            : '',
+                        dangerousGoods: JSON.stringify(raw.dangerousGoods ?? []),
+                        infringements: JSON.stringify(
+                          (raw.infringements ?? []).filter((e) => !!(e as { checkStatus?: string }).checkStatus),
+                        ),
+                        correctiveMeasures: JSON.stringify(raw.correctiveMeasures ?? []),
+                      };
+                      const result = await saveAdrForm(values as unknown as AdrForm);
+                      if ((result[0] as { id?: string })?.id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String(
+                          (result[0] as { id?: string }).id,
+                        );
+                      }
+                    } else if (isTechnicalCheck) {
+                      const variant = tabDef.type as TechnicalCheckVariant;
+                      const raw = savedFormData.current[
+                        tabId
+                      ] as Partial<TechnicalCheckForm>;
+                      const values = {
+                        ...raw,
+                        compoundFormKey: id,
+                        partsSummary: JSON.stringify(raw.partsSummary ?? []),
+                        partsDefects: JSON.stringify(raw.partsDefects ?? []),
+                        violations: JSON.stringify(raw.violations ?? []),
+                      };
+                      const result = await saveTechnicalCheckForm(
+                        variant,
+                        values as unknown as TechnicalCheckForm,
+                      );
+                      if ((result[0] as { id?: string })?.id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String(
+                          (result[0] as { id?: string }).id,
+                        );
+                      }
+                    } else if (isTransportInterruptionTab) {
+                      const raw = savedFormData.current[tabId] as Partial<TransportInterruptionForm>;
+                      const payload = {
+                        ...raw,
+                        compoundFormKey: id,
+                        legalBases: JSON.stringify(raw.legalBases ?? []),
+                      } as unknown as TransportInterruptionForm;
+                      const result = await saveTransportInterruptionForm(payload);
+                      if ((result[0] as { id?: string })?.id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String(
+                          (result[0] as { id?: string }).id,
+                        );
+                      }
+                    } else if (!isAdrTab) {
+                      const tabType = tabDef.type as 'driver' | 'teammate';
+                      const values = {
+                        ...savedFormData.current[tabId],
+                        compoundFormKey: id,
+                      };
+                      const trimmedValues = serializeDriveRestFormValues(
+                        values,
+                        'saved',
+                      );
+                      const result = await saveDriveRestForm(
+                        tabType,
+                        trimmedValues as unknown as DriveRestForm,
+                      );
+                      if (result[0]?.id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String(
+                          result[0].id,
+                        );
+                      }
                     }
                   }
                 }

@@ -26,6 +26,31 @@ export function useSearchHandler(
   };
 }
 
+export function sanitizeDecimalInput(v: string): string {
+  const stripped = v
+    .replace(/[^0-9.,]/g, '')
+    .replace(/^[.,]/, '')
+    .replace(/^0(\d)/, '$1');
+  const commaIdx = stripped.indexOf(',');
+  const dotIdx = stripped.indexOf('.');
+  if (commaIdx !== -1 && dotIdx !== -1) {
+    const sepIdx = Math.min(commaIdx, dotIdx);
+    const sep = stripped[sepIdx];
+    const integer = stripped.slice(0, sepIdx);
+    const decimal = stripped.slice(sepIdx + 1).replace(/[.,]/g, '');
+    return integer + sep + decimal;
+  } else if (commaIdx !== -1) {
+    const integer = stripped.slice(0, commaIdx);
+    const decimal = stripped.slice(commaIdx + 1).replace(/,/g, '');
+    return integer + ',' + decimal;
+  } else if (dotIdx !== -1) {
+    const integer = stripped.slice(0, dotIdx);
+    const decimal = stripped.slice(dotIdx + 1).replace(/\./g, '');
+    return integer + '.' + decimal;
+  }
+  return stripped;
+}
+
 export function decodeHtmlEntities(text: string): string {
   if (!text) return '';
   return text

@@ -95,7 +95,7 @@ export function useGoodReputeForm(
         pendingConfirm.current = false;
         const payload = {
           ...values,
-          id: form?.id,
+          id: form?.id ?? '',
         } as unknown as GoodReputeForm;
         const result = isConfirming
           ? await confirmGoodReputeForm(payload)

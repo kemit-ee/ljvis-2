@@ -26,13 +26,39 @@ declaration:
       - field: org_name
         type: string
 */
+WITH ranked AS (
+  SELECT
+    id,
+    vehicle_technical_form_key,
+    sub_form_number,
+    version,
+    status,
+    created_at,
+    created_by,
+    LEAD(status) OVER (
+      PARTITION BY vehicle_technical_form_key
+      ORDER BY created_at ASC
+    ) AS next_status
+  FROM forms.vehicle_technical_form
+  WHERE vehicle_technical_form_key = :id::BIGINT
+),
+filtered AS (
+  SELECT
+    id AS snapshot_id,
+    version,
+    sub_form_number,
+    status,
+    created_at,
+    created_by
+  FROM ranked
+  WHERE status != 'saved' OR next_status IS DISTINCT FROM status
+)
 SELECT
-  id AS snapshot_id,
+  snapshot_id,
   version,
   status,
   created_at,
-  (SELECT first_name || ' ' || last_name FROM users.user_account WHERE user_account.personal_code = created_by ORDER BY user_account.id DESC LIMIT 1) AS created_by,
-  (SELECT organisation_name FROM users.user_account WHERE user_account.personal_code = created_by ORDER BY user_account.id DESC LIMIT 1) AS org_name
-FROM forms.vehicle_technical_form
-WHERE vehicle_technical_form_key = :id::BIGINT
+  (SELECT first_name || ' ' || last_name FROM users.user_account WHERE user_account.personal_code = filtered.created_by ORDER BY user_account.id DESC LIMIT 1) AS created_by,
+  (SELECT organisation_name FROM users.user_account WHERE user_account.personal_code = filtered.created_by ORDER BY user_account.id DESC LIMIT 1) AS org_name
+FROM filtered
 ORDER BY created_at;

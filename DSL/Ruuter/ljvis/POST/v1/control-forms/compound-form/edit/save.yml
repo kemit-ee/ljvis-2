@@ -1,13 +1,17 @@
 declaration:
 
   version: "1.0"
-  description: "Insert compound form"
+  description: "Create or update the compound form — single unified save endpoint, branches internally on presence of id. Status is always computed/controlled server-side and never trusts client input."
   method: post
   accepts: json
   returns: json
   namespace: control-forms
   allowlist:
     body:
+      - field: id
+        type: string
+      - field: formNumber
+        type: string
       - field: status
         type: string
       - field: controlDate
@@ -98,17 +102,17 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
 extractRequestData:
   assign:
-    status: "${incoming.body.status}"
+    id: "${incoming.body.id}"
+    form_number: "${incoming.body.formNumber}"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
     control_country_code: "${incoming.body.controlCountryCode}"
@@ -155,47 +159,110 @@ extractRequestData:
     created_by: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
-  next: check_driver1_personal_code_not_empty
+  next: checkInsertOrUpdate
 
-check_driver1_personal_code_not_empty:
+checkInsertOrUpdate:
+  switch:
+    - condition: ${id == null || id === ''}
+      next: check_driver1_personal_code_not_empty_insert
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "templates/form/compound-form/calculate-compound-changed-fields"
+  requestType: GET
+  body:
+    form_id: ${id}
+    control_date: ${control_date}
+    control_time: ${control_time}
+    control_country_code: ${control_country_code}
+    county: ${county}
+    city: ${city}
+    road: ${road}
+    road_other: ${road_other}
+    kilometer: ${kilometer}
+    address: ${address}
+    road_type: ${road_type}
+    road_tax_status: ${road_tax_status}
+    road_tax_notes: ${road_tax_notes}
+    vehicle_reg_nr: ${vehicle_reg_nr}
+    vehicle_make: ${vehicle_make}
+    vehicle_model: ${vehicle_model}
+    vehicle_country_code: ${vehicle_country_code}
+    vehicle_vin: ${vehicle_vin}
+    vehicle_first_registration: ${vehicle_first_registration}
+    vehicle_body_type: ${vehicle_body_type}
+    vehicle_category_code: ${vehicle_category_code}
+    vehicle_category_other: ${vehicle_category_other}
+    vehicle_mileage: ${vehicle_mileage}
+    trailers: ${trailers}
+    drivers: ${drivers}
+    company_reg_code: ${company_reg_code}
+    company_name: ${company_name}
+    company_country_code: ${company_country_code}
+    company_county: ${company_county}
+    company_city: ${company_city}
+    company_address_line1: ${company_address_line1}
+    company_postal_code: ${company_postal_code}
+    company_owner_first_name: ${company_owner_first_name}
+    company_owner_last_name: ${company_owner_last_name}
+    company_activity_licence_copy_number: ${company_activity_licence_copy_number}
+    inspector_first_name: ${inspector_first_name}
+    inspector_last_name: ${inspector_last_name}
+    inspector_organisation_id: ${inspector_organisation_id}
+    inspector_unit: ${inspector_unit}
+    inspector_profession: ${inspector_profession}
+  result: changedFieldsResult
+  next: extractResult
+
+extractResult:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
+    changed_fields_result: ${parsed_result.changed_fields}
+  next: check_driver1_personal_code_not_empty_update
+
+check_driver1_personal_code_not_empty_insert:
   switch:
     - condition: ${driver1_personal_code_ee == null || driver1_personal_code_ee == ''}
-      next: skip_pc1_validation
-  next: validate_driver1_personal_code_format
+      next: skip_pc1_validation_insert
+  next: validate_driver1_personal_code_format_insert
 
-skip_pc1_validation:
+skip_pc1_validation_insert:
   assign:
     pc1_result: valid
-  next: check_driver2_personal_code_not_empty
+  next: check_driver2_personal_code_not_empty_insert
 
-validate_driver1_personal_code_format:
+validate_driver1_personal_code_format_insert:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
-  next: check_driver2_personal_code_not_empty
+  next: check_driver2_personal_code_not_empty_insert
 
-check_driver2_personal_code_not_empty:
+check_driver2_personal_code_not_empty_insert:
   switch:
     - condition: ${driver2_personal_code_ee == null || driver2_personal_code_ee == ''}
-      next: skip_pc2_validation
-  next: validate_driver2_personal_code_format
+      next: skip_pc2_validation_insert
+  next: validate_driver2_personal_code_format_insert
 
-skip_pc2_validation:
+skip_pc2_validation_insert:
   assign:
     pc2_result: valid
-  next: check_pc_results
+  next: check_pc_results_insert
 
-validate_driver2_personal_code_format:
+validate_driver2_personal_code_format_insert:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result
-  next: check_pc_results
+  next: check_pc_results_insert
 
-check_pc_results:
+check_pc_results_insert:
   switch:
     - condition: ${pc1_result != 'valid'}
       next: propagate_pc1_error
@@ -210,7 +277,7 @@ insertForm:
     headers:
       type: json
     body:
-      status: ${status}
+      status: saved
       controlDate: ${control_date}
       controlTime: ${control_time}
       controlCountryCode: ${control_country_code}
@@ -251,16 +318,135 @@ insertForm:
       inspectorUnit: ${inspector_unit}
       inspectorProfession: ${inspector_profession}
       created_by: ${created_by}
-  result: insertRes
-  next: extractResponseData
+  result: saveRes
+  next: extractInsertResponseData
 
-extractResponseData:
+extractInsertResponseData:
   assign:
-    compound_form_key: "${insertRes.response.body[0].id || ''}"
-  next: logAuditEvent
+    compound_form_key: "${saveRes.response.body[0].id || ''}"
+  next: logAuditEventInsert
 
+logAuditEventInsert:
+  template: "templates/audit/form/compound-form/log-compound-create-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    compound_form_key: ${compound_form_key}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
 
-logAuditEvent:
+check_driver1_personal_code_not_empty_update:
+  switch:
+    - condition: ${driver1_personal_code_ee == null || driver1_personal_code_ee == ''}
+      next: skip_pc1_validation_update
+  next: validate_driver1_personal_code_format_update
+
+skip_pc1_validation_update:
+  assign:
+    pc1_result: valid
+  next: check_driver2_personal_code_not_empty_update
+
+validate_driver1_personal_code_format_update:
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
+  body:
+    personal_code: ${driver1_personal_code_ee}
+  result: pc1_result
+  next: check_driver2_personal_code_not_empty_update
+
+check_driver2_personal_code_not_empty_update:
+  switch:
+    - condition: ${driver2_personal_code_ee == null || driver2_personal_code_ee == ''}
+      next: skip_pc2_validation_update
+  next: validate_driver2_personal_code_format_update
+
+skip_pc2_validation_update:
+  assign:
+    pc2_result: valid
+  next: check_pc_results_update
+
+validate_driver2_personal_code_format_update:
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
+  body:
+    personal_code: ${driver2_personal_code_ee}
+  result: pc2_result
+  next: check_pc_results_update
+
+check_pc_results_update:
+  switch:
+    - condition: ${pc1_result != 'valid'}
+      next: propagate_pc1_error
+    - condition: ${pc2_result != 'valid'}
+      next: propagate_pc2_error
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      formNumber: ${form_number}
+      status: saved
+      controlDate: ${control_date}
+      controlTime: ${control_time}
+      controlCountryCode: ${control_country_code}
+      county: ${county}
+      city: ${city}
+      road: ${road}
+      roadOther: ${road_other}
+      kilometer: ${kilometer}
+      address: ${address}
+      road_type: ${road_type}
+      roadTaxStatus: ${road_tax_status}
+      roadTaxNotes: ${road_tax_notes}
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ${vehicle_make}
+      vehicleModel: ${vehicle_model}
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ${vehicle_vin}
+      vehicleFirstRegistration: ${vehicle_first_registration}
+      vehicleBodyType: ${vehicle_body_type}
+      vehicleCategoryCode: ${vehicle_category_code}
+      vehicleCategoryOther: ${vehicle_category_other}
+      vehicleMileage: ${vehicle_mileage}
+      trailers: ${trailers}
+      companyRegCode: ${company_reg_code}
+      companyName: ${company_name}
+      companyCountryCode: ${company_country_code}
+      companyCounty: ${company_county}
+      companyCity: ${company_city}
+      companyAddressLine1: ${company_address_line1}
+      companyPostalCode: ${company_postal_code}
+      companyOwnerFirstName: ${company_owner_first_name}
+      companyOwnerLastName: ${company_owner_last_name}
+      companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
+      drivers: ${drivers}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      created_by: ${created_by}
+  result: saveRes
+  next: extractUpdateResponseData
+
+extractUpdateResponseData:
+  assign:
+    compound_form_key: "${saveRes.response.body[0].id || ''}"
+  next: logAuditEventUpdate
+
+logAuditEventUpdate:
   template: "templates/audit/form/compound-form/log-compound-create-update"
   requestType: GET
   headers:
@@ -277,7 +463,7 @@ logAuditEvent:
   next: returnSuccess
 
 returnSuccess:
-  return: ${insertRes.response.body}
+  return: ${saveRes.response.body}
   next: end
 
 propagate_pc1_error:

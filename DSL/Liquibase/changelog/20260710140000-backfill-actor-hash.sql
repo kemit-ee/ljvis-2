@@ -18,10 +18,7 @@ BEGIN
           AND column_name  = 'actor_personal_code'
     ) THEN
         UPDATE audit.audit_event
-        SET actor_personal_code_hash = digest(
-            actor_personal_code || coalesce(current_setting('app.audit_salt', true), ''),
-            'sha256'
-        )
+        SET actor_personal_code_hash = audit.hash_personal_code(actor_personal_code)
         WHERE actor_personal_code IS NOT NULL
           AND actor_personal_code <> ''
           AND actor_personal_code_hash IS NULL;
@@ -32,4 +29,4 @@ END $$;
 ALTER TABLE audit.audit_event
     DROP COLUMN IF EXISTS actor_personal_code;
 
-COMMENT ON COLUMN audit.audit_event.actor_personal_code_hash IS 'SHA-256 hash of the actor personal code salted with app.audit_salt DB parameter: digest(personal_code || current_setting(''app.audit_salt'', true), ''sha256''). Computed by RESQL insert_audit_event at write time. NULL if personal code is unknown. Cleartext personal codes are never stored.';
+COMMENT ON COLUMN audit.audit_event.actor_personal_code_hash IS 'SHA-256 of the actor personal code salted via audit.hash_personal_code(): digest(personal_code || audit_salt, ''sha256''). Salt is stored in audit.config. Computed by RESQL insert_audit_event at write time. NULL if personal code is NULL or empty. Cleartext personal codes are never stored.';

@@ -9,7 +9,6 @@ import {
   Text,
   DateField,
 } from '@tedi-design-system/react/tedi';
-import type { FormikProps } from 'formik';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { ClassifierEntry } from '../../../classifiers/types';
 import type {
@@ -18,6 +17,7 @@ import type {
   PartSummaryStatus,
   PartSeverity,
 } from '../../types';
+import { useTechnicalCheckForm } from './useTechnicalCheckForm';
 import { PartsSummaryTable } from './PartsSummaryTable';
 import { DefectsResultsTable } from './DefectsResultsTable';
 import { DefectSelectionModal } from './DefectSelectionModal';
@@ -25,7 +25,7 @@ import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 
 interface TechnicalCheckFormFieldsProps {
   variant: TechnicalCheckVariant;
-  formik: FormikProps<Record<string, unknown>>;
+  formik: ReturnType<typeof useTechnicalCheckForm>['formik'];
   parts: ClassifierEntry[];
   defectsByPartKey: Map<number, ClassifierEntry[]>;
   euViolations: ClassifierEntry[];

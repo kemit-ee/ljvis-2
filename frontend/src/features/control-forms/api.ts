@@ -67,12 +67,6 @@ export const deleteForeignViolationForm = (
     { id, form_number, old_status },
   );
 
-export const insertCompoundForm = (data: CompoundForm) =>
-  post<CompoundForm[]>(
-    `/v1/control-forms/compound-form/edit/insert`,
-    data as unknown as Record<string, unknown>,
-  );
-
 export const getCompoundForm = (id: number, subFormId?: number) =>
   get<CompoundForm>(
     `/v1/control-forms/compound-form`,
@@ -81,9 +75,9 @@ export const getCompoundForm = (id: number, subFormId?: number) =>
       : { q: String(id) },
   );
 
-export const updateCompoundForm = (data: CompoundForm) =>
+export const saveCompoundForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
-    `/v1/control-forms/compound-form/edit/update`,
+    `/v1/control-forms/compound-form/edit/save`,
     data as unknown as Record<string, unknown>,
   );
 
@@ -140,12 +134,18 @@ export const getCompoundFormSnapshot = (id: string, formKey: string) =>
     formKey,
   });
 
-export const insertDriveRestForm = (
+export const saveDriveRestForm = (scope: 'driver' | 'teammate', data: DriveRestForm) =>
+  post<DriveRestForm[]>(
+    `/v1/control-forms/drive-rest-form/${scope}/edit/save`,
+    data as unknown as Record<string, unknown>,
+  );
+
+export const confirmDriveRestForm = (
   scope: 'driver' | 'teammate',
   data: DriveRestForm,
 ) =>
   post<DriveRestForm[]>(
-    `/v1/control-forms/drive-rest-form/${scope}/edit/insert`,
+    `/v1/control-forms/drive-rest-form/${scope}/edit/confirm`,
     data as unknown as Record<string, unknown>,
   );
 
@@ -153,15 +153,6 @@ export const getDriveRestForm = (scope: 'driver' | 'teammate', id: number) =>
   get<DriveRestForm>(`/v1/control-forms/${scope}-form`, {
     q: String(id),
   });
-
-export const updateDriveRestForm = (
-  scope: 'driver' | 'teammate',
-  data: DriveRestForm,
-) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/drive-rest-form/${scope}/edit/update`,
-    data as unknown as Record<string, unknown>,
-  );
 
 export const getDriveRestFormByCompoundFormKey = (
   scope: 'driver' | 'teammate',
@@ -185,6 +176,17 @@ export const deleteDriveRestForm = (
 ) =>
   post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/delete`,
+    { id, form_number, old_status },
+  );
+
+export const deleteTechnicalCheckForm = (
+  scope: 'vehicle' | 'trailer',
+  id: string,
+  form_number: string,
+  old_status: string,
+) =>
+  post<TechnicalCheckForm[]>(
+    `/v1/control-forms/${scope}-technical/edit/delete`,
     { id, form_number, old_status },
   );
 
@@ -252,7 +254,7 @@ export const listTechnicalCheckFormsByCompoundFormKey = (
   get<TechnicalCheckFormListItem[]>(
     `/v1/control-forms/${technicalCheckPath(variant)}/get-by-compound-form-key`,
     { compoundFormKey: String(compoundFormKey) },
-  );
+  ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const saveTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
@@ -270,17 +272,6 @@ export const confirmTechnicalCheckForm = (
   post<TechnicalCheckForm[]>(
     `/v1/control-forms/${technicalCheckPath(variant)}/edit/confirm`,
     data as unknown as Record<string, unknown>,
-  );
-
-export const deleteTechnicalCheckForm = (
-  variant: TechnicalCheckVariant,
-  id: string,
-  form_number: string,
-  old_status: string,
-) =>
-  post<TechnicalCheckForm[]>(
-    `/v1/control-forms/${technicalCheckPath(variant)}/edit/delete`,
-    { id, form_number, old_status },
   );
 
 export const saveTechnicalCheckFormXroadFields = (
@@ -308,7 +299,7 @@ export const listTransportInterruptionFormsByCompoundFormKey = (
   get<TransportInterruptionFormListItem[]>(
     `/v1/control-forms/transport-interruption/get-by-compound-form-key`,
     { compoundFormKey: String(compoundFormKey) },
-  );
+  ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const getTransportInterruptionFormSnapshot = (
   id: string,
@@ -335,15 +326,6 @@ export const confirmTransportInterruptionForm = (
     data as unknown as Record<string, unknown>,
   );
 
-export const deleteTransportInterruptionForm = (
-  id: string,
-  form_number: string,
-  old_status: string,
-) =>
-  post<TransportInterruptionForm[]>(
-    `/v1/control-forms/transport-interruption/edit/delete`,
-    { id, form_number, old_status },
-  );
 
 export const getAdrForm = (id: string) =>
   get<AdrForm>(`/v1/control-forms/adr-form`, { q: id });
@@ -352,7 +334,7 @@ export const listAdrFormsByCompoundFormKey = (compoundFormKey: number) =>
   get<AdrFormListItem[]>(
     `/v1/control-forms/adr-form/get-by-compound-form-key`,
     { compoundFormKey: String(compoundFormKey) },
-  );
+  ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const getAdrFormSnapshot = (id: string, formKey: string) =>
   get<AdrForm>(`/v1/control-forms/adr-form/get-snapshot`, { id, formKey });
@@ -379,15 +361,23 @@ export const saveAdrFormXroadFields = (data: {
     data,
   );
 
-export const deleteAdrForm = (
-  id: string,
-  form_number: string,
-  old_status: string,
-) =>
+export const deleteTransportInterruptionForm = (id: string, old_status: string) =>
+  post<TransportInterruptionForm[]>(
+    `/v1/control-forms/transport-interruption/edit/delete`,
+    { id, old_status },
+  );
+
+export const deleteAdrForm = (id: string, old_status: string) =>
   post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/delete`,
-    { id, form_number, old_status },
+    { id, old_status },
   );
+
+export const deleteGoodReputeForm = (id: string, old_status: string) =>
+  post<GoodReputeForm[]>(`/v1/control-forms/good-repute/edit/delete`, {
+    id,
+    old_status,
+  });
 
 export const getGoodReputeForm = (id: string) =>
   get<GoodReputeForm>(`/v1/control-forms/good-repute`, { q: id });
@@ -404,11 +394,6 @@ export const confirmGoodReputeForm = (data: GoodReputeForm) =>
     data as unknown as Record<string, unknown>,
   );
 
-export const deleteGoodReputeForm = (id: string, old_status: string) =>
-  post<GoodReputeForm[]>(
-    `/v1/control-forms/good-repute/edit/delete`,
-    { id, old_status },
-  );
 
 export const getGoodReputeFormSnapshot = (id: string, formKey: string) =>
   get<GoodReputeForm[]>(`/v1/control-forms/good-repute/get-snapshot`, {
