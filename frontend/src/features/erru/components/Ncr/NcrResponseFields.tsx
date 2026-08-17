@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Card, ChoiceGroup, Heading, Select, TextField } from '@tedi-design-system/react/tedi';
+import { Card, ChoiceGroup, DateField, Heading, Select, TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { classifierOptions, fieldError, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
+import { toIsoDate } from '../../../../hooks/dateUtils';
+import { classifierOptions, fieldError, parseIsoDate, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
 import type { useNcrResponseForm } from '../../pages/ncr/useNcrResponseForm';
 
 type NcrResponseFormApi = ReturnType<typeof useNcrResponseForm>;
@@ -24,6 +25,7 @@ export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
   const opts = classifierOptions;
   const selected = selectedClassifierOption;
   const pick = pickOptionValue;
+  const dateValue = parseIsoDate;
   const err = (field: string) => fieldError(formik, field);
 
   return (
@@ -132,17 +134,19 @@ export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
                 onChange={(o) => updatePenalty(index, { penaltyTypeImposed: pick(o) })}
               />
             )}
-            <TextField
+            <DateField
               id={`ncr-resp-pi-${index}-start-date`}
               label={t('erru.ncr.form.startDate')}
-              value={p.startDate ?? ''}
-              onChange={(v) => updatePenalty(index, { startDate: v })}
+              selected={dateValue(p.startDate ?? '')}
+              onSelect={(v) => updatePenalty(index, { startDate: toIsoDate(v as Date | undefined) || null })}
+              monthYearSelectType="grid"
             />
-            <TextField
+            <DateField
               id={`ncr-resp-pi-${index}-end-date`}
               label={t('erru.ncr.form.endDate')}
-              value={p.endDate ?? ''}
-              onChange={(v) => updatePenalty(index, { endDate: v })}
+              selected={dateValue(p.endDate ?? '')}
+              onSelect={(v) => updatePenalty(index, { endDate: toIsoDate(v as Date | undefined) || null })}
+              monthYearSelectType="grid"
             />
             <TextField
               id={`ncr-resp-pi-${index}-reason`}

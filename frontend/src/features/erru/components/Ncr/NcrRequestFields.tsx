@@ -1,7 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import { Button, Card, ChoiceGroup, Heading, Select, Text, TextField } from '@tedi-design-system/react/tedi';
+import { Button, Card, ChoiceGroup, DateField, Heading, Select, Text, TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { classifierOptions, fieldError, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
+import { toIsoDate } from '../../../../hooks/dateUtils';
+import {
+  classifierOptions,
+  dateFieldError,
+  fieldError,
+  parseIsoDate,
+  pickOptionValue,
+  selectedClassifierOption,
+} from '../../utils/fieldHelpers';
 import type { useNcrRequestForm } from '../../pages/ncr/useNcrRequestForm';
 
 type NcrRequestFormApi = ReturnType<typeof useNcrRequestForm>;
@@ -37,7 +45,9 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const opts = classifierOptions;
   const selected = selectedClassifierOption;
   const pick = pickOptionValue;
+  const dateValue = parseIsoDate;
   const err = (field: string) => fieldError(formik, field);
+  const dateErr = (field: string) => dateFieldError(formik, field);
 
   return (
     <>
@@ -115,22 +125,24 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
               { id: 'ncr-check-passed-no', value: 'false', label: t('common.no') },
             ]}
           />
-          <TextField
+          <DateField
             id="ncr-check-date"
             label={t('erru.ncr.form.checkDate')}
             required
-            value={formik.values.checkDate}
-            onChange={(v) => formik.setFieldValue('checkDate', v)}
-            {...err('checkDate')}
+            selected={dateValue(formik.values.checkDate)}
+            onSelect={(v) => formik.setFieldValue('checkDate', toIsoDate(v as Date | undefined))}
+            monthYearSelectType="grid"
+            {...dateErr('checkDate')}
           />
 
           {!formik.values.checkPassed && (
             <>
-              <TextField
+              <DateField
                 id="ncr-minor-infringement-date"
                 label={t('erru.ncr.form.minorInfringementDate')}
-                value={formik.values.minorInfringementDate}
-                onChange={(v) => formik.setFieldValue('minorInfringementDate', v)}
+                selected={dateValue(formik.values.minorInfringementDate)}
+                onSelect={(v) => formik.setFieldValue('minorInfringementDate', toIsoDate(v as Date | undefined))}
+                monthYearSelectType="grid"
               />
               <TextField
                 id="ncr-minor-infringement-count"
@@ -177,19 +189,25 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                     value={si.infringementType}
                     onChange={(v) => updateSeriousInfringement(index, { infringementType: v })}
                   />
-                  <TextField
+                  <DateField
                     id={`ncr-si-${index}-date`}
                     label={t('erru.ncr.form.infringementDate')}
                     required
-                    value={si.dateOfInfringement}
-                    onChange={(v) => updateSeriousInfringement(index, { dateOfInfringement: v })}
+                    selected={dateValue(si.dateOfInfringement)}
+                    onSelect={(v) =>
+                      updateSeriousInfringement(index, { dateOfInfringement: toIsoDate(v as Date | undefined) })
+                    }
+                    monthYearSelectType="grid"
                   />
-                  <TextField
+                  <DateField
                     id={`ncr-si-${index}-detection-date`}
                     label={t('erru.ncr.form.detectionCheckDate')}
                     required
-                    value={si.detectionCheckDate}
-                    onChange={(v) => updateSeriousInfringement(index, { detectionCheckDate: v })}
+                    selected={dateValue(si.detectionCheckDate)}
+                    onSelect={(v) =>
+                      updateSeriousInfringement(index, { detectionCheckDate: toIsoDate(v as Date | undefined) })
+                    }
+                    monthYearSelectType="grid"
                   />
                   <ChoiceGroup
                     id={`ncr-si-${index}-appeal`}
@@ -236,16 +254,17 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                           updateSeriousInfringement(index, { penaltiesImposed: items });
                         }}
                       />
-                      <TextField
+                      <DateField
                         id={`ncr-si-${index}-pi-${pIndex}-decision-date`}
                         label={t('erru.ncr.form.finalDecisionDate')}
-                        value={p.finalDecisionDate}
-                        onChange={(v) => {
+                        selected={dateValue(p.finalDecisionDate)}
+                        onSelect={(v) => {
                           const items = si.penaltiesImposed.map((it, j) =>
-                            j === pIndex ? { ...it, finalDecisionDate: v } : it,
+                            j === pIndex ? { ...it, finalDecisionDate: toIsoDate(v as Date | undefined) } : it,
                           );
                           updateSeriousInfringement(index, { penaltiesImposed: items });
                         }}
+                        monthYearSelectType="grid"
                       />
                       <Select
                         id={`ncr-si-${index}-pi-${pIndex}-executed`}
