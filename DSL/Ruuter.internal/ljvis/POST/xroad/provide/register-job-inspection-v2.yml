@@ -1,0 +1,226 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    X-tee pakutav teenus RegisterJobInspection_v2: uuem töökontrolli leping —
+    lisanduvad sõiduki (reg_nr, VIN), juhi (isikukood) ja menetluse (liik, number)
+    väljad. Salvestatakse samasse forms.labour_inspection_form tabelisse.
+    Idempotentsuse võti: 'v2-' || kontrolli_id (et eristada v1 kirjetest).
+    Vt docs/xtee/06-register-job-inspection-v2.md.
+  method: post
+  accepts: json
+  returns: json
+  namespace: xroad
+
+validateXRoadClient:
+  switch:
+    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
+      next: returnMissingHeader
+  next: validateKontrollija
+
+validateKontrollija:
+  switch:
+    - condition: "${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}"
+      next: returnMissingKontrollija
+  next: validateKontrolliId
+
+validateKontrolliId:
+  switch:
+    - condition: "${incoming.body.kontrolli_id == null}"
+      next: returnMissingKontrolliId
+  next: validateKontrolliKp
+
+validateKontrolliKp:
+  switch:
+    - condition: "${incoming.body.kontrolli_kp == null || incoming.body.kontrolli_kp == ''}"
+      next: returnMissingKontrolliKp
+    - condition: "${isNaN(new Date(incoming.body.kontrolli_kp).getTime())}"
+      next: returnInvalidKontrolliKp
+  next: validateTooandja
+
+validateTooandja:
+  switch:
+    - condition: "${incoming.body.tooandja_nimi == null || incoming.body.tooandja_nimi == ''}"
+      next: returnMissingTooandja
+    - condition: "${incoming.body.tooandja_reg_kood == null || incoming.body.tooandja_reg_kood == ''}"
+      next: returnMissingTooandjaRegKood
+  next: validateKontrollimised
+
+validateKontrollimised:
+  switch:
+    - condition: "${incoming.body.kontrollimised == null}"
+      next: returnMissingKontrollimised
+    - condition: "${incoming.body.rikkumised == null}"
+      next: returnMissingRikkumised
+    - condition: "${incoming.body.koostatatud_ettekirjutus == null}"
+      next: returnMissingEttekirjutus
+  next: validateJuhiIsikukood
+
+validateJuhiIsikukood:
+  switch:
+    - condition: "${incoming.body.juhi_isikukood != null && incoming.body.juhi_isikukood != '' && !(/^[1-6][0-9]{10}$/.test(String(incoming.body.juhi_isikukood).trim()))}"
+      next: returnInvalidIsikukood
+  next: validateMenetluseLiik
+
+validateMenetluseLiik:
+  switch:
+    - condition: "${incoming.body.menetluse_liik != null && incoming.body.menetluse_liik != '' && !(['lyhimenetlus','kiirmenetlus','uldmenetlus'].indexOf(incoming.body.menetluse_liik) >= 0)}"
+      next: returnInvalidMenetluseLiik
+  next: assignParams
+
+assignParams:
+  assign:
+    kontrollija: "${incoming.body.kontrollija.trim()}"
+    kontrolli_id: "${'v2-' + String(incoming.body.kontrolli_id)}"
+    kontrolli_kp: "${incoming.body.kontrolli_kp}"
+    tooandja_nimi: "${incoming.body.tooandja_nimi.trim()}"
+    tooandja_reg_kood: "${incoming.body.tooandja_reg_kood.trim()}"
+    soidukite_arv: "${incoming.body.soidukite_arv != null ? String(incoming.body.soidukite_arv) : ''}"
+    koostatatud_ettekirjutus: "${String(incoming.body.koostatatud_ettekirjutus)}"
+    juhi_isikukood: "${(incoming.body.juhi_isikukood || '').trim()}"
+    juhi_eesnimi: "${incoming.body.juhi_eesnimi || ''}"
+    juhi_perekonnanimi: "${incoming.body.juhi_perekonnanimi || ''}"
+    menetluse_number: "${incoming.body.menetluse_number || ''}"
+    inspection_type: "${(incoming.body.kontrollimised && incoming.body.kontrollimised.kontrollitud_soitjate_veol) ? 'passenger' : 'cargo'}"
+    controls_matrix_with_vehicle: >-
+      ${JSON.stringify(Object.assign({}, incoming.body.kontrollimised, {
+        v2_soiduki_reg_nr: incoming.body.soiduki_reg_nr || null,
+        v2_soiduki_vin: incoming.body.soiduki_vin || null,
+        v2_menetluse_liik: incoming.body.menetluse_liik || null
+      }))}
+    rikkumised_json: "${JSON.stringify(incoming.body.rikkumised)}"
+    start_time: "${new Date().getTime()}"
+  next: insertInspection
+
+insertInspection:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-v2-insert"
+    headers:
+      type: json
+    body:
+      externalInspectionId: ${kontrolli_id}
+      inspectorName: ${kontrollija}
+      inspectionDate: ${kontrolli_kp}
+      inspectionType: ${inspection_type}
+      companyName: ${tooandja_nimi}
+      companyRegCode: ${tooandja_reg_kood}
+      vehicleCount: ${soidukite_arv}
+      prescriptionComposed: ${koostatatud_ettekirjutus}
+      controlsMatrix: ${controls_matrix_with_vehicle}
+      violations: ${rikkumised_json}
+      punishedPersonIdCode: ${juhi_isikukood}
+      punishedPersonFirstName: ${juhi_eesnimi}
+      punishedPersonLastName: ${juhi_perekonnanimi}
+      proceedingReferenceNumber: ${menetluse_number}
+      created_by: "xroad"
+  result: insertResult
+  next: checkInsertStatus
+
+checkInsertStatus:
+  switch:
+    - condition: "${insertResult.response.status < 200 || insertResult.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.register-job-inspection-v2"
+      request_xml: "${'kontrolli_id=' + kontrolli_id + '&reg_kood=' + tooandja_reg_kood}"
+      response_xml: "${JSON.stringify(insertResult.response.body || {})}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: logResult
+  next: returnSuccess
+
+returnSuccess:
+  status: 200
+  return: '{"message": "Success"}'
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.register-job-inspection-v2"
+      request_xml: "${'kontrolli_id=' + kontrolli_id}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Resql HTTP ' + insertResult.response.status}"
+  result: logResult
+  next: returnServerError
+
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end
+
+returnMissingHeader:
+  status: 400
+  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
+  next: end
+
+returnMissingKontrollija:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrollija is required"}'
+  next: end
+
+returnMissingKontrolliId:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrolli_id is required"}'
+  next: end
+
+returnMissingKontrolliKp:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrolli_kp is required"}'
+  next: end
+
+returnInvalidKontrolliKp:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "kontrolli_kp must be a valid date"}'
+  next: end
+
+returnMissingTooandja:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "tooandja_nimi is required"}'
+  next: end
+
+returnMissingTooandjaRegKood:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "tooandja_reg_kood is required"}'
+  next: end
+
+returnMissingKontrollimised:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrollimised is required"}'
+  next: end
+
+returnMissingRikkumised:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "rikkumised is required"}'
+  next: end
+
+returnMissingEttekirjutus:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "koostatatud_ettekirjutus is required"}'
+  next: end
+
+returnInvalidIsikukood:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "juhi_isikukood must be 11 digits starting with 1-6"}'
+  next: end
+
+returnInvalidMenetluseLiik:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "menetluse_liik must be one of: lyhimenetlus, kiirmenetlus, uldmenetlus"}'
+  next: end

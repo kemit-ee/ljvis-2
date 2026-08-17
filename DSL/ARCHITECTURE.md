@@ -165,3 +165,46 @@ for f in glob.glob('DSL/Ruuter/**/*.yml', recursive=True):
     except yaml.YAMLError as e: print(f'FAIL {f}: {e}')
 "
 ```
+
+---
+
+## X-tee pakutavad teenused (sisenevad)
+
+LJVIS pakub 6 teenust X-tee kaudu välissüsteemidele. Kõik need lähevad **`Ruuter.internal`** kaudu (port 8089) — nginx ei proxyi seda porti, seega kasutajaliidest kaudu ligipääs puudub.
+
+```text
+Ruuter.internal/
+  ljvis/
+    POST/
+      xroad/
+        provide/
+          isiku-kontroll.yml              — IsikuKontroll v1
+          isiku-ettevote-kontrollid.yml   — IsikuEttevoteKontrollid v1
+          erakorraline-yv-query.yml       — ErakorralineYVquery v1
+          erakorraline-yv-confirm.yml     — ErakorralineYVconfirm v1
+          register-job-inspection.yml     — RegisterJobInspection v1
+          register-job-inspection-v2.yml  — RegisterJobInspection_v2
+
+Resql/
+  ljvis/
+    POST/
+      xroad/
+        provide/
+          isiku-kontroll.sql
+          isiku-ettevote-kontrollid.sql
+          erakorraline-yv-query.sql
+          erakorraline-yv-confirm-update.sql
+          register-job-inspection-insert.sql
+          register-job-inspection-v2-insert.sql
+```
+
+### Ühised reeglid kõigile provide-teenustele
+
+1. **X-Road-Client header** valideeritakse iga YAML-i esimese sammuna — puudumisel 400.
+2. **Sisend valideeritakse** enne DB-päringut — isikukood `/^[1-6][0-9]{10}$/`, kuupäevad parsitavad.
+3. **Resql** kaudu — SQL-i ei kirjutata YAML-i otse.
+4. **Logimine** `xroad.xroad_integration_log` tabelisse — isikukood maskituna.
+5. **Tühi tulemus** on edukas vastus (HTTP 200, tühi array).
+6. **Fault vastuses** ei tohi olla SQL-i ega stack trace'i.
+
+Täielik dokumentatsioon: [`docs/xtee/README.md`](../docs/xtee/README.md)
