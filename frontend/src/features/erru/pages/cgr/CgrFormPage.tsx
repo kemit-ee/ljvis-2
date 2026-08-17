@@ -4,18 +4,20 @@ import { Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/re
 import { useCgrRequestDetail } from './useCgrRequestDetail';
 import { useCgrForm } from './useCgrForm';
 import { CgrRequestFields } from '../../components/Cgr/CgrRequestFields';
-import { isCgrEditable } from '../../types';
+import { CgrMemberStatesTable } from '../../components/Cgr/CgrMemberStatesTable';
+import { isCgrEditable, isCgrSendable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { DetailRow } from '../../components/shared/DetailRow';
 import { PageActions } from '../../../../shared/components/PageActions';
 
 /**
- * CGR request detail. Vorm stage only (LJVIS2-138) — the member-state response block
- * (LJVIS2-139) and the "Saada"/per-country resend actions land once sending is wired up
- * in a later stage. Modes:
- *  - outgoing draft ("Salvestatud") → editable, Save + "Kopeeri päring"
- *  - anything else (sent outgoing, inbound)  → read-only + "Kopeeri päring" (if canEdit)
+ * CGR request detail (LJVIS2-138 vorm + LJVIS2-139 tegevused). Modes:
+ *  - outgoing draft ("Salvestatud")      → editable, Save + "Saada" + "Kopeeri päring"
+ *  - outgoing error ("Viga")             → read-only fields + "Saada uuesti" (full resend)
+ *  - outgoing sent ("Päring saadetud")   → read-only fields + memberStates response block,
+ *                                           each entry with its own "Saada uuesti" (per country)
+ *  - inbound (received/answered)         → always read-only, no send actions
  */
 export function CgrFormPage() {
   const { t } = useTranslation();
@@ -26,8 +28,10 @@ export function CgrFormPage() {
 
   const canRead = hasAnyPermission(['cgr.read']);
   const canEdit = hasAnyPermission(['cgr.create']);
+  const canSend = hasAnyPermission(['cgr.send']);
 
-  const { request, isLoading, notFound, reload } = useCgrRequestDetail(id);
+  const { request, isLoading, notFound, send, isSending, resend, resendingCountry, sendError, reload } =
+    useCgrRequestDetail(id);
   const form = useCgrForm(request, () => reload());
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
@@ -38,6 +42,7 @@ export function CgrFormPage() {
     code === 'ZZ' ? t('erru.cgr.form.cgrToAll') : label('COUNTRY', code);
 
   const editable = isCgrEditable(request) && canEdit;
+  const sendable = isCgrSendable(request) && canSend;
   const isInbound = request.direction === 'incoming';
 
   return (
@@ -59,6 +64,7 @@ export function CgrFormPage() {
             {!editable && ` · ${t('erru.cgr.form.readOnly')}`}
           </Text>
           {request.errorMessage && <Text modifiers="bold">{request.errorMessage}</Text>}
+          {sendError && <Text modifiers="bold">{t('erru.cgr.sendFailed')}</Text>}
         </Card.Content>
       </Card>
 
@@ -73,6 +79,11 @@ export function CgrFormPage() {
             <Button type="submit" disabled={form.formik.isSubmitting}>
               {t('common.save')}
             </Button>
+            {sendable && (
+              <Button onClick={send} disabled={isSending}>
+                {t('erru.cgr.form.send')}
+              </Button>
+            )}
             <Button visualType="secondary" onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}>
               {t('erru.cgr.form.copyRequest')}
             </Button>
@@ -113,10 +124,23 @@ export function CgrFormPage() {
               />
             </Card.Content>
           </Card>
+
+          <CgrMemberStatesTable
+            request={request}
+            canSend={canSend}
+            onResend={resend}
+            resendingCountry={resendingCountry}
+          />
+
           <PageActions>
             <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
               {t('common.back')}
             </Button>
+            {sendable && (
+              <Button onClick={send} disabled={isSending}>
+                {t('erru.cgr.form.resend')}
+              </Button>
+            )}
             {canEdit && (
               <Button onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}>
                 {t('erru.cgr.form.copyRequest')}

@@ -1266,6 +1266,7 @@
     },
     "cgr": {
       "notFound": "CGR request not found",
+      "sendFailed": "Sending the request to ERRU failed. You can try again.",
       "list": {
         "title": "Check good repute requests",
         "newRequest": "New CGR request",
@@ -1305,7 +1306,31 @@
         "searchChoiceHint": "If the certificate details are missing, the transport manager details are required (and vice versa).",
         "copyRequest": "Copy request",
         "readOnly": "read-only",
-        "version": "Version {{version}}"
+        "version": "Version {{version}}",
+        "send": "Send",
+        "resend": "Send again"
+      },
+      "response": {
+        "title": "Response",
+        "statusMessage": "Status message",
+        "respondingAuthority": "Responding competent authority",
+        "searchMethod": "Search method",
+        "address": "Address",
+        "street": "Street",
+        "postCode": "Post code",
+        "city": "City",
+        "country": "Country",
+        "certificateValidity": "Certificate validity",
+        "fitnessStatus": "Fitness status",
+        "unfitStartDate": "Unfit from",
+        "unfitEndDate": "Unfit until",
+        "transportUndertakings": "Managed transport undertakings",
+        "totalManagedUndertakings": "Number of managed undertakings",
+        "totalManagedVehicles": "Number of managed vehicles",
+        "undertakingName": "Transport undertaking name",
+        "licenceNumber": "Licence number",
+        "licenceStatus": "Licence status",
+        "vehicles": "Number of vehicles"
       },
       "validation": {
         "required": "This field is required",
@@ -1315,11 +1340,16 @@
         "invalid_country_code": "Country code must be two letters",
         "max_length_exceeded": "Maximum length exceeded",
         "not_editable": "A sent or inbound request cannot be edited",
-        "draft_not_created": "Saving the draft failed"
+        "draft_not_created": "Saving the draft failed",
+        "not_sendable": "The request cannot be sent in this state",
+        "not_resendable": "The request cannot be re-sent in this state",
+        "send_failed": "Sending failed",
+        "nysiis_unavailable": "The name search service is currently unavailable"
       }
     },
     "rsi": {
       "notFound": "RSI message not found",
+      "sendFailed": "Sending the message to ERRU failed. The message stays in 'error' state — no retry is possible, a new message must be composed.",
       "checkedItems": {
         "part": "Part / assembly",
         "result": "Result",
@@ -1386,7 +1416,8 @@
         "responseStatusCode": "Response status code",
         "responseStatusMessage": "Response message",
         "readOnly": "read-only",
-        "version": "Version {{version}}"
+        "version": "Version {{version}}",
+        "send": "Send"
       },
       "validation": {
         "required": "This field is required",
@@ -1400,7 +1431,10 @@
         "owner_name_required": "The owner's first name and family name must be filled in together",
         "address_incomplete": "Address, city, country and post code must be filled in together",
         "not_editable": "A sent or inbound message cannot be edited",
-        "draft_not_created": "Saving the draft failed"
+        "draft_not_created": "Saving the draft failed",
+        "formHasErrors": "The form contains errors. Please check the fields marked in red.",
+        "not_sendable": "The message cannot be sent in this state",
+        "send_failed": "Sending failed"
       },
       "list": {
         "title": "RSI messages",

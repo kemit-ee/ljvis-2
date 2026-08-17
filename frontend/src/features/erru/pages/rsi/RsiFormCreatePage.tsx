@@ -30,6 +30,9 @@ export function RsiFormCreatePage() {
       <RsiMessageFields form={form} />
 
       {form.formError && <Text modifiers="bold">{form.formError}</Text>}
+      {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
+        <Text modifiers="bold">{t('erru.rsi.validation.formHasErrors')}</Text>
+      )}
 
       <div className="page-actions">
         <div className="page-actions-buttons">

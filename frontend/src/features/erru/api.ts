@@ -5,7 +5,9 @@ import type {
   CgrRequest,
   CgrRequestListItem,
   CgrRequestWrite,
+  CgrResendResult,
   CgrSaveResult,
+  CgrSendResult,
   CtudListFilters,
   CtudRequest,
   CtudRequestListItem,
@@ -23,6 +25,7 @@ import type {
   RsiMessageListItem,
   RsiMessageWrite,
   RsiSaveResult,
+  RsiSendResult,
 } from './types';
 
 /**
@@ -82,12 +85,12 @@ export function sendCtudRequest(id: string): Promise<CtudSaveResult> {
 }
 
 /**
- * CGR (Check Good Repute / Mainepäring) — vorm stage only (LJVIS2-138). Send (-139) and
- * list (-140) land in later stages.
+ * CGR (Check Good Repute / Mainepäring) — LJVIS2-138 (vorm) + LJVIS2-139 (tegevused).
  *
- * URLs are nested one level deeper than CTUD's bare '/v1/erru/ctud' — CGR needs its own
- * guard-isolated directory, since cgr.create and ctud.create can't share a Ruuter guard
- * on the same bare 'erru/' directory. See DSL/Ruuter/ljvis/POST/v1/erru/cgr/draft/.guard.
+ * Draft create/revise URLs are nested one level deeper than CTUD's bare '/v1/erru/ctud'
+ * — CGR needs its own guard-isolated directory, since cgr.create and cgr.send can't
+ * share a Ruuter guard on the same bare 'erru/cgr/' directory. See
+ * DSL/Ruuter/ljvis/POST/v1/erru/cgr/draft/.guard vs DSL/Ruuter/ljvis/POST/v1/erru/cgr/.guard.
  */
 
 /** Get one CGR request — always the latest snapshot. */
@@ -114,6 +117,30 @@ export function updateCgrRequest(
 }
 
 /**
+ * Send a CGR request to its target member state(s). Synchronous: the answer(s) are
+ * stored before this resolves. cgrTo='ZZ' (broadcast) returns one memberStates entry per
+ * member state in a single call; a single-country send returns exactly one entry.
+ * Timeout/NotAvailable are successful outcomes; only a transport failure yields 502 and
+ * moves the request to 'error', from which sending may be retried.
+ */
+export function sendCgrRequest(id: string): Promise<CgrSendResult> {
+  return post<CgrSendResult>('/v1/erru/cgr/send', { id });
+}
+
+/**
+ * Re-send to a single member state of an already-sent (typically broadcast) request —
+ * only the targeted memberStateCode entry is replaced, the rest of memberStates and the
+ * workflowId are left untouched. A transport failure here does NOT move the request to
+ * 'error' (status stays 'sent'), so it can be retried immediately.
+ */
+export function resendCgrRequest(
+  id: string,
+  memberStateCode: string,
+): Promise<CgrResendResult> {
+  return post<CgrResendResult>('/v1/erru/cgr/resend', { id, memberStateCode });
+}
+
+/**
  * List CGR requests (LJVIS2-140) — OUTGOING ONLY per the task specification; direction
  * is not a filter here (contrast with listCtudRequests). All filters are optional and
  * AND-combined, including tmFirstName/tmFamilyName (separate fields, server-side).
@@ -136,8 +163,10 @@ export function listCgrRequests(
 }
 
 /**
- * RSI (RoadSideInspection / Tehnokontrolli teade) — vorm stage only (LJVIS2-147).
- * Eeltäitmine/saatmine (-148) and list (-149) land in later stages.
+ * RSI (RoadSideInspection / Tehnokontrolli teade) — LJVIS2-147 (vorm) + LJVIS2-148 (send).
+ * Eeltäitmine ("Lisa RSI teade" from an existing inspection card) is backend-ready
+ * (POST/v1/erru/rsi/request/build.yml) but has no frontend entry point yet — the
+ * inspection card it would hang off of belongs to a different feature/epic.
  *
  * Unlike CTUD/CGR, there is a SINGLE unified save endpoint for both create and revise
  * (branches internally on presence of id, mirroring the control-forms save pattern) —
@@ -179,6 +208,17 @@ export function saveRsiMessage(
   body: RsiMessageWrite,
 ): Promise<RsiSaveResult> {
   return post<RsiSaveResult>('/v1/erru/rsi/request/save', { id, ...body });
+}
+
+/**
+ * Send an outgoing RSI draft. Asynchronous and single-country: this only returns the
+ * ACK (workflowId) — the actual vehicle-check result (responded/NotFound) arrives later
+ * via a separate inbound-response call, correlated by workflowId. A transport failure
+ * moves the message to 'error', which is terminal for RSI — no retry, a new message
+ * must be composed instead (see send.yml).
+ */
+export function sendRsiMessage(id: string): Promise<RsiSendResult> {
+  return post<RsiSendResult>('/v1/erru/rsi/send', { id });
 }
 
 /**

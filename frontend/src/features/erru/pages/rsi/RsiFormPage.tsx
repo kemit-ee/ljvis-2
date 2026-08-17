@@ -4,17 +4,18 @@ import { Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/re
 import { useRsiMessageDetail } from './useRsiMessageDetail';
 import { useRsiForm } from './useRsiForm';
 import { RsiMessageFields } from '../../components/Rsi/RsiMessageFields';
-import { isRsiEditable } from '../../types';
+import { isRsiEditable, isRsiSendable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { DetailRow } from '../../components/shared/DetailRow';
+import { PageActions } from '../../../../shared/components/PageActions';
 
 /**
- * RSI message detail. Vorm stage only (LJVIS2-147) — send (LJVIS2-148) and the
- * separately-arriving response land once wired up in a later stage. Modes:
- *  - outgoing draft ("Salvestatud") → editable, Save
- *  - anything else (sent/responded outgoing, inbound) → read-only, always
- *    (an inbound message is read-only regardless of permissions, per LJVIS2-147 §4).
+ * RSI message detail (LJVIS2-147 vorm + LJVIS2-148 send). Modes:
+ *  - outgoing draft ("Salvestatud")            → editable, Save + "Saada"
+ *  - outgoing sent/responded, error, inbound   → read-only, always (an inbound message
+ *    is read-only regardless of permissions, per LJVIS2-147 §4). No resend from 'error'
+ *    — unlike CGR, RSI's error is terminal (see send.yml): a new message must be composed.
  */
 export function RsiFormPage() {
   const { t } = useTranslation();
@@ -25,15 +26,18 @@ export function RsiFormPage() {
 
   const canRead = hasAnyPermission(['rsi.read']);
   const canEdit = hasAnyPermission(['rsi.create']);
+  const canSend = hasAnyPermission(['rsi.send']);
 
-  const { message, isLoading, notFound } = useRsiMessageDetail(id);
-  const form = useRsiForm(message, () => navigate(`/erru/rsi/${id}`));
+  const { message, isLoading, notFound, send, isSending, sendError, reload } =
+    useRsiMessageDetail(id);
+  const form = useRsiForm(message, () => reload());
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !message) return <Text>{t('erru.rsi.notFound')}</Text>;
 
   const editable = isRsiEditable(message) && canEdit;
+  const sendable = isRsiSendable(message) && canSend;
   const isInbound = message.direction === 'incoming';
 
   return (
@@ -53,6 +57,7 @@ export function RsiFormPage() {
             {!editable && ` · ${t('erru.rsi.form.readOnly')}`}
           </Text>
           {message.errorMessage && <Text modifiers="bold">{message.errorMessage}</Text>}
+          {sendError && <Text modifiers="bold">{t('erru.rsi.sendFailed')}</Text>}
         </Card.Content>
       </Card>
 
@@ -60,16 +65,22 @@ export function RsiFormPage() {
         <form onSubmit={form.formik.handleSubmit}>
           <RsiMessageFields form={form} />
           {form.formError && <Text modifiers="bold">{form.formError}</Text>}
-          <div className="page-actions">
-            <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/rsi')}>
-                {t('common.back')}
+          {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
+            <Text modifiers="bold">{t('erru.rsi.validation.formHasErrors')}</Text>
+          )}
+          <PageActions>
+            <Button visualType="secondary" onClick={() => navigate('/erru/rsi')}>
+              {t('common.back')}
+            </Button>
+            <Button type="submit" disabled={form.formik.isSubmitting}>
+              {t('common.save')}
+            </Button>
+            {sendable && (
+              <Button onClick={send} disabled={isSending}>
+                {t('erru.rsi.form.send')}
               </Button>
-              <Button type="submit" disabled={form.formik.isSubmitting}>
-                {t('common.save')}
-              </Button>
-            </div>
-          </div>
+            )}
+          </PageActions>
         </form>
       ) : (
         <>
@@ -122,13 +133,11 @@ export function RsiFormPage() {
               )}
             </Card.Content>
           </Card>
-          <div className="page-actions">
-            <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/rsi')}>
-                {t('common.back')}
-              </Button>
-            </div>
-          </div>
+          <PageActions>
+            <Button visualType="secondary" onClick={() => navigate('/erru/rsi')}>
+              {t('common.back')}
+            </Button>
+          </PageActions>
         </>
       )}
     </div>

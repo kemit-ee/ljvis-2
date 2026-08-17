@@ -1366,6 +1366,7 @@
     },
     "cgr": {
       "notFound": "Mainepäringut ei leitud",
+      "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
       "list": {
         "title": "CGR mainepäringud",
         "newRequest": "Uus mainepäring",
@@ -1405,7 +1406,31 @@
         "searchChoiceHint": "Kui puuduvad kutseoskuse tunnistuse andmed, siis veokorraldaja andmed on kohustuslikud (ja vastupidi).",
         "copyRequest": "Kopeeri päring",
         "readOnly": "ainult lugemiseks",
-        "version": "Versioon {{version}}"
+        "version": "Versioon {{version}}",
+        "send": "Saada",
+        "resend": "Saada uuesti"
+      },
+      "response": {
+        "title": "Päringu vastus",
+        "statusMessage": "Staatuse teade",
+        "respondingAuthority": "Vastust esitav pädev asutus",
+        "searchMethod": "Otsingu meetod",
+        "address": "Aadress",
+        "street": "Tänav",
+        "postCode": "Postiindeks",
+        "city": "Linn",
+        "country": "Asukohariik",
+        "certificateValidity": "Kutsetunnistuse kehtivus",
+        "fitnessStatus": "Sobivuse staatus",
+        "unfitStartDate": "Sobimatuse algus",
+        "unfitEndDate": "Sobimatuse lõpp",
+        "transportUndertakings": "Hallatavad veoettevõtjad",
+        "totalManagedUndertakings": "Hallatavate veoettevõtjate arv",
+        "totalManagedVehicles": "Hallatavate sõidukite arv",
+        "undertakingName": "Veoettevõtja nimi",
+        "licenceNumber": "Loa number",
+        "licenceStatus": "Loa staatus",
+        "vehicles": "Sõidukite arv"
       },
       "validation": {
         "required": "Väli on kohustuslik",
@@ -1415,11 +1440,16 @@
         "invalid_country_code": "Riigi kood peab olema kahetäheline",
         "max_length_exceeded": "Välja pikkus on ületatud",
         "not_editable": "Saadetud või sissetulevat päringut ei saa muuta",
-        "draft_not_created": "Mustandi salvestamine ebaõnnestus"
+        "draft_not_created": "Mustandi salvestamine ebaõnnestus",
+        "not_sendable": "Päringut ei saa selles olekus saata",
+        "not_resendable": "Päringut ei saa selles olekus uuesti saata",
+        "send_failed": "Päringu saatmine ebaõnnestus",
+        "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav"
       }
     },
     "rsi": {
       "notFound": "Tehnokontrolli teadet ei leitud",
+      "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
       "checkedItems": {
         "part": "Osa/sõlm",
         "result": "Tulemus",
@@ -1486,7 +1516,8 @@
         "responseStatusCode": "Vastuse staatuskood",
         "responseStatusMessage": "Vastuse teade",
         "readOnly": "ainult lugemiseks",
-        "version": "Versioon {{version}}"
+        "version": "Versioon {{version}}",
+        "send": "Saada"
       },
       "validation": {
         "required": "Väli on kohustuslik",
@@ -1500,7 +1531,10 @@
         "owner_name_required": "Omaniku eesnimi ja perekonnanimi tuleb täita koos",
         "address_incomplete": "Aadress, linn, riik ja sihtnumber tuleb täita koos",
         "not_editable": "Saadetud või sissetulevat teadet ei saa muuta",
-        "draft_not_created": "Mustandi salvestamine ebaõnnestus"
+        "draft_not_created": "Mustandi salvestamine ebaõnnestus",
+        "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju.",
+        "not_sendable": "Teadet ei saa selles olekus saata",
+        "send_failed": "Teate saatmine ebaõnnestus"
       },
       "list": {
         "title": "RSI teated",

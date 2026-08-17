@@ -365,6 +365,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             value={formik.values.inspectionPassed}
             onChange={(v) => formik.setFieldValue('inspectionPassed', v)}
             items={yesNo}
+            {...err('inspectionPassed')}
           />
           <ChoiceGroup
             id="rsi-pti-requested"
@@ -376,6 +377,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             value={formik.values.ptiRequested}
             onChange={(v) => formik.setFieldValue('ptiRequested', v)}
             items={yesNo}
+            {...err('ptiRequested')}
           />
           <ChoiceGroup
             id="rsi-vehicle-prohibition"
@@ -387,6 +389,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             value={formik.values.vehicleProhibitionOrRestriction}
             onChange={(v) => formik.setFieldValue('vehicleProhibitionOrRestriction', v)}
             items={yesNo}
+            {...err('vehicleProhibitionOrRestriction')}
           />
         </Card.Content>
       </Card>

@@ -85,7 +85,7 @@ SELECT
     nextval('users.seq_user_group_key'),
     'Super Admin Group',
     ARRAY(SELECT id FROM users.organisation WHERE code IN ('PPA','TI','MTA') ORDER BY id),
-    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.read','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','compound_form.read','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','adr_form.write','adr_form.read','transport_interruption_form.write','transport_interruption_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister','ctud.read','ctud.create','ctud.send','cgr.read','cgr.create','cgr.send','rsi.read','rsi.create','rsi.send','ncr.read','ncr.create','ncr.respond','ncr.send']::TEXT[],
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.read','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','compound_form.read','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','adr_form.write','adr_form.read','transport_interruption_form.write','transport_interruption_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister','ctud.read','ctud.create','ctud.send','cgr.read','cgr.create','cgr.send','rsi.read','rsi.create','rsi.send','ncr.read','ncr.create','ncr.respond','ncr.send','ncr.list']::TEXT[],
     'ljvis2'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Super Admin Group');
 
@@ -95,7 +95,7 @@ SELECT
     nextval('users.seq_user_group_key'),
     'Local Admin Group',
     ARRAY(SELECT id FROM users.organisation WHERE code = 'PPA' ORDER BY id),
-    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','ctud.read','ctud.create','cgr.read','cgr.create','rsi.read','rsi.create','ncr.read','ncr.create','ncr.respond']::TEXT[],
+    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','ctud.read','ctud.create','cgr.read','cgr.create','rsi.read','rsi.create','ncr.read','ncr.create','ncr.respond','ncr.list']::TEXT[],
     'ljvis2'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Local Admin Group');
 

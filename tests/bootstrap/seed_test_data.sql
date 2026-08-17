@@ -99,7 +99,7 @@ SELECT
     'Local Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation WHERE code = 'JUM'),
-    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','ctud.read','ctud.create','cgr.read','cgr.create','rsi.read','rsi.create','ncr.read','ncr.create','ncr.list']::TEXT[],
+    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','ctud.read','ctud.create','cgr.read','cgr.create','rsi.read','rsi.create','ncr.read','ncr.create','ncr.respond','ncr.list']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Local Admin Group');
 

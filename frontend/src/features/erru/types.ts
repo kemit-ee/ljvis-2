@@ -262,9 +262,28 @@ export interface CgrSaveResult {
   status: CgrStatus;
 }
 
+/** Response of POST /v1/erru/cgr/send — the synchronous member-state answer(s). */
+export interface CgrSendResult {
+  id: string;
+  status: CgrStatus;
+  businessCaseId: string;
+  workflowId: string;
+  memberStates: CgrMemberState[];
+}
+
+/** Response of POST /v1/erru/cgr/resend — only updatedMemberState changed. */
+export interface CgrResendResult extends CgrSendResult {
+  updatedMemberState: string;
+}
+
 /** A CGR draft is editable only while it is an outgoing draft, same rule as CTUD. */
 export function isCgrEditable(r: Pick<CgrRequest, 'status' | 'direction'>): boolean {
   return r.direction === 'outgoing' && r.status === 'initiated';
+}
+
+/** Sending is allowed from a draft and, deliberately, after a failed send (see CTUD). */
+export function isCgrSendable(r: Pick<CgrRequest, 'status' | 'direction'>): boolean {
+  return r.direction === 'outgoing' && (r.status === 'initiated' || r.status === 'error');
 }
 
 /**
@@ -434,6 +453,24 @@ export interface RsiSaveResult {
 /** An RSI draft is editable only while it is an outgoing draft, same rule as CTUD/CGR. */
 export function isRsiEditable(r: Pick<RsiMessage, 'status' | 'direction'>): boolean {
   return r.direction === 'outgoing' && r.status === 'initiated';
+}
+
+/**
+ * Sending is allowed only from an outgoing draft. Unlike CGR/CTUD, RSI's 'error' is
+ * terminal — a failed send is never retried, a new message must be composed instead
+ * (see send.yml description).
+ */
+export function isRsiSendable(r: Pick<RsiMessage, 'status' | 'direction'>): boolean {
+  return r.direction === 'outgoing' && r.status === 'initiated';
+}
+
+/** Response of POST /v1/erru/rsi/send. */
+export interface RsiSendResult {
+  id: string;
+  status: RsiStatus;
+  businessCaseId: string;
+  workflowId: string;
+  rsiTo: string;
 }
 
 /**
