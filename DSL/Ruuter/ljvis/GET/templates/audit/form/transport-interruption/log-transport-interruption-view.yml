@@ -65,7 +65,7 @@ logAuditEvent:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    event_type: "sp_driver|sp_teammate}.view"
+    event_type: "control_form.transport_interruption.view"
     event_category: "control_form"
     actor_name: ${incoming.body.actor_name}
     actor_personal_code: ${incoming.body.actor_personal_code}
