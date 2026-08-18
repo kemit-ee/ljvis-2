@@ -13,7 +13,7 @@ declaration:
         description: "Personal code to check"
       - field: id
         type: string
-        description: "User id to exclude from check (optional, for update conflict detection)"
+        description: "User id to check (optional)"
 
 extractRequestData:
   assign:
