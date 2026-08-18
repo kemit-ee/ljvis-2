@@ -1573,6 +1573,8 @@
         "ncrFrom": "Teate esitav liikmesriik",
         "ncrTo": "Sihtliikmesriik",
         "originatingAuthority": "Teate esitav pädev asutus",
+        "requestSource": "Päringu allikas",
+        "requestPurpose": "Päringu eesmärk",
         "transportUndertakingName": "Veoettevõtja nimi",
         "communityLicenceNumber": "Ühenduse tegevusloa number",
         "vehicleRegistrationNumber": "Sõiduki registreerimisnumber",

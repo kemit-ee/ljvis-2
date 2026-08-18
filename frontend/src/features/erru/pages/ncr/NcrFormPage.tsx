@@ -17,6 +17,7 @@ import {
 import { sendNcrRequest, sendNcrResponse } from '../../api';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { useOrganisations } from '../../../organisations/hooks';
 
 /**
  * NCR case detail (LJVIS2-63 §4 "NCR sõnumi vorm" + LJVIS2-64 §4.2/4.5 send actions).
@@ -37,6 +38,9 @@ export function NcrFormPage() {
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
   const { label } = useClassifierLabel();
+  const { organisations } = useOrganisations();
+  const authorityLabel = (code: string | null) =>
+    code ? (organisations.find((o) => o.code === code)?.name ?? code) : '—';
   const [sendError, setSendError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
@@ -179,7 +183,9 @@ export function NcrFormPage() {
               <Heading element="h2">{t('erru.ncr.form.headerBlock')}</Heading>
               <DetailRow label={t('erru.ncr.form.ncrFrom')} value={label('COUNTRY', current.ncrFrom)} />
               <DetailRow label={t('erru.ncr.form.ncrTo')} value={label('COUNTRY', current.ncrTo)} />
-              <DetailRow label={t('erru.ncr.form.originatingAuthority')} value={current.originatingAuthority} />
+              <DetailRow label={t('erru.ncr.form.originatingAuthority')} value={authorityLabel(current.originatingAuthority)} />
+              <DetailRow label={t('erru.ncr.form.requestSource')} value={label('NCR_REQUEST_SOURCE', current.requestSource)} />
+              <DetailRow label={t('erru.ncr.form.requestPurpose')} value={label('NCR_REQUEST_PURPOSE', current.requestPurpose)} />
               <DetailRow label={t('erru.ncr.form.transportUndertakingName')} value={current.transportUndertakingName} />
               <DetailRow label={t('erru.ncr.form.communityLicenceNumber')} value={current.communityLicenceNumber} />
               <DetailRow label={t('erru.ncr.form.vehicleRegistrationNumber')} value={current.vehicleRegistrationNumber} />

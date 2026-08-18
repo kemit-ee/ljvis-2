@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button, Card, ChoiceGroup, DateField, Heading, Select, Text, TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useOrganisations } from '../../../organisations/hooks';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import {
   classifierOptions,
@@ -25,8 +26,10 @@ type NcrRequestFormApi = ReturnType<typeof useNcrRequestForm>;
 export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
+  const { organisations } = useOrganisations();
   const {
     formik,
+    setCheckPassed,
     addSeriousInfringement,
     removeSeriousInfringement,
     updateSeriousInfringement,
@@ -37,6 +40,8 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   } = form;
 
   const countries = getByCode('COUNTRY');
+  const requestSources = getByCode('NCR_REQUEST_SOURCE');
+  const requestPurposes = getByCode('NCR_REQUEST_PURPOSE');
   const infringementCategories = getByCode('NCR_INFRINGEMENT_CATEGORY');
   const penaltyTypeImposedReq = getByCode('NCR_PENALTY_TYPE_IMPOSED_REQ');
   const penaltyTypeRequested = getByCode('NCR_PENALTY_TYPE_REQUESTED');
@@ -55,12 +60,13 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
         <Card.Content>
           <Heading element="h2">{t('erru.ncr.form.headerBlock')}</Heading>
           <TextField id="ncr-from" label={t('erru.ncr.form.ncrFrom')} value="EE" disabled onChange={() => undefined} />
-          <TextField
+          <Select
             id="ncr-originating-authority"
             label={t('erru.ncr.form.originatingAuthority')}
             required
-            value={formik.values.originatingAuthority}
-            onChange={(v) => formik.setFieldValue('originatingAuthority', v)}
+            options={opts(organisations)}
+            value={selected(organisations, formik.values.originatingAuthority)}
+            onChange={(o) => formik.setFieldValue('originatingAuthority', pick(o))}
             {...err('originatingAuthority')}
           />
           <Select
@@ -71,6 +77,24 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
             value={selected(countries, formik.values.ncrTo)}
             onChange={(o) => formik.setFieldValue('ncrTo', pick(o))}
             {...err('ncrTo')}
+          />
+          <Select
+            id="ncr-request-source"
+            label={t('erru.ncr.form.requestSource')}
+            required
+            options={opts(requestSources)}
+            value={selected(requestSources, formik.values.requestSource)}
+            onChange={(o) => formik.setFieldValue('requestSource', pick(o))}
+            {...err('requestSource')}
+          />
+          <Select
+            id="ncr-request-purpose"
+            label={t('erru.ncr.form.requestPurpose')}
+            required
+            options={opts(requestPurposes)}
+            value={selected(requestPurposes, formik.values.requestPurpose)}
+            onChange={(o) => formik.setFieldValue('requestPurpose', pick(o))}
+            {...err('requestPurpose')}
           />
           <TextField
             id="ncr-transport-undertaking-name"
@@ -119,7 +143,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
             inputType="radio"
             direction="row"
             value={formik.values.checkPassed ? 'true' : 'false'}
-            onChange={(v) => formik.setFieldValue('checkPassed', v === 'true')}
+            onChange={(v) => setCheckPassed(v === 'true')}
             items={[
               { id: 'ncr-check-passed-yes', value: 'true', label: t('common.yes') },
               { id: 'ncr-check-passed-no', value: 'false', label: t('common.no') },

@@ -32,6 +32,8 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
 
   const validationSchema = Yup.object({
     originatingAuthority: Yup.string().required(required),
+    requestSource: Yup.string().required(required),
+    requestPurpose: Yup.string().required(required),
     ncrTo: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
     transportUndertakingName: Yup.string().required(required),
     communityLicenceNumber: Yup.string().required(required),
@@ -44,8 +46,8 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
     enableReinitialize: true,
     initialValues: {
       originatingAuthority: message?.originatingAuthority ?? '',
-      requestSource: message?.requestSource ?? 'RSI',
-      requestPurpose: message?.requestPurpose ?? 'Control',
+      requestSource: message?.requestSource ?? '',
+      requestPurpose: message?.requestPurpose ?? '',
       ncrTo: message?.ncrTo ?? '',
       transportUndertakingName: message?.transportUndertakingName ?? '',
       communityLicenceNumber: message?.communityLicenceNumber ?? '',
@@ -96,6 +98,24 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
       }
     },
   });
+
+  // "Edukalt läbitud kontroll" = Jah hides AND clears minorInfringementDate/Count and
+  // seriousInfringements (LJVIS2-63 §4 "Kontrolli kokkuvõte": "Valikul 'Jah' need väljad
+  // ja plokk peidetakse ning tühjendatakse") — switching to Ei never had stale data to
+  // begin with (fields start empty), so only the Jah direction needs to clear anything.
+  const setCheckPassed = (passed: boolean) => {
+    if (passed) {
+      formik.setValues({
+        ...formik.values,
+        checkPassed: true,
+        minorInfringementDate: '',
+        minorInfringementCount: '',
+        seriousInfringements: [],
+      });
+    } else {
+      formik.setFieldValue('checkPassed', false);
+    }
+  };
 
   const addSeriousInfringement = () => {
     formik.setFieldValue('seriousInfringements', [
@@ -172,6 +192,7 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
   return {
     formik,
     formError,
+    setCheckPassed,
     addSeriousInfringement,
     removeSeriousInfringement,
     updateSeriousInfringement,
