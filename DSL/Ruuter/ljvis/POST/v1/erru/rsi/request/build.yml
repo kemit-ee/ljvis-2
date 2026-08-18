@@ -26,15 +26,6 @@ declaration:
       - field: vehicleProhibitionOrRestriction
         type: string
 
-getActorFromTim:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
-  result: timRes
-  next: extractRequestData
-
 extractRequestData:
   assign:
     form_id: "${('' + (incoming.body.vehicleTechnicalFormId || '')).trim()}"
@@ -46,8 +37,8 @@ extractRequestData:
     inspection_authority_or_name: "${('' + (incoming.body.inspectionAuthorityOrName || '')).trim()}"
     pti_requested: "${('' + (incoming.body.ptiRequested || 'false')).trim()}"
     vehicle_prohibition: "${('' + (incoming.body.vehicleProhibitionOrRestriction || 'false')).trim()}"
-    actor_personal_code: "${timRes.response.body.personalCode || ''}"
-    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: checkFormIdPresent
 
 checkFormIdPresent:

@@ -58,7 +58,24 @@ services:
 
   # ── Test data bootstrap (plain psql — NOT Liquibase) ──────────────────────
   # Runs once after migrations, seeds the minimum data required for e2e tests:
-  # one organisation, one super-admin user group, and one admin user.
+  # one organisation, one super-admin user group, and one admin user. Then
+  # applies two specific NCR business fixtures from DSL/Liquibase/test/ (those
+  # changesets are marked `ignore:true` so `liquibase update` never touches
+  # them; per .ai/coding_guidelines_and_lessons_learned.md they are plain SQL
+  # meant to be run exactly like seed_test_data.sql). They seed data for flows
+  # that have no inbound API yet (Stage 11 does not exist), so there is no
+  # other way to create them (LJVIS2-63 Newman tests).
+  #
+  # Deliberately NOT every file in DSL/Liquibase/test/ — most others are
+  # either (a) legacy pre-"v2 denormalized snapshot" seeds that duplicate /
+  # conflict with tests/bootstrap/seed_test_data.sql (extra orgs, extra
+  # permissions, and a user account for the personal code that organisations
+  # .collection.json / permissions.collection.json deliberately rely on
+  # staying UNREGISTERED for their 403 tests), or (b) dev-only placeholder
+  # classifiers not present in the production changelog, which would break
+  # classifiers.collection.json's exact `total` assertions. Add another file
+  # here only after confirming it doesn't change any other collection's
+  # exact-count assertions.
   bootstrap:
     image: postgres:17
     restart: "no"
@@ -69,7 +86,15 @@ services:
       - PGPASSWORD=01234
     volumes:
       - ./tests/bootstrap/seed_test_data.sql:/seed.sql:ro
-    command: ["psql", "-h", "database", "-U", "ljvis", "-d", "ljvis_db", "-f", "/seed.sql"]
+      - ./DSL/Liquibase/test:/liquibase-test:ro
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        psql -h database -U ljvis -d ljvis_db -f /seed.sql
+        psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260818100001-erru-ncr-inbound-fixture-seed.sql
+        psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260818100002-erru-ncr-sp-form-fixture-seed.sql
     networks:
       - ljvis-ci
 

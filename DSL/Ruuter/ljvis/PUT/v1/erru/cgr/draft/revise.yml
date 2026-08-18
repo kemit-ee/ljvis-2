@@ -32,15 +32,6 @@ declaration:
       - field: certificateIssueCountry
         type: string
 
-getActorFromTim:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
-  result: timRes
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${(incoming.body.id || '').trim()}"
@@ -55,8 +46,8 @@ extractRequestData:
     certificate_number: "${(incoming.body.certificateNumber || '').trim().toUpperCase()}"
     certificate_issue_date: "${(incoming.body.certificateIssueDate || '').trim()}"
     certificate_issue_country: "${(incoming.body.certificateIssueCountry || '').trim().toUpperCase()}"
-    actor_personal_code: "${timRes.response.body.personalCode || ''}"
-    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: checkIdPresent
 
 checkIdPresent:

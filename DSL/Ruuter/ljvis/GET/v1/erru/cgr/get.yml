@@ -11,20 +11,11 @@ declaration:
         type: string
         description: "CGR request logical key (cgr_request_key)"
 
-getActorFromTim:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
-  result: timRes
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.params.q || ''}"
-    actor_personal_code: "${timRes.response.body.personalCode || ''}"
-    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: checkIdPresent
 
 checkIdPresent:
