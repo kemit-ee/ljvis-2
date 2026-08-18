@@ -1,0 +1,663 @@
+{
+  "info": {
+    "name": "LJVIS — X-tee provide teenused (read-only)",
+    "_postman_id": "ljvis-xroad-provide-query-v1",
+    "description": "Funktsionaaltestid X-tee pakutavatele read-only teenustele ruuter-internal pordil 8089. Katab kolme teenust: IsikuKontroll, IsikuEttevoteKontrollid ja ErakorralineYVquery. Testid kontrollivad X-Road-Client päise valideerimist, sisendparameetrite valideerimist ning eduka päringu vastuse struktuuri. Autentimist (cookie) ei nõuta — X-Road-Client header on ainus autentimine.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "xroad_internal_url",
+      "value": "http://localhost:8089"
+    }
+  ],
+  "item": [
+    {
+      "name": "IsikuKontroll",
+      "item": [
+        {
+          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-kontroll",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-kontroll"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"39001010001\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Puuduv isikukood → 400 MISSING_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-kontroll",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-kontroll"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vale isikukood formaat → 400 INVALID_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-kontroll",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-kontroll"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is INVALID_PARAMETER', () => pm.expect(body.error).to.eql('INVALID_PARAMETER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Kehtiv päring → 200, vastus sisaldab kontrollid.item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-kontroll",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-kontroll"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"39001010001\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('vastus sisaldab kontrollid', () => pm.expect(body).to.have.property('kontrollid'));",
+                  "pm.test('kontrollid.item on massiiv', () => pm.expect(body.kontrollid.item).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tundmatu isikukood → 200, item: []",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "EE/GOV/70000310/ljvis-test"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-kontroll",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "isiku-kontroll"]
+            },
+            "body": {"mode": "raw", "raw": "{\"isikukood\": \"19001010001\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+            "var raw = pm.response.json();",
+            "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+            "pm.test('kontrollid.item on tühi massiiv', () => pm.expect(body.kontrollid.item).to.be.an('array').that.is.empty);"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "IsikuEttevoteKontrollid",
+      "item": [
+        {
+          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-ettevote-kontrollid",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-ettevote-kontrollid"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"39001010001\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Puuduv isikukood → 400 MISSING_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-ettevote-kontrollid",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-ettevote-kontrollid"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vale isikukood formaat → 400 INVALID_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-ettevote-kontrollid",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-ettevote-kontrollid"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"123\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is INVALID_PARAMETER', () => pm.expect(body.error).to.eql('INVALID_PARAMETER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Kehtiv päring → 200, vastus sisaldab kontrollid.item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-ettevote-kontrollid",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-ettevote-kontrollid"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"39001010001\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('vastus sisaldab kontrollid', () => pm.expect(body).to.have.property('kontrollid'));",
+                  "pm.test('kontrollid.item on massiiv', () => pm.expect(body.kontrollid.item).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seotud ettevõteteta isikukood → 200, item: []",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "EE/GOV/70000310/ljvis-test"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-ettevote-kontrollid",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "isiku-ettevote-kontrollid"]
+            },
+            "body": {"mode": "raw", "raw": "{\"isikukood\": \"19001010001\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+            "var raw = pm.response.json();",
+            "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+            "pm.test('kontrollid.item on tühi massiiv', () => pm.expect(body.kontrollid.item).to.be.an('array').that.is.empty);"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVquery",
+      "item": [
+        {
+          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-query",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "erakorraline-yv-query"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"alates\": \"2026-01-01\", \"kuni\": \"2026-12-31\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Puuduv alates → 400 MISSING_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-query",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "erakorraline-yv-query"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"kuni\": \"2026-12-31\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Puuduv kuni → 400 MISSING_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-query",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "erakorraline-yv-query"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"alates\": \"2026-01-01\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "alates > kuni → 400 INVALID_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-query",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "erakorraline-yv-query"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"alates\": \"2026-12-31\", \"kuni\": \"2026-01-01\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var body = pm.response.json();",
+                  "pm.test('error is INVALID_PARAMETER', () => pm.expect(body.error).to.eql('INVALID_PARAMETER'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tühi periood (tuleviku kuupäev) → 200, item: []",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "EE/GOV/70000310/ljvis-test"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-query",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "erakorraline-yv-query"]
+            },
+            "body": {"mode": "raw", "raw": "{\"alates\": \"2099-01-01\", \"kuni\": \"2099-01-31\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+            "var raw = pm.response.json();",
+            "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+            "pm.test('targeted_for_inspection.item on tühi massiiv', () => pm.expect(body.targeted_for_inspection.item).to.be.an('array').that.is.empty);"
+          ]}}]
+        },
+        {
+          "name": "Kehtiv päring → 200, vastus sisaldab targeted_for_inspection.item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-query",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "erakorraline-yv-query"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"alates\": \"2026-01-01\", \"kuni\": \"2026-12-31\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('vastus sisaldab targeted_for_inspection', () => pm.expect(body).to.have.property('targeted_for_inspection'));",
+                  "pm.test('targeted_for_inspection.item on massiiv', () => pm.expect(body.targeted_for_inspection.item).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

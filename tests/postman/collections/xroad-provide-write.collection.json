@@ -1,0 +1,422 @@
+{
+  "info": {
+    "name": "LJVIS — X-tee provide teenused (write)",
+    "_postman_id": "ljvis-xroad-provide-write-v1",
+    "description": "Funktsionaaltestid X-tee pakutavatele write-teenustele ruuter-internal pordil 8089. Katab: ErakorralineYVconfirm, RegisterJobInspection v1 ja v2.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "xroad_internal_url", "value": "http://localhost:8089"},
+    {"key": "xroad_client", "value": "EE/GOV/70000310/ljvis-test"}
+  ],
+  "item": [
+    {
+      "name": "ErakorralineYVconfirm",
+      "item": [
+        {
+          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-confirm",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "erakorraline-yv-confirm"]
+            },
+            "body": {"mode": "raw", "raw": "{\"confirmed\": {\"item\": [{\"inspection_id\": \"1\", \"code\": \"INSPECTION_DATE\", \"value\": \"2026-07-01\"}]}}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is MISSING_HEADER', () => pm.expect(pm.response.json().error).to.eql('MISSING_HEADER'));"
+          ]}}]
+        },
+        {
+          "name": "Tühi confirmed.item massiiv → 400 MISSING_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-confirm",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "erakorraline-yv-confirm"]
+            },
+            "body": {"mode": "raw", "raw": "{\"confirmed\": {\"item\": []}}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is MISSING_PARAMETER', () => pm.expect(pm.response.json().error).to.eql('MISSING_PARAMETER'));"
+          ]}}]
+        },
+        {
+          "name": "Puuduv inspection_id elemendis → 400 MISSING_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-confirm",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "erakorraline-yv-confirm"]
+            },
+            "body": {"mode": "raw", "raw": "{\"confirmed\": {\"item\": [{\"code\": \"INSPECTION_DATE\", \"value\": \"2026-07-01\"}]}}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is MISSING_PARAMETER', () => pm.expect(pm.response.json().error).to.eql('MISSING_PARAMETER'));"
+          ]}}]
+        },
+        {
+          "name": "Lubamatu code väärtus → 400 INVALID_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-confirm",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "erakorraline-yv-confirm"]
+            },
+            "body": {"mode": "raw", "raw": "{\"confirmed\": {\"item\": [{\"inspection_id\": \"1\", \"code\": \"INVALID_CODE\", \"value\": \"test\"}]}}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is INVALID_PARAMETER', () => pm.expect(pm.response.json().error).to.eql('INVALID_PARAMETER'));"
+          ]}}]
+        },
+        {
+          "name": "Tundmatu inspection_id → 404 NOT_FOUND",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-confirm",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "erakorraline-yv-confirm"]
+            },
+            "body": {"mode": "raw", "raw": "{\"confirmed\": {\"item\": [{\"inspection_id\": \"999999999\", \"code\": \"INSPECTION_DATE\", \"value\": \"2026-07-01\"}]}}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 404', () => pm.response.to.have.status(404));",
+            "pm.test('error is NOT_FOUND', () => pm.expect(pm.response.json().error).to.eql('NOT_FOUND'));"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection v1",
+      "item": [
+        {
+          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"Test\", \"kontrolli_id\": \"T-001\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is MISSING_HEADER', () => pm.expect(pm.response.json().error).to.eql('MISSING_HEADER'));"
+          ]}}]
+        },
+        {
+          "name": "Puuduv kontrollija → 400 MISSING_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrolli_id\": \"T-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ Test\", \"tooandja_reg_kood\": \"12345678\", \"kontrollimised\": {}, \"rikkumised\": {}, \"koostatatud_ettekirjutus\": \"false\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is MISSING_PARAMETER', () => pm.expect(pm.response.json().error).to.eql('MISSING_PARAMETER'));"
+          ]}}]
+        },
+        {
+          "name": "Vale kontrolli_kp formaat → 400 INVALID_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"Test Inspektor\", \"kontrolli_id\": \"T-001\", \"kontrolli_kp\": \"EI_OLE_KUUPAEV\", \"tooandja_nimi\": \"OÜ Test\", \"tooandja_reg_kood\": \"12345678\", \"kontrollimised\": {}, \"rikkumised\": {}, \"koostatatud_ettekirjutus\": \"false\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is INVALID_PARAMETER', () => pm.expect(pm.response.json().error).to.eql('INVALID_PARAMETER'));"
+          ]}}]
+        },
+        {
+          "name": "Puuduv kontrollimised → 400 MISSING_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"Test Inspektor\", \"kontrolli_id\": \"T-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ Test\", \"tooandja_reg_kood\": \"12345678\", \"rikkumised\": {}, \"koostatatud_ettekirjutus\": \"false\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is MISSING_PARAMETER', () => pm.expect(pm.response.json().error).to.eql('MISSING_PARAMETER'));"
+          ]}}]
+        },
+        {
+          "name": "[Setup] Unikaalne kontrolli_id genereerimine",
+          "event": [{"listen": "prerequest", "script": {"exec": [
+            "pm.collectionVariables.set('v1_kontrolli_id', 'CI-V1-' + Date.now());"
+          ]}}],
+          "request": {"method": "GET", "url": {"raw": "about:blank", "host": ["about:blank"]}}
+        },
+        {
+          "name": "Kõik kohustuslikud väljad → 200 Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"{{v1_kontrolli_id}}\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"3\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": true, \"kontrollitud_kaubaveol\": false}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+            "var raw = pm.response.json();",
+            "var body = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+            "pm.test('message is Success', () => pm.expect(body.message).to.eql('Success'));"
+          ]}}]
+        },
+        {
+          "name": "Korduspäring sama kontrolli_id-ga → 200 idempotentne",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"{{v1_kontrolli_id}}\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"3\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": true, \"kontrollitud_kaubaveol\": false}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200 (idempotentne)', () => pm.response.to.have.status(200));",
+            "var raw = pm.response.json();",
+            "var body = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+            "pm.test('message is Success', () => pm.expect(body.message).to.eql('Success'));"
+          ]}}]
+        },
+        {
+          "name": "inspection_type tuletamine: soitjate_veol=true → passenger",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"CI-PASS-TYPE-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": true, \"kontrollitud_kaubaveol\": false}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+          ]}}]
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection v2",
+      "item": [
+        {
+          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v2",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection-v2"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"Test\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is MISSING_HEADER', () => pm.expect(pm.response.json().error).to.eql('MISSING_HEADER'));"
+          ]}}]
+        },
+        {
+          "name": "Vale juhi_isikukood formaat → 400 INVALID_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v2",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection-v2"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"V2-TEST-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\", \"juhi_isikukood\": \"VALE\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is INVALID_PARAMETER', () => pm.expect(pm.response.json().error).to.eql('INVALID_PARAMETER'));"
+          ]}}]
+        },
+        {
+          "name": "Vale menetluse_liik → 400 INVALID_PARAMETER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v2",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection-v2"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"V2-TEST-002\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\", \"menetluse_liik\": \"vale_liik\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+            "pm.test('error is INVALID_PARAMETER', () => pm.expect(pm.response.json().error).to.eql('INVALID_PARAMETER'));"
+          ]}}]
+        },
+        {
+          "name": "[Setup] Unikaalne kontrolli_id genereerimine",
+          "event": [{"listen": "prerequest", "script": {"exec": [
+            "pm.collectionVariables.set('v2_kontrolli_id', 'CI-V2-' + Date.now());"
+          ]}}],
+          "request": {"method": "GET", "url": {"raw": "about:blank", "host": ["about:blank"]}}
+        },
+        {
+          "name": "Ainult v1 kohustuslikud väljad (v2 puuduvad) → 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v2",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection-v2"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"{{v2_kontrolli_id}}\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": false, \"kontrollitud_kaubaveol\": true}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+            "var raw = pm.response.json();",
+            "var body = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+            "pm.test('message is Success', () => pm.expect(body.message).to.eql('Success'));"
+          ]}}]
+        },
+        {
+          "name": "Kõik v2 väljad → 200 Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v2",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection-v2"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"CI-V2-FULL-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"2\", \"koostatatud_ettekirjutus\": \"true\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": false, \"kontrollitud_kaubaveol\": true}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\", \"soiduki_reg_nr\": \"123ABC\", \"soiduki_vin\": \"WBA12345678901234\", \"juhi_isikukood\": \"39001010001\", \"juhi_eesnimi\": \"Jaan\", \"juhi_perekonnanimi\": \"Tamm\", \"menetluse_liik\": \"kiirmenetlus\", \"menetluse_number\": \"M-2026-CI-001\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+            "var raw = pm.response.json();",
+            "var body = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+            "pm.test('message is Success', () => pm.expect(body.message).to.eql('Success'));"
+          ]}}]
+        },
+        {
+          "name": "Korduspäring sama kontrolli_id-ga → 200 idempotentne",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v2",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection-v2"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"{{v2_kontrolli_id}}\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": false, \"kontrollitud_kaubaveol\": true}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200 (idempotentne)', () => pm.response.to.have.status(200));",
+            "var raw = pm.response.json();",
+            "var body = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+            "pm.test('message is Success', () => pm.expect(body.message).to.eql('Success'));"
+          ]}}]
+        },
+        {
+          "name": "V1 ja v2 sama kontrolli_id ei tekita konflikti (prefiks eristab)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-Road-Client", "value": "{{xroad_client}}"}
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v2",
+              "host": ["{{xroad_internal_url}}"],
+              "path": ["ljvis", "xroad", "provide", "register-job-inspection-v2"]
+            },
+            "body": {"mode": "raw", "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"CI-PASS-TYPE-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": true, \"kontrollitud_kaubaveol\": false}, \"rikkumised\": {}, \"vaarteomenetlus\": \"\"}"}
+          },
+          "event": [{"listen": "test", "script": {"exec": [
+            "pm.test('Returns 200 (v2 prefiks eristab v1-st)', () => pm.response.to.have.status(200));"
+          ]}}]
+        }
+      ]
+    }
+  ]
+}
