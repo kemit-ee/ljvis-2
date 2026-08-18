@@ -436,10 +436,9 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "http://localhost",
-              "protocol": "http",
+              "raw": "{{xroad_internal_url}}",
               "host": [
-                "localhost"
+                "{{xroad_internal_url}}"
               ]
             }
           }
@@ -727,10 +726,9 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "http://localhost",
-              "protocol": "http",
+              "raw": "{{xroad_internal_url}}",
               "host": [
-                "localhost"
+                "{{xroad_internal_url}}"
               ]
             }
           }
