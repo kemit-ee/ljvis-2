@@ -15,8 +15,8 @@
     "login": "Sisene süsteemi",
     "citizen": "Kodanikule",
     "official": "Ametnikule",
-    "citizenInfo": "Liiklusjärelvalve infosüsteemi logides on füüsilisel ja juriidilisel isikul võimalik saada temaga seotud andmeid liiklusjärelvalve infosüsteemist. Juriidilise isikuga seotud andmete liiklusjärelvalve infosüsteemis on juurdepääsuõigus ettevõtte juhatuse liikmel, kelle seotust asjaomase ettevõttega kontrollitakse äriregistrist.",
-    "officialInfo": "Liiklusjärelvalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest."
+    "citizenInfo": "Liiklusjärelevalve infosüsteemi logides on füüsilisel ja juriidilisel isikul võimalik saada temaga seotud andmeid liiklusjärelevalve infosüsteemist. Juriidilise isikuga seotud andmete liiklusjärelevalve infosüsteemis on juurdepääsuõigus ettevõtte juhatuse liikmel, kelle seotust asjaomase ettevõttega kontrollitakse äriregistrist.",
+    "officialInfo": "Liiklusjärelevalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest."
   },
   "countries": {
     "AD": "Andorra",
