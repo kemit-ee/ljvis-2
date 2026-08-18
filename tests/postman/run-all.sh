@@ -105,6 +105,14 @@ newman run "$COL/form-search.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/form-search.html"
 
+newman run "$COL/xroad-provide-query.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/xroad-provide-query.html"
+
+newman run "$COL/xroad-provide-write.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/xroad-provide-write.html"
+
 echo ""
 echo "All collections passed."
 echo "HTML reports:"
