@@ -1620,7 +1620,9 @@
         "invalid_country_code": "Riigi kood peab olema kahetäheline",
         "not_editable": "Teadet ei saa praeguses olekus muuta",
         "draft_not_created": "Mustandi salvestamine ebaõnnestus",
-        "penalty_coverage_incomplete": "Iga taotletud karistus peab olema kaetud täpselt ühe kehtestatud karistusega"
+        "penalty_coverage_incomplete": "Iga taotletud karistus peab olema kaetud täpselt ühe kehtestatud karistusega",
+        "infringement_incomplete": "Kõigil rasketel rikkumistel peavad olema täidetud kohustuslikud väljad (rikkumise liik, kuupäev, tuvastamise kuupäev)",
+        "imposed_penalty_type_missing": "Määratud karistuse puhul peab olema valitud karistuse liik"
       },
       "list": {
         "title": "NCR teated",

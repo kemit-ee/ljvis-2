@@ -40,6 +40,22 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
     vehicleRegistrationNumber: Yup.string().required(required),
     vehicleRegistrationCountry: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
     checkDate: Yup.string().required(required),
+    // When checkPassed=false, each serious infringement row must have the four mandatory fields
+    // (LJVIS2-63 §4 "Rasked rikkumised ja karistused"). The category/infringementType/dates are
+    // also validated server-side (infringement_incomplete), but client-side gives instant feedback.
+    seriousInfringements: Yup.array().when('checkPassed', {
+      is: false,
+      then: (schema) =>
+        schema.of(
+          Yup.object({
+            category: Yup.string().required(required),
+            infringementType: Yup.string().required(required),
+            dateOfInfringement: Yup.string().required(required),
+            detectionCheckDate: Yup.string().required(required),
+          }),
+        ),
+      otherwise: (schema) => schema,
+    }),
   });
 
   const formik = useFormik({

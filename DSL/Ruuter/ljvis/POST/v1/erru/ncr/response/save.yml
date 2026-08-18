@@ -86,6 +86,19 @@ decideCoverage:
   switch:
     - condition: ${!coverage_ok}
       next: returnCoverageIncomplete
+  next: validateImposedPenaltyTypes
+
+# LJVIS2-63 §4: "Kehtestatud karistuse liik" is mandatory when "Määrati karistus" = Jah.
+# We check BEFORE sanitize so the original submitted values are intact.
+validateImposedPenaltyTypes:
+  assign:
+    has_imposed_without_type: "${submitted_imposed.some(p => p.isImposed === true && !p.penaltyTypeImposed)}"
+  next: checkImposedPenaltyTypes
+
+checkImposedPenaltyTypes:
+  switch:
+    - condition: ${has_imposed_without_type}
+      next: returnImposedPenaltyTypeMissing
   next: sanitizeImposed
 
 sanitizeImposed:
@@ -155,7 +168,14 @@ returnNotEditable:
   return: '{"type":"VALIDATION_ERROR","field":"status","code":"not_editable"}'
   next: end
 
+returnImposedPenaltyTypeMissing:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"imposed_penalty_type_missing"}'
+  next: end
+
+# field:null so the translated message surfaces in the form-level Alert (NcrFormPage) rather
+# than being silently dropped on the virtual array field with no per-component display widget.
 returnCoverageIncomplete:
   status: 422
-  return: '{"type":"VALIDATION_ERROR","field":"responsePenaltiesImposed","code":"penalty_coverage_incomplete"}'
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"penalty_coverage_incomplete"}'
   next: end

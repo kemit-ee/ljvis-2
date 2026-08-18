@@ -528,6 +528,102 @@
       ]
     },
     {
+      "name": "[Validate] 422 infringement_incomplete — missing infringementType",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/request/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "erru", "ncr", "request", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"businessCaseId\":\"\",\"originatingAuthority\":\"PPA\",\"requestSource\":\"RSI\",\"requestPurpose\":\"Control\",\"ncrTo\":\"LV\",\"transportUndertakingName\":\"Test AS\",\"communityLicenceNumber\":\"CL-001\",\"vehicleRegistrationNumber\":\"ABC123\",\"vehicleRegistrationCountry\":\"LV\",\"checkResult\":\"Fail\",\"checkDate\":\"2026-01-15\",\"minorInfringement\":\"\",\"seriousInfringements\":\"[{\\\"category\\\":\\\"MSI\\\",\\\"infringementType\\\":\\\"\\\",\\\"dateOfInfringement\\\":\\\"2026-01-15\\\",\\\"detectionCheckDate\\\":\\\"2026-01-15\\\",\\\"appealPossible\\\":true,\\\"penaltiesImposed\\\":[],\\\"penaltiesRequested\\\":[]}]\"}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('422', () => pm.response.to.have.status(422));",
+              "var b = JSON.parse(pm.response.json().response);",
+              "pm.test('code infringement_incomplete', () => pm.expect(b.code).to.eql('infringement_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validate] 422 infringement_incomplete — missing dateOfInfringement",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/request/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "erru", "ncr", "request", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"businessCaseId\":\"\",\"originatingAuthority\":\"PPA\",\"requestSource\":\"RSI\",\"requestPurpose\":\"Control\",\"ncrTo\":\"LV\",\"transportUndertakingName\":\"Test AS\",\"communityLicenceNumber\":\"CL-001\",\"vehicleRegistrationNumber\":\"ABC123\",\"vehicleRegistrationCountry\":\"LV\",\"checkResult\":\"Fail\",\"checkDate\":\"2026-01-15\",\"minorInfringement\":\"\",\"seriousInfringements\":\"[{\\\"category\\\":\\\"MSI\\\",\\\"infringementType\\\":\\\"302\\\",\\\"dateOfInfringement\\\":\\\"\\\",\\\"detectionCheckDate\\\":\\\"2026-01-15\\\",\\\"appealPossible\\\":true,\\\"penaltiesImposed\\\":[],\\\"penaltiesRequested\\\":[]}]\"}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('422', () => pm.response.to.have.status(422));",
+              "var b = JSON.parse(pm.response.json().response);",
+              "pm.test('code infringement_incomplete', () => pm.expect(b.code).to.eql('infringement_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validate] 422 infringement_incomplete — missing detectionCheckDate",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/request/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "erru", "ncr", "request", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"businessCaseId\":\"\",\"originatingAuthority\":\"PPA\",\"requestSource\":\"RSI\",\"requestPurpose\":\"Control\",\"ncrTo\":\"LV\",\"transportUndertakingName\":\"Test AS\",\"communityLicenceNumber\":\"CL-001\",\"vehicleRegistrationNumber\":\"ABC123\",\"vehicleRegistrationCountry\":\"LV\",\"checkResult\":\"Fail\",\"checkDate\":\"2026-01-15\",\"minorInfringement\":\"\",\"seriousInfringements\":\"[{\\\"category\\\":\\\"MSI\\\",\\\"infringementType\\\":\\\"302\\\",\\\"dateOfInfringement\\\":\\\"2026-01-15\\\",\\\"detectionCheckDate\\\":\\\"\\\",\\\"appealPossible\\\":true,\\\"penaltiesImposed\\\":[],\\\"penaltiesRequested\\\":[]}]\"}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('422', () => pm.response.to.have.status(422));",
+              "var b = JSON.parse(pm.response.json().response);",
+              "pm.test('code infringement_incomplete', () => pm.expect(b.code).to.eql('infringement_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "[Revise] 422 not_editable when trying to revise a bogus/non-initiated case",
       "request": {
         "method": "POST",
@@ -909,6 +1005,39 @@
               "pm.test('422', () => pm.response.to.have.status(422));",
               "var b = JSON.parse(pm.response.json().response);",
               "pm.test('code penalty_coverage_incomplete', () => pm.expect(b.code).to.eql('penalty_coverage_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Response] 422 imposed_penalty_type_missing — isImposed=true but penaltyTypeImposed null (full coverage)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/response/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "erru", "ncr", "response", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":null},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":false}]\"}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('422', () => pm.response.to.have.status(422));",
+              "var b = JSON.parse(pm.response.json().response);",
+              "pm.test('code imposed_penalty_type_missing', () => pm.expect(b.code).to.eql('imposed_penalty_type_missing'));",
+              "pm.test('field is null', () => pm.expect(b.field).to.be.null);"
             ]
           }
         }

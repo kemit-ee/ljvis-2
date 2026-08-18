@@ -38,3 +38,32 @@ export function dateFieldError(formik: FormikLike, field: string) {
   const error = getError(formik, field);
   return error ? { inputProps: { helper: { text: error, type: 'error' as const } } } : {};
 }
+
+/**
+ * Like fieldError but for a single item inside a Formik array field.
+ * Formik stores array validation errors as errors[arrayField][index][subField].
+ * Works for Select/TextField (returns helper prop object).
+ */
+export function nestedFieldError(formik: FormikLike, arrayField: string, index: number, subField: string) {
+  const arrayErrors = formik.errors[arrayField] as (Record<string, string> | null | undefined)[] | string | undefined;
+  const arrayTouched = formik.touched[arrayField] as (Record<string, boolean | undefined> | null | undefined)[] | undefined;
+  if (!Array.isArray(arrayErrors)) return {};
+  const error = arrayErrors[index]?.[subField];
+  const touched = Array.isArray(arrayTouched) ? arrayTouched[index]?.[subField] : undefined;
+  const showError = (!!touched || formik.submitCount > 0) && !!error;
+  return showError ? { helper: { text: String(error), type: 'error' as const } } : {};
+}
+
+/**
+ * Like dateFieldError but for a single item inside a Formik array field.
+ * Works for DateField (returns inputProps.helper prop object).
+ */
+export function nestedDateFieldError(formik: FormikLike, arrayField: string, index: number, subField: string) {
+  const arrayErrors = formik.errors[arrayField] as (Record<string, string> | null | undefined)[] | string | undefined;
+  const arrayTouched = formik.touched[arrayField] as (Record<string, boolean | undefined> | null | undefined)[] | undefined;
+  if (!Array.isArray(arrayErrors)) return {};
+  const error = arrayErrors[index]?.[subField];
+  const touched = Array.isArray(arrayTouched) ? arrayTouched[index]?.[subField] : undefined;
+  const showError = (!!touched || formik.submitCount > 0) && !!error;
+  return showError ? { inputProps: { helper: { text: String(error), type: 'error' as const } } } : {};
+}

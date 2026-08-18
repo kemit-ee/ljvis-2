@@ -63,6 +63,29 @@ extractRequestData:
     serious_infringements: "${('' + (incoming.body.seriousInfringements || '')).trim() || '[]'}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateSeriousInfringements
+
+# When checkResult is Fail, each infringement item in seriousInfringements must carry its
+# three mandatory date/type fields (LJVIS2-63 §4). Empty array is valid (officer may submit
+# Fail with minor infringements only). Pass/CleanCheck items are cleared server-side in SQL
+# so we skip validation for them — the content is irrelevant and will be wiped anyway.
+# Note: si_list must be set in a separate assign step before si_has_incomplete can reference
+# it, because Ruuter evaluates all expressions in an assign block against the pre-assign
+# context (same constraint observed in validateCoverage in response/save.yml).
+validateSeriousInfringements:
+  assign:
+    si_list: "${JSON.parse(serious_infringements || '[]')}"
+  next: checkSiHasIncomplete
+
+checkSiHasIncomplete:
+  assign:
+    si_has_incomplete: "${check_result !== 'Pass' && check_result !== 'CleanCheck' && si_list.some(si => !si.infringementType || !si.dateOfInfringement || !si.detectionCheckDate)}"
+  next: checkSiComplete
+
+checkSiComplete:
+  switch:
+    - condition: ${si_has_incomplete}
+      next: returnSiIncomplete
   next: checkBranch
 
 checkBranch:
@@ -163,6 +186,11 @@ returnSuccess:
 returnNotEditable:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"status","code":"not_editable"}'
+  next: end
+
+returnSiIncomplete:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"infringement_incomplete"}'
   next: end
 
 returnInsertFailed:

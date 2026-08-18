@@ -43,6 +43,20 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
   const validationSchema = Yup.object({
     respondingAuthority: Yup.string().required(required),
     responseStatusCode: Yup.string().required(required),
+    // When a penalty is marked as imposed, the type must be selected
+    // (LJVIS2-63 §4 "Kehtestatud karistuse liik" is mandatory when "Määrati karistus" = Jah).
+    // Also validated server-side (imposed_penalty_type_missing).
+    responsePenaltiesImposed: Yup.array().of(
+      Yup.object({
+        penaltyTypeImposed: Yup.string()
+          .nullable()
+          .when('isImposed', {
+            is: true,
+            then: (schema) => schema.required(required),
+            otherwise: (schema) => schema,
+          }),
+      }),
+    ),
   });
 
   const formik = useFormik({

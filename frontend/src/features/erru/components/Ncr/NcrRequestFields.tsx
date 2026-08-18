@@ -7,6 +7,8 @@ import {
   classifierOptions,
   dateFieldError,
   fieldError,
+  nestedDateFieldError,
+  nestedFieldError,
   parseIsoDate,
   pickOptionValue,
   selectedClassifierOption,
@@ -43,6 +45,9 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const requestSources = getByCode('NCR_REQUEST_SOURCE');
   const requestPurposes = getByCode('NCR_REQUEST_PURPOSE');
   const infringementCategories = getByCode('NCR_INFRINGEMENT_CATEGORY');
+  // EU_INFRINGEMENT codes have the category as their prefix (MSI101, VSI847, SI926 …).
+  // Filtering by startsWith(si.category) gives the correct subset without any backend change.
+  const euInfringements = getByCode('EU_INFRINGEMENT');
   const penaltyTypeImposedReq = getByCode('NCR_PENALTY_TYPE_IMPOSED_REQ');
   const penaltyTypeRequested = getByCode('NCR_PENALTY_TYPE_REQUESTED');
   const isExecutedOptions = getByCode('NCR_IS_EXECUTED');
@@ -53,6 +58,10 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const dateValue = parseIsoDate;
   const err = (field: string) => fieldError(formik, field);
   const dateErr = (field: string) => dateFieldError(formik, field);
+  const nestedErr = (index: number, field: string) =>
+    nestedFieldError(formik, 'seriousInfringements', index, field);
+  const nestedDateErr = (index: number, field: string) =>
+    nestedDateFieldError(formik, 'seriousInfringements', index, field);
 
   return (
     <>
@@ -204,14 +213,24 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                     required
                     options={opts(infringementCategories)}
                     value={selected(infringementCategories, si.category)}
-                    onChange={(o) => updateSeriousInfringement(index, { category: pick(o) as typeof si.category })}
+                    onChange={(o) =>
+                      // Clear infringementType whenever category changes so a stale code from the
+                      // old category (e.g. "302" under MSI) cannot survive a switch to VSI/SI.
+                      updateSeriousInfringement(index, {
+                        category: pick(o) as typeof si.category,
+                        infringementType: '',
+                      })
+                    }
+                    {...nestedErr(index, 'category')}
                   />
-                  <TextField
+                  <Select
                     id={`ncr-si-${index}-type`}
                     label={t('erru.ncr.form.infringementType')}
                     required
-                    value={si.infringementType}
-                    onChange={(v) => updateSeriousInfringement(index, { infringementType: v })}
+                    options={opts(euInfringements.filter((c) => c.code.startsWith(si.category)))}
+                    value={selected(euInfringements, si.infringementType)}
+                    onChange={(o) => updateSeriousInfringement(index, { infringementType: pick(o) })}
+                    {...nestedErr(index, 'infringementType')}
                   />
                   <DateField
                     id={`ncr-si-${index}-date`}
@@ -222,6 +241,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                       updateSeriousInfringement(index, { dateOfInfringement: toIsoDate(v as Date | undefined) })
                     }
                     monthYearSelectType="grid"
+                    {...nestedDateErr(index, 'dateOfInfringement')}
                   />
                   <DateField
                     id={`ncr-si-${index}-detection-date`}
@@ -232,6 +252,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                       updateSeriousInfringement(index, { detectionCheckDate: toIsoDate(v as Date | undefined) })
                     }
                     monthYearSelectType="grid"
+                    {...nestedDateErr(index, 'detectionCheckDate')}
                   />
                   <ChoiceGroup
                     id={`ncr-si-${index}-appeal`}

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Card, ChoiceGroup, DateField, Heading, Select, TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate } from '../../../../hooks/dateUtils';
-import { classifierOptions, fieldError, parseIsoDate, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
+import { classifierOptions, fieldError, nestedFieldError, parseIsoDate, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
 import type { useNcrResponseForm } from '../../pages/ncr/useNcrResponseForm';
 
 type NcrResponseFormApi = ReturnType<typeof useNcrResponseForm>;
@@ -27,6 +27,8 @@ export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
   const pick = pickOptionValue;
   const dateValue = parseIsoDate;
   const err = (field: string) => fieldError(formik, field);
+  const nestedErr = (index: number, field: string) =>
+    nestedFieldError(formik, 'responsePenaltiesImposed', index, field);
 
   return (
     <Card className="mt-05">
@@ -129,9 +131,11 @@ export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
               <Select
                 id={`ncr-resp-pi-${index}-type`}
                 label={t('erru.ncr.form.penaltyTypeImposed')}
+                required
                 options={opts(penaltyTypeImposedRes)}
                 value={selected(penaltyTypeImposedRes, p.penaltyTypeImposed ?? '')}
                 onChange={(o) => updatePenalty(index, { penaltyTypeImposed: pick(o) })}
+                {...nestedErr(index, 'penaltyTypeImposed')}
               />
             )}
             <DateField

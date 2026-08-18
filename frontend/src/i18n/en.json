@@ -1561,7 +1561,9 @@
         "invalid_country_code": "Country code must be two letters",
         "not_editable": "The message cannot be edited in its current status",
         "draft_not_created": "Failed to save the draft",
-        "penalty_coverage_incomplete": "Every requested penalty must be covered by exactly one imposed penalty"
+        "penalty_coverage_incomplete": "Every requested penalty must be covered by exactly one imposed penalty",
+        "infringement_incomplete": "All serious infringements must have required fields filled in (infringement type, date, detection date)",
+        "imposed_penalty_type_missing": "When a penalty is imposed, the penalty type must be selected"
       },
       "list": {
         "title": "NCR messages",
