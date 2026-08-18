@@ -417,9 +417,8 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             inputType="radio"
             direction="row"
             value="false"
-            disabled
             onChange={() => undefined}
-            items={yesNo('rsi-inspection-passed')}
+            items={yesNo('rsi-inspection-passed').map((item) => ({ ...item, disabled: true }))}
           />
           <ChoiceGroup
             id="rsi-pti-requested"

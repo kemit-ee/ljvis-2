@@ -181,7 +181,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                 id="ncr-minor-infringement-count"
                 label={t('erru.ncr.form.minorInfringementCount')}
                 value={formik.values.minorInfringementCount}
-                onChange={(v) => formik.setFieldValue('minorInfringementCount', v)}
+                onChange={(v) => formik.setFieldValue('minorInfringementCount', v.replace(/\D/g, ''))}
               />
             </>
           )}
