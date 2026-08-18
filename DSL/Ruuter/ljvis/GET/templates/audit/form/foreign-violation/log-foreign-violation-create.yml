@@ -13,6 +13,10 @@ declaration:
     body:
       - field: form_number
         type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
 
 buildAudit:
   assign:
@@ -28,6 +32,8 @@ logAuditEvent:
   body:
     event_type: "control_form.foreign_violation.create"
     event_category: "control_form_management"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

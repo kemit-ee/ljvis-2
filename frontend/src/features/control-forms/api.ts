@@ -39,15 +39,9 @@ export const getForm = (id: number) =>
     q: String(id),
   });
 
-export const insertForeignViolationForm = (data: ForeignViolationForm) =>
+export const saveForeignViolationForm = (data: ForeignViolationForm) =>
   post<ForeignViolationForm[]>(
-    '/v1/control-forms/foreign-violation-form',
-    data as unknown as Record<string, unknown>,
-  );
-
-export const updateForeignViolationForm = (data: ForeignViolationForm) =>
-  post<ForeignViolationForm[]>(
-    `/v1/control-forms/foreign-violation-form/edit/update`,
+    `/v1/control-forms/foreign-violation-form/edit/save`,
     data as unknown as Record<string, unknown>,
   );
 

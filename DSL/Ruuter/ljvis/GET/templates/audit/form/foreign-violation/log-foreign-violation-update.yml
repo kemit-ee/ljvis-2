@@ -15,10 +15,18 @@ declaration:
         type: string
       - field: changed_fields
         type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
 
 buildAudit:
   assign:
     changed_fields_json: ${JSON.stringify(incoming.body.changed_fields)}
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     description: "Muudeti välisriigi rikkumise vormi ${incoming.body.form_number}, muudetud väljad: ${changed_fields_json}"
     log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"changedFields\":${changed_fields_json}}"
   next: logAuditEvent
@@ -31,6 +39,8 @@ logAuditEvent:
   body:
     event_type: "control_form.foreign_violation.update"
     event_category: "control_form_management"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res
