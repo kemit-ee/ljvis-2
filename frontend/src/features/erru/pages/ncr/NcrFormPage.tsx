@@ -50,9 +50,10 @@ export function NcrFormPage() {
   const canSend = hasAnyPermission(['ncr.send']);
 
   const { current, snapshots, isLoading, notFound, reload } = useNcrCase(businessCaseId);
+  const [savedOk, setSavedOk] = useState(false);
 
-  const requestForm = useNcrRequestForm(current, () => reload());
-  const responseForm = useNcrResponseForm(current, () => reload());
+  const requestForm = useNcrRequestForm(current, () => { setSavedOk(true); reload(); });
+  const responseForm = useNcrResponseForm(current, () => { setSavedOk(true); reload(); });
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
@@ -122,6 +123,11 @@ export function NcrFormPage() {
               {requestForm.formError}
             </Alert>
           )}
+          {savedOk && (
+            <Alert type="success" size="small" className="mt-05">
+              {t('common.saved')}
+            </Alert>
+          )}
           {requestForm.formik.submitCount > 0 && Object.keys(requestForm.formik.errors).length > 0 && (
             <Alert type="danger" size="small" className="mt-05">
               {t('common.formHasErrors')}
@@ -151,6 +157,11 @@ export function NcrFormPage() {
           {responseForm.formError && (
             <Alert type="danger" size="small" className="mt-05">
               {responseForm.formError}
+            </Alert>
+          )}
+          {savedOk && (
+            <Alert type="success" size="small" className="mt-05">
+              {t('common.saved')}
             </Alert>
           )}
           {responseForm.formik.submitCount > 0 && Object.keys(responseForm.formik.errors).length > 0 && (

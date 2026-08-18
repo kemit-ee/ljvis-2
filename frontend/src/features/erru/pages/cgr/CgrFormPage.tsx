@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
@@ -30,9 +31,10 @@ export function CgrFormPage() {
   const canEdit = hasAnyPermission(['cgr.create']);
   const canSend = hasAnyPermission(['cgr.send']);
 
+  const [savedOk, setSavedOk] = useState(false);
   const { request, isLoading, notFound, send, isSending, resend, resendingCountry, sendError, reload } =
     useCgrRequestDetail(id);
-  const form = useCgrForm(request, () => reload());
+  const form = useCgrForm(request, () => { setSavedOk(true); reload(); });
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
@@ -74,6 +76,11 @@ export function CgrFormPage() {
           {form.formError && (
             <Alert type="danger" size="small" className="mt-05">
               {form.formError}
+            </Alert>
+          )}
+          {savedOk && (
+            <Alert type="success" size="small" className="mt-05">
+              {t('common.saved')}
             </Alert>
           )}
           {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (

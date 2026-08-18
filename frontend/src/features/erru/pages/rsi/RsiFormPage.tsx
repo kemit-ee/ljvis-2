@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useRsiMessageDetail } from './useRsiMessageDetail';
@@ -22,6 +22,9 @@ export function RsiFormPage() {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Show success banner when navigated here after a successful create
+  const [justCreated] = useState(() => !!(location.state as { justSaved?: boolean } | null)?.justSaved);
   const { hasAnyPermission } = useAuth();
   const { label } = useClassifierLabel();
 
@@ -32,6 +35,7 @@ export function RsiFormPage() {
   const { message, isLoading, notFound, send, isSending, sendError, reload } =
     useRsiMessageDetail(id);
   const form = useRsiForm(message, () => reload());
+  const { savedOk } = form;
   const prevSubmitCount = useRef(0);
 
   useEffect(() => {
@@ -82,6 +86,11 @@ export function RsiFormPage() {
           {form.formError && (
             <Alert type="danger" size="small" className="mt-05">
               {form.formError}
+            </Alert>
+          )}
+          {(savedOk || justCreated) && (
+            <Alert type="success" size="small" className="mt-05">
+              {t('common.saved')}
             </Alert>
           )}
           {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (

@@ -29,6 +29,13 @@ type RsiFormApi = ReturnType<typeof useRsiForm>;
  * andmed" (optional choice), "Liiklevate sõidukite tehnokontrolli andmed",
  * "Tehnokontrolli tulemused", "Kontrollitud punkt". "Vastuse andmed" is read-only and
  * rendered separately (RsiFormPage), since it only exists once a response has arrived.
+ *
+ * Notable spec rules (LJVIS2-147 §4):
+ *  - rsiFrom (Teate esitanud liikmesriik) is always "EE" and shown as the country name.
+ *  - rsiTo (Sihtliikmesriik) is derived from vehicleRegistrationCountry — read-only.
+ *  - inspectionPassed (Vastab nõuetele) is always "Ei" for outgoing EE messages.
+ *  - Optional blocks reset their fields when toggled off.
+ *  - odometerReading accepts only non-negative integers.
  */
 export function RsiMessageFields({ form }: { form: RsiFormApi }) {
   const { t } = useTranslation();
@@ -54,6 +61,9 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
   const pick = pickOptionValue;
   const dateValue = parseIsoDate;
 
+  // Derived rsiTo: country label from vehicleRegistrationCountry (shown as read-only).
+  const rsiToLabel = selected(countries, formik.values.vehicleRegistrationCountry)?.label ?? '';
+
   // Each ChoiceGroup needs its own items array with unique IDs — browsers resolve
   // <label for="yes"> to the first matching id on the page, so shared ids across
   // multiple radio groups cause all labels to target the first group's inputs.
@@ -67,7 +77,14 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.rsi.form.headerBlock')}</Heading>
-          <TextField id="rsi-from" label={t('erru.rsi.form.rsiFrom')} value="EE" disabled onChange={() => undefined} />
+          {/* rsiFrom: always EE — show country name, not code (LJVIS2-147 §4) */}
+          <TextField
+            id="rsi-from"
+            label={t('erru.rsi.form.rsiFrom')}
+            value={selected(countries, 'EE')?.label ?? 'EE'}
+            disabled
+            onChange={() => undefined}
+          />
           <TextField
             id="rsi-originating-authority"
             label={t('erru.rsi.form.originatingAuthority')}
@@ -76,7 +93,17 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             onChange={(v) => formik.setFieldValue('originatingAuthority', v)}
             {...err('originatingAuthority')}
           />
-          <Text>{t('erru.rsi.form.rsiToHint')}</Text>
+          {/* rsiTo: derived from vehicleRegistrationCountry — read-only (LJVIS2-147 §4) */}
+          <TextField
+            id="rsi-to"
+            label={t('erru.rsi.form.rsiTo')}
+            value={rsiToLabel}
+            disabled
+            onChange={() => undefined}
+          />
+          {!formik.values.vehicleRegistrationCountry && (
+            <Text>{t('erru.rsi.form.rsiToHint')}</Text>
+          )}
         </Card.Content>
       </Card>
 
@@ -114,11 +141,17 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             onChange={(v) => formik.setFieldValue('vehicleIdentificationNumber', v)}
             {...err('vehicleIdentificationNumber')}
           />
+          {/* Non-negative integer only (LJVIS2-147 §4 "Mittenegatiivne täisarv") */}
           <TextField
             id="rsi-odometer-reading"
             label={t('erru.rsi.form.odometerReading')}
             value={formik.values.odometerReading}
-            onChange={(v) => formik.setFieldValue('odometerReading', v)}
+            onChange={(v) => {
+              const numericValue = v.replace(/\D/g, '');
+              const parsedValue = parseInt(numericValue, 10) || 0;
+              formik.setFieldValue('odometerReading', numericValue ? String(parsedValue) : '');
+            }}
+            input={{ maxLength: 8 }}
           />
         </Card.Content>
       </Card>
@@ -145,6 +178,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 required
                 value={formik.values.driverFirstName}
                 onChange={(v) => formik.setFieldValue('driverFirstName', v)}
+                {...err('driverFirstName')}
               />
               <TextField
                 id="rsi-driver-family-name"
@@ -152,6 +186,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 required
                 value={formik.values.driverFamilyName}
                 onChange={(v) => formik.setFieldValue('driverFamilyName', v)}
+                {...err('driverFamilyName')}
               />
               <TextField
                 id="rsi-driver-licence-number"
@@ -206,6 +241,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                   { id: 'rsi-holder-tu', value: 'transport_undertaking', label: t('erru.rsi.form.identificationHolderUndertaking') },
                   { id: 'rsi-holder-owner', value: 'owner', label: t('erru.rsi.form.identificationHolderOwner') },
                 ]}
+                {...err('identification.isVehicleHolder')}
               />
 
               {formik.values.identification.isVehicleHolder === 'transport_undertaking' && (
@@ -216,6 +252,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                     required
                     value={formik.values.identification.transportUndertakingName}
                     onChange={(v) => formik.setFieldValue('identification.transportUndertakingName', v)}
+                    {...err('identification.transportUndertakingName')}
                   />
                   <TextField
                     id="rsi-identification-tu-licence"
@@ -223,6 +260,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                     required
                     value={formik.values.identification.communityLicenceNumber}
                     onChange={(v) => formik.setFieldValue('identification.communityLicenceNumber', v)}
+                    {...err('identification.communityLicenceNumber')}
                   />
                 </>
               )}
@@ -242,6 +280,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                       { id: 'rsi-owner-company', value: 'company', label: t('erru.rsi.form.identificationOwnerCompany') },
                       { id: 'rsi-owner-natural', value: 'natural_person', label: t('erru.rsi.form.identificationOwnerNatural') },
                     ]}
+                    {...err('identification.isNaturalPerson')}
                   />
                   {formik.values.identification.isNaturalPerson === 'company' && (
                     <TextField
@@ -250,6 +289,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                       required
                       value={formik.values.identification.companyName}
                       onChange={(v) => formik.setFieldValue('identification.companyName', v)}
+                      {...err('identification.companyName')}
                     />
                   )}
                   {formik.values.identification.isNaturalPerson === 'natural_person' && (
@@ -260,6 +300,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                         required
                         value={formik.values.identification.firstName}
                         onChange={(v) => formik.setFieldValue('identification.firstName', v)}
+                        {...err('identification.firstName')}
                       />
                       <TextField
                         id="rsi-identification-owner-family-name"
@@ -267,6 +308,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                         required
                         value={formik.values.identification.familyName}
                         onChange={(v) => formik.setFieldValue('identification.familyName', v)}
+                        {...err('identification.familyName')}
                       />
                     </>
                   )}
@@ -285,6 +327,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 required
                 value={formik.values.identification.address}
                 onChange={(v) => formik.setFieldValue('identification.address', v)}
+                {...err('identification.address')}
               />
               <TextField
                 id="rsi-identification-city"
@@ -292,6 +335,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 required
                 value={formik.values.identification.city}
                 onChange={(v) => formik.setFieldValue('identification.city', v)}
+                {...err('identification.city')}
               />
               <Select
                 id="rsi-identification-country"
@@ -300,6 +344,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 options={opts(countries)}
                 value={selected(countries, formik.values.identification.country)}
                 onChange={(o) => formik.setFieldValue('identification.country', pick(o))}
+                {...err('identification.country')}
               />
               <TextField
                 id="rsi-identification-post-code"
@@ -307,6 +352,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 required
                 value={formik.values.identification.postCode}
                 onChange={(v) => formik.setFieldValue('identification.postCode', v)}
+                {...err('identification.postCode')}
               />
             </>
           )}
@@ -361,17 +407,19 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.rsi.form.resultsBlock')}</Heading>
+          {/* inspectionPassed is always "Ei" for outgoing EE (LJVIS2-147 §4):
+              "Eesti väljaminevatel teadetel on väärtus alati „Ei", sest teavitatakse
+              ainult mittevastavustest." — rendered as disabled. */}
           <ChoiceGroup
             id="rsi-inspection-passed"
             name="rsi-inspection-passed"
             label={t('erru.rsi.form.inspectionPassed')}
-            required
             inputType="radio"
             direction="row"
-            value={formik.values.inspectionPassed}
-            onChange={(v) => formik.setFieldValue('inspectionPassed', v)}
+            value="false"
+            disabled
+            onChange={() => undefined}
             items={yesNo('rsi-inspection-passed')}
-            {...err('inspectionPassed')}
           />
           <ChoiceGroup
             id="rsi-pti-requested"

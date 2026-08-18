@@ -17,7 +17,9 @@ export function RsiFormCreatePage() {
   const { hasAnyPermission } = useAuth();
   const prevSubmitCount = useRef(0);
 
-  const form = useRsiForm(undefined, (id) => navigate(id ? `/erru/rsi/${id}` : '/erru/rsi'));
+  const form = useRsiForm(undefined, (id) =>
+    navigate(id ? `/erru/rsi/${id}` : '/erru/rsi', { state: { justSaved: true } }),
+  );
 
   useEffect(() => {
     const count = form.formik.submitCount;

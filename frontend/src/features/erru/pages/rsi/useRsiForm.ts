@@ -76,6 +76,10 @@ const toDraftIdentification = (d: RsiIdentificationDetails | null): DraftIdentif
  * "Juhi andmed" and "Veoettevõtja või omaniku andmed" are optional blocks, closed by
  * default (LJVIS2-147 §4) — driverBlockOpen/identificationBlockOpen are local UI state,
  * not persisted fields; closing a block clears its values before submit.
+ *
+ * inspectionPassed is always 'false' for outgoing EE messages (LJVIS2-147 §4 "Vastab
+ * nõuetele: Eesti väljaminevatel teadetel on väärtus alati Ei") — it is fixed in the
+ * initial value and the field is rendered as disabled in RsiMessageFields.
  */
 export function useRsiForm(
   message: RsiMessage | undefined,
@@ -84,6 +88,7 @@ export function useRsiForm(
   const { t } = useTranslation();
   const isEdit = !!message;
   const [formError, setFormError] = useState<string | null>(null);
+  const [savedOk, setSavedOk] = useState(false);
   const { getByCode, getChildren } = useClassifiers();
 
   const countries = useMemo(() => getByCode('COUNTRY'), [getByCode]);
@@ -107,26 +112,30 @@ export function useRsiForm(
 
   const required = t(`${T}.required`);
 
-  const [driverBlockOpen, setDriverBlockOpen] = useState(
+  const [driverBlockOpen, setDriverBlockOpenState] = useState(
     () => !!(message?.driverFirstName || message?.driverFamilyName),
   );
-  const [identificationBlockOpen, setIdentificationBlockOpen] = useState(
+  const [identificationBlockOpen, setIdentificationBlockOpenState] = useState(
     () => !!message?.identificationDetails,
   );
 
-  const validationSchema = Yup.object({
-    originatingAuthority: Yup.string().required(required).max(100, t(`${T}.max_length_exceeded`)),
-    vehicleRegistrationNumber: Yup.string().required(required).max(50, t(`${T}.max_length_exceeded`)),
-    vehicleRegistrationCountry: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
-    vehicleIdentificationNumber: Yup.string().max(20, t(`${T}.max_length_exceeded`)),
-    inspectionLocation: Yup.string().required(required).max(200, t(`${T}.max_length_exceeded`)),
-    inspectionDate: Yup.string().required(required),
-    inspectionTime: Yup.string().required(required),
-    inspectionAuthorityOrName: Yup.string().required(required).max(100, t(`${T}.max_length_exceeded`)),
-    inspectionPassed: Yup.string().required(required),
-    ptiRequested: Yup.string().required(required),
-    vehicleProhibitionOrRestriction: Yup.string().required(required),
-  });
+  const validationSchema = useMemo(
+    () =>
+      Yup.object({
+        originatingAuthority: Yup.string().required(required).max(100, t(`${T}.max_length_exceeded`)),
+        vehicleRegistrationNumber: Yup.string().required(required).max(50, t(`${T}.max_length_exceeded`)),
+        vehicleRegistrationCountry: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
+        vehicleIdentificationNumber: Yup.string().max(20, t(`${T}.max_length_exceeded`)),
+        inspectionLocation: Yup.string().required(required).max(200, t(`${T}.max_length_exceeded`)),
+        inspectionDate: Yup.string().required(required),
+        inspectionTime: Yup.string().required(required),
+        inspectionAuthorityOrName: Yup.string().required(required).max(100, t(`${T}.max_length_exceeded`)),
+        // inspectionPassed is always 'false' for outgoing EE — no need to validate
+        ptiRequested: Yup.string().required(required),
+        vehicleProhibitionOrRestriction: Yup.string().required(required),
+      }),
+    [t, required],
+  );
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -149,8 +158,8 @@ export function useRsiForm(
         ? message.inspectionDatetime.slice(11, 16)
         : '',
       inspectionAuthorityOrName: message?.inspectionAuthorityOrName ?? '',
-      inspectionPassed:
-        message?.inspectionPassed != null ? String(message.inspectionPassed) : 'false',
+      // Always 'false' for outgoing EE (LJVIS2-147 §4 "Vastab nõuetele: alati Ei")
+      inspectionPassed: 'false',
       ptiRequested: message?.ptiRequested != null ? String(message.ptiRequested) : '',
       vehicleProhibitionOrRestriction:
         message?.vehicleProhibitionOrRestriction != null
@@ -161,8 +170,42 @@ export function useRsiForm(
         : parts.map((p) => ({ partCode: p.code, status: 'not_checked', defects: [] }))) as RsiCheckedItem[],
     },
     validationSchema,
+    validate: (values) => {
+      // Conditional validation for optional blocks that are currently open
+      // (LJVIS2-147 §4 "Ploki avamisel muutuvad selle kohustuslikud väljad nõutavaks").
+      const errors: Record<string, unknown> = {};
+      if (driverBlockOpen) {
+        if (!values.driverFirstName) errors.driverFirstName = required;
+        if (!values.driverFamilyName) errors.driverFamilyName = required;
+      }
+      if (identificationBlockOpen) {
+        const idErr: Record<string, string> = {};
+        if (!values.identification.isVehicleHolder) idErr.isVehicleHolder = required;
+        if (!values.identification.address) idErr.address = required;
+        if (!values.identification.city) idErr.city = required;
+        if (!values.identification.country) idErr.country = required;
+        if (!values.identification.postCode) idErr.postCode = required;
+        if (values.identification.isVehicleHolder === 'transport_undertaking') {
+          if (!values.identification.transportUndertakingName) idErr.transportUndertakingName = required;
+          if (!values.identification.communityLicenceNumber) idErr.communityLicenceNumber = required;
+        }
+        if (values.identification.isVehicleHolder === 'owner') {
+          if (!values.identification.isNaturalPerson) idErr.isNaturalPerson = required;
+          if (values.identification.isNaturalPerson === 'company' && !values.identification.companyName) {
+            idErr.companyName = required;
+          }
+          if (values.identification.isNaturalPerson === 'natural_person') {
+            if (!values.identification.firstName) idErr.firstName = required;
+            if (!values.identification.familyName) idErr.familyName = required;
+          }
+        }
+        if (Object.keys(idErr).length > 0) errors.identification = idErr;
+      }
+      return errors;
+    },
     onSubmit: async (values, { setFieldError }) => {
       setFormError(null);
+      setSavedOk(false);
       try {
         const identification = identificationBlockOpen
           ? ({
@@ -225,12 +268,13 @@ export function useRsiForm(
               ? `${values.inspectionDate}T${values.inspectionTime}:00`
               : '',
           inspectionAuthorityOrName: values.inspectionAuthorityOrName,
-          inspectionPassed: values.inspectionPassed,
+          inspectionPassed: 'false', // always false for outgoing EE (LJVIS2-147 §4)
           ptiRequested: values.ptiRequested,
           vehicleProhibitionOrRestriction: values.vehicleProhibitionOrRestriction,
           checkedItems: JSON.stringify(values.checkedItems ?? []),
         };
         const result = await saveRsiMessage(message?.id ?? '', payload);
+        setSavedOk(true);
         onSaved(String(result.id));
       } catch (e) {
         const handled = applyValidationError(
@@ -243,6 +287,25 @@ export function useRsiForm(
       }
     },
   });
+
+  /** Closes the driver block and resets all its formik values to empty. */
+  const setDriverBlockOpen = (open: boolean) => {
+    setDriverBlockOpenState(open);
+    if (!open) {
+      formik.setFieldValue('driverFirstName', '');
+      formik.setFieldValue('driverFamilyName', '');
+      formik.setFieldValue('driverLicenceNumber', '');
+      formik.setFieldValue('driverLicenceCountry', '');
+    }
+  };
+
+  /** Closes the identification block and resets all its formik values to empty. */
+  const setIdentificationBlockOpen = (open: boolean) => {
+    setIdentificationBlockOpenState(open);
+    if (!open) {
+      formik.setFieldValue('identification', emptyIdentification);
+    }
+  };
 
   const setPartStatus = (partCode: string, status: RsiCheckedItem['status']) => {
     const items = (formik.values.checkedItems ?? []).map((it) =>
@@ -276,6 +339,7 @@ export function useRsiForm(
     formik,
     isEdit,
     formError,
+    savedOk,
     countries,
     vehicleCategories,
     parts,
