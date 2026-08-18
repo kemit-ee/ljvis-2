@@ -1,13 +1,13 @@
 {
   "info": {
-    "name": "LJVIS \u2014 Transport Interruption Form",
+    "name": "LJVIS — Transport Interruption Form",
     "_postman_id": "ljvis-transport-interruption-v1",
-    "description": "Functional tests for /control-forms/transport-interruption endpoints (LJVIS2-74). Covers permission boundaries (transport_interruption_form.write/read), backend validation (compoundFormKey required), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data), and the server-side UPPERCASE transform of free-text fields (LJVIS2-74 \u00a74). Self-contained: authenticates and creates its own compound form + sub-form.",
+    "description": "Functional tests for /control-forms/transport-interruption endpoints (LJVIS2-74). Covers permission boundaries (transport_interruption_form.write/read), backend validation (compoundFormKey required), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data), and the server-side UPPERCASE transform of free-text fields (LJVIS2-74 §4). Self-contained: authenticates and creates its own compound form + sub-form.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "[Auth] Login \u2014 Super Admin",
+      "name": "[Auth] Login — Super Admin",
       "request": {
         "method": "POST",
         "header": [
@@ -49,7 +49,7 @@
       ]
     },
     {
-      "name": "[Auth] Login \u2014 No-perm User",
+      "name": "[Auth] Login — No-perm User",
       "request": {
         "method": "POST",
         "header": [
@@ -91,7 +91,7 @@
       ]
     },
     {
-      "name": "[Auth] Login \u2014 Officer (no edit_locked)",
+      "name": "[Auth] Login — Officer (no edit_locked)",
       "request": {
         "method": "POST",
         "header": [
@@ -147,7 +147,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/insert",
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
           "host": [
             "{{api_url}}"
           ],
@@ -157,12 +157,12 @@
             "control-forms",
             "compound-form",
             "edit",
-            "insert"
+            "save"
           ]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"status\":\"saved\",\"controlDate\":\"2024-01-01\",\"controlTime\":\"10:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"CI123TI\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+          "raw": "{\"id\": \"\",\"formNumber\":\"\",\"status\":\"saved\",\"controlDate\":\"2024-01-01\",\"controlTime\":\"10:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"CI123TI\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[{\\\"personalCodeEe\\\":\\\"60706245735\\\",\\\"personalCodeForeign\\\":\\\"\\\",\\\"firstName\\\":\\\"\\\",\\\"lastName\\\":\\\"\\\",\\\"citizenshipCode\\\":\\\"\\\",\\\"birthDate\\\":\\\"\\\"}]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"60706245735\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
         }
       },
       "event": [
@@ -182,7 +182,7 @@
       ]
     },
     {
-      "name": "POST edit/save \u2014 no permission \u2192 403",
+      "name": "POST edit/save — no permission → 403",
       "request": {
         "method": "POST",
         "header": [
@@ -226,7 +226,7 @@
       ]
     },
     {
-      "name": "POST edit/save \u2014 missing compoundFormKey \u2192 422 required",
+      "name": "POST edit/save — missing compoundFormKey → 422 required",
       "request": {
         "method": "POST",
         "header": [
@@ -255,7 +255,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"headerText\": \"\", \"legalBases\": \"[]\", \"files\": \"[]\", \"id\": null, \"compoundFormKey\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
+          "raw": "{\"headerText\": \"\", \"legalBases\": \"[]\", \"id\": null, \"compoundFormKey\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
         }
       },
       "event": [
@@ -274,7 +274,7 @@
       ]
     },
     {
-      "name": "POST edit/save \u2014 create \u2192 200, save id/subFormNumber, version=1, text uppercased",
+      "name": "POST edit/save — create → 200, save id/subFormNumber, version=1, text uppercased",
       "request": {
         "method": "POST",
         "header": [
@@ -328,7 +328,7 @@
       ]
     },
     {
-      "name": "GET transport-interruption \u2014 no permission \u2192 403",
+      "name": "GET transport-interruption — no permission → 403",
       "request": {
         "method": "GET",
         "header": [
@@ -368,7 +368,7 @@
       ]
     },
     {
-      "name": "GET transport-interruption \u2014 not found \u2192 404",
+      "name": "GET transport-interruption — not found → 404",
       "request": {
         "method": "GET",
         "header": [
@@ -408,7 +408,7 @@
       ]
     },
     {
-      "name": "GET transport-interruption \u2014 happy path, verify uppercase transform",
+      "name": "GET transport-interruption — happy path, verify uppercase transform",
       "request": {
         "method": "GET",
         "header": [
@@ -450,7 +450,7 @@
               "pm.test('interruptionReason is uppercased', () => pm.expect(body.interruptionReason).to.eql('CI REASON LOWERCASE'));",
               "pm.test('personApplications is uppercased', () => pm.expect(body.personApplications).to.eql('CI PERSON APPLICATION'));",
               "pm.test('residenceAddressLine is uppercased', () => pm.expect(body.residenceAddressLine).to.eql('CI TEST STREET 1'));",
-              "pm.test('terminationCondition defaulted', () => pm.expect(body.terminationCondition).to.eql('KUNI VEO KATKESTAMISE ALUSE \u00c4RALANGEMISENI.'));",
+              "pm.test('terminationCondition defaulted', () => pm.expect(body.terminationCondition).to.eql('KUNI VEO KATKESTAMISE ALUSE ÄRALANGEMISENI.'));",
               "pm.test('legalBases contains selected code', () => pm.expect(JSON.parse(body.legalBases)).to.include('autovs_51_lg3_p1'));",
               "pm.test('subFormNumber matches created id', () => pm.expect(body.subFormNumber).to.eql(pm.environment.get('created_kv_sub_form_number')));",
               "pm.test('compoundFormKey matches', () => pm.expect(Number(body.compoundFormKey)).to.eql(Number(pm.environment.get('created_kv_compound_key'))));"
@@ -460,7 +460,7 @@
       ]
     },
     {
-      "name": "POST edit/save \u2014 re-save while saved \u2192 200, version stays 1, all 4 legalBases accepted",
+      "name": "POST edit/save — re-save while saved → 200, version stays 1, all 4 legalBases accepted",
       "request": {
         "method": "POST",
         "header": [
@@ -489,7 +489,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"ci updated header\", \"terminationCondition\": \"kuni asjaolud ara langevad\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\",\\\"autovs_51_lg3_p2\\\",\\\"autovs_51_lg3_p3\\\",\\\"autovs_51_lg3_p4\\\"]\", \"files\": \"[]\", \"compoundFormKey\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"personApplications\": null}"
+          "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"ci updated header\", \"terminationCondition\": \"kuni asjaolud ara langevad\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\",\\\"autovs_51_lg3_p2\\\",\\\"autovs_51_lg3_p3\\\",\\\"autovs_51_lg3_p4\\\"]\", \"compoundFormKey\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"personApplications\": null}"
         }
       },
       "event": [
@@ -509,7 +509,7 @@
       ]
     },
     {
-      "name": "GET transport-interruption \u2014 after re-save: terminationCondition uppercased, all 4 legalBases stored",
+      "name": "GET transport-interruption — after re-save: terminationCondition uppercased, all 4 legalBases stored",
       "request": {
         "method": "GET",
         "header": [
@@ -556,7 +556,7 @@
       ]
     },
     {
-      "name": "GET transport-interruption/get-by-compound-form-key \u2014 happy path, list contains created sub-form",
+      "name": "GET transport-interruption/get-by-compound-form-key — happy path, list contains created sub-form",
       "request": {
         "method": "GET",
         "header": [
@@ -604,7 +604,7 @@
       ]
     },
     {
-      "name": "POST edit/confirm \u2014 no permission \u2192 403",
+      "name": "POST edit/confirm — no permission → 403",
       "request": {
         "method": "POST",
         "header": [
@@ -633,7 +633,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[]\", \"files\": \"[]\", \"headerText\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
+          "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[]\", \"headerText\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
         }
       },
       "event": [
@@ -648,7 +648,7 @@
       ]
     },
     {
-      "name": "POST edit/confirm \u2014 happy path \u2192 200, status confirmed, version unchanged",
+      "name": "POST edit/confirm — happy path → 200, status confirmed, version unchanged",
       "request": {
         "method": "POST",
         "header": [
@@ -677,7 +677,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\"]\", \"files\": \"[]\", \"headerText\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
+          "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\"]\", \"headerText\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
         }
       },
       "event": [
@@ -696,7 +696,7 @@
       ]
     },
     {
-      "name": "GET transport-interruption \u2014 status is confirmed after confirm",
+      "name": "GET transport-interruption — status is confirmed after confirm",
       "request": {
         "method": "GET",
         "header": [
@@ -739,7 +739,7 @@
       ]
     },
     {
-      "name": "POST edit/confirm \u2014 already confirmed \u2192 422 already_confirmed",
+      "name": "POST edit/confirm — already confirmed → 422 already_confirmed",
       "request": {
         "method": "POST",
         "header": [
@@ -768,7 +768,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[]\", \"files\": \"[]\", \"headerText\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
+          "raw": "{\"id\": \"{{created_kv_id}}\", \"legalBases\": \"[]\", \"headerText\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
         }
       },
       "event": [
@@ -786,7 +786,7 @@
       ]
     },
     {
-      "name": "POST edit/save \u2014 officer (no edit_locked) saves confirmed form \u2192 422 form_locked",
+      "name": "POST edit/save — officer (no edit_locked) saves confirmed form → 422 form_locked",
       "request": {
         "method": "POST",
         "header": [
@@ -815,7 +815,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"should not save\", \"legalBases\": \"[]\", \"files\": \"[]\", \"compoundFormKey\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
+          "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"should not save\", \"legalBases\": \"[]\", \"compoundFormKey\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
         }
       },
       "event": [
@@ -833,7 +833,7 @@
       ]
     },
     {
-      "name": "POST edit/save \u2014 admin (edit_locked) saves confirmed form \u2192 200, version bumps to 2",
+      "name": "POST edit/save — admin (edit_locked) saves confirmed form → 200, version bumps to 2",
       "request": {
         "method": "POST",
         "header": [
@@ -862,7 +862,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"admin edited locked data\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\"]\", \"files\": \"[]\", \"compoundFormKey\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
+          "raw": "{\"id\": \"{{created_kv_id}}\", \"headerText\": \"admin edited locked data\", \"legalBases\": \"[\\\"autovs_51_lg3_p1\\\"]\", \"compoundFormKey\": null, \"residenceCountry\": null, \"residenceRegion\": null, \"residenceCity\": null, \"residenceAddressLine\": null, \"residencePostalCode\": null, \"interruptionReason\": null, \"terminationCondition\": null, \"personApplications\": null}"
         }
       },
       "event": [
@@ -881,7 +881,7 @@
       ]
     },
     {
-      "name": "POST transport-interruption/edit/delete \u2014 no permission \u2192 403",
+      "name": "POST transport-interruption/edit/delete — no permission → 403",
       "request": {
         "method": "POST",
         "header": [
@@ -926,7 +926,7 @@
       ]
     },
     {
-      "name": "POST transport-interruption/edit/delete \u2014 happy path \u2192 200",
+      "name": "POST transport-interruption/edit/delete — happy path → 200",
       "request": {
         "method": "POST",
         "header": [
@@ -971,7 +971,7 @@
       ]
     },
     {
-      "name": "GET transport-interruption \u2014 deleted form still readable, status=deleted",
+      "name": "GET transport-interruption — deleted form still readable, status=deleted",
       "request": {
         "method": "GET",
         "header": [

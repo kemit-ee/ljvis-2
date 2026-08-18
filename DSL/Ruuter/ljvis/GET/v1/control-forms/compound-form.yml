@@ -15,21 +15,20 @@ declaration:
         type: string
         description: "Sub-form ID if called from sub-form page"
 
-getActorFromTim:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
-  result: timRes
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
   next: extractRequestData
 
 extractRequestData:
   assign:
     id: "${incoming.params.q}"
     sub_form_id: "${incoming.params.subFormId}"
-    actor_personal_code: "${timRes.response.body.personalCode || ''}"
-    actor_name: "${(timRes.response.body.firstName || '') + ' ' + (timRes.response.body.lastName || '')}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: getForm
 
 getForm:
@@ -66,8 +65,6 @@ extractDriverCodes:
 
 checkShouldLog:
   switch:
-    - condition: ${sub_form_id != null}
-      next: mapResponse
     - condition: ${actor_personal_code != created_by}
       next: logAuditEvent
   next: mapResponse
