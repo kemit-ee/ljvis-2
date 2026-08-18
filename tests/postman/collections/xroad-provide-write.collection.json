@@ -106,7 +106,7 @@
           ]
         },
         {
-          "name": "Puuduv inspection_id elemendis → 400 MISSING_PARAMETER",
+          "name": "Puuduv inspection_id elemendis → 400 INVALID_PARAMETER",
           "request": {
             "method": "POST",
             "header": [
@@ -144,7 +144,7 @@
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
                   "var raw = pm.response.json();",
                   "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-                  "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
+                  "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('INVALID_PARAMETER'));"
                 ]
               }
             }
