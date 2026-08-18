@@ -44,10 +44,21 @@ call_tim_callback:
 check_callback:
   switch:
     - condition: ${200 <= callback_result.response.status && callback_result.response.status < 300}
-      next: generate_jwt
+      next: normalize_personal_code
   next: callback_error
 
-# Step 2: Generate a JWT with the user's profile.
+# Step 2a: Strip the "EE" country prefix that TARA adds to the sub claim.
+# TARA returns user_id as "EE60001019906" (OIDC sub), but our DB stores
+# personal codes as plain numeric strings ("60001019906").
+# sub is kept as-is (OIDC standard); personalCode and authenticatedAs
+# get the stripped value so the DB lookup in check-user-authority succeeds.
+normalize_personal_code:
+  assign:
+    raw_user_id: ${callback_result.response.body.user_profile.user_id}
+    personal_code_clean: "${raw_user_id.startsWith('EE') ? raw_user_id.substring(2) : raw_user_id}"
+  next: generate_jwt
+
+# Step 2b: Generate a JWT with the user's profile.
 # TIM's callback returns user_profile with user_id, first_name, etc.
 # We pass these as JWT claims, matching the shape expected by
 # check-user-authority and /jwt/userinfo.
@@ -60,9 +71,9 @@ generate_jwt:
       X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
     body:
       content:
-        sub: ${callback_result.response.body.user_profile.user_id}
-        personalCode: ${callback_result.response.body.user_profile.user_id}
-        authenticatedAs: ${callback_result.response.body.user_profile.user_id}
+        sub: ${raw_user_id}
+        personalCode: ${personal_code_clean}
+        authenticatedAs: ${personal_code_clean}
         authMethod: "TARA"
       expirationInMinutes: 480
       JWTName: "customJwtCookie"
