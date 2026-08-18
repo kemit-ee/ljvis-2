@@ -279,10 +279,10 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                       <TextField
                         id={`ncr-si-${index}-pi-${pIndex}-id`}
                         label={t('erru.ncr.form.penaltyImposedIdentifier')}
-                        value={String(p.penaltyImposedIdentifier)}
+                        value={p.penaltyImposedIdentifier}
                         onChange={(v) => {
                           const items = si.penaltiesImposed.map((it, j) =>
-                            j === pIndex ? { ...it, penaltyImposedIdentifier: Number(v) || 0 } : it,
+                            j === pIndex ? { ...it, penaltyImposedIdentifier: v } : it,
                           );
                           updateSeriousInfringement(index, { penaltiesImposed: items });
                         }}
@@ -299,6 +299,31 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                           updateSeriousInfringement(index, { penaltiesImposed: items });
                         }}
                       />
+                      <Select
+                        id={`ncr-si-${index}-pi-${pIndex}-executed`}
+                        label={t('erru.ncr.form.isExecuted')}
+                        options={opts(isExecutedOptions)}
+                        value={selected(isExecutedOptions, p.isExecuted)}
+                        onChange={(o) => {
+                          const items = si.penaltiesImposed.map((it, j) =>
+                            j === pIndex ? { ...it, isExecuted: pick(o) as typeof it.isExecuted } : it,
+                          );
+                          updateSeriousInfringement(index, { penaltiesImposed: items });
+                        }}
+                      />
+                      {p.isExecuted === 'No' && (
+                        <TextField
+                          id={`ncr-si-${index}-pi-${pIndex}-not-executed-reason`}
+                          label={t('erru.ncr.form.notExecutedReason')}
+                          value={p.notExecutedReason ?? ''}
+                          onChange={(v) => {
+                            const items = si.penaltiesImposed.map((it, j) =>
+                              j === pIndex ? { ...it, notExecutedReason: v } : it,
+                            );
+                            updateSeriousInfringement(index, { penaltiesImposed: items });
+                          }}
+                        />
+                      )}
                       <DateField
                         id={`ncr-si-${index}-pi-${pIndex}-decision-date`}
                         label={t('erru.ncr.form.finalDecisionDate')}
@@ -311,17 +336,29 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                         }}
                         monthYearSelectType="grid"
                       />
-                      <Select
-                        id={`ncr-si-${index}-pi-${pIndex}-executed`}
-                        label={t('erru.ncr.form.isExecuted')}
-                        options={opts(isExecutedOptions)}
-                        value={selected(isExecutedOptions, p.isExecuted)}
-                        onChange={(o) => {
+                      <DateField
+                        id={`ncr-si-${index}-pi-${pIndex}-start-date`}
+                        label={t('erru.ncr.form.penaltyStartDate')}
+                        selected={dateValue(p.startDate ?? '')}
+                        onSelect={(v) => {
                           const items = si.penaltiesImposed.map((it, j) =>
-                            j === pIndex ? { ...it, isExecuted: pick(o) as typeof it.isExecuted } : it,
+                            j === pIndex ? { ...it, startDate: toIsoDate(v as Date | undefined) || null } : it,
                           );
                           updateSeriousInfringement(index, { penaltiesImposed: items });
                         }}
+                        monthYearSelectType="grid"
+                      />
+                      <DateField
+                        id={`ncr-si-${index}-pi-${pIndex}-end-date`}
+                        label={t('erru.ncr.form.penaltyEndDate')}
+                        selected={dateValue(p.endDate ?? '')}
+                        onSelect={(v) => {
+                          const items = si.penaltiesImposed.map((it, j) =>
+                            j === pIndex ? { ...it, endDate: toIsoDate(v as Date | undefined) || null } : it,
+                          );
+                          updateSeriousInfringement(index, { penaltiesImposed: items });
+                        }}
+                        monthYearSelectType="grid"
                       />
                       <Button visualType="secondary" className="mt-05" onClick={() => removePenaltyImposed(index, pIndex)} type="button">
                         {t('common.remove')}
@@ -340,10 +377,10 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                       <TextField
                         id={`ncr-si-${index}-pr-${pIndex}-id`}
                         label={t('erru.ncr.form.penaltyRequestedIdentifier')}
-                        value={String(p.penaltyRequestedIdentifier)}
+                        value={p.penaltyRequestedIdentifier}
                         onChange={(v) => {
                           const items = si.penaltiesRequested.map((it, j) =>
-                            j === pIndex ? { ...it, penaltyRequestedIdentifier: Number(v) || 0 } : it,
+                            j === pIndex ? { ...it, penaltyRequestedIdentifier: v } : it,
                           );
                           updateSeriousInfringement(index, { penaltiesRequested: items });
                         }}
@@ -365,8 +402,9 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                         label={t('erru.ncr.form.penaltyDuration')}
                         value={p.duration != null ? String(p.duration) : ''}
                         onChange={(v) => {
+                          const numericValue = v.replace(/\D/g, '');
                           const items = si.penaltiesRequested.map((it, j) =>
-                            j === pIndex ? { ...it, duration: v ? Number(v) : null } : it,
+                            j === pIndex ? { ...it, duration: numericValue ? Number(numericValue) : null } : it,
                           );
                           updateSeriousInfringement(index, { penaltiesRequested: items });
                         }}

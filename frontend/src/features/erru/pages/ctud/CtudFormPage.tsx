@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -34,9 +35,10 @@ export function CtudFormPage() {
   const canEdit = hasAnyPermission(['ctud.create']);
   const canSend = hasAnyPermission(['ctud.send']);
 
+  const [savedOk, setSavedOk] = useState(false);
   const { request, isLoading, notFound, send, isSending, sendError, reload } =
     useCtudRequestDetail(id);
-  const form = useCtudForm(request, () => reload());
+  const form = useCtudForm(request, () => { setSavedOk(true); reload(); });
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;
@@ -81,6 +83,11 @@ export function CtudFormPage() {
           {form.formError && (
             <Alert type="danger" size="small" className="mt-05">
               {form.formError}
+            </Alert>
+          )}
+          {savedOk && (
+            <Alert type="success" size="small" className="mt-05">
+              {t('common.saved')}
             </Alert>
           )}
           {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (

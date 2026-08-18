@@ -160,7 +160,9 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
             penaltiesImposed: [
               ...si.penaltiesImposed,
               {
-                penaltyImposedIdentifier: si.penaltiesImposed.length + 1,
+                // Tekstiväli per spec (LJVIS2-63 §4) — a free-text identifier, not an
+                // auto-generated sequence number.
+                penaltyImposedIdentifier: '',
                 penaltyTypeImposed: '',
                 finalDecisionDate: '',
                 isExecuted: 'Unknown' as const,
@@ -188,7 +190,9 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
             ...si,
             penaltiesRequested: [
               ...si.penaltiesRequested,
-              { penaltyRequestedIdentifier: si.penaltiesRequested.length + 1, penaltyTypeRequested: '' },
+              // Tekstiväli per spec (LJVIS2-63 §4) — a free-text identifier, not an
+              // auto-generated sequence number.
+              { penaltyRequestedIdentifier: '', penaltyTypeRequested: '' },
             ],
           }
         : si,

@@ -544,7 +544,7 @@ export interface NcrMinorInfringement {
 
 /** Penalty the INSPECTING member state itself already imposed at the roadside. */
 export interface NcrPenaltyImposed {
-  penaltyImposedIdentifier: number;
+  penaltyImposedIdentifier: string;
   penaltyTypeImposed: string;
   finalDecisionDate: string;
   startDate?: string | null;
@@ -555,7 +555,7 @@ export interface NcrPenaltyImposed {
 
 /** Penalty the inspecting MS requests the REGISTRATION member state to impose. */
 export interface NcrPenaltyRequested {
-  penaltyRequestedIdentifier: number;
+  penaltyRequestedIdentifier: string;
   penaltyTypeRequested: string;
   duration?: number | null;
 }
@@ -572,7 +572,7 @@ export interface NcrSeriousInfringement {
 
 /** Registration MS's answer to one requested penalty — always keyed by the requested id. */
 export interface NcrResponsePenaltyImposed {
-  penaltyRequestedIdentifier: number;
+  penaltyRequestedIdentifier: string;
   authorityImposingPenalty: string;
   isImposed: boolean;
   penaltyTypeImposed: string | null;

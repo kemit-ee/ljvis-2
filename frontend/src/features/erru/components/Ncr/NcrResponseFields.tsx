@@ -186,7 +186,7 @@ export function NcrResponseFields({ form, message, organisations }: Props) {
             <TextField
               id={`ncr-resp-pi-${index}-req-id`}
               label={t('erru.ncr.form.penaltyRequestedIdentifier')}
-              value={String(p.penaltyRequestedIdentifier)}
+              value={p.penaltyRequestedIdentifier}
               disabled
               onChange={() => undefined}
             />

@@ -37,17 +37,32 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
   const pick = pickOptionValue;
   const dateValue = parseIsoDate;
 
+  // XSD choice 7A/7B: neither block is required on its own, but once the officer starts
+  // filling one, its remaining fields become required — mirrors the "kilometer required
+  // once road is chosen" pattern in the compound form (CompoundFormCreatePage/EditCard).
+  const nameBlockStarted = !!(
+    formik.values.tmFirstName ||
+    formik.values.tmFamilyName ||
+    formik.values.tmDateOfBirth
+  );
+  const certificateBlockStarted = !!(
+    formik.values.certificateNumber ||
+    formik.values.certificateIssueDate ||
+    formik.values.certificateIssueCountry
+  );
+
   return (
     <>
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.cgr.form.headerBlock')}</Heading>
 
-          {/* Estonia is always the issuer of an outgoing request — not editable. */}
+          {/* Estonia is always the issuer of an outgoing request — not editable.
+              Shown as the country name, not the raw code (consistent with RSI/NCR). */}
           <TextField
             id="cgr-from"
             label={t('erru.cgr.form.cgrFrom')}
-            value="EE"
+            value={selected(countries, 'EE')?.label ?? 'EE'}
             disabled
             onChange={() => undefined}
           />
@@ -103,6 +118,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
           <TextField
             id="cgr-tm-first-name"
             label={t('erru.cgr.form.tmFirstName')}
+            required={nameBlockStarted}
             value={formik.values.tmFirstName}
             onChange={(v) => formik.setFieldValue('tmFirstName', v)}
             {...err('tmFirstName')}
@@ -111,6 +127,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
           <TextField
             id="cgr-tm-family-name"
             label={t('erru.cgr.form.tmFamilyName')}
+            required={nameBlockStarted}
             value={formik.values.tmFamilyName}
             onChange={(v) => formik.setFieldValue('tmFamilyName', v)}
             {...err('tmFamilyName')}
@@ -119,10 +136,10 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
           <DateField
             id="cgr-tm-date-of-birth"
             label={t('erru.cgr.form.tmDateOfBirth')}
+            required={nameBlockStarted}
             selected={dateValue(formik.values.tmDateOfBirth)}
             onSelect={(v) => formik.setFieldValue('tmDateOfBirth', toIsoDate(v as Date | undefined))}
             monthYearSelectType="grid"
-            initialView="years"
             disableFuture
             {...dateErr('tmDateOfBirth')}
           />
@@ -145,6 +162,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
           <TextField
             id="cgr-certificate-number"
             label={t('erru.cgr.form.certificateNumber')}
+            required={certificateBlockStarted}
             value={formik.values.certificateNumber}
             onChange={(v) => formik.setFieldValue('certificateNumber', v)}
             {...err('certificateNumber')}
@@ -153,6 +171,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
           <DateField
             id="cgr-certificate-issue-date"
             label={t('erru.cgr.form.certificateIssueDate')}
+            required={certificateBlockStarted}
             selected={dateValue(formik.values.certificateIssueDate)}
             onSelect={(v) =>
               formik.setFieldValue('certificateIssueDate', toIsoDate(v as Date | undefined))
@@ -164,6 +183,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
           <Select
             id="cgr-certificate-issue-country"
             label={t('erru.cgr.form.certificateIssueCountry')}
+            required={certificateBlockStarted}
             options={opts(countries)}
             value={selected(countries, formik.values.certificateIssueCountry)}
             onChange={(o) => formik.setFieldValue('certificateIssueCountry', pick(o))}
