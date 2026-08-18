@@ -169,7 +169,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"x\",\"respondingAuthority\":\"\",\"responseStatusCode\":\"\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"\"}",
+          "raw": "{\"businessCaseId\":\"x\",\"respondingAuthority\":\"\",\"responseStatusCode\":\"\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -532,18 +532,37 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Cookie", "value": "{{cookie_admin}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/erru/ncr/request/save",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "erru", "ncr", "request", "save"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "request",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
           "raw": "{\"businessCaseId\":\"\",\"originatingAuthority\":\"PPA\",\"requestSource\":\"RSI\",\"requestPurpose\":\"Control\",\"ncrTo\":\"LV\",\"transportUndertakingName\":\"Test AS\",\"communityLicenceNumber\":\"CL-001\",\"vehicleRegistrationNumber\":\"ABC123\",\"vehicleRegistrationCountry\":\"LV\",\"checkResult\":\"Fail\",\"checkDate\":\"2026-01-15\",\"minorInfringement\":\"\",\"seriousInfringements\":\"[{\\\"category\\\":\\\"MSI\\\",\\\"infringementType\\\":\\\"\\\",\\\"dateOfInfringement\\\":\\\"2026-01-15\\\",\\\"detectionCheckDate\\\":\\\"2026-01-15\\\",\\\"appealPossible\\\":true,\\\"penaltiesImposed\\\":[],\\\"penaltiesRequested\\\":[]}]\"}",
-          "options": { "raw": { "language": "json" } }
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         }
       },
       "event": [
@@ -564,18 +583,37 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Cookie", "value": "{{cookie_admin}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/erru/ncr/request/save",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "erru", "ncr", "request", "save"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "request",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
           "raw": "{\"businessCaseId\":\"\",\"originatingAuthority\":\"PPA\",\"requestSource\":\"RSI\",\"requestPurpose\":\"Control\",\"ncrTo\":\"LV\",\"transportUndertakingName\":\"Test AS\",\"communityLicenceNumber\":\"CL-001\",\"vehicleRegistrationNumber\":\"ABC123\",\"vehicleRegistrationCountry\":\"LV\",\"checkResult\":\"Fail\",\"checkDate\":\"2026-01-15\",\"minorInfringement\":\"\",\"seriousInfringements\":\"[{\\\"category\\\":\\\"MSI\\\",\\\"infringementType\\\":\\\"302\\\",\\\"dateOfInfringement\\\":\\\"\\\",\\\"detectionCheckDate\\\":\\\"2026-01-15\\\",\\\"appealPossible\\\":true,\\\"penaltiesImposed\\\":[],\\\"penaltiesRequested\\\":[]}]\"}",
-          "options": { "raw": { "language": "json" } }
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         }
       },
       "event": [
@@ -596,18 +634,37 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Cookie", "value": "{{cookie_admin}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/erru/ncr/request/save",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "erru", "ncr", "request", "save"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "request",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
           "raw": "{\"businessCaseId\":\"\",\"originatingAuthority\":\"PPA\",\"requestSource\":\"RSI\",\"requestPurpose\":\"Control\",\"ncrTo\":\"LV\",\"transportUndertakingName\":\"Test AS\",\"communityLicenceNumber\":\"CL-001\",\"vehicleRegistrationNumber\":\"ABC123\",\"vehicleRegistrationCountry\":\"LV\",\"checkResult\":\"Fail\",\"checkDate\":\"2026-01-15\",\"minorInfringement\":\"\",\"seriousInfringements\":\"[{\\\"category\\\":\\\"MSI\\\",\\\"infringementType\\\":\\\"302\\\",\\\"dateOfInfringement\\\":\\\"2026-01-15\\\",\\\"detectionCheckDate\\\":\\\"\\\",\\\"appealPossible\\\":true,\\\"penaltiesImposed\\\":[],\\\"penaltiesRequested\\\":[]}]\"}",
-          "options": { "raw": { "language": "json" } }
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         }
       },
       "event": [
@@ -887,7 +944,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"}]\"}",
+          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"}]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -938,7 +995,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":false}]\"}",
+          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":false}]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -989,7 +1046,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"305\\\"},{\\\"penaltyRequestedIdentifier\\\":3,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"301\\\"}]\"}",
+          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"305\\\"},{\\\"penaltyRequestedIdentifier\\\":3,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"301\\\"}]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -1015,18 +1072,37 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Cookie", "value": "{{cookie_admin}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/erru/ncr/response/save",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "erru", "ncr", "response", "save"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "response",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":null},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":false}]\"}",
-          "options": { "raw": { "language": "json" } }
+          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":null},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":false}]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         }
       },
       "event": [
@@ -1073,7 +1149,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"5\",\"responseCommunityLicenceStatus\":\"Active\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":false,\\\"penaltyTypeImposed\\\":\\\"305\\\",\\\"reason\\\":\\\"Not sufficient evidence\\\"}]\"}",
+          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"5\",\"responseCommunityLicenceStatus\":\"Active\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":false,\\\"penaltyTypeImposed\\\":\\\"305\\\",\\\"reason\\\":\\\"Not sufficient evidence\\\"}]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -1176,7 +1252,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"Updated message\",\"responseNumberOfVehicles\":\"6\",\"responseCommunityLicenceStatus\":\"Active\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"305\\\"}]\"}",
+          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"Updated message\",\"responseNumberOfVehicles\":\"6\",\"responseCommunityLicenceStatus\":\"Active\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"305\\\"}]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -1227,7 +1303,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"NCR-EE-0000-00000\",\"respondingAuthority\":\"\",\"responseStatusCode\":\"\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[]\"}",
+          "raw": "{\"businessCaseId\":\"NCR-EE-0000-00000\",\"respondingAuthority\":\"\",\"responseStatusCode\":\"\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -1276,7 +1352,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"{{ncr_outgoing_bci}}\",\"respondingAuthority\":\"\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[]\"}",
+          "raw": "{\"businessCaseId\":\"{{ncr_outgoing_bci}}\",\"respondingAuthority\":\"\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"\",\"responseNumberOfVehicles\":\"\",\"responseCommunityLicenceStatus\":\"\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"

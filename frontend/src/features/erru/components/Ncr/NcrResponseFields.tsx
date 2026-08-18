@@ -1,20 +1,42 @@
 import { useTranslation } from 'react-i18next';
 import { Card, ChoiceGroup, DateField, Heading, Select, TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { toIsoDate } from '../../../../hooks/dateUtils';
-import { classifierOptions, fieldError, nestedFieldError, parseIsoDate, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
+import {
+  classifierOptions,
+  fieldError,
+  nestedFieldError,
+  parseIsoDate,
+  pickOptionValue,
+  selectedClassifierOption,
+} from '../../utils/fieldHelpers';
 import type { useNcrResponseForm } from '../../pages/ncr/useNcrResponseForm';
+import type { NcrMessage } from '../../types';
+import type { Organisation } from '../../../organisations/types';
 
 type NcrResponseFormApi = ReturnType<typeof useNcrResponseForm>;
 
+type Props = {
+  form: NcrResponseFormApi;
+  /** The current snapshot of the incoming case — supplies read-only header fields. */
+  message: NcrMessage;
+  /** Organisation catalogue for the authority dropdowns. */
+  organisations: Organisation[];
+};
+
 /**
  * Editable fields of the Estonian response draft to an incoming NCR message (LJVIS2-63
- * §4 Plokk "Vastuse sisu"). One row per requested penalty (fixed set, seeded from the
- * request — see useNcrResponseForm), "Määrati karistus" Ei clears "Kehtestatud karistus".
+ * §4 Plokk "Vastuse sisu"). The block starts with read-only context fields (responding MS,
+ * target MS, target authority, message number) that cannot be changed when responding. Below
+ * them are editable fields: responding authority (org dropdown), status code, transport
+ * undertaking name, community licence number, vehicle count, address, licence status, and
+ * the penalties-imposed sub-list. "Määrati karistus" Ei clears "Kehtestatud karistus".
  */
-export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
+export function NcrResponseFields({ form, message, organisations }: Props) {
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
+  const { label: classifierLabel } = useClassifierLabel();
   const { formik, updatePenalty } = form;
 
   const responseStatuses = getByCode('NCR_RESPONSE_STATUS');
@@ -30,16 +52,64 @@ export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
   const nestedErr = (index: number, field: string) =>
     nestedFieldError(formik, 'responsePenaltiesImposed', index, field);
 
+  // Organisation options for authority Select components (code stored, name displayed).
+  const orgOptions = organisations.map((o) => ({ value: o.code, label: o.name }));
+  const selectedOrg = (code: string) => orgOptions.find((o) => o.value === code) ?? null;
+  const pickOrg = (o: unknown) => (o as { value?: string } | null)?.value ?? '';
+  // For read-only display of an authority code as a human-readable name (falls back to code).
+  const orgLabel = (code: string | null | undefined) =>
+    code ? (organisations.find((o) => o.code === code)?.name ?? code) : '—';
+
+  // For the response block, the responding MS = ncrTo of the stored incoming message (EE),
+  // and the target MS = ncrFrom (the requesting MS, e.g. LV).
+  const respondingMemberState = classifierLabel('COUNTRY', message.ncrTo);
+  const targetMemberState = classifierLabel('COUNTRY', message.ncrFrom);
+
+  const penaltyCount = formik.values.responsePenaltiesImposed.length;
+
   return (
     <Card className="mt-05">
       <Card.Content>
         <Heading element="h2">{t('erru.ncr.form.responseBlock')}</Heading>
+
+        {/* Read-only context fields — always from the stored incoming message */}
         <TextField
+          id="ncr-resp-responding-ms"
+          label={t('erru.ncr.form.respondingMemberState')}
+          value={respondingMemberState}
+          disabled
+          onChange={() => undefined}
+        />
+        <TextField
+          id="ncr-resp-target-ms"
+          label={t('erru.ncr.form.ncrTo')}
+          value={targetMemberState}
+          disabled
+          onChange={() => undefined}
+        />
+        <TextField
+          id="ncr-resp-target-authority"
+          label={t('erru.ncr.form.targetAuthority')}
+          value={orgLabel(message.originatingAuthority)}
+          disabled
+          onChange={() => undefined}
+        />
+        <TextField
+          id="ncr-resp-message-number"
+          label={t('erru.ncr.form.messageNumber')}
+          value={message.businessCaseId}
+          disabled
+          onChange={() => undefined}
+        />
+
+        {/* Editable response fields */}
+        <Select
           id="ncr-responding-authority"
           label={t('erru.ncr.form.respondingAuthority')}
           required
-          value={formik.values.respondingAuthority}
-          onChange={(v) => formik.setFieldValue('respondingAuthority', v)}
+          options={orgOptions}
+          value={selectedOrg(formik.values.respondingAuthority)}
+          onChange={(o) => formik.setFieldValue('respondingAuthority', pickOrg(o))}
           {...err('respondingAuthority')}
         />
         <Select
@@ -58,17 +128,22 @@ export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
           onChange={(v) => formik.setFieldValue('responseStatusMessage', v)}
         />
         <TextField
+          id="ncr-response-transport-undertaking"
+          label={t('erru.ncr.form.transportUndertakingName')}
+          value={formik.values.transportUndertakingName}
+          onChange={(v) => formik.setFieldValue('transportUndertakingName', v)}
+        />
+        <TextField
+          id="ncr-response-community-licence"
+          label={t('erru.ncr.form.communityLicenceNumber')}
+          value={formik.values.communityLicenceNumber}
+          onChange={(v) => formik.setFieldValue('communityLicenceNumber', v)}
+        />
+        <TextField
           id="ncr-response-number-of-vehicles"
           label={t('erru.ncr.form.responseNumberOfVehicles')}
           value={formik.values.responseNumberOfVehicles}
-          onChange={(v) => formik.setFieldValue('responseNumberOfVehicles', v)}
-        />
-        <Select
-          id="ncr-response-community-licence-status"
-          label={t('erru.ncr.form.responseCommunityLicenceStatus')}
-          options={opts(licenceStatuses)}
-          value={selected(licenceStatuses, formik.values.responseCommunityLicenceStatus)}
-          onChange={(o) => formik.setFieldValue('responseCommunityLicenceStatus', pick(o))}
+          onChange={(v) => formik.setFieldValue('responseNumberOfVehicles', v.replace(/\D/g, ''))}
         />
         <TextField
           id="ncr-response-address"
@@ -97,10 +172,17 @@ export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
             formik.setFieldValue('responseAddress', { ...formik.values.responseAddress, country: pick(o) })
           }
         />
+        <Select
+          id="ncr-response-community-licence-status"
+          label={t('erru.ncr.form.responseCommunityLicenceStatus')}
+          options={opts(licenceStatuses)}
+          value={selected(licenceStatuses, formik.values.responseCommunityLicenceStatus)}
+          onChange={(o) => formik.setFieldValue('responseCommunityLicenceStatus', pick(o))}
+        />
 
         <Heading element="h3">{t('erru.ncr.form.penaltiesImposedResponseBlock')}</Heading>
         {formik.values.responsePenaltiesImposed.map((p, index) => (
-          <div key={index} className="detail-row">
+          <div key={index} className={index < penaltyCount - 1 ? 'detail-row mb-1' : 'detail-row'}>
             <TextField
               id={`ncr-resp-pi-${index}-req-id`}
               label={t('erru.ncr.form.penaltyRequestedIdentifier')}
@@ -108,11 +190,12 @@ export function NcrResponseFields({ form }: { form: NcrResponseFormApi }) {
               disabled
               onChange={() => undefined}
             />
-            <TextField
+            <Select
               id={`ncr-resp-pi-${index}-authority`}
               label={t('erru.ncr.form.authorityImposingPenalty')}
-              value={p.authorityImposingPenalty}
-              onChange={(v) => updatePenalty(index, { authorityImposingPenalty: v })}
+              options={orgOptions}
+              value={selectedOrg(p.authorityImposingPenalty)}
+              onChange={(o) => updatePenalty(index, { authorityImposingPenalty: pickOrg(o) })}
             />
             <ChoiceGroup
               id={`ncr-resp-pi-${index}-is-imposed`}

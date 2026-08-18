@@ -70,6 +70,8 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
       responseCommunityLicenceStatus: message?.responseCommunityLicenceStatus ?? '',
       responseAddress: message?.responseAddress ?? { address: '', postCode: '', city: '', country: '' },
       responsePenaltiesImposed: initialPenalties,
+      transportUndertakingName: message?.transportUndertakingName ?? '',
+      communityLicenceNumber: message?.communityLicenceNumber ?? '',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -85,6 +87,8 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
           responseCommunityLicenceStatus: values.responseCommunityLicenceStatus,
           responseAddress: hasAddress ? JSON.stringify(values.responseAddress) : '',
           responsePenaltiesImposed: JSON.stringify(values.responsePenaltiesImposed),
+          transportUndertakingName: values.transportUndertakingName,
+          communityLicenceNumber: values.communityLicenceNumber,
         });
         onSaved(result.businessCaseId);
       } catch (e) {

@@ -666,6 +666,10 @@ export interface NcrResponseWrite {
   responseAddress: string;
   /** JSON-stringified NcrResponsePenaltyImposed[]. */
   responsePenaltiesImposed: string;
+  /** May be corrected by Estonia from registry data when responding. */
+  transportUndertakingName: string;
+  /** May be corrected by Estonia from registry data when responding. */
+  communityLicenceNumber: string;
 }
 
 export interface NcrSaveResult {

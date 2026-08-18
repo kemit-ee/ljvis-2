@@ -34,6 +34,10 @@ declaration:
         type: string
       - field: responsePenaltiesImposed
         type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
       - field: handlerPersonalCode
         type: string
       - field: handlerName
@@ -89,8 +93,8 @@ WITH latest AS (
     l.ack_status_code,
     l.ack_status_message,
     l.ack_received_at,
-    l.transport_undertaking_name,
-    l.community_licence_number,
+    COALESCE(NULLIF(:transportUndertakingName, ''), l.transport_undertaking_name),
+    COALESCE(NULLIF(:communityLicenceNumber, ''), l.community_licence_number),
     l.vehicle_registration_number,
     l.vehicle_registration_country,
     l.check_result,

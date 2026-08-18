@@ -147,7 +147,7 @@ export function NcrFormPage() {
 
       {!requestEditable && responseEditable && (
         <form onSubmit={responseForm.formik.handleSubmit}>
-          <NcrResponseFields form={responseForm} />
+          <NcrResponseFields form={responseForm} message={current} organisations={organisations} />
           {responseForm.formError && (
             <Alert type="danger" size="small" className="mt-05">
               {responseForm.formError}
@@ -214,10 +214,19 @@ export function NcrFormPage() {
               {current.responseStatusCode && (
                 <>
                   <Heading element="h2">{t('erru.ncr.form.responseBlock')}</Heading>
-                  <DetailRow label={t('erru.ncr.form.respondingAuthority')} value={current.respondingAuthority} />
+                  <DetailRow label={t('erru.ncr.form.respondingMemberState')} value={label('COUNTRY', current.ncrTo)} />
+                  <DetailRow label={t('erru.ncr.form.respondingAuthority')} value={authorityLabel(current.respondingAuthority)} />
+                  <DetailRow label={t('erru.ncr.form.ncrTo')} value={label('COUNTRY', current.ncrFrom)} />
+                  <DetailRow label={t('erru.ncr.form.targetAuthority')} value={authorityLabel(current.originatingAuthority)} />
+                  <DetailRow label={t('erru.ncr.form.messageNumber')} value={current.businessCaseId} />
+                  <DetailRow label={t('erru.ncr.form.transportUndertakingName')} value={current.transportUndertakingName} />
+                  <DetailRow label={t('erru.ncr.form.communityLicenceNumber')} value={current.communityLicenceNumber} />
                   <DetailRow label={t('erru.ncr.form.responseStatusCode')} value={label('NCR_RESPONSE_STATUS', current.responseStatusCode)} />
                   {current.responseStatusMessage && (
                     <DetailRow label={t('erru.ncr.form.responseStatusMessage')} value={current.responseStatusMessage} />
+                  )}
+                  {current.responseNumberOfVehicles != null && (
+                    <DetailRow label={t('erru.ncr.form.responseNumberOfVehicles')} value={String(current.responseNumberOfVehicles)} />
                   )}
                   {current.responseCommunityLicenceStatus && (
                     <DetailRow label={t('erru.ncr.form.responseCommunityLicenceStatus')} value={label('NCR_COMMUNITY_LICENCE_STATUS', current.responseCommunityLicenceStatus)} />
@@ -252,13 +261,36 @@ export function NcrFormPage() {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.ncr.form.historyBlock')}</Heading>
-          {snapshots.map((s) => (
-            <div key={`${s.id}-${s.version}`} className="detail-row">
-              <Text modifiers="bold">{t('erru.ncr.form.historyVersion', { version: s.version })}</Text>
-              <Text>{label('NCR_REQUEST_STATUS', s.status)}</Text>
-              <Text>{s.sentAt ? new Date(s.sentAt).toLocaleString('et-EE') : '—'}</Text>
-            </div>
-          ))}
+          {/* Column headers */}
+          <div className="detail-row">
+            <Text modifiers="bold">{t('erru.ncr.form.historyType')}</Text>
+            <Text modifiers="bold">{t('erru.ncr.form.historyDirection')}</Text>
+            <Text modifiers="bold">{t('erru.ncr.form.historyStatus')}</Text>
+            <Text modifiers="bold">{t('erru.ncr.form.historySentAt')}</Text>
+          </div>
+          {snapshots.map((s, idx) => {
+            // A snapshot carries response content once the responding authority is set.
+            const isResponseSnapshot = !!(s.respondingAuthority || s.responseStatusCode);
+            return (
+              <div
+                key={`${s.id}-${s.version}`}
+                className={idx < snapshots.length - 1 ? 'detail-row mb-1' : 'detail-row'}
+              >
+                <Text>
+                  {isResponseSnapshot
+                    ? t('erru.ncr.form.historyTypeResponse')
+                    : t('erru.ncr.form.historyTypeRequest')}
+                </Text>
+                <Text>
+                  {s.direction === 'outgoing'
+                    ? t('erru.ncr.list.directionOutgoing')
+                    : t('erru.ncr.list.directionIncoming')}
+                </Text>
+                <Text>{label('NCR_REQUEST_STATUS', s.status)}</Text>
+                <Text>{s.sentAt ? new Date(s.sentAt).toLocaleString('et-EE') : '—'}</Text>
+              </div>
+            );
+          })}
         </Card.Content>
       </Card>
     </div>

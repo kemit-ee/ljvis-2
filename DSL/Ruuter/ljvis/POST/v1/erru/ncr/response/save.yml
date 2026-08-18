@@ -31,6 +31,10 @@ declaration:
         type: string
       - field: responsePenaltiesImposed
         type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
 
 extractRequestData:
   assign:
@@ -42,6 +46,8 @@ extractRequestData:
     response_community_licence_status: "${(incoming.body.responseCommunityLicenceStatus || '').trim()}"
     response_address: "${('' + (incoming.body.responseAddress || '')).trim()}"
     response_penalties_imposed_raw: "${('' + (incoming.body.responsePenaltiesImposed || '')).trim() || '[]'}"
+    transport_undertaking_name: "${(incoming.body.transportUndertakingName || '').trim()}"
+    community_licence_number: "${(incoming.body.communityLicenceNumber || '').trim()}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: checkIdPresent
@@ -121,6 +127,8 @@ saveResponse:
       responseCommunityLicenceStatus: ${response_community_licence_status}
       responseAddress: ${response_address}
       responsePenaltiesImposed: ${sanitized_imposed}
+      transportUndertakingName: ${transport_undertaking_name}
+      communityLicenceNumber: ${community_licence_number}
       handlerPersonalCode: ${actor_personal_code}
       handlerName: ${actor_name}
       created_by: ${actor_personal_code}
