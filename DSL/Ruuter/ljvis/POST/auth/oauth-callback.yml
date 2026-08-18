@@ -44,8 +44,22 @@ call_tim_callback:
 check_callback:
   switch:
     - condition: ${200 <= callback_result.response.status && callback_result.response.status < 300}
-      next: generate_jwt
+      next: strip_country_prefix
   next: callback_error
+
+# TARA returns `sub` with the ISO 3166-1 alpha-2 country code in front
+# (EE60001019906) while users.user_account stores the bare personal code, so the
+# lookup in templates/check-user-authority matches nothing and every login ends as
+# 401. The seed data was written against docker/tara-mock, which does not prefix.
+#
+# PARTIAL FIX: strips "EE" only. For eIDAS logins `sub` is a foreign identifier of up
+# to 256 characters that must not be truncated, so the durable answer is a decision on
+# whether the database stores the prefixed identifier. Do not extend this to other
+# country codes without making that decision.
+strip_country_prefix:
+  assign:
+    personal_code: '${callback_result.response.body.user_profile.user_id.substring(0, 2) === "EE" ? callback_result.response.body.user_profile.user_id.substring(2) : callback_result.response.body.user_profile.user_id}'
+  next: generate_jwt
 
 # Step 2: Generate a JWT with the user's profile.
 # TIM's callback returns user_profile with user_id, first_name, etc.
@@ -60,9 +74,9 @@ generate_jwt:
       X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
     body:
       content:
-        sub: ${callback_result.response.body.user_profile.user_id}
-        personalCode: ${callback_result.response.body.user_profile.user_id}
-        authenticatedAs: ${callback_result.response.body.user_profile.user_id}
+        sub: ${personal_code}
+        personalCode: ${personal_code}
+        authenticatedAs: ${personal_code}
         authMethod: "TARA"
       expirationInMinutes: 480
       JWTName: "customJwtCookie"
