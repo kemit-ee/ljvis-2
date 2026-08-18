@@ -48,7 +48,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
                 ]
               }
@@ -92,7 +92,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
                 ]
               }
@@ -136,7 +136,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is INVALID_PARAMETER', () => pm.expect(body.error).to.eql('INVALID_PARAMETER'));"
                 ]
               }
@@ -194,22 +194,45 @@
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "X-Road-Client", "value": "EE/GOV/70000310/ljvis-test"}
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
             ],
             "url": {
               "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-kontroll",
-              "host": ["{{xroad_internal_url}}"],
-              "path": ["ljvis", "xroad", "provide", "isiku-kontroll"]
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-kontroll"
+              ]
             },
-            "body": {"mode": "raw", "raw": "{\"isikukood\": \"19001010001\"}"}
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"19001010001\"}"
+            }
           },
-          "event": [{"listen": "test", "script": {"exec": [
-            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-            "var raw = pm.response.json();",
-            "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-            "pm.test('kontrollid.item on tühi massiiv', () => pm.expect(body.kontrollid.item).to.be.an('array').that.is.empty);"
-          ]}}]
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('kontrollid.item on tühi massiiv', () => pm.expect(body.kontrollid.item).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -249,7 +272,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
                 ]
               }
@@ -293,7 +316,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
                 ]
               }
@@ -337,7 +360,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is INVALID_PARAMETER', () => pm.expect(body.error).to.eql('INVALID_PARAMETER'));"
                 ]
               }
@@ -395,22 +418,45 @@
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "X-Road-Client", "value": "EE/GOV/70000310/ljvis-test"}
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
             ],
             "url": {
               "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-ettevote-kontrollid",
-              "host": ["{{xroad_internal_url}}"],
-              "path": ["ljvis", "xroad", "provide", "isiku-ettevote-kontrollid"]
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-ettevote-kontrollid"
+              ]
             },
-            "body": {"mode": "raw", "raw": "{\"isikukood\": \"19001010001\"}"}
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"19001010001\"}"
+            }
           },
-          "event": [{"listen": "test", "script": {"exec": [
-            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-            "var raw = pm.response.json();",
-            "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-            "pm.test('kontrollid.item on tühi massiiv', () => pm.expect(body.kontrollid.item).to.be.an('array').that.is.empty);"
-          ]}}]
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('kontrollid.item on tühi massiiv', () => pm.expect(body.kontrollid.item).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -450,7 +496,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
                 ]
               }
@@ -494,7 +540,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
                 ]
               }
@@ -538,7 +584,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is MISSING_PARAMETER', () => pm.expect(body.error).to.eql('MISSING_PARAMETER'));"
                 ]
               }
@@ -582,7 +628,7 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 400', () => pm.response.to.have.status(400));",
-                  "var body = pm.response.json();",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
                   "pm.test('error is INVALID_PARAMETER', () => pm.expect(body.error).to.eql('INVALID_PARAMETER'));"
                 ]
               }
@@ -594,22 +640,45 @@
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Content-Type", "value": "application/json"},
-              {"key": "X-Road-Client", "value": "EE/GOV/70000310/ljvis-test"}
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/70000310/ljvis-test"
+              }
             ],
             "url": {
               "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-query",
-              "host": ["{{xroad_internal_url}}"],
-              "path": ["ljvis", "xroad", "provide", "erakorraline-yv-query"]
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "erakorraline-yv-query"
+              ]
             },
-            "body": {"mode": "raw", "raw": "{\"alates\": \"2099-01-01\", \"kuni\": \"2099-01-31\"}"}
+            "body": {
+              "mode": "raw",
+              "raw": "{\"alates\": \"2099-01-01\", \"kuni\": \"2099-01-31\"}"
+            }
           },
-          "event": [{"listen": "test", "script": {"exec": [
-            "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-            "var raw = pm.response.json();",
-            "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-            "pm.test('targeted_for_inspection.item on tühi massiiv', () => pm.expect(body.targeted_for_inspection.item).to.be.an('array').that.is.empty);"
-          ]}}]
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('targeted_for_inspection.item on tühi massiiv', () => pm.expect(body.targeted_for_inspection.item).to.be.an('array').that.is.empty);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Kehtiv päring → 200, vastus sisaldab targeted_for_inspection.item",
