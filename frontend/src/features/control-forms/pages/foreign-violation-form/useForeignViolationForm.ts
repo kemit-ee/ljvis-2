@@ -5,8 +5,7 @@ import * as Yup from 'yup';
 import dayjs from 'dayjs';
 import type { ForeignViolationForm } from '../../../control-forms/types';
 import {
-  insertForeignViolationForm,
-  updateForeignViolationForm,
+  saveForeignViolationForm,
   confirmForeignViolationForm,
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
@@ -187,8 +186,8 @@ export function useForeignViolationForm(
         const result = isEdit
           ? isConfirming
             ? await confirmForeignViolationForm(payload)
-            : await updateForeignViolationForm(payload)
-          : await insertForeignViolationForm(
+            : await saveForeignViolationForm(payload)
+          : await saveForeignViolationForm(
               trimmedValues as unknown as ForeignViolationForm,
             );
         if (isConfirming && onConfirmed) {

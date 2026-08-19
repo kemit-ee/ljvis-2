@@ -1,0 +1,120 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    X-tee pakutav teenus IsikuEttevoteKontrollid (v1): tagastab kõik LJVIS-i
+    kontrollid ettevõtete kohta millega isik on seotud (juhi rollina).
+    Ainult lokaalne DB — Äriregistri välispäringut ei tehta.
+    Vt docs/xtee/02-isiku-ettevote-kontrollid.md.
+  method: post
+  accepts: json
+  returns: json
+  namespace: xroad
+
+# Samm 1: Kontrolli X-Road-Client päise olemasolu
+validateXRoadClient:
+  switch:
+    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
+      next: returnMissingHeader
+  next: validateInput
+
+# Samm 2: Valideeri isikukood — Eesti isikukoodi formaat (11 numbrit, algab 1-6)
+validateInput:
+  switch:
+    - condition: "${incoming.body.isikukood == null || incoming.body.isikukood == ''}"
+      next: returnMissingIsikukood
+    - condition: "${!(/^[1-6][0-9]{10}$/.test(incoming.body.isikukood.trim()))}"
+      next: returnInvalidIsikukood
+  next: assignParams
+
+# Samm 3: Määra töömuutujad ja registreeri algusaeg
+assignParams:
+  assign:
+    isikukood: "${incoming.body.isikukood.trim()}"
+    start_time: "${new Date().getTime()}"
+  next: queryKontrollid
+
+# Samm 4: Päri kõik ettevõtete kontrollid Resql-ist
+queryKontrollid:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/provide/isiku-ettevote-kontrollid"
+    headers:
+      type: json
+    body:
+      isikukood: ${isikukood}
+  result: kontrollResult
+  next: checkQueryStatus
+
+# Samm 5: Kontrolli Resql vastuse HTTP staatust
+checkQueryStatus:
+  switch:
+    - condition: "${kontrollResult.response.status < 200 || kontrollResult.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+# Samm 6a: Logi edukas päring — isikukood maskituna
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.isiku-ettevote-kontrollid"
+      request_xml: "isikukood=****"
+      response_xml: "${JSON.stringify({count: (kontrollResult.response.body || []).length})}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: logResult
+  next: buildResponse
+
+# Samm 7: Ehita vastus — tühi array on samuti edukas (HTTP 200)
+buildResponse:
+  assign:
+    result_body: "${JSON.stringify({kontrollid: {item: kontrollResult.response.body || []}})}"
+  next: returnSuccess
+
+returnSuccess:
+  status: 200
+  return: ${result_body}
+  next: end
+
+# Samm 6b: Logi ebaõnnestunud päring
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.isiku-ettevote-kontrollid"
+      request_xml: "isikukood=****"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Resql HTTP ' + kontrollResult.response.status}"
+  result: logResult
+  next: returnServerError
+
+# Veavastused — ei sisalda sisemist infot
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end
+
+returnMissingHeader:
+  status: 400
+  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
+  next: end
+
+returnMissingIsikukood:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "isikukood is required"}'
+  next: end
+
+returnInvalidIsikukood:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "isikukood must be 11 digits starting with 1-6"}'
+  next: end

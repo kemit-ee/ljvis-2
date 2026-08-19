@@ -11,6 +11,9 @@ declaration:
       - field: personalCode
         type: string
         description: "Personal code to check"
+      - field: id
+        type: string
+        description: "User id to check (optional)"
 
 extractRequestData:
   assign:

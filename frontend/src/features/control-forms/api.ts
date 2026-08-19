@@ -1,4 +1,4 @@
-import { post, postSilent, get, ApiError } from '../../shared/api/client';
+import { post, get, ApiError } from '../../shared/api/client';
 import type { PagedResponse } from '../../hooks/usePaginatedList';
 import type {
   ForeignViolationForm,
@@ -39,15 +39,9 @@ export const getForm = (id: number) =>
     q: String(id),
   });
 
-export const insertForeignViolationForm = (data: ForeignViolationForm) =>
+export const saveForeignViolationForm = (data: ForeignViolationForm) =>
   post<ForeignViolationForm[]>(
-    '/v1/control-forms/foreign-violation-form',
-    data as unknown as Record<string, unknown>,
-  );
-
-export const updateForeignViolationForm = (data: ForeignViolationForm) =>
-  post<ForeignViolationForm[]>(
-    `/v1/control-forms/foreign-violation-form/edit/update`,
+    `/v1/control-forms/foreign-violation-form/edit/save`,
     data as unknown as Record<string, unknown>,
   );
 
@@ -158,9 +152,9 @@ export const getDriveRestFormByCompoundFormKey = (
   scope: 'driver' | 'teammate',
   compoundFormKey: number,
 ): Promise<DriveRestForm | null> =>
-  postSilent<DriveRestForm | null>(
-    `/v1/control-forms/drive-rest-form/${scope}/read/get-by-compound-form-key`,
-    { compoundFormKey },
+  get<DriveRestForm | null>(
+    `/v1/control-forms/sp-${scope}/read/get-by-compound-form-key`,
+    { compoundFormKey: String(compoundFormKey) },
   )
     .then((res) => (res?.status === 'deleted' ? null : res))
     .catch((err: ApiError) => {
@@ -196,7 +190,7 @@ export const getDriveRestFormSnapshot = (
   formKey: string,
 ) =>
   post<DriveRestForm[]>(
-    `/v1/control-forms/drive-rest-form/${scope}/read/get-snapshot`,
+    `/v1/control-forms/sp-${scope}/read/get-snapshot`,
     { id, formKey },
   );
 

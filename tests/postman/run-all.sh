@@ -75,6 +75,11 @@ newman run "$COL/classifiers.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/classifiers.html"
 
+newman run "$COL/driverest-forms.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/driverest-forms.html"
+
 newman run "$COL/labour-inspection.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \
@@ -124,6 +129,14 @@ newman run "$COL/form-search.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/form-search.html"
+
+newman run "$COL/xroad-provide-query.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/xroad-provide-query.html"
+
+newman run "$COL/xroad-provide-write.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/xroad-provide-write.html"
 
 echo ""
 echo "All collections passed."

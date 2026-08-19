@@ -9,6 +9,12 @@
       "description": "Ruuter — CI stack (port 9086, isolated from dev stack on 8086)"
     },
     {
+      "key": "xroad_internal_url",
+      "value": "http://localhost:9089",
+      "enabled": true,
+      "description": "Ruuter-internal — CI stack (port 9089, X-tee pakutavad teenused)"
+    },
+    {
       "key": "resql_users_url",
       "value": "http://localhost:9087/users",
       "enabled": true

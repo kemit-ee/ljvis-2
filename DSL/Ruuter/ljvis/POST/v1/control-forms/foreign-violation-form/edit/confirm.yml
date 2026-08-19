@@ -96,11 +96,10 @@ declaration:
         type: string
 
 get_user_context:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   result: auth_user
   next: extractRequestData
 
@@ -235,6 +234,8 @@ logAuditEvent:
     form_number: ${form_number}
     old_status: ${old_status}
     new_status: ${new_status}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
