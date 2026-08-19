@@ -211,6 +211,12 @@ export function RsiListPage() {
                 setFilter('direction', (o as { value?: string } | null)?.value ?? '')
               }
             />
+            <TextField
+              id="rsi-filter-handler"
+              label={t('erru.rsi.list.handlerFilter')}
+              value={draftFilters.handlerPersonalCode ?? ''}
+              onChange={(v) => setFilter('handlerPersonalCode', v)}
+            />
             <div className="filter-actions">
               <Button onClick={applyFilters}>{t('common.search')}</Button>
               <Button visualType="secondary" onClick={resetFilters}>

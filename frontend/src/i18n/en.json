@@ -1193,7 +1193,8 @@
         "vehicleNumber": "Vehicle reg. no.",
         "status": "Status",
         "handler": "User",
-        "direction": "Direction"
+        "direction": "Direction",
+        "handlerFilter": "User (isikukood)"
       },
       "filters": {
         "sentFrom": "Sent from",
@@ -1277,7 +1278,8 @@
         "tmFamilyName": "Family name",
         "cgrTo": "Target member state",
         "status": "Status",
-        "handler": "User"
+        "handler": "User",
+        "handlerFilter": "User (isikukood)"
       },
       "filters": {
         "sentFrom": "Sent from",
@@ -1449,7 +1451,8 @@
         "handler": "User",
         "direction": "Direction",
         "directionOutgoing": "Outgoing",
-        "directionIncoming": "Incoming"
+        "directionIncoming": "Incoming",
+        "handlerFilter": "User (isikukood)"
       }
     },
     "search": {
@@ -1590,7 +1593,8 @@
         "handler": "Handler",
         "direction": "Direction",
         "directionOutgoing": "Outgoing",
-        "directionIncoming": "Incoming"
+        "directionIncoming": "Incoming",
+        "handlerFilter": "Handler (isikukood)"
       }
     }
   }

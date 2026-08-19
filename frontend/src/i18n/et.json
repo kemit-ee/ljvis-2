@@ -1286,7 +1286,7 @@
       "list": {
         "title": "Tegevusloa kontrolli päringud",
         "newRequest": "Uus tegevusloa kontrolli päring",
-        "id": "ID",
+        "id": "Päringu number",
         "sentAt": "Saadetud",
         "ctudFrom": "Saatnud riik",
         "ctudTo": "Saadetud riik",
@@ -1295,7 +1295,8 @@
         "vehicleNumber": "Sõiduki reg.nr",
         "status": "Staatus",
         "handler": "Kasutaja",
-        "direction": "Suund"
+        "direction": "Suund",
+        "handlerFilter": "Kasutaja (isikukood)"
       },
       "filters": {
         "sentFrom": "Saadetud alates",
@@ -1379,7 +1380,8 @@
         "tmFamilyName": "Perekonnanimi",
         "cgrTo": "Sihtriik",
         "status": "Staatus",
-        "handler": "Kasutaja"
+        "handler": "Kasutaja",
+        "handlerFilter": "Kasutaja (isikukood)"
       },
       "filters": {
         "sentFrom": "Saadetud alates",
@@ -1551,7 +1553,8 @@
         "handler": "Kasutaja",
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
-        "directionIncoming": "Sissetulev"
+        "directionIncoming": "Sissetulev",
+        "handlerFilter": "Kasutaja (isikukood)"
       }
     },
     "ncr": {
@@ -1649,7 +1652,8 @@
         "handler": "Menetleja",
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
-        "directionIncoming": "Sissetulev"
+        "directionIncoming": "Sissetulev",
+        "handlerFilter": "Menetleja (isikukood)"
       }
     }
   },

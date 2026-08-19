@@ -198,7 +198,7 @@ export function CgrListPage() {
             />
             <TextField
               id="cgr-filter-handler"
-              label={t('erru.cgr.list.handler')}
+              label={t('erru.cgr.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
               onChange={(v) => setFilter('handlerPersonalCode', v)}
             />

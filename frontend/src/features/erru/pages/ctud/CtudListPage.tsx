@@ -224,6 +224,12 @@ export function CtudListPage() {
                 setFilter('direction', (o as { value?: string } | null)?.value ?? '')
               }
             />
+            <TextField
+              id="ctud-filter-handler"
+              label={t('erru.ctud.list.handlerFilter')}
+              value={draftFilters.handlerPersonalCode ?? ''}
+              onChange={(v) => setFilter('handlerPersonalCode', v)}
+            />
             <div className="filter-actions">
               <Button onClick={applyFilters}>{t('common.search')}</Button>
               <Button visualType="secondary" onClick={resetFilters}>

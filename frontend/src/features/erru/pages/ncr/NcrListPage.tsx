@@ -196,6 +196,12 @@ export function NcrListPage() {
               value={directionOptions.find((o) => o.value === draftFilters.direction) ?? null}
               onChange={(o) => setFilter('direction', (o as { value?: string } | null)?.value ?? '')}
             />
+            <TextField
+              id="ncr-filter-handler"
+              label={t('erru.ncr.list.handlerFilter')}
+              value={draftFilters.handlerPersonalCode ?? ''}
+              onChange={(v) => setFilter('handlerPersonalCode', v)}
+            />
             <div className="filter-actions">
               <Button onClick={applyFilters}>{t('common.search')}</Button>
               <Button visualType="secondary" onClick={resetFilters}>
