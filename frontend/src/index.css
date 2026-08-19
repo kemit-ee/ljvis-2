@@ -193,23 +193,9 @@ nav[aria-label='Main navigation'] {
   grid-column: 1 / -1;
 }
 
-.history-row {
+.table-row-4 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.table-row-3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.table-row-6 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   gap: 0.5rem;
   margin-bottom: 0.25rem;
 }

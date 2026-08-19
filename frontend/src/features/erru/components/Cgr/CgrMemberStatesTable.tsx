@@ -220,17 +220,33 @@ function CgrMemberStateDetails({ memberState }: { memberState: CgrMemberState })
               />
               {!!tm.transportUndertakings.undertaking?.length && (
                 <>
-                  <div className="history-row">
-                    <Text modifiers="bold">{t('erru.cgr.response.undertakingName')}</Text>
-                    <Text modifiers="bold">{t('erru.cgr.response.licenceNumber')}</Text>
-                    <Text modifiers="bold">{t('erru.cgr.response.licenceStatus')}</Text>
-                    <Text modifiers="bold">{t('erru.cgr.response.vehicles')}</Text>
+                  <div className="table-row-4">
+                    <Text modifiers="bold">
+                      {t('erru.cgr.response.undertakingName')}
+                    </Text>
+                    <Text modifiers="bold">
+                      {t('erru.cgr.response.licenceNumber')}
+                    </Text>
+                    <Text modifiers="bold">
+                      {t('erru.cgr.response.licenceStatus')}
+                    </Text>
+                    <Text modifiers="bold">
+                      {t('erru.cgr.response.vehicles')}
+                    </Text>
                   </div>
                   {tm.transportUndertakings.undertaking.map((u, i) => (
-                    <div key={`${u.communityLicenceNumber}-${i}`} className="history-row">
+                    <div
+                      key={`${u.communityLicenceNumber}-${i}`}
+                      className="table-row-4"
+                    >
                       <Text>{u.transportUndertakingName ?? '—'}</Text>
                       <Text>{u.communityLicenceNumber ?? '—'}</Text>
-                      <Text>{label('COMMUNITY_LICENCE_STATUS', u.communityLicenceStatus)}</Text>
+                      <Text>
+                        {label(
+                          'COMMUNITY_LICENCE_STATUS',
+                          u.communityLicenceStatus,
+                        )}
+                      </Text>
                       <Text>{u.numberOfVehicles ?? '—'}</Text>
                     </div>
                   ))}

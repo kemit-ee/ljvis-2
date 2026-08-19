@@ -410,7 +410,7 @@ export function NcrFormPage() {
             {t('erru.ncr.form.historyBlock')}
           </Heading>
           {/* Column headers */}
-          <div className="history-row">
+          <div className="table-row-4">
             <Text modifiers="bold">{t('erru.ncr.form.historyType')}</Text>
             <Text modifiers="bold">{t('erru.ncr.form.historyDirection')}</Text>
             <Text modifiers="bold">{t('erru.ncr.form.historyStatus')}</Text>
@@ -426,8 +426,8 @@ export function NcrFormPage() {
                 key={`${s.id}-${s.version}`}
                 className={
                   idx < snapshots.length - 1
-                    ? 'history-row mb-1'
-                    : 'history-row'
+                    ? 'table-row-4 mb-1'
+                    : 'table-row-4'
                 }
               >
                 <Text>
