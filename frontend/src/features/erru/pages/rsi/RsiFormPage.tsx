@@ -65,18 +65,26 @@ export function RsiFormPage() {
         <Card.Content>
           <div className="card-main">
             <Heading element="h1">
-              {isInbound ? t('erru.rsi.form.titleInbound') : t('erru.rsi.form.titleOutgoing')}
+              {isInbound
+                ? t('erru.rsi.form.titleInbound')
+                : t('erru.rsi.form.titleOutgoing')}
               {' — '}
               {message.businessCaseId}
             </Heading>
-            <StatusBadge>{label('RSI_REQUEST_STATUS', message.status)}</StatusBadge>
+            <StatusBadge>
+              {label('RSI_REQUEST_STATUS', message.status)}
+            </StatusBadge>
           </div>
           <Text>
             {t('erru.rsi.form.version', { version: message.version })}
             {!editable && ` · ${t('erru.rsi.form.readOnly')}`}
           </Text>
-          {message.errorMessage && <Text modifiers="bold">{message.errorMessage}</Text>}
-          {sendError && <Text modifiers="bold">{t('erru.rsi.sendFailed')}</Text>}
+          {message.errorMessage && (
+            <Text modifiers="bold">{message.errorMessage}</Text>
+          )}
+          {sendError && (
+            <Text modifiers="bold">{t('erru.rsi.sendFailed')}</Text>
+          )}
         </Card.Content>
       </Card>
 
@@ -93,13 +101,17 @@ export function RsiFormPage() {
               {t('common.saved')}
             </Alert>
           )}
-          {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
-            <Alert type="danger" size="small" className="mt-05">
-              {t('common.formHasErrors')}
-            </Alert>
-          )}
+          {form.formik.submitCount > 0 &&
+            Object.keys(form.formik.errors).length > 0 && (
+              <Alert type="danger" size="small" className="mt-05">
+                {t('common.formHasErrors')}
+              </Alert>
+            )}
           <PageActions>
-            <Button visualType="secondary" onClick={() => navigate('/erru/rsi')}>
+            <Button
+              visualType="secondary"
+              onClick={() => navigate('/erru/rsi')}
+            >
               {t('common.back')}
             </Button>
             <Button type="submit" disabled={form.formik.isSubmitting}>
@@ -116,55 +128,155 @@ export function RsiFormPage() {
         <>
           <Card className="mt-05">
             <Card.Content>
-              <Heading element="h2">{t('erru.rsi.form.headerBlock')}</Heading>
-              <DetailRow label={t('erru.rsi.form.rsiFrom')} value={label('COUNTRY', message.rsiFrom)} />
-              <DetailRow label={t('erru.rsi.form.rsiTo')} value={label('COUNTRY', message.rsiTo)} />
-              <DetailRow label={t('erru.rsi.form.originatingAuthority')} value={message.originatingAuthority} />
+              <Heading element="h2" className="mb-1">
+                {t('erru.rsi.form.headerBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.rsi.form.rsiFrom')}
+                value={label('COUNTRY', message.rsiFrom)}
+              />
+              <DetailRow
+                label={t('erru.rsi.form.rsiTo')}
+                value={label('COUNTRY', message.rsiTo)}
+              />
+              <div className="mb-1">
+                <DetailRow
+                  label={t('erru.rsi.form.originatingAuthority')}
+                  value={message.originatingAuthority}
+                />
+              </div>
 
-              <Heading element="h2">{t('erru.rsi.form.vehicleBlock')}</Heading>
-              <DetailRow label={t('erru.rsi.form.vehicleCategory')} value={label('RSI_VEHICLE_CATEGORY', message.vehicleCategory)} />
-              <DetailRow label={t('erru.rsi.form.vehicleRegistrationNumber')} value={message.vehicleRegistrationNumber} />
-              <DetailRow label={t('erru.rsi.form.vehicleRegistrationCountry')} value={label('COUNTRY', message.vehicleRegistrationCountry)} />
-              <DetailRow label={t('erru.rsi.form.vehicleIdentificationNumber')} value={message.vehicleIdentificationNumber} />
-              <DetailRow label={t('erru.rsi.form.odometerReading')} value={message.odometerReading} />
+              <Heading element="h2" className="mb-1">
+                {t('erru.rsi.form.vehicleBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.rsi.form.vehicleCategory')}
+                value={label('RSI_VEHICLE_CATEGORY', message.vehicleCategory)}
+              />
+              <DetailRow
+                label={t('erru.rsi.form.vehicleRegistrationNumber')}
+                value={message.vehicleRegistrationNumber}
+              />
+              <DetailRow
+                label={t('erru.rsi.form.vehicleRegistrationCountry')}
+                value={label('COUNTRY', message.vehicleRegistrationCountry)}
+              />
+              <DetailRow
+                label={t('erru.rsi.form.vehicleIdentificationNumber')}
+                value={message.vehicleIdentificationNumber}
+              />
+              <div className="mb-1">
+                <DetailRow
+                  label={t('erru.rsi.form.odometerReading')}
+                  value={message.odometerReading}
+                />
+              </div>
 
               {(message.driverFirstName || message.driverFamilyName) && (
                 <>
-                  <Heading element="h2">{t('erru.rsi.form.driverBlock')}</Heading>
-                  <DetailRow label={t('erru.rsi.form.driverFirstName')} value={message.driverFirstName} />
-                  <DetailRow label={t('erru.rsi.form.driverFamilyName')} value={message.driverFamilyName} />
-                  <DetailRow label={t('erru.rsi.form.driverLicenceNumber')} value={message.driverLicenceNumber} />
-                  <DetailRow label={t('erru.rsi.form.driverLicenceCountry')} value={label('COUNTRY', message.driverLicenceCountry)} />
+                  <Heading element="h2" className="mb-1">
+                    {t('erru.rsi.form.driverBlock')}
+                  </Heading>
+                  <DetailRow
+                    label={t('erru.rsi.form.driverFirstName')}
+                    value={message.driverFirstName}
+                  />
+                  <DetailRow
+                    label={t('erru.rsi.form.driverFamilyName')}
+                    value={message.driverFamilyName}
+                  />
+                  <DetailRow
+                    label={t('erru.rsi.form.driverLicenceNumber')}
+                    value={message.driverLicenceNumber}
+                  />
+                  <div className="mb-1">
+                    <DetailRow
+                      label={t('erru.rsi.form.driverLicenceCountry')}
+                      value={label('COUNTRY', message.driverLicenceCountry)}
+                    />
+                  </div>
                 </>
               )}
 
-              <Heading element="h2">{t('erru.rsi.form.inspectionBlock')}</Heading>
-              <DetailRow label={t('erru.rsi.form.inspectionIdentifier')} value={message.inspectionIdentifier} />
-              <DetailRow label={t('erru.rsi.form.inspectionLocation')} value={message.inspectionLocation} />
+              <Heading element="h2" className="mb-1">
+                {t('erru.rsi.form.inspectionBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.rsi.form.inspectionIdentifier')}
+                value={message.inspectionIdentifier}
+              />
+              <DetailRow
+                label={t('erru.rsi.form.inspectionLocation')}
+                value={message.inspectionLocation}
+              />
               <DetailRow
                 label={t('erru.rsi.form.inspectionDate')}
-                value={message.inspectionDatetime ? new Date(message.inspectionDatetime).toLocaleString('et-EE') : '—'}
+                value={
+                  message.inspectionDatetime
+                    ? new Date(message.inspectionDatetime).toLocaleString(
+                        'et-EE',
+                      )
+                    : '—'
+                }
               />
-              <DetailRow label={t('erru.rsi.form.inspectionAuthorityOrName')} value={message.inspectionAuthorityOrName} />
+              <div className="mb-1">
+                <DetailRow
+                  label={t('erru.rsi.form.inspectionAuthorityOrName')}
+                  value={message.inspectionAuthorityOrName}
+                />
+              </div>
 
-              <Heading element="h2">{t('erru.rsi.form.resultsBlock')}</Heading>
-              <DetailRow label={t('erru.rsi.form.inspectionPassed')} value={message.inspectionPassed ? t('common.yes') : t('common.no')} />
-              <DetailRow label={t('erru.rsi.form.ptiRequested')} value={message.ptiRequested ? t('common.yes') : t('common.no')} />
-              <DetailRow label={t('erru.rsi.form.vehicleProhibitionOrRestriction')} value={message.vehicleProhibitionOrRestriction ? t('common.yes') : t('common.no')} />
+              <Heading element="h2" className="mb-1">
+                {t('erru.rsi.form.resultsBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.rsi.form.inspectionPassed')}
+                value={
+                  message.inspectionPassed ? t('common.yes') : t('common.no')
+                }
+              />
+              <DetailRow
+                label={t('erru.rsi.form.ptiRequested')}
+                value={message.ptiRequested ? t('common.yes') : t('common.no')}
+              />
+              <div className={message.responseStatusCode ? 'mb-1' : undefined}>
+                <DetailRow
+                  label={t('erru.rsi.form.vehicleProhibitionOrRestriction')}
+                  value={
+                    message.vehicleProhibitionOrRestriction
+                      ? t('common.yes')
+                      : t('common.no')
+                  }
+                />
+              </div>
 
               {message.responseStatusCode && (
                 <>
-                  <Heading element="h2">{t('erru.rsi.form.responseBlock')}</Heading>
-                  <DetailRow label={t('erru.rsi.form.responseStatusCode')} value={label('RSI_RESPONSE_STATUS', message.responseStatusCode)} />
+                  <Heading element="h2" className="mb-1">
+                    {t('erru.rsi.form.responseBlock')}
+                  </Heading>
+                  <DetailRow
+                    label={t('erru.rsi.form.responseStatusCode')}
+                    value={label(
+                      'RSI_RESPONSE_STATUS',
+                      message.responseStatusCode,
+                    )}
+                  />
                   {message.responseStatusMessage && (
-                    <DetailRow label={t('erru.rsi.form.responseStatusMessage')} value={message.responseStatusMessage} />
+                    <DetailRow
+                      label={t('erru.rsi.form.responseStatusMessage')}
+                      value={message.responseStatusMessage}
+                    />
                   )}
                 </>
               )}
             </Card.Content>
           </Card>
           <PageActions>
-            <Button visualType="secondary" onClick={() => navigate('/erru/rsi')}>
+            <Button
+              visualType="secondary"
+              onClick={() => navigate('/erru/rsi')}
+            >
               {t('common.back')}
             </Button>
           </PageActions>
