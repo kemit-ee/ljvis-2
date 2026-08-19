@@ -1630,6 +1630,14 @@
         "sendResponse": "Saada vastus",
         "sendFailed": "Saatmine ebaõnnestus. Teade liigus olekusse Viga."
       },
+      "buildModal": {
+        "button": "Lisa NCR vorm",
+        "title": "Lisa NCR vorm",
+        "submit": "Koosta",
+        "forbidden": "Teil puudub õigus NCR päringu koostamiseks",
+        "notFound": "Kontrollkaarti ei leitud, NCR mustandit ei loodud",
+        "failed": "NCR mustandi koostamine ebaõnnestus"
+      },
       "validation": {
         "required": "Väli on kohustuslik",
         "invalid_country_code": "Riigi kood peab olema kahetäheline",

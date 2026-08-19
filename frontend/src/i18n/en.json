@@ -1571,6 +1571,14 @@
         "sendResponse": "Send response",
         "sendFailed": "Sending failed. The message moved to Error status."
       },
+      "buildModal": {
+        "button": "Add NCR message",
+        "title": "Add NCR message",
+        "submit": "Build",
+        "forbidden": "You do not have permission to build an NCR request",
+        "notFound": "Control form not found, NCR draft was not created",
+        "failed": "Failed to build the NCR draft"
+      },
       "validation": {
         "required": "This field is required",
         "invalid_country_code": "Country code must be two letters",

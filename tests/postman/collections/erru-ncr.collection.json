@@ -1621,6 +1621,265 @@
       ]
     },
     {
+      "name": "[Get] Verify M1 draft — checkDate/licence/vehicle fields + exactly one snapshot (T1/T4)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/get?q={{ncr_build_m1_bci}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ncr_build_m1_bci}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('exactly one snapshot (T4)', () => pm.expect(b.snapshots.length).to.eql(1));",
+              "var s = b.snapshots[0];",
+              "pm.test('version 1, outgoing, initiated (T4)', () => {",
+              "  pm.expect(s.version).to.eql(1);",
+              "  pm.expect(s.direction).to.eql('outgoing');",
+              "  pm.expect(s.status).to.eql('initiated');",
+              "});",
+              "pm.test('checkDate derived from compound_form.control_date (T1)', () => pm.expect(s.checkDate).to.match(/^\\d{4}-\\d{2}-\\d{2}$/));",
+              "pm.test('communityLicenceNumber from compound_form (T1)', () => pm.expect(s.communityLicenceNumber).to.eql('EE-CL-FIXTURE1'));",
+              "pm.test('vehicleRegistrationNumber from compound_form (T1)', () => pm.expect(s.vehicleRegistrationNumber).to.eql('M1FIXTURE'));",
+              "pm.test('vehicleRegistrationCountry from compound_form (T1)', () => pm.expect(s.vehicleRegistrationCountry).to.eql('EE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create compound form for Pass NCR build (T2)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":\"\",\"formNumber\":\"\",\"status\":\"\",\"controlDate\":\"2026-01-10\",\"controlTime\":\"09:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"NCR-PASS-TEST-VEH\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"N2\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"NCR Pass Build Test OU\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"EE-PASS-CL-TEST-001\",\"drivers\":\"[]\",\"inspectorFirstName\":\"Test\",\"inspectorLastName\":\"Inspector\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var r = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(r) ? r[0] : r;",
+              "pm.environment.set('ncr_pass_cf_key', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create SP driver form (MI only) for Pass NCR build (T2)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":\"\",\"compoundFormKey\":\"{{ncr_pass_cf_key}}\",\"subFormNumber\":\"\",\"status\":\"\",\"selectionStatus\":\"active\",\"transportType\":\"international\",\"transportEmptyRun\":false,\"transportNature\":\"\",\"transportNatureExempt\":false,\"transportClasses\":\"[]\",\"cabotageViolations\":\"[]\",\"resultType\":\"ok\",\"proceedingType\":\"none\",\"proceedingReferenceNumber\":\"\",\"documentChecks\":\"[]\",\"otherDocuments\":\"[]\",\"spApplicability\":\"\",\"tachographTypeCode\":\"\",\"tachographDataNotDownloaded\":false,\"checkedDaysCount\":\"\",\"workDaysCount\":\"\",\"otherActivityDaysCount\":\"\",\"violations5612006\":\"[]\",\"violations1652014\":\"[]\",\"violations200215\":\"[]\",\"violations5932008\":\"[]\",\"violations20201057\":\"[]\",\"massDimensionNonCompliant\":false,\"massDimensionMeasurements\":\"[]\",\"atpViolationFound\":\"false\",\"atpViolationDescription\":\"\",\"erruPoints\":\"[{\\\"erru_code\\\":\\\"050\\\",\\\"severity_category\\\":\\\"MI\\\",\\\"source_type\\\":\\\"manual\\\"}]\",\"enforcementDecision\":\"\",\"proceedingClosureBasis\":\"\",\"notes\":\"\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var r = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(r) ? r[0] : r;",
+              "pm.environment.set('ncr_pass_sp_key', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Build] Pass case (no MSI/VSI/SI) -> checkResult=Pass, no infringements (T2)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/request/build",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "request",
+            "build"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"spFormKey\":\"{{ncr_pass_sp_key}}\",\"spFormType\":\"driver\",\"originatingAuthority\":\"PPA\",\"requestSource\":\"RSI\",\"requestPurpose\":\"Control\",\"ncrTo\":\"LV\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('status initiated', () => pm.expect(b.status).to.eql('initiated'));",
+              "pm.environment.set('ncr_build_pass_bci', b.businessCaseId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify Pass draft — checkResult=Pass, seriousInfringements empty, checkDate set (T2)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/get?q={{ncr_build_pass_bci}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ncr_build_pass_bci}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "var s = b.snapshots[0];",
+              "pm.test('checkResult Pass', () => pm.expect(s.checkResult).to.eql('Pass'));",
+              "pm.test('no serious infringements', () => pm.expect(s.seriousInfringements.length).to.eql(0));",
+              "pm.test('checkDate still derived even on Pass', () => pm.expect(s.checkDate).to.match(/^\\d{4}-\\d{2}-\\d{2}$/));",
+              "pm.test('transportUndertakingName from compound_form', () => pm.expect(s.transportUndertakingName).to.eql('NCR Pass Build Test OU'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "[Build] 422 invalid input — missing spFormKey",
       "request": {
         "method": "POST",
