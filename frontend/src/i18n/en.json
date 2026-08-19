@@ -1131,6 +1131,7 @@
   },
   "common": {
     "loading": "Loading...",
+    "saved": "Saved",
     "error": "An error occurred",
     "forbidden": "You do not have access to this page",
     "noResults": "Request returned no results",

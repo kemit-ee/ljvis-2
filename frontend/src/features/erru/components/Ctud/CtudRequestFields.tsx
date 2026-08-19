@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import {
   Card,
+  ChoiceGroup,
   Heading,
   Select,
   TextField,
@@ -25,22 +26,18 @@ export function CtudRequestFields({ form }: { form: CtudFormApi }) {
   const selected = selectedClassifierOption;
   const pick = pickOptionValue;
 
-  const yesNoOptions = [
-    { value: 'true', label: t('common.yes') },
-    { value: 'false', label: t('common.no') },
-  ];
-
   return (
     <>
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.ctud.form.headerBlock')}</Heading>
 
-          {/* Estonia is always the issuer of an outgoing request — not editable. */}
+          {/* Estonia is always the issuer of an outgoing request — not editable, shown
+              as the country name rather than the raw code (matches RSI/CGR). */}
           <TextField
             id="ctud-from"
             label={t('erru.ctud.form.ctudFrom')}
-            value="EE"
+            value={selected(countries, 'EE')?.label ?? 'Eesti'}
             disabled
             onChange={() => undefined}
           />
@@ -127,14 +124,18 @@ export function CtudRequestFields({ form }: { form: CtudFormApi }) {
             {...err('vehicleRegistrationCountry')}
           />
 
-          <Select
+          <ChoiceGroup
             id="ctud-all-vehicles"
+            name="ctud-all-vehicles"
             label={t('erru.ctud.form.requestAllVehicles')}
-            options={yesNoOptions}
-            value={yesNoOptions.find((o) => o.value === formik.values.requestAllVehicles) ?? null}
-            onChange={(o) =>
-              formik.setFieldValue('requestAllVehicles', pick(o) || 'false')
-            }
+            inputType="radio"
+            direction="row"
+            value={formik.values.requestAllVehicles}
+            onChange={(v) => formik.setFieldValue('requestAllVehicles', v || 'false')}
+            items={[
+              { id: 'ctud-all-vehicles-yes', value: 'true', label: t('common.yes') },
+              { id: 'ctud-all-vehicles-no', value: 'false', label: t('common.no') },
+            ]}
           />
         </Card.Content>
       </Card>

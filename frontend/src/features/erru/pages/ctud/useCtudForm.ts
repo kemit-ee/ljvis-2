@@ -4,7 +4,8 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { createCtudRequest, updateCtudRequest } from '../../api';
 import type { CtudRequest, CtudRequestWrite } from '../../types';
-import { applyValidationError } from '../../../../shared/api/errors';
+import { ApiError } from '../../../../shared/api/client';
+import { ValidationError, applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 
 const T = 'erru.ctud.validation';
@@ -52,25 +53,19 @@ export function useCtudForm(
       then: (s) => s.required(required).length(2, t(`${T}.invalid_country_code`)),
       otherwise: (s) => s.notRequired(),
     }),
-  })
-    // At least two of the three search criteria — a form-level rule, so it is attached
-    // to the object schema and surfaced on the name field to match the backend.
-    .test(
-      'min-two-search-criteria',
-      t(`${T}.min_two_search_criteria`),
-      function (values) {
-        const filled = [
-          values?.transportUndertakingName,
-          values?.communityLicenceNumber,
-          values?.vehicleRegistrationNumber,
-        ].filter((v) => !!v && String(v).trim() !== '').length;
-        if (filled >= 2) return true;
-        return this.createError({
-          path: 'transportUndertakingName',
-          message: t(`${T}.min_two_search_criteria`),
-        });
-      },
-    );
+  });
+
+  // At least two of the three search criteria (LJVIS2-143 §4) — a form-wide rule, not
+  // tied to any single field, so it is checked at submit time and surfaced through the
+  // shared formError Alert instead of an inline field error under transportUndertakingName.
+  const hasMinTwoSearchCriteria = (values: {
+    transportUndertakingName: string;
+    communityLicenceNumber: string;
+    vehicleRegistrationNumber: string;
+  }) =>
+    [values.transportUndertakingName, values.communityLicenceNumber, values.vehicleRegistrationNumber].filter(
+      (v) => !!v && v.trim() !== '',
+    ).length >= 2;
 
   const formik = useFormik<CtudRequestWrite>({
     enableReinitialize: true,
@@ -88,12 +83,27 @@ export function useCtudForm(
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
       setFormError(null);
+      // Form-wide rule, checked client-side before the round trip; also re-checked
+      // below on the (rare) chance the backend still rejects it (min_two_search_criteria).
+      if (!hasMinTwoSearchCriteria(values)) {
+        setFormError(t(`${T}.min_two_search_criteria`));
+        return;
+      }
       try {
         const result = isEdit
           ? await updateCtudRequest(String(request!.id), values)
           : await createCtudRequest(values);
         onSaved(String(result.id));
       } catch (e) {
+        // min_two_search_criteria is a form-wide rule — always surface it via formError,
+        // even though the backend reports it with field="transportUndertakingName".
+        if (e instanceof ApiError && e.status === 422) {
+          const ve = ValidationError.from(e.body);
+          if (ve?.code === 'min_two_search_criteria') {
+            setFormError(t(`${T}.min_two_search_criteria`));
+            return;
+          }
+        }
         const handled = applyValidationError(
           e,
           setFieldError,

@@ -102,16 +102,20 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
               onChange={(v) => formik.setFieldValue('originatingAuthority', v)}
               {...err('originatingAuthority')}
             />
-            {/* rsiTo: derived from vehicleRegistrationCountry — read-only (LJVIS2-147 §4) */}
+            {/* rsiTo: derived from vehicleRegistrationCountry — read-only (LJVIS2-147 §4).
+                The hint is only useful before a value is derived, so it is shown only
+                while the vehicle registration country hasn't been picked yet. */}
             <TextField
               id="rsi-to"
               label={t('erru.rsi.form.rsiTo')}
               value={rsiToLabel}
               disabled
               onChange={() => undefined}
-              helper={{
-                text: t('erru.rsi.form.rsiToHint'),
-              }}
+              helper={
+                formik.values.vehicleRegistrationCountry
+                  ? undefined
+                  : { text: t('erru.rsi.form.rsiToHint') }
+              }
             />
           </div>
         </Card.Content>
