@@ -144,7 +144,7 @@ function CtudReadOnlyDetails({
   return (
     <Card className="mt-05">
       <Card.Content>
-        <Heading element="h2">{t('erru.ctud.form.headerBlock')}</Heading>
+        <Heading element="h2" className="mb-1">{t('erru.ctud.form.headerBlock')}</Heading>
         <DetailRow
           label={t('erru.ctud.form.ctudFrom')} value={label('COUNTRY', request.ctudFrom)} />
         <DetailRow
@@ -168,7 +168,7 @@ function CtudReadOnlyDetails({
           value={request.sentAt ? new Date(request.sentAt).toLocaleString('et-EE') : '—'}
         />
 
-        <Heading element="h2">{t('erru.ctud.form.undertakingBlock')}</Heading>
+        <Heading element="h2" className="mt-1 mb-1">{t('erru.ctud.form.undertakingBlock')}</Heading>
         <DetailRow
           label={t('erru.ctud.form.undertakingName')}
           value={request.transportUndertakingName}

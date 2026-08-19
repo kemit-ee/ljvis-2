@@ -20,7 +20,9 @@ export function CtudResponseBlock({ request }: { request: CtudRequest }) {
   return (
     <Card className="mt-05">
       <Card.Content>
-        <Heading element="h2">{t('erru.ctud.response.title')}</Heading>
+        <Heading element="h2" className="mb-1">
+          {t('erru.ctud.response.title')}
+        </Heading>
 
         <DetailRow
           label={t('erru.ctud.response.statusCode')}
@@ -28,7 +30,7 @@ export function CtudResponseBlock({ request }: { request: CtudRequest }) {
         />
         {request.responseStatusMessage && (
           <DetailRow
-          label={t('erru.ctud.response.statusMessage')}
+            label={t('erru.ctud.response.statusMessage')}
             value={request.responseStatusMessage}
           />
         )}
@@ -39,37 +41,57 @@ export function CtudResponseBlock({ request }: { request: CtudRequest }) {
 
         {isFound && rc && (
           <>
-            <Heading element="h3">{t('erru.ctud.response.undertaking')}</Heading>
+            <Heading element="h3" className="mt-1 mb-1">
+              {t('erru.ctud.response.undertaking')}
+            </Heading>
             <DetailRow
-          label={t('erru.ctud.response.name')} value={rc.transportUndertakingName} />
+              label={t('erru.ctud.response.name')}
+              value={rc.transportUndertakingName}
+            />
             <DetailRow
-          label={t('erru.ctud.response.legalForm')} value={rc.legalForm} />
+              label={t('erru.ctud.response.legalForm')}
+              value={rc.legalForm}
+            />
             <DetailRow
-          label={t('erru.ctud.response.employees')} value={rc.numberOfEmployees} />
+              label={t('erru.ctud.response.employees')}
+              value={rc.numberOfEmployees}
+            />
             <DetailRow
-          label={t('erru.ctud.response.vehicles')} value={rc.numberOfVehicles} />
+              label={t('erru.ctud.response.vehicles')}
+              value={rc.numberOfVehicles}
+            />
             <DetailRow
-          label={t('erru.ctud.response.riskRating')} value={rc.riskRating} />
+              label={t('erru.ctud.response.riskRating')}
+              value={rc.riskRating}
+            />
             <DetailRow
-          label={t('erru.ctud.response.riskBand')}
+              label={t('erru.ctud.response.riskBand')}
               value={label('RISK_BAND', rc.riskBand)}
             />
             <DetailRow
-          label={t('erru.ctud.response.searchMethod')}
+              label={t('erru.ctud.response.searchMethod')}
               value={label('CTUD_SEARCH_METHOD', rc.searchMethod)}
             />
 
             {rc.address && (
               <>
-                <Heading element="h3">{t('erru.ctud.response.address')}</Heading>
+                <Heading element="h3" className="mt-1 mb-1">
+                  {t('erru.ctud.response.address')}
+                </Heading>
                 <DetailRow
-          label={t('erru.ctud.response.street')} value={rc.address.address} />
+                  label={t('erru.ctud.response.street')}
+                  value={rc.address.address}
+                />
                 <DetailRow
-          label={t('erru.ctud.response.postCode')} value={rc.address.postCode} />
+                  label={t('erru.ctud.response.postCode')}
+                  value={rc.address.postCode}
+                />
                 <DetailRow
-          label={t('erru.ctud.response.city')} value={rc.address.city} />
+                  label={t('erru.ctud.response.city')}
+                  value={rc.address.city}
+                />
                 <DetailRow
-          label={t('erru.ctud.response.country')}
+                  label={t('erru.ctud.response.country')}
                   value={label('COUNTRY', rc.address.country)}
                 />
               </>
@@ -77,66 +99,54 @@ export function CtudResponseBlock({ request }: { request: CtudRequest }) {
 
             {!!rc.communityLicenceDetails?.length && (
               <>
-                <Heading element="h3">{t('erru.ctud.response.licences')}</Heading>
-                <table className="detail-table">
-                  <thead>
-                    <tr>
-                      <th>{t('erru.ctud.response.licenceNumber')}</th>
-                      <th>{t('erru.ctud.response.licenceStatus')}</th>
-                      <th>{t('erru.ctud.response.licenceType')}</th>
-                      <th>{t('erru.ctud.response.licencingAuthority')}</th>
-                      <th>{t('erru.ctud.response.startDate')}</th>
-                      <th>{t('erru.ctud.response.expiryDate')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rc.communityLicenceDetails.map((l, i) => (
-                      <tr key={`${l.communityLicenceNumber}-${i}`}>
-                        <td>{l.communityLicenceNumber ?? '—'}</td>
-                        <td>
-                          {label('COMMUNITY_LICENCE_STATUS', l.communityLicenceStatus)}
-                        </td>
-                        <td>
-                          {label('COMMUNITY_LICENCE_TYPE', l.communityLicenceType)}
-                        </td>
-                        <td>{l.licencingAuthority ?? '—'}</td>
-                        <td>{l.startDate ?? '—'}</td>
-                        <td>{l.expiryDate ?? '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <Heading element="h3" className="mt-1 mb-1">{t('erru.ctud.response.licences')}</Heading>
+                <div className="table-row-6">
+                  <Text modifiers="bold">{t('erru.ctud.response.licenceNumber')}</Text>
+                  <Text modifiers="bold">{t('erru.ctud.response.licenceStatus')}</Text>
+                  <Text modifiers="bold">{t('erru.ctud.response.licenceType')}</Text>
+                  <Text modifiers="bold">{t('erru.ctud.response.licencingAuthority')}</Text>
+                  <Text modifiers="bold">{t('erru.ctud.response.startDate')}</Text>
+                  <Text modifiers="bold">{t('erru.ctud.response.expiryDate')}</Text>
+                </div>
+                {rc.communityLicenceDetails.map((l, i) => (
+                  <div key={`${l.communityLicenceNumber}-${i}`} className="table-row-6">
+                    <Text>{l.communityLicenceNumber ?? '—'}</Text>
+                    <Text>{label('COMMUNITY_LICENCE_STATUS', l.communityLicenceStatus)}</Text>
+                    <Text>{label('COMMUNITY_LICENCE_TYPE', l.communityLicenceType)}</Text>
+                    <Text>{l.licencingAuthority ?? '—'}</Text>
+                    <Text>{l.startDate ?? '—'}</Text>
+                    <Text>{l.expiryDate ?? '—'}</Text>
+                  </div>
+                ))}
               </>
             )}
 
             {!!rc.certifiedTrueCopyDetails?.length && (
               <>
-                <Heading element="h3">{t('erru.ctud.response.trueCopies')}</Heading>
-                <table className="detail-table">
-                  <thead>
-                    <tr>
-                      <th>{t('erru.ctud.response.trueCopyNumber')}</th>
-                      <th>{t('erru.ctud.response.trueCopyIssueDate')}</th>
-                      <th>{t('erru.ctud.response.trueCopyExpiryDate')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rc.certifiedTrueCopyDetails.map((c, i) => (
-                      <tr key={`${c.trueCopyNumber}-${i}`}>
-                        <td>{c.trueCopyNumber ?? '—'}</td>
-                        <td>{c.trueCopyIssueDate ?? '—'}</td>
-                        <td>{c.trueCopyExpiryDate ?? '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <Heading element="h3" className="mt-1 mb-1">
+                  {t('erru.ctud.response.trueCopies')}
+                </Heading>
+                <div className="table-row-3">
+                  <Text modifiers="bold">{t('erru.ctud.response.trueCopyNumber')}</Text>
+                  <Text modifiers="bold">{t('erru.ctud.response.trueCopyIssueDate')}</Text>
+                  <Text modifiers="bold">{t('erru.ctud.response.trueCopyExpiryDate')}</Text>
+                </div>
+                {rc.certifiedTrueCopyDetails.map((c, i) => (
+                  <div key={`${c.trueCopyNumber}-${i}`} className="table-row-3">
+                    <Text>{c.trueCopyNumber ?? '—'}</Text>
+                    <Text>{c.trueCopyIssueDate ?? '—'}</Text>
+                    <Text>{c.trueCopyExpiryDate ?? '—'}</Text>
+                  </div>
+                ))}
               </>
             )}
 
             {/* Shown only when the request asked for all managed vehicles. */}
             {!!rc.vehicleRegistrations?.length && (
               <>
-                <Heading element="h3">{t('erru.ctud.response.vehicleList')}</Heading>
+                <Heading element="h3">
+                  {t('erru.ctud.response.vehicleList')}
+                </Heading>
                 <Text>{rc.vehicleRegistrations.join(', ')}</Text>
               </>
             )}
