@@ -101,16 +101,27 @@ export function NcrFormPage() {
         <Card.Content>
           <div className="card-main">
             <Heading element="h1">
-              {isInbound ? t('erru.ncr.form.titleInbound') : t('erru.ncr.form.titleOutgoing')}
+              {isInbound
+                ? t('erru.ncr.form.titleInbound')
+                : t('erru.ncr.form.titleOutgoing')}
               {' — '}
               {current.businessCaseId}
             </Heading>
-            <StatusBadge>{label('NCR_REQUEST_STATUS', current.status)}</StatusBadge>
+            <StatusBadge>
+              {label('NCR_REQUEST_STATUS', current.status)}
+            </StatusBadge>
           </div>
-          <Text>{t('erru.ncr.form.version', { version: current.version })}</Text>
-          {current.errorMessage && <Text modifiers="bold">{current.errorMessage}</Text>}
+          <Text>
+            {t('erru.ncr.form.version', { version: current.version })}
+          </Text>
+          {current.errorMessage && (
+            <Text modifiers="bold">{current.errorMessage}</Text>
+          )}
           {current.ackStatusCode && (
-            <DetailRow label={t('erru.ncr.form.ackStatusCode')} value={label('NCR_ACK_STATUS', current.ackStatusCode)} />
+            <DetailRow
+              label={t('erru.ncr.form.ackStatusCode')}
+              value={label('NCR_ACK_STATUS', current.ackStatusCode)}
+            />
           )}
         </Card.Content>
       </Card>
@@ -128,14 +139,18 @@ export function NcrFormPage() {
               {t('common.saved')}
             </Alert>
           )}
-          {requestForm.formik.submitCount > 0 && Object.keys(requestForm.formik.errors).length > 0 && (
-            <Alert type="danger" size="small" className="mt-05">
-              {t('common.formHasErrors')}
-            </Alert>
-          )}
+          {requestForm.formik.submitCount > 0 &&
+            Object.keys(requestForm.formik.errors).length > 0 && (
+              <Alert type="danger" size="small" className="mt-05">
+                {t('common.formHasErrors')}
+              </Alert>
+            )}
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/ncr')}>
+              <Button
+                visualType="secondary"
+                onClick={() => navigate('/erru/ncr')}
+              >
                 {t('common.back')}
               </Button>
               <Button type="submit" disabled={requestForm.formik.isSubmitting}>
@@ -153,7 +168,11 @@ export function NcrFormPage() {
 
       {!requestEditable && responseEditable && (
         <form onSubmit={responseForm.formik.handleSubmit}>
-          <NcrResponseFields form={responseForm} message={current} organisations={organisations} />
+          <NcrResponseFields
+            form={responseForm}
+            message={current}
+            organisations={organisations}
+          />
           {responseForm.formError && (
             <Alert type="danger" size="small" className="mt-05">
               {responseForm.formError}
@@ -164,21 +183,29 @@ export function NcrFormPage() {
               {t('common.saved')}
             </Alert>
           )}
-          {responseForm.formik.submitCount > 0 && Object.keys(responseForm.formik.errors).length > 0 && (
-            <Alert type="danger" size="small" className="mt-05">
-              {t('common.formHasErrors')}
-            </Alert>
-          )}
+          {responseForm.formik.submitCount > 0 &&
+            Object.keys(responseForm.formik.errors).length > 0 && (
+              <Alert type="danger" size="small" className="mt-05">
+                {t('common.formHasErrors')}
+              </Alert>
+            )}
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/ncr')}>
+              <Button
+                visualType="secondary"
+                onClick={() => navigate('/erru/ncr')}
+              >
                 {t('common.back')}
               </Button>
               <Button type="submit" disabled={responseForm.formik.isSubmitting}>
                 {t('common.save')}
               </Button>
               {responseSendable && (
-                <Button type="button" onClick={doSendResponse} disabled={sending}>
+                <Button
+                  type="button"
+                  onClick={doSendResponse}
+                  disabled={sending}
+                >
                   {t('erru.ncr.form.sendResponse')}
                 </Button>
               )}
@@ -189,33 +216,93 @@ export function NcrFormPage() {
 
       {!requestEditable && !responseEditable && (
         <>
-          <Card className="mt-05">
+          <Card>
             <Card.Content>
-              <Heading element="h2">{t('erru.ncr.form.headerBlock')}</Heading>
-              <DetailRow label={t('erru.ncr.form.ncrFrom')} value={label('COUNTRY', current.ncrFrom)} />
-              <DetailRow label={t('erru.ncr.form.ncrTo')} value={label('COUNTRY', current.ncrTo)} />
-              <DetailRow label={t('erru.ncr.form.originatingAuthority')} value={authorityLabel(current.originatingAuthority)} />
-              <DetailRow label={t('erru.ncr.form.requestSource')} value={label('NCR_REQUEST_SOURCE', current.requestSource)} />
-              <DetailRow label={t('erru.ncr.form.requestPurpose')} value={label('NCR_REQUEST_PURPOSE', current.requestPurpose)} />
-              <DetailRow label={t('erru.ncr.form.transportUndertakingName')} value={current.transportUndertakingName} />
-              <DetailRow label={t('erru.ncr.form.communityLicenceNumber')} value={current.communityLicenceNumber} />
-              <DetailRow label={t('erru.ncr.form.vehicleRegistrationNumber')} value={current.vehicleRegistrationNumber} />
-              <DetailRow label={t('erru.ncr.form.vehicleRegistrationCountry')} value={label('COUNTRY', current.vehicleRegistrationCountry)} />
+              <Heading element="h2" className="mb-1">
+                {t('erru.ncr.form.headerBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.ncr.form.ncrFrom')}
+                value={label('COUNTRY', current.ncrFrom)}
+              />
+              <DetailRow
+                label={t('erru.ncr.form.ncrTo')}
+                value={label('COUNTRY', current.ncrTo)}
+              />
+              <DetailRow
+                label={t('erru.ncr.form.originatingAuthority')}
+                value={authorityLabel(current.originatingAuthority)}
+              />
+              <DetailRow
+                label={t('erru.ncr.form.requestSource')}
+                value={label('NCR_REQUEST_SOURCE', current.requestSource)}
+              />
+              <DetailRow
+                label={t('erru.ncr.form.requestPurpose')}
+                value={label('NCR_REQUEST_PURPOSE', current.requestPurpose)}
+              />
+              <DetailRow
+                label={t('erru.ncr.form.transportUndertakingName')}
+                value={current.transportUndertakingName}
+              />
+              <DetailRow
+                label={t('erru.ncr.form.communityLicenceNumber')}
+                value={current.communityLicenceNumber}
+              />
+              <DetailRow
+                label={t('erru.ncr.form.vehicleRegistrationNumber')}
+                value={current.vehicleRegistrationNumber}
+              />
+              <div className="mb-1">
+                <DetailRow
+                  label={t('erru.ncr.form.vehicleRegistrationCountry')}
+                  value={label('COUNTRY', current.vehicleRegistrationCountry)}
+                />
+              </div>
 
-              <Heading element="h2">{t('erru.ncr.form.checkSummaryBlock')}</Heading>
-              <DetailRow label={t('erru.ncr.form.checkResult')} value={label('NCR_CHECK_RESULT', current.checkResult)} />
-              <DetailRow label={t('erru.ncr.form.checkDate')} value={current.checkDate} />
+              <Heading element="h2" className="mb-1">
+                {t('erru.ncr.form.checkSummaryBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.ncr.form.checkResult')}
+                value={label('NCR_CHECK_RESULT', current.checkResult)}
+              />
+              <div className="mb-1">
+                <DetailRow
+                  label={t('erru.ncr.form.checkDate')}
+                  value={current.checkDate}
+                />
+              </div>
 
               {current.seriousInfringements.length > 0 && (
                 <>
-                  <Heading element="h2">{t('erru.ncr.form.seriousInfringementsBlock')}</Heading>
+                  <Heading element="h2" className="mb-1">
+                    {t('erru.ncr.form.seriousInfringementsBlock')}
+                  </Heading>
                   {current.seriousInfringements.map((si, idx) => (
                     <Card key={idx} className="mt-05">
                       <Card.Content>
-                        <DetailRow label={t('erru.ncr.form.infringementCategory')} value={label('NCR_INFRINGEMENT_CATEGORY', si.category)} />
-                        <DetailRow label={t('erru.ncr.form.infringementType')} value={si.infringementType} />
-                        <DetailRow label={t('erru.ncr.form.infringementDate')} value={si.dateOfInfringement} />
-                        <DetailRow label={t('erru.ncr.form.appealPossible')} value={si.appealPossible ? t('common.yes') : t('common.no')} />
+                        <DetailRow
+                          label={t('erru.ncr.form.infringementCategory')}
+                          value={label(
+                            'NCR_INFRINGEMENT_CATEGORY',
+                            si.category,
+                          )}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.infringementType')}
+                          value={si.infringementType}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.infringementDate')}
+                          value={si.dateOfInfringement}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.appealPossible')}
+                          value={
+                            si.appealPossible ? t('common.yes') : t('common.no')
+                          }
+                        />
                       </Card.Content>
                     </Card>
                   ))}
@@ -224,23 +311,64 @@ export function NcrFormPage() {
 
               {current.responseStatusCode && (
                 <>
-                  <Heading element="h2">{t('erru.ncr.form.responseBlock')}</Heading>
-                  <DetailRow label={t('erru.ncr.form.respondingMemberState')} value={label('COUNTRY', current.ncrTo)} />
-                  <DetailRow label={t('erru.ncr.form.respondingAuthority')} value={authorityLabel(current.respondingAuthority)} />
-                  <DetailRow label={t('erru.ncr.form.ncrTo')} value={label('COUNTRY', current.ncrFrom)} />
-                  <DetailRow label={t('erru.ncr.form.targetAuthority')} value={authorityLabel(current.originatingAuthority)} />
-                  <DetailRow label={t('erru.ncr.form.messageNumber')} value={current.businessCaseId} />
-                  <DetailRow label={t('erru.ncr.form.transportUndertakingName')} value={current.transportUndertakingName} />
-                  <DetailRow label={t('erru.ncr.form.communityLicenceNumber')} value={current.communityLicenceNumber} />
-                  <DetailRow label={t('erru.ncr.form.responseStatusCode')} value={label('NCR_RESPONSE_STATUS', current.responseStatusCode)} />
+                  <Heading element="h2">
+                    {t('erru.ncr.form.responseBlock')}
+                  </Heading>
+                  <DetailRow
+                    label={t('erru.ncr.form.respondingMemberState')}
+                    value={label('COUNTRY', current.ncrTo)}
+                  />
+                  <DetailRow
+                    label={t('erru.ncr.form.respondingAuthority')}
+                    value={authorityLabel(current.respondingAuthority)}
+                  />
+                  <DetailRow
+                    label={t('erru.ncr.form.ncrTo')}
+                    value={label('COUNTRY', current.ncrFrom)}
+                  />
+                  <DetailRow
+                    label={t('erru.ncr.form.targetAuthority')}
+                    value={authorityLabel(current.originatingAuthority)}
+                  />
+                  <DetailRow
+                    label={t('erru.ncr.form.messageNumber')}
+                    value={current.businessCaseId}
+                  />
+                  <DetailRow
+                    label={t('erru.ncr.form.transportUndertakingName')}
+                    value={current.transportUndertakingName}
+                  />
+                  <DetailRow
+                    label={t('erru.ncr.form.communityLicenceNumber')}
+                    value={current.communityLicenceNumber}
+                  />
+                  <DetailRow
+                    label={t('erru.ncr.form.responseStatusCode')}
+                    value={label(
+                      'NCR_RESPONSE_STATUS',
+                      current.responseStatusCode,
+                    )}
+                  />
                   {current.responseStatusMessage && (
-                    <DetailRow label={t('erru.ncr.form.responseStatusMessage')} value={current.responseStatusMessage} />
+                    <DetailRow
+                      label={t('erru.ncr.form.responseStatusMessage')}
+                      value={current.responseStatusMessage}
+                    />
                   )}
                   {current.responseNumberOfVehicles != null && (
-                    <DetailRow label={t('erru.ncr.form.responseNumberOfVehicles')} value={String(current.responseNumberOfVehicles)} />
+                    <DetailRow
+                      label={t('erru.ncr.form.responseNumberOfVehicles')}
+                      value={String(current.responseNumberOfVehicles)}
+                    />
                   )}
                   {current.responseCommunityLicenceStatus && (
-                    <DetailRow label={t('erru.ncr.form.responseCommunityLicenceStatus')} value={label('NCR_COMMUNITY_LICENCE_STATUS', current.responseCommunityLicenceStatus)} />
+                    <DetailRow
+                      label={t('erru.ncr.form.responseCommunityLicenceStatus')}
+                      value={label(
+                        'NCR_COMMUNITY_LICENCE_STATUS',
+                        current.responseCommunityLicenceStatus,
+                      )}
+                    />
                   )}
                 </>
               )}
@@ -251,7 +379,10 @@ export function NcrFormPage() {
 
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/ncr')}>
+              <Button
+                visualType="secondary"
+                onClick={() => navigate('/erru/ncr')}
+              >
                 {t('common.back')}
               </Button>
               {requestSendable && (
@@ -260,7 +391,11 @@ export function NcrFormPage() {
                 </Button>
               )}
               {responseSendable && (
-                <Button type="button" onClick={doSendResponse} disabled={sending}>
+                <Button
+                  type="button"
+                  onClick={doSendResponse}
+                  disabled={sending}
+                >
                   {t('erru.ncr.form.sendResponse')}
                 </Button>
               )}
@@ -269,11 +404,13 @@ export function NcrFormPage() {
         </>
       )}
 
-      <Card className="mt-05">
+      <Card>
         <Card.Content>
-          <Heading element="h2">{t('erru.ncr.form.historyBlock')}</Heading>
+          <Heading element="h2" className="mb-1">
+            {t('erru.ncr.form.historyBlock')}
+          </Heading>
           {/* Column headers */}
-          <div className="detail-row">
+          <div className="history-row">
             <Text modifiers="bold">{t('erru.ncr.form.historyType')}</Text>
             <Text modifiers="bold">{t('erru.ncr.form.historyDirection')}</Text>
             <Text modifiers="bold">{t('erru.ncr.form.historyStatus')}</Text>
@@ -281,11 +418,17 @@ export function NcrFormPage() {
           </div>
           {snapshots.map((s, idx) => {
             // A snapshot carries response content once the responding authority is set.
-            const isResponseSnapshot = !!(s.respondingAuthority || s.responseStatusCode);
+            const isResponseSnapshot = !!(
+              s.respondingAuthority || s.responseStatusCode
+            );
             return (
               <div
                 key={`${s.id}-${s.version}`}
-                className={idx < snapshots.length - 1 ? 'detail-row mb-1' : 'detail-row'}
+                className={
+                  idx < snapshots.length - 1
+                    ? 'history-row mb-1'
+                    : 'history-row'
+                }
               >
                 <Text>
                   {isResponseSnapshot
@@ -298,7 +441,9 @@ export function NcrFormPage() {
                     : t('erru.ncr.list.directionIncoming')}
                 </Text>
                 <Text>{label('NCR_REQUEST_STATUS', s.status)}</Text>
-                <Text>{s.sentAt ? new Date(s.sentAt).toLocaleString('et-EE') : '—'}</Text>
+                <Text>
+                  {s.sentAt ? new Date(s.sentAt).toLocaleString('et-EE') : '—'}
+                </Text>
               </div>
             );
           })}

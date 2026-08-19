@@ -189,6 +189,17 @@ nav[aria-label='Main navigation'] {
   flex: 1;
 }
 
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
 .date-row-desktop-50 {
   display: flex;
   align-items: flex-start;
