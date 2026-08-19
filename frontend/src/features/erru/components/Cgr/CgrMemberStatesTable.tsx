@@ -45,7 +45,7 @@ export function CgrMemberStatesTable({
   return (
     <Card className="mt-05">
       <Card.Content>
-        <Heading element="h2">{t('erru.cgr.response.title')}</Heading>
+        <Heading element="h2" className="mb-1">{t('erru.cgr.response.title')}</Heading>
         <Accordion>
           {states.map((ms) => (
             <AccordionItem key={ms.memberStateCode} id={`cgr-member-state-${ms.memberStateCode}`}>
@@ -110,9 +110,17 @@ function CgrMemberStateDetails({ memberState }: { memberState: CgrMemberState })
 
           {tm.nameDetails && (
             <>
-              <Heading element="h3">{t('erru.cgr.form.nameBlock')}</Heading>
-              <DetailRow label={t('erru.cgr.form.tmFirstName')} value={tm.nameDetails.firstName} />
-              <DetailRow label={t('erru.cgr.form.tmFamilyName')} value={tm.nameDetails.familyName} />
+              <Heading element="h3" className="mt-1 mb-1">
+                {t('erru.cgr.form.nameBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.cgr.form.tmFirstName')}
+                value={tm.nameDetails.firstName}
+              />
+              <DetailRow
+                label={t('erru.cgr.form.tmFamilyName')}
+                value={tm.nameDetails.familyName}
+              />
               <DetailRow
                 label={t('erru.cgr.form.tmDateOfBirth')}
                 value={tm.nameDetails.dateOfBirth}
@@ -126,13 +134,21 @@ function CgrMemberStateDetails({ memberState }: { memberState: CgrMemberState })
 
           {tm.addressDetails && (
             <>
-              <Heading element="h3">{t('erru.cgr.response.address')}</Heading>
-              <DetailRow label={t('erru.cgr.response.street')} value={tm.addressDetails.address} />
+              <Heading element="h3" className="mt-1 mb-1">
+                {t('erru.cgr.response.address')}
+              </Heading>
+              <DetailRow
+                label={t('erru.cgr.response.street')}
+                value={tm.addressDetails.address}
+              />
               <DetailRow
                 label={t('erru.cgr.response.postCode')}
                 value={tm.addressDetails.postCode}
               />
-              <DetailRow label={t('erru.cgr.response.city')} value={tm.addressDetails.city} />
+              <DetailRow
+                label={t('erru.cgr.response.city')}
+                value={tm.addressDetails.city}
+              />
               <DetailRow
                 label={t('erru.cgr.response.country')}
                 value={label('COUNTRY', tm.addressDetails.country)}
@@ -142,7 +158,9 @@ function CgrMemberStateDetails({ memberState }: { memberState: CgrMemberState })
 
           {tm.certificateDetails && (
             <>
-              <Heading element="h3">{t('erru.cgr.form.certificateBlock')}</Heading>
+              <Heading element="h3" className="mt-1 mb-1">
+                {t('erru.cgr.form.certificateBlock')}
+              </Heading>
               <DetailRow
                 label={t('erru.cgr.form.certificateNumber')}
                 value={tm.certificateDetails.certificateNumber}
@@ -153,17 +171,26 @@ function CgrMemberStateDetails({ memberState }: { memberState: CgrMemberState })
               />
               <DetailRow
                 label={t('erru.cgr.form.certificateIssueCountry')}
-                value={label('COUNTRY', tm.certificateDetails.certificateIssueCountry)}
+                value={label(
+                  'COUNTRY',
+                  tm.certificateDetails.certificateIssueCountry,
+                )}
               />
               <DetailRow
                 label={t('erru.cgr.response.certificateValidity')}
-                value={label('CERTIFICATE_VALIDITY', tm.certificateDetails.certificateValidity)}
+                value={label(
+                  'CERTIFICATE_VALIDITY',
+                  tm.certificateDetails.certificateValidity,
+                )}
               />
               {tm.certificateDetails.fitness && (
                 <>
                   <DetailRow
                     label={t('erru.cgr.response.fitnessStatus')}
-                    value={label('FITNESS_STATUS', tm.certificateDetails.fitness.fitnessStatus)}
+                    value={label(
+                      'FITNESS_STATUS',
+                      tm.certificateDetails.fitness.fitnessStatus,
+                    )}
                   />
                   <DetailRow
                     label={t('erru.cgr.response.unfitStartDate')}
@@ -180,7 +207,9 @@ function CgrMemberStateDetails({ memberState }: { memberState: CgrMemberState })
 
           {tm.transportUndertakings && (
             <>
-              <Heading element="h3">{t('erru.cgr.response.transportUndertakings')}</Heading>
+              <Heading element="h3" className="mt-1 mb-1">
+                {t('erru.cgr.response.transportUndertakings')}
+              </Heading>
               <DetailRow
                 label={t('erru.cgr.response.totalManagedUndertakings')}
                 value={tm.transportUndertakings.totalManagedUndertakings}
@@ -190,26 +219,22 @@ function CgrMemberStateDetails({ memberState }: { memberState: CgrMemberState })
                 value={tm.transportUndertakings.totalManagedVehicles}
               />
               {!!tm.transportUndertakings.undertaking?.length && (
-                <table className="detail-table">
-                  <thead>
-                    <tr>
-                      <th>{t('erru.cgr.response.undertakingName')}</th>
-                      <th>{t('erru.cgr.response.licenceNumber')}</th>
-                      <th>{t('erru.cgr.response.licenceStatus')}</th>
-                      <th>{t('erru.cgr.response.vehicles')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tm.transportUndertakings.undertaking.map((u, i) => (
-                      <tr key={`${u.communityLicenceNumber}-${i}`}>
-                        <td>{u.transportUndertakingName ?? '—'}</td>
-                        <td>{u.communityLicenceNumber ?? '—'}</td>
-                        <td>{label('COMMUNITY_LICENCE_STATUS', u.communityLicenceStatus)}</td>
-                        <td>{u.numberOfVehicles ?? '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <>
+                  <div className="history-row">
+                    <Text modifiers="bold">{t('erru.cgr.response.undertakingName')}</Text>
+                    <Text modifiers="bold">{t('erru.cgr.response.licenceNumber')}</Text>
+                    <Text modifiers="bold">{t('erru.cgr.response.licenceStatus')}</Text>
+                    <Text modifiers="bold">{t('erru.cgr.response.vehicles')}</Text>
+                  </div>
+                  {tm.transportUndertakings.undertaking.map((u, i) => (
+                    <div key={`${u.communityLicenceNumber}-${i}`} className="history-row">
+                      <Text>{u.transportUndertakingName ?? '—'}</Text>
+                      <Text>{u.communityLicenceNumber ?? '—'}</Text>
+                      <Text>{label('COMMUNITY_LICENCE_STATUS', u.communityLicenceStatus)}</Text>
+                      <Text>{u.numberOfVehicles ?? '—'}</Text>
+                    </div>
+                  ))}
+                </>
               )}
             </>
           )}

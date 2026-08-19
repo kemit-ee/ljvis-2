@@ -59,14 +59,20 @@ export function CgrFormPage() {
               {' — '}
               {request.businessCaseId}
             </Heading>
-            <StatusBadge>{label('CGR_REQUEST_STATUS', request.status)}</StatusBadge>
+            <StatusBadge>
+              {label('CGR_REQUEST_STATUS', request.status)}
+            </StatusBadge>
           </div>
           <Text>
             {t('erru.cgr.form.version', { version: request.version })}
             {!editable && ` · ${t('erru.cgr.form.readOnly')}`}
           </Text>
-          {request.errorMessage && <Text modifiers="bold">{request.errorMessage}</Text>}
-          {sendError && <Text modifiers="bold">{t('erru.cgr.sendFailed')}</Text>}
+          {request.errorMessage && (
+            <Text modifiers="bold">{request.errorMessage}</Text>
+          )}
+          {sendError && (
+            <Text modifiers="bold">{t('erru.cgr.sendFailed')}</Text>
+          )}
         </Card.Content>
       </Card>
 
@@ -83,13 +89,17 @@ export function CgrFormPage() {
               {t('common.saved')}
             </Alert>
           )}
-          {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
-            <Alert type="danger" size="small" className="mt-05">
-              {t('common.formHasErrors')}
-            </Alert>
-          )}
+          {form.formik.submitCount > 0 &&
+            Object.keys(form.formik.errors).length > 0 && (
+              <Alert type="danger" size="small" className="mt-05">
+                {t('common.formHasErrors')}
+              </Alert>
+            )}
           <PageActions>
-            <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
+            <Button
+              visualType="secondary"
+              onClick={() => navigate('/erru/cgr')}
+            >
               {t('common.back')}
             </Button>
             <Button type="submit" disabled={form.formik.isSubmitting}>
@@ -100,7 +110,10 @@ export function CgrFormPage() {
                 {t('erru.cgr.form.send')}
               </Button>
             )}
-            <Button visualType="secondary" onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}>
+            <Button
+              visualType="secondary"
+              onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}
+            >
               {t('erru.cgr.form.copyRequest')}
             </Button>
           </PageActions>
@@ -109,31 +122,68 @@ export function CgrFormPage() {
         <>
           <Card className="mt-05">
             <Card.Content>
-              <Heading element="h2">{t('erru.cgr.form.headerBlock')}</Heading>
-              <DetailRow label={t('erru.cgr.form.cgrFrom')} value={label('COUNTRY', request.cgrFrom)} />
-              <DetailRow label={t('erru.cgr.form.cgrTo')} value={cgrToLabel(request.cgrTo)} />
+              <Heading element="h2" className="mb-1">
+                {t('erru.cgr.form.headerBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.cgr.form.cgrFrom')}
+                value={label('COUNTRY', request.cgrFrom)}
+              />
+              <DetailRow
+                label={t('erru.cgr.form.cgrTo')}
+                value={cgrToLabel(request.cgrTo)}
+              />
               <DetailRow
                 label={t('erru.cgr.form.originatingAuthority')}
-                value={label('COMPETENT_AUTHORITY', request.originatingAuthority)}
+                value={label(
+                  'COMPETENT_AUTHORITY',
+                  request.originatingAuthority,
+                )}
               />
               <DetailRow
                 label={t('erru.cgr.form.requestSource')}
                 value={label('CGR_REQUEST_SOURCE', request.requestSource)}
               />
+              <div className="mb-1">
+                <DetailRow
+                  label={t('erru.cgr.form.requestPurpose')}
+                  value={label('CGR_REQUEST_PURPOSE', request.requestPurpose)}
+                />
+              </div>
+
+              <Heading element="h2" className="mb-1">
+                {t('erru.cgr.form.nameBlock')}
+              </Heading>
               <DetailRow
-                label={t('erru.cgr.form.requestPurpose')}
-                value={label('CGR_REQUEST_PURPOSE', request.requestPurpose)}
+                label={t('erru.cgr.form.tmFirstName')}
+                value={request.tmFirstName}
               />
+              <DetailRow
+                label={t('erru.cgr.form.tmFamilyName')}
+                value={request.tmFamilyName}
+              />
+              <DetailRow
+                label={t('erru.cgr.form.tmDateOfBirth')}
+                value={request.tmDateOfBirth}
+              />
+              <div className="mb-1">
+                <DetailRow
+                  label={t('erru.cgr.form.tmPlaceOfBirth')}
+                  value={request.tmPlaceOfBirth}
+                />
+              </div>
 
-              <Heading element="h2">{t('erru.cgr.form.nameBlock')}</Heading>
-              <DetailRow label={t('erru.cgr.form.tmFirstName')} value={request.tmFirstName} />
-              <DetailRow label={t('erru.cgr.form.tmFamilyName')} value={request.tmFamilyName} />
-              <DetailRow label={t('erru.cgr.form.tmDateOfBirth')} value={request.tmDateOfBirth} />
-              <DetailRow label={t('erru.cgr.form.tmPlaceOfBirth')} value={request.tmPlaceOfBirth} />
-
-              <Heading element="h2">{t('erru.cgr.form.certificateBlock')}</Heading>
-              <DetailRow label={t('erru.cgr.form.certificateNumber')} value={request.certificateNumber} />
-              <DetailRow label={t('erru.cgr.form.certificateIssueDate')} value={request.certificateIssueDate} />
+              <Heading element="h2" className="mb-1">
+                {t('erru.cgr.form.certificateBlock')}
+              </Heading>
+              <DetailRow
+                label={t('erru.cgr.form.certificateNumber')}
+                value={request.certificateNumber}
+              />
+              <DetailRow
+                label={t('erru.cgr.form.certificateIssueDate')}
+                value={request.certificateIssueDate}
+              />
               <DetailRow
                 label={t('erru.cgr.form.certificateIssueCountry')}
                 value={label('COUNTRY', request.certificateIssueCountry)}
@@ -149,7 +199,10 @@ export function CgrFormPage() {
           />
 
           <PageActions>
-            <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
+            <Button
+              visualType="secondary"
+              onClick={() => navigate('/erru/cgr')}
+            >
               {t('common.back')}
             </Button>
             {sendable && (
@@ -158,7 +211,9 @@ export function CgrFormPage() {
               </Button>
             )}
             {canEdit && (
-              <Button onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}>
+              <Button
+                onClick={() => navigate(`/erru/cgr/new?copyFrom=${request.id}`)}
+              >
                 {t('erru.cgr.form.copyRequest')}
               </Button>
             )}
