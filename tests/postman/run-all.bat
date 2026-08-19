@@ -33,6 +33,9 @@ call newman run "%COL%\user-groups.collection.json" -e "%ENV%" -r cli,htmlextra 
 echo Running collection: classifiers.collection.json
 call newman run "%COL%\classifiers.collection.json" -e "%ENV%" -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\classifiers.html"
 
+echo Running collection: driverest-forms.collection.json
+call newman run "%COL%\driverest-forms.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\driverest-forms.html"
+
 echo Running collection: labour-inspection.collection.json
 call newman run "%COL%\labour-inspection.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\labour-inspection.html"
 

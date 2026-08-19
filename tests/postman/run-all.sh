@@ -75,6 +75,11 @@ newman run "$COL/classifiers.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/classifiers.html"
 
+newman run "$COL/driverest-forms.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/driverest-forms.html"
+
 newman run "$COL/labour-inspection.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \

@@ -53,6 +53,10 @@ INSERT INTO users.permission (code, description, created_by) VALUES
     ('control_form.delete',              'Koondvormi kustutamine koos kõigi alamvormidega', 'bootstrap'),
     ('control_form.edit_locked',         'Kinnitatud vormi X-tee andmevahetuskihi plokkide muutmine (administraator)', 'bootstrap'),
     ('compound_form.write',              'Koondvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('sp_driver_form.write',             'Autojuhi sõidu- ja puhkeaja alamvormi täitmine ja salvestamine', 'bootstrap'),
+    ('sp_driver_form.read',              'Autojuhi sõidu- ja puhkeaja alamvormi andmete lugemine', 'bootstrap'),
+    ('sp_teammate_form.write',           'Meeskonnaliikme sõidu- ja puhkeaja alamvormi täitmine ja salvestamine', 'bootstrap'),
+    ('sp_teammate_form.read',            'Meeskonnaliikme sõidu- ja puhkeaja alamvormi andmete lugemine', 'bootstrap'),
     ('vehicle_technical_form.write',     'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
     ('vehicle_technical_form.read',      'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi andmete lugemine', 'bootstrap'),
     ('trailer_technical_form.write',     'Haagise tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
@@ -75,7 +79,7 @@ SELECT
     'Super Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation),
-    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister']::TEXT[],
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','sp_driver_form.write','sp_driver_form.read','sp_teammate_form.write','sp_teammate_form.read','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','xtee.query.rahvastikuregister']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Super Admin Group');
 
@@ -99,7 +103,7 @@ SELECT
     'Officer Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation WHERE code = 'PPA'),
-    ARRAY['classifier.read','control_form.view_unpublished','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','labour_inspection_form.write','labour_inspection_form.read','xtee.query.rahvastikuregister']::TEXT[],
+    ARRAY['classifier.read','control_form.view_unpublished','compound_form.write','sp_driver_form.write','sp_driver_form.read','sp_teammate_form.write','sp_teammate_form.read','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','labour_inspection_form.write','labour_inspection_form.read','xtee.query.rahvastikuregister']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Officer Group');
 
