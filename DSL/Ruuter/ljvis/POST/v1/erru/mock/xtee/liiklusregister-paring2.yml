@@ -1,0 +1,37 @@
+declaration:
+  version: "1.0"
+  description: "MOCK Estonian vehicle register lookup (X-tee Liiklusregister paring2) — dev and CI only. Stands in for the X-tee Liiklusregister service that the inbound RSI handler must call to confirm whether an inspected vehicle is registered in Estonia. Production points ERRU_RSI_LIIKLUSREGISTER_ENDPOINT at the real service via XTR. Match rule is deterministic so Newman tests can rely on it: a vehicle is Found (OK) when vehicleRegistrationNumber is 'EE-MOCK-OK' (any country) OR when vehicleRegistrationCountry is 'EE' (assume all EE-registered vehicles are in our register). vehicleRegistrationNumber 'EE-MOCK-502' triggers a 502 for transport-failure branch testing. Everything else → NotFound. The Found response returns minimal vehicle details matching the Liiklusregister response shape."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+
+selectScenario:
+  switch:
+    - condition: ${('' + (incoming.body.vehicleRegistrationNumber || '')).toUpperCase() === 'EE-MOCK-502'}
+      next: returnTransportFailure
+    - condition: ${('' + (incoming.body.vehicleRegistrationNumber || '')).toUpperCase() === 'EE-MOCK-OK'}
+      next: returnFound
+    - condition: ${('' + (incoming.body.vehicleRegistrationCountry || '')).toUpperCase() === 'EE'}
+      next: returnFound
+  next: returnNotFound
+
+returnFound:
+  return: '{"statusCode":"OK","vehicleDetails":{"registrationNumber":"EE-MOCK-OK","registrationCountry":"EE","make":"Mock Vehicle","model":"MV100","vin":"MOCKVINEEMOCK00001","firstRegistrationDate":"2020-01-15","vehicleCategory":"N2"}}'
+  next: end
+
+returnNotFound:
+  return: '{"statusCode":"NotFound","vehicleDetails":null}'
+  next: end
+
+# Simulate transport-layer failure for testing the error branch in inbound-request.yml.
+returnTransportFailure:
+  status: 502
+  return: '{"error":"Liiklusregister simulation: transport failure"}'
+  next: end

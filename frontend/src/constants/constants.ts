@@ -42,6 +42,10 @@ export const PERMISSIONS = {
   USER_GROUP_LIST_LOCAL: 'user_group.list.local',
   CLASSIFIER_LIST: 'classifier.list',
   AUDIT_READ: 'audit.read',
+  CTUD_READ: 'ctud.read',
+  CGR_READ: 'cgr.read',
+  RSI_READ: 'rsi.read',
+  NCR_LIST: 'ncr.list',
 } as const;
 
 export const FORM_READ_PERMISSIONS: string[] = [

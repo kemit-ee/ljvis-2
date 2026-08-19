@@ -1,0 +1,19 @@
+{
+    "content": [
+        {{#each requests}}
+        {
+            "id": "{{this.id}}",
+            "version": {{this.version}},
+            "status": "{{this.status}}",
+            "businessCaseId": "{{this.businessCaseId}}",
+            "sentAt": {{#if this.sentAt}}"{{this.sentAt}}"{{else}}null{{/if}},
+            "tmFirstName": {{#if this.tmFirstName}}"{{this.tmFirstName}}"{{else}}null{{/if}},
+            "tmFamilyName": {{#if this.tmFamilyName}}"{{this.tmFamilyName}}"{{else}}null{{/if}},
+            "cgrTo": {{#if this.cgrTo}}"{{this.cgrTo}}"{{else}}null{{/if}},
+            "responseStatusCode": {{#if this.responseStatusCode}}"{{this.responseStatusCode}}"{{else}}null{{/if}},
+            "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with requests.[0]}}{{total}}{{else}}0{{/with}}
+}

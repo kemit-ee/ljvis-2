@@ -1,0 +1,47 @@
+declaration:
+  version: "1.0"
+  description: "Audit: RSI message draft saved (LJVIS2-147). Logged on every draft save — initial create (incl. pre-fill from a technical-check card, LJVIS2-148 §4.1) and revision. The description carries the request identifier, the vehicle registration number, changed fields and the resulting status."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: vehicle_registration_number
+        type: string
+      - field: changed_fields
+        type: string
+      - field: status
+        type: string
+      - field: version
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "RSI tehnokontrolli teate mustandi salvestamine: teade ${incoming.body.business_case_id || '-'}, sõiduk ${incoming.body.vehicle_registration_number || '-'}, muudetud väljad ${incoming.body.changed_fields || '-'}, staatus ${incoming.body.status || '-'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['vehicleRegistrationNumber', incoming.body.vehicle_registration_number || null], ['changedFields', incoming.body.changed_fields || null], ['status', incoming.body.status || null], ['version', incoming.body.version || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "rsi.request.save"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

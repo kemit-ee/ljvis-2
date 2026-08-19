@@ -191,7 +191,8 @@ jobs:
 
   # ── 3. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
   # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
-  # Bootstrap seeds admin via plain psql (no Liquibase test data).
+  # Bootstrap seeds admin + all DSL/Liquibase/test/*.sql fixtures via plain psql
+  # (those changesets are ignore:true, so `liquibase update` never applies them).
   e2e:
     name: E2E Tests
     runs-on: ubuntu-22.04

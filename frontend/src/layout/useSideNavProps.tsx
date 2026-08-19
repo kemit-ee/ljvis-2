@@ -89,6 +89,42 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.CTUD_READ)) {
+      items.push({
+        children: t('nav.ctud'),
+        icon: 'sync_alt',
+        to: '/erru/ctud',
+        isActive: pathname.startsWith('/erru/ctud'),
+      });
+    }
+
+    if (hasPermission(PERMISSIONS.CGR_READ)) {
+      items.push({
+        children: t('nav.cgr'),
+        icon: 'fact_check',
+        to: '/erru/cgr',
+        isActive: pathname.startsWith('/erru/cgr'),
+      });
+    }
+
+    if (hasPermission(PERMISSIONS.RSI_READ)) {
+      items.push({
+        children: t('nav.rsi'),
+        icon: 'directions_car',
+        to: '/erru/rsi',
+        isActive: pathname.startsWith('/erru/rsi'),
+      });
+    }
+
+    if (hasPermission(PERMISSIONS.NCR_LIST)) {
+      items.push({
+        children: t('nav.ncr'),
+        icon: 'gpp_bad',
+        to: '/erru/ncr',
+        isActive: pathname.startsWith('/erru/ncr'),
+      });
+    }
+
     if (hasPermission(PERMISSIONS.AUDIT_READ)) {
       adminSubItems.push({
         children: t('nav.logs'),

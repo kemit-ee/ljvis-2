@@ -85,6 +85,26 @@ newman run "$COL/labour-inspection.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/labour-inspection.html"
 
+newman run "$COL/erru-ctud.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/erru-ctud.html"
+
+newman run "$COL/erru-cgr.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/erru-cgr.html"
+
+newman run "$COL/erru-rsi.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/erru-rsi.html"
+
+newman run "$COL/erru-ncr.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/erru-ncr.html"
+
 newman run "$COL/technical-check-forms.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \

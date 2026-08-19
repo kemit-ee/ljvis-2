@@ -1,0 +1,32 @@
+# Sending an NCR request/response requires ncr.send, isolated from the sibling
+# POST/v1/erru/ncr/request/.guard (ncr.create) and POST/v1/erru/ncr/response/.guard
+# (ncr.respond) — send.yml and response-send.yml live directly under erru/ncr/, so they
+# are protected by THIS guard, while build.yml/save.yml (under request/) and save.yml
+# (under response/) keep their own override_ancestors guards. Mirrors the RSI precedent
+# (POST/v1/erru/rsi/.guard = rsi.send, POST/v1/erru/rsi/request/.guard = rsi.create).
+declaration:
+  override_ancestors: true
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('ncr.send')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

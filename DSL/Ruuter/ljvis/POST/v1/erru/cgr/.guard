@@ -1,0 +1,31 @@
+# Sending and re-sending a CGR request both require cgr.send. This guard overrides
+# ancestors so the parent POST/v1/erru/.guard (ctud.create) is not stacked on top,
+# and so the POST/v1/erru/cgr/draft/.guard (cgr.create) is NOT also required for files
+# directly under erru/cgr/ — the draft/ subdirectory retains its own guard via its own
+# override_ancestors declaration.
+declaration:
+  override_ancestors: true
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('cgr.send')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

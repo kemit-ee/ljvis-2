@@ -1,0 +1,2888 @@
+{
+  "info": {
+    "name": "LJVIS — ERRU CTUD",
+    "_postman_id": "ljvis-erru-ctud-v1",
+    "description": "Functional tests for the ERRU CTUD module (LJVIS2-142 lifecycle, -143 form, -144 actions/sending, -145 list). Covers permission boundaries (ctud.read / ctud.create / ctud.send), the validation matrix, append-only snapshot behaviour, the full send flow against the in-repo mock ERRU hub (Found / NotFound / Timeout / NotAvailable / transport failure), retry-from-error, and the inbound machine endpoint on ruuter-internal including replay idempotency.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin (ctud.read+create+send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — Org Admin (ctud.read+create, NO send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_org_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_ctud_nosend', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Draft as admin → 200 initiated v1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.test('version is 1', () => pm.expect(body.version).to.eql(1));",
+              "pm.test('businessCaseId generated', () => pm.expect(body.businessCaseId).to.match(/^CTUD-EE-\\d{4}-\\d{5}$/));",
+              "pm.environment.set('ctud_id', body.id);",
+              "pm.environment.set('ctud_bci', body.businessCaseId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Create without ctud.create → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] only 1 of 3 search criteria → 422 min_two_search_criteria",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is transportUndertakingName', () => pm.expect(body.field).to.eql('transportUndertakingName'));",
+              "pm.test('code is min_two_search_criteria', () => pm.expect(body.code).to.eql('min_two_search_criteria'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] undertaking name 'unknown' → 422 unknown_not_allowed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"unknown\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is transportUndertakingName', () => pm.expect(body.field).to.eql('transportUndertakingName'));",
+              "pm.test('code is unknown_not_allowed', () => pm.expect(body.code).to.eql('unknown_not_allowed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] vehicle number without country → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"K-RS-4412\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is vehicleRegistrationCountry', () => pm.expect(body.field).to.eql('vehicleRegistrationCountry'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] missing target country → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is ctudTo', () => pm.expect(body.field).to.eql('ctudTo'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] 1-char target country → 422 invalid_country_code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"D\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is ctudTo', () => pm.expect(body.field).to.eql('ctudTo'));",
+              "pm.test('code is invalid_country_code', () => pm.expect(body.code).to.eql('invalid_country_code'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] missing requestSource → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is requestSource', () => pm.expect(body.field).to.eql('requestSource'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] missing requestPurpose → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is requestPurpose', () => pm.expect(body.field).to.eql('requestPurpose'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] undertaking name over 150 chars → 422 max_length_exceeded",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"{{long_string_201}}\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is transportUndertakingName', () => pm.expect(body.field).to.eql('transportUndertakingName'));",
+              "pm.test('code is max_length_exceeded', () => pm.expect(body.code).to.eql('max_length_exceeded'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Read draft → 200, upper-cased, EE origin",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('direction outgoing', () => pm.expect(body.direction).to.eql('outgoing'));",
+              "pm.test('ctudFrom is EE', () => pm.expect(body.ctudFrom).to.eql('EE'));",
+              "pm.test('name upper-cased', () => pm.expect(body.transportUndertakingName).to.eql('RHEIN SPEDITION GMBH'));",
+              "pm.test('requestAllVehicles true', () => pm.expect(body.requestAllVehicles).to.eql(true));",
+              "pm.test('no response yet', () => pm.expect(body.responseStatusCode).to.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Get without ctud.read → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Nonexistent → 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q=99999999",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "99999999"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Update] Revise draft → v2, same businessCaseId",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH AG\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\", \"id\": \"{{ctud_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('version incremented to 2', () => pm.expect(body.version).to.eql(2));",
+              "pm.test('still initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.test('businessCaseId unchanged', () => pm.expect(body.businessCaseId).to.eql(pm.environment.get('ctud_bci')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Update] Missing id → 422",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\", \"id\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is id', () => pm.expect(body.field).to.eql('id'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Returns {content,total}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/search?page=1&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('has non-empty content array', () => {",
+              "  pm.expect(body.content).to.be.an('array');",
+              "  pm.expect(body.content.length).to.be.at.least(1, 'At least one CTUD record must be in the list');",
+              "});",
+              "pm.test('total is a positive number consistent with content', () => {",
+              "  pm.expect(body.total).to.be.a('number').and.be.above(0);",
+              "  pm.expect(body.total).to.be.at.least(body.content.length, 'total must be >= content.length');",
+              "});",
+              "pm.test('one row per request (no snapshot duplicates)', () => {",
+              "  var ids = body.content.map(r => r.id);",
+              "  pm.expect(new Set(ids).size).to.eql(ids.length);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] List without ctud.read → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/search",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "search"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Filter direction=outgoing",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/search?direction=outgoing&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "direction",
+              "value": "outgoing"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('all rows outgoing', () => body.content.forEach(r => pm.expect(r.direction).to.eql('outgoing')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] OR-group: name OR licence number",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/search?transportUndertakingName=RHEIN&communityLicenceNumber=EE-CL&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "transportUndertakingName",
+              "value": "RHEIN"
+            },
+            {
+              "key": "communityLicenceNumber",
+              "value": "EE-CL"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('OR semantics: matches either criterion', () => {",
+              "  body.content.forEach(r => {",
+              "    var byName = (r.transportUndertakingName || '').indexOf('RHEIN') >= 0;",
+              "    var byLic  = (r.communityLicenceNumber || '').indexOf('EE-CL') >= 0;",
+              "    pm.expect(byName || byLic).to.be.true; }); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Send without ctud.send → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_ctud_nosend}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ctud_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Draft unchanged after 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('still initiated — refused send wrote no snapshot', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.test('still version 2', () => pm.expect(body.version).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft → DE",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Draft created', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.environment.set('ctud_id', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] DE → responded / Found",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ctud_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify DE outcome",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is responded', () => pm.expect(body.status).to.eql('responded'));",
+              "pm.test('responseStatusCode is Found', () => pm.expect(body.responseStatusCode).to.eql('Found'));",
+              "pm.test('sentAt recorded', () => pm.expect(body.sentAt).to.not.be.null);",
+              "pm.test('technicalId assigned', () => pm.expect(body.technicalId).to.not.be.null);",
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] DE payload persisted",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('respondingAuthority DE-BAG', () => pm.expect(body.respondingAuthority).to.eql('DE-BAG'));",
+              "pm.test('riskBand Green', () => pm.expect(body.responseContent.riskBand).to.eql('Green'));",
+              "pm.test('two community licences', () => pm.expect(body.responseContent.communityLicenceDetails).to.have.lengthOf(2));",
+              "pm.test('true copy present', () => pm.expect(body.responseContent.certifiedTrueCopyDetails).to.have.lengthOf(1));",
+              "pm.test('vehicle list returned (requestAllVehicles)', () => pm.expect(body.responseContent.vehicleRegistrations).to.have.lengthOf(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Update] Edit a SENT request → 422 not_editable",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Should Not Apply\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\", \"id\": \"{{ctud_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code not_editable', () => pm.expect(body.code).to.eql('not_editable'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Re-send a responded request → 422 not_sendable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ctud_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code not_sendable', () => pm.expect(body.code).to.eql('not_sendable'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Nonexistent → 404",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"99999999\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft → LV",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"LV\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Draft created', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.environment.set('ctud_id_lv', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] LV → responded / NotFound",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ctud_id_lv}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify LV outcome",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id_lv}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id_lv}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is responded', () => pm.expect(body.status).to.eql('responded'));",
+              "pm.test('responseStatusCode is NotFound', () => pm.expect(body.responseStatusCode).to.eql('NotFound'));",
+              "pm.test('sentAt recorded', () => pm.expect(body.sentAt).to.not.be.null);",
+              "pm.test('technicalId assigned', () => pm.expect(body.technicalId).to.not.be.null);",
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft → PL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"PL\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Draft created', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.environment.set('ctud_id_pl', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] PL → responded / Timeout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ctud_id_pl}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify PL outcome",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id_pl}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id_pl}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is responded', () => pm.expect(body.status).to.eql('responded'));",
+              "pm.test('responseStatusCode is Timeout', () => pm.expect(body.responseStatusCode).to.eql('Timeout'));",
+              "pm.test('sentAt recorded', () => pm.expect(body.sentAt).to.not.be.null);",
+              "pm.test('technicalId assigned', () => pm.expect(body.technicalId).to.not.be.null);",
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft → GR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"GR\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Draft created', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.environment.set('ctud_id_gr', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] GR → responded / NotAvailable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ctud_id_gr}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify GR outcome",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id_gr}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id_gr}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is responded', () => pm.expect(body.status).to.eql('responded'));",
+              "pm.test('responseStatusCode is NotAvailable', () => pm.expect(body.responseStatusCode).to.eql('NotAvailable'));",
+              "pm.test('sentAt recorded', () => pm.expect(body.sentAt).to.not.be.null);",
+              "pm.test('technicalId assigned', () => pm.expect(body.technicalId).to.not.be.null);",
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft → FI",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ctudTo\": \"FI\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"transportUndertakingName\": \"Rhein Spedition GmbH\", \"communityLicenceNumber\": \"DE-CL-2019-55821\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Draft created', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.environment.set('ctud_id_fi', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] FI → error",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ctud_id_fi}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Send fails with 502 (FI mock triggers transport failure)', () => pm.response.to.have.status(502));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify FI outcome",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id_fi}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id_fi}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is error', () => pm.expect(body.status).to.eql('error'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Retry from error is allowed (LJVIS2-144)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ctud_id_fi}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Retry accepted by the state machine (not 422)', () => pm.expect(pm.response.code).to.not.eql(422));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Retry appended new snapshots",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud?q={{ctud_id_fi}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ctud_id_fi}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('still error', () => pm.expect(body.status).to.eql('error'));",
+              "pm.test('version grew past the first attempt', () => pm.expect(body.version).to.be.above(3));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Capture list total before",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/search?direction=incoming&pageSize=1",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "direction",
+              "value": "incoming"
+            },
+            {
+              "key": "pageSize",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.environment.set('ctud_inbound_total_before', body.total);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Serve valid request → Found + Grey risk",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode Found', () => pm.expect(body.statusCode).to.eql('Found'));",
+              "pm.test('respondingAuthority EE-TRAM', () => pm.expect(body.respondingAuthority).to.eql('EE-TRAM'));",
+              "pm.test('riskBand Grey until EPIC 16', () => pm.expect(body.riskBand).to.eql('Grey'));",
+              "pm.test('vehicle list returned', () => pm.expect(body.vehicleRegistrations).to.have.lengthOf(3));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] REPLAY same technicalId → same answer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('same answer replayed', () => pm.expect(body.statusCode).to.eql('Found'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Replay created NO duplicate request",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/search?direction=incoming&pageSize=1",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "direction",
+              "value": "incoming"
+            },
+            {
+              "key": "pageSize",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('exactly one new incoming request for two deliveries', () => {",
+              "  var before = parseInt(pm.environment.get('ctud_inbound_total_before'), 10);",
+              "  pm.expect(body.total).to.eql(before + 1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Undertaking not in Estonia → NotFound",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"Some Foreign GmbH\", \"communityLicenceNumber\": \"DE-CL-9999\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode NotFound', () => pm.expect(body.statusCode).to.eql('NotFound'));",
+              "pm.test('no undertaking data disclosed', () => pm.expect(body.transportUndertakingName).to.be.undefined);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] requestAllVehicles=false → no vehicle list",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"false\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('Found', () => pm.expect(body.statusCode).to.eql('Found'));",
+              "pm.test('vehicle list empty', () => pm.expect(body.vehicleRegistrations).to.have.lengthOf(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing technicalId → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode InvalidData', () => pm.expect(body.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing workflowId → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode InvalidData', () => pm.expect(body.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing from → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode InvalidData', () => pm.expect(body.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing businessCaseId → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode InvalidData', () => pm.expect(body.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing originatingAuthority → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode InvalidData', () => pm.expect(body.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing requestSource → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode InvalidData', () => pm.expect(body.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing requestPurpose → 400 InvalidData",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode InvalidData', () => pm.expect(body.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Fewer than 2 search criteria → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"AS EESTI VEOD\", \"communityLicenceNumber\": \"\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Undertaking name 'unknown' → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/ctud/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "ctud",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{ctud_tech_id}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T08:41:12Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CTUD-NEWMAN-1\", \"originatingAuthority\": \"FR-MI\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"transportUndertakingName\": \"unknown\", \"communityLicenceNumber\": \"EE-CL-2020-11111\", \"vehicleRegistrationNumber\": \"\", \"vehicleRegistrationCountry\": \"\", \"requestAllVehicles\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('ctud_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Served request appears in the CTUD list",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ctud/search?direction=incoming&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ctud",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "direction",
+              "value": "incoming"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('inbound requests visible to operators', () => pm.expect(body.total).to.be.above(0));",
+              "pm.test('answered inbound present', () => {",
+              "  var answered = body.content.filter(r => r.status === 'answered');",
+              "  pm.expect(answered.length).to.be.above(0); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

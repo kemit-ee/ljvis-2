@@ -78,6 +78,7 @@ nav[aria-label='Main navigation'] {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  margin-top: 1rem;
   margin-bottom: 1.5rem;
 }
 
@@ -173,7 +174,7 @@ nav[aria-label='Main navigation'] {
 
 .form-grid-mobile {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
   width: 100%;
 }
@@ -186,6 +187,31 @@ nav[aria-label='Main navigation'] {
 
 .select-wrapper {
   flex: 1;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.table-row-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.table-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.table-row-6 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .date-row-desktop-50 {
@@ -253,4 +279,28 @@ nav[aria-label='Main navigation'] {
 
 .ljvis-table tr:has(.additional-group-row-marker) {
   border-top: none;
+}
+
+/* NCR list (LJVIS2-65): rows with at least one serious infringement are highlighted red. */
+.ncr-row-infringement td {
+  background-color: #fdecea;
+}
+
+/* ─── Shared list filter bar (ERRU CGR/RSI/NCR/CTUD list pages) ───
+   Kept global (not per-page module) so every list page's filter row lines up
+   with the same rhythm as the rest of the app's tables/cards. */
+.filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
 }

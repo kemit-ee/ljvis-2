@@ -1,0 +1,96 @@
+declaration:
+  version: "1.0"
+  description: "Eeltäitmine (LJVIS2-64 §4.1): build a new outgoing NCR request draft from an
+    SP control-form sub-form. Triggered by 'Lisa NCR vorm' on the SP/TH control card —
+    ncr.create only. Delegates all derivation logic (Pass/Fail, M1 302 exclusion, serious
+    infringements from erru_points) to build.sql. Exactly one new draft is created per call,
+    in status 'initiated'; the caller (frontend) then navigates to the NCR form in edit mode."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: spFormKey
+        type: string
+      - field: spFormType
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: ncrTo
+        type: string
+
+extractRequestData:
+  assign:
+    sp_form_key: "${('' + (incoming.body.spFormKey || '')).trim()}"
+    sp_form_type: "${(incoming.body.spFormType || '').trim()}"
+    originating_authority: "${(incoming.body.originatingAuthority || '').trim().toUpperCase()}"
+    request_source: "${(incoming.body.requestSource || 'RSI').trim()}"
+    request_purpose: "${(incoming.body.requestPurpose || 'Control').trim()}"
+    ncr_to: "${(incoming.body.ncrTo || '').trim().toUpperCase()}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkInputPresent
+
+checkInputPresent:
+  switch:
+    - condition: ${sp_form_key === '' || (sp_form_type !== 'driver' && sp_form_type !== 'teammate')}
+      next: returnInvalidInput
+  next: buildDraft
+
+buildDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/build"
+    headers:
+      type: json
+    body:
+      spFormKey: ${sp_form_key}
+      spFormType: ${sp_form_type}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      ncrTo: ${ncr_to}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkBuildResult
+
+checkBuildResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnNotFound
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/ncr/log-ncr-request-build"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: "${res.response.body[0].businessCaseId}"
+    sp_form_key: ${sp_form_key}
+    sp_form_type: ${sp_form_type}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnInvalidInput:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"spFormKey","code":"required"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "sp control-form sub-form not found"
+  next: end

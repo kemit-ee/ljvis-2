@@ -1,0 +1,345 @@
+declaration:
+  version: "1.0"
+  description: "Send an outgoing CGR request to the ERRU hub and store the synchronous broadcast response (LJVIS2-139). CGR is a synchronous broadcast exchange: all member states (cgrTo=ZZ) or one specific state answer in the same call. Unlike CTUD there is no separate 'responded' terminal state — 'sent' is the terminal outgoing state, and the member_states JSONB is written in the same append-transition call. Flow: get the draft, validate it is sendable (initiated or error), compute NYSIIS search keys if the 7A (name) block is used, call the ERRU hub, and only THEN append exactly one snapshot: 'sent' with member_states and the NYSIIS keys on success, or 'error' on failure. This keeps the audit trail unambiguous — there is no intermediate 'sent' snapshot with empty member_states, and version increases by exactly 1 per attempt. A transport failure transitions to 'error' and allows a retry (same as CTUD). The ERRU hub endpoint is resolved from the ERRU_CGR_ENDPOINT constant (mock in dev/CI, XTR in production). The ERRU response may be Ruuter-enveloped (dev/CI mock) or direct (real XTR) — both shapes are handled."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${('' + (incoming.body.id || '')).trim()}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${!id}
+      next: returnIdRequired
+  next: getRequest
+
+getRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: current
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${current.response.body.length != 1}
+      next: returnNotFound
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    cur_status: "${current.response.body[0].status}"
+    cur_direction: "${current.response.body[0].direction}"
+    business_case_id: "${current.response.body[0].businessCaseId}"
+    cgr_to: "${current.response.body[0].cgrTo || 'ZZ'}"
+    tm_first_name: "${current.response.body[0].tmFirstName || ''}"
+    tm_family_name: "${current.response.body[0].tmFamilyName || ''}"
+    tm_date_of_birth: "${current.response.body[0].tmDateOfBirth || ''}"
+    tm_place_of_birth: "${current.response.body[0].tmPlaceOfBirth || ''}"
+    tm_first_name_search_key: "${current.response.body[0].tmFirstNameSearchKey || ''}"
+    tm_family_name_search_key: "${current.response.body[0].tmFamilyNameSearchKey || ''}"
+    certificate_number: "${current.response.body[0].certificateNumber || ''}"
+    certificate_issue_date: "${current.response.body[0].certificateIssueDate || ''}"
+    certificate_issue_country: "${current.response.body[0].certificateIssueCountry || ''}"
+    originating_authority: "${current.response.body[0].originatingAuthority || ''}"
+    request_source: "${current.response.body[0].requestSource || ''}"
+    request_purpose: "${current.response.body[0].requestPurpose || ''}"
+  next: checkSendable
+
+# Only an outgoing draft (initiated) or a previously failed send (error) may be sent.
+# append-transition.sql enforces this too; checking here gives a precise error code.
+checkSendable:
+  switch:
+    - condition: ${cur_direction !== 'outgoing'}
+      next: returnNotSendable
+    - condition: ${cur_status !== 'initiated' && cur_status !== 'error'}
+      next: returnNotSendable
+  next: checkNysiisNeeded
+
+# NYSIIS keys must be computed server-side for the 7A (name) search choice.
+# They were NOT stored on draft-save (per LJVIS2-139 §4.1: "ERRU sõnumi koostamise käigus")
+# so we compute them fresh here. If we already have stored keys (retry of a previously
+# sent request), carry them forward without recomputation.
+checkNysiisNeeded:
+  switch:
+    - condition: ${!!tm_first_name && !tm_first_name_search_key}
+      next: computeNysiisFirst
+    - condition: ${!!tm_first_name && !!tm_first_name_search_key}
+      next: prepareOutbound
+  next: prepareOutbound
+
+# Call NYSIIS sidecar directly — template mechanism unreliable for GET+body in this engine.
+computeNysiisFirst:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${tm_first_name}
+      useFullName: false
+  result: nysiisFirstRes
+  next: checkNysiisFirstOk
+
+checkNysiisFirstOk:
+  switch:
+    - condition: ${nysiisFirstRes.response == null || nysiisFirstRes.response.status !== 200 || nysiisFirstRes.response.body == null}
+      next: returnNysiisError
+  next: storeNysiisFirstKey
+
+storeNysiisFirstKey:
+  assign:
+    tm_first_name_search_key: "${nysiisFirstRes.response.body.searchKey || ''}"
+  next: callNysiisFamily
+
+callNysiisFamily:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${tm_family_name}
+      useFullName: true
+  result: nysiissFamilyRes
+  next: checkNysiisFamilyOk
+
+checkNysiisFamilyOk:
+  switch:
+    - condition: ${nysiissFamilyRes.response == null || nysiissFamilyRes.response.status !== 200 || nysiissFamilyRes.response.body == null}
+      next: returnNysiisError
+  next: storeNysiisKeys
+
+storeNysiisKeys:
+  assign:
+    tm_family_name_search_key: "${nysiissFamilyRes.response.body.searchKey || ''}"
+  next: prepareOutbound
+
+prepareOutbound:
+  assign:
+    start_time: "${new Date().getTime()}"
+  next: callErru
+
+callErru:
+  call: http.post
+  args:
+    url: "[#ERRU_CGR_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      cgrTo: ${cgr_to}
+      businessCaseId: ${business_case_id}
+      technicalId: ""
+      workflowId: ""
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+  result: erru_res
+  next: checkErruStatus
+
+checkErruStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+      next: logIntegrationFailure
+  next: logIntegrationSuccess
+
+logIntegrationSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/cgr/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' cgrTo=' + cgr_to}"
+      response_xml: "${JSON.stringify(erru_res.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: log_ok
+  next: checkResponseEnvelope
+
+logIntegrationFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/cgr/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' cgrTo=' + cgr_to}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "ERRU transport failure or error response"
+  result: log_fail
+  next: markError
+
+# Two response shapes: dev/CI mock (Ruuter DSL) wraps the payload in
+# {"response": "<json string>"}; real XTR returns the ERRU payload unenveloped.
+checkResponseEnvelope:
+  switch:
+    - condition: ${erru_res.response.body != null && erru_res.response.body.response != null}
+      next: extractErruResponseEnveloped
+  next: extractErruResponseDirect
+
+extractErruResponseEnveloped:
+  assign:
+    member_states_raw: "${JSON.parse(erru_res.response.body.response).memberStates || []}"
+  next: checkMemberStates
+
+extractErruResponseDirect:
+  assign:
+    member_states_raw: "${erru_res.response.body.memberStates || []}"
+  next: checkMemberStates
+
+checkMemberStates:
+  switch:
+    - condition: ${!member_states_raw || !Array.isArray(member_states_raw) || member_states_raw.length === 0}
+      next: markErrorMissingResponse
+  next: storeSent
+
+storeSent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "sent"
+      memberStates: "${JSON.stringify(member_states_raw)}"
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      errorMessage: ""
+      created_by: ${actor_personal_code}
+  result: stored_res
+  next: checkStoreSent
+
+checkStoreSent:
+  switch:
+    - condition: ${stored_res.response.body == null || stored_res.response.body.length != 1}
+      next: returnNotSendable
+  next: extractWorkflowId
+
+extractWorkflowId:
+  assign:
+    cgr_wf_id: "${stored_res.response.body[0].workflowId || ''}"
+  next: logAuditSend
+
+markError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "error"
+      memberStates: ""
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      errorMessage: "ERRU transport failure — the request may be sent again"
+      created_by: ${actor_personal_code}
+  result: error_res
+  next: logAuditError
+
+markErrorMissingResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "error"
+      memberStates: ""
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      errorMessage: "ERRU response carried no memberStates — not ERRU 3.5 compliant"
+      created_by: ${actor_personal_code}
+  result: error_res
+  next: logAuditError
+
+logAuditSend:
+  template: "templates/audit/erru/cgr/log-cgr-request-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    cgr_to: ${cgr_to}
+    result_status: "sent"
+    member_state_count: "${member_states_raw ? member_states_raw.length : 0}"
+    tm_first_name: ${tm_first_name}
+    tm_family_name: ${tm_family_name}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_ok
+  next: returnSent
+
+logAuditError:
+  template: "templates/audit/erru/cgr/log-cgr-request-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    cgr_to: ${cgr_to}
+    result_status: "error"
+    member_state_count: "0"
+    tm_first_name: ${tm_first_name}
+    tm_family_name: ${tm_family_name}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_err
+  next: returnError
+
+returnSent:
+  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, workflowId: cgr_wf_id, memberStates: member_states_raw})}"
+  next: end
+
+returnError:
+  status: 502
+  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure — request transitioned to error, retry permitted"}'
+  next: end
+
+returnIdRequired:
+  status: 400
+  return: '{"valid":false,"field":"id","code":"required","message":"id on kohustuslik"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"CGR päring ei leitud"}'
+  next: end
+
+returnNotSendable:
+  status: 422
+  return: '{"valid":false,"code":"not_sendable","message":"Päringut ei saa saata praeguses olekus"}'
+  next: end
+
+returnNysiisError:
+  status: 422
+  return: '{"valid":false,"field":"name","code":"nysiis_unavailable","message":"NYSIIS otsinguvõtme arvutamine ebaõnnestus"}'
+  next: end

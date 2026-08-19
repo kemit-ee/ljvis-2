@@ -1,0 +1,8 @@
+# DEV/CI-only mock ERRU hub (unauthenticated by design, see
+# DSL/Ruuter/ljvis/POST/v1/erru/mock/.guard) must never ship in the deployed image.
+# Excluding it from the build context means it cannot end up in any image built from
+# this repo, regardless of which Dockerfile COPYs DSL/Ruuter/ljvis. Local/CI
+# docker-compose files bind-mount the full DSL/Ruuter/ljvis tree from the host, which
+# restores the mock endpoints for those environments only (bind mounts are unaffected
+# by .dockerignore).
+DSL/Ruuter/ljvis/POST/v1/erru/mock

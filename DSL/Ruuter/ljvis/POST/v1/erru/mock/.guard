@@ -1,0 +1,26 @@
+# Permissive guard for the DEV/CI-ONLY mock ERRU hub.
+#
+# The parent POST/.guard requires a LJVIS user cookie. The mock hub stands in for an
+# external system (MOVEHUB / s-TESTA), and send.yml must call it exactly the way it
+# will call XTR in production — i.e. WITHOUT forwarding the operator's session cookie.
+# Sending a user cookie to an external endpoint would be wrong, so instead of weakening
+# send.yml this narrower guard lets the stub be reached.
+#
+# Safe because the mock is unreachable in production: ERRU_CTUD_ENDPOINT/ERRU_CGR_ENDPOINT
+# point at XTR there, and nothing else references this path. As defence-in-depth, the
+# repo-root .dockerignore excludes this directory from every Docker build context, so it
+# cannot ship in any built image even if a constant were ever misconfigured; local/CI
+# compose files restore it via a bind-mount of the whole DSL/Ruuter/ljvis tree from the
+# host (bind mounts are unaffected by .dockerignore).
+#
+# override_ancestors is required: Rust Ruuter stacks ancestor guards by default (unlike
+# the Java Ruuter parity model where a nested guard replaced its ancestors), so without
+# this the parent POST/.guard cookie check would still run and reject the unauthenticated
+# mock call with 403 before this guard's own "allow" is ever considered.
+declaration:
+  override_ancestors: true
+
+allow_mock:
+  return: "success"
+  status: 200
+  next: end

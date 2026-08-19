@@ -1,0 +1,85 @@
+declaration:
+  version: "1.0"
+  description: "Get a single CGR request (erru.cgr_request) by its logical key, returning the latest snapshot (LJVIS2-138). Read-only; serves both an unsent outgoing draft and a sent/answered request. Audited on EVERY open because the view exposes the searched transport manager's personal data (name, date of birth). URL is nested one level deeper than CTUD's bare '/v1/erru/ctud' (which is '/v1/erru/cgr/get' here) because CGR needs its own guard-isolated directory distinct from CTUD's — see GET/v1/erru/cgr/.guard."
+  method: get
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "CGR request logical key (cgr_request_key)"
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${id === ''}
+      next: returnNotFound
+  next: getRequest
+
+getRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: extractRequestFields
+
+extractRequestFields:
+  assign:
+    business_case_id: "${res.response.body[0].businessCaseId || ''}"
+    tm_first_name: "${res.response.body[0].tmFirstName || ''}"
+    tm_family_name: "${res.response.body[0].tmFamilyName || ''}"
+    tm_date_of_birth: "${res.response.body[0].tmDateOfBirth || ''}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/cgr/log-cgr-query-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    tm_first_name: ${tm_first_name}
+    tm_family_name: ${tm_family_name}
+    tm_date_of_birth: ${tm_date_of_birth}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_cgr_request"
+    headers:
+      type: json
+    body:
+      requests: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "cgr request not found"
+  next: end

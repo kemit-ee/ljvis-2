@@ -1,0 +1,94 @@
+declaration:
+  version: "1.0"
+  description: "MOCK ERRU hub for CTUD request/response — dev and CI only, never reachable in production (ERRU_CTUD_ENDPOINT points at XTR there). Stands in for the MOVEHUB / s-TESTA synchronous request-response interface, which is unavailable in this environment. Modelled on the legacy SimulationController from the 2010 Erru.Receiver, which served the same purpose (its CheckCommunityLicence_Response DTO shape maps 1:1 onto the fields below, mod camelCase and the 2.4→3.5 singular→array delta). The scenario is selected by the target country so every branch of the send flow is reachable from a test: DE=Found with a full payload, LV=NotFound, PL=Timeout, GR=NotAvailable (a member state still on ERRU v2.4), anything else=Found with a minimal payload. FI is handled by returning HTTP 502 so the transport-failure branch can be exercised. FR/IT/ES/NL cover the remaining COMMUNITY_LICENCE_STATUS values (Suspended/Withdrawn/Expired/LostOrStolen) so the frontend's licence-status rendering has fixtures beyond the default Active. Response shapes follow ERRU 3.5 as derived from the 2.4 CheckCommunityLicence schema plus the LJVIS2-144 specification."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: ctudTo
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: requestAllVehicles
+        type: string
+
+selectScenario:
+  switch:
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'LV'}
+      next: returnNotFound
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'PL'}
+      next: returnTimeout
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'GR'}
+      next: returnNotAvailable
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'FI'}
+      next: returnTransportFailure
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'DE'}
+      next: returnFoundFull
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'FR'}
+      next: returnFoundSuspended
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'IT'}
+      next: returnFoundWithdrawn
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'ES'}
+      next: returnFoundExpired
+    - condition: ${('' + (incoming.body.ctudTo || '')).toUpperCase() === 'NL'}
+      next: returnFoundLostOrStolen
+  next: returnFoundMinimal
+
+returnFoundFull:
+  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"DE-BAG","transportUndertakingName":"Rhein Spedition GmbH","legalForm":"GmbH","numberOfEmployees":42,"numberOfVehicles":18,"riskRating":74,"riskBand":"Green","searchMethod":"CommunityLicence","address":{"address":"Hauptstrasse 12","postCode":"50667","city":"Koeln","country":"DE"},"communityLicenceDetails":[{"communityLicenceNumber":"DE-CL-2019-55821","communityLicenceStatus":"Active","communityLicenceType":"CommunityLicenceGoods","startDate":"2019-04-01","expiryDate":"2029-03-31","withdrawalDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":null,"licencingAuthority":"DE-BAG"},{"communityLicenceNumber":"DE-CL-2015-11002","communityLicenceStatus":"Expired","communityLicenceType":"CommunityLicencePassenger","startDate":"2015-01-01","expiryDate":"2025-01-01","withdrawalDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":null,"licencingAuthority":"DE-BAG"}],"certifiedTrueCopyDetails":[{"trueCopyNumber":"DE-CL-2019-55821-004","trueCopyIssueDate":"2019-04-01","trueCopyExpiryDate":"2029-03-31","trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null,"trueCopyWithdrawalDate":null}],"vehicleRegistrations":["K-RS-4412","K-RS-4413"]}'
+  next: end
+
+returnFoundMinimal:
+  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"XX-CA","transportUndertakingName":"Generic Transport Ltd","legalForm":"Ltd","numberOfEmployees":5,"numberOfVehicles":2,"riskRating":10,"riskBand":"Grey","searchMethod":"CompanyName","address":{"address":"Main street 1","postCode":"00001","city":"Capital","country":"XX"},"communityLicenceDetails":[],"certifiedTrueCopyDetails":[],"vehicleRegistrations":[]}'
+  next: end
+
+# The four scenarios below all resolve as a SUCCESSFUL exchange (statusCode 'Found') —
+# only the licence's own COMMUNITY_LICENCE_STATUS differs, per Global_Types.xsd:272-279.
+# They give the frontend fixtures for every non-Active licence-status rendering branch,
+# since a hand-picked 'DE' Active licence alone does not exercise those code paths.
+returnFoundSuspended:
+  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"FR-DREAL","transportUndertakingName":"Transports Lefevre SARL","legalForm":"SARL","numberOfEmployees":12,"numberOfVehicles":6,"riskRating":48,"riskBand":"Amber","searchMethod":"CommunityLicence","address":{"address":"Rue de la Gare 8","postCode":"75012","city":"Paris","country":"FR"},"communityLicenceDetails":[{"communityLicenceNumber":"FR-CL-2021-30044","communityLicenceStatus":"Suspended","communityLicenceType":"CommunityLicenceGoods","startDate":"2021-06-01","expiryDate":"2031-05-31","withdrawalDate":null,"suspensionDate":"2026-01-15","suspensionExpiryDate":"2026-07-15","suspensionOrWithdrawalReason":"Overdue roadworthiness inspection","licencingAuthority":"FR-DREAL"}],"certifiedTrueCopyDetails":[{"trueCopyNumber":"FR-CL-2021-30044-002","trueCopyIssueDate":"2021-06-01","trueCopyExpiryDate":"2031-05-31","trueCopySuspensionDate":"2026-01-15","trueCopySuspensionExpiryDate":"2026-07-15","trueCopyWithdrawalDate":null}],"vehicleRegistrations":["AB-123-CD"]}'
+  next: end
+
+returnFoundWithdrawn:
+  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"IT-MIT","transportUndertakingName":"Trasporti Bianchi SRL","legalForm":"SRL","numberOfEmployees":8,"numberOfVehicles":4,"riskRating":81,"riskBand":"Red","searchMethod":"CommunityLicence","address":{"address":"Via Roma 45","postCode":"00184","city":"Roma","country":"IT"},"communityLicenceDetails":[{"communityLicenceNumber":"IT-CL-2018-77213","communityLicenceStatus":"Withdrawn","communityLicenceType":"CommunityLicenceGoods","startDate":"2018-03-01","expiryDate":"2028-02-29","withdrawalDate":"2025-11-20","suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":"Loss of good repute of the transport manager","licencingAuthority":"IT-MIT"}],"certifiedTrueCopyDetails":[{"trueCopyNumber":"IT-CL-2018-77213-001","trueCopyIssueDate":"2018-03-01","trueCopyExpiryDate":"2028-02-29","trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null,"trueCopyWithdrawalDate":"2025-11-20"}],"vehicleRegistrations":[]}'
+  next: end
+
+returnFoundExpired:
+  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"ES-DGT","transportUndertakingName":"Transportes Garcia SL","legalForm":"SL","numberOfEmployees":3,"numberOfVehicles":1,"riskRating":33,"riskBand":"Amber","searchMethod":"VehicleRegistration","address":{"address":"Calle Mayor 3","postCode":"28013","city":"Madrid","country":"ES"},"communityLicenceDetails":[{"communityLicenceNumber":"ES-CL-2015-19087","communityLicenceStatus":"Expired","communityLicenceType":"CommunityLicencePassenger","startDate":"2015-05-01","expiryDate":"2025-04-30","withdrawalDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":null,"licencingAuthority":"ES-DGT"}],"certifiedTrueCopyDetails":[],"vehicleRegistrations":["1234-ABC"]}'
+  next: end
+
+returnFoundLostOrStolen:
+  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"NL-ILT","transportUndertakingName":"Van Dijk Transport BV","legalForm":"BV","numberOfEmployees":20,"numberOfVehicles":9,"riskRating":55,"riskBand":"Amber","searchMethod":"CommunityLicence","address":{"address":"Kerkstraat 22","postCode":"1017","city":"Amsterdam","country":"NL"},"communityLicenceDetails":[{"communityLicenceNumber":"NL-CL-2020-40456","communityLicenceStatus":"LostOrStolen","communityLicenceType":"CommunityLicenceGoods","startDate":"2020-09-01","expiryDate":"2030-08-31","withdrawalDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":"Certified true copy reported lost","licencingAuthority":"NL-ILT"}],"certifiedTrueCopyDetails":[{"trueCopyNumber":"NL-CL-2020-40456-003","trueCopyIssueDate":"2020-09-01","trueCopyExpiryDate":"2030-08-31","trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null,"trueCopyWithdrawalDate":null}],"vehicleRegistrations":["12-ABC-3"]}'
+  next: end
+
+returnNotFound:
+  return: '{"statusCode":"NotFound","statusMessage":"No transport undertaking matched the supplied criteria","respondingAuthority":"LV-ATD"}'
+  next: end
+
+# Timeout and NotAvailable are set by the ERRU Hub, never by a responding member state.
+# Neither is an error: the request still reaches status 'responded'.
+returnTimeout:
+  return: '{"statusCode":"Timeout","statusMessage":"Target member state did not respond in time","respondingAuthority":""}'
+  next: end
+
+returnNotAvailable:
+  return: '{"statusCode":"NotAvailable","statusMessage":"Target member state is not reachable (ERRU v2.4)","respondingAuthority":""}'
+  next: end
+
+returnTransportFailure:
+  status: 502
+  return: '{"error":"MOCK_TRANSPORT_FAILURE","message":"Simulated ERRU transport failure"}'
+  next: end

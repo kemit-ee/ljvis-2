@@ -1,0 +1,32 @@
+# CGR needs cgr.read, not ctud.read — override the parent GET/v1/erru/.guard
+# (which is ctud-specific) instead of stacking on top of it. Protects every
+# GET file directly under erru/cgr/ (get.yml, search.yml) — they all need the
+# same permission, so no further nesting is required here (contrast with the
+# POST tree, where create vs send need different permissions and each gets
+# its own guard-isolating subdirectory).
+declaration:
+  override_ancestors: true
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('cgr.read')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

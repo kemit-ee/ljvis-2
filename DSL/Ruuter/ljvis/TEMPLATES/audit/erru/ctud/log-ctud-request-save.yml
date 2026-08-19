@@ -1,0 +1,45 @@
+declaration:
+  version: "1.0"
+  description: "Audit: CTUD request draft saved (LJVIS2-143). Logged on every draft save, both the initial create and each revision. The description carries the request identifier, the list of changed fields and the resulting status. changed_fields is empty on create (everything is new) and computed by comparing against the previous snapshot on revision."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: changed_fields
+        type: string
+      - field: status
+        type: string
+      - field: version
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "CTUD päringu mustandi salvestamine: päringu tunnus ${incoming.body.business_case_id || '-'}, muudetud väljad ${incoming.body.changed_fields || '-'}, staatus ${incoming.body.status || '-'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['changedFields', incoming.body.changed_fields || null], ['status', incoming.body.status || null], ['version', incoming.body.version || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "ctud.request.save"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

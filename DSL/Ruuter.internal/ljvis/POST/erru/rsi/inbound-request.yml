@@ -1,0 +1,295 @@
+declaration:
+  version: "1.0"
+  description: |
+    Serve an INBOUND RSI (RoadSideInspection) notification from another member state and
+    answer it synchronously (LJVIS2-148 §7.3). Fully automatic: no user is involved, no
+    rsi.* permission is required. Flow:
+      1. Validate required ERRU envelope fields (technicalId, workflowId, from,
+         businessCaseId, originatingAuthority, vehicleRegistrationNumber,
+         vehicleRegistrationCountry).
+      2. Store a 'received' snapshot (append-inbound.sql, idempotent via partial unique
+         index uq_rsi_inbound_technical_id).
+      3. A re-delivered message yields zero rows: look up the existing snapshot by
+         technical_id and replay the stored response_status_code.
+      4. Look up the inspected vehicle in the Estonian vehicle register (Liiklusregister,
+         ERRU_RSI_LIIKLUSREGISTER_ENDPOINT — mock in dev/CI, real X-tee in production).
+         EE-registered vehicles → OK; others → NotFound.
+      5. Store an 'answered' snapshot with the response_status_code.
+      6. Write audit (rsi.inbound_request.serve) directly to Resql — ruuter-internal
+         cannot reach the main Ruuter instance's TEMPLATES/audit chain.
+
+    Unlike CGR inbound, RSI has no Heartbeat handling (per LJVIS2-146 §Testimine: RSI
+    does not use the Heartbeat requestPurpose — the notification channel carries only
+    real inspection events). Response shape matches the ERRU RSI response XSD: a single
+    statusCode (OK/NotFound) plus optional vehicleDetails.
+
+    Idempotency: uq_rsi_inbound_technical_id partial unique index ensures re-delivered
+    messages do not create duplicate snapshots.
+
+    TODO(M2M): OAuth2 machine-token auth as per spec. Until Ruuter supports
+    client_credentials this runs on ruuter-internal (port 8089, allowedIPs 127.0.0.1
+    only) following the CGR/CTUD inbound-request precedent.
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: sentAt
+        type: string
+      - field: from
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: vehicleCategory
+        type: string
+      - field: vehicleIdentificationNumber
+        type: string
+      - field: inspectionLocation
+        type: string
+      - field: inspectionDatetime
+        type: string
+      - field: inspectionAuthorityOrName
+        type: string
+      - field: inspectionPassed
+        type: string
+      - field: ptiRequested
+        type: string
+      - field: vehicleProhibitionOrRestriction
+        type: string
+      - field: checkedItems
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.technicalId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.from || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.businessCaseId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.originatingAuthority || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.vehicleRegistrationNumber || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.vehicleRegistrationCountry || '')).trim())}
+      next: returnInvalidData
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    technical_id: "${('' + (incoming.body.technicalId || '')).trim()}"
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    sent_at: "${('' + (incoming.body.sentAt || '')).trim()}"
+    rsi_from: "${('' + (incoming.body.from || '')).trim().toUpperCase()}"
+    business_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
+    request_source: "${('' + (incoming.body.requestSource || '')).trim()}"
+    request_purpose: "${('' + (incoming.body.requestPurpose || '')).trim()}"
+    vehicle_registration_number: "${('' + (incoming.body.vehicleRegistrationNumber || '')).trim().toUpperCase()}"
+    vehicle_registration_country: "${('' + (incoming.body.vehicleRegistrationCountry || '')).trim().toUpperCase()}"
+    vehicle_category: "${('' + (incoming.body.vehicleCategory || '')).trim()}"
+    vehicle_identification_number: "${('' + (incoming.body.vehicleIdentificationNumber || '')).trim()}"
+    inspection_location: "${('' + (incoming.body.inspectionLocation || '')).trim()}"
+    inspection_datetime: "${('' + (incoming.body.inspectionDatetime || '')).trim()}"
+    inspection_authority_or_name: "${('' + (incoming.body.inspectionAuthorityOrName || '')).trim()}"
+    inspection_passed: "${('' + (incoming.body.inspectionPassed || '')).trim()}"
+    pti_requested: "${('' + (incoming.body.ptiRequested || '')).trim()}"
+    vehicle_prohibition: "${('' + (incoming.body.vehicleProhibitionOrRestriction || '')).trim()}"
+    checked_items: "${('' + (incoming.body.checkedItems || '[]')).trim()}"
+  next: storeReceived
+
+storeReceived:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-inbound"
+    headers:
+      type: json
+    body:
+      technicalId: ${technical_id}
+      workflowId: ${workflow_id}
+      sentAt: ${sent_at}
+      rsiFrom: ${rsi_from}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      vehicleCategory: ${vehicle_category}
+      vehicleIdentificationNumber: ${vehicle_identification_number}
+      inspectionLocation: ${inspection_location}
+      inspectionDatetime: ${inspection_datetime}
+      inspectionAuthorityOrName: ${inspection_authority_or_name}
+      inspectionPassed: ${inspection_passed}
+      ptiRequested: ${pti_requested}
+      vehicleProhibitionOrRestriction: ${vehicle_prohibition}
+      checkedItems: ${checked_items}
+      created_by: "system"
+  result: received_res
+  next: checkStored
+
+# Zero rows = redelivery (partial unique index uq_rsi_inbound_technical_id conflict).
+checkStored:
+  switch:
+    - condition: ${received_res.response.body == null || received_res.response.body.length != 1}
+      next: lookupExisting
+  next: extractStored
+
+extractStored:
+  assign:
+    request_key: "${received_res.response.body[0].id}"
+  next: callLiiklusregister
+
+lookupExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/get-by-technical-id"
+    headers:
+      type: json
+    body:
+      technical_id: ${technical_id}
+  result: existing_res
+  next: checkExisting
+
+checkExisting:
+  switch:
+    - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
+      next: returnInvalidData
+  next: returnReplayedAnswer
+
+# Step 4: look up the vehicle in the Estonian vehicle register.
+# EE-registered vehicles → OK; others → NotFound.
+callLiiklusregister:
+  call: http.post
+  args:
+    url: "[#ERRU_RSI_LIIKLUSREGISTER_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+  result: lr_res
+  next: checkLiiklusregisterStatus
+
+checkLiiklusregisterStatus:
+  switch:
+    - condition: ${lr_res.response == null || lr_res.response.status == null || lr_res.response.status >= 400}
+      next: buildErrorResponse
+    - condition: ${lr_res.response.body != null && lr_res.response.body.response != null}
+      next: extractLiiklusregisterEnveloped
+  next: extractLiiklusregisterDirect
+
+extractLiiklusregisterEnveloped:
+  assign:
+    lr_body: "${JSON.parse(lr_res.response.body.response)}"
+  next: checkLiiklusregisterFound
+
+extractLiiklusregisterDirect:
+  assign:
+    lr_body: "${lr_res.response.body}"
+  next: checkLiiklusregisterFound
+
+checkLiiklusregisterFound:
+  switch:
+    - condition: ${lr_body != null && lr_body.statusCode === 'OK'}
+      next: buildOkResponse
+  next: buildNotFoundResponse
+
+buildOkResponse:
+  assign:
+    resp_status_code: "OK"
+    resp_status_message: ""
+    resp_vehicle_details: "${lr_body.vehicleDetails ? JSON.stringify(lr_body.vehicleDetails) : 'null'}"
+  next: buildFullResponse
+
+buildNotFoundResponse:
+  assign:
+    resp_status_code: "NotFound"
+    resp_status_message: "Vehicle not found in Estonian register"
+    resp_vehicle_details: "null"
+  next: buildFullResponse
+
+buildErrorResponse:
+  assign:
+    resp_status_code: "NotFound"
+    resp_status_message: "Vehicle register lookup failed — treated as NotFound"
+    resp_vehicle_details: "null"
+  next: buildFullResponse
+
+buildFullResponse:
+  assign:
+    resp_content: "${JSON.stringify({statusCode: resp_status_code, statusMessage: resp_status_message, vehicleDetails: resp_vehicle_details && resp_vehicle_details !== 'null' ? JSON.parse(resp_vehicle_details) : null})}"
+  next: storeAnswered
+
+storeAnswered:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${request_key}
+      newStatus: "answered"
+      responseStatusCode: ${resp_status_code}
+      responseStatusMessage: ${resp_status_message}
+      errorMessage: ""
+      created_by: "system"
+  result: answered_res
+  next: buildAudit
+
+buildAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "RSI sissetuleva teavituse teenindamine: juhtum ${business_case_id}, küsiv riik ${rsi_from}, sőiduk ${vehicle_registration_number}/${vehicle_registration_country}, tulemus ${resp_status_code}"
+    audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, rsiFrom: rsi_from || null, vehicleRegistrationNumber: vehicle_registration_number || null, vehicleRegistrationCountry: vehicle_registration_country || null, resultStatus: resp_status_code || null})}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "rsi.inbound_request.serve"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU RSI inbound service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnAnswer
+
+returnAnswer:
+  return: ${resp_content}
+  next: end
+
+returnReplayedAnswer:
+  return: "${JSON.stringify({statusCode: existing_res.response.body[0].responseStatusCode || 'NotFound', statusMessage: existing_res.response.body[0].responseStatusMessage || '', vehicleDetails: null})}"
+  next: end
+
+returnInvalidData:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"Request does not satisfy the ERRU RSI requirements"}'
+  next: end

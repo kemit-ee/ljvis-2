@@ -1,0 +1,263 @@
+declaration:
+  version: "1.0"
+  description: "Send an outgoing RSI (RoadSideInspection) notification to the ERRU hub and store the ACK (LJVIS2-148). RSI is asynchronous and single-country: only 'initiated' messages can be sent (no retry from error — a failed RSI notification is abandoned and a new one composed). Flow: get the draft, validate it is sendable, convert checked_items from the national TECHNICAL_CHECK format to the ERRU rsiCheckedItemType format (CAA_10 excluded — no ERRU equivalent; severity mapped VO→Minor/OV→Major/EOV→Dangerous), call the ERRU hub, receive only an ACK (no vehicle status — that arrives separately via inbound-response.yml), append exactly one 'sent' snapshot with a newly generated workflowId/technicalId (append-transition.sql), and return the workflowId to the caller so they can display 'Teade saadetud'. A transport failure transitions to 'error' (terminal — no retry). The ERRU hub endpoint is resolved from ERRU_RSI_ENDPOINT (mock in dev/CI, XTR in production). The mock response may be Ruuter-enveloped (dev/CI: {'response': '...'}) or direct (XTR): both shapes are handled."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${('' + (incoming.body.id || '')).trim()}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${!id}
+      next: returnIdRequired
+  next: getRequest
+
+getRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: current
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${current.response.body.length != 1}
+      next: returnNotFound
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    cur_status: "${current.response.body[0].status}"
+    cur_direction: "${current.response.body[0].direction}"
+    business_case_id: "${current.response.body[0].businessCaseId}"
+    rsi_to: "${current.response.body[0].rsiTo || ''}"
+    originating_authority: "${current.response.body[0].originatingAuthority || ''}"
+    request_source: "${current.response.body[0].requestSource || 'RSI'}"
+    request_purpose: "${current.response.body[0].requestPurpose || 'Control'}"
+    vehicle_registration_number: "${current.response.body[0].vehicleRegistrationNumber || ''}"
+    vehicle_registration_country: "${current.response.body[0].vehicleRegistrationCountry || ''}"
+    vehicle_category: "${current.response.body[0].vehicleCategory || ''}"
+    vehicle_identification_number: "${current.response.body[0].vehicleIdentificationNumber || ''}"
+    odometer_reading: "${current.response.body[0].odometerReading || ''}"
+    inspection_location: "${current.response.body[0].inspectionLocation || ''}"
+    inspection_datetime: "${current.response.body[0].inspectionDatetime || ''}"
+    inspection_authority_or_name: "${current.response.body[0].inspectionAuthorityOrName || ''}"
+    inspection_passed: "${current.response.body[0].inspectionPassed != null ? String(current.response.body[0].inspectionPassed) : 'false'}"
+    pti_requested: "${current.response.body[0].ptiRequested != null ? String(current.response.body[0].ptiRequested) : 'false'}"
+    vehicle_prohibition: "${current.response.body[0].vehicleProhibitionOrRestriction != null ? String(current.response.body[0].vehicleProhibitionOrRestriction) : 'false'}"
+    checked_items_raw: "${current.response.body[0].checkedItems || '[]'}"
+  next: checkSendable
+
+# RSI differs from CGR: only 'initiated' is sendable. 'error' has NO outgoing transition
+# (LJVIS2-146/148) — a new message with a new rsi_message_key must be composed instead.
+checkSendable:
+  switch:
+    - condition: ${cur_direction !== 'outgoing'}
+      next: returnNotSendable
+    - condition: ${cur_status !== 'initiated'}
+      next: returnNotSendable
+  next: prepareOutbound
+
+# Convert checked_items from national TECHNICAL_CHECK format to ERRU rsiCheckedItemType.
+# Rule: CAA_10 is excluded (no ERRU equivalent, per LJVIS2-148 §4.1). ERRU itemType is only
+# defined for the integers 0-10 plus 20 (RoadSideInspection_Types.xsd) — CAA_1..CAA_9 map
+# directly to itemType 1..9, but CAA_11 is a SPECIAL CASE that maps to itemType 20 (not 11,
+# which is not even a valid ERRU value), per LJVIS2-148 §4.1: "CAA_11 ... teisendatakse
+# saatmisel itemType väärtuseks 20".
+# Severity: VO→Minor, OV→Major, EOV→Dangerous (ERRU rsiFailedAssessmentType XSD values).
+#
+# NOTE: this conversion is deliberately split into several small assign steps, each with a
+# short expression. A single large IIFE combining the full parse+filter+map+ternary logic
+# in one `${...}` expression was found to silently fail once enough OTHER variables had
+# already accumulated earlier in this same flow — Ruuter-on-Rust's template evaluator
+# returned the literal unevaluated template text instead of raising an error, which went
+# unnoticed because no test inspected the actual outbound payload (only the final status).
+# Splitting the transformation avoids the failure and is easier to unit-debug step by step.
+prepareOutbound:
+  assign:
+    start_time: "${new Date().getTime()}"
+    checked_items_array: "${typeof checked_items_raw === 'string' ? JSON.parse(checked_items_raw) : (Array.isArray(checked_items_raw) ? checked_items_raw : [])}"
+  next: convertCheckedItems
+
+convertCheckedItems:
+  assign:
+    erru_checked_items: "${JSON.stringify(checked_items_array.filter(function(i){return i.partCode !== 'CAA_10';}).map(function(i){ var itemTypeMap = {'CAA_11': 20}; var n = itemTypeMap[i.partCode] !== undefined ? itemTypeMap[i.partCode] : parseInt((i.partCode||'').replace('CAA_',''),10); var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; var defects = (i.defects||[]).map(function(d){return {defectCode:d.defectCode,severity:sevMap[d.severity]||d.severity};}); return {itemType:n,infringementStatus:i.status==='non_compliant'?'infringement':'none',defects:defects};}))}"
+  next: callErru
+
+callErru:
+  call: http.post
+  args:
+    url: "[#ERRU_RSI_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      rsiTo: ${rsi_to}
+      businessCaseId: ${business_case_id}
+      technicalId: ""
+      workflowId: ""
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      vehicleCategory: ${vehicle_category}
+      vehicleIdentificationNumber: ${vehicle_identification_number}
+      inspectionLocation: ${inspection_location}
+      inspectionDatetime: ${inspection_datetime}
+      inspectionAuthorityOrName: ${inspection_authority_or_name}
+      inspectionPassed: ${inspection_passed}
+      ptiRequested: ${pti_requested}
+      vehicleProhibitionOrRestriction: ${vehicle_prohibition}
+      checkedItems: ${erru_checked_items}
+  result: erru_res
+  next: checkErruStatus
+
+checkErruStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+      next: logIntegrationFailure
+  next: logIntegrationSuccess
+
+logIntegrationSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/rsi/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + erru_checked_items}"
+      response_xml: "${JSON.stringify(erru_res.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: log_ok
+  next: storeSent
+
+logIntegrationFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/rsi/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + erru_checked_items}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "ERRU RSI transport failure or error response"
+  result: log_fail
+  next: markError
+
+storeSent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "sent"
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      errorMessage: ""
+      created_by: ${actor_personal_code}
+  result: stored_res
+  next: checkStoreSent
+
+checkStoreSent:
+  switch:
+    - condition: ${stored_res.response.body == null || stored_res.response.body.length != 1}
+      next: returnNotSendable
+  next: extractWorkflowId
+
+extractWorkflowId:
+  assign:
+    rsi_wf_id: "${stored_res.response.body[0].workflowId || ''}"
+  next: logAuditSend
+
+markError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "error"
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      errorMessage: "ERRU RSI transport failure — a new message must be composed (no retry)"
+      created_by: ${actor_personal_code}
+  result: error_res
+  next: logAuditError
+
+logAuditSend:
+  template: "templates/audit/erru/rsi/log-rsi-request-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    rsi_to: ${rsi_to}
+    result_status: "sent"
+    vehicle_registration_number: ${vehicle_registration_number}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_ok
+  next: returnSent
+
+logAuditError:
+  template: "templates/audit/erru/rsi/log-rsi-request-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    rsi_to: ${rsi_to}
+    result_status: "error"
+    vehicle_registration_number: ${vehicle_registration_number}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_err
+  next: returnError
+
+returnSent:
+  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, workflowId: rsi_wf_id, rsiTo: rsi_to})}"
+  next: end
+
+returnError:
+  status: 502
+  return: '{"valid":false,"code":"send_failed","message":"ERRU RSI transport failure — request transitioned to error, a new message must be composed"}'
+  next: end
+
+returnIdRequired:
+  status: 400
+  return: '{"valid":false,"field":"id","code":"required","message":"id on kohustuslik"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"RSI teade ei leitud"}'
+  next: end
+
+returnNotSendable:
+  status: 422
+  return: '{"valid":false,"code":"not_sendable","message":"Teadet ei saa saata praeguses olekus (ainult initiated staatus on saadetav)"}'
+  next: end

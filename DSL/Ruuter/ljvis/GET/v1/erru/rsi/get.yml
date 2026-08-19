@@ -1,0 +1,85 @@
+declaration:
+  version: "1.0"
+  description: "Get a single RSI message (erru.rsi_message) by its logical key, returning the latest snapshot (LJVIS2-147). Read-only; serves both an unsent outgoing draft and a sent/responded/received/answered message. Audited on EVERY open because the view may show the driver's personal data (name, licence number)."
+  method: get
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "RSI message logical key (rsi_message_key)"
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${id === ''}
+      next: returnNotFound
+  next: getRequest
+
+getRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: extractRequestFields
+
+extractRequestFields:
+  assign:
+    business_case_id: "${res.response.body[0].businessCaseId || ''}"
+    vehicle_registration_number: "${res.response.body[0].vehicleRegistrationNumber || ''}"
+    driver_first_name: "${res.response.body[0].driverFirstName || ''}"
+    driver_family_name: "${res.response.body[0].driverFamilyName || ''}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/rsi/log-rsi-query-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    vehicle_registration_number: ${vehicle_registration_number}
+    driver_first_name: ${driver_first_name}
+    driver_family_name: ${driver_family_name}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_rsi_message"
+    headers:
+      type: json
+    body:
+      requests: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "rsi message not found"
+  next: end

@@ -1,0 +1,224 @@
+declaration:
+  version: "1.0"
+  description: "Pre-fill a new outgoing RSI draft from a vehicle technical-check form (eeltäitmine, LJVIS2-148 §4.1). Reads the vehicle technical-check sub-form for the checked parts (parts_summary JSONB) and its parent compound_form (via compound_form_key) for the vehicle registration number and VIN — forms.vehicle_technical_form itself does NOT store the registration number/VIN: era_yv_mnt_regnr/era_yv_mnt_vintin are unrelated boolean checkboxes ('Erakorraline ülevaatus TA täpsustus: Registreerimisnumber/VIN-kood', shown only when result=extraordinary_inspection_ta) — an earlier version of this endpoint read those two booleans by mistake, which meant eeltäitmine could never produce a real vehicle registration number. Maps parts_summary to the RSI checked_items national format; CAA_10 is excluded (it has no ERRU equivalent and must never appear in an RSI message, per LJVIS2-148 §4.1). The vehicle registration country, category, inspection details, and other RSI envelope fields are provided by the caller when present (the frontend has this context from the compound form already loaded), falling back to the compound_form's own vehicle_country_code/vehicle_category_code when the caller omits them. inspection_passed is always false — RSI notifications are issued only for negative inspection results (spec §Plokk Kontrolltulemused). Delegates to the same append-draft.sql as save.yml — there is no separate build SQL query (see append-draft.sql §description comment). Covered by the POST/v1/erru/rsi/request/.guard (rsi.create permission)."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: vehicleTechnicalFormId
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: vehicleCategory
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: inspectionLocation
+        type: string
+      - field: inspectionDatetime
+        type: string
+      - field: inspectionAuthorityOrName
+        type: string
+      - field: ptiRequested
+        type: string
+      - field: vehicleProhibitionOrRestriction
+        type: string
+
+extractRequestData:
+  assign:
+    form_id: "${('' + (incoming.body.vehicleTechnicalFormId || '')).trim()}"
+    vehicle_registration_country: "${('' + (incoming.body.vehicleRegistrationCountry || '')).trim().toUpperCase()}"
+    vehicle_category: "${('' + (incoming.body.vehicleCategory || '')).trim()}"
+    originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
+    inspection_location: "${('' + (incoming.body.inspectionLocation || '')).trim()}"
+    inspection_datetime: "${('' + (incoming.body.inspectionDatetime || '')).trim()}"
+    inspection_authority_or_name: "${('' + (incoming.body.inspectionAuthorityOrName || '')).trim()}"
+    pti_requested: "${('' + (incoming.body.ptiRequested || 'false')).trim()}"
+    vehicle_prohibition: "${('' + (incoming.body.vehicleProhibitionOrRestriction || 'false')).trim()}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkFormIdPresent
+
+checkFormIdPresent:
+  switch:
+    - condition: ${!form_id}
+      next: returnFormIdRequired
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${form_id}
+  result: form_res
+  next: checkFormFound
+
+checkFormFound:
+  switch:
+    - condition: ${form_res.response.body == null || form_res.response.body.length != 1}
+      next: returnFormNotFound
+  next: extractFormData
+
+# Map parts_summary (TECHNICAL_CHECK national format) → RSI checked_items national format,
+# filtering out CAA_10 (no ERRU equivalent). parts_summary uses the same shape as
+# checked_items: [{partCode, status, defects:[{defectCode, severity}]}].
+# NOTE: era_yv_mnt_regnr/era_yv_mnt_vintin on vehicle_technical_form are unrelated boolean
+# checkboxes, NOT the registration number/VIN — those live on the parent compound_form,
+# fetched separately below via compound_form_key.
+# NOTE 2: the JSON-parse-then-filter conversion is deliberately split into two small assign
+# steps rather than one large IIFE — see POST/v1/erru/rsi/send.yml §prepareOutbound comment
+# for why: Ruuter-on-Rust's template evaluator silently fails on a single large `${...}`
+# expression once enough OTHER variables have already accumulated earlier in the same flow,
+# returning the literal unevaluated template text instead of raising an error.
+extractFormData:
+  assign:
+    compound_form_key: "${('' + (form_res.response.body[0].compoundFormKey || '')).trim()}"
+    parts_summary_array: "${(function(){ var ps = form_res.response.body[0].partsSummary; return typeof ps === 'string' ? JSON.parse(ps || '[]') : (Array.isArray(ps) ? ps : []); })()}"
+  next: convertCheckedItems
+
+convertCheckedItems:
+  assign:
+    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return i.partCode !== 'CAA_10';}))}"
+  next: checkCompoundFormKeyPresent
+
+checkCompoundFormKeyPresent:
+  switch:
+    - condition: ${!compound_form_key}
+      next: returnCompoundFormNotFound
+  next: getCompoundForm
+
+getCompoundForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${compound_form_key}
+  result: compound_res
+  next: checkCompoundFormFound
+
+checkCompoundFormFound:
+  switch:
+    - condition: ${compound_res.response.body == null || compound_res.response.body.length != 1}
+      next: returnCompoundFormNotFound
+  next: extractCompoundFormData
+
+# The registration country/category are accepted from the caller (frontend already has the
+# open compound_form in context) but fall back to the compound_form's own values so eeltäitmine
+# still works if the caller omits them.
+extractCompoundFormData:
+  assign:
+    vehicle_registration_number: "${(compound_res.response.body[0].vehicleRegNr || '').trim()}"
+    vehicle_identification_number: "${(compound_res.response.body[0].vehicleVin || '').trim()}"
+    vehicle_registration_country: "${vehicle_registration_country || (compound_res.response.body[0].vehicleCountryCode || '').trim().toUpperCase()}"
+    vehicle_category: "${vehicle_category || (compound_res.response.body[0].vehicleCategoryCode || '').trim()}"
+  next: checkVehicleRegCountryPresent
+
+checkVehicleRegCountryPresent:
+  switch:
+    - condition: ${!vehicle_registration_country}
+      next: returnCountryRequired
+  next: checkVehicleRegNumber
+
+checkVehicleRegNumber:
+  switch:
+    - condition: ${!vehicle_registration_number}
+      next: returnVehicleRegRequired
+  next: createDraft
+
+createDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-draft"
+    headers:
+      type: json
+    body:
+      id: ""
+      originatingAuthority: ${originating_authority}
+      requestSource: ""
+      requestPurpose: ""
+      vehicleCategory: ${vehicle_category}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      vehicleIdentificationNumber: ${vehicle_identification_number}
+      odometerReading: ""
+      driverFirstName: ""
+      driverFamilyName: ""
+      driverLicenceNumber: ""
+      driverLicenceCountry: ""
+      identificationDetails: ""
+      inspectionIdentifier: ""
+      inspectionLocation: ${inspection_location}
+      inspectionDatetime: ${inspection_datetime}
+      inspectionAuthorityOrName: ${inspection_authority_or_name}
+      inspectionPassed: "false"
+      ptiRequested: ${pti_requested}
+      vehicleProhibitionOrRestriction: ${vehicle_prohibition}
+      checkedItems: ${checked_items_raw}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: draft_res
+  next: checkDraftCreated
+
+checkDraftCreated:
+  switch:
+    - condition: ${draft_res.response.body == null || draft_res.response.body.length != 1}
+      next: returnCreateFailed
+  next: logAuditBuild
+
+logAuditBuild:
+  template: "templates/audit/erru/rsi/log-rsi-request-save"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: "${draft_res.response.body[0].businessCaseId || ''}"
+    vehicle_registration_number: ${vehicle_registration_number}
+    changed_fields: "eeltäitmine kontrollkaardist"
+    status: "${draft_res.response.body[0].status || 'initiated'}"
+    version: "${String(draft_res.response.body[0].version || 1)}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_ok
+  next: returnDraft
+
+returnDraft:
+  return: "${JSON.stringify({id: draft_res.response.body[0].id, status: draft_res.response.body[0].status, businessCaseId: draft_res.response.body[0].businessCaseId, version: draft_res.response.body[0].version})}"
+  next: end
+
+returnFormIdRequired:
+  status: 400
+  return: '{"valid":false,"field":"vehicleTechnicalFormId","code":"required","message":"vehicleTechnicalFormId on kohustuslik"}'
+  next: end
+
+returnCountryRequired:
+  status: 400
+  return: '{"valid":false,"field":"vehicleRegistrationCountry","code":"required","message":"vehicleRegistrationCountry on kohustuslik"}'
+  next: end
+
+returnVehicleRegRequired:
+  status: 422
+  return: '{"valid":false,"field":"vehicleRegistrationNumber","code":"required","message":"Kontrollkaardil puudub sőiduki registreerimisnumber"}'
+  next: end
+
+returnFormNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"Kontrollkaart ei leitud"}'
+  next: end
+
+returnCompoundFormNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"Koondvormi ei leitud"}'
+  next: end
+
+returnCreateFailed:
+  status: 500
+  return: '{"valid":false,"code":"create_failed","message":"RSI teate loomiseks eeltäitmine nurjus"}'
+  next: end

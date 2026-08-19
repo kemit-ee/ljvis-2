@@ -1,0 +1,205 @@
+declaration:
+  version: "1.0"
+  description: |
+    Receive an INCOMING NCR (NotifyCheckResult) request from another member state and
+    acknowledge it synchronously (LJVIS2-64 §4.4). Fully automatic: no user is involved, no
+    ncr.* permission is required. Flow:
+      1. Validate required ERRU envelope fields (technicalId, workflowId, from,
+         businessCaseId, originatingAuthority, requestSource, requestPurpose,
+         transportUndertakingName, communityLicenceNumber, vehicleRegistrationNumber,
+         vehicleRegistrationCountry, checkResult, checkDate).
+      2. Store a 'received' snapshot (append-inbound.sql, idempotent via partial unique
+         index uq_ncr_inbound_technical_id).
+      3. A re-delivered message (same technicalId) yields zero rows: look up the existing
+         snapshot by technical_id and replay the same ack rather than storing a duplicate
+         (LJVIS2-64 §Testimine: 'toimeta sama technicalId-ga päring uuesti kohale ... veendu,
+         et see kinnitatakse, kuid uut kirjet ei looda').
+      4. Return a synchronous NCRN_Ack acknowledgement.
+      5. Write audit (ncr.inbound_request.serve) directly to Resql — ruuter-internal cannot
+         reach the main Ruuter instance's TEMPLATES/audit chain.
+
+    minorInfringement/seriousInfringements arrive as JSON text, already split into
+    category+infringementType (matching the request/save.yml convention).
+
+    TODO(M2M): OAuth2 machine-token auth as per spec. Until Ruuter supports
+    client_credentials this runs on ruuter-internal (port 8089, allowedIPs 127.0.0.1
+    only) following the CGR/CTUD/RSI inbound-request precedent.
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: sentAt
+        type: string
+      - field: from
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: checkResult
+        type: string
+      - field: checkDate
+        type: string
+      - field: minorInfringement
+        type: string
+      - field: seriousInfringements
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.technicalId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.from || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.businessCaseId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.originatingAuthority || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.requestSource || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.requestPurpose || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.transportUndertakingName || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.communityLicenceNumber || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.vehicleRegistrationNumber || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.vehicleRegistrationCountry || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.checkResult || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.checkDate || '')).trim())}
+      next: returnInvalidData
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    technical_id: "${('' + (incoming.body.technicalId || '')).trim()}"
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    sent_at: "${('' + (incoming.body.sentAt || '')).trim()}"
+    ncr_from: "${('' + (incoming.body.from || '')).trim().toUpperCase()}"
+    business_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
+    request_source: "${('' + (incoming.body.requestSource || '')).trim()}"
+    request_purpose: "${('' + (incoming.body.requestPurpose || '')).trim()}"
+    transport_undertaking_name: "${('' + (incoming.body.transportUndertakingName || '')).trim()}"
+    community_licence_number: "${('' + (incoming.body.communityLicenceNumber || '')).trim()}"
+    vehicle_registration_number: "${('' + (incoming.body.vehicleRegistrationNumber || '')).trim().toUpperCase()}"
+    vehicle_registration_country: "${('' + (incoming.body.vehicleRegistrationCountry || '')).trim().toUpperCase()}"
+    check_result: "${('' + (incoming.body.checkResult || '')).trim()}"
+    check_date: "${('' + (incoming.body.checkDate || '')).trim()}"
+    minor_infringement: "${('' + (incoming.body.minorInfringement || '')).trim()}"
+    serious_infringements: "${('' + (incoming.body.seriousInfringements || '[]')).trim()}"
+  next: storeReceived
+
+storeReceived:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-inbound"
+    headers:
+      type: json
+    body:
+      technicalId: ${technical_id}
+      workflowId: ${workflow_id}
+      sentAt: ${sent_at}
+      ncrFrom: ${ncr_from}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      transportUndertakingName: ${transport_undertaking_name}
+      communityLicenceNumber: ${community_licence_number}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      checkResult: ${check_result}
+      checkDate: ${check_date}
+      minorInfringement: ${minor_infringement}
+      seriousInfringements: ${serious_infringements}
+      created_by: "system"
+  result: received_res
+  next: checkStored
+
+# Zero rows = redelivery (partial unique index uq_ncr_inbound_technical_id conflict).
+checkStored:
+  switch:
+    - condition: ${received_res.response.body == null || received_res.response.body.length != 1}
+      next: lookupExisting
+  next: buildAudit
+
+lookupExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/get-by-technical-id"
+    headers:
+      type: json
+    body:
+      technical_id: ${technical_id}
+  result: existing_res
+  next: checkExisting
+
+checkExisting:
+  switch:
+    - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
+      next: returnInvalidData
+  next: returnReplayedAck
+
+buildAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "NCR sissetuleva päringu teenindamine: juhtum ${business_case_id}, saatnud riik ${ncr_from}, veoettevõtja ${transport_undertaking_name}, kontrolli tulemus ${check_result}"
+    audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, ncrFrom: ncr_from || null, transportUndertakingName: transport_undertaking_name || null, checkResult: check_result || null})}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "ncr.inbound_request.serve"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU NCR inbound service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnAck
+
+returnAck:
+  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"OK","statusMessage":""}'
+  next: end
+
+returnReplayedAck:
+  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"OK","statusMessage":""}'
+  next: end
+
+returnInvalidData:
+  status: 400
+  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"NotAvailable","statusMessage":"Request does not satisfy the ERRU NCR requirements"}'
+  next: end
