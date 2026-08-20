@@ -41,7 +41,7 @@ import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '.
 import { createTechnicalCheckValidationSchema } from './useTechnicalCheckForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
-import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab } from '../../hooks/useSubFormEditActive';
+import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
@@ -420,6 +420,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     adr.editActive ||
     transportInterruption.editActive ||
     compoundEditActive;
+
+  const handleCancelAllEdits = () =>
+    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
+
   const canEdit = hasPermission('compound_form.write');
 
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
@@ -980,12 +984,27 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                 {t('common.edit')}
               </Button>
             )}
+          {anyEditActive &&
+            subFormsAllConfirmed && (
+              <Button
+                type="button"
+                visualType="secondary"
+                onClick={() => {
+                  formik.resetForm();
+                  handleCancelAllEdits();
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
+            )}
           {anyEditActive && (
             <AsyncButton type="button" onClick={handleSaveAll}>
               {t('common.save')}
             </AsyncButton>
           )}
-          {anyEditActive && canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
+          {anyEditActive && canDelete && (
+            <DeleteConfirmModal onDelete={handleDelete} />
+          )}
         </div>
       </div>
     </div>

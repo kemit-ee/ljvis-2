@@ -56,7 +56,7 @@ import { TransportInterruptionFormEditCard, type TransportInterruptionFormEditCa
 import { listTechnicalCheckFormsByCompoundFormKey, getTechnicalCheckForm, saveTechnicalCheckForm } from '../../api';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
-import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab } from '../../hooks/useSubFormEditActive';
+import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 
 interface DriveRestFormPageProps {
   entryType: 'driver' | 'teammate';
@@ -251,6 +251,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
   const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || adr.editActive || transportInterruption.editActive || compoundEditActive;
+
+  const handleCancelAllEdits = () =>
+    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const addFormDropdown =
     canEdit && addableTabs.length > 0 && anyEditActive ? (
@@ -1087,6 +1090,19 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 }}
               >
                 {t('common.edit')}
+              </Button>
+            )}
+          {anyEditActive && subFormsAllConfirmed &&
+             (
+              <Button
+                type="button"
+                visualType="secondary"
+                onClick={() => {
+                  formik.resetForm();
+                  handleCancelAllEdits();
+                }}
+              >
+                {t('common.cancel')}
               </Button>
             )}
           {anyEditActive && (

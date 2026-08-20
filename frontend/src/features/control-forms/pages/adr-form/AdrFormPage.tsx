@@ -60,6 +60,7 @@ import {
   addTab,
   useDeleteAllSubForms,
   useRemoveSubFormTab,
+  cancelAllEdits,
 } from '../../hooks/useSubFormEditActive';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
@@ -245,6 +246,9 @@ export function AdrFormPage() {
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
   const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || adr.editActive || transportInterruption.editActive || compoundEditActive;
+
+  const handleCancelAllEdits = () =>
+    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const addFormDropdown =
     canEdit && addableTabs.length > 0 && anyEditActive ? (
@@ -992,6 +996,18 @@ export function AdrFormPage() {
                 {t('common.edit')}
               </Button>
             )}
+          {anyEditActive && subFormsAllConfirmed && (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => {
+                formik.resetForm();
+                handleCancelAllEdits();
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+          )}
           {anyEditActive && (
             <Button type="button" onClick={handleSaveAll}>
               {t('common.save')}

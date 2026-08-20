@@ -71,7 +71,7 @@ import {
 import { SubFormTab } from '../../components/SubFormTab/SubFormTab';
 import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
-import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab } from '../../hooks/useSubFormEditActive';
+import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 
 
 /**
@@ -409,6 +409,9 @@ export function CompoundFormPage() {
   });
 
   const anyEditActive = isEditActive || driver.editActive || teammate.editActive || vehicle.editActive || trailer.editActive || adr.editActive || transportInterruption.editActive;
+
+  const handleCancelAllEdits = () =>
+    cancelAllEdits({ setCompoundEditActive: setIsEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const handleSaveAll = createSaveAllHandler({
     activeTab,
@@ -1180,6 +1183,18 @@ export function CompoundFormPage() {
                 {t('common.edit')}
               </Button>
             )}
+          {anyEditActive && subFormsAllConfirmed &&  (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => {
+                formik.resetForm();
+                handleCancelAllEdits();
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+          )}
           {anyEditActive && (
             <Button type="button" onClick={handleSaveAll}>
               {t('common.save')}
