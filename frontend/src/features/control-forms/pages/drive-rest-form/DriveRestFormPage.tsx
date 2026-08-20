@@ -57,6 +57,7 @@ import { listTechnicalCheckFormsByCompoundFormKey, getTechnicalCheckForm, saveTe
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
 import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 interface DriveRestFormPageProps {
   entryType: 'driver' | 'teammate';
@@ -1092,23 +1093,22 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && subFormsAllConfirmed &&
-             (
-              <Button
-                type="button"
-                visualType="secondary"
-                onClick={() => {
-                  formik.resetForm();
-                  handleCancelAllEdits();
-                }}
-              >
-                {t('common.cancel')}
-              </Button>
-            )}
-          {anyEditActive && (
-            <Button type="button" onClick={handleSaveAll}>
-              {t('common.save')}
+          {anyEditActive && subFormsAllConfirmed && (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => {
+                formik.resetForm();
+                handleCancelAllEdits();
+              }}
+            >
+              {t('common.cancel')}
             </Button>
+          )}
+          {anyEditActive && (
+            <AsyncButton type="button" onClick={handleSaveAll}>
+              {t('common.save')}
+            </AsyncButton>
           )}
           {anyEditActive && canDelete && (
             <DeleteConfirmModal onDelete={handleDelete} />

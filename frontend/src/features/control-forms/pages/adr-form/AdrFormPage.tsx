@@ -65,6 +65,7 @@ import {
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { AsyncButton } from '../../../../shared/components/AsyncButton';
 
 export function AdrFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -1009,9 +1010,9 @@ export function AdrFormPage() {
             </Button>
           )}
           {anyEditActive && (
-            <Button type="button" onClick={handleSaveAll}>
+            <AsyncButton type="button" onClick={handleSaveAll}>
               {t('common.save')}
-            </Button>
+            </AsyncButton>
           )}
           {anyEditActive && canDelete && (
             <DeleteConfirmModal onDelete={handleDelete} />

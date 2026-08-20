@@ -72,6 +72,7 @@ import { SubFormTab } from '../../components/SubFormTab/SubFormTab';
 import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 
 /**
@@ -1183,7 +1184,7 @@ export function CompoundFormPage() {
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && subFormsAllConfirmed &&  (
+          {anyEditActive && subFormsAllConfirmed && (
             <Button
               type="button"
               visualType="secondary"
@@ -1196,9 +1197,9 @@ export function CompoundFormPage() {
             </Button>
           )}
           {anyEditActive && (
-            <Button type="button" onClick={handleSaveAll}>
+            <AsyncButton type="button" onClick={handleSaveAll}>
               {t('common.save')}
-            </Button>
+            </AsyncButton>
           )}
           {anyEditActive && canDeleteAll && (
             <DeleteConfirmModal onDelete={handleDeleteAll} />
