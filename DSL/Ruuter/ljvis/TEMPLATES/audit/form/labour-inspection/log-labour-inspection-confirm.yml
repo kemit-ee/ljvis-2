@@ -1,0 +1,47 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: labour inspection form (labour_inspection_form) confirm event."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: akti_voti
+        type: string
+      - field: form_number
+        type: string
+      - field: version
+        type: string
+      - field: isikukood
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    vormi_number: "${incoming.body.form_number}/${incoming.body.version || 1}"
+    description: "Kinnitati tööinspektsiooni kontrollakt ${incoming.body.form_number}, karistatud isikukood: ${incoming.body.isikukood || '-'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['aktiVoti', incoming.body.akti_voti || null], ['vormiNumber', incoming.body.vormi_number || null], ['karistatudIsikukood', incoming.body.isikukood || null]]))}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.labour_inspection.confirm"
+    event_category: "control_form_management"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

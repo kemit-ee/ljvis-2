@@ -14,17 +14,9 @@ declaration:
       - field: old_status
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: checkDeletePermission
-
 checkDeletePermission:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('control_form.delete')}
+    - condition: ${u.permissions != null && u.permissions.includes('control_form.delete')}
       next: extractRequestData
   next: returnForbidden
 
@@ -34,7 +26,7 @@ extractRequestData:
     form_number: "${incoming.body.form_number}"
     old_status: "${incoming.body.old_status}"
     status: "deleted"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${u.personalcode || ''}"
   next: deleteForm
 
 deleteForm:
