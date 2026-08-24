@@ -13,6 +13,7 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { GoodReputeForm } from '../../types';
 import styles from '../../../classifiers/components/ClassifierValueInfoCard/ClassifierValueInfoCard.module.css';
+import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
 
 interface CountryOption {
   value: string;
@@ -392,6 +393,21 @@ export function GoodReputeFormFields({
           </div>
         </Card.Content>
       </Card>
+
+      {values.formNumber && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.shared.files.label')}
+            </Heading>
+            <FileUploadBlock
+              formPath="good-repute"
+              formNumber={values.formNumber}
+              disabled={readOnly}
+            />
+          </Card.Content>
+        </Card>
+      )}
     </div>
   );
 }
