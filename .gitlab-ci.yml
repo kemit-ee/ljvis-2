@@ -1,16 +1,261 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/user/application_security/secret_detection/pipeline/configure
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+# LJVIS2 code/build repo. Single release view: build -> package -> dev.
+#
+#   test        DSL validation, frontend checks, Sonar, secret detection
+#   build       8 images -> harbor.kemitaws.ee/ljvis2/<image_path>:<version>
+#   package     trigger services/ljvis2/devops to bake <version> into the 7 wrapper charts
+#   deploy-dev  pin dev to <version> — all 7 components in one commit (lockstep)
+#
+# Version is 0.0.0-build.$CI_PIPELINE_IID. Builds run on main and release/* only; a git
+# tag builds nothing — it is a human-readable name for a commit whose artifact already
+# exists. Promotion never rebuilds, so every environment runs the identical image.
+#
+# Only dev exists so far. Adding test means adding environments/test/ in the devops repo
+# AND authoring the per-env infra values (SSM prefix, the two CNPG databases, tim); the
+# workload pins alone are not enough.
+#
+# Required CI/CD variables: HARBOR_URL, HARBOR_USERNAME, HARBOR_PASSWORD,
+# SERVICECODE=ljvis2, SONAR_HOST_URL, SONAR_TOKEN, GITOPS_TOKEN.
+
 stages:
-- test
-- secret-detection
+  - test
+  - build
+  - package
+  - deploy-dev
+
 variables:
-  SECRET_DETECTION_ENABLED: 'true'
-secret_detection:
-  stage: secret-detection
+  # Release the builds are working toward. Bump when the service reaches a milestone;
+  # every artifact is a pre-release of it, so this is the only place the number lives.
+  VERSION_BASE: "0.1.0"
+  CHART_BASE: harbor.kemitaws.ee/ljvis2
+  NONLIVE_CLUSTER: kubernetes-nonlive
+  SECRET_DETECTION_ENABLED: "true"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
+    - when: never
+
 include:
-- template: Security/Secret-Detection.gitlab-ci.yml
+  # Sonar runs on amd64 (component default): the pinned sonar-scanner-cli image publishes
+  # no arm64 variant. Nothing is shipped from these jobs.
+  - component: gitlab.kemitaws.ee/platform/ci-components/sonar-scan@4.4.0
+    inputs:
+      name: frontend
+      sources: frontend
+      quality_gate: false
+      extra_args: "-Dsonar.exclusions=**/node_modules/**,**/dist/**"
+  - component: gitlab.kemitaws.ee/platform/ci-components/sonar-scan@4.4.0
+    inputs:
+      name: backend
+      sources: DSL
+      quality_gate: false
+      extra_args: "-Dsonar.exclusions=**/draft/**,**/test/**"
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+  # arch = the base image architecture; a COPY-only Dockerfile cannot change it.
+  # Every base is multi-arch, so the whole service builds and runs on arm64.
+  # Sonar stays amd64 above — that is the scanner image, and it ships nothing.
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@4.4.0
+    inputs: { name: ruuter, image_path: ruuter/images, dockerfile: docker/ruuter/Dockerfile, version: $BUILD_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@4.4.0
+    inputs: { name: ruuter-internal, image_path: ruuter-internal/images, dockerfile: docker/ruuter-internal/Dockerfile, version: $BUILD_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@4.4.0
+    inputs: { name: xtr, image_path: xtr/images, dockerfile: docker/xtr/Dockerfile, version: $BUILD_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@4.4.0
+    inputs: { name: frontend, image_path: frontend/images, dockerfile: frontend/Dockerfile, context: frontend, version: $BUILD_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@4.4.0
+    inputs: { name: s3-proxy, image_path: s3-proxy/images, dockerfile: docker/s3-proxy/Dockerfile, version: $BUILD_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@4.4.0
+    inputs: { name: liquibase, image_path: liquibase/images, dockerfile: docker/liquibase/Dockerfile, version: $BUILD_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@4.4.0
+    inputs: { name: resql-ljvis, image_path: resql-ljvis/images, dockerfile: docker/resql-ljvis/Dockerfile, version: $BUILD_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@4.4.0
+    inputs: { name: data-mapper, image_path: data-mapper/images, dockerfile: docker/data-mapper/Dockerfile, version: $BUILD_VERSION, arch: arm64 }
+
+  # Lockstep pin: one job writes all seven component files in a single commit, so a
+  # partial upgrade cannot happen and the diff shows exactly what moved.
+  - component: gitlab.kemitaws.ee/platform/ci-components/gitops-bump@4.4.0
+    inputs:
+      name: dev
+      environment: dev
+      repo: gitlab.kemitaws.ee/services/ljvis2/devops.git
+      stage: deploy-dev
+      version: $BUILD_VERSION
+      cluster: $NONLIVE_CLUSTER
+      # Lockstep: one job pins all seven components in one commit, verifies all seven
+      # charts exist at that version before writing anything, and then waits for all
+      # seven Applications. A partial upgrade cannot happen, and a partial rollout
+      # cannot pass unnoticed.
+      paths: >-
+        environments/dev/pins/resql-ljvis.yaml
+        environments/dev/pins/data-mapper.yaml
+        environments/dev/pins/xtr.yaml
+        environments/dev/pins/ruuter.yaml
+        environments/dev/pins/ruuter-internal.yaml
+        environments/dev/pins/s3-proxy.yaml
+        environments/dev/pins/frontend.yaml
+      verify_chart: >-
+        $CHART_BASE/resql-ljvis/charts/main/resql-ljvis
+        $CHART_BASE/data-mapper/charts/main/data-mapper
+        $CHART_BASE/xtr/charts/main/xtr
+        $CHART_BASE/ruuter/charts/main/ruuter
+        $CHART_BASE/ruuter-internal/charts/main/ruuter-internal
+        $CHART_BASE/s3-proxy/charts/main/s3-proxy
+        $CHART_BASE/frontend/charts/main/frontend
+      wait_app: >-
+        resql-ljvis-dev
+        data-mapper-dev
+        xtr-dev
+        ruuter-dev
+        ruuter-internal-dev
+        s3-proxy-dev
+        frontend-dev
+
+# ---------------------------------------------------------------------------- test
+
+# The GitLab template ships no `tags`, so the job waits forever on this instance where
+# every runner is tagged. arm64 is safe: the template pins SECRETS_ANALYZER_VERSION "7",
+# and the v7 analyzer image is multi-arch (v6 was amd64-only).
+secret_detection:
+  stage: test
+  tags: ["arm64"]
+
+# Sonar cannot parse the Bürokratt DSL, so this is the only check that catches a broken
+# flow before the image is built: YAML parse, unreachable steps, dangling `next`, empty SQL.
+"validate:dsl":
+  stage: test
+  image: harbor.kemitaws.ee/base-images/devops-aio:1.0.0
+  tags: ["arm64"]
+  interruptible: true
+  script:
+    - set -euo pipefail
+    - pip3 install --quiet pyyaml
+    - python3 scripts/validate-dsl.py
+
+.frontend:
+  stage: test
+  image: harbor.kemitaws.ee/dockerhub/library/node:22-alpine
+  tags: ["arm64"]
+  interruptible: true
+  # allow_failure until the frontend is clean. Note: unlike GitHub's continue-on-error,
+  # a GitLab allow_failure job still blocks anything that `needs` it — so these three
+  # stay independent.
+  allow_failure: true
+  cache:
+    key:
+      files: [frontend/package-lock.json]
+    paths: [frontend/node_modules/]
+  before_script:
+    - cd frontend
+    - npm ci --prefer-offline --no-audit
+
+"frontend:lint":
+  extends: .frontend
+  script:
+    - npm audit --audit-level=high || true
+    - npm run lint
+
+"frontend:test":
+  extends: .frontend
+  script:
+    - npm run test -- --run --reporter=verbose
+
+# Skipped on protected refs: build:frontend runs the same `npm run build` inside the image
+# build, so on a release this would be duplicated work.
+"frontend:build":
+  extends: .frontend
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
+      when: never
+    - when: on_success
+  script:
+    - npm run build
+
+# ------------------------------------------------------------------------ version
+# The version is computed once, by a job, and published as a dotenv report.
+#
+# It cannot be a plain `variables:` entry. GitLab does not resolve nested variables before
+# handing them to a downstream pipeline, so `$CI_PIPELINE_IID` crosses the boundary with
+# the `$` intact and the devops pipeline re-expands it against ITS OWN iid, producing
+# charts that name an image tag which never existed. A dotenv report is resolved before
+# the trigger job is created, so what crosses the boundary is a literal.
+#
+#   0.1.0-main.13.g16618f9
+#   \___/ \__/ \/ \_______/
+#     |     |   |     `-- commit, so an artifact can be traced back to source
+#     |     |   `-------- pipeline iid, uniqueness
+#     |     `------------ ref slug, so a release/* hotfix is not mistaken for a main build
+#     `------------------ VERSION_BASE
+#
+# Valid SemVer: everything after the dash is one pre-release identifier list. The SHA gets
+# a `g` prefix (as git describe does) because a numeric pre-release identifier may not have
+# a leading zero, so a SHA like 01234567 would otherwise be invalid. Build metadata (`+`)
+# is not an option: it is ignored for precedence and is an illegal character in an OCI tag.
+
+version:
+  stage: test
+  image: harbor.kemitaws.ee/base-images/devops-aio:1.0.0
+  tags: [arm64]
+  needs: []
+  script:
+    - echo "BUILD_VERSION=${VERSION_BASE}-${CI_COMMIT_REF_SLUG}.${CI_PIPELINE_IID}.g${CI_COMMIT_SHORT_SHA}" > version.env
+    - cat version.env
+  artifacts:
+    reports:
+      dotenv: version.env
+
+# ----------------------------------------------------------- build, package, deploy
+# Artifacts are produced only from protected refs, never from a merge request.
+
+.protected-refs:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
+
+"build:ruuter":          { extends: .protected-refs }
+"build:ruuter-internal": { extends: .protected-refs }
+"build:xtr":             { extends: .protected-refs }
+"build:frontend":        { extends: .protected-refs }
+"build:s3-proxy":        { extends: .protected-refs }
+"build:liquibase":       { extends: .protected-refs }
+"build:resql-ljvis":     { extends: .protected-refs }
+"build:data-mapper":     { extends: .protected-refs }
+
+# Packaging lives in the devops repo because the chart sources live there.
+# strategy: depend makes a failed package fail this pipeline, so the release view is honest.
+package:charts:
+  extends: .protected-refs
+  stage: package
+  trigger:
+    project: services/ljvis2/devops
+    branch: main
+    strategy: depend
+  # `needs` is what makes the version job's dotenv values visible to this trigger job.
+  # The builds must be listed too: naming any need replaces the default "wait for every
+  # earlier stage", and without them the charts could be baked before the images exist.
+  needs:
+    - version
+    - "build:ruuter"
+    - "build:ruuter-internal"
+    - "build:xtr"
+    - "build:frontend"
+    - "build:s3-proxy"
+    - "build:liquibase"
+    - "build:resql-ljvis"
+    - "build:data-mapper"
+  variables:
+    # BUILD_VERSION arrives from the dotenv report already resolved, and it is forwarded
+    # under a different name. Both matter: a self-reference (IMAGE_VERSION: $IMAGE_VERSION)
+    # shadows its own source and sends the literal string, and any surviving `$` is
+    # re-expanded by the downstream pipeline against its own values.
+    IMAGE_VERSION: $BUILD_VERSION
+
+"gitops:bump:dev":
+  extends: .protected-refs
+  environment:
+    name: dev
+    url: https://ljvis2dev.kemitaws.ee
