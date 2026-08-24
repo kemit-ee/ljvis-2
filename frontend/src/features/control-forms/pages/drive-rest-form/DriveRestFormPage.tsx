@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useContainerWidth } from '../../../../hooks/useContainerWidth';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -119,6 +120,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   };
 
   const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission });
+
+  const containerWidth = useContainerWidth(isDesktop, openTabs);
 
   useEffect(() => {
     if (!snapshotId) return;
@@ -601,7 +604,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: containerWidth }}>
       <DeleteConfirmModal
         subForm
         isOpen={removeConfirmTab !== null}
@@ -645,7 +648,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       {!isDesktop && addFormDropdown}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')}>
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
           <Tabs.Trigger id="tab-compound">
             {t('forms.compound.generalPart')}
           </Tabs.Trigger>
@@ -714,6 +717,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <div
               style={{
                 marginLeft: 'auto',
+                paddingLeft: '1rem',
                 display: 'flex',
                 alignItems: 'center',
                 marginRight: '1rem',
