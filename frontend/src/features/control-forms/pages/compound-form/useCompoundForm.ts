@@ -3,14 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { Organisation } from '../../../organisations/types';
-import type { StructureUnit } from '../../../structure-units/types';
 import type {CompoundForm, Trailer, Driver, ControlForm} from '../../types';
 import { listOrganisations } from '../../../organisations/api';
-import { listStructureUnits } from '../../../structure-units/api';
 import {
-  insertCompoundForm,
-  updateCompoundForm,
   confirmCompoundForm,
+  saveCompoundForm,
 } from '../../api';
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
@@ -54,10 +51,13 @@ export function useCompoundForm(
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
   const pendingForceSaved = useRef(false);
+  const subFormsAllConfirmedRef = useRef(subFormsAllConfirmed);
+  useEffect(() => {
+    subFormsAllConfirmedRef.current = subFormsAllConfirmed;
+  });
   const { getByCode, getChildren } = useClassifiers();
 
   const WRITE_SUFFIX = '.write';
-  const FORM_SP_PREFIX = 'sp_';
 
   const incrementFormNumber = (formNumber: string): string => {
     const match = formNumber.match(/^(.+\/)([0-9]+)$/);
@@ -70,7 +70,6 @@ export function useCompoundForm(
   const formNumberString = isEdit && form?.formNumber ? form.formNumber : '';
 
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
     null,
@@ -115,15 +114,6 @@ export function useCompoundForm(
       })),
     [getByCode],
   );
-
-  useEffect(() => {
-    if (authUser?.organisationid) {
-      listStructureUnits(authUser.organisationid)
-        .then(setStructureUnits)
-        .catch(console.error);
-    }
-  }, [authUser?.organisationid]);
-
 
   const validationSchema = Yup.object({
     address: Yup.string().max(
@@ -346,7 +336,7 @@ export function useCompoundForm(
         pendingConfirm.current = false;
         const forceSaved = pendingForceSaved.current;
         pendingForceSaved.current = false;
-        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmed ?? true);
+        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedRef.current ?? true);
         const nextStatus = isConfirming
           ? 'confirmed'
           : isReconfirmedEdit
@@ -387,7 +377,7 @@ export function useCompoundForm(
             await confirmCompoundForm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else {
-            await updateCompoundForm(trimmedValues as unknown as CompoundForm);
+            await saveCompoundForm(trimmedValues as unknown as CompoundForm);
             if (forceSaved && onResetToSaved) {
               onResetToSaved();
             } else {
@@ -395,7 +385,7 @@ export function useCompoundForm(
             }
           }
         } else {
-          const result = await insertCompoundForm(
+          const result = await saveCompoundForm(
             trimmedValues as unknown as CompoundForm,
           );
           onSaved(result[0]?.id);
@@ -430,6 +420,16 @@ export function useCompoundForm(
     value: String(o.id),
   }));
 
+  const structureUnits = useMemo(() => {
+    const orgId =
+      formik.values.inspectorOrganisationId ||
+      String(authUser?.organisationid ?? '');
+    const org = organisations.find((o) => String(o.id) === String(orgId));
+    return getByCode('STRUCTURE_UNIT')
+      .filter((e) => !org || e.description === org.code)
+      .map((e) => ({ code: e.code, name: e.name }));
+  }, [getByCode, organisations, formik.values.inspectorOrganisationId, authUser?.organisationid]);
+
   const handleOrgChange = (
     val:
       | { value: string; label: string | React.ReactNode }
@@ -442,7 +442,6 @@ export function useCompoundForm(
         : '';
     formik.setFieldValue('inspectorOrganisationId', newOrgId);
     formik.setFieldValue('inspectorUnit', '');
-    listStructureUnits(newOrgId).then(setStructureUnits).catch(console.error);
   };
 
   const citiesParishes = useMemo(
@@ -518,9 +517,9 @@ export function useCompoundForm(
 
   const buildAvailableForms = (permissions: string[]): ControlForm[] =>
       permissions
-          .filter((p) => p.startsWith(FORM_SP_PREFIX))
+          .filter((p) => p.endsWith(WRITE_SUFFIX))
           .map((p) => p.replace(WRITE_SUFFIX, ''))
-          .filter((key) => !!FORM_CONFIG[key])
+          .filter((key) => !!FORM_CONFIG[key] && FORM_CONFIG[key].hasParent)
           .map((key) => ({
             labelKey: FORM_CONFIG[key].labelKey,
             route: FORM_CONFIG[key].route,

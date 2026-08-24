@@ -26,6 +26,17 @@ getStructureUnits:
     body:
       organisationId: ${organisationId}
   result: res
+  next: checkResqlResult
+
+checkResqlResult:
+  switch:
+    - condition: ${res.response.status == null || res.response.status >= 400}
+      next: returnEmpty
+  next: returnSuccess
+
+returnEmpty:
+  return: []
+  next: end
 
 returnSuccess:
   return: ${res.response.body}

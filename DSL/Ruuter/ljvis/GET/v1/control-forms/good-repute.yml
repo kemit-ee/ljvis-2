@@ -12,7 +12,22 @@ declaration:
         type: string
         description: "Good repute form key"
 
-fetchForm:
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  next: getForm
+
+getForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
@@ -27,6 +42,38 @@ checkFound:
   switch:
     - condition: ${res.response.body == null || res.response.body.length !== 1}
       next: returnNotFound
+  next: extractFormData
+
+extractFormData:
+  assign:
+    form_number: "${res.response.body[0].formNumber}"
+    created_by: "${res.response.body[0].createdBy}"
+  next: checkShouldLog
+
+checkShouldLog:
+  switch:
+    - condition: ${actor_personal_code != created_by}
+      next: logView
+  next: returnSuccess
+
+logView:
+  assign:
+    description: "Vaadati hea maine vormi ${res.response.body[0].formNumber}/${res.response.body[0].version}, veokorraldusjuht {res.response.body[0].personalCode}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.good_repute.view"
+    event_category: "control_form"
+    description: ${description}
+    log_content: "{\"formKey\":${res.response.body[0].id}}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

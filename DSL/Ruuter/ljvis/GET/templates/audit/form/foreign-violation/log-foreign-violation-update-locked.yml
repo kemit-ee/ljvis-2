@@ -19,6 +19,10 @@ declaration:
 buildAudit:
   assign:
     changed_fields_json: ${JSON.stringify(incoming.body.changed_fields)}
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     description: "Muudeti vormi ${incoming.body.form_number}, muudetud väljad: ${changed_fields_json}"
     log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"changedFields\":${changed_fields_json}}"
   next: logAuditEvent

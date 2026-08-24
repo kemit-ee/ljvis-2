@@ -50,6 +50,12 @@ tags:
     description: Audit log read operations.
   - name: foreign-violation-forms
     description: Välisriigi rikkumise andmevorm — create, read, and file management.
+  - name: erru-ctud
+    description: |
+      ERRU CTUD (Check Transport Undertaking Data / Tegevusloa kontroll) — synchronous
+      single-country request/response with another EU member state. Storage is an
+      INSERT-only snapshot table, so every state change appends a row and the current
+      state is the latest row per request.
 
 paths:
 
@@ -1716,6 +1722,236 @@ paths:
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
+  # ─── ERRU — CTUD (Check Transport Undertaking Data / Tegevusloa kontroll) ───
+  # LJVIS2-142 lifecycle, -143 form, -144 actions & sending, -145 list.
+  # Reads are GET per section 2.3 of docs/rest-api-design-guide.md, which lists
+  # POST-based list retrieval as a forbidden pattern; the task specification's
+  # POST /erru/ctud/list and /erru/ctud/get are deliberately not followed.
+  # The inbound machine endpoint POST /erru/ctud/inbound-request is NOT documented
+  # here: it is served by the separate ruuter-internal instance, is not publicly
+  # exposed, and has no user-facing contract.
+  /v1/erru/ctud/search:
+    get:
+      tags:
+        - erru-ctud
+      operationId: getCtudRequests
+      x-permissions:
+        anyOf:
+          - ctud.read
+      summary: List CTUD requests (paginated, both directions).
+      description: |
+        Outgoing and incoming CTUD requests in one table, one row per request
+        (the latest snapshot). All filters are optional and AND-combined, except
+        `transportUndertakingName`, `communityLicenceNumber` and
+        `vehicleRegistrationNumber`, which are OR-combined with each other and
+        then AND-combined with the rest. Requires `ctud.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: businessCaseId, schema: { type: string } }
+        - { in: query, name: sentFrom, schema: { type: string, format: date } }
+        - { in: query, name: sentUntil, schema: { type: string, format: date } }
+        - { in: query, name: ctudFrom, schema: { type: string } }
+        - { in: query, name: ctudTo, schema: { type: string } }
+        - { in: query, name: transportUndertakingName, schema: { type: string } }
+        - { in: query, name: communityLicenceNumber, schema: { type: string } }
+        - { in: query, name: vehicleRegistrationNumber, schema: { type: string } }
+        - { in: query, name: handlerPersonalCode, schema: { type: string } }
+        - { in: query, name: status, schema: { type: string, enum: [initiated, sent, responded, received, answered, error] } }
+        - { in: query, name: direction, schema: { type: string, enum: [outgoing, incoming] } }
+        - { in: query, name: sorting, schema: { type: string } }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: pageSize, schema: { type: integer } }
+      responses:
+        '200':
+          description: CTUD request page.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items: { $ref: '#/components/schemas/CtudRequestListItem' }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/ctud:
+    get:
+      tags:
+        - erru-ctud
+      operationId: getCtudRequest
+      x-permissions:
+        anyOf:
+          - ctud.read
+      summary: Get one CTUD request (latest snapshot).
+      description: |
+        Returns the current state of a single CTUD request, serving all three form
+        modes: outgoing draft, sent outgoing request with the target country's
+        response, and inbound request. Audited on every open. Requires `ctud.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          description: CTUD request logical key (`ctud_request_key`).
+          schema: { type: string }
+      responses:
+        '200':
+          description: The CTUD request.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CtudRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: CTUD request not found. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    post:
+      tags:
+        - erru-ctud
+      operationId: postCtudRequest
+      x-permissions:
+        anyOf:
+          - ctud.create
+      summary: Create an outgoing CTUD request draft.
+      description: |
+        Creates the first snapshot of a new outgoing request with status
+        `initiated`. `businessCaseId` (`CTUD-EE-AAAA-NNNNN`), `direction`,
+        `status` and `ctudFrom` are all assigned server-side and are never
+        accepted from the client. At least two of `transportUndertakingName`,
+        `communityLicenceNumber` and `vehicleRegistrationNumber` must be
+        supplied, and the literal name `unknown` is rejected. Requires
+        `ctud.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CtudRequestWrite' }
+      responses:
+        '200':
+          description: Draft created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CtudRequestSaveResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: |
+            Validation error. `code` is one of `min_two_search_criteria`,
+            `unknown_not_allowed`, `invalid_country_code`, `max_length_exceeded`,
+            `required`, `not_editable`, `not_sendable`, `invalid_transition`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    put:
+      tags:
+        - erru-ctud
+      operationId: putCtudRequest
+      x-permissions:
+        anyOf:
+          - ctud.create
+      summary: Revise an outgoing CTUD request draft.
+      description: |
+        Appends a new snapshot with `version + 1`, keeping status `initiated`;
+        nothing is ever updated in place. Only an outgoing request still in
+        `initiated` is editable — a sent request or an inbound request is
+        rejected with 422 `not_editable` regardless of permissions. Requires
+        `ctud.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  required: [id]
+                  properties:
+                    id: { type: string, description: CTUD request logical key. }
+                - $ref: '#/components/schemas/CtudRequestWrite'
+      responses:
+        '200':
+          description: Draft revised.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CtudRequestSaveResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: |
+            Validation error. `code` is one of `min_two_search_criteria`,
+            `unknown_not_allowed`, `invalid_country_code`, `max_length_exceeded`,
+            `required`, `not_editable`, `not_sendable`, `invalid_transition`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/ctud/send:
+    post:
+      tags:
+        - erru-ctud
+      operationId: postCtudSend
+      x-permissions:
+        anyOf:
+          - ctud.send
+      summary: Send a CTUD request to the target member state.
+      description: |
+        Synchronous single-country exchange: the target country's answer arrives
+        in the same call, so there is no acknowledgement state and no waiting
+        view. The request moves `initiated` (or `error`) → `sent` → `responded`.
+
+        `Timeout` and `NotAvailable` are outcomes of a *successful* exchange —
+        the ERRU Hub sets them — and therefore still end in `responded`, not
+        `error`. Only a transport failure or a schema-invalid message ends in
+        `error`, from which the send may be retried. Requires `ctud.send`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string, description: CTUD request logical key. }
+      responses:
+        '200':
+          description: Sent and answered; the stored response state is returned.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CtudRequestSaveResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: CTUD request not found. }
+        '422':
+          description: |
+            Validation error. `code` is one of `min_two_search_criteria`,
+            `unknown_not_allowed`, `invalid_country_code`, `max_length_exceeded`,
+            `required`, `not_editable`, `not_sendable`, `invalid_transition`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '502':
+          description: ERRU transport failure. The request is left in `error` and may be sent again.
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
 components:
 
   securitySchemes:
@@ -1826,6 +2062,163 @@ components:
             instance: "/v1/user-groups/admin/search"
 
   schemas:
+
+    # ─── ERRU CTUD ────────────────────────────────────────────────────
+    CtudRequestWrite:
+      type: object
+      required: [ctudTo, originatingAuthority, requestSource, requestPurpose]
+      description: |
+        Editable fields of an outgoing CTUD request draft. At least two of
+        `transportUndertakingName`, `communityLicenceNumber` and
+        `vehicleRegistrationNumber` must be non-empty; the literal value
+        `unknown` is not accepted as an undertaking name; and
+        `vehicleRegistrationCountry` becomes mandatory once
+        `vehicleRegistrationNumber` is filled. Text fields are stored upper-cased.
+      properties:
+        ctudTo:
+          type: string
+          minLength: 2
+          maxLength: 2
+          description: Single target member state (ISO 3166-1 alpha-2). CTUD is never broadcast.
+        originatingAuthority:
+          type: string
+          maxLength: 50
+          description: Competent authority that initiated the request, e.g. `EE-PPA`.
+        requestSource:
+          type: string
+          description: ERRU `globalRequestSourceType` — `CA`, `RSI`, `Hub`, `Other`.
+        requestPurpose:
+          type: string
+          description: ERRU `globalRequestPurposeType` — `Issue`, `Control`, `Heartbeat`, `Other`.
+        transportUndertakingName: { type: string, maxLength: 150 }
+        communityLicenceNumber: { type: string, maxLength: 20 }
+        vehicleRegistrationNumber: { type: string, maxLength: 20 }
+        vehicleRegistrationCountry: { type: string, minLength: 2, maxLength: 2 }
+        requestAllVehicles:
+          type: string
+          enum: ['true', 'false']
+          description: Ask the target country to list every vehicle the undertaking manages.
+
+    CtudRequestSaveResult:
+      type: object
+      properties:
+        id: { type: integer, description: CTUD request logical key (`ctud_request_key`). }
+        businessCaseId: { type: string, description: 'Human-readable identifier, `CTUD-EE-AAAA-NNNNN`.' }
+        version: { type: integer, description: Snapshot ordinal; increases by 1 on every appended snapshot. }
+        status:
+          type: string
+          enum: [initiated, sent, responded, received, answered, error]
+        responseStatusCode:
+          type: string
+          nullable: true
+          enum: [Found, NotFound, Timeout, NotAvailable]
+
+    CtudRequestListItem:
+      type: object
+      properties:
+        id: { type: string }
+        version: { type: integer }
+        direction: { type: string, enum: [outgoing, incoming] }
+        status: { type: string, enum: [initiated, sent, responded, received, answered, error] }
+        businessCaseId: { type: string }
+        sentAt: { type: string, format: date-time, nullable: true }
+        ctudFrom: { type: string, nullable: true }
+        ctudTo: { type: string, nullable: true }
+        transportUndertakingName: { type: string, nullable: true }
+        communityLicenceNumber: { type: string, nullable: true }
+        vehicleRegistrationNumber: { type: string, nullable: true }
+        responseStatusCode: { type: string, nullable: true, enum: [Found, NotFound, Timeout, NotAvailable] }
+        handlerPersonalCode: { type: string, nullable: true }
+        handlerName:
+          type: string
+          nullable: true
+          description: Empty for platform-generated requests; the UI renders an en dash.
+
+    CtudRequest:
+      allOf:
+        - $ref: '#/components/schemas/CtudRequestListItem'
+        - type: object
+          properties:
+            technicalId:
+              type: string
+              format: uuid
+              nullable: true
+              description: ERRU `technicalId` — identifies one individual message. A retry mints a new one.
+            workflowId:
+              type: string
+              format: uuid
+              nullable: true
+              description: ERRU `workflowId` — correlates the whole exchange; survives a retry.
+            originatingAuthority: { type: string, nullable: true }
+            requestSource: { type: string, nullable: true }
+            requestPurpose: { type: string, nullable: true }
+            vehicleRegistrationCountry: { type: string, nullable: true }
+            requestAllVehicles: { type: boolean }
+            respondingAuthority: { type: string, nullable: true }
+            responseStatusMessage: { type: string, nullable: true }
+            responseContent:
+              nullable: true
+              allOf:
+                - $ref: '#/components/schemas/CtudResponseContent'
+            errorMessage: { type: string, nullable: true }
+            createdAt: { type: string, format: date-time }
+            createdBy: { type: string }
+
+    CtudResponseContent:
+      type: object
+      description: |
+        Undertaking payload of the target country's answer. Present only when
+        `responseStatusCode` is `Found`. Stored verbatim as received.
+      properties:
+        transportUndertakingName: { type: string }
+        legalForm: { type: string }
+        numberOfEmployees: { type: integer }
+        numberOfVehicles: { type: integer }
+        riskRating: { type: number }
+        riskBand:
+          type: string
+          enum: [Green, Yellow, Red, Grey]
+          description: Estonia returns `Grey` until the risk-assessment module (EPIC 16) is delivered.
+        searchMethod: { type: string }
+        address:
+          type: object
+          properties:
+            address: { type: string }
+            postCode: { type: string }
+            city: { type: string }
+            country: { type: string }
+        communityLicenceDetails:
+          type: array
+          items:
+            type: object
+            properties:
+              communityLicenceNumber: { type: string }
+              communityLicenceStatus:
+                type: string
+                enum: [Active, Suspended, Withdrawn, Expired, LostOrStolen, Annulled, Returned]
+              communityLicenceType: { type: string }
+              startDate: { type: string, format: date }
+              expiryDate: { type: string, format: date }
+              withdrawalDate: { type: string, format: date, nullable: true }
+              suspensionDate: { type: string, format: date, nullable: true }
+              suspensionExpiryDate: { type: string, format: date, nullable: true }
+              suspensionOrWithdrawalReason: { type: string, nullable: true }
+              licencingAuthority: { type: string }
+        certifiedTrueCopyDetails:
+          type: array
+          items:
+            type: object
+            properties:
+              trueCopyNumber: { type: string }
+              trueCopyIssueDate: { type: string, format: date }
+              trueCopyExpiryDate: { type: string, format: date }
+              trueCopySuspensionDate: { type: string, format: date, nullable: true }
+              trueCopySuspensionExpiryDate: { type: string, format: date, nullable: true }
+              trueCopyWithdrawalDate: { type: string, format: date, nullable: true }
+        vehicleRegistrations:
+          type: array
+          items: { type: string }
+          description: Returned only when the request asked for all managed vehicles.
 
     AdminClassifierValuesCheckCodeExistsRequest:
       type: object

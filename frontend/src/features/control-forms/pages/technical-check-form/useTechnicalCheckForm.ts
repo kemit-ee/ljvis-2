@@ -40,6 +40,19 @@ const computeAutoResult = (defects: PartDefectEntry[]): 'ok' | 'extraordinary_in
   return 'ok';
 };
 
+export function createTechnicalCheckValidationSchema(
+  t: (key: string) => string,
+) {
+  return Yup.object({
+    proceedingReferenceNumber: Yup.string().when('proceedingType', {
+      is: (proceedingType: string) => !!proceedingType,
+      then: (schema) => schema.required(t('forms.technical_check.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    notes: Yup.string().max(2000, t('forms.technical_check.validation.notesMaxLength')),
+  });
+}
+
 export function useTechnicalCheckForm(
   variant: TechnicalCheckVariant,
   form: TechnicalCheckForm | undefined,
@@ -49,6 +62,7 @@ export function useTechnicalCheckForm(
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const compoundFormKeyOverride = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode, getChildren } = useClassifiers();
 
@@ -80,14 +94,7 @@ export function useTechnicalCheckForm(
       : all;
   }, [getByCode, variant]);
 
-  const validationSchema = Yup.object({
-    proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => !!proceedingType,
-      then: (schema) => schema.required(t('forms.technical_check.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
-    notes: Yup.string().max(2000, t('forms.technical_check.validation.notesMaxLength')),
-  });
+  const validationSchema = createTechnicalCheckValidationSchema(t);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -97,12 +104,16 @@ export function useTechnicalCheckForm(
       subFormNumber: form?.subFormNumber ?? '',
       version: form?.version ?? 1,
       status: form?.status ?? 'saved',
-      partsSummary: (Array.isArray(form?.partsSummary)
-        ? form.partsSummary
-        : parts.map((p) => ({ partCode: p.code, status: 'not_checked' }))) as PartSummaryEntry[],
-      partsDefects: (Array.isArray(form?.partsDefects)
-        ? form.partsDefects
-        : []) as PartDefectEntry[],
+      partsSummary: (() => {
+        const raw = form?.partsSummary;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return (Array.isArray(parsed) ? parsed : parts.map((p) => ({ partCode: p.code, status: 'not_checked' }))) as PartSummaryEntry[];
+      })(),
+      partsDefects: (() => {
+        const raw = form?.partsDefects;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return (Array.isArray(parsed) ? parsed : []) as PartDefectEntry[];
+      })(),
       resultType: form?.resultType ?? 'ok',
       resultTransportInterruption: form?.resultTransportInterruption ?? false,
       eraYvMntRegnr: form?.eraYvMntRegnr ?? false,
@@ -112,7 +123,11 @@ export function useTechnicalCheckForm(
       eraYvMntRebuilt: form?.eraYvMntRebuilt ?? false,
       proceedingType: form?.proceedingType ?? '',
       proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
-      violations: (Array.isArray(form?.violations) ? form.violations : []) as string[],
+      violations: (() => {
+        const raw = form?.violations;
+        const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        return (Array.isArray(parsed) ? parsed : []) as string[];
+      })(),
       notes: form?.notes ?? '',
       extraordinaryInspectionDate: form?.extraordinaryInspectionDate ?? '',
       enforcementDecision: form?.enforcementDecision ?? '',
@@ -124,13 +139,18 @@ export function useTechnicalCheckForm(
       try {
         const isConfirming = pendingConfirm.current;
         pendingConfirm.current = false;
+        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
         const payload = {
           ...values,
-          id: form?.id,
+          status: nextStatus,
+          id: form?.id ?? '',
+          compoundFormKey: compoundFormKeyOverride.current ?? values.compoundFormKey,
           partsSummary: JSON.stringify(values.partsSummary ?? []),
           partsDefects: JSON.stringify(values.partsDefects ?? []),
           violations: JSON.stringify(values.violations ?? []),
         } as unknown as TechnicalCheckForm;
+        compoundFormKeyOverride.current = undefined;
         const result = isConfirming
           ? await confirmTechnicalCheckForm(variant, payload)
           : await saveTechnicalCheckForm(variant, payload);
@@ -300,5 +320,6 @@ export function useTechnicalCheckForm(
     isDrivingBanTriggerActive,
     triggerConfirm,
     formError,
+    compoundFormKeyOverride,
   };
 }

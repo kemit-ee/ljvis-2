@@ -1,0 +1,166 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    X-tee pakutav teenus ErakorralineYVquery (v1): tagastab ajavahemikul erakorralisele
+    tehnoülevaatusele suunatud sõidukid (result_type = extraordinary_inspection /
+    extraordinary_inspection_ta). Mõlemad kuupäevad kohustuslikud — piiramatu päring
+    ei ole lubatud. Vt docs/xtee/03-erakorraline-yv-query.md.
+  method: post
+  accepts: json
+  returns: json
+  namespace: xroad
+
+# Samm 1: X-Road-Client päise kontroll — kohustuslik kõigis X-tee teenustes
+validateXRoadClient:
+  switch:
+    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
+      next: returnMissingHeader
+  next: validateAlates
+
+# Samm 2a: Alguskuupäev on kohustuslik (piiramatu päring pole lubatud)
+validateAlates:
+  switch:
+    - condition: "${incoming.body.alates == null || incoming.body.alates == ''}"
+      next: returnMissingAlates
+  next: validateKuni
+
+# Samm 2b: Lõppkuupäev on kohustuslik
+validateKuni:
+  switch:
+    - condition: "${incoming.body.kuni == null || incoming.body.kuni == ''}"
+      next: returnMissingKuni
+  next: validateDateOrder
+
+# Samm 2c: Kontrolli kuupäevade järjestust (alates <= kuni)
+validateDateOrder:
+  switch:
+    - condition: "${new Date(incoming.body.alates) > new Date(incoming.body.kuni)}"
+      next: returnInvalidDateRange
+  next: assignParams
+
+# Samm 3: Kogu parameetrid ja registreeri algusaeg
+assignParams:
+  assign:
+    alates: "${incoming.body.alates}"
+    kuni: "${incoming.body.kuni}"
+    start_time: "${new Date().getTime()}"
+  next: queryTargeted
+
+# Samm 4: Päri erakorralisele ülevaatusele suunatud sõidukid
+queryTargeted:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/provide/erakorraline-yv-query"
+    headers:
+      type: json
+    body:
+      alates: ${alates}
+      kuni: ${kuni}
+  result: queryResult
+  next: checkQueryStatus
+
+# Samm 5: Kontrolli HTTP staatust
+checkQueryStatus:
+  switch:
+    - condition: "${queryResult.response.status < 200 || queryResult.response.status >= 300}"
+      next: logFailure
+  next: buildItems
+
+# Samm 6: Kaardista SQL read X-tee vastuse formaati
+# - parts_defects JSONB -> issues.item[] (partCode=code, defectCode=value)
+# - era_yv_mnt_* boolean flagid -> inspection_refine_options.item[] koodidena
+buildItems:
+  assign:
+    mapped_items: >-
+      ${(queryResult.response.body || []).map(function(row) {
+        var defects = [];
+        try { defects = JSON.parse(row.issues_json || '[]'); } catch(e) {}
+        var refine = [];
+        if (row.era_yv_mnt_regnr) refine.push('REGNR');
+        if (row.era_yv_mnt_vintin) refine.push('VINTIN');
+        if (row.era_yv_mnt_axles) refine.push('AXLES');
+        if (row.era_yv_mnt_places) refine.push('PLACES');
+        if (row.era_yv_mnt_rebuilt) refine.push('REBUILT');
+        return {
+          licence_plate_no: row.licence_plate_no || '',
+          trailer_no: row.trailer_no || null,
+          inspection_id: String(row.inspection_id || ''),
+          inspection_no: row.inspection_no || '',
+          inspection_date: row.inspection_date || '',
+          inspection_type: row.inspection_type || '',
+          inspection_unit: row.inspection_unit || '',
+          inspection_notes: row.inspection_notes || null,
+          inspector: row.inspector || null,
+          issues: {item: defects.map(function(d) { return {code: d.partCode || '', value: d.defectCode || ''}; })},
+          notes: {item: []},
+          inspection_refine_options: {item: refine}
+        };
+      })}
+  next: logSuccess
+
+# Samm 7a: Logi edukas päring
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.erakorraline-yv-query"
+      request_xml: "${'alates=' + alates + '&kuni=' + kuni}"
+      response_xml: "${JSON.stringify({count: mapped_items.length})}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+  result: logResult
+  next: returnSuccess
+
+# Tühi loend on edukas vastus (HTTP 200)
+returnSuccess:
+  status: 200
+  return: "${JSON.stringify({targeted_for_inspection: {item: mapped_items}})}"
+  next: end
+
+# Samm 7b: Logi ebaõnnestumine
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.erakorraline-yv-query"
+      request_xml: "${'alates=' + alates + '&kuni=' + kuni}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Resql HTTP ' + queryResult.response.status}"
+  result: logResult
+  next: returnServerError
+
+# Veavastused — sisemist infot ei avaldata
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end
+
+returnMissingHeader:
+  status: 400
+  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
+  next: end
+
+returnMissingAlates:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "alates is required"}'
+  next: end
+
+returnMissingKuni:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kuni is required"}'
+  next: end
+
+returnInvalidDateRange:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "alates must not be after kuni"}'
+  next: end

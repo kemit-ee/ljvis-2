@@ -16,6 +16,14 @@ declaration:
       - field: old_status
         type: string
 
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: checkStatus
+
 checkStatus:
   switch:
     - condition: ${incoming.body.old_status === 'confirmed'}
@@ -50,6 +58,8 @@ buildAudit:
   assign:
     description: "Kustutati vorm ${incoming.body.form_number}, olek: ${old_status_label} → Kustutatud"
     log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"deleted\"}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -62,5 +72,7 @@ logAuditEvent:
     event_category: "control_form_lifecycle"
     description: ${description}
     log_content: ${log_content}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
   result: res
   next: end

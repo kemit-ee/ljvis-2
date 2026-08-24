@@ -18,16 +18,23 @@ get_user_context:
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
-  next: fetchForm
+  next: extractRequestData
 
-fetchForm:
+extractRequestData:
+  assign:
+    id: "${incoming.params.q}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  next: getForm
+
+getForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
     headers:
       type: json
     body:
-      id: ${incoming.params.q}
+      id: ${id}
   result: res
   next: checkFound
 
@@ -58,6 +65,8 @@ logAuditEvent:
     event_category: "control_form"
     description: ${description}
     log_content: "{\"subFormKey\":${res.response.body[0].id}}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

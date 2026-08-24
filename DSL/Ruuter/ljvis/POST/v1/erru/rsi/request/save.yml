@@ -1,0 +1,232 @@
+declaration:
+  version: "1.0"
+  description: "Create or update an outgoing RSI message draft (LJVIS2-147) — single unified save endpoint, branches internally on presence of id, mirroring the control-forms save pattern (e.g. POST/v1/control-forms/vehicle-technical/edit/save.yml). status ('initiated'), direction ('outgoing'), rsi_from ('EE') and business_case_id are all assigned server-side and never accepted from the client; rsi_to is derived from vehicleRegistrationCountry. Validation is delegated to the shared TEMPLATES/erru/rsi/validate-rsi-message template. Revising is rejected (422 not_editable) unless the current snapshot is status='initiated' AND direction='outgoing' — append-draft-revision.sql enforces this with an empty INSERT..SELECT. Text fields are upper-cased per the application-wide rule. identificationDetails/checkedItems arrive as JSON strings from the frontend and are passed through verbatim."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: vehicleCategory
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: vehicleIdentificationNumber
+        type: string
+      - field: odometerReading
+        type: string
+      - field: driverFirstName
+        type: string
+      - field: driverFamilyName
+        type: string
+      - field: driverLicenceNumber
+        type: string
+      - field: driverLicenceCountry
+        type: string
+      - field: identificationDetails
+        type: string
+      - field: inspectionIdentifier
+        type: string
+      - field: inspectionLocation
+        type: string
+      - field: inspectionDatetime
+        type: string
+      - field: inspectionAuthorityOrName
+        type: string
+      - field: inspectionPassed
+        type: string
+      - field: ptiRequested
+        type: string
+      - field: vehicleProhibitionOrRestriction
+        type: string
+      - field: checkedItems
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${('' + (incoming.body.id || '')).trim()}"
+    originating_authority: "${(incoming.body.originatingAuthority || '').trim().toUpperCase()}"
+    request_source: "${(incoming.body.requestSource || 'RSI').trim()}"
+    request_purpose: "${(incoming.body.requestPurpose || 'Control').trim()}"
+    vehicle_category: "${(incoming.body.vehicleCategory || '').trim().toUpperCase()}"
+    vehicle_registration_number: "${(incoming.body.vehicleRegistrationNumber || '').trim().toUpperCase()}"
+    vehicle_registration_country: "${(incoming.body.vehicleRegistrationCountry || '').trim().toUpperCase()}"
+    vehicle_identification_number: "${(incoming.body.vehicleIdentificationNumber || '').trim().toUpperCase()}"
+    odometer_reading: "${('' + (incoming.body.odometerReading || '')).trim()}"
+    driver_first_name: "${(incoming.body.driverFirstName || '').trim().toUpperCase()}"
+    driver_family_name: "${(incoming.body.driverFamilyName || '').trim().toUpperCase()}"
+    driver_licence_number: "${(incoming.body.driverLicenceNumber || '').trim().toUpperCase()}"
+    driver_licence_country: "${(incoming.body.driverLicenceCountry || '').trim().toUpperCase()}"
+    identification_details: "${('' + (incoming.body.identificationDetails || '')).trim()}"
+    inspection_identifier: "${(incoming.body.inspectionIdentifier || '').trim().toUpperCase()}"
+    inspection_location: "${(incoming.body.inspectionLocation || '').trim().toUpperCase()}"
+    inspection_datetime: "${('' + (incoming.body.inspectionDatetime || '')).trim()}"
+    inspection_authority_or_name: "${(incoming.body.inspectionAuthorityOrName || '').trim().toUpperCase()}"
+    inspection_passed: "${('' + (incoming.body.inspectionPassed || '')).trim()}"
+    pti_requested: "${('' + (incoming.body.ptiRequested || '')).trim()}"
+    vehicle_prohibition_or_restriction: "${('' + (incoming.body.vehicleProhibitionOrRestriction || '')).trim()}"
+    checked_items: "${('' + (incoming.body.checkedItems || '')).trim() || '[]'}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateRequest
+
+validateRequest:
+  template: "templates/erru/rsi/validate-rsi-message"
+  requestType: GET
+  body:
+    originatingAuthority: ${originating_authority}
+    vehicleRegistrationNumber: ${vehicle_registration_number}
+    vehicleRegistrationCountry: ${vehicle_registration_country}
+    vehicleIdentificationNumber: ${vehicle_identification_number}
+    driverFirstName: ${driver_first_name}
+    driverFamilyName: ${driver_family_name}
+    identificationDetails: ${identification_details}
+    inspectionLocation: ${inspection_location}
+    inspectionDatetime: ${inspection_datetime}
+    inspectionAuthorityOrName: ${inspection_authority_or_name}
+    inspectionPassed: ${inspection_passed}
+    ptiRequested: ${pti_requested}
+    vehicleProhibitionOrRestriction: ${vehicle_prohibition_or_restriction}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+    - condition: ${id === ''}
+      next: insertDraft
+  next: reviseDraft
+
+insertDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-draft"
+    headers:
+      type: json
+    body:
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      vehicleCategory: ${vehicle_category}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      vehicleIdentificationNumber: ${vehicle_identification_number}
+      odometerReading: ${odometer_reading}
+      driverFirstName: ${driver_first_name}
+      driverFamilyName: ${driver_family_name}
+      driverLicenceNumber: ${driver_licence_number}
+      driverLicenceCountry: ${driver_licence_country}
+      identificationDetails: ${identification_details}
+      inspectionIdentifier: ${inspection_identifier}
+      inspectionLocation: ${inspection_location}
+      inspectionDatetime: ${inspection_datetime}
+      inspectionAuthorityOrName: ${inspection_authority_or_name}
+      inspectionPassed: ${inspection_passed}
+      ptiRequested: ${pti_requested}
+      vehicleProhibitionOrRestriction: ${vehicle_prohibition_or_restriction}
+      checkedItems: ${checked_items}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkInsertResult
+
+checkInsertResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnInsertFailed
+  next: extractSaveResult
+
+reviseDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-draft-revision"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      vehicleCategory: ${vehicle_category}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      vehicleIdentificationNumber: ${vehicle_identification_number}
+      odometerReading: ${odometer_reading}
+      driverFirstName: ${driver_first_name}
+      driverFamilyName: ${driver_family_name}
+      driverLicenceNumber: ${driver_licence_number}
+      driverLicenceCountry: ${driver_licence_country}
+      identificationDetails: ${identification_details}
+      inspectionIdentifier: ${inspection_identifier}
+      inspectionLocation: ${inspection_location}
+      inspectionDatetime: ${inspection_datetime}
+      inspectionAuthorityOrName: ${inspection_authority_or_name}
+      inspectionPassed: ${inspection_passed}
+      ptiRequested: ${pti_requested}
+      vehicleProhibitionOrRestriction: ${vehicle_prohibition_or_restriction}
+      checkedItems: ${checked_items}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkReviseResult
+
+checkReviseResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnNotEditable
+  next: extractSaveResult
+
+extractSaveResult:
+  assign:
+    business_case_id: "${res.response.body[0].businessCaseId}"
+    new_version: "${res.response.body[0].version}"
+    new_status: "${res.response.body[0].status}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/rsi/log-rsi-request-save"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    vehicle_registration_number: ${vehicle_registration_number}
+    changed_fields: "${id === '' ? 'kõik (uus teade)' : 'teate väljad'}"
+    status: ${new_status}
+    version: ${new_version}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end
+
+returnNotEditable:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"status","code":"not_editable"}'
+  next: end
+
+returnInsertFailed:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegistrationNumber","code":"draft_not_created"}'
+  next: end

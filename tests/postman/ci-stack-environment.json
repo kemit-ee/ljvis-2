@@ -9,6 +9,12 @@
       "description": "Ruuter — CI stack (port 9086, isolated from dev stack on 8086)"
     },
     {
+      "key": "xroad_internal_url",
+      "value": "http://localhost:9089",
+      "enabled": true,
+      "description": "Ruuter-internal — CI stack (port 9089, X-tee pakutavad teenused)"
+    },
+    {
       "key": "resql_users_url",
       "value": "http://localhost:9087/users",
       "enabled": true
@@ -187,6 +193,66 @@
       "description": "labour_inspection_form_key of the 2nd act (with a violation) created during Labour Inspection tests"
     },
     {
+      "key": "internal_api_url",
+      "value": "http://localhost:9089",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "cookie_ctud_nosend",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_bci",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id_lv",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id_pl",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id_gr",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id_fi",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_tech_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_inbound_total_before",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
       "key": "created_tcf_compound_key",
       "value": "",
       "enabled": true,
@@ -239,6 +305,42 @@
       "value": "",
       "enabled": true,
       "description": "form_number created by form-search tests"
+    },
+    {
+      "key": "rsi_send_id",
+      "value": "",
+      "enabled": true,
+      "description": "RSI message key for send/inbound-response tests"
+    },
+    {
+      "key": "rsi_send_bci",
+      "value": "",
+      "enabled": true,
+      "description": "businessCaseId для RSI send-теста"
+    },
+    {
+      "key": "rsi_send_wf_id",
+      "value": "",
+      "enabled": true,
+      "description": "workflowId для inbound-response корреляции"
+    },
+    {
+      "key": "rsi_fi_id",
+      "value": "",
+      "enabled": true,
+      "description": "RSI draft for FI transport-failure test"
+    },
+    {
+      "key": "rsi_inbound_count_before",
+      "value": "",
+      "enabled": true,
+      "description": "baseline row count for RSI inbound dedup test"
+    },
+    {
+      "key": "cookie_rsi_nosend",
+      "value": "",
+      "enabled": true,
+      "description": "Org Admin cookie: rsi.read+create but NOT rsi.send"
     }
   ],
   "_postman_variable_scope": "environment"

@@ -16,10 +16,21 @@ declaration:
       - field: old_status
         type: string
 
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: buildAudit
+
 buildAudit:
   assign:
     description: "Kustutati koondvorm ${incoming.body.form_number}, olek: ${incoming.body.old_status} → deleted"
     log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"deleted\"}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -30,6 +41,8 @@ logAuditEvent:
   body:
     event_type: "control_form.delete"
     event_category: "control_form_lifecycle"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

@@ -86,6 +86,8 @@ extractRequestData:
     seal_installed_date: "${incoming.body.sealInstalledDate || ''}"
     notes: "${incoming.body.notes || ''}"
     created_by: "${auth_user.personalcode || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
   next: getCurrentForm
 
 getCurrentForm:
@@ -166,6 +168,8 @@ logAuditEvent:
   body:
     event_type: "control_form.adr.confirm"
     event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result

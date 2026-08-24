@@ -1,0 +1,130 @@
+declaration:
+  version: "1.0"
+  description: "Create a new outgoing CTUD request draft (LJVIS2-143). POST is creation per docs/rest-api-design-guide.md section 1; revising an existing draft is PUT /v1/erru/ctud. Validation is delegated to the shared TEMPLATES/erru/ctud/validate-ctud-request template so the create, revise and inbound paths cannot drift. status ('initiated'), direction ('outgoing'), ctud_from ('EE') and business_case_id are all assigned server-side in append-draft.sql and are never accepted from the client. Text fields are upper-cased per the application-wide rule."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: ctudTo
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: requestAllVehicles
+        type: string
+
+extractRequestData:
+  assign:
+    ctud_to: "${(incoming.body.ctudTo || '').trim().toUpperCase()}"
+    originating_authority: "${(incoming.body.originatingAuthority || '').trim().toUpperCase()}"
+    request_source: "${(incoming.body.requestSource || '').trim()}"
+    request_purpose: "${(incoming.body.requestPurpose || '').trim()}"
+    transport_undertaking_name: "${(incoming.body.transportUndertakingName || '').trim().toUpperCase()}"
+    community_licence_number: "${(incoming.body.communityLicenceNumber || '').trim().toUpperCase()}"
+    vehicle_registration_number: "${(incoming.body.vehicleRegistrationNumber || '').trim().toUpperCase()}"
+    vehicle_registration_country: "${(incoming.body.vehicleRegistrationCountry || '').trim().toUpperCase()}"
+    request_all_vehicles: "${incoming.body.requestAllVehicles === 'true' || incoming.body.requestAllVehicles === true ? 'true' : 'false'}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateRequest
+
+validateRequest:
+  template: "templates/erru/ctud/validate-ctud-request"
+  requestType: GET
+  body:
+    ctudTo: ${ctud_to}
+    originatingAuthority: ${originating_authority}
+    requestSource: ${request_source}
+    requestPurpose: ${request_purpose}
+    transportUndertakingName: ${transport_undertaking_name}
+    communityLicenceNumber: ${community_licence_number}
+    vehicleRegistrationNumber: ${vehicle_registration_number}
+    vehicleRegistrationCountry: ${vehicle_registration_country}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+  next: insertDraft
+
+insertDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-draft"
+    headers:
+      type: json
+    body:
+      ctudTo: ${ctud_to}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      transportUndertakingName: ${transport_undertaking_name}
+      communityLicenceNumber: ${community_licence_number}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      requestAllVehicles: ${request_all_vehicles}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkInsertResult
+
+checkInsertResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnInsertFailed
+  next: extractInsertResult
+
+extractInsertResult:
+  assign:
+    new_id: "${res.response.body[0].id}"
+    business_case_id: "${res.response.body[0].businessCaseId}"
+    new_version: "${res.response.body[0].version}"
+    new_status: "${res.response.body[0].status}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/ctud/log-ctud-request-save"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    changed_fields: "kõik (uus päring)"
+    status: ${new_status}
+    version: ${new_version}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end
+
+returnInsertFailed:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"ctudTo","code":"draft_not_created"}'
+  next: end
+
+

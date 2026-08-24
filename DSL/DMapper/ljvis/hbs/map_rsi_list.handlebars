@@ -1,0 +1,20 @@
+{
+    "content": [
+        {{#each messages}}
+        {
+            "id": "{{this.id}}",
+            "version": {{this.version}},
+            "direction": "{{this.direction}}",
+            "status": "{{this.status}}",
+            "businessCaseId": "{{this.businessCaseId}}",
+            "sentAt": {{#if this.sentAt}}"{{this.sentAt}}"{{else}}null{{/if}},
+            "rsiFrom": {{#if this.rsiFrom}}"{{this.rsiFrom}}"{{else}}null{{/if}},
+            "rsiTo": {{#if this.rsiTo}}"{{this.rsiTo}}"{{else}}null{{/if}},
+            "vehicleRegistrationNumber": {{#if this.vehicleRegistrationNumber}}"{{this.vehicleRegistrationNumber}}"{{else}}null{{/if}},
+            "responseStatusCode": {{#if this.responseStatusCode}}"{{this.responseStatusCode}}"{{else}}null{{/if}},
+            "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with messages.[0]}}{{total}}{{else}}0{{/with}}
+}

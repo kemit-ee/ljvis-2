@@ -1,0 +1,327 @@
+declaration:
+  version: "1.0"
+  description: |
+    Serve an INBOUND CGR (Check Good Repute / Mainepäring) request from another member
+    state and answer it synchronously (LJVIS2-139). Fully automatic: no user is involved,
+    no cgr.* permission is required, and the served request appears in the CGR list
+    afterwards. Flow:
+      1. Validate the required ERRU envelope fields.
+      2. If requestPurpose == 'Heartbeat' → return NotFound immediately; do NOT store,
+         do NOT audit (spec §3: "Heartbeat-proovipäring vastatakse 'Ei leitud', kuid seda
+         ei salvestata ega auditeerita").
+      3. Store a 'received' snapshot (append-inbound.sql, idempotent via partial unique
+         index uq_cgr_inbound_technical_id).
+      4. A re-delivered message yields zero rows: look up the existing snapshot by
+         technical_id and replay the stored member_states response.
+      5. Search the local UNFIT register (forms.good_repute_form via search-good-repute.sql).
+         If found with fitness_status='unfit' → respond Found + Unfit (searchMethod='Local').
+      6. If not found in UNFIT register → call the MTR mock (ERRU_CGR_MTR_ENDPOINT, which
+         points at check-transport-manager-good-repute.yml in dev/CI, real XTR in production).
+         If MTR returns Found → respond Found + Fit (searchMethod='NYSIIS' or 'CPC').
+      7. If MTR returns NotFound → respond NotFound.
+      8. Store an 'answered' snapshot with the EE member_states entry.
+      9. Write audit (cgr.inbound_request.serve) directly to Resql — ruuter-internal cannot
+         reach the main instance's TEMPLATES/audit chain (see CTUD inbound-request.yml §8).
+
+    TODO(M2M): OAuth2 machine-token auth as per spec. Until Ruuter supports client_credentials
+    this runs on ruuter-internal (port 8089, allowedIPs 127.0.0.1 only) following the CTUD
+    precedent.
+
+    Idempotency: append-inbound.sql ON CONFLICT DO NOTHING on the partial unique index
+    uq_cgr_inbound_technical_id (direction='incoming' AND status='received').
+
+    Validation: envelope fields are checked here. The CGR 7A/7B choice rule (chk_cgr_search_
+    choice) is enforced by the DB constraint — a single source of truth, no drift possible.
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: sentAt
+        type: string
+      - field: from
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: tmFirstName
+        type: string
+      - field: tmFamilyName
+        type: string
+      - field: tmDateOfBirth
+        type: string
+      - field: tmPlaceOfBirth
+        type: string
+      - field: certificateNumber
+        type: string
+      - field: certificateIssueDate
+        type: string
+      - field: certificateIssueCountry
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.technicalId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.from || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.businessCaseId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.originatingAuthority || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.requestSource || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.requestPurpose || '')).trim())}
+      next: returnInvalidData
+  next: checkHeartbeat
+
+# Heartbeat requests are answered immediately without any storage or audit.
+checkHeartbeat:
+  switch:
+    - condition: ${('' + (incoming.body.requestPurpose || '')).trim() === 'Heartbeat'}
+      next: returnHeartbeatNotFound
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    technical_id: "${('' + (incoming.body.technicalId || '')).trim()}"
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    sent_at: "${('' + (incoming.body.sentAt || '')).trim()}"
+    cgr_from: "${('' + (incoming.body.from || '')).trim().toUpperCase()}"
+    business_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
+    request_source: "${('' + (incoming.body.requestSource || '')).trim()}"
+    request_purpose: "${('' + (incoming.body.requestPurpose || '')).trim()}"
+    tm_first_name: "${('' + (incoming.body.tmFirstName || '')).trim().toUpperCase()}"
+    tm_family_name: "${('' + (incoming.body.tmFamilyName || '')).trim().toUpperCase()}"
+    tm_date_of_birth: "${('' + (incoming.body.tmDateOfBirth || '')).trim()}"
+    tm_place_of_birth: "${('' + (incoming.body.tmPlaceOfBirth || '')).trim()}"
+    certificate_number: "${('' + (incoming.body.certificateNumber || '')).trim().toUpperCase()}"
+    certificate_issue_date: "${('' + (incoming.body.certificateIssueDate || '')).trim()}"
+    certificate_issue_country: "${('' + (incoming.body.certificateIssueCountry || '')).trim().toUpperCase()}"
+  next: storeReceived
+
+storeReceived:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/append-inbound"
+    headers:
+      type: json
+    body:
+      technicalId: ${technical_id}
+      workflowId: ${workflow_id}
+      sentAt: ${sent_at}
+      cgrFrom: ${cgr_from}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+      created_by: "system"
+  result: received_res
+  next: checkStored
+
+# Zero rows = redelivery (unique index) OR a DB CHECK constraint rejection (7A/7B choice).
+checkStored:
+  switch:
+    - condition: ${received_res.response.body == null || received_res.response.body.length != 1}
+      next: lookupExisting
+  next: extractStored
+
+extractStored:
+  assign:
+    request_key: "${received_res.response.body[0].id}"
+  next: searchGoodRepute
+
+lookupExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/get-by-technical-id"
+    headers:
+      type: json
+    body:
+      technical_id: ${technical_id}
+  result: existing_res
+  next: checkExisting
+
+checkExisting:
+  switch:
+    - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
+      next: returnInvalidData
+  next: returnReplayedAnswer
+
+# Step 5: check local UNFIT register first.
+searchGoodRepute:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/search-good-repute"
+    headers:
+      type: json
+    body:
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      certNumber: ${certificate_number}
+  result: unfit_res
+  next: checkGoodReputeFound
+
+checkGoodReputeFound:
+  switch:
+    - condition: ${unfit_res.response.body != null && unfit_res.response.body.length == 1}
+      next: buildUnfitResponse
+  next: callMtr
+
+# Found in UNFIT register: build Found + Unfit response. searchMethod is 'Local' per
+# CGR_SEARCH_METHOD classifier (checked against ERRU 3.5 XSD in previous session).
+buildUnfitResponse:
+  assign:
+    gr_person: "${unfit_res.response.body[0]}"
+    resp_status_code: "Found"
+    resp_status_message: ""
+    search_method: "Local"
+    resp_details: "${JSON.stringify({respondingAuthority: 'EE-TRAM', searchMethod: 'Local', nameDetails: {firstName: gr_person.firstName || gr_person.first_name, familyName: gr_person.lastName || gr_person.last_name, dateOfBirth: gr_person.dateOfBirth || gr_person.date_of_birth, placeOfBirth: gr_person.placeOfBirth || gr_person.place_of_birth || null}, addressDetails: null, certificateDetails: {certificateNumber: gr_person.certificateNumber || gr_person.certificate_number, certificateIssueDate: gr_person.certificateIssueDate || gr_person.certificate_issue_date, certificateIssueCountry: gr_person.certificateCountryCode || gr_person.certificate_country_code, certificateValidity: 'Valid', fitness: {fitnessStatus: 'Unfit', unfitStartDate: gr_person.unfitFromDate || gr_person.unfit_from_date || null, unfitEndDate: gr_person.unfitUntilDate || gr_person.unfit_until_date || null}}, transportUndertakings: {totalManagedUndertakings: 0, totalManagedVehicles: 0, undertaking: []}})}"
+  next: buildFullResponse
+
+# Step 6: transport manager not in UNFIT register — ask MTR.
+callMtr:
+  call: http.post
+  args:
+    url: "[#ERRU_CGR_MTR_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      certNumber: ${certificate_number}
+  result: mtr_res
+  next: checkMtrEnvelope
+
+checkMtrEnvelope:
+  switch:
+    - condition: ${mtr_res.response.body != null && mtr_res.response.body.response != null}
+      next: extractMtrEnveloped
+  next: extractMtrDirect
+
+extractMtrEnveloped:
+  assign:
+    mtr_body: "${JSON.parse(mtr_res.response.body.response)}"
+  next: checkMtrStatus
+
+extractMtrDirect:
+  assign:
+    mtr_body: "${mtr_res.response.body}"
+  next: checkMtrStatus
+
+checkMtrStatus:
+  switch:
+    - condition: ${mtr_body != null && mtr_body.statusCode === 'Found'}
+      next: buildMtrFoundResponse
+  next: buildNotFoundResponse
+
+# MTR Found: the details come from MTR (the address is the undertaking's address per spec
+# comment by Eda Rembel: "mitte isikliku koduse aadressiga, vaid veoettevõtja ametliku
+# aadressiga"). Search method is NYSIIS (name search) or CPC (certificate search).
+buildMtrFoundResponse:
+  assign:
+    resp_status_code: "Found"
+    resp_status_message: ""
+    search_method: "${certificate_number ? 'CPC' : 'NYSIIS'}"
+    resp_details: "${JSON.stringify(mtr_body.transportManagerDetails)}"
+  next: buildFullResponse
+
+buildNotFoundResponse:
+  assign:
+    resp_status_code: "NotFound"
+    resp_status_message: "Transport manager not found in Estonian register"
+    search_method: "${certificate_number ? 'CPC' : 'NYSIIS'}"
+    resp_details: "null"
+  next: buildFullResponse
+
+buildFullResponse:
+  assign:
+    resp_content: "${JSON.stringify({memberStateCode: 'EE', statusCode: resp_status_code, statusMessage: resp_status_message, transportManagerDetails: (resp_details && resp_details !== 'null') ? JSON.parse(resp_details) : null})}"
+    member_states_json: "${JSON.stringify([{memberStateCode: 'EE', statusCode: resp_status_code, statusMessage: resp_status_message, transportManagerDetails: (resp_details && resp_details !== 'null') ? JSON.parse(resp_details) : null}])}"
+  next: storeAnswered
+
+storeAnswered:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${request_key}
+      newStatus: "answered"
+      memberStates: ${member_states_json}
+      tmFirstNameSearchKey: ""
+      tmFamilyNameSearchKey: ""
+      errorMessage: ""
+      created_by: "system"
+  result: answered_res
+  next: buildAudit
+
+# Audit written directly to Resql (ruuter-internal cannot reach main instance's templates).
+# event_id generation is byte-identical to TEMPLATES/audit/log-audit-event.yml.
+buildAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "CGR sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${cgr_from}, päringu allikas ${request_source}, otsingumeetod ${search_method}, tulemus ${resp_status_code}, otsitud isik ${tm_first_name} ${tm_family_name}"
+    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['cgrFrom', cgr_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['tmFirstName', tm_first_name || null], ['tmFamilyName', tm_family_name || null], ['tmDateOfBirth', tm_date_of_birth || null], ['searchMethod', search_method || null], ['resultStatus', resp_status_code || null]]))}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "cgr.inbound_request.serve"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU CGR inbound service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnAnswer
+
+returnAnswer:
+  return: ${resp_content}
+  next: end
+
+returnReplayedAnswer:
+  return: "${(arr => JSON.stringify(arr[0] || {}))(JSON.parse(existing_res.response.body[0].memberStates || '[]'))}"
+  next: end
+
+# Heartbeat: answer NotFound but do not store or audit anything.
+returnHeartbeatNotFound:
+  return: '{"memberStateCode":"EE","statusCode":"NotFound","statusMessage":"Heartbeat acknowledged","transportManagerDetails":null}'
+  next: end
+
+returnInvalidData:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"Request does not satisfy the ERRU 3.5 CGR requirements"}'
+  next: end

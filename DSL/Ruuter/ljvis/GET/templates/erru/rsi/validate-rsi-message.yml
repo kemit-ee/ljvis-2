@@ -1,0 +1,180 @@
+declaration:
+  version: "1.0"
+  description: "Single source of truth for RSI message field validation (LJVIS2-147) — shared by the single unified save endpoint (POST /v1/erru/rsi/request/save, create+revise). Mirrors the erru.rsi_message CHECK constraints (chk_rsi_identification_choice) plus the optional-block rules from LJVIS2-147 §4: 'Juhi andmed' and 'Veoettevõtja või omaniku andmed' are closed by default — if ANY field of a block is filled, the block's own required sub-fields become mandatory; if none are filled, the whole block is skipped (never partially required). Returns '{\"valid\":true}' when all checks pass, otherwise the standard VALIDATION_ERROR shape ready to forward to the client as-is.\n\nSame Ruuter caveat as validate-cgr-request.yml: every condition reads incoming.body directly (never a pre-assigned variable) and every emptiness test is truthiness-first, because ScriptingHelper.filterEmptyOptional discards an assign that evaluates to '', turning it into undefined. identificationDetails arrives as a JSON string and is parsed here for the choice checks."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: originatingAuthority
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: vehicleIdentificationNumber
+        type: string
+      - field: driverFirstName
+        type: string
+      - field: driverFamilyName
+        type: string
+      - field: identificationDetails
+        type: string
+      - field: inspectionLocation
+        type: string
+      - field: inspectionDatetime
+        type: string
+      - field: inspectionAuthorityOrName
+        type: string
+      - field: inspectionPassed
+        type: string
+      - field: ptiRequested
+        type: string
+      - field: vehicleProhibitionOrRestriction
+        type: string
+
+validate:
+  switch:
+    # ── Header ────────────────────────────────────────────────────────────────
+    - condition: ${!(('' + (incoming.body.originatingAuthority || '')).trim())}
+      next: returnOriginatingAuthorityRequiredError
+    - condition: ${('' + (incoming.body.originatingAuthority || '')).trim().length > 100}
+      next: returnOriginatingAuthorityMaxLengthError
+    # ── Vehicle ───────────────────────────────────────────────────────────────
+    - condition: ${!(('' + (incoming.body.vehicleRegistrationNumber || '')).trim())}
+      next: returnVehicleRegistrationNumberRequiredError
+    - condition: ${('' + (incoming.body.vehicleRegistrationNumber || '')).trim().length > 50}
+      next: returnVehicleRegistrationNumberMaxLengthError
+    - condition: ${!(('' + (incoming.body.vehicleRegistrationCountry || '')).trim())}
+      next: returnVehicleRegistrationCountryRequiredError
+    - condition: ${('' + (incoming.body.vehicleRegistrationCountry || '')).trim().length !== 2}
+      next: returnVehicleRegistrationCountryInvalidError
+    - condition: ${('' + (incoming.body.vehicleIdentificationNumber || '')).trim().length > 20}
+      next: returnVehicleIdentificationNumberMaxLengthError
+    # ── Driver block — optional, closed by default: filled at all => firstName+familyName mandatory ──
+    - condition: "${(('' + (incoming.body.driverFirstName || '')).trim() || ('' + (incoming.body.driverFamilyName || '')).trim()) ? !(('' + (incoming.body.driverFirstName || '')).trim() && ('' + (incoming.body.driverFamilyName || '')).trim()) : false}"
+      next: returnDriverBlockIncompleteError
+    # ── Inspection ────────────────────────────────────────────────────────────
+    - condition: ${!(('' + (incoming.body.inspectionLocation || '')).trim())}
+      next: returnInspectionLocationRequiredError
+    - condition: ${('' + (incoming.body.inspectionLocation || '')).trim().length > 200}
+      next: returnInspectionLocationMaxLengthError
+    - condition: ${!(('' + (incoming.body.inspectionDatetime || '')).trim())}
+      next: returnInspectionDatetimeRequiredError
+    - condition: ${!(('' + (incoming.body.inspectionAuthorityOrName || '')).trim())}
+      next: returnInspectionAuthorityRequiredError
+    - condition: ${('' + (incoming.body.inspectionAuthorityOrName || '')).trim().length > 100}
+      next: returnInspectionAuthorityMaxLengthError
+    - condition: ${!(('' + (incoming.body.inspectionPassed || '')).trim())}
+      next: returnInspectionPassedRequiredError
+    - condition: ${!(('' + (incoming.body.ptiRequested || '')).trim())}
+      next: returnPtiRequestedRequiredError
+    - condition: ${!(('' + (incoming.body.vehicleProhibitionOrRestriction || '')).trim())}
+      next: returnVehicleProhibitionRequiredError
+    # ── Identification details (transport undertaking / owner choice) ───────
+    - condition: "${!!(('' + (incoming.body.identificationDetails || '')).trim()) && ['transport_undertaking','owner'].indexOf(JSON.parse(incoming.body.identificationDetails).isVehicleHolder) === -1}"
+      next: returnIdentificationHolderInvalidError
+    - condition: "${!!(('' + (incoming.body.identificationDetails || '')).trim()) && JSON.parse(incoming.body.identificationDetails).isVehicleHolder === 'transport_undertaking' && !(('' + (JSON.parse(incoming.body.identificationDetails).transportUndertakingName || '')).trim() && ('' + (JSON.parse(incoming.body.identificationDetails).communityLicenceNumber || '')).trim())}"
+      next: returnIdentificationUndertakingIncompleteError
+    - condition: "${!!(('' + (incoming.body.identificationDetails || '')).trim()) && JSON.parse(incoming.body.identificationDetails).isVehicleHolder === 'owner' && ['company','natural_person'].indexOf(JSON.parse(incoming.body.identificationDetails).isNaturalPerson) === -1}"
+      next: returnIdentificationOwnerTypeInvalidError
+    - condition: "${!!(('' + (incoming.body.identificationDetails || '')).trim()) && JSON.parse(incoming.body.identificationDetails).isVehicleHolder === 'owner' && JSON.parse(incoming.body.identificationDetails).isNaturalPerson === 'company' && !(('' + (JSON.parse(incoming.body.identificationDetails).companyName || '')).trim())}"
+      next: returnIdentificationCompanyNameRequiredError
+    - condition: "${!!(('' + (incoming.body.identificationDetails || '')).trim()) && JSON.parse(incoming.body.identificationDetails).isVehicleHolder === 'owner' && JSON.parse(incoming.body.identificationDetails).isNaturalPerson === 'natural_person' && !(('' + (JSON.parse(incoming.body.identificationDetails).firstName || '')).trim() && ('' + (JSON.parse(incoming.body.identificationDetails).familyName || '')).trim())}"
+      next: returnIdentificationOwnerNameRequiredError
+    - condition: "${!!(('' + (incoming.body.identificationDetails || '')).trim()) && !(JSON.parse(incoming.body.identificationDetails).address && ('' + (JSON.parse(incoming.body.identificationDetails).address.address || '')).trim() && ('' + (JSON.parse(incoming.body.identificationDetails).address.city || '')).trim() && ('' + (JSON.parse(incoming.body.identificationDetails).address.country || '')).trim() && ('' + (JSON.parse(incoming.body.identificationDetails).address.postCode || '')).trim())}"
+      next: returnIdentificationAddressIncompleteError
+  next: returnValid
+
+returnValid:
+  return: '{"valid":true}'
+  next: end
+
+returnOriginatingAuthorityRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"originatingAuthority","code":"required"}'
+  next: end
+
+returnOriginatingAuthorityMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"originatingAuthority","code":"max_length_exceeded"}'
+  next: end
+
+returnVehicleRegistrationNumberRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegistrationNumber","code":"required"}'
+  next: end
+
+returnVehicleRegistrationNumberMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegistrationNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnVehicleRegistrationCountryRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegistrationCountry","code":"required"}'
+  next: end
+
+returnVehicleRegistrationCountryInvalidError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegistrationCountry","code":"invalid_country_code"}'
+  next: end
+
+returnVehicleIdentificationNumberMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleIdentificationNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnDriverBlockIncompleteError:
+  return: '{"type":"VALIDATION_ERROR","field":"driverFirstName","code":"driver_block_incomplete"}'
+  next: end
+
+returnInspectionLocationRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionLocation","code":"required"}'
+  next: end
+
+returnInspectionLocationMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionLocation","code":"max_length_exceeded"}'
+  next: end
+
+returnInspectionDatetimeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionDatetime","code":"required"}'
+  next: end
+
+returnInspectionAuthorityRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionAuthorityOrName","code":"required"}'
+  next: end
+
+returnInspectionAuthorityMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionAuthorityOrName","code":"max_length_exceeded"}'
+  next: end
+
+returnInspectionPassedRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionPassed","code":"required"}'
+  next: end
+
+returnPtiRequestedRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"ptiRequested","code":"required"}'
+  next: end
+
+returnVehicleProhibitionRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleProhibitionOrRestriction","code":"required"}'
+  next: end
+
+returnIdentificationHolderInvalidError:
+  return: '{"type":"VALIDATION_ERROR","field":"identificationDetails","code":"holder_type_invalid"}'
+  next: end
+
+returnIdentificationUndertakingIncompleteError:
+  return: '{"type":"VALIDATION_ERROR","field":"identificationDetails","code":"undertaking_block_incomplete"}'
+  next: end
+
+returnIdentificationOwnerTypeInvalidError:
+  return: '{"type":"VALIDATION_ERROR","field":"identificationDetails","code":"owner_type_invalid"}'
+  next: end
+
+returnIdentificationCompanyNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"identificationDetails","code":"company_name_required"}'
+  next: end
+
+returnIdentificationOwnerNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"identificationDetails","code":"owner_name_required"}'
+  next: end
+
+returnIdentificationAddressIncompleteError:
+  return: '{"type":"VALIDATION_ERROR","field":"identificationDetails","code":"address_incomplete"}'
+  next: end

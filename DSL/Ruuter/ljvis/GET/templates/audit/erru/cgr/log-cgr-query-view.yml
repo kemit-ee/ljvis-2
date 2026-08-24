@@ -1,0 +1,45 @@
+declaration:
+  version: "1.0"
+  description: "Audit: single CGR request viewed (LJVIS2-138). Logged on EVERY open of the request, because the view shows the searched transport manager's personal data (name, date of birth). The description carries the request identifier, the searched person and the viewer's personal code, which is what makes it traceable who saw whose data."
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: tm_first_name
+        type: string
+      - field: tm_family_name
+        type: string
+      - field: tm_date_of_birth
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "CGR mainepäringu vaatamine: päring ${incoming.body.business_case_id || '-'}, veokorraldusjuht ${((incoming.body.tm_first_name || '') + ' ' + (incoming.body.tm_family_name || '')).trim() || '-'}, sünnikuupäev ${incoming.body.tm_date_of_birth || '-'}, isikukood ${incoming.body.actor_personal_code || '-'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['tmFirstName', incoming.body.tm_first_name || null], ['tmFamilyName', incoming.body.tm_family_name || null], ['tmDateOfBirth', incoming.body.tm_date_of_birth || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "cgr.query.view"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

@@ -32,14 +32,10 @@ WITH ranked AS (
     status,
     created_at,
     created_by,
-    ROW_NUMBER() OVER (
-      PARTITION BY compound_form_key, status
-      ORDER BY created_at DESC
-    ) AS rn_per_status,
-    ROW_NUMBER() OVER (
+    LEAD(status) OVER (
       PARTITION BY compound_form_key
-      ORDER BY created_at DESC
-    ) AS rn_overall
+      ORDER BY created_at ASC
+    ) AS next_status
   FROM forms.compound_form
   WHERE compound_form_key = :id::BIGINT
 ),
@@ -52,7 +48,7 @@ filtered AS (
     created_at,
     created_by
   FROM ranked
-  WHERE status != 'saved' OR rn_per_status = 1
+  WHERE status != 'saved' OR next_status IS DISTINCT FROM status
 )
 SELECT
   snapshot_id,

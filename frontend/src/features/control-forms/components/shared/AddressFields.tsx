@@ -93,7 +93,7 @@ export function AddressFields({
           label={t('forms.shared.address.county')}
           value={value.county}
           onChange={(v) => onChange({ ...value, county: v, city: '' })}
-          disabled={disabled}
+          disabled={true}
           {...(errors?.county
             ? { helper: { text: errors.county, type: 'error' as const } }
             : {})}
@@ -122,7 +122,7 @@ export function AddressFields({
           label={t('forms.shared.address.city')}
           value={value.city}
           onChange={(v) => onChange({ ...value, city: v })}
-          disabled={disabled}
+          disabled={true}
           {...(errors?.city
             ? { helper: { text: errors.city, type: 'error' as const } }
             : {})}

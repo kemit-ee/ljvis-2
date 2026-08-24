@@ -43,7 +43,7 @@ export async function get<T>(
   const url = new URL(`${BASE}${path}`, window.location.origin);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') url.searchParams.set(k, v);
+      if (v !== undefined && v !== '' && v !== 'undefined') url.searchParams.set(k, v);
     });
   }
   const res = await fetch(url.toString(), { credentials: 'include' });
@@ -148,7 +148,7 @@ export async function del<T>(
   const url = new URL(`${BASE}${path}`, window.location.origin);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '') url.searchParams.set(k, v);
+      if (v !== undefined && v !== '' && v !== 'undefined') url.searchParams.set(k, v);
     });
   }
   const res = await fetch(url.toString(), {

@@ -25,6 +25,18 @@ import { CompoundFormCreatePage } from './features/control-forms/pages/compound-
 import { CompoundFormPage } from './features/control-forms/pages/compound-form/CompoundFormPage';
 import { LabourInspectionFormCreatePage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormCreatePage';
 import { LabourInspectionFormPage } from './features/control-forms/pages/labour-inspection/LabourInspectionFormPage';
+import { CtudListPage } from './features/erru/pages/ctud/CtudListPage';
+import { CtudFormCreatePage } from './features/erru/pages/ctud/CtudFormCreatePage';
+import { CtudFormPage } from './features/erru/pages/ctud/CtudFormPage';
+import { CgrListPage } from './features/erru/pages/cgr/CgrListPage';
+import { CgrFormCreatePage } from './features/erru/pages/cgr/CgrFormCreatePage';
+import { CgrFormPage } from './features/erru/pages/cgr/CgrFormPage';
+import { RsiListPage } from './features/erru/pages/rsi/RsiListPage';
+import { RsiFormCreatePage } from './features/erru/pages/rsi/RsiFormCreatePage';
+import { RsiFormPage } from './features/erru/pages/rsi/RsiFormPage';
+import { NcrListPage } from './features/erru/pages/ncr/NcrListPage';
+import { NcrFormCreatePage } from './features/erru/pages/ncr/NcrFormCreatePage';
+import { NcrFormPage } from './features/erru/pages/ncr/NcrFormPage';
 import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
 import { TransportInterruptionFormPage } from './features/control-forms/pages/transport-interruption-form/TransportInterruptionFormPage';
 import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage';
@@ -131,6 +143,22 @@ function AppRoutes() {
             path="/control-forms/labour-inspection/:id/:snapshotId"
             element={<LabourInspectionFormPage />}
           />
+          {/* ERRU — CTUD (tegevusloa kontroll) */}
+          <Route path="/erru/ctud" element={<CtudListPage />} />
+          <Route path="/erru/ctud/new" element={<CtudFormCreatePage />} />
+          <Route path="/erru/ctud/:id" element={<CtudFormPage />} />
+          {/* ERRU — CGR (mainepäring). List (LJVIS2-140) is OUTGOING requests only. */}
+          <Route path="/erru/cgr" element={<CgrListPage />} />
+          <Route path="/erru/cgr/new" element={<CgrFormCreatePage />} />
+          <Route path="/erru/cgr/:id" element={<CgrFormPage />} />
+          {/* ERRU — RSI (tehnokontrolli teade) — list (LJVIS2-149) + form (LJVIS2-147/-148). */}
+          <Route path="/erru/rsi" element={<RsiListPage />} />
+          <Route path="/erru/rsi/new" element={<RsiFormCreatePage />} />
+          <Route path="/erru/rsi/:id" element={<RsiFormPage />} />
+          {/* ERRU — NCR (kontrollitulemuse teade), LJVIS2-62/-63/-64/-65. */}
+          <Route path="/erru/ncr" element={<NcrListPage />} />
+          <Route path="/erru/ncr/new" element={<NcrFormCreatePage />} />
+          <Route path="/erru/ncr/:businessCaseId" element={<NcrFormPage />} />
           <Route
             path="/control-forms/vehicle-technical/new/:compoundFormKey"
             element={<TechnicalCheckFormPage variant="vehicle" />}

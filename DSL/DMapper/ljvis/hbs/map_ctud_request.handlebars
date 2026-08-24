@@ -1,0 +1,31 @@
+{{#with requests.[0]}}
+{
+        "id": "{{this.id}}",
+        "version": {{this.version}},
+        "direction": "{{this.direction}}",
+        "status": "{{this.status}}",
+        "businessCaseId": "{{this.businessCaseId}}",
+        "technicalId": {{#if this.technicalId}}"{{this.technicalId}}"{{else}}null{{/if}},
+        "workflowId": {{#if this.workflowId}}"{{this.workflowId}}"{{else}}null{{/if}},
+        "sentAt": {{#if this.sentAt}}"{{this.sentAt}}"{{else}}null{{/if}},
+        "ctudFrom": {{#if this.ctudFrom}}"{{this.ctudFrom}}"{{else}}null{{/if}},
+        "ctudTo": {{#if this.ctudTo}}"{{this.ctudTo}}"{{else}}null{{/if}},
+        "originatingAuthority": {{#if this.originatingAuthority}}"{{this.originatingAuthority}}"{{else}}null{{/if}},
+        "requestSource": {{#if this.requestSource}}"{{this.requestSource}}"{{else}}null{{/if}},
+        "requestPurpose": {{#if this.requestPurpose}}"{{this.requestPurpose}}"{{else}}null{{/if}},
+        "transportUndertakingName": {{#if this.transportUndertakingName}}"{{this.transportUndertakingName}}"{{else}}null{{/if}},
+        "communityLicenceNumber": {{#if this.communityLicenceNumber}}"{{this.communityLicenceNumber}}"{{else}}null{{/if}},
+        "vehicleRegistrationNumber": {{#if this.vehicleRegistrationNumber}}"{{this.vehicleRegistrationNumber}}"{{else}}null{{/if}},
+        "vehicleRegistrationCountry": {{#if this.vehicleRegistrationCountry}}"{{this.vehicleRegistrationCountry}}"{{else}}null{{/if}},
+        "requestAllVehicles": {{this.requestAllVehicles}},
+        "respondingAuthority": {{#if this.respondingAuthority}}"{{this.respondingAuthority}}"{{else}}null{{/if}},
+        "responseStatusCode": {{#if this.responseStatusCode}}"{{this.responseStatusCode}}"{{else}}null{{/if}},
+        "responseStatusMessage": {{#if this.responseStatusMessage}}"{{this.responseStatusMessage}}"{{else}}null{{/if}},
+        "responseContent": {{#if this.responseContent}}{{{this.responseContent}}}{{else}}null{{/if}},
+        "handlerPersonalCode": {{#if this.handlerPersonalCode}}"{{this.handlerPersonalCode}}"{{else}}null{{/if}},
+        "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}},
+        "errorMessage": {{#if this.errorMessage}}"{{this.errorMessage}}"{{else}}null{{/if}},
+        "createdAt": "{{this.createdAt}}",
+        "createdBy": "{{this.createdBy}}"
+}
+{{/with}}

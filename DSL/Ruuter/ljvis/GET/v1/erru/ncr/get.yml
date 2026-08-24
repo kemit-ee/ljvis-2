@@ -1,0 +1,121 @@
+declaration:
+  version: "1.0"
+  description: "Get one NCR case (erru.ncr_message) by businessCaseId, returning the FULL snapshot
+    history (LJVIS2-63) — the last element is the current state (drives the editable header/blocks),
+    the whole array is the read-only 'Juhtumi teadete loend'. As a side effect, the first open of an
+    incoming case still in 'received' auto-transitions it to 'viewed' (LJVIS2-62 §4 automatic
+    transition, LJVIS2-63 §4 'Teate esmakordsel avamisel liigub teade olekusse Vaadatud') — the
+    array is re-fetched after the transition so the caller always sees the up-to-date state.
+    Audited on EVERY open (ncr.case.view) because the case shows the transport undertaking's and
+    handler's personal data."
+  method: get
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "NCR case identifier (business_case_id)"
+
+extractRequestData:
+  assign:
+    business_case_id: "${incoming.params.q || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${business_case_id === ''}
+      next: returnNotFound
+  next: getCase
+
+getCase:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/get"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+  result: res
+  next: checkCaseFound
+
+checkCaseFound:
+  switch:
+    - condition: ${res.response.body.length === 0}
+      next: returnNotFound
+  next: checkAutoView
+
+checkAutoView:
+  assign:
+    current: "${res.response.body[res.response.body.length - 1]}"
+  next: decideAutoView
+
+decideAutoView:
+  switch:
+    - condition: ${current.status === 'received' && current.direction === 'incoming'}
+      next: applyViewTransition
+  next: extractCaseFields
+
+applyViewTransition:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-view-transition"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+  result: viewRes
+  next: refetchAfterView
+
+refetchAfterView:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/get"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+  result: res
+  next: extractCaseFields
+
+extractCaseFields:
+  assign:
+    transport_undertaking_name: "${res.response.body[res.response.body.length - 1].transportUndertakingName || ''}"
+    handler_personal_code: "${res.response.body[res.response.body.length - 1].handlerPersonalCode || ''}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/ncr/log-ncr-case-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    message_count: "${'' + res.response.body.length}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_ncr_case"
+    headers:
+      type: json
+    body:
+      snapshots: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "ncr case not found"
+  next: end

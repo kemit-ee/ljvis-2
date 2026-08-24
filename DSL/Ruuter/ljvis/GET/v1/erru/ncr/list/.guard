@@ -1,0 +1,30 @@
+# NCR list needs its own DISTINCT permission ncr.list (LJVIS2-65 §3), NOT ncr.read — a
+# deliberate deviation from the RSI/CGR precedent where list access is folded into *.read.
+# Nested under list/ (not directly under erru/ncr/) so it does not conflict with the
+# GET/v1/erru/ncr/.guard (ncr.read) that protects get.yml at the parent level.
+declaration:
+  override_ancestors: true
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('ncr.list')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

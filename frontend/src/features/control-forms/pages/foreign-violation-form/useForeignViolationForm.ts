@@ -1,20 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import dayjs from 'dayjs';
 import type { ForeignViolationForm } from '../../../control-forms/types';
 import {
-  insertForeignViolationForm,
-  updateForeignViolationForm,
+  saveForeignViolationForm,
   confirmForeignViolationForm,
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
-import type { StructureUnit } from '../../../structure-units/types';
 import { listOrganisations } from '../../../organisations/api';
-import { listStructureUnits } from '../../../structure-units/api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { getAssociatedPersons } from '../../../xroad/api';
 import type { XRoadAssociatedPerson } from '../../../xroad/types';
@@ -27,8 +25,8 @@ export function useForeignViolationForm(
 ) {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
+  const { getByCode } = useClassifiers();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [structureUnits, setStructureUnits] = useState<StructureUnit[]>([]);
   const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
   const [associatedPersons, setAssociatedPersons] = useState<
@@ -52,14 +50,6 @@ export function useForeignViolationForm(
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
-
-  useEffect(() => {
-    if (authUser?.organisationid) {
-      listStructureUnits(authUser.organisationid)
-        .then(setStructureUnits)
-        .catch(console.error);
-    }
-  }, [authUser?.organisationid]);
 
   const validationSchema = Yup.object({
     reportingCountryCode: Yup.string().required(
@@ -196,8 +186,8 @@ export function useForeignViolationForm(
         const result = isEdit
           ? isConfirming
             ? await confirmForeignViolationForm(payload)
-            : await updateForeignViolationForm(payload)
-          : await insertForeignViolationForm(
+            : await saveForeignViolationForm(payload)
+          : await saveForeignViolationForm(
               trimmedValues as unknown as ForeignViolationForm,
             );
         if (isConfirming && onConfirmed) {
@@ -222,6 +212,16 @@ export function useForeignViolationForm(
     value: String(o.id),
   }));
 
+  const structureUnits = useMemo(() => {
+    const orgId =
+      formik.values.inspectorOrganisationId ||
+      String(authUser?.organisationid ?? '');
+    const org = organisations.find((o) => String(o.id) === String(orgId));
+    return getByCode('STRUCTURE_UNIT')
+      .filter((e) => !org || e.description === org.code)
+      .map((e) => ({ code: e.code, name: e.name }));
+  }, [getByCode, organisations, formik.values.inspectorOrganisationId, authUser?.organisationid]);
+
   const handleOrgChange = (
     val:
       | { value: string; label: string | React.ReactNode }
@@ -234,7 +234,6 @@ export function useForeignViolationForm(
         : '';
     formik.setFieldValue('inspectorOrganisationId', newOrgId);
     formik.setFieldValue('inspectorUnit', '');
-    listStructureUnits(newOrgId).then(setStructureUnits).catch(console.error);
   };
 
   const {
