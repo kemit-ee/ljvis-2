@@ -21,13 +21,12 @@ import type { XRoadVehicle } from '../../../xroad/types';
 import { FORM_CONFIG } from "../../formRoutes.ts";
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 
-// Maps EU standard vehicle/trailer category codes returned by liiklusregister
-// (paring2 `kateg` field) to the internal VEHICLE_CATEGORY / TRAILER_CATEGORY
-// classifier codes used by the form dropdowns. Codes not present in the map
-// (e.g. M1 for passenger cars, N1 for light vans) have no corresponding
-// classifier entry — the field is left blank for manual selection.
-const LIIKLUSREGISTER_CATEGORY_TO_CLASSIFIER: Record<string, string> = {
-  // VEHICLE_CATEGORY (Directive 2012)
+// Separate maps for vehicle and trailer EU category codes (liiklusregister
+// `kateg` field) → internal VEHICLE_CATEGORY_2012 / TRAILER_CATEGORY_2012
+// classifier codes. Keeping them separate prevents a trailer code (O3 → C_2012)
+// from being silently placed in the vehicle category field, which would pass
+// form validation but produce an invalid submission.
+const VEHICLE_CATEGORY_MAP: Record<string, string> = {
   N2: 'A_2012',     // (a) N2 3.5–12 t
   N3: 'B_2012',     // (b) N3 >12 t
   M2: 'E_2012',     // (e) M2 >9 seats <5 t
@@ -38,14 +37,36 @@ const LIIKLUSREGISTER_CATEGORY_TO_CLASSIFIER: Record<string, string> = {
   'T4.1': 'J_2012', 'T4.1b': 'J_2012',
   'T4.2': 'K_2012', 'T4.2b': 'K_2012',
   'T4.3': 'L_2012', 'T4.3b': 'L_2012',
-  // TRAILER_CATEGORY
+};
+
+const TRAILER_CATEGORY_MAP: Record<string, string> = {
   O3: 'C_2012',     // (c) O3 3.5–10 t
   O4: 'D_2012',     // (d) O4 >10 t
 };
 
-function mapCategoryCode(euCode: string | null | undefined): string {
-  if (!euCode) return '';
-  return LIIKLUSREGISTER_CATEGORY_TO_CLASSIFIER[euCode.trim()] ?? '';
+interface MappedCategory {
+  categoryCode: string;
+  categoryOther: string;
+}
+
+// LJVIS2-55 §33/§49: kategooria peab olema alati täidetud. Codes outside the
+// known subset (M1, N1, O1, O2, L*, …) have no direct classifier entry but
+// must not be silently lost. We set categoryCode = OTHER_2012 ("Muu") and
+// categoryOther = <raw code> so the form displays and validates correctly.
+function mapVehicleCategory(euCode: string | null | undefined): MappedCategory {
+  if (!euCode) return { categoryCode: '', categoryOther: '' };
+  const trimmed = euCode.trim();
+  const mapped = VEHICLE_CATEGORY_MAP[trimmed];
+  if (mapped) return { categoryCode: mapped, categoryOther: '' };
+  return { categoryCode: OTHER.VEHICLE_CATEGORY, categoryOther: trimmed };
+}
+
+function mapTrailerCategory(euCode: string | null | undefined): MappedCategory {
+  if (!euCode) return { categoryCode: '', categoryOther: '' };
+  const trimmed = euCode.trim();
+  const mapped = TRAILER_CATEGORY_MAP[trimmed];
+  if (mapped) return { categoryCode: mapped, categoryOther: '' };
+  return { categoryCode: OTHER.TRAILER_CATEGORY, categoryOther: trimmed };
 }
 
 export const emptyDriver = (): Driver => ({
@@ -527,11 +548,13 @@ export function useCompoundForm(
   const handleCompanySearch = () => searchByRegCode(formik.values.companyRegCode);
 
   const applyVehicleToForm = (vehicle: XRoadVehicle) => {
+    const { categoryCode, categoryOther } = mapVehicleCategory(vehicle.categoryCode);
     formik.setFieldValue('vehicleMake', vehicle.make ?? '');
     formik.setFieldValue('vehicleModel', vehicle.model ?? '');
     formik.setFieldValue('vehicleVin', vehicle.vin ?? '');
     formik.setFieldValue('vehicleBodyType', vehicle.bodyType ?? '');
-    formik.setFieldValue('vehicleCategoryCode', mapCategoryCode(vehicle.categoryCode));
+    formik.setFieldValue('vehicleCategoryCode', categoryCode);
+    formik.setFieldValue('vehicleCategoryOther', categoryOther);
     formik.setFieldValue(
       'vehicleFirstRegistration',
       vehicle.firstRegistrationDate ?? '',
@@ -565,6 +588,7 @@ export function useCompoundForm(
         return;
       }
       const vehicle = results[0];
+      const { categoryCode, categoryOther } = mapTrailerCategory(vehicle.categoryCode);
       const updated = [...formik.values.trailers];
       updated[index] = {
         ...updated[index],
@@ -573,7 +597,8 @@ export function useCompoundForm(
         model: vehicle.model ?? '',
         vin: vehicle.vin ?? '',
         bodyType: vehicle.bodyType ?? '',
-        categoryCode: mapCategoryCode(vehicle.categoryCode),
+        categoryCode,
+        categoryOther,
         firstRegistration: vehicle.firstRegistrationDate ?? '',
       };
       formik.setFieldValue('trailers', updated);
