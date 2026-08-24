@@ -1,0 +1,45 @@
+.ribbon-wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.ribbon {
+  position: absolute;
+  top: 28px;
+  right: -30px;
+  width: 140px;
+  padding: 6px 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(45deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.local {
+  background-color: #6b7280;
+  color: #fff;
+}
+
+.dev {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.test {
+  background-color: #d97706;
+  color: #fff;
+}
+
+.staging {
+  background-color: #7c3aed;
+  color: #fff;
+}
