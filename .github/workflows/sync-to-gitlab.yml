@@ -1,0 +1,43 @@
+name: Sync dev → GitLab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Force-push GitHub dev → GitLab dev
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Set up SSH for GitLab
+        env:
+          GITLAB_SSH_KEY: ${{ secrets.GITLAB_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$GITLAB_SSH_KEY" > ~/.ssh/id_gitlab
+          chmod 600 ~/.ssh/id_gitlab
+
+          # Known hosts for gitlab-ssh.kemitaws.ee (pre-scanned, avoids runtime keyscan)
+          cat >> ~/.ssh/known_hosts << 'EOF'
+          |1|S/61OQgk72DBmdRFYTwqVc4gswA=|cmBEZkp65hnzGc2aFhk1tB/Ym+Q= ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDAf5VmfALxq6ouQ1d6KByX2Od9SMXQWfqIxlRsxhcl+cJUvJQNBJGdDA5f9/yI8bLP8Ff4lGLoYJvlG/T9cvlwMhukRoa4Ew7DUusU6CM1ACLC7ULdA3Hu1EdqpvIHQBlZhWWrbDR7OgzKqM8tN6aU4sE/UKxc/BlSDRq78x05tqA3ZVOk+CN0DwcguPI+zAICylYrx8jNaxHx0mAKeX0pf6a8gTFX7/x+oFQK2A15mlgOSmnNr6w4HbSxnaapLpz05VD6pWPT8Ac8QRfAi6AV5IGuDs9DzUYDQim9j6zE8Ui3ZAWC2SxVm1Pqb9FHijhM9PNZu4Slh4tiIBdCfT3QHZhhunKG+fmsZDPYYxAdSFNGKNUay+kf7n3mO4A0ZZO+KTvpCQv9LZK8GeMJSmqr4shT9S6ksd3QKDrVnY9SIE9qNt6qiD3viUEzDJa4DAejwCmhigB1FFaDjHlx7oEk9nR0k/lvIlOn0GSsiC3nSbssfcdazwK4OPbU9pJtyCk=
+          |1|EXAjBJmsshfN9jVFfKgDxx4X8Us=|Zg/LLSl+wn+ale0BwuGQFr5Vk3c= ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBL+wNuh4nSfS8eZQ5Ko+P51CYsYeLhta549HMeNyo930xHeC5CFIm1wtVuzn0q2HHhVQqbC5eY8rzwZ74Y8fHQM=
+          |1|Z6hX0duZ0XYufM/a7m2kjAt7i/A=|laKT4zmn/mlEXgGKiXdCdm24uZY= ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC96QYhat/qRMlW4m4pgMxHYuDMZaG13oY4m+e4zR4ON
+          EOF
+
+          cat >> ~/.ssh/config << 'EOF'
+          Host gitlab-ssh.kemitaws.ee
+            IdentityFile ~/.ssh/id_gitlab
+            StrictHostKeyChecking yes
+          EOF
+
+      - name: Push to GitLab
+        run: |
+          git remote add gitlab git@gitlab-ssh.kemitaws.ee:services/ljvis2/ljvis2.git
+          git push gitlab HEAD:dev --force
+          echo "Sync complete: GitHub dev → GitLab dev"
