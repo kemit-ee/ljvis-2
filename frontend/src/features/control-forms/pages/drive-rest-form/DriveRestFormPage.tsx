@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useContainerWidth } from '../../../../hooks/useContainerWidth';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -56,7 +57,8 @@ import { TransportInterruptionFormEditCard, type TransportInterruptionFormEditCa
 import { listTechnicalCheckFormsByCompoundFormKey, getTechnicalCheckForm, saveTechnicalCheckForm } from '../../api';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
-import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab } from '../../hooks/useSubFormEditActive';
+import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 interface DriveRestFormPageProps {
   entryType: 'driver' | 'teammate';
@@ -118,6 +120,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   };
 
   const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission });
+
+  const containerWidth = useContainerWidth(isDesktop, openTabs);
 
   useEffect(() => {
     if (!snapshotId) return;
@@ -251,6 +255,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
   const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || adr.editActive || transportInterruption.editActive || compoundEditActive;
+
+  const handleCancelAllEdits = () =>
+    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const addFormDropdown =
     canEdit && addableTabs.length > 0 && anyEditActive ? (
@@ -597,7 +604,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: containerWidth }}>
       <DeleteConfirmModal
         subForm
         isOpen={removeConfirmTab !== null}
@@ -641,7 +648,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       {!isDesktop && addFormDropdown}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')}>
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
           <Tabs.Trigger id="tab-compound">
             {t('forms.compound.generalPart')}
           </Tabs.Trigger>
@@ -710,6 +717,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <div
               style={{
                 marginLeft: 'auto',
+                paddingLeft: '1rem',
                 display: 'flex',
                 alignItems: 'center',
                 marginRight: '1rem',
@@ -1089,10 +1097,22 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && (
-            <Button type="button" onClick={handleSaveAll}>
-              {t('common.save')}
+          {anyEditActive && subFormsAllConfirmed && (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => {
+                formik.resetForm();
+                handleCancelAllEdits();
+              }}
+            >
+              {t('common.cancel')}
             </Button>
+          )}
+          {anyEditActive && (
+            <AsyncButton type="button" onClick={handleSaveAll}>
+              {t('common.save')}
+            </AsyncButton>
           )}
           {anyEditActive && canDelete && (
             <DeleteConfirmModal onDelete={handleDelete} />

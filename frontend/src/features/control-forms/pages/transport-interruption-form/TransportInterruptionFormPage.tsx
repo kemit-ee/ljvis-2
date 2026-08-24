@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useContainerWidth } from '../../../../hooks/useContainerWidth';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -60,10 +61,12 @@ import {
   addTab,
   useDeleteAllSubForms,
   useRemoveSubFormTab,
+  cancelAllEdits,
 } from '../../hooks/useSubFormEditActive';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 export function TransportInterruptionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -110,6 +113,8 @@ export function TransportInterruptionFormPage() {
   };
 
   const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission });
+
+  const containerWidth = useContainerWidth(isDesktop, openTabs);
 
   useEffect(() => {
     if (!snapshotId) return;
@@ -245,6 +250,9 @@ export function TransportInterruptionFormPage() {
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
   const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || adr.editActive || transportInterruption.editActive || compoundEditActive;
+
+  const handleCancelAllEdits = () =>
+    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const addFormDropdown =
     canEdit && addableTabs.length > 0 && anyEditActive ? (
@@ -471,7 +479,13 @@ export function TransportInterruptionFormPage() {
     if (!snapshot) return <FormNotFoundView title={t('forms.transport_interruption.title')} />;
     return (
       <div>
-        <Button visualType="link" onClick={() => navigate(`/control-forms/transport-interruption/${id}`)} iconLeft="arrow_back">
+        <Button
+          visualType="link"
+          onClick={() =>
+            navigate(`/control-forms/transport-interruption/${id}`)
+          }
+          iconLeft="arrow_back"
+        >
           {t('common.back')}
         </Button>
         <TransportInterruptionFormViewCard
@@ -501,7 +515,7 @@ export function TransportInterruptionFormPage() {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: containerWidth }}>
       <DeleteConfirmModal
         subForm
         isOpen={removeConfirmTab !== null}
@@ -545,7 +559,7 @@ export function TransportInterruptionFormPage() {
       {!isDesktop && addFormDropdown}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')}>
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
           <Tabs.Trigger id="tab-compound">
             {t('forms.compound.generalPart')}
           </Tabs.Trigger>
@@ -614,6 +628,7 @@ export function TransportInterruptionFormPage() {
             <div
               style={{
                 marginLeft: 'auto',
+                paddingLeft: '1rem',
                 display: 'flex',
                 alignItems: 'center',
                 marginRight: '1rem',
@@ -992,10 +1007,22 @@ export function TransportInterruptionFormPage() {
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && (
-            <Button type="button" onClick={handleSaveAll}>
-              {t('common.save')}
+          {anyEditActive && subFormsAllConfirmed && (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => {
+                formik.resetForm();
+                handleCancelAllEdits();
+              }}
+            >
+              {t('common.cancel')}
             </Button>
+          )}
+          {anyEditActive && (
+            <AsyncButton type="button" onClick={handleSaveAll}>
+              {t('common.save')}
+            </AsyncButton>
           )}
           {anyEditActive && canDelete && (
             <DeleteConfirmModal onDelete={handleDelete} />

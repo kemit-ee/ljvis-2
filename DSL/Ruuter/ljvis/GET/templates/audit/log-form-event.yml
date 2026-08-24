@@ -23,19 +23,15 @@ declaration:
         type: string
       - field: muudetud_valjad
         type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: buildActorInfo
-
-buildActorInfo:
+extractRequestData:
   assign:
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
   next: selectDescription
 
 selectDescription:

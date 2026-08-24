@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useContainerWidth } from '../../../../hooks/useContainerWidth';
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -162,6 +163,8 @@ export function CompoundFormCreatePage() {
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+
+  const containerWidth = useContainerWidth(isDesktop, openTabs);
 
   const formRefs = useRef<Record<string, React.MutableRefObject<FormRef | null>>>(
     Object.values(ROUTE_TO_TAB).reduce((acc, { tabId }) => {
@@ -383,14 +386,16 @@ export function CompoundFormCreatePage() {
     styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'];
 
   return (
-    <div>
+    <div style={{
+      maxWidth: containerWidth,
+    }}>
       <div className="card-main">
         <Heading element="h1">{headingLabel}</Heading>
         {!isDesktop && addFormDropdown}
       </div>
 
       <Tabs value={activeTab} onChange={handleTabChange}>
-        <Tabs.List aria-label={t('forms.compound_form')}>
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
           <Tabs.Trigger id="tab-1">
             <span
               style={{
@@ -430,6 +435,7 @@ export function CompoundFormCreatePage() {
             <div
               style={{
                 marginLeft: 'auto',
+                paddingLeft: '1rem',
                 alignSelf: 'center',
                 marginRight: '1rem',
               }}

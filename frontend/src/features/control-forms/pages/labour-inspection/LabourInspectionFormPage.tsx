@@ -195,7 +195,11 @@ export function LabourInspectionFormPage() {
         </Alert>
       )}
 
-      <Button visualType="link" onClick={() => navigate('/')} iconLeft="arrow_back">
+      <Button
+        visualType="link"
+        onClick={() => navigate('/')}
+        iconLeft="arrow_back"
+      >
         {t('common.back')}
       </Button>
 
@@ -243,10 +247,7 @@ export function LabourInspectionFormPage() {
                 >
                   {t('common.cancel')}
                 </Button>
-                <AsyncButton
-                  type="button"
-                  onClick={() => formik.submitForm()}
-                >
+                <AsyncButton type="button" onClick={() => formik.submitForm()}>
                   {t('common.save')}
                 </AsyncButton>
                 {canConfirm && (
@@ -259,13 +260,17 @@ export function LabourInspectionFormPage() {
               canEdit && (
                 <AsyncButton
                   type="button"
+                  iconLeft="edit"
+                  visualType="secondary"
                   onClick={() => setIsEditActive(true)}
                 >
                   {t('common.edit')}
                 </AsyncButton>
               )
             )}
-            {canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
+            {isEditActive && canDelete && (
+              <DeleteConfirmModal onDelete={handleDelete} />
+            )}
           </div>
         </div>
       </form>

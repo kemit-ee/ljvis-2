@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useContainerWidth } from '../../../../hooks/useContainerWidth';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator } from '@tedi-design-system/react/tedi';
@@ -41,7 +42,7 @@ import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '.
 import { createTechnicalCheckValidationSchema } from './useTechnicalCheckForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
-import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab } from '../../hooks/useSubFormEditActive';
+import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
@@ -99,7 +100,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const transportInterruption = useSubForm<TransportInterruptionForm, TransportInterruptionFormEditCardRef>({ permPrefix: 'transport_interruption_form' });
 
   const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission });
-  
+
+  const containerWidth = useContainerWidth(isDesktop, openTabs);
+
   useEffect(() => {
     if (!snapshotId || !id) return;
     getTechnicalCheckFormSnapshot(variant, snapshotId, id)
@@ -420,6 +423,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     adr.editActive ||
     transportInterruption.editActive ||
     compoundEditActive;
+
+  const handleCancelAllEdits = () =>
+    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
+
   const canEdit = hasPermission('compound_form.write');
 
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
@@ -499,7 +506,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   if (id && !currentForm) return <FormNotFoundView title={t(titleKey)} />;
 
   return (
-    <div>
+    <div style={{ maxWidth: containerWidth }}>
       <DeleteConfirmModal
         subForm
         isOpen={removeConfirmTab !== null}
@@ -543,7 +550,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       {!isDesktop && addFormDropdown}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')}>
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
           <Tabs.Trigger id="tab-compound">
             {t('forms.compound.generalPart')}
           </Tabs.Trigger>
@@ -613,6 +620,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
             <div
               style={{
                 marginLeft: 'auto',
+                paddingLeft: '1rem',
                 display: 'flex',
                 alignItems: 'center',
                 marginRight: '1rem',
@@ -980,12 +988,26 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                 {t('common.edit')}
               </Button>
             )}
+          {anyEditActive && subFormsAllConfirmed && (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => {
+                formik.resetForm();
+                handleCancelAllEdits();
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+          )}
           {anyEditActive && (
             <AsyncButton type="button" onClick={handleSaveAll}>
               {t('common.save')}
             </AsyncButton>
           )}
-          {anyEditActive && canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
+          {anyEditActive && canDelete && (
+            <DeleteConfirmModal onDelete={handleDelete} />
+          )}
         </div>
       </div>
     </div>

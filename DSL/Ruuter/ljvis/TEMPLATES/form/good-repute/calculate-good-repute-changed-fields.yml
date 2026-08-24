@@ -1,0 +1,208 @@
+declaration:
+
+  version: "1.0"
+  description: "Calculate changed fields for good repute form including SQL lookup"
+  method: post
+  accepts: json
+  returns: json
+  namespace: service
+  allowlist:
+    body:
+      - field: form_id
+        type: string
+      - field: personal_code
+        type: string
+      - field: first_name
+        type: string
+      - field: last_name
+        type: string
+      - field: date_of_birth
+        type: string
+      - field: place_of_birth
+        type: string
+      - field: certificate_number
+        type: string
+      - field: certificate_issue_date
+        type: string
+      - field: certificate_country_code
+        type: string
+      - field: fitness_status
+        type: string
+      - field: unfit_from_date
+        type: string
+      - field: unfit_until_date
+        type: string
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.form_id}
+  result: res
+  next: buildAuditData
+
+buildAuditData:
+  assign:
+    old_personal_code: "${res.response.body[0].personalCode || ''}"
+    old_first_name: "${res.response.body[0].firstName || ''}"
+    old_last_name: "${res.response.body[0].lastName || ''}"
+    old_date_of_birth: "${res.response.body[0].dateOfBirth || ''}"
+    old_place_of_birth: "${res.response.body[0].placeOfBirth || ''}"
+    old_certificate_number: "${res.response.body[0].certificateNumber || ''}"
+    old_certificate_issue_date: "${res.response.body[0].certificateIssueDate || ''}"
+    old_certificate_country_code: "${res.response.body[0].certificateCountryCode || ''}"
+    old_fitness_status: "${res.response.body[0].fitnessStatus || ''}"
+    old_unfit_from_date: "${res.response.body[0].unfitFromDate || ''}"
+    old_unfit_until_date: "${res.response.body[0].unfitUntilDate || ''}"
+    new_personal_code: ${incoming.body.personal_code}
+    new_first_name: ${incoming.body.first_name}
+    new_last_name: ${incoming.body.last_name}
+    new_date_of_birth: ${incoming.body.date_of_birth}
+    new_place_of_birth: ${incoming.body.place_of_birth}
+    new_certificate_number: ${incoming.body.certificate_number}
+    new_certificate_issue_date: ${incoming.body.certificate_issue_date}
+    new_certificate_country_code: ${incoming.body.certificate_country_code}
+    new_fitness_status: ${incoming.body.fitness_status}
+    new_unfit_from_date: ${incoming.body.unfit_from_date}
+    new_unfit_until_date: ${incoming.body.unfit_until_date}
+    personal_code_changed: ${new_personal_code != old_personal_code}
+    first_name_changed: ${new_first_name != old_first_name}
+    last_name_changed: ${new_last_name != old_last_name}
+    date_of_birth_changed: ${new_date_of_birth != old_date_of_birth}
+    place_of_birth_changed: ${new_place_of_birth != old_place_of_birth}
+    certificate_number_changed: ${new_certificate_number != old_certificate_number}
+    certificate_issue_date_changed: ${new_certificate_issue_date != old_certificate_issue_date}
+    certificate_country_code_changed: ${new_certificate_country_code != old_certificate_country_code}
+    fitness_status_changed: ${new_fitness_status != old_fitness_status}
+    unfit_from_date_changed: ${new_unfit_from_date != old_unfit_from_date}
+    unfit_until_date_changed: ${new_unfit_until_date != old_unfit_until_date}
+    changed_fields: "[]"
+  next: checkPersonalCode
+
+checkPersonalCode:
+  switch:
+    - condition: ${personal_code_changed}
+      next: addPersonalCode
+  next: checkFirstName
+
+addPersonalCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"personal_code\"]" : "[\"personal_code\"]"}'
+  next: checkFirstName
+
+checkFirstName:
+  switch:
+    - condition: ${first_name_changed}
+      next: addFirstName
+  next: checkLastName
+
+addFirstName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"first_name\"]" : "[\"first_name\"]"}'
+  next: checkLastName
+
+checkLastName:
+  switch:
+    - condition: ${last_name_changed}
+      next: addLastName
+  next: checkDateOfBirth
+
+addLastName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"last_name\"]" : "[\"last_name\"]"}'
+  next: checkDateOfBirth
+
+checkDateOfBirth:
+  switch:
+    - condition: ${date_of_birth_changed}
+      next: addDateOfBirth
+  next: checkPlaceOfBirth
+
+addDateOfBirth:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"date_of_birth\"]" : "[\"date_of_birth\"]"}'
+  next: checkPlaceOfBirth
+
+checkPlaceOfBirth:
+  switch:
+    - condition: ${place_of_birth_changed}
+      next: addPlaceOfBirth
+  next: checkCertificateNumber
+
+addPlaceOfBirth:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"place_of_birth\"]" : "[\"place_of_birth\"]"}'
+  next: checkCertificateNumber
+
+checkCertificateNumber:
+  switch:
+    - condition: ${certificate_number_changed}
+      next: addCertificateNumber
+  next: checkCertificateIssueDate
+
+addCertificateNumber:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"certificate_number\"]" : "[\"certificate_number\"]"}'
+  next: checkCertificateIssueDate
+
+checkCertificateIssueDate:
+  switch:
+    - condition: ${certificate_issue_date_changed}
+      next: addCertificateIssueDate
+  next: checkCertificateCountryCode
+
+addCertificateIssueDate:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"certificate_issue_date\"]" : "[\"certificate_issue_date\"]"}'
+  next: checkCertificateCountryCode
+
+checkCertificateCountryCode:
+  switch:
+    - condition: ${certificate_country_code_changed}
+      next: addCertificateCountryCode
+  next: checkFitnessStatus
+
+addCertificateCountryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"certificate_country_code\"]" : "[\"certificate_country_code\"]"}'
+  next: checkFitnessStatus
+
+checkFitnessStatus:
+  switch:
+    - condition: ${fitness_status_changed}
+      next: addFitnessStatus
+  next: checkUnfitFromDate
+
+addFitnessStatus:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"fitness_status\"]" : "[\"fitness_status\"]"}'
+  next: checkUnfitFromDate
+
+checkUnfitFromDate:
+  switch:
+    - condition: ${unfit_from_date_changed}
+      next: addUnfitFromDate
+  next: checkUnfitUntilDate
+
+addUnfitFromDate:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"unfit_from_date\"]" : "[\"unfit_from_date\"]"}'
+  next: checkUnfitUntilDate
+
+checkUnfitUntilDate:
+  switch:
+    - condition: ${unfit_until_date_changed}
+      next: addUnfitUntilDate
+  next: returnResult
+
+addUnfitUntilDate:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"unfit_until_date\"]" : "[\"unfit_until_date\"]"}'
+  next: returnResult
+
+returnResult:
+  return: "{\"changed_fields\":${changed_fields}}"
+  next: end

@@ -31,14 +31,6 @@ declaration:
       - field: personApplications
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -52,7 +44,9 @@ extractRequestData:
     legal_bases: "${incoming.body.legalBases || '[]'}"
     termination_condition: "${incoming.body.terminationCondition || ''}"
     person_applications: "${incoming.body.personApplications || ''}"
-    created_by: "${auth_user.personalcode || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: getCurrentForm
 
 getCurrentForm:
@@ -75,6 +69,7 @@ checkFound:
 checkStatusSwitch:
   assign:
     current_status: "${currentFormRes.response.body[0].status}"
+    compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
   next: checkStatusValues
 
 checkStatusValues:
@@ -106,6 +101,26 @@ confirmForm:
       personApplications: ${person_applications}
       created_by: ${created_by}
   result: confirmRes
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "KV alamvorm kinnitatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${confirmRes.response.body[0].subFormNumber}/${confirmRes.response.body[0].version}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.transport_interruption.confirm"
+    event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: ${description}
+    log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

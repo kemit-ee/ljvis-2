@@ -419,6 +419,34 @@ export function useRemoveSubFormTab({
   return { removeConfirmTab, setRemoveConfirmTab, handleRemove, handleRemoveConfirmed };
 }
 
+interface CancelAllEditsOptions {
+  setCompoundEditActive: (active: boolean) => void;
+  driver: Pick<SubFormHandle<DriveRestForm>, 'setEditActive'>;
+  teammate: Pick<SubFormHandle<DriveRestForm>, 'setEditActive'>;
+  vehicle: Pick<SubFormHandle<TechnicalCheckForm>, 'setEditActive'>;
+  trailer: Pick<SubFormHandle<TechnicalCheckForm>, 'setEditActive'>;
+  adr?: Pick<SubFormHandle<AdrForm>, 'setEditActive'>;
+  transportInterruption?: Pick<SubFormHandle<TransportInterruptionForm>, 'setEditActive'>;
+}
+
+export function cancelAllEdits({
+  setCompoundEditActive,
+  driver,
+  teammate,
+  vehicle,
+  trailer,
+  adr,
+  transportInterruption,
+}: CancelAllEditsOptions): void {
+  setCompoundEditActive(false);
+  driver.setEditActive(false);
+  teammate.setEditActive(false);
+  vehicle.setEditActive(false);
+  trailer.setEditActive(false);
+  adr?.setEditActive(false);
+  transportInterruption?.setEditActive(false);
+}
+
 export function makeCheckAndAutoConfirm({
   compoundForm,
   triggerConfirm,

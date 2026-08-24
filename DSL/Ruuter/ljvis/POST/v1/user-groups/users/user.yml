@@ -2,31 +2,23 @@ declaration:
 
   version: "1.0"
   description: "Delete a user from a user group"
-  method: delete
+  method: post
   accepts: json
   returns: json
   namespace: user-groups
   allowlist:
-    params:
+    body:
       - field: q
         type: string
       - field: userId
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
-    user_group_id: "${incoming.params.q}"
-    user_id: "${incoming.params.userId}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
+    user_group_id: "${incoming.body.q}"
+    user_id: "${incoming.body.userId}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+    actor_personal_code: "${u.personalcode || ''}"
   next: getUserGroup
 
 getUserGroup:
@@ -74,13 +66,13 @@ getRemovedUserPersonalCode:
 
 buildAuditEvent:
   assign:
-    removed_personal_codes_json: "[]"
-    removed_personal_codes_str: ""
+    removed_personal_codes_json: ${JSON.stringify((personalCodesRes.response.body ?? []).map(u => u.personalCode))}
+    removed_personal_codes_str: ${ (personalCodesRes.response.body ?? []).map(u => "'" + u.personalCode + "'").join(', ') }
   next: buildAuditContent
 
 buildAuditContent:
   assign:
-    description: "Kasutajagrupi ${group_name} muutmine: eemaldatud kasutajad"
+    description: "Kasutajagrupi ${group_name} muutmine: eemaldatud kasutajad: ${removed_personal_codes_str}"
     log_content: "{\"targetGroupId\":${user_group_id},\"changedFields\":[],\"addedOrganisationIds\":[],\"removedOrganisationIds\":[],\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":${removed_personal_codes_json},\"cascadeRemovedPersonalCodes\":[]}"
   next: logAuditEvent
 

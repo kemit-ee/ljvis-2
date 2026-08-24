@@ -39,14 +39,6 @@ declaration:
       - field: violations
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -66,7 +58,9 @@ extractRequestData:
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
     violations: "${incoming.body.violations || '[]'}"
     violations_count: "${(JSON.parse(incoming.body.violations || '[]')).length}"
-    created_by: "${auth_user.personalcode || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: validateForm
 
 validateForm:
@@ -175,7 +169,7 @@ confirmForm:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "templates/audit/form/labour-inspection/log-labour-inspection-update"
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-confirm"
   requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
@@ -185,6 +179,8 @@ logAuditEvent:
     version: ${confirmRes.response.body[0].version}
     changed_fields: ${changed_fields_result}
     isikukood: ${punished_person_id_code}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

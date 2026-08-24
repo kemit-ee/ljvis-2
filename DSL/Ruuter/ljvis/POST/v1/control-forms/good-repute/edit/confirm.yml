@@ -33,14 +33,6 @@ declaration:
       - field: unfitUntilDate
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -56,7 +48,9 @@ extractRequestData:
     fitness_status: "${incoming.body.fitnessStatus || ''}"
     unfit_from_date: "${incoming.body.unfitFromDate || ''}"
     unfit_until_date: "${incoming.body.unfitUntilDate || ''}"
-    created_by: "${auth_user.personalcode || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: validateForm
 
 validateForm:
@@ -127,6 +121,30 @@ confirmForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: confirmRes
+  next: extractConfirmResponseData
+
+extractConfirmResponseData:
+  assign:
+    good_repute_form_key: "${confirmRes.response.body[0].id || ''}"
+    form_number: "${confirmRes.response.body[0].formNumber || ''}"
+    old_status: ${current_status}
+    new_status: ${status}
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/good-repute/log-good-repute-confirm"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    good_repute_form_key: ${good_repute_form_key}
+    personal_code: ${personal_code}
+    old_status: ${old_status}
+    new_status: ${new_status}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

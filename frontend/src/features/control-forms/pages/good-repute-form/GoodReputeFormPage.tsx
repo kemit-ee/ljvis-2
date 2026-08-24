@@ -246,12 +246,6 @@ export function GoodReputeFormPage() {
           isDesktop={isDesktop}
         />
 
-        <FileUploadBlock
-          formPath="good-repute"
-          formNumber={form.formNumber}
-          disabled={!isEditActive}
-        />
-
         {id && (
           <FormVersionsTable
             formId={id}

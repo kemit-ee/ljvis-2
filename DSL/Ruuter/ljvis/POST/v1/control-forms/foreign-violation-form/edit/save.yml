@@ -95,14 +95,6 @@ declaration:
       - field: status
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -148,9 +140,9 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
     status: "${incoming.body.status}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    created_by: "${auth_user.personalcode || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: checkIsCreate
 
 checkIsCreate:
@@ -247,7 +239,7 @@ extractCurrentStatus:
 
 checkFormNotLocked:
   switch:
-    - condition: ${current_status === 'confirmed' && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+    - condition: ${current_status === 'confirmed' && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
       next: returnFormLockedError
   next: calculateChangedFields
 

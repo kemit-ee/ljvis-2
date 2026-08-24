@@ -101,14 +101,6 @@ declaration:
       - field: status
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     key: "${incoming.body.id}"
@@ -157,7 +149,7 @@ extractRequestData:
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
-    created_by: "${auth_user.personalcode || ''}"
+    created_by: "${u.personalcode || ''}"
   next: check_driver1_personal_code_not_empty
 
 check_driver1_personal_code_not_empty:

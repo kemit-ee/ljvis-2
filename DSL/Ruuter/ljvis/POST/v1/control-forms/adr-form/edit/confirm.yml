@@ -53,14 +53,6 @@ declaration:
       - field: notes
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -85,9 +77,9 @@ extractRequestData:
     seal_opened_date: "${incoming.body.sealOpenedDate || ''}"
     seal_installed_date: "${incoming.body.sealInstalledDate || ''}"
     notes: "${incoming.body.notes || ''}"
-    created_by: "${auth_user.personalcode || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: getCurrentForm
 
 getCurrentForm:
