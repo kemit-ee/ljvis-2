@@ -1181,17 +1181,25 @@
       ]
     },
     {
-      "name": "DELETE /v1/user-groups/user — remove user from group",
+      "name": "POST /v1/user-groups/users/user — remove user from group",
       "request": {
-        "method": "DELETE",
+        "method": "POST",
         "header": [
           {
             "key": "Cookie",
             "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
           }
         ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"q\": \"{{created_group_id}}\", \"userId\": \"{{seeded_no_group_user_id}}\"}"
+        },
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/user-groups/user?q={{created_group_id}}&userId={{seeded_no_group_user_id}}",
+          "raw": "{{api_url}}/ljvis/v1/user-groups/users/user",
           "host": [
             "{{api_url}}"
           ],
@@ -1199,17 +1207,8 @@
             "ljvis",
             "v1",
             "user-groups",
+            "users",
             "user"
-          ],
-          "query": [
-            {
-              "key": "q",
-              "value": "{{created_group_id}}"
-            },
-            {
-              "key": "userId",
-              "value": "{{seeded_no_group_user_id}}"
-            }
           ]
         }
       },
