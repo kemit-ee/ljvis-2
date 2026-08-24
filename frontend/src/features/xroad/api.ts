@@ -84,6 +84,8 @@ export const searchCompanyByRegCode = async (
 ): Promise<XRoadCompany[]> => {
   const raw = await post<LihtandmedRawResponse>('/v1/xroad/arireg/lihtandmed', {
     registryCode,
+    companyName: null,
+    maxResults: null,
   });
   const keha = raw?.lihtandmed_v3Response?.keha;
   const leitud = parseInt(keha?.leitud_ettevotjate_arv ?? '0', 10);
@@ -99,6 +101,7 @@ export const searchCompanyByName = async (
   maxResults = 10,
 ): Promise<XRoadCompany[]> => {
   const raw = await post<LihtandmedRawResponse>('/v1/xroad/arireg/lihtandmed', {
+    registryCode: null,
     companyName,
     maxResults,
   });

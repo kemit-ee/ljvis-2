@@ -1,0 +1,51 @@
+params:
+  - registration_mark
+  - vin_code
+  - userId
+
+method: POST
+
+# No `service:` — routed through the configured Security Server, same as
+# paring2.yml (liiklusregister is only reachable via X-Road).
+#
+# Service identifier: EE/GOV/70001490/liiklusregister/yvkehtivus/v1
+# Verified against the real Security Server via the allowedMethods
+# meta-service — our subsystem (GOV/70001231/ljvis2) is authorised for
+# both paring2/v2 and yvkehtivus/v1 (see paring2.yml comment / LJVIS2-55).
+#
+# Envelope follows the same conventions confirmed for paring2.yml: the
+# liiklusregister XSDs use elementFormDefault="unqualified" AND reuse the
+# SAME field names as paring2 (regmrk/vinkood), so child elements of the
+# top-level <prod:yvkehtivus> body must NOT carry the prod: prefix.
+# CONFIRMED via a live test call against the real ee-dev Security Server
+# (2026-08-24): {regmrk: "123ABC"} returned kood=0 with real vehicle data
+# (yv_kp, jargm_yv, mark, vinkood, otsus) — this is the correct, working
+# request shape. See .ai/ljvis-tasks/all-x-tee.md for the full trace.
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:prod="http://liiklusregister.x-road.eu">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  <xroad:userId>{{userId}}</xroad:userId>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70001490</id:memberCode>
+  <id:subsystemCode>liiklusregister</id:subsystemCode>
+  <id:serviceCode>yvkehtivus</id:serviceCode>
+  <id:serviceVersion>v1</id:serviceVersion>
+  </xroad:service>
+  </soapenv:Header>
+  <soapenv:Body>
+  <prod:yvkehtivus>
+  {{#if registration_mark}}<regmrk>{{registration_mark}}</regmrk>{{else}}<regmrk xsi:nil="true"/>{{/if}}
+  {{#if vin_code}}<vinkood>{{vin_code}}</vinkood>{{else}}<vinkood xsi:nil="true"/>{{/if}}
+  </prod:yvkehtivus>
+  </soapenv:Body>
+  </soapenv:Envelope>
