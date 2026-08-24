@@ -67,7 +67,6 @@ services:
       - RUST_LOG=info
     volumes:
       - ./DSL/Ruuter/ljvis:/app/DSL/ljvis:ro
-      - ./tests/dsl:/app/DSL/ljvis/POST/auth/dev:ro
       - ./constants.ini:/app/constants.ini:ro
       - ./ruuter.yaml:/app/ruuter.yaml:ro
     ports:
