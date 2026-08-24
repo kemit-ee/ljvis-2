@@ -15,8 +15,38 @@ import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
+import { useVehicleSearch } from '../../../xroad/hooks/useVehicleSearch';
+import { searchVehicleByRegNr } from '../../../xroad/api';
+import type { XRoadVehicle } from '../../../xroad/types';
 import { FORM_CONFIG } from "../../formRoutes.ts";
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
+
+// Maps EU standard vehicle/trailer category codes returned by liiklusregister
+// (paring2 `kateg` field) to the internal VEHICLE_CATEGORY / TRAILER_CATEGORY
+// classifier codes used by the form dropdowns. Codes not present in the map
+// (e.g. M1 for passenger cars, N1 for light vans) have no corresponding
+// classifier entry — the field is left blank for manual selection.
+const LIIKLUSREGISTER_CATEGORY_TO_CLASSIFIER: Record<string, string> = {
+  // VEHICLE_CATEGORY (Directive 2012)
+  N2: 'A_2012',     // (a) N2 3.5–12 t
+  N3: 'B_2012',     // (b) N3 >12 t
+  M2: 'E_2012',     // (e) M2 >9 seats <5 t
+  M3: 'F_2012',     // (f) M3 >9 seats >5 t
+  T1: 'G3_2012',    T1b: 'G3_2012',
+  T2: 'H2_2012',    T2b: 'H2_2012',
+  T3: 'I_2012',     T3b: 'I_2012',
+  'T4.1': 'J_2012', 'T4.1b': 'J_2012',
+  'T4.2': 'K_2012', 'T4.2b': 'K_2012',
+  'T4.3': 'L_2012', 'T4.3b': 'L_2012',
+  // TRAILER_CATEGORY
+  O3: 'C_2012',     // (c) O3 3.5–10 t
+  O4: 'D_2012',     // (d) O4 >10 t
+};
+
+function mapCategoryCode(euCode: string | null | undefined): string {
+  if (!euCode) return '';
+  return LIIKLUSREGISTER_CATEGORY_TO_CLASSIFIER[euCode.trim()] ?? '';
+}
 
 export const emptyDriver = (): Driver => ({
   personalCodeEe: '',
@@ -70,7 +100,6 @@ export function useCompoundForm(
   const formNumberString = isEdit && form?.formNumber ? form.formNumber : '';
 
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
     null,
   );
@@ -497,16 +526,60 @@ export function useCompoundForm(
 
   const handleCompanySearch = () => searchByRegCode(formik.values.companyRegCode);
 
-  const handleVehicleSearch = async () => {
-    setVehicleSearchError(false);
-    const result = null;
-    if (!result) setVehicleSearchError(true);
+  const applyVehicleToForm = (vehicle: XRoadVehicle) => {
+    formik.setFieldValue('vehicleMake', vehicle.make ?? '');
+    formik.setFieldValue('vehicleModel', vehicle.model ?? '');
+    formik.setFieldValue('vehicleVin', vehicle.vin ?? '');
+    formik.setFieldValue('vehicleBodyType', vehicle.bodyType ?? '');
+    formik.setFieldValue('vehicleCategoryCode', mapCategoryCode(vehicle.categoryCode));
+    formik.setFieldValue(
+      'vehicleFirstRegistration',
+      vehicle.firstRegistrationDate ?? '',
+    );
+    formik.setFieldValue('vehicleCountryCode', 'EE');
   };
 
+  const {
+    searchByRegNr: searchVehicle,
+    error: vehicleSearchError,
+    setError: setVehicleSearchError,
+  } = useVehicleSearch({ onVehicleFound: applyVehicleToForm });
+
+  const handleVehicleSearch = () => searchVehicle(formik.values.vehicleRegNr);
+
+  // Per-index (trailers is a dynamic array), so this doesn't fit
+  // useVehicleSearch's single-error-flag shape — call the API directly and
+  // update the specific trailer entry, same pattern as its other onChange
+  // handlers (rebuild the array, formik.setFieldValue('trailers', ...)).
   const handleTrailerSearch = async (index: number) => {
     setTrailerSearchError(null);
-    const result = null;
-    if (!result) setTrailerSearchError(index);
+    const regNr = formik.values.trailers[index]?.regNr?.trim();
+    if (!regNr) {
+      setTrailerSearchError(index);
+      return;
+    }
+    try {
+      const results = await searchVehicleByRegNr(regNr);
+      if (!results.length) {
+        setTrailerSearchError(index);
+        return;
+      }
+      const vehicle = results[0];
+      const updated = [...formik.values.trailers];
+      updated[index] = {
+        ...updated[index],
+        countryCode: 'EE',
+        make: vehicle.make ?? '',
+        model: vehicle.model ?? '',
+        vin: vehicle.vin ?? '',
+        bodyType: vehicle.bodyType ?? '',
+        categoryCode: mapCategoryCode(vehicle.categoryCode),
+        firstRegistration: vehicle.firstRegistrationDate ?? '',
+      };
+      formik.setFieldValue('trailers', updated);
+    } catch {
+      setTrailerSearchError(index);
+    }
   };
 
   const handleMtrSearch = async () => {

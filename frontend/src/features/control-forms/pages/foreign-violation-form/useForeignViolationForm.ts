@@ -17,6 +17,7 @@ import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { getAssociatedPersons } from '../../../xroad/api';
 import type { XRoadAssociatedPerson } from '../../../xroad/types';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
+import { useVehicleSearch } from '../../../xroad/hooks/useVehicleSearch';
 
 export function useForeignViolationForm(
   form: ForeignViolationForm | undefined,
@@ -27,7 +28,6 @@ export function useForeignViolationForm(
   const { user: authUser } = useAuth();
   const { getByCode } = useClassifiers();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [vehicleSearchError, setVehicleSearchError] = useState(false);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
   const [associatedPersons, setAssociatedPersons] = useState<
     XRoadAssociatedPerson[]
@@ -266,11 +266,25 @@ export function useForeignViolationForm(
     searchByRegCode(formik.values.companyRegCode);
   const handleCompanyNameSearch = () => searchByName(formik.values.companyName);
 
-  const handleVehicleSearch = async () => {
-    setVehicleSearchError(false);
-    const result = null;
-    if (!result) setVehicleSearchError(true);
-  };
+  const {
+    searchByRegNr: searchVehicle,
+    error: vehicleSearchError,
+    setError: setVehicleSearchError,
+  } = useVehicleSearch({
+    onVehicleFound: (vehicle) => {
+      formik.setFieldValue('vehicleMake', vehicle.make ?? '');
+      formik.setFieldValue('vehicleModel', vehicle.model ?? '');
+      formik.setFieldValue('vehicleVin', vehicle.vin ?? '');
+      formik.setFieldValue('vehicleBodyType', vehicle.bodyType ?? '');
+      formik.setFieldValue(
+        'vehicleFirstRegistration',
+        vehicle.firstRegistrationDate ?? '',
+      );
+      formik.setFieldValue('vehicleCountryCode', 'EE');
+    },
+  });
+
+  const handleVehicleSearch = () => searchVehicle(formik.values.vehicleRegNr);
 
   const handleLicenceCopyNumberSearch = async () => {
     setLicenceCopyNumberError(false);
