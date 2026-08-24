@@ -44,6 +44,10 @@ setStatusDefault:
 buildAudit:
   assign:
     changed_fields_json: ${JSON.stringify(incoming.body.changed_fields)}
+  next: buildAuditStrings
+
+buildAuditStrings:
+  assign:
     description: "Muudeti vormi ${incoming.body.form_number} (olek: ${status_label}), üldosa muudetud väljad: ${changed_fields_json}"
     log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"status\":\"${incoming.body.status}\",\"changedFields\":${changed_fields_json}}"
   next: logAuditEvent
