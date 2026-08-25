@@ -29,7 +29,7 @@ Süsteem vajab **kahte eraldi PostgreSQL andmebaasi** — need peavad olema kaks
 | Port | `5432` |
 | Kasutaja | `resql-ljvis` teenus (JDBC) |
 
-Skeemi migratsioonid ja tootmise lähteandmed (õigused, klassifikaatorid ja asutused) rakendatakse automaatselt **Liquibase'i** kaudu deploy ajal (`DSL/Liquibase/changelog/`). Liquibase vajab sama andmebaasi ühendust. Klassifikaatorite lähteandmete ja esikülje kešši kohta vaata [`classifier-caching.md`](classifier-caching.md) ning [`andmehaldus/README.md`](../andmehaldus/README.md).
+Skeemi migratsioonid ja tootmise lähteandmed (õigused, klassifikaatorid ja asutused) rakendatakse automaatselt **Liquibase'i** kaudu deploy ajal (`DSL/Liquibase/changelog/`). Liquibase vajab sama andmebaasi ühendust. Klassifikaatorite lähteandmete ja esikülje vahemälu kohta vaata [`classifier-caching.md`](classifier-caching.md) ning [`andmehaldus/README.md`](../andmehaldus/README.md).
 
 Algne init-skript: `DSL/Liquibase/init-db.sql` — loob `ljvis_db` andmebaasi ja vajalikud laiendused.
 

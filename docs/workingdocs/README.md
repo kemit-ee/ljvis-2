@@ -12,7 +12,7 @@ See kataloog sisaldab LJVIS2 arenduse, arhitektuuri ja kasutuselevõtu olulisi t
 | X-tee | `xtee_implementatsioon.md` | X-tee kliendi- ja teenusepakkuja integratsioon |
 | Andmebaas ja migratsioonid | `db_errorhandling_rules.md`, `migration_guide_to_rust_ruuter.md` | Andmebaasi veakäsitlus ja Ruuteri migratsiooni juhised |
 | Turvalisus ja logimine | `audit-logging.md`, `logging-spec.md`, `permissions-matrix.md` | Auditilogimine, logimise nõuded ja õiguste maatriks |
-| Klassifikaatorid | `classifier-caching.md`, `classifier-denormalized-query-examples.md` | Klassifikaatorite API, päringud ja esikülje kešš |
+| Klassifikaatorid | `classifier-caching.md`, `classifier-denormalized-query-examples.md` | Klassifikaatorite API, päringud ja esikülje vahemälu |
 | Planeerimine ja järelejäänud tööd | `kasutusjuhend_todo.md`, `known-issues.md`, `use-cases-ljvis.md` | Dokumentatsiooni tööjärg, teadaolevad probleemid ja kasutusjuhud |
 
 ## Dokumendid, mis jäid `docs/` juurkausta
@@ -33,4 +33,4 @@ Need failid ja kataloogid jäid juurkausta, sest neid kasutatakse dokumentatsioo
 - [Dokumentatsiooni sisukord](../SUMMARY.md)
 - [API otspunktid](api-endpoints.md)
 - [Administraatori paigaldus- ja seadistusjuhend](admin-deployment-guide.md)
-- [Klassifikaatorite kešš](classifier-caching.md)
+- [Klassifikaatorite vahemälu](classifier-caching.md)

@@ -52,7 +52,7 @@
 - [API otspunktid](workingdocs/api-endpoints.md)
 - [Administraatori juhend](workingdocs/admin-guide.md)
 - [Administraatori paigaldus- ja seadistusjuhend](workingdocs/admin-deployment-guide.md)
-- [Klassifikaatorite kešš](workingdocs/classifier-caching.md)
+- [Klassifikaatorite vahemälu](workingdocs/classifier-caching.md)
 - [Arhitektuur](workingdocs/LJVIS_arhitektuur.md)
 - [Auditilogimine](workingdocs/audit-logging.md)
 - [Õiguste maatriks](workingdocs/permissions-matrix.md)
