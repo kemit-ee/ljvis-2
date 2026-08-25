@@ -277,7 +277,13 @@ curl -X POST "https://<base-url>/v1/user-groups" \
 
 ## Klassifikaatorite haldus
 
-Klassifikaatorid on süsteemi viitede loendid. Näiteks riigid, maakonnad, teed, rikkumiste koodid, sanktsioonid ja ametikohad.
+Klassifikaatorid on süsteemi viidete loendid. Näiteks riigid, maakonnad, teed, rikkumiste koodid, sanktsioonid ja ametikohad.
+
+### Andmete laadimine ja kešš
+
+Esikülg laadib kõik vormides kasutatavad klassifikaatoriväärtused sisselogimisel ühe päringuga otspunktist `GET /v1/classifier-values`. Andmed salvestatakse `ClassifierProvider`i ühisesse Reacti konteksti ja vormid kasutavad sama kešši. Tavaliste vormide jaoks ei tohi kasutada administraatoriõigust `classifier.read` nõudvat otspunkti `/v1/classifiers/bundle` — see võib tavakasutajale tagastada vastuse `403`.
+
+Kehtivuskuupäevad arvutatakse vastuse koostamisel. Kui administraator muudab klassifikaatori väärtuse kehtivust samas sessioonis, saab kešši värskendada administraatori vaates oleva uuesti laadimise toiminguga. Tehniline kirjeldus asub dokumendis [`classifier-caching.md`](classifier-caching.md).
 
 ## Ligipääs
 

@@ -29,7 +29,7 @@ Süsteem vajab **kahte eraldi PostgreSQL andmebaasi** — need peavad olema kaks
 | Port | `5432` |
 | Kasutaja | `resql-ljvis` teenus (JDBC) |
 
-Skeemi migratsioonid rakendatakse automaatselt **Liquibase** kaudu deploy ajal (`DSL/Liquibase/changelog/`). Liquibase vajab sama andmebaasi ühendust.
+Skeemi migratsioonid ja tootmise lähteandmed (õigused, klassifikaatorid ja asutused) rakendatakse automaatselt **Liquibase'i** kaudu deploy ajal (`DSL/Liquibase/changelog/`). Liquibase vajab sama andmebaasi ühendust. Klassifikaatorite lähteandmete ja esikülje kešši kohta vaata [`classifier-caching.md`](classifier-caching.md) ning [`andmehaldus/README.md`](../andmehaldus/README.md).
 
 Algne init-skript: `DSL/Liquibase/init-db.sql` — loob `ljvis_db` andmebaasi ja vajalikud laiendused.
 
@@ -384,8 +384,8 @@ Kubernetes init-containerid või `depends_on` ekvivalendid tuleb Helm chart'is v
 | [`docs/LJVIS_arhitektuur.md`](LJVIS_arhitektuur.md) | Süsteemi arhitektuuriülevaade |
 | [`docs/infrastructure-diagram.md`](infrastructure-diagram.md) | Dev + AWS prod + C4 diagrammid |
 | [`docs/infrastructure-access-view.md`](infrastructure-access-view.md) | Ligipääsupiirangud ja võrgutsoonid |
-| [`docs/api-endpoints.md`](api-endpoints.md) | API otspunktide loend |
-| [`docs/openapi.yaml`](openapi.yaml) | OpenAPI spetsifikatsioon |
+| [`api-endpoints.md`](api-endpoints.md) | API otspunktide loend |
+| [`openapi.yaml`](../openapi.yaml) | OpenAPI spetsifikatsioon |
 | [`docker-compose.yml`](../docker-compose.yml) | Dev-keskkonna teenuste konfiguratsioon |
 | [`constants.ini`](../constants.ini) | Teenuste sisemised URL-id |
 | [`DSL/Liquibase/`](../DSL/Liquibase/) | Andmebaasi migratsioonid |
