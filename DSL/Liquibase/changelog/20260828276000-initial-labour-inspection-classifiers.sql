@@ -13,7 +13,7 @@ DO $$
 
         IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TRANSPORT_CLASS') THEN
             RAISE NOTICE 'TRANSPORT_CLASS already exists, skipping';
-            CONTINUE;
+            RETURN;
         END IF;
 
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
@@ -67,7 +67,7 @@ DO $$
 
         IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'DOC_RIGHT_CHECK') THEN
             RAISE NOTICE 'DOC_RIGHT_CHECK already exists, skipping';
-            CONTINUE;
+            RETURN;
         END IF;
 
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)

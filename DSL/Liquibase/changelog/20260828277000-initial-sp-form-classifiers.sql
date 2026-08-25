@@ -13,7 +13,7 @@ DO $$
 
         IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'DRIVING_VIOLATION') THEN
             RAISE NOTICE 'DRIVING_VIOLATION already exists, skipping';
-            CONTINUE;
+            RETURN;
         END IF;
 
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
@@ -328,7 +328,7 @@ DO $$
 
         IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TACHOGRAPH_TYPES') THEN
             RAISE NOTICE 'TACHOGRAPH_TYPES already exists, skipping';
-            CONTINUE;
+            RETURN;
         END IF;
 
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
@@ -373,7 +373,7 @@ DO $$
 
         IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'OTHER_DOCUMENTS') THEN
             RAISE NOTICE 'OTHER_DOCUMENTS already exists, skipping';
-            CONTINUE;
+            RETURN;
         END IF;
 
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)

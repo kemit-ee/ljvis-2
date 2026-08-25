@@ -13,7 +13,7 @@ DO $$
 
         IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TRAILER_CATEGORY') THEN
             RAISE NOTICE 'TRAILER_CATEGORY already exists, skipping';
-            CONTINUE;
+            RETURN;
         END IF;
 
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
@@ -56,7 +56,7 @@ DO $$
 
         IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'VEHICLE_CATEGORY') THEN
             RAISE NOTICE 'VEHICLE_CATEGORY already exists, skipping';
-            CONTINUE;
+            RETURN;
         END IF;
 
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
@@ -107,7 +107,7 @@ DO $$
 
         IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'MASS_DIMENSION') THEN
             RAISE NOTICE 'MASS_DIMENSION already exists, skipping';
-            CONTINUE;
+            RETURN;
         END IF;
 
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
