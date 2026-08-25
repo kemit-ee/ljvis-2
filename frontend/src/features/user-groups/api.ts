@@ -1,4 +1,4 @@
-import { get, post, put, del } from '../../shared/api/client';
+import { get, post, put } from '../../shared/api/client';
 import type {
   PagedResponse,
   ListApiParams,
@@ -98,7 +98,7 @@ export const setUserGroupPermissions = (
   });
 
 export const deleteUserGroupUser = (id: string, userId: string) =>
-  del<{ id: string }[]>('/v1/user-groups/user', { q: id, userId });
+  post<{ id: string }[]>('/v1/user-groups/users/user', { q: id, userId });
 
 export const addUserToGroup = (id: string, userIds: string[]) =>
   put<string>('/v1/user-groups/users', { id, userIds });

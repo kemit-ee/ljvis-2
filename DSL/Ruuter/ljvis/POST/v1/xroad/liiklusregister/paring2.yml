@@ -1,0 +1,180 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Search Liiklusregister vehicle data by registration number via X-tee
+    paring2/v2 (LJVIS2-55), routed through XTR (see xtr.yaml ->
+    security_server and DSL/xtr/liiklusregister/paring2.yml). Backs the
+    "Otsi" lookup on koondvorm (sõiduk + haagis) and välisriigi rikkumise
+    vorm. Service identifier: EE/GOV/70001490/liiklusregister/paring2/v2.
+  method: post
+  accepts: json
+  returns: json
+  namespace: xroad
+  allowlist:
+    body:
+      - field: registrationNumber
+        type: string
+
+validateInput:
+  switch:
+    - condition: "${!(incoming.body.registrationNumber || '').trim()}"
+      next: returnMissingParam
+  next: get_user_context
+
+# Eraldi privileegi selle teenuse kasutamiseks ei kehtestata (LJVIS2-55 §3) —
+# kasutaja peab olema autenditud (kehtiv sessioon). check-user-authority
+# short-circuits with 401/403/400 itself when there's no valid session; on
+# success it also gives us the personal code needed for X-Road-UserId.
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: assignParams
+
+# All input values are trimmed and uppercased before the X-tee call
+# (LJVIS2-55 §: " 123abc " -> "123ABC").
+assignParams:
+  assign:
+    reg_mrk: "${(incoming.body.registrationNumber || '').trim().toUpperCase()}"
+    x_road_user_id: "${'EE' + (auth_user.personalcode || '')}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/liiklusregister/paring2"
+    headers:
+      type: json
+    body:
+      regmrk: ${reg_mrk}
+      userId: ${x_road_user_id}
+  result: xtrResponse
+  next: checkXtrStatus
+
+# XTR maps EVERY failure mode — Security Server unreachable, request
+# timeout, and business-level SOAP Faults from the producer alike — to a
+# non-2xx status (502/504/500), so a single range check covers all of
+# LJVIS2-55's error scenarios ("X-tee turvaserver ei ole kättesaadav",
+# "Liiklusregister tagastab vea", "vastuse teisendamine ebaõnnestub").
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "liiklusregister.paring2.v2"
+      request_xml: "${'regmrk=' + reg_mrk}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
+  result: logResult
+  next: mapResponse
+
+# XTR's REST response shape is {"headers": ..., "body": ...} (the translated
+# SOAP Header/Body); namespace prefixes on response elements are preserved
+# verbatim (e.g. "prod:paring2Response"), so we look up the key by suffix
+# instead of hardcoding a prefix. Zero matches (no vehicle found) is a valid,
+# non-error result per spec — item is simply absent/null in that case.
+# NB: each key in an `assign:` block is evaluated against the state BEFORE
+# the step runs, not against sibling keys in the same block — hence the
+# chain is split into separate single-purpose steps.
+mapResponse:
+  assign:
+    soap_body: "${(xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {})}"
+  next: findResponseKey
+
+findResponseKey:
+  assign:
+    response_key: "${Object.keys(soap_body).find(k => k.endsWith('paring2Response'))}"
+  next: extractResponseNode
+
+extractResponseNode:
+  assign:
+    response_node: "${response_key ? soap_body[response_key] : null}"
+  next: extractRawItems
+
+extractRawItems:
+  assign:
+    raw_items: "${(response_node && response_node.item) ? response_node.item : null}"
+  next: normalizeItems
+
+normalizeItems:
+  assign:
+    found_items: "${raw_items ? (Array.isArray(raw_items) ? raw_items : [raw_items]) : []}"
+  next: buildResult
+
+# vehicleData.category (kateg) is always populated by the producer for both
+# motor vehicles and trailers (LJVIS2-55 decision 05.05.2026) — passed
+# through as-is, no special-casing needed on our side. registrationCountryCode
+# is hardcoded 'EE' — paring2 only ever covers Estonian-registered vehicles.
+# regtulek arrives as dd.mm.yyyy; reformatted to yyyy-MM-dd to match the
+# compound_form.vehicle_first_registration / foreign_violation_form DATE
+# columns and the frontend's DateField (new Date(iso)).
+buildResult:
+  assign:
+    vehicles: >-
+      ${found_items.map(it => {
+        const sa = it.soiduki_andmed || {};
+        const dParts = (it.regtulek || '').split('.');
+        const isoDate = dParts.length === 3 ? (dParts[2] + '-' + dParts[1] + '-' + dParts[0]) : '';
+        return {
+          registrationNumber: it.regmrk || reg_mrk,
+          registrationCountryCode: 'EE',
+          make: sa.marknm || '',
+          model: sa.mudel_mod || '',
+          vin: it.vinkood || '',
+          bodyType: sa.kerenm || '',
+          categoryCode: sa.kateg || '',
+          firstRegistrationDate: isoDate
+        };
+      })}
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: "${({data: vehicles})}"
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "liiklusregister.paring2.v2"
+      request_xml: "${'regmrk=' + reg_mrk}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
+  result: logResult
+  next: returnXtrError
+
+returnXtrError:
+  status: 502
+  return: '{"error": "XTR_ERROR", "message": "Liiklusregistri päring ebaõnnestus"}'
+  next: end
+
+returnMissingParam:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "registrationNumber is required"}'
+  next: end

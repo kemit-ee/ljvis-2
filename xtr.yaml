@@ -1,18 +1,18 @@
 dsl_path: /app/DSL
 port: 8080
 
-xroad_instance: ee-test
+xroad_instance: ee-dev
 xroad_protocol_version: "4.0"
 
 client_data:
   member_class: GOV
-  member_code: "70006317"
-  subsystem_code: ljvis
-
-wsdl_watch_dir: /app/wsdl
+  member_code: "70001231"
+  subsystem_code: ljvis2
 
 security_server:
-  url: "https://demo-ariregxmlv6.rik.ee/"
+  url: "https://cammy.ml.ee/"
+  keystore_path: /app/ssl/keystore.p12
+  keystore_password_env: XTR_KEYSTORE_PASSWORD
 
 limits:
   max_request_bytes: 1048576

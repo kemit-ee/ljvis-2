@@ -39,14 +39,6 @@ declaration:
       - field: notes
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -64,9 +56,9 @@ extractRequestData:
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
     violations: "${incoming.body.violations || '[]'}"
     notes: "${incoming.body.notes || ''}"
-    created_by: "${auth_user.personalcode || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: checkNotesLength
 
 checkNotesLength:
@@ -128,7 +120,7 @@ extractCurrentStatus:
 
 checkFormNotLocked:
   switch:
-    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
       next: returnFormLockedError
   next: updateForm
 

@@ -39,14 +39,6 @@ declaration:
       - field: violations
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -64,7 +56,9 @@ extractRequestData:
     punished_person_last_name: "${incoming.body.punishedPersonLastName || ''}"
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
     violations: "${incoming.body.violations || '[]'}"
-    created_by: "${auth_user.personalcode || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: validateForm
 
 validateForm:
@@ -127,6 +121,8 @@ logCreate:
     form_number: ${saveRes.response.body[0].formNumber}
     version: ${saveRes.response.body[0].version}
     isikukood: ${punished_person_id_code}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -148,7 +144,7 @@ extractCurrentStatus:
 
 checkFormNotLocked:
   switch:
-    - condition: ${current_status === 'confirmed' && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+    - condition: ${current_status === 'confirmed' && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
       next: returnFormLockedError
   next: calculateChangedFields
 
@@ -222,6 +218,8 @@ logUpdate:
     version: ${saveRes.response.body[0].version}
     changed_fields: ${changed_fields_result}
     isikukood: ${punished_person_id_code}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

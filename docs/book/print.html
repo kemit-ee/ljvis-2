@@ -1,0 +1,2578 @@
+<!DOCTYPE HTML>
+<html lang="et" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>LJVIS2 dokumentatsioon</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-84f64cdb.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-79e3ac2d.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">LJVIS2 dokumentatsioon</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/kemit-ee/ljvis-2" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="sissejuhatus"><a class="header" href="#sissejuhatus">Sissejuhatus</a></h1>
+<p>LJVIS2 (Liiklusjärelvalve infosüsteem 2) on veebipõhine tööriist transpordiametnikele ja ettevõtjatele. Selle abil dokumenteeritakse liiklus-, tööinspektsiooni- ja tehnilisi kontrolle, hallatakse kasutajaid ning vaadatakse auditilogi.</p>
+<h2 id="kellele-juhend-on-mõeldud"><a class="header" href="#kellele-juhend-on-mõeldud">Kellele juhend on mõeldud</a></h2>
+<ul>
+<li><strong>Ametnikele</strong>, kes täidavad kontrollakte (nt tee kontroll, tööinspektsioon, tehniline kontroll).</li>
+<li><strong>Administraatoritele</strong>, kes haldavad süsteemi kasutajaid, gruppe, õigusi ja klassifikaatoreid.</li>
+<li><strong>Ettevõtja esindajatele</strong>, kes soovivad tulevikus vaadata ettevõtte riskitaset.</li>
+</ul>
+<h2 id="peamised-funktsioonid"><a class="header" href="#peamised-funktsioonid">Peamised funktsioonid</a></h2>
+<ul>
+<li>TARA autentimine</li>
+<li>Kontrollaktide vormid</li>
+<li>Failide manustamine</li>
+<li>Kasutajate ja õiguste haldus</li>
+<li>Klassifikaatorite haldus</li>
+<li>Auditilogi</li>
+<li>Planeeritud riskihindamine</li>
+</ul>
+<h2 id="süsteemi-arhitektuur-ühe-pilguga"><a class="header" href="#süsteemi-arhitektuur-ühe-pilguga">Süsteemi arhitektuur ühe pilguga</a></h2>
+<pre><code class="language-mermaid">flowchart TD
+    A[Kasutaja brauser] --&gt;|TARA| B[LJVIS2 frontend]
+    B --&gt; C[Ruuter DSL]
+    C --&gt; D[RESQL andmebaas]
+    C --&gt; E[X-tee liidesed]
+    C --&gt; F[Auditilogi]
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sisselogimine"><a class="header" href="#sisselogimine">Sisselogimine</a></h1>
+<p>Süsteemi sisenemiseks kasutatakse Eesti autentimisteenust TARA. Sisselogimislehel on kaks sisenevusnuppu: <strong>Kodanikule</strong> ja <strong>Ametnikule</strong>.</p>
+<h2 id="sisselogimise-sammud"><a class="header" href="#sisselogimise-sammud">Sisselogimise sammud</a></h2>
+<ol>
+<li>Avage LJVIS2 veebiaadress.</li>
+<li>Valige oma rolli järgi nupp:
+<ul>
+<li><strong>Kodanikule</strong> — ettevõtja esindajale (tulevikus riskitaseme vaatamiseks).</li>
+<li><strong>Ametnikule</strong> — transpordiametnikule.</li>
+</ul>
+</li>
+<li>Teid suunatakse TARA autentimiskeskkonda.</li>
+<li>Sisestage isikukood ja autentige end (Smart-ID, Mobiil-ID või ID-kaart).</li>
+<li>Pärast edukat autentimist suunatakse Teid tagasi LJVIS2 töölauale.</li>
+</ol>
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    participant K as Kasutaja
+    participant L as LJVIS2 leht
+    participant T as TARA
+    participant S as LJVIS2 server
+
+    K-&gt;&gt;L: Klõpsab "Sisene süsteemi"
+    L-&gt;&gt;T: Suunab TARA autentimisele
+    K-&gt;&gt;T: Sisestab isikukoodi ja autentib
+    T--&gt;&gt;S: Tagastab autentitud kasutaja andmed
+    S--&gt;&gt;L: Loob sessiooni
+    L-&gt;&gt;K: Kuvab töölaud
+</code></pre>
+<h2 id="rollid-ja-õigused"><a class="header" href="#rollid-ja-õigused">Rollid ja õigused</a></h2>
+<p>Pärast sisselogimist määrab süsteem, millised menüüpunktid kuvatakse. See sõltub Teie kuuluvusest kasutajagruppidesse.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Roll</th><th>Tüüpiline õigus</th><th>Ligipääs</th></tr>
+</thead>
+<tbody>
+<tr><td>Üldadministraator</td><td><code>user.list.admin</code>, <code>user_group.list.admin</code>, <code>classifier.list</code>, <code>audit.read</code></td><td>Kõik</td></tr>
+<tr><td>Organisatsiooni admin</td><td><code>user.list.local</code>, <code>user_group.list.local</code></td><td>Oma organisatsioon</td></tr>
+<tr><td>Ametnik</td><td><code>foreign_violation_form.write</code> jms</td><td>Kontrollaktide täitmine</td></tr>
+<tr><td>Ettevõtja esindaja</td><td>— (riskivaade)</td><td>Oma ettevõtte andmed</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="väljalogimine"><a class="header" href="#väljalogimine">Väljalogimine</a></h2>
+<p>Väljalogimiseks klõpsake paremas ülanurgas kasutaja menüüd ja valige <strong>Logi välja</strong>. See lõpetab nii LJVIS2 kui ka TIM sessiooni.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="menüü-ja-navigatsioon"><a class="header" href="#menüü-ja-navigatsioon">Menüü ja navigatsioon</a></h1>
+<p>Põhimenüü asub vasakul küljel. Süsteemi vaates on topeltnupp: vasakul <strong>Menüü</strong> ja paremal <strong>Kasutaja</strong>.</p>
+<h2 id="menüü-struktuur"><a class="header" href="#menüü-struktuur">Menüü struktuur</a></h2>
+<pre><code class="language-mermaid">flowchart TD
+    A[🖥️ Töölaud] --&gt; B[⚙️ Haldus]
+    B --&gt; C[👤 Kasutajad]
+    B --&gt; D[👥 Kasutajagrupid]
+    B --&gt; E[📋 Klassifikaatorid]
+    B --&gt; F[📄 Auditilogi]
+    A --&gt; G[📝 Kontrollaktid]
+    G --&gt; H[Välisrikkumine]
+    G --&gt; I[Liitvorm]
+    G --&gt; J[Tööinspektsioon]
+    G --&gt; K[Tehniline kontroll]
+    G --&gt; L[Hea maine]
+    G --&gt; M[ADR]
+    G --&gt; N[Vedude katkestamine]
+    G --&gt; O[Sõidu- ja puhkeaeg]
+</code></pre>
+<h2 id="menüüpunktide-õigused"><a class="header" href="#menüüpunktide-õigused">Menüüpunktide õigused</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Menüüpunkt</th><th>Õigus</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Töölaud</td><td>—</td><td>Avaleht kõigile autenditud kasutajatele</td></tr>
+<tr><td>Kasutajad</td><td><code>user.list.admin</code> või <code>user.list.local</code></td><td>Kasutajate nimekiri ja haldus</td></tr>
+<tr><td>Kasutajagrupid</td><td><code>user_group.list.admin</code> või <code>user_group.list.local</code></td><td>Gruppide haldus</td></tr>
+<tr><td>Klassifikaatorid</td><td><code>classifier.list</code></td><td>Klassifikaatorite vaatamine ja muutmine</td></tr>
+<tr><td>Auditilogi</td><td><code>audit.read</code></td><td>Tegevuste logi</td></tr>
+<tr><td>Välisriigis toimunud rikkumise akt</td><td><code>foreign_violation_form.write</code></td><td>Vormi täitmine</td></tr>
+<tr><td>Liitvorm</td><td><code>compound_form.write</code></td><td>Tee kontrolli vorm</td></tr>
+<tr><td>Tööinspektsiooni kontrollakt</td><td><code>labour_inspection_form.write</code></td><td>Tööinspektsiooni vorm</td></tr>
+<tr><td>Tehniline kontroll</td><td><code>vehicle_technical_form.write</code> / <code>trailer_technical_form.write</code></td><td>Sõiduki/haagise kontroll</td></tr>
+<tr><td>Vedude katkestamine</td><td><code>transport_interruption_form.write</code></td><td>Katkestamise vorm</td></tr>
+<tr><td>ADR</td><td><code>adr_form.write</code></td><td>Ohtlike kaupade vorm</td></tr>
+<tr><td>Hea maine</td><td><code>good_repute_form.write</code></td><td>Hea maine vorm</td></tr>
+<tr><td>Sõidu- ja puhkeaeg</td><td><code>drive_rest_form.write</code></td><td>Sõidu- ja puhkeaeg</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="menüü-käitumine-mobiilis"><a class="header" href="#menüü-käitumine-mobiilis">Menüü käitumine mobiilis</a></h2>
+<p>Mobiilseadmes on külgmenüü vaikimisi peidus. Selle avamiseks vajutage ülemisel ribal <strong>Menüü</strong> nuppu. Menüü sulgub automaatselt, kui valite uue lehekülje.</p>
+<h2 id="aktiivne-punkt"><a class="header" href="#aktiivne-punkt">Aktiivne punkt</a></h2>
+<p>Aktiivne menüüpunkt on esile tõstetud. Kui olete haldusala all, jääb <strong>Haldus</strong> grupp lahti.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="töölaud"><a class="header" href="#töölaud">Töölaud</a></h1>
+<p>Töölaud on süsteemi avaleht pärast sisselogimist. Sellelt saab kiiresti alustada levinud tegevusi.</p>
+<h2 id="töövoo-algus"><a class="header" href="#töövoo-algus">Töövoo algus</a></h2>
+<pre><code class="language-mermaid">flowchart LR
+    A[Töölaud] --&gt; B[Uus kontrollakt]
+    A --&gt; C[Viimased tegevused]
+    A --&gt; D[Otsing]
+    B --&gt; E[Vali vormi tüüp]
+    E --&gt; F[Täida vorm]
+</code></pre>
+<h2 id="võimalikud-komponendid"><a class="header" href="#võimalikud-komponendid">Võimalikud komponendid</a></h2>
+<ul>
+<li><strong>Kiirlingid uute vormide juurde</strong> — näiteks “Uus liitvorm”, “Uus välisrikkumise akt”.</li>
+<li><strong>Viimased tegevused</strong> — nimekiri viimati salvestatud või vaadatud vormidest.</li>
+<li><strong>Hoiatused ja märkused</strong> — võimalikud tõrked või infomärkused.</li>
+</ul>
+<h2 id="töölaud-erinevate-rollide-jaoks"><a class="header" href="#töölaud-erinevate-rollide-jaoks">Töölaud erinevate rollide jaoks</a></h2>
+<ul>
+<li><strong>Ametnikule</strong> kuvatakse peamiselt vormide lingid.</li>
+<li><strong>Administraatorile</strong> võidakse kuvada täiendavaid linke kasutajate ja auditilogi halduseks.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="vormide-üldine-käsitsemine"><a class="header" href="#vormide-üldine-käsitsemine">Vormide üldine käsitsemine</a></h1>
+<p>Kõik kontrollaktid töötavad sarnaselt. Selles peatükis kirjeldatakse ühised toimingud.</p>
+<h2 id="vormi-elutsükkel"><a class="header" href="#vormi-elutsükkel">Vormi elutsükkel</a></h2>
+<pre><code class="language-mermaid">flowchart LR
+    A[Uus vorm] --&gt; B[Täida väljad]
+    B --&gt; C{Kohustuslikud väljad täidetud?}
+    C --&gt;|Ei| B
+    C --&gt;|Jah| D[Salvesta mustand]
+    D --&gt; E[Vaata üle]
+    E --&gt; F[Salvesta lõplikult]
+    F --&gt; G[Kinnita]
+    G --&gt; H[Avaldatud]
+    H --&gt; I[Auditilogi kirje]
+</code></pre>
+<h2 id="kohustuslikud-väljad"><a class="header" href="#kohustuslikud-väljad">Kohustuslikud väljad</a></h2>
+<p>Kohustuslikud väljad on tähistatud tärniga <code>*</code> või punase tähega. Vormi ei saa lõplikult salvestada enne, kui kõik kohustuslikud väljad on korrektselt täidetud.</p>
+<h2 id="salvestamise-nupud"><a class="header" href="#salvestamise-nupud">Salvestamise nupud</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Nupp</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Salvesta mustand</td><td>Salvestab vormi mustandina. Veel ei kinnitata.</td></tr>
+<tr><td>Salvesta lõplikult</td><td>Valideerib ja salvestab vormi. Nõuab kõigi kohustuslike väljade täitmist.</td></tr>
+<tr><td>Kinnita</td><td>Muudab vormi avaldatuks. Hiljem muuta ei saa.</td></tr>
+<tr><td>Tühista</td><td>Tühistab vormi täitmise.</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="mõisted"><a class="header" href="#mõisted">Mõisted</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Mõiste</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Mustand</td><td>Salvestatud, kuid mitte kinnitatud vorm. Saab muuta.</td></tr>
+<tr><td>Avaldatud</td><td>Kinnitatud vorm, mida enam muuta ei saa.</td></tr>
+<tr><td>Snapshot</td><td>Vormi salvestatud seisund ajateljel. Võimaldab vaadata varasemaid versioone.</td></tr>
+<tr><td>Vormi number</td><td>Unikaalne number, mis antakse vormile salvestamisel.</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="vormide-otsing"><a class="header" href="#vormide-otsing">Vormide otsing</a></h2>
+<p>Vormidele pääseb ligi töölaua või menüü kaudu. Iga vormi vaade koosneb:</p>
+<ul>
+<li>põhiandmete kaartidest</li>
+<li>alamvormide loendist (liitvormi puhul)</li>
+<li>failide loendist</li>
+<li>ajaloo/snapshots loendist</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="välisriigis-toimunud-rikkumise-akt"><a class="header" href="#välisriigis-toimunud-rikkumise-akt">Välisriigis toimunud rikkumise akt</a></h1>
+<p>Välisriigis toimunud rikkumise akti kasutatakse siis, kui välisriigi ametiasutus edastab Eesti transpordiametile teate liiklusrikkumisest, mille on toime pannud Eesti vedaja või tema juht välisriigis.</p>
+<h2 id="vormi-eesmärk"><a class="header" href="#vormi-eesmärk">Vormi eesmärk</a></h2>
+<ul>
+<li>Dokumenteerida välisriigis tuvastatud rikkumine</li>
+<li>Määrata sanktsioon ja soovitatav meede</li>
+<li>Salvestada rikkumise detailid (sõiduk, juht, ettevõte)</li>
+<li>Edastada andmed hilisemaks statistikaks ja riskihindamiseks</li>
+</ul>
+<h2 id="menüü-tee"><a class="header" href="#menüü-tee">Menüü tee</a></h2>
+<p>Töölaud → <strong>Välisriigis toimunud rikkumise akt</strong> → Täida vorm</p>
+<p>või</p>
+<p>Menüü → Kontrollaktid → <strong>Välisriigis toimunud rikkumise akt</strong></p>
+<h2 id="vormi-osad-ja-kohustuslikud-väljad"><a class="header" href="#vormi-osad-ja-kohustuslikud-väljad">Vormi osad ja kohustuslikud väljad</a></h2>
+<p>Vorm on jagatud kaartideks. Allpool on iga kaardi väljad. Kui välja juures on täht <code>*</code>, on see kohustuslik.</p>
+<h3 id="1-teatava-info"><a class="header" href="#1-teatava-info">1. Teatava info</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Teatav riik (<code>reportingCountryCode</code>)</td><td>Jah</td><td>Vali riik, kust teade tuli</td></tr>
+<tr><td>Teatav asutus (<code>reportingAuthority</code>)</td><td>Jah</td><td>Asutuse nimi, max 600 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="2-kontrolli-info"><a class="header" href="#2-kontrolli-info">2. Kontrolli info</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kontrolli kuupäev (<code>inspectionDate</code>)</td><td>Jah</td><td>Kuupäev, mil kontroll toimus</td></tr>
+<tr><td>Kontrolli kellaaeg (<code>inspectionTime</code>)</td><td>Ei</td><td>Kellaaeg HH:MM formaadis</td></tr>
+<tr><td>Kontrolli aadressirida 1 (<code>inspectionAddressLine1</code>)</td><td>Ei</td><td>Max 300 tähemärki</td></tr>
+<tr><td>Kontrolli aadressirida 2 (<code>inspectionAddressLine2</code>)</td><td>Ei</td><td>Max 300 tähemärki</td></tr>
+<tr><td>Kontrolli piirkond (<code>inspectionRegion</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Kontrolli linn (<code>inspectionCity</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Kontrolli riik (<code>inspectionCountryCode</code>)</td><td>Ei</td><td>Valik riikide loendist</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="3-ettevõtte-info"><a class="header" href="#3-ettevõtte-info">3. Ettevõtte info</a></h3>
+<p>Ettevõtte andmeid saab otsida registrikoodi või nime järgi. Otsingunupp täidab leitud ettevõtte andmed vormi.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Registrikood (<code>companyRegCode</code>)</td><td>Ei</td><td>20 tähemärki</td></tr>
+<tr><td>Ettevõtte nimi (<code>companyName</code>)</td><td>Ei</td><td>Max 300 tähemärki</td></tr>
+<tr><td>Ettevõtte riik (<code>companyCountryCode</code>)</td><td>Ei</td><td>Valik riikide loendist</td></tr>
+<tr><td>Aadressirida 1 (<code>companyAddressLine1</code>)</td><td>Ei</td><td>Max 300 tähemärki</td></tr>
+<tr><td>Aadressirida 2 (<code>companyAddressLine2</code>)</td><td>Ei</td><td>Max 300 tähemärki</td></tr>
+<tr><td>Linn (<code>companyCity</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Postiindeks (<code>companyPostalCode</code>)</td><td>Ei</td><td>Max 20 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="4-juhi-info"><a class="header" href="#4-juhi-info">4. Juhi info</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Juhi eesnimi (<code>driverFirstName</code>)</td><td>Ei</td><td>Max 200 tähemärki</td></tr>
+<tr><td>Juhi perekonnanimi (<code>driverLastName</code>)</td><td>Ei</td><td>Max 200 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="5-sõiduki-info"><a class="header" href="#5-sõiduki-info">5. Sõiduki info</a></h3>
+<p>Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liidest.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Registrinumber (<code>vehicleRegNr</code>)</td><td>Ei</td><td>Max 20 tähemärki</td></tr>
+<tr><td>Mark (<code>vehicleMake</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Mudel (<code>vehicleModel</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Sõiduki riik (<code>vehicleCountryCode</code>)</td><td>Ei</td><td>Valik riikide loendist</td></tr>
+<tr><td>VIN (<code>vehicleVin</code>)</td><td>Ei</td><td>Max 17 tähemärki</td></tr>
+<tr><td>Esmane registreerimine (<code>vehicleFirstRegistration</code>)</td><td>Ei</td><td>Kuupäev</td></tr>
+<tr><td>Keretüüp (<code>vehicleBodyType</code>)</td><td>Ei</td><td>Max 50 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="6-loadokoopia-info"><a class="header" href="#6-loadokoopia-info">6. Loadokoopia info</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Loadokoopia number (<code>licenceCopyNumber</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="7-rikkumise-kirjeldus"><a class="header" href="#7-rikkumise-kirjeldus">7. Rikkumise kirjeldus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Rikkumise kirjeldus (<code>violationDescription</code>)</td><td>Ei</td><td>Vaba tekst</td></tr>
+<tr><td>Väiksemate rikkumiste arv (<code>minorViolationsCount</code>)</td><td>Ei</td><td>Arv (0–999)</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="8-sanktsioon"><a class="header" href="#8-sanktsioon">8. Sanktsioon</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Sanktsioon (<code>sanctionCode</code>)</td><td>Jah</td><td>Valik: KORRAS, HOIATUS, KABOTAAŽVEO AJUTINE KEELAMINE, TRAHV, LIIKLEMISKEELD, SÕIDUKI KASUTAMISE TAKISTAMINE, MUU</td></tr>
+<tr><td>Sanktsiooni märkused (<code>sanctionNotes</code>)</td><td>Ei</td><td>Vaba tekst</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="9-soovitatav-meede"><a class="header" href="#9-soovitatav-meede">9. Soovitatav meede</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Seligitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Soovitatav meede (<code>recommendedMeasureCode</code>)</td><td>Jah</td><td>Valik: PUUDUVAD, HOIATUS, ÜHENDUSE TEGEVUSLOA PEATAMINE, ÜHENDUSE TEGEVUSLUBA KEHTETUKS, TEGEVUSLOA ARAKIRJADE PEATAMINE, TEGEVUSLUBA KEHTETUKS, JUHITUNNISTUSEST KEELDUMINE, JUHITUNNISTUS KEHTETUKS, MUU</td></tr>
+<tr><td>Soovitatava meetme täpsustus (<code>recommendedMeasureNotes</code>)</td><td>Jah, kui meede on “MUU”</td><td>Vaba tekst</td></tr>
+<tr><td>Üldised märkused (<code>recommendedMeasureGeneralNotes</code>)</td><td>Ei</td><td>Vaba tekst</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="10-sisestamise-kuupäev"><a class="header" href="#10-sisestamise-kuupäev">10. Sisestamise kuupäev</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Sisestamise kuupäev (<code>dataEntryDate</code>)</td><td>Jah</td><td>Kuupäev</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="11-inspektori-info"><a class="header" href="#11-inspektori-info">11. Inspektori info</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Eesnimi (<code>inspectorFirstName</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Perekonnanimi (<code>inspectorLastName</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Asutus (<code>inspectorOrganisationId</code>)</td><td>Jah</td><td>Valik organisatsioonide loendist</td></tr>
+<tr><td>Ametikoht (<code>inspectorProfession</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="12-el-rikkumiste-loend"><a class="header" href="#12-el-rikkumiste-loend">12. EL rikkumiste loend</a></h3>
+<p>Lahtri klõpsates avaneb EL määruse rikkumiste loend, mis on jagatud rühmadesse MSI, VSI, SI, MI. Valida saab mitme rikkumise. Need väärtused ei ole vormi täitmiseks kohustuslikud, kuid on olulised riskihindamiseks.</p>
+<h2 id="vormi-salvestamine"><a class="header" href="#vormi-salvestamine">Vormi salvestamine</a></h2>
+<p>Pärast kõigi kohustuslike väljade täitmist saate vormi salvestada. Vormi elutsükkel:</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[Täida vorm] --&gt; B[Salvesta mustand]
+    B --&gt; C[Valideeri]
+    C --&gt;|Vead| A
+    C --&gt;|Korras| D[Salvesta lõplikult]
+    D --&gt; E[Kinnita]
+    E --&gt; F[Avaldatud]
+</code></pre>
+<h2 id="nipid"><a class="header" href="#nipid">Nipid</a></h2>
+<ul>
+<li>Kasutage otsingunuppe ettevõtte ja sõiduki andmete automaatseks täitmiseks.</li>
+<li>Kui sanktsioon või soovitatav meede on “MUU”, peate kindlasti täitma täpsustava tekstivälja.</li>
+<li>EL rikkumiste raskusastmed (MSI/VSI/SI/MI) mõjutavad tulevikus ettevõtte riskiskoori.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="liitvorm-tee-kontroll"><a class="header" href="#liitvorm-tee-kontroll">Liitvorm (tee kontroll)</a></h1>
+<p>Liitvorm on peamine tee kontrolli akt. Iga liitvorm võib sisaldada mitut alamvormi: sõidu- ja puhkeaeg, tehniline kontroll, ADR, hea maine, vedude katkestamine.</p>
+<h2 id="vormi-eesmärk-1"><a class="header" href="#vormi-eesmärk-1">Vormi eesmärk</a></h2>
+<ul>
+<li>Registreerida tee kontrolli põhiandmed (koht, aeg, sõiduk, ettevõte)</li>
+<li>Siduda kontrolliga juhid, kaasreisijad ja tehnilised alamkontrollid</li>
+<li>Anda alus riskihindamiseks ja statistikaks</li>
+</ul>
+<h2 id="menüü-tee-1"><a class="header" href="#menüü-tee-1">Menüü tee</a></h2>
+<p>Töölaud → <strong>Liitvorm</strong> → Täida vorm</p>
+<p>või</p>
+<p>Menüü → Kontrollaktid → <strong>Liitvorm</strong></p>
+<h2 id="vormi-osad-ja-kohustuslikud-väljad-1"><a class="header" href="#vormi-osad-ja-kohustuslikud-väljad-1">Vormi osad ja kohustuslikud väljad</a></h2>
+<h3 id="1-kontrolli-asukoht-ja-aeg"><a class="header" href="#1-kontrolli-asukoht-ja-aeg">1. Kontrolli asukoht ja aeg</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Tee (<code>road</code>)</td><td>Jah</td><td>Riigimaantee, kohalik tee või muu</td></tr>
+<tr><td>Tee nimetus (<code>roadOther</code>)</td><td>Jah, kui tee = “muu”</td><td>Vaba tekst</td></tr>
+<tr><td>Kilomeeter (<code>kilometer</code>)</td><td>Jah, kui tee valitud</td><td>Numbriline väärtus, max 3 tähte</td></tr>
+<tr><td>Maakond (<code>county</code>)</td><td>Jah, kui kontrolli riik = “EE”</td><td>Valik maakondade loendist</td></tr>
+<tr><td>Kontrolli kuupäev (<code>controlDate</code>)</td><td>Jah</td><td>Kuupäev</td></tr>
+<tr><td>Kontrolli kellaaeg (<code>controlTime</code>)</td><td>Jah</td><td>Kellaaeg</td></tr>
+<tr><td>Kontrolli riik (<code>controlCountryCode</code>)</td><td>Jah</td><td>Valik riikide loendist</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="2-sõiduki-info"><a class="header" href="#2-sõiduki-info">2. Sõiduki info</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Sõiduki riik (<code>vehicleCountryCode</code>)</td><td>Jah</td><td>Valik riikide loendist</td></tr>
+<tr><td>Sõiduki kategooria (<code>vehicleCategoryCode</code>)</td><td>Jah</td><td>Valik sõidukikategooriate loendist</td></tr>
+<tr><td>Sõiduki kategooria muu (<code>vehicleCategoryOther</code>)</td><td>Jah, kui kategooria = “muu”</td><td>Vaba tekst</td></tr>
+</tbody>
+</table>
+</div>
+<p>Sõiduki registri number ja muud andmed täidetakse tehnilise kontrolli alamvormis või otsinguga.</p>
+<h3 id="3-ettevõtte-info-1"><a class="header" href="#3-ettevõtte-info-1">3. Ettevõtte info</a></h3>
+<p>Ettevõtte andmeid saab otsida registrikoodi või nime järgi X-tee liidese kaudu.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Registrikood (<code>companyRegCode</code>)</td><td>Jah</td><td>Ettevõtte registrikood</td></tr>
+<tr><td>Ettevõtte nimi (<code>companyName</code>)</td><td>Jah</td><td>Max 300 tähemärki</td></tr>
+<tr><td>Ettevõtte riik (<code>companyCountryCode</code>)</td><td>Jah</td><td>Valik riikide loendist</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="4-juhtide-info"><a class="header" href="#4-juhtide-info">4. Juhtide info</a></h3>
+<p>Liitvormil peab olema vähemalt üks juht.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Juhi eesnimi (<code>drivers[].firstName</code>)</td><td>Jah (esimene juht)</td><td>Max 200 tähemärki</td></tr>
+<tr><td>Juhi perekonnanimi (<code>drivers[].lastName</code>)</td><td>Jah (esimene juht)</td><td>Max 200 tähemärki</td></tr>
+<tr><td>Juhi isikukood (<code>drivers[].personalCodeForeign</code>)</td><td>Jah (esimene juht)</td><td>Max 50 tähemärki</td></tr>
+<tr><td>Juhi sünnikuupäev (<code>drivers[].birthDate</code>)</td><td>Jah (esimene juht)</td><td>Kuupäev</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="5-kaasreisija-info"><a class="header" href="#5-kaasreisija-info">5. Kaasreisija info</a></h3>
+<p>Kaasreisija andmed on valikulised, kuid soovitatavad, kui sõidukis oli kaasreisija.</p>
+<h3 id="6-inspektori-info"><a class="header" href="#6-inspektori-info">6. Inspektori info</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Eesnimi (<code>inspectorFirstName</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Perekonnanimi (<code>inspectorLastName</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Asutus (<code>inspectorOrganisationId</code>)</td><td>Jah</td><td>Valik organisatsioonide loendist</td></tr>
+<tr><td>Ametikoht (<code>inspectorProfession</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="7-haagiste-info"><a class="header" href="#7-haagiste-info">7. Haagiste info</a></h3>
+<p>Liitvormil võib lisada ühe või mitu haagist. Haagiste puhul on täidetavad:</p>
+<ul>
+<li>Haagise riik</li>
+<li>Haagise kategooria</li>
+<li>Haagise registri number</li>
+<li>Haagise tunnus</li>
+</ul>
+<h2 id="alamvormide-lisamine"><a class="header" href="#alamvormide-lisamine">Alamvormide lisamine</a></h2>
+<p>Pärast liitvormi salvestamist saab sellele lisada alamvorme:</p>
+<pre><code class="language-mermaid">flowchart TD
+    A[Liitvorm] --&gt; B[Sõidu- ja puhkeaeg]
+    A --&gt; C[Tehniline kontroll — sõiduk]
+    A --&gt; D[Tehniline kontroll — haagis]
+    A --&gt; E[ADR]
+    A --&gt; F[Hea maine]
+    A --&gt; G[Vedude katkestamine]
+</code></pre>
+<p>Iga alamvorm salvestatakse eraldi, kuid on seotud liitvormi ID-ga.</p>
+<h2 id="vormi-salvestamine-ja-kinnitamine"><a class="header" href="#vormi-salvestamine-ja-kinnitamine">Vormi salvestamine ja kinnitamine</a></h2>
+<ol>
+<li>Täitke kõik kohustuslikud väljad.</li>
+<li>Klõpsake <strong>Salvesta mustand</strong> — vorm salvestatakse mustandina.</li>
+<li>Kontrollige andmed.</li>
+<li>Klõpsake <strong>Kinnita</strong> — vorm muutub avaldatuks.</li>
+</ol>
+<p>Avaldatud vormi ei saa enam muuta. Paranduste tegemiseks tuleb luua uus vorm või pöörduda administraatori poole.</p>
+<h2 id="nipid-1"><a class="header" href="#nipid-1">Nipid</a></h2>
+<ul>
+<li>Tee ja kilomeeter seatakse kontrolli toimumuskoha järgi.</li>
+<li>Ettevõtte otsing töötab kõige täpsemini Eesti registrikoodiga (8 numbrit).</li>
+<li>Kõik alamvormid peavad olema seotud liitvormiga enne kinnitamist.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="tööinspektsiooni-kontrollkaart"><a class="header" href="#tööinspektsiooni-kontrollkaart">Tööinspektsiooni kontrollkaart</a></h1>
+<p>Tööinspektsiooni kontrollkaarti kasutatakse tööinspektsiooni kontrolli andmete fikseerimiseks. Selle abil salvestatakse kontrolli üldandmed, kontrollitud veoliigid ja salvestite tüübid, rikkumised, ettekirjutuse tegemine ning väärteomenetluse info.</p>
+<h2 id="vormi-eesmärk-2"><a class="header" href="#vormi-eesmärk-2">Vormi eesmärk</a></h2>
+<ul>
+<li>Registreerida tööinspektsiooni kontrolli põhiandmed (inspektor, kuupäev, ettevõte, kontrolli liik).</li>
+<li>Dokumenteerida kontrollitud veoliigid ja juhtide/sõidukite arv erinevate salvestite tüüpide lõikes.</li>
+<li>Märkida, kas on koostatud ettekirjutus.</li>
+<li>Salvestada karistatud isiku ja väärteomenetluse andmed.</li>
+<li>Lisada kontrolli käigus tuvastatud rikkumised klassifikaatorist.</li>
+</ul>
+<h2 id="menüü-tee-2"><a class="header" href="#menüü-tee-2">Menüü tee</a></h2>
+<p>Töölaud → <strong>Tööinspektsiooni kontrollkaart</strong> → Täida vorm</p>
+<p>või</p>
+<p>Menüü → Kontrollaktid → <strong>Tööinspektsiooni kontrollkaart</strong></p>
+<h2 id="vormi-osad-ja-väljad"><a class="header" href="#vormi-osad-ja-väljad">Vormi osad ja väljad</a></h2>
+<p>Vorm koosneb mitmest kaardist. Kui välja juures on täht <code>*</code>, on see kohustuslik.</p>
+<h3 id="1-üldandmed"><a class="header" href="#1-üldandmed">1. Üldandmed</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kontrolli läbiviimise eest vastutav isik (<code>inspectorName</code>)</td><td>Jah</td><td>Max 200 tähemärki</td></tr>
+<tr><td>Kontrolli kuupäev (<code>inspectionDate</code>)</td><td>Jah</td><td>Kuupäev, ei tohi olla tulevikus</td></tr>
+<tr><td>Kontrolli liik (<code>inspectionType</code>)</td><td>Jah</td><td>Valik: sõitjate vedu või veose vedu</td></tr>
+<tr><td>Ettevõtte nimi (<code>companyName</code>)</td><td>Jah</td><td>Max 300 tähemärki</td></tr>
+<tr><td>Registrikood (<code>companyRegCode</code>)</td><td>Jah</td><td>Max 20 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="2-kontrollimised"><a class="header" href="#2-kontrollimised">2. Kontrollimised</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Sõidukite arv (<code>vehicleCount</code>)</td><td>Ei</td><td>Ainult numbrid, max 5 tähemärki</td></tr>
+<tr><td>Kontrollitud juhtide arv (<code>totalDriversCount</code>)</td><td>Ei</td><td>Ainult numbrid, max 5 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<p>Kontrollimiste maatriksis saab lisada ridu erinevate veoliikide kohta. Iga rea kohta täidetakse järgmised arvulised väljad:</p>
+<ul>
+<li>Veoliik (<code>transportClass</code>)</li>
+<li>Analoogsalvestiga juhid (<code>analogRecorderDrivers</code>)</li>
+<li>Digitaalsalvestiga juhid (<code>digitalRecorderDrivers</code>)</li>
+<li>Nutisalvestiga juhid (<code>smartRecorderDrivers</code>)</li>
+<li>Analoogsalvestiga tööpäevad (<code>analogRecorderWorkDays</code>)</li>
+<li>Digitaalsalvestiga tööpäevad (<code>digitalRecorderWorkDays</code>)</li>
+<li>Nutisalvestiga tööpäevad (<code>smartRecorderWorkDays</code>)</li>
+</ul>
+<h3 id="3-ettekirjutus"><a class="header" href="#3-ettekirjutus">3. Ettekirjutus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Ettekirjutus koostatud (<code>prescriptionComposed</code>)</td><td>Ei</td><td>Märkeruut</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="4-väärteomenetlus"><a class="header" href="#4-väärteomenetlus">4. Väärteomenetlus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Karistatud isiku isikukood (<code>punishedPersonIdCode</code>)</td><td>Ei</td><td>Max 20 tähemärki</td></tr>
+<tr><td>Karistatud isiku eesnimi (<code>punishedPersonFirstName</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Karistatud isiku perekonnanimi (<code>punishedPersonLastName</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Väärteomenetluse viitenumber (<code>proceedingReferenceNumber</code>)</td><td>Ei</td><td>Max 50 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="5-rikkumised"><a class="header" href="#5-rikkumised">5. Rikkumised</a></h3>
+<p>Rikkumisi saab lisada nupuga <strong>Lisa rikkumine</strong>. Avanevas valikus saab valida rikkumise õigusliku aluse, liigi ja koodi. Iga rikkumise juurde määratakse kogus. Rikkumised pole vormi salvestamiseks kohustuslikud, kuid neid peetakse vajalikuks riskihindamise jaoks.</p>
+<h2 id="vormi-salvestamine-ja-kinnitamine-1"><a class="header" href="#vormi-salvestamine-ja-kinnitamine-1">Vormi salvestamine ja kinnitamine</a></h2>
+<ol>
+<li>Täitke kõik kohustuslikud väljad.</li>
+<li>Klõpsake <strong>Salvesta</strong> — vorm salvestatakse mustandina.</li>
+<li>Kontrollige andmed.</li>
+<li>Klõpsake <strong>Kinnita</strong> — vorm muutub lõplikuks.</li>
+</ol>
+<p>Rikkumistega akti puhul toimub kinnitamine e-toimiku kaudu, mitte otse vormi vaates.</p>
+<h2 id="nipid-2"><a class="header" href="#nipid-2">Nipid</a></h2>
+<ul>
+<li>Kontrolli kuupäev ei tohi jääda tulevikku.</li>
+<li>Sõidukite arv ja kontrollitud juhtide arv aktsepteerivad ainult numbreid.</li>
+<li>Ühte veoliiki saab kontrollimiste maatriksisse lisada ainult ühe korra.</li>
+<li>Märkige ettekirjutus koostatuks, kui see on tehtud.</li>
+<li>Kasutage rikkumiste lisamiseks rikkumiste valijat, et vältida vaba teksti sisestamist.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="tehniline-kontroll"><a class="header" href="#tehniline-kontroll">Tehniline kontroll</a></h1>
+<p>Tehnilise kontrolli vormiga fikseeritakse sõiduki või haagise tehnonõuetele vastavuse kontrolli tulemused. Vormil on kaks varianti: <strong>mootorsõiduki</strong> ja <strong>haagise</strong> kontroll.</p>
+<h2 id="menüü-tee-3"><a class="header" href="#menüü-tee-3">Menüü tee</a></h2>
+<p>Töölaud → <strong>Kontrollaktid</strong> → <strong>Tehniline kontroll</strong></p>
+<p>või</p>
+<p>Liitvorm → <strong>Tehniline kontroll — sõiduk</strong> / <strong>Tehniline kontroll — haagis</strong></p>
+<h2 id="vormi-eesmärk-3"><a class="header" href="#vormi-eesmärk-3">Vormi eesmärk</a></h2>
+<ul>
+<li>Märkida iga kontrollitava osa/sõlme seisund (kontrollitud, ei vasta nõuetele, ei kontrollitud).</li>
+<li>Fikseerida leitud rikked ja nende raskusastmed.</li>
+<li>Määrata kontrolli tulemus ning vajadusel menetluste ja rikkumiste andmed.</li>
+<li>Siduda tulemused liitvormiga.</li>
+</ul>
+<h2 id="sõiduki-ja-haagise-variandi-erinevus"><a class="header" href="#sõiduki-ja-haagise-variandi-erinevus">Sõiduki ja haagise variandi erinevus</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Omadus</th><th>Mootorsõiduk</th><th>Haagis</th></tr>
+</thead>
+<tbody>
+<tr><td>Osade nimekiri</td><td>Täielik nimekiri</td><td>Välistatud osad: <code>CAA_2</code>, <code>CAA_3</code>, <code>CAA_7</code>, <code>CAA_9</code></td></tr>
+<tr><td>Rikkumiste valik</td><td>Kõik EU rikkumised</td><td>Välistatud koodid: <code>MSI203</code>, <code>MSI204</code>, <code>VSI847</code>, <code>SI926</code></td></tr>
+<tr><td>Päis</td><td>Mootorsõiduki tehnonõuetele vastavuse kontrollvorm</td><td>Haagise tehnonõuetele vastavuse kontrollvorm</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="vormi-osad-ja-väljad-1"><a class="header" href="#vormi-osad-ja-väljad-1">Vormi osad ja väljad</a></h2>
+<h3 id="1-sõiduki-kontrollitavate-osade-ja-sõlmede-nimekiri"><a class="header" href="#1-sõiduki-kontrollitavate-osade-ja-sõlmede-nimekiri">1. Sõiduki kontrollitavate osade ja sõlmede nimekiri</a></h3>
+<p>Iga osa/sõlm reana. Iga rea olekut saab määrata:</p>
+<ul>
+<li><strong>Ei kontrollitud</strong></li>
+<li><strong>Kontrollitud</strong></li>
+<li><strong>Ei vasta nõuetele</strong></li>
+</ul>
+<p>Valides <strong>Ei vasta nõuetele</strong>, avaneb rikete valiku modaalaken.</p>
+<h3 id="2-tuvastatud-rikked"><a class="header" href="#2-tuvastatud-rikked">2. Tuvastatud rikked</a></h3>
+<p>Tabelis kuvatakse osa/sõlm, rike ja raskusaste. Rikked jagunevad raskusastmeteks:</p>
+<ul>
+<li><code>VO</code></li>
+<li><code>OV</code></li>
+<li><code>EOV</code></li>
+</ul>
+<p>Raskete rikkete (<code>OV</code>, <code>EOV</code>) alusel arvutab süsteem kontrolli tulemuse automaatselt ümber.</p>
+<h3 id="3-kontrolli-tulemus"><a class="header" href="#3-kontrolli-tulemus">3. Kontrolli tulemus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Kontrolli tulemus</strong></td><td>Valik: Tehniliselt korras / Suunatud erakorralisele tehnoülevaatusele / Suunatud erakorralisele tehnoülevaatusele liiklusregistri andmete täpsustamiseks Transpordiametis / Sõidukeeld</td></tr>
+<tr><td><strong>Autovedu on katkestatud</strong></td><td>Kuvatakse, kui tulemus on <em>Sõidukeeld</em></td></tr>
+<tr><td><strong>Transpordiameti täpsustus</strong></td><td>Kuvatakse erakorralise ülevaatuse TA variandi korral: registreerimisnumber, VIN/TIN, telgede arv, istekohtade arv, omavoliline ümberehitus</td></tr>
+<tr><td><strong>Menetluse liik</strong></td><td>Lühimenetlus / Kiirmenetlus / Üldmenetlus (kuvatakse, kui tulemus pole <em>Tehniliselt korras</em>)</td></tr>
+<tr><td><strong>Menetluse viitenumber</strong></td><td>Vaba tekst, kuvatakse menetluse liigi valikul</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="4-märkused"><a class="header" href="#4-märkused">4. Märkused</a></h3>
+<ul>
+<li>Väli: <strong>Märkused</strong></li>
+<li>Max 2000 tähemärki.</li>
+<li>Rikkete valimisel lisatakse märkustesse automaatselt rida: <code>&lt;rike&gt; – &lt;raskusaste&gt;</code>.</li>
+</ul>
+<h3 id="5-raske-rikkumise-tuvastamine"><a class="header" href="#5-raske-rikkumise-tuvastamine">5. Raske rikkumise tuvastamine</a></h3>
+<p>Kuvatakse, kui tulemus pole <em>Tehniliselt korras</em>. Võimalik märgata EU määrusest tulenevaid raskeid rikkumisi kategooriates <strong>MSI</strong>, <strong>VSI</strong> ja <strong>SI</strong>.</p>
+<h3 id="6-manused"><a class="header" href="#6-manused">6. Manused</a></h3>
+<p>Vormi number olemasolul saab lisada faile.</p>
+<h3 id="7-x-tee-andmed"><a class="header" href="#7-x-tee-andmed">7. X-tee andmed</a></h3>
+<p>Kuvatakse pärast salvestamist (mitte mustandis). Administraator saab täita:</p>
+<ul>
+<li><strong>Erakorraline tehnoülevaatus läbitud</strong></li>
+<li><strong>Jõustunud otsus</strong></li>
+<li><strong>Menetluse lõpetamise alus</strong></li>
+</ul>
+<h2 id="kohustuslikud-väljad-1"><a class="header" href="#kohustuslikud-väljad-1">Kohustuslikud väljad</a></h2>
+<p>Vormis on üks tingimuslikult kohustuslik väli:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Tingimus</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Menetluse viitenumber</strong></td><td>Kohustuslik, kui on valitud <strong>Menetluse liik</strong></td></tr>
+</tbody>
+</table>
+</div>
+<p>Muud väljad ei ole vormilt otseselt kohustuslikud, kuid kontrolli tulemuse ja rikkumiste loogika võib nõuda teatud valikute täitmist.</p>
+<h2 id="rikete-valimine-ja-osade-kokkuvõte"><a class="header" href="#rikete-valimine-ja-osade-kokkuvõte">Rikete valimine ja osade kokkuvõte</a></h2>
+<ol>
+<li>Osade tabelis klõpsake rea olekuks <strong>Ei vasta nõuetele</strong>.</li>
+<li>Valige avanenud aknas üks või mitu riket.</li>
+<li>Määrake iga rikke jaoks raskusaste (<code>VO</code>, <code>OV</code> või <code>EOV</code>).</li>
+<li>Kinnitage valikud — rikked ilmuvad <strong>Tuvastatud rikked</strong> tabelisse ja osa olekuks jääb <em>Ei vasta nõuetele</em>.</li>
+<li>Vajadusel eemaldage rikked tuvastatud rikkete tabelist. Kui osal pole enam rikkeid, muutub olek tagasi <em>Kontrollituks</em>.</li>
+</ol>
+<h2 id="nipid-3"><a class="header" href="#nipid-3">Nipid</a></h2>
+<ul>
+<li>Kui valite raskusastmega <code>OV</code> või <code>EOV</code> rikked, lukustab süsteem madalamad tulemused ja pakub automaatselt kõrgemat kontrolli tulemuse taset.</li>
+<li>Sõidukeelu tulemusel märgib süsteem automaatselt rikkumise <code>MSI302</code>.</li>
+<li><code>MSI302</code> eemaldamine on tavakasutajale sõidukeelu korral keelatud; administraator saab seda üle kirjutada.</li>
+<li>Avaldatud vormi ei saa enam muuta. Paranduste tegemiseks tuleb luua uus vorm või pöörduda administraatori poole.</li>
+<li>X-tee andmeid saab täita ja salvestada alles pärast vormi kinnitamist.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="autoveo-katkestamise-kontrollvorm"><a class="header" href="#autoveo-katkestamise-kontrollvorm">Autoveo katkestamise kontrollvorm</a></h1>
+<p>Autoveo katkestamise kontrollvormi kasutatakse tee kontrolli käigus autoveo katkestamise fakti ja selle aluste registreerimiseks. Vorm salvestatakse liitvormi (koondvormi) alamvormina.</p>
+<h2 id="vormi-eesmärk-4"><a class="header" href="#vormi-eesmärk-4">Vormi eesmärk</a></h2>
+<ul>
+<li>Registreerida autoveo katkestamise toimumiskoht (elukoht / aadress)</li>
+<li>Dokumenteerida katkestamise põhjus ja õiguslikud alused</li>
+<li>Määrata katkestamise lõppemise tingimus</li>
+<li>Fikseerida isiku taotlused</li>
+</ul>
+<h2 id="menüü-tee-4"><a class="header" href="#menüü-tee-4">Menüü tee</a></h2>
+<p><strong>Liitvorm</strong> → <strong>Autoveo katkestamise kontrollvorm</strong> → <strong>Lisa autoveo katkestamise kontrollvorm</strong></p>
+<p>või</p>
+<p><strong>Töölaud</strong> → <strong>Liitvorm (tee kontroll)</strong> → alamvormide sektsioonis <strong>Autoveo katkestamine</strong></p>
+<h2 id="vormi-osad-ja-väljad-2"><a class="header" href="#vormi-osad-ja-väljad-2">Vormi osad ja väljad</a></h2>
+<h3 id="1-päis"><a class="header" href="#1-päis">1. Päis</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Päis (<code>headerText</code>)</td><td>Ei</td><td>Täidetakse vaikimisi PPA struktuuriüksuse aadressiga, kui vorm luuakse uuena</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="2-elukoht"><a class="header" href="#2-elukoht">2. Elukoht</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Riik (<code>residenceCountry</code>)</td><td>Ei</td><td>Vaikimisi Eesti (<code>EE</code>)</td></tr>
+<tr><td>Maakond (<code>residenceRegion</code>)</td><td>Ei</td><td>Valik EHAK maakondade loendist (Eesti puhul)</td></tr>
+<tr><td>Linn/Vald (<code>residenceCity</code>)</td><td>Ei</td><td>Valik maakonna linnade/valdade loendist</td></tr>
+<tr><td>Tänav, maja (<code>residenceAddressLine</code>)</td><td>Ei</td><td>Vaba tekst</td></tr>
+<tr><td>Postiindeks (<code>residencePostalCode</code>)</td><td>Ei</td><td>Max 10 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="3-kontrolli-tulemus-1"><a class="header" href="#3-kontrolli-tulemus-1">3. Kontrolli tulemus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kuna (<code>interruptionReason</code>)</td><td>Ei</td><td>Põhjendus, miks autovedu katkestati</td></tr>
+<tr><td>Õiguslikud alused (<code>legalBases</code>)</td><td>Ei</td><td>Mitu valikut klassifikaatorist <code>INTERRUPTION_BASES</code></td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="4-autoveo-katkestamise-lõppemise-tingimus"><a class="header" href="#4-autoveo-katkestamise-lõppemise-tingimus">4. Autoveo katkestamise lõppemise tingimus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Lõppemise tingimus (<code>terminationCondition</code>)</td><td>Ei</td><td>Vaikimisi tekst: <em>“KUNI VEO KATKESTAMISE ALUSE ÄRALANGEMISENI.”</em></td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="5-isiku-taotlused"><a class="header" href="#5-isiku-taotlused">5. Isiku taotlused</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Isiku taotlused (<code>personApplications</code>)</td><td>Ei</td><td>Isiku poolt esitatud taotlused</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="6-failid"><a class="header" href="#6-failid">6. Failid</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Manused</td><td>Ei</td><td>Üleslaaditavad failid. Failide lisamiseks peab vorm olema kõigepealt salvestatud.</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="kohustuslikud-väljad-2"><a class="header" href="#kohustuslikud-väljad-2">Kohustuslikud väljad</a></h2>
+<p>Vormi React-komponentides (<code>TransportInterruptionFormPage.tsx</code>) pole ühtegi välja <code>required</code> parameetriga kohustuslikuks märgitud. Ainus kliendipoolne valideerimine kehtib postiindeksi pikkuse kohta — max 10 tähemärki.</p>
+<p>Täielikuks salvestamiseks ja kinnitamiseks peavad kõik vormi täitmiseks vajalikud andmed siiski olemas olema.</p>
+<h2 id="seos-liitvormiga"><a class="header" href="#seos-liitvormiga">Seos liitvormiga</a></h2>
+<p>Autoveo katkestamise vorm on <strong>alamvorm</strong>, mis on seotud ühe konkreetse liitvormi (<code>compoundFormKey</code>) ID-ga. Vormile pääseb ligi liitvormi vaates klõpsates lingil <code>Lisa autoveo katkestamise kontrollvorm</code> või otse lingil <code>/control-forms/transport-interruption/:id</code>.</p>
+<p>Iga katkestamise vorm saab oma alamnumbri ja versiooni (<code>subFormNumber/version</code>), mis kuvatakse ka päises.</p>
+<h2 id="vormi-salvestamine-ja-kinnitamine-2"><a class="header" href="#vormi-salvestamine-ja-kinnitamine-2">Vormi salvestamine ja kinnitamine</a></h2>
+<ol>
+<li>Täitke soovitud väljad.</li>
+<li>Klõpsake <strong>Salvesta</strong> — vorm salvestatakse olekusse <code>saved</code>.</li>
+<li>Kui kõik on korras, klõpsake <strong>Kinnita</strong> — vorm muutub kinnituks.</li>
+</ol>
+<p>Pärast kinnitamist / avaldamist vormi enam muuta ei saa. Muudatuste tegemiseks tuleb luua uus versioon või pöörduda administraatori poole.</p>
+<h2 id="nipid-4"><a class="header" href="#nipid-4">Nipid</a></h2>
+<ul>
+<li>Päis täidetakse automaatselt ametniku struktuuriüksuse aadressiga, kui vorm luuakse uuena.</li>
+<li>Lõppemise tingimus on vaikimisi ette täidetud; seda saab vajadusel muuta.</li>
+<li>Failide lisamiseks peab vorm olema kõigepealt salvestatud — enne salvestamist failide kaart pole nähtav.</li>
+<li>Õiguslike aluste valikud tulevad klassifikaatorist; valida saab mitut korraga.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="adr-kontrollvorm-ohtlik-veos"><a class="header" href="#adr-kontrollvorm-ohtlik-veos">ADR kontrollvorm (ohtlik veos)</a></h1>
+<p>ADR kontrollvormi kasutatakse ohtliku veose kontrolli tulemuste dokumenteerimiseks. Vorm võimalik salvestada veos, rikkumised, rakendatud meetmed ja viited ADR sätetele.</p>
+<h2 id="vormi-eesmärk-5"><a class="header" href="#vormi-eesmärk-5">Vormi eesmärk</a></h2>
+<ul>
+<li>Registreerida ohtliku kauba veo kontrolli andmed</li>
+<li>Dokumenteerida autojuhi abi, koolitustunnistused ja laadimiskohad</li>
+<li>Kirjeldada veetavaid ohtlikke kaupu</li>
+<li>Fikseerida rikkumised ja kontrolli tulemused</li>
+<li>Edastada vajadusel andmed X-tee kaudu</li>
+</ul>
+<h2 id="menüü-tee-5"><a class="header" href="#menüü-tee-5">Menüü tee</a></h2>
+<p>Liitvormis: <strong>Liitvorm</strong> → <strong>Lisa ADR kontrollvorm</strong></p>
+<p>või</p>
+<p>Menüü → Kontrollaktid → <strong>ADR kontrollvorm</strong></p>
+<h2 id="vormi-osad-ja-kohustuslikud-väljad-2"><a class="header" href="#vormi-osad-ja-kohustuslikud-väljad-2">Vormi osad ja kohustuslikud väljad</a></h2>
+<p>Vorm on jagatud kaartideks. Kui välja juures on täht <code>*</code>, on see kohustuslik.</p>
+<h3 id="1-autojuhi-abi-andmed"><a class="header" href="#1-autojuhi-abi-andmed">1. Autojuhi abi andmed</a></h3>
+<p>Andmed täidetakse ainult rikkumise korral. Isikukoodi järgi saab otsida andmeid X-tee liidese kaudu.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Isikukood (<code>driverAssistant.personalCodeEe</code>)</td><td>Ei</td><td>Eesti isikukood</td></tr>
+<tr><td>Eesnimi (<code>driverAssistant.firstName</code>)</td><td>Ei</td><td></td></tr>
+<tr><td>Perekonnanimi (<code>driverAssistant.lastName</code>)</td><td>Ei</td><td></td></tr>
+<tr><td>Kodakondsus (<code>driverAssistant.citizenshipCode</code>)</td><td>Ei</td><td>Valik riikide loendist</td></tr>
+<tr><td>Sünniaeg (<code>driverAssistant.birthDate</code>)</td><td>Ei</td><td>Kuupäev</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="2-adr-koolitustunnistuse-numbrid"><a class="header" href="#2-adr-koolitustunnistuse-numbrid">2. ADR koolitustunnistuse numbrid</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Autojuhi ADR koolitustunnistuse number (<code>driverAdrCertificateNumber</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Meeskonnaliikme ADR koolitustunnistuse number (<code>crewAdrCertificateNumber</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Autojuhi abi ADR koolitustunnistuse number (<code>assistantAdrCertificateNumber</code>)</td><td>Ei</td><td>Max 100 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="3-viimase-peale--või-mahalaadimise-aadress-ja-kuupäev"><a class="header" href="#3-viimase-peale--või-mahalaadimise-aadress-ja-kuupäev">3. Viimase peale- või mahalaadimise aadress ja kuupäev</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Riik (<code>lastLoadAddress.countryCode</code>)</td><td>Ei</td><td></td></tr>
+<tr><td>Maakond (<code>lastLoadAddress.county</code>)</td><td>Ei</td><td>EHAK valik, kui riik on Eesti</td></tr>
+<tr><td>Linn (<code>lastLoadAddress.city</code>)</td><td>Ei</td><td>EHAK valik, kui riik on Eesti</td></tr>
+<tr><td>Tänav (<code>lastLoadAddress.street</code>)</td><td>Ei</td><td></td></tr>
+<tr><td>Postiindeks (<code>lastLoadAddress.postalCode</code>)</td><td>Ei</td><td>Max 10 tähemärki</td></tr>
+<tr><td>Kuupäev (<code>lastLoadDate</code>)</td><td>Ei</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="4-järgmise-peale--või-mahalaadimise-aadress"><a class="header" href="#4-järgmise-peale--või-mahalaadimise-aadress">4. Järgmise peale- või mahalaadimise aadress</a></h3>
+<p>Sisaldab samu välju nagu eelmine osa (<code>nextLoadAddress</code>), kuupäev puudub.</p>
+<h3 id="5-veetavate-ohtlike-kaupade-andmed"><a class="header" href="#5-veetavate-ohtlike-kaupade-andmed">5. Veetavate ohtlike kaupade andmed</a></h3>
+<p>Tabelisse saab lisada ühe või mitu rida. Igale kaubale täidetakse:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>ÜN-number (<code>unNumber</code>)</td><td>Ohtliku kauba ÜRO number</td></tr>
+<tr><td>Pakendirühm (<code>packagingGroup</code>)</td><td>Pakkumisrühm</td></tr>
+<tr><td>Kogus (<code>quantity</code>)</td><td></td></tr>
+<tr><td>Ühik (<code>unitCode</code>)</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<p>Ridade lisamiseks klõpsake <strong>+ Lisa ohtlik kaup</strong>. Rida saab kustutada prügikasti ikooni abil.</p>
+<h3 id="6-erandi-kohaldamine"><a class="header" href="#6-erandi-kohaldamine">6. Erandi kohaldamine</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kas kohaldatakse erandit (<code>exemptionApplied</code>)</td><td>Ei</td><td>Jah / Ei</td></tr>
+<tr><td>ADRi punkt (<code>exemptionAdrProvision</code>)</td><td>Jah, kui erandit kohaldatakse</td><td>ADR säte, max 200 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="7-mahuti-tüüp"><a class="header" href="#7-mahuti-tüüp">7. Mahuti tüüp</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Mahuti tüüp (<code>containerType</code>)</td><td>Ei</td><td>Mahtlast, Paak, Pakend, MEMU</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="8-rikkumised"><a class="header" href="#8-rikkumised">8. Rikkumised</a></h3>
+<p>Rikkumiste loend kuvatakse klassifikaatori <code>DANGEROUS_GOODS_INFRINGEMENTS_NEW</code> väärtuste järgi. Iga rea kohta määratakse tulemus:</p>
+<ul>
+<li><strong>Kontrollitud (C)</strong></li>
+<li><strong>Ei ole võimalik kontrollida (NC)</strong></li>
+<li><strong>Ei kohaldata (NA)</strong></li>
+</ul>
+<p>Kui tulemus on valitud, saab täiendavalt sisestada:</p>
+<ul>
+<li>Riskikategooria (<code>riskCategory</code>)</li>
+<li>ADRi punkt (<code>adrProvision</code>)</li>
+<li>Märkus (<code>notes</code>)</li>
+</ul>
+<p>Väli <strong>Muud rikkumised</strong> (<code>otherViolations</code>) võimaldab vabalt teksti sisestada.</p>
+<h3 id="9-kontrolli-tulemus"><a class="header" href="#9-kontrolli-tulemus">9. Kontrolli tulemus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kontrolli tulemus (<code>resultType</code>)</td><td>Ei</td><td>Korras, alustati väärteomenetlust, hoiatus, sõidukeeld (ADR art 5), autovedu on katkestatud</td></tr>
+<tr><td>Menetluse liik (<code>proceedingType</code>)</td><td>Ei</td><td>Kiirmenetlus / Üldmenetlus</td></tr>
+<tr><td>Menetluse viitenumber (<code>proceedingReferenceNumber</code>)</td><td>Jah, kui menetlus valitud</td><td></td></tr>
+<tr><td>Rakendatud meetmed (<code>correctiveMeasures</code>)</td><td>Ei</td><td>Kohapeal, enne sõidu lõppu, ettevõtte territooriumil</td></tr>
+<tr><td>Plomm avatud kontrolli käigus (<code>sealOpened</code>)</td><td>Ei</td><td>Jah / Ei</td></tr>
+<tr><td>Plommi avamise kuupäev (<code>sealOpenedDate</code>)</td><td>Ei</td><td>Kui plomm avati</td></tr>
+<tr><td>Plommi paigaldamise kuupäev (<code>sealInstalledDate</code>)</td><td>Ei</td><td>Kui plomm avati</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="10-märkused"><a class="header" href="#10-märkused">10. Märkused</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Märkused (<code>notes</code>)</td><td>Ei</td><td>Vaba tekst, max 4000 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="11-x-tee-andmed"><a class="header" href="#11-x-tee-andmed">11. X-tee andmed</a></h3>
+<p>Kuvatakse pärast kinnitamist. Muudetav ainult õigusega <code>control_form.edit_locked</code>.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Jõustunud otsus (<code>enforcementDecision</code>)</td><td>Ei</td><td></td></tr>
+<tr><td>Menetluse lõpetamise alus (<code>proceedingClosureBasis</code>)</td><td>Ei</td><td></td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="vormi-salvestamine-ja-kinnitamine-3"><a class="header" href="#vormi-salvestamine-ja-kinnitamine-3">Vormi salvestamine ja kinnitamine</a></h2>
+<ol>
+<li>Täitke kõik kohustuslikud väljad.</li>
+<li>Klõpsake <strong>Salvesta</strong> — vorm salvestatakse mustandina.</li>
+<li>Klõpsake <strong>Kinnita</strong> — vorm muutub lõplikult salvestatuks ja nähtavaks X-tee andmete sisestamiseks.</li>
+</ol>
+<p>Pärast kinnitamist ei saa vormi tavaliselt enam muuta. Paranduste tegemiseks on vaja administraatori õigust <code>control_form.edit_locked</code>.</p>
+<h2 id="nipid-5"><a class="header" href="#nipid-5">Nipid</a></h2>
+<ul>
+<li>Autojuhi abi andmed ja koolitustunnistused täidetakse ainult rikkumise korral.</li>
+<li>Kui valite erandi kohaldamise, peate täitma ADRi punkti.</li>
+<li>Kui menetluse liik on valitud, on menetluse viitenumber kohustuslik.</li>
+<li>Ohtlike kaupade ridu saab lisada, muuta ja kustutada kontrolli käigus.</li>
+<li>Rikkumiste loend võib olla tühi, kui klassifikaator pole veel seadistatud.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="hea-maine-vorm"><a class="header" href="#hea-maine-vorm">Hea maine vorm</a></h1>
+<p>Hea maine vormi (ametlik nimetus: <em>Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht</em>) kasutatakse veokorraldusjuhi hea maine hindamise tulemuse registreerimiseks, sealhulgas ametialase pädevuse tunnistuse andmete ja sobivuse hinnangu salvestamiseks.</p>
+<h2 id="vormi-eesmärk-6"><a class="header" href="#vormi-eesmärk-6">Vormi eesmärk</a></h2>
+<ul>
+<li>Registreerida veokorraldusjuhi hea maine hindamine</li>
+<li>Salvestada ametialase pädevuse tunnistuse andmed</li>
+<li>Määrata veokorraldusjuhi sobivus (<code>Sobib</code> või <code>Sobimatu</code>)</li>
+<li>Tuvastada sobimatuse kehtivusaeg, kui see on asjakohane</li>
+</ul>
+<h2 id="menüü-tee-6"><a class="header" href="#menüü-tee-6">Menüü tee</a></h2>
+<p>Töölaud → <strong>+ Lisa</strong> → <strong>Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht</strong></p>
+<p>Või otse URL-ilt: <code>/control-forms/good-repute/new</code></p>
+<h2 id="vormi-osad-ja-väljad-3"><a class="header" href="#vormi-osad-ja-väljad-3">Vormi osad ja väljad</a></h2>
+<p>Vorm koosneb kolmest kaardist. Tähe <code>*</code> tähistab kohustuslikku välja.</p>
+<h3 id="1-veokorraldusjuhi-andmed"><a class="header" href="#1-veokorraldusjuhi-andmed">1. Veokorraldusjuhi andmed</a></h3>
+<p>Isiku andmeid saab osaliselt automaatselt täita, sisestades isikukoodi ja klõpsates nuppu <strong>Otsi</strong>.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Isikukood (<code>personalCode</code>)</td><td>Jah</td><td>Max 20 tähemärki</td></tr>
+<tr><td>Eesnimi (<code>firstName</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Perekonnanimi (<code>lastName</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Sünniaeg (<code>dateOfBirth</code>)</td><td>Jah</td><td>Kuupäev</td></tr>
+<tr><td>Sünnikoht (<code>placeOfBirth</code>)</td><td>Ei</td><td>Max 200 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="2-ametialase-pädevuse-tunnistus"><a class="header" href="#2-ametialase-pädevuse-tunnistus">2. Ametialase pädevuse tunnistus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Tunnistuse number (<code>certificateNumber</code>)</td><td>Jah</td><td>Max 100 tähemärki</td></tr>
+<tr><td>Väljaandmise kuupäev (<code>certificateIssueDate</code>)</td><td>Jah</td><td>Kuupäev</td></tr>
+<tr><td>Väljaandnud riik (<code>certificateCountryCode</code>)</td><td>Jah</td><td>Valik riikide loendist</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="3-sobivuse-hinnang"><a class="header" href="#3-sobivuse-hinnang">3. Sobivuse hinnang</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Sobivus (<code>fitnessStatus</code>)</td><td>Jah</td><td>Valik: <code>Sobib</code> või <code>Sobimatu</code></td></tr>
+<tr><td>Sobimatuks tunnistamise kuupäev (<code>unfitFromDate</code>)</td><td>Jah, kui sobivus on <code>Sobimatu</code></td><td>Kuupäev</td></tr>
+<tr><td>Sobimatuse lõppkuupäev (<code>unfitUntilDate</code>)</td><td>Jah, kui sobivus on <code>Sobimatu</code></td><td>Kuupäev</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="nipid-6"><a class="header" href="#nipid-6">Nipid</a></h2>
+<ul>
+<li>Sisestage isikukood ja kasutage nuppu <strong>Otsi</strong>, et täita eesnimi, perekonnanimi ja sünniaeg automaatselt.</li>
+<li>Kuupäevad ei tohi olla tulevikus.</li>
+<li>Kui sobivuseks valitakse <code>Sobimatu</code>, ilmuvad lisaks kuupäevaväljad. Lõppkuupäev peab olema hilisem kui alguskuupäev.</li>
+<li>Kohustuslikud väljad tuleb enne salvestamist täita.</li>
+<li>Vormi salvestamiseks klõpsake nuppu <strong>Salvesta</strong> ja katkestamiseks <strong>Tühista</strong>.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="sõidu--ja-puhkeaja-kontrollvorm"><a class="header" href="#sõidu--ja-puhkeaja-kontrollvorm">Sõidu- ja puhkeaja kontrollvorm</a></h1>
+<p>Sõidu- ja puhkeaja kontrollvormi kasutatakse tee kontrolli käigus juhi või meeskonnaliikme sõidu- ja puhkeaja nõuete, dokumentide/õiguste, samuti ATP ja sõiduki massi/mõõtmete täitmise registreerimiseks. Vormil on kaks varianti: autojuhi ja meeskonnaliikme oma.</p>
+<h2 id="vormi-eesmärk-7"><a class="header" href="#vormi-eesmärk-7">Vormi eesmärk</a></h2>
+<ul>
+<li>Registreerida kontrollitud vedu ja veoklass</li>
+<li>Määrata kontrolli tulemus ja vajadusel menetluse liik</li>
+<li>Dokumenteerida dokumentide/õiguste kontrolli tulemused</li>
+<li>Märgistada sõidu- ja puhkeaja rikkumised koos raskusastmega</li>
+<li>Jäädvustada ATP kokkuleppe ning sõiduki massi ja mõõtmete rikkumised</li>
+<li>Salvestada lisamärkused ja failid</li>
+</ul>
+<h2 id="menüü-tee-7"><a class="header" href="#menüü-tee-7">Menüü tee</a></h2>
+<p>Seda vormit täidetakse liitvormi (tee kontroll) alamvormina:</p>
+<p><strong>Liitvorm → Lisa alamvorm → Autojuhi sõidu- ja puhkeaja kontrollvorm</strong><br>või<br><strong>Liitvorm → Lisa alamvorm → Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm</strong></p>
+<p>Olemasolevat vormi saab avada otse URL-ilt:</p>
+<ul>
+<li>Autojuht: <code>/control-forms/sp-driver/:id</code></li>
+<li>Meeskonnaliige: <code>/control-forms/sp-teammate/:id</code></li>
+</ul>
+<h2 id="autojuhi-ja-meeskonnaliikme-vormi-erinevus"><a class="header" href="#autojuhi-ja-meeskonnaliikme-vormi-erinevus">Autojuhi ja meeskonnaliikme vormi erinevus</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Omadus</th><th>Autojuht (<code>driver</code>)</th><th>Meeskonnaliige (<code>teammate</code>)</th></tr>
+</thead>
+<tbody>
+<tr><td>Peamised plokid</td><td>Veoliik, veoklass, kontrolli tulemus, dokumendid, sõidu-/puhkeaja rikkumised, mass/mõõtmed, ATP</td><td>Samad, välja arvatud massi/mõõtmete plokk</td></tr>
+<tr><td>Sõiduki mass ja mõõtmed</td><td>Kuvatakse ainult autojuhile</td><td>Puudub</td></tr>
+<tr><td>Kabotaažrikkumised</td><td>Kuvatakse autojuhile, kui veoklass hõlmab kabotaaži</td><td>Puuduvad</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="vormi-osad-ja-väljad-4"><a class="header" href="#vormi-osad-ja-väljad-4">Vormi osad ja väljad</a></h2>
+<p>Vormis on täidetavad kaardid/akkordionid. Tärniga <code>*</code> tähistatud väljad on kohustuslikud.</p>
+<h3 id="1-veoliik-ja-veoklass"><a class="header" href="#1-veoliik-ja-veoklass">1. Veoliik ja veoklass</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Veoliik (<code>transportType</code>)</td><td>Jah</td><td>Valik: sõitjatevedu või veosevedu</td></tr>
+<tr><td>Tühisõit (<code>transportEmptyRun</code>)</td><td>Ei</td><td>Märkeruut</td></tr>
+<tr><td>Veo iseloom (<code>transportNature</code>)</td><td>Ei</td><td>Valik: tasuline või oma kulul</td></tr>
+<tr><td>Tegevusloa nõudest vabastatud vedu (<code>transportNatureExempt</code>)</td><td>Ei</td><td>Märkeruut</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="2-veoklassid"><a class="header" href="#2-veoklassid">2. Veoklassid</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Veoklassid (<code>transportClasses</code>)</td><td>Ei</td><td>Valik mitmest klassifikaatori väärtusest</td></tr>
+<tr><td>Kabotaažrikkumised (<code>cabotageViolations</code>)</td><td>Ei</td><td>Aktiveerub ainult autojuhil, kui valitud on <code>CABOTAGE</code></td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="3-kontrolli-tulemus-2"><a class="header" href="#3-kontrolli-tulemus-2">3. Kontrolli tulemus</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Tulemus (<code>resultType</code>)</td><td>Jah</td><td>Valik: KORRAS, HOIATUS, ETTEKIRJUTUS, JUHTIMISELT, AREST, AUTOVEDU, ALUSTATI</td></tr>
+<tr><td>Menetluse liik (<code>proceedingType</code>)</td><td>Jah, kui tulemus pole <code>KORRAS</code> ega <code>HOIATUS</code></td><td>LYHI, KIIR, YLD</td></tr>
+<tr><td>Menetluse viitenumber (<code>proceedingReferenceNumber</code>)</td><td>Jah, kui menetluse liik valitud</td><td>Tekstiväli</td></tr>
+</tbody>
+</table>
+</div>
+<p>Juhul kui <code>resultType</code> = <code>KORRAS</code>, ei avane dokumendi/õiguse, sõidu-puhkeaja ega massi/mõõtmete täitmise plokid.</p>
+<h3 id="4-dokumendi-või-õiguse-kontroll"><a class="header" href="#4-dokumendi-või-õiguse-kontroll">4. Dokumendi või õiguse kontroll</a></h3>
+<p>Aktiivne, kui tulemus pole <code>KORRAS</code>.</p>
+<ul>
+<li><strong>Dokumentide kontroll</strong> (<code>documentChecks</code>) – vali dokumentide liigid ja seotud rikkumised modaalaknas.</li>
+<li><strong>Muud dokumendid</strong> (<code>otherDocuments</code>) – märgi dokumendi olek (nõuetekohane või puudub).</li>
+</ul>
+<h3 id="5-sõidu--ja-puhkeaja-nõuete-täitmine"><a class="header" href="#5-sõidu--ja-puhkeaja-nõuete-täitmine">5. Sõidu- ja puhkeaja nõuete täitmine</a></h3>
+<p>Aktiivne, kui tulemus pole <code>KORRAS</code>.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>SP rakendatavus (<code>spApplicability</code>)</td><td>Ei</td><td>Valik: Rakendatakse / Ei rakendata / Ei kontrollitud</td></tr>
+<tr><td>Tachograafi tüüp (<code>tachographTypeCode</code>)</td><td>Jah, kui <code>spApplicability</code> = <code>RAKENDATAKSE</code></td><td>Valik klassifikaatorist</td></tr>
+<tr><td>Tachograafi andmed alla laadimata (<code>tachographDataNotDownloaded</code>)</td><td>Ei</td><td>Märkeruut</td></tr>
+<tr><td>Kontrollitud päevade arv (<code>checkedDaysCount</code>)</td><td>Ei</td><td>Arv (max 3 numbrit)</td></tr>
+<tr><td>Tööpäevade arv (<code>workDaysCount</code>)</td><td>Ei</td><td>Arv; peab jääma kontrollitud päevade arvu piiresse</td></tr>
+<tr><td>Muu tegevuse päevade arv (<code>otherActivityDaysCount</code>)</td><td>Ei</td><td>Arv (max 3 numbrit)</td></tr>
+</tbody>
+</table>
+</div>
+<p>Sellel plokil saab lisada ka <strong>sõidu- ja puhkeaja rikkumised</strong> (<code>violations5612006</code>, <code>violations1652014</code>, <code>violations200215</code>, <code>violations5932008</code>, <code>violations20201057</code>).</p>
+<h3 id="6-sõiduki-massi-ja-mõõtmete-ning-atp-kokkuleppe-nõuetele-vastavus"><a class="header" href="#6-sõiduki-massi-ja-mõõtmete-ning-atp-kokkuleppe-nõuetele-vastavus">6. Sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavus</a></h3>
+<p>Aktiivne ainult autojuhil, kui tulemus pole <code>KORRAS</code>.</p>
+<ul>
+<li><strong>Mõõtmised ja rikkumised</strong> (<code>massDimensionMeasurements</code>) – lisatakse modaalakna kaudu.</li>
+</ul>
+<h3 id="7-atp-kokkuleppe-nõuete-kontroll"><a class="header" href="#7-atp-kokkuleppe-nõuete-kontroll">7. ATP kokkuleppe nõuete kontroll</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>ATP rikkumine leitud (<code>atpViolationFound</code>)</td><td>Ei</td><td>Jah / Ei</td></tr>
+<tr><td>ATP rikkumise kirjeldus (<code>atpViolationDescription</code>)</td><td>Jah, kui <code>atpViolationFound</code> = <code>true</code></td><td>Vaba tekst, max 4000 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="8-failid"><a class="header" href="#8-failid">8. Failid</a></h3>
+<ul>
+<li><code>FormFiles</code> – võimaldab lisada vormi seotud faile.</li>
+</ul>
+<h3 id="9-märkused"><a class="header" href="#9-märkused">9. Märkused</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Kohustuslik</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Märkused (<code>notes</code>)</td><td>Ei</td><td>Vaba tekst, kuvatakse kui tulemus pole <code>KORRAS</code></td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="transport-type-control-result-tachograph-atp-violation"><a class="header" href="#transport-type-control-result-tachograph-atp-violation">Transport type, control result, tachograph, ATP violation</a></h2>
+<ul>
+<li><strong>Veoliik</strong> määrab, kas tegu on sõitjate- või veoseveduga. See mõjutab kabotaažrikkumiste loendit.</li>
+<li><strong>Kontrolli tulemus</strong> määrab, kas vorm jääb lihtsaks korrashoiuks või avab edasised plokid rikkumisteks ja menetluseks.</li>
+<li><strong>Tachograaf</strong> tuleb täpsustada ainult siis, kui sõidu- ja puhkeaja nõuded <strong>rakendatakse</strong>.</li>
+<li><strong>ATP rikkumine</strong> tuleb kirjeldada tekstiväljas juhul, kui valitud on “Jah”.</li>
+</ul>
+<h2 id="rikkumiste-raskusastmed-msi--vsi--si--mi"><a class="header" href="#rikkumiste-raskusastmed-msi--vsi--si--mi">Rikkumiste raskusastmed (MSI / VSI / SI / MI)</a></h2>
+<p>Rikkumiste modaalaknas valitakse kolmel tasemel:</p>
+<ol>
+<li><strong>Tase 1</strong> – rikkumiste grupp (näiteks määruse nimi)</li>
+<li><strong>Tase 2</strong> – konkreetne rikkumise liik või artikkel</li>
+<li><strong>Tase 3</strong> – rikkumise detail, kus <code>description</code> väli sisaldab raskusastet</li>
+</ol>
+<p>Raskusaste kuvatakse valiku ees <strong>rasvases kirjas</strong> enne rikkumise nime. Need väärtused võivad olla näiteks <strong>MSI</strong> (most serious infringement), <strong>VSI</strong>, <strong>SI</strong> või <strong>MI</strong>. Iga tase 3 valiku korral salvestatakse rikkumise kood (<code>violationCode</code>) ja raskusastme kood (<code>severityCode</code>) koos nimega.</p>
+<h2 id="nipid-7"><a class="header" href="#nipid-7">Nipid</a></h2>
+<ul>
+<li>Määra kõigepealt <strong>kontrolli tulemus</strong> – see avab või peidab ülejäänud plokid.</li>
+<li>Kui tulemus on <strong>Korras</strong>, ei ole vaja täita dokumendi, sõidu-puhkeaja ega massi/mõõtmete andmeid.</li>
+<li>Tachograafi tüüp on kohustuslik ainult siis, kui sõidu- ja puhkeaja nõuded <strong>rakendatakse</strong>.</li>
+<li>ATP rikkumise korral täida kindlasti ka <strong>kirjeldus</strong>.</li>
+<li>Meeskonnaliikme vormil puuduvad sõiduki massi/mõõtmete ja kabotaaži alamvalikud.</li>
+<li>Veoklassi valik ja veoliik mõjutavad näidatavaid kabotaažrikkumiste valikuid.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="failide-lisamine-vormidele"><a class="header" href="#failide-lisamine-vormidele">Failide lisamine vormidele</a></h1>
+<p>Kontrollaktidele saab lisada manuseid, näiteks fotosid, tõendeid või dokumentide koopiaid. Manused salvestatakse S3-kõlbulikku objektihoidlasse ja nende kirjed andmebaasi.</p>
+<h2 id="millistes-vormides-saab-faile-lisada"><a class="header" href="#millistes-vormides-saab-faile-lisada">Millistes vormides saab faile lisada</a></h2>
+<p>Failide lisamine on saadaval peamistes vormides, kus on vaja tõendada visuaalselt või dokumendiga kontrolli tulemusi. Näiteks:</p>
+<ul>
+<li>liitvorm</li>
+<li>tehniline kontroll</li>
+<li>ADR</li>
+<li>tööinspektsioon</li>
+<li>hea maine</li>
+<li>välisriigis toimunud rikkumise akt</li>
+</ul>
+<h2 id="manuse-lisamise-sammud"><a class="header" href="#manuse-lisamise-sammud">Manuse lisamise sammud</a></h2>
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    participant K as Kasutaja
+    participant V as Vormivaade
+    participant S as Server
+    participant S3 as S3 hoiulaast
+
+    K-&gt;&gt;V: Klõpsab "Lisa fail"
+    V-&gt;&gt;K: Kuvab failivaliku
+    K-&gt;&gt;V: Valib faili arvutist
+    V-&gt;&gt;S: Saadab faili base64 kujul
+    S-&gt;&gt;S3: Laadib üles kausta form_type/form_number
+    S3--&gt;&gt;S: Tagastab S3 võtme
+    S-&gt;&gt;S: Salvestab manuse kirje andmebaasi
+    S--&gt;&gt;V: Tagastab faili ID
+    V-&gt;&gt;K: Kuvab faili manuste loendis
+</code></pre>
+<h2 id="lubatud-failiformaadid"><a class="header" href="#lubatud-failiformaadid">Lubatud failiformaadid</a></h2>
+<p>S3 laadimisel ja kasutajaliideses aktsepteeritakse järgmisi faile:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Laiend</th><th>MIME-tüüp</th><th>Märkus</th></tr>
+</thead>
+<tbody>
+<tr><td><code>.pdf</code></td><td><code>application/pdf</code></td><td>Aruanded, tõendid</td></tr>
+<tr><td><code>.jpg</code>, <code>.jpeg</code></td><td><code>image/jpeg</code></td><td>Fotod</td></tr>
+<tr><td><code>.png</code></td><td><code>image/png</code></td><td>Fotod, joonised</td></tr>
+<tr><td><code>.tiff</code></td><td><code>image/tiff</code></td><td>Kõrge eraldusvõimega pildid</td></tr>
+</tbody>
+</table>
+</div>
+<p>Serveri seadistus (<code>S3_ALLOWED_MIME_TYPES</code>) lubad ka <code>.asics</code>, <code>.doc</code> ja <code>.docx</code> faile, kuid kasutajaliideses piiratase praegu valik peamiselt PDF- ja pildifailidega.</p>
+<h2 id="faili-piirangud"><a class="header" href="#faili-piirangud">Faili piirangud</a></h2>
+<ul>
+<li><strong>Maksimaalne failisuurus kasutajaliideses</strong>: 10 MB</li>
+<li><strong>Maksimaalne failisuurus S3-puhverserveri seadistuses</strong>: 20 MB (vaikeväärtus)</li>
+<li><strong>Maksimaalne failinime pikkus</strong>: 200 tähemärki (vaikeväärtus)</li>
+<li>Iga fail on seotud konkreetse vormi tüübi ja vormi numbri ning originaalse failinimega</li>
+</ul>
+<h2 id="faili-tüüp"><a class="header" href="#faili-tüüp">Faili tüüp</a></h2>
+<p>Iga fail peab olema märgitud tüübiga, mis selgitab, mida fail kujutab. Näiteks:</p>
+<ul>
+<li>dokumendifoto</li>
+<li>tõend</li>
+<li>lisamaterjal</li>
+<li>kontrolli foto</li>
+</ul>
+<h2 id="failide-kustutamine"><a class="header" href="#failide-kustutamine">Failide kustutamine</a></h2>
+<p>Manuseid saab peita enne vormi kinnitamist. Pärast kinnitamist ei saa manuseid enam lisada ega kustutada. Kustutamine on <strong>pehme kustutamine</strong>: faili kirje andmebaasis märgistatakse staatusega <code>deleted</code>, kuid fail jääb S3 hoiularuumi.</p>
+<h2 id="failide-allalaadimine"><a class="header" href="#failide-allalaadimine">Failide allalaadimine</a></h2>
+<p>Vormi vaates saab igat aktiivset manust alla laadida. Klõpsake faili nime. Süsteem küsib S3-puhverserverilt ajutise allalaadimislingi ja avab selle uues vahekaardis.</p>
+<h2 id="failide-ajalooline-vaade"><a class="header" href="#failide-ajalooline-vaade">Failide ajalooline vaade</a></h2>
+<p>Kui sama nimega fail uuesti üles laetakse, luuakse andmebaasi uus kirje, kuid S3 võti jääb samaks. Seega näeb ajalugu eelkõige andmebaasi <code>forms.form_attachment</code> tabeli kirjetest, kus on säilinud iga üleslaadimise aeg, laadija ja staatus. Kui S3-hoidlas on lubatud <strong>S3 versioonihaldus</strong>, on ka varasemad faili versioonid tehniliselt olemas, kuid nende vaatamiseks/laadimiseks tuleb kasutada S3 konsooli või CLI-d.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="vormide-vaatamine-ja-ajalugu"><a class="header" href="#vormide-vaatamine-ja-ajalugu">Vormide vaatamine ja ajalugu</a></h1>
+<p>Salvestatud vormidele pääseb ligi nimekirja, töölaua või otsingu kaudu.</p>
+<h2 id="vormi-detailvaade"><a class="header" href="#vormi-detailvaade">Vormi detailvaade</a></h2>
+<p>Vormi detailvaade koosneb järgmistest osadest:</p>
+<ul>
+<li><strong>Põhiandmed</strong> — vormi kõik täidetud väljad kaartide kaupa</li>
+<li><strong>Manused</strong> — üleslaaditud failid</li>
+<li><strong>Ajalugu</strong> — varasemad salvestatud versioonid (snapshots)</li>
+<li><strong>Alamvormid</strong> — liitvormi puhul seotud alamvormid</li>
+</ul>
+<pre><code class="language-mermaid">flowchart TD
+    A[Vormi detailvaade] --&gt; B[Põhiandmed]
+    A --&gt; C[Manused]
+    A --&gt; D[Ajalugu]
+    A --&gt; E[Alamvormid]
+    D --&gt; F[Snapshot 1]
+    D --&gt; G[Snapshot 2]
+    D --&gt; H[Snapshot N]
+    E --&gt; I[Sõidu- ja puhkeaeg]
+    E --&gt; J[Tehniline kontroll]
+    E --&gt; K[ADR]
+</code></pre>
+<h2 id="url-i-struktuur"><a class="header" href="#url-i-struktuur">URL-i struktuur</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Vaade</th><th>URL</th></tr>
+</thead>
+<tbody>
+<tr><td>Põhivaade</td><td><code>/control-forms/&lt;tüüp&gt;/&lt;id&gt;</code></td></tr>
+<tr><td>Ajalooline versioon</td><td><code>/control-forms/&lt;tüüp&gt;/&lt;id&gt;/&lt;snapshotId&gt;</code></td></tr>
+</tbody>
+</table>
+</div>
+<p>Näide:</p>
+<ul>
+<li><code>/control-forms/foreign-violation/12345</code></li>
+<li><code>/control-forms/foreign-violation/12345/snapshot-67890</code></li>
+</ul>
+<h2 id="snapshot-ajalooline-versioon"><a class="header" href="#snapshot-ajalooline-versioon">Snapshot (ajalooline versioon)</a></h2>
+<p>Snapshot on vormi salvestatud seisund ajateljel. Iga salvestamine loob uue snapshoti. Snapshotide abil saab:</p>
+<ul>
+<li>vaadata, kuidas vorm aja jooksul muutus</li>
+<li>võrrelda kahte versiooni</li>
+<li>tõendada, milline oli vormi seisund kindlal ajal</li>
+</ul>
+<h2 id="muudatuste-võrdlus"><a class="header" href="#muudatuste-võrdlus">Muudatuste võrdlus</a></h2>
+<p>Mõned vormid võimaldavad võrrelda kahte snapshoti. Süsteem kuvab:</p>
+<ul>
+<li>millised väljad on muutunud</li>
+<li>vana ja uue väärtuse</li>
+<li>muutmise kuupäeva</li>
+<li>muutja nime</li>
+</ul>
+<h2 id="vormi-staatused"><a class="header" href="#vormi-staatused">Vormi staatused</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Staatus</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Mustand</td><td>Salvestatud, kuid mitte kinnitatud. Saab muuta.</td></tr>
+<tr><td>Avaldatud</td><td>Kinnitatud. Ei saa enam muuta.</td></tr>
+<tr><td>Aegunud</td><td>Vormi kehtivusaeg on möödas (kui rakendatakse aegumist).</td></tr>
+</tbody>
+</table>
+</div>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="riskihindamine"><a class="header" href="#riskihindamine">Riskihindamine</a></h1>
+<h2 id="mis-on-riskihindamine"><a class="header" href="#mis-on-riskihindamine">Mis on riskihindamine</a></h2>
+<p>LJVIS2 hindab automaatselt Eesti ettevõtete riskitaset kontrollaktide põhjal. Riskiskoor arvutatakse Euroopa Liidu määruse 2022/695 (veoettevõtja hea maine ja juhtide juurdepääs kutsele) alusel.</p>
+<h2 id="arvutusvalem"><a class="header" href="#arvutusvalem">Arvutusvalem</a></h2>
+<p>Riskiskoori valem on:</p>
+<pre><code>R = ((Σᵢ ((nMSI×90 + nVSI×30 + nSI×10 + nMI×1) / Nᵢ)) / r) × g
+</code></pre>
+<pre><code class="language-mermaid">flowchart TD
+    A[Forms.compound_form] --&gt;|Filtreeri Eesti ettevõtted| B[Arvuta kontrollid]
+    B --&gt; C{Kas kontroll sobib?}
+    C --&gt;|Ei sobi| Z[Välja jäetud]
+    C --&gt;|Jah| D[Loenda rikkumiste raskusastmed]
+    D --&gt; E[MSI * 90 + VSI * 30 + SI * 10 + MI * 1]
+    E --&gt; F[Arvuta kontrolli skoor]
+    F --&gt; G[Kogu keskmine / kontrollide arv]
+    G --&gt; H[Riskiskoor R]
+    H --&gt; I[Määra riskitase]
+</code></pre>
+<h2 id="tähistused"><a class="header" href="#tähistused">Tähistused</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Tähis</th><th>Tähendus</th></tr>
+</thead>
+<tbody>
+<tr><td><code>nMSI</code></td><td>Huligaansõit (Most Serious Infringement) rikkumiste arv</td></tr>
+<tr><td><code>nVSI</code></td><td>Väga tõsine rikkumine (Very Serious Infringement) arv</td></tr>
+<tr><td><code>nSI</code></td><td>Tõsine rikkumine (Serious Infringement) arv</td></tr>
+<tr><td><code>nMI</code></td><td>Vähemtõsine rikkumine (Minor Infringement) arv</td></tr>
+<tr><td><code>Nᵢ</code></td><td>Kontrollitud sõidukite arv kontrollis i</td></tr>
+<tr><td><code>r</code></td><td>Arvesse võetud kontrollide koguarv (sh nullpunktilised)</td></tr>
+<tr><td><code>g</code></td><td>Aruka sõidumeeriku kaalutegur; esimeses versioonis 1,0</td></tr>
+<tr><td><code>R</code></td><td>Koondriskiskoor</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="riskitasemed"><a class="header" href="#riskitasemed">Riskitasemed</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Riskitase</th><th>Väärtus</th><th>Kuvatav värv</th><th>Tähendus</th></tr>
+</thead>
+<tbody>
+<tr><td>Hall</td><td><code>r = 0</code></td><td>Hall</td><td>Kontrollimata — ettevõttel pole piisavalt kontrolle</td></tr>
+<tr><td>Roheline</td><td><code>0 ≤ R ≤ 100</code></td><td>Roheline</td><td>Madal risk</td></tr>
+<tr><td>Kollane</td><td><code>101 ≤ R ≤ 200</code></td><td>Kollane</td><td>Keskmine risk</td></tr>
+<tr><td>Punane</td><td><code>R ≥ 201</code></td><td>Punane</td><td>Kõrge risk</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="millised-kontrollid-arvesse-lähevad"><a class="header" href="#millised-kontrollid-arvesse-lähevad">Millised kontrollid arvesse lähevad</a></h2>
+<p>Arvesse lähevad:</p>
+<ul>
+<li><code>compound_form</code> kirjed, mille staatus on <code>published</code></li>
+<li>Ettevõtja on Eesti ettevõtja (registrikood 8 numbrit)</li>
+<li>Jõustumiskuupäev jääb kahe aasta pikkusesse ajavahemikku</li>
+</ul>
+<h3 id="nullpunktilised-kontrollid"><a class="header" href="#nullpunktilised-kontrollid">Nullpunktilised kontrollid</a></h3>
+<p>Need kontrollid lähevad arvesse (<code>r++</code>), kuid ei anna kaalupunkte:</p>
+<ul>
+<li><code>sp_applicability = 'applied'</code> JA <code>proceeding_type</code> on expedited/general/summary JA puuduvad raskusastmega rikkumised</li>
+<li><code>result_type = 'warning'</code> (HOIATUS) JA <code>sp_applicability = 'applied'</code> JA puuduvad EU raskusastmega rikkumised</li>
+</ul>
+<h3 id="välja-jäetavad-kontrollid"><a class="header" href="#välja-jäetavad-kontrollid">Välja jäetavad kontrollid</a></h3>
+<p>Kontrollid, mille <code>sp_applicability</code> on <code>not_checked</code> või <code>not_applied</code> ning tulemus on <code>ok</code>, ei lähe arvesse.</p>
+<h2 id="kodaniku-vaade"><a class="header" href="#kodaniku-vaade">Kodaniku vaade</a></h2>
+<p>Ettevõtte esindaja saab sisselogides vaadata oma ettevõtte riskitaset. Süsteem kontrollib TARA autentimise järel, kas isikul on äriregistri andmetel ettevõtja esindaja õigus.</p>
+<p>Sama riskiteavet saavad vaadata ka administraatorid ja volitatud ametnikud — kas kõigi ettevõtete loendina või konkreetse ettevõtte detailvaates.</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    participant K as Kodanik
+    participant L as LJVIS2
+    participant T as TARA
+    participant AR as Äriregister
+
+    K-&gt;&gt;L: Sisene süsteemi
+    L-&gt;&gt;T: TARA autentimine
+    T--&gt;&gt;L: Isikuandmed
+    L-&gt;&gt;AR: Kontrolli esindajaõigust
+    AR--&gt;&gt;L: Ettevõtte nimekiri
+    L-&gt;&gt;K: Kuvab ettevõtte riskitasemed
+</code></pre>
+<h2 id="administraatori-vaade"><a class="header" href="#administraatori-vaade">Administraatori vaade</a></h2>
+<p>Ametnikud saavad vaadata kõigi Eesti ettevõtete riskitasemete loendit. Loend võimaldab:</p>
+<ul>
+<li>sorteerida ettevõtete nime järgi</li>
+<li>filtreerida riskitaseme järgi (Hall, Roheline, Kollane, Punane)</li>
+<li>otsida registrikoodi või nime järgi</li>
+<li>avada detailvaate, kus kuvatakse skoori moodustavad kontrollid</li>
+</ul>
+<h2 id="erru-integratsioon"><a class="header" href="#erru-integratsioon">ERRU integratsioon</a></h2>
+<p>Riskiskoor edastatakse Euroopa Liidu ERRU (European Register of Road Transport Undertakings) süsteemile CTUD (Common Transport Union Database) liidese kaudu. LJVIS2 pakub selleks eraldi <code>/current</code> endpointi, mida CTUD päringu töötleja kutsub.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="auditilogi-vaatamine"><a class="header" href="#auditilogi-vaatamine">Auditilogi vaatamine</a></h1>
+<p>Auditilogi kuvab süsteemis toimunud olulisi tegevusi. See on abivahend, mille abil saab jälgida, kes millal mida tegi.</p>
+<h2 id="ligipääs"><a class="header" href="#ligipääs">Ligipääs</a></h2>
+<p>Auditilogi avamiseks vali menüüst <strong>Haldus → Auditilogi</strong>.</p>
+<p>Õigus: <code>audit.read</code></p>
+<h2 id="mida-logitakse"><a class="header" href="#mida-logitakse">Mida logitakse</a></h2>
+<p>Auditilogi salvestab järgmised sündmused:</p>
+<ul>
+<li>kasutaja vaatamine ja muutmine</li>
+<li>kasutajagrupi muutmine</li>
+<li>klassifikaatori väärtuse muutmine</li>
+<li>vormide loomine, vaatamine ja muutmine</li>
+<li>autentimissündmused</li>
+</ul>
+<h2 id="logi-kirje-koostis"><a class="header" href="#logi-kirje-koostis">Logi kirje koostis</a></h2>
+<p>Iga kirje sisaldab:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Sündmuse tüüp</td><td>Näiteks <code>user.create</code>, <code>form.view</code></td></tr>
+<tr><td>Kategooria</td><td>Kasutaja, vorm, klassifikaator jne</td></tr>
+<tr><td>Tegija nimi</td><td>Kes tegevuse sooritas</td></tr>
+<tr><td>Tegija isikukoodi räsi</td><td>Pseudonüümistatud isikukood</td></tr>
+<tr><td>Kirjeldus</td><td>Inimloetav selgitus</td></tr>
+<tr><td>Lisainfo</td><td>JSON-formaadis detailid</td></tr>
+<tr><td>Ajatempel</td><td>Millal tegevus toimus</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="logi-otsimine"><a class="header" href="#logi-otsimine">Logi otsimine</a></h2>
+<p>Auditilogi lehel saad:</p>
+<ul>
+<li>filtreerida sündmuse tüübi järgi</li>
+<li>otsida tegija nime järgi</li>
+<li>valida kuupäevavahemiku</li>
+<li>sorteerida ajatemplite järgi</li>
+<li>avada detailvaate, kus näidatakse täpsemaid andmeid ja JSON-i</li>
+</ul>
+<pre><code class="language-mermaid">flowchart LR
+    A[Auditilogi] --&gt; B[Filter]
+    B --&gt; C[Sündmuse tüüp]
+    B --&gt; D[Kasutaja]
+    B --&gt; E[Ajavahemik]
+    A --&gt; F[Detailvaade]
+    F --&gt; G[JSON lisainfo]
+</code></pre>
+<h2 id="räsiahela-kontroll"><a class="header" href="#räsiahela-kontroll">Räsiahela kontroll</a></h2>
+<p>Auditilogi on varustatud räsiahelaga, mis tagab, et ükski kirje ei oleks vaikimisi muudetud. Räsiahela kontrolli saab teha eraldi funktsiooniga, kui seda on õigus kasutada.</p>
+<h2 id="näited-sündmustest"><a class="header" href="#näited-sündmustest">Näited sündmustest</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Sündmus</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td><code>user.create</code></td><td>Uus kasutaja loodud</td></tr>
+<tr><td><code>user.update</code></td><td>Kasutaja andmed muudetud</td></tr>
+<tr><td><code>user_group.update</code></td><td>Kasutajagrupi andmed muudetud</td></tr>
+<tr><td><code>classifier_value.update</code></td><td>Klassifikaatori väärtus muudetud</td></tr>
+<tr><td><code>form.create</code></td><td>Uus vorm loodud</td></tr>
+<tr><td><code>form.view</code></td><td>Vormi vaadati</td></tr>
+</tbody>
+</table>
+</div>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="administraatori-sissejuhatus"><a class="header" href="#administraatori-sissejuhatus">Administraatori sissejuhatus</a></h1>
+<p>Administraator haldab LJVIS2 kasutajaid, gruppe, õigusi ja klassifikaatoreid. Administraatorina saate määrata, kes milliseid vorme täita ja milliseid andmeid vaadata saab.</p>
+<h2 id="administraatori-rollid"><a class="header" href="#administraatori-rollid">Administraatori rollid</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Roll</th><th>Õigused</th><th>Ülesanded</th></tr>
+</thead>
+<tbody>
+<tr><td>Üldadministraator</td><td><code>user.list.admin</code>, <code>user_group.list.admin</code>, <code>classifier.list</code>, <code>audit.read</code></td><td>Hallatakse kõiki kasutajaid ja süsteemi seadeid</td></tr>
+<tr><td>Organisatsiooni administraator</td><td><code>user.list.local</code>, <code>user_group.list.local</code></td><td>Hallatakse ainult oma organisatsiooni kasutajaid ja gruppe</td></tr>
+<tr><td>Ametniku juht</td><td><code>classifier.list</code>, <code>audit.read</code></td><td>Jälgib tegevusi ja klassifikaatoreid</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="administraatori-sisselogimine"><a class="header" href="#administraatori-sisselogimine">Administraatori sisselogimine</a></h2>
+<p>Administraatorid logivad sisse samasuguse TARA autentimisega nagu tavalised kasutajad. Erinevus seisneb selles, millised menüüpunktid kuvatakse — need sõltuvad Teie õigustest.</p>
+<h2 id="milliseid-õigusi-vaja-on"><a class="header" href="#milliseid-õigusi-vaja-on">Milliseid õigusi vaja on</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Funktsioon</th><th>Vajalik õigus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kasutajate nimekiri</td><td><code>user.list.admin</code> või <code>user.list.local</code></td></tr>
+<tr><td>Uue kasutaja lisamine</td><td><code>user.create.admin</code> või <code>user.create.local</code></td></tr>
+<tr><td>Kasutaja muutmine</td><td><code>user.edit.admin</code> või <code>user.edit.local</code></td></tr>
+<tr><td>Kasutajagruppide nimekiri</td><td><code>user_group.list.admin</code> või <code>user_group.list.local</code></td></tr>
+<tr><td>Grupi muutmine</td><td><code>user_group.update</code></td></tr>
+<tr><td>Klassifikaatorite haldus</td><td><code>classifier.list</code></td></tr>
+<tr><td>Auditilogi vaatamine</td><td><code>audit.read</code></td></tr>
+</tbody>
+</table>
+</div>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="kasutajate-haldamine"><a class="header" href="#kasutajate-haldamine">Kasutajate haldamine</a></h1>
+<p>Selles jaos kirjeldatakse, kuidas administraator saab LJVIS 2 süsteemis kasutajakontosid vaadata, luua, muuta ja hallata nende grupiliikmelisusi.</p>
+<h2 id="1-vajalikud-õigused"><a class="header" href="#1-vajalikud-õigused">1. Vajalikud õigused</a></h2>
+<p>Kasutajate halamiseks peab sisselogitud kasutajal olema vastavad õigused:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Tegevus</th><th>Nõutav õigus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kasutajate nimekirja vaatamine</td><td><code>user.list.admin</code> või <code>user.list.local</code></td></tr>
+<tr><td>Ühe kasutaja detailvaate ja gruppide vaatamine</td><td><code>user.read.admin</code> või <code>user.read.local</code></td></tr>
+<tr><td>Uue kasutaja loomine ja olemasoleva muutmine</td><td><code>user.edit.admin</code> või <code>user.edit.local</code></td></tr>
+<tr><td>Kasutajagruppide detailinfo vaatamine</td><td><code>user_group.read.admin</code> või <code>user_group.read.local</code></td></tr>
+</tbody>
+</table>
+</div>
+<p>Kui <code>admin</code> õigus puudub, rakendatakse automaatselt <code>local</code> skoop, mis piirab ligipääsu ainult oma asutuse kasutajatele.</p>
+<h2 id="2-kasutajate-nimekirja-avamine"><a class="header" href="#2-kasutajate-nimekirja-avamine">2. Kasutajate nimekirja avamine</a></h2>
+<p>Kasutajate nimekirja leiad peamenüüst valiku <strong>Kasutajad</strong> kaudu. Navigeerimisel avaneb lehekülg <code>/users</code>, mis kuvab kõik kasutajad, kellele sul on õigusega ligipääs.</p>
+<p>Nimekirja päringu skoop määratakse automaatselt:</p>
+<ul>
+<li>kasutajal, kellel on õigus <code>user.list.admin</code>, laetakse kogu süsteemi kasutajaskond (<code>admin</code> skoop);</li>
+<li>kõigil teistel kuvatakse ainult sama asutuse kasutajad (<code>local</code> skoop).</li>
+</ul>
+<h2 id="3-otsing-filtreerimine-sorteerimine-ja-leheküljed"><a class="header" href="#3-otsing-filtreerimine-sorteerimine-ja-leheküljed">3. Otsing, filtreerimine, sorteerimine ja leheküljed</a></h2>
+<p>Kasutajate nimekirja lehel saad:</p>
+<ul>
+<li><strong>Otsida</strong> kasutajat nime, isikukoodi või muude tunnuste järgi ülaosas asuvas otsinguväljas.</li>
+<li><strong>Sorteerida</strong> tulemusi veergude päiste kaudu. Vaikimisi on tulemused sorteeritud staatuse järgi (<code>status asc</code>) — aktiivsed kasutajad kuvatakse esimesena.</li>
+<li><strong>Lehitseda</strong> tulemusi lehekülgede kaupa, kasutades nimekirja all olevat leheküljendust. Saad määrata ka lehekülje suuruse (<code>pageSize</code>), et korraga näidata rohkem või vähem kirjeid.</li>
+<li><strong>Vaadata grupiliikmelisusi</strong>: kui kasutaja kuulub mitmesse gruppi, võidakse ta nimekirjas kuvada eraldi ridadena iga grupi kohta, et oleks lihtsam ülevaadet saada.</li>
+</ul>
+<p>Otsinguparameetrid saadetakse HTTP GET päringuga lõpp-punkti <code>/v1/users/{scope}/search</code>. Täpsemad näited leiad allpool <a href="#6-näidised">Näidised</a> jaotisest ja dokumendist <code>07-api-info.md</code>.</p>
+<h2 id="4-uue-kasutaja-loomine"><a class="header" href="#4-uue-kasutaja-loomine">4. Uue kasutaja loomine</a></h2>
+<p>Uue kasutaja lisamiseks ava kasutajate nimekirja lehel nupp <strong>Lisa kasutaja</strong> (või mine otse aadressile <code>/users/new</code>). Avaneb leht <code>UserCreatePage</code>. Järgmised väljad on kohustuslikud (tärniga tähistatud):</p>
+<ul>
+<li><strong>Eesnimi</strong> (<code>firstName</code>) — kuni 200 tähemärki.</li>
+<li><strong>Perekonnanimi</strong> (<code>lastName</code>) — kuni 200 tähemärki.</li>
+<li><strong>Isikukood</strong> (<code>personalCode</code>) — ainult numbrid, kuni 11 märki.</li>
+<li><strong>Asutus</strong> (<code>organisationId</code>) — vali rippmenüüst. Kohaliku administraatori (<code>local</code>) jaoks on see väli ette täidetud ja mittemuudetav.</li>
+<li><strong>Struktuuriüksus</strong> (<code>structuralUnitName</code>) — valikuline, vali rippmenüüst vastavalt asutusele.</li>
+<li><strong>Ametinimetus</strong> (<code>jobTitleName</code>) — kuni 100 tähemärki.</li>
+<li><strong>E-posti aadress</strong> (<code>email</code>) — kuni 320 tähemärki.</li>
+<li><strong>Telefon</strong> (<code>phone</code>) — valikuline.</li>
+<li><strong>Ligipääsu algus</strong> (<code>accessStart</code>) — kuupäev, millal konto muutub aktiivseks.</li>
+<li><strong>Ligipääsu lõpp</strong> (<code>accessEnd</code>) — valikuline kuupäev. Kui jätta tühjaks, on konto kehtiv piiramata ajani.</li>
+</ul>
+<p>Pärast vajalike väljade täitmist vajuta <strong>Salvesta</strong>. Kui kõik andmed on korrektsed, suunatakse sind uue kasutaja detailvaatele, kus kuvatakse teade edukalt loodud kontost.</p>
+<h2 id="5-kasutaja-muutmine"><a class="header" href="#5-kasutaja-muutmine">5. Kasutaja muutmine</a></h2>
+<p>Olemasoleva kasutaja muutmiseks klõpsa kasutajate nimekirjas soovitud kasutaja real. Avanevas detailvaates (<code>/users/{id}</code>) kuvatakse kasutaja põhiandmed ja grupiliikmelisused.</p>
+<p>Muutmiseks:</p>
+<ol>
+<li>Vajuta kastis <strong>Muuda</strong>.</li>
+<li>Asenda või täienda vajalikud väljad (eesnimi, perekonnanimi, isikukood, asutus, struktuuriüksus, ametinimetus, e-post, telefon, ligipääsu algus/lõpp).</li>
+<li>Vajuta <strong>Salvesta</strong>.</li>
+</ol>
+<p>Kui kasutajal on aktiivsed grupiliikmelisused ja sa vahetad teda teise asutuse alla, kuvatakse hoiatus, et gruppide sidemed võivad muutuda. Peale salvestamist kuvatakse teade <code>Kasutaja andmed salvestatud</code> ja leht värskendatakse.</p>
+<h2 id="6-kasutajagruppide-vaatamine-ja-muutmine"><a class="header" href="#6-kasutajagruppide-vaatamine-ja-muutmine">6. Kasutajagruppide vaatamine ja muutmine</a></h2>
+<p>Kasutaja detaillehel eraldi kastis kuvatakse kasutaja kuuluvus kasutajagruppidesse. Seal saad:</p>
+<ul>
+<li><strong>Vaadata aktiivseid gruppe</strong> ja nende staatust.</li>
+<li><strong>Muuta gruppe</strong>, kui sul on õigus <code>user.edit.admin</code> või <code>user.edit.local</code>. Vajuta <strong>Muuda grupid</strong>, vali soovitud grupid ja salvesta.</li>
+<li><strong>Avada grupi detailvaate</strong>, kui sul on õigus <code>user_group.read.admin</code> või <code>user_group.read.local</code> — see võimaldab näha grupi õigusi ja liikmeid.</li>
+</ul>
+<p>Kui süsteemis pole veel ühtegi kasutajagruppi loodud, kuvatakse vastav teade.</p>
+<h2 id="7-näidised"><a class="header" href="#7-näidised">7. Näidised</a></h2>
+<p>Järgmised <code>curl</code> päringud illustreerivad, kuidas kasutajate nimekirja otsida ja uut kasutajat luua otse API kaudu. Täielikud lõpp-punktide kirjeldused, autentimise nõuded ja täiendavad näidised on dokumendis <a href="#ljvis-2-api-info"><code>07-api-info.md</code></a>.</p>
+<h3 id="kasutajate-otsing"><a class="header" href="#kasutajate-otsing">Kasutajate otsing</a></h3>
+<p>Otsi administraatori skoobis kasutajaid, kelle nimi või muu tekst sisaldab tähte <code>M</code>, ning tagasta esimene lehekülg 20 kirjetega:</p>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/users/admin/search?q=M&amp;page=1&amp;pageSize=20" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<blockquote>
+<p>Asenda <code>&lt;base-url&gt;</code> rakenduse tegeliku baasaadressiga (nt <code>https://dev.liiklusvalve.ee</code>) ja <code>&lt;COOKIE&gt;</code> TARA/TIM sessiooniküpsise väärtusega.</p>
+</blockquote>
+<h3 id="uue-kasutaja-loomine"><a class="header" href="#uue-kasutaja-loomine">Uue kasutaja loomine</a></h3>
+<p>Loo uus kasutajakonto administraatori skoobis. Päringu kehas peavad olema vähemalt kohustuslikud väljad:</p>
+<pre><code class="language-bash">curl -X POST "https://&lt;base-url&gt;/v1/users/admin" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Siim",
+    "lastName": "Tamm",
+    "personalCode": "39001010001",
+    "organisationId": 7,
+    "structuralUnit": "PÕHJA PREFEKTUUR",
+    "jobTitle": "Senior analyst",
+    "email": "siim.tamm@ppa.ee",
+    "phone": "5555 1234",
+    "accessStart": "2026-01-01",
+    "accessEnd": null
+  }'
+</code></pre>
+<p>Vastuseks tagastatakse loodud kasutaja andmed, sealhulgas unikaalne identifikaator (<code>id</code>), mille abil saab hiljem detailvaate avada või kontot muuta.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="kasutajagrupid"><a class="header" href="#kasutajagrupid">Kasutajagrupid</a></h1>
+<p>Kasutajagrupid võimaldavad kasutajatele õigusi ja asutusi üheskoos hallata. Grupi kaudu saab määrata, millistesse asutustesse ja millisele funktsionaalsusele kasutajad juurdepääsu saavad. Üks kasutaja võib kuuluda mitmesse gruppi korraga.</p>
+<h2 id="1-vajalikud-õigused-1"><a class="header" href="#1-vajalikud-õigused-1">1. Vajalikud õigused</a></h2>
+<p>Kasutajagruppidega tegelemiseks on vajalikud erinevad õigused sõltuvalt soovitud tegevusest ja ulatusest.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Tegevus</th><th>Vajalik õigus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kasutajagruppide nimekirja vaatamine</td><td><code>user_group.list.admin</code> (kõik asutused) või <code>user_group.list.local</code> (ainult oma asutus)</td></tr>
+<tr><td>Ühe grupi detailvaate avamine</td><td><code>user_group.read.admin</code> või <code>user_group.read.local</code></td></tr>
+<tr><td>Uue grupi loomine</td><td><code>user_group.create</code></td></tr>
+<tr><td>Grupi nime, asutuste või õiguste muutmine</td><td><code>user_group.update</code></td></tr>
+<tr><td>Kasutajate lisamine gruppi</td><td><code>user_group.add_user</code></td></tr>
+<tr><td>Kasutajate eemaldamine grupist</td><td><code>user_group.remove_user</code></td></tr>
+<tr><td>Grupi liikmete nimekirja vaatamine</td><td><code>user_group.list_users.admin</code> või <code>user_group.list_users.local</code></td></tr>
+<tr><td>Sobivate kasutajate otsimine gruppi lisamiseks</td><td><code>user_group.search_eligible_users</code></td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="2-kasutajagruppide-nimekiri-ja-otsing"><a class="header" href="#2-kasutajagruppide-nimekiri-ja-otsing">2. Kasutajagruppide nimekiri ja otsing</a></h2>
+<p>Kasutajagruppide lehele jõudes kuvatakse kõikide gruppide nimekiri. Vaikimisi on nimekiri sorteeritud grupi nime järgi kasvavas järjekorras (<code>name asc</code>).</p>
+<p>Otsingulahtris saab sisestada grupi nime või osa sellest. Otsingu käivitamisel laetakse iga leitud grupi kohta ka sellega seotud asutuste nimed, et tulemusi oleks lihtsam üksteisest eristada. Tabelis võidakse sama grupi kohta kuvada mitu rida, kui grupp on seotud mitme asutusega.</p>
+<p>Märkus. Kui grupi loomisel on valitud kõikidele asutustele ulatuv lipp (<code>coversAllOrganisations</code>), siis selle grupi puhul asutusi eraldi ei kuvata.</p>
+<h2 id="3-uue-grupi-loomine"><a class="header" href="#3-uue-grupi-loomine">3. Uue grupi loomine</a></h2>
+<p>Uue grupi loomiseks ava leht <strong>Lisa kasutajagrupp</strong>. Vorm koosneb kolmest osast:</p>
+<ol>
+<li><strong>Andmed</strong> — sisesta grupi nimi. Nimi on kohustuslik ja võib olla kuni 50 tähemärki pikk.</li>
+<li><strong>Seotud asutused</strong> — vali tabelist asutused, millega grupi seosed luua. Võimalik on valida kõik nähtavad asutused korraga märkeruudu abil või valida asutusi ükshaaval.</li>
+<li><strong>Grupi õigused</strong> — vali tabelist õigused, mida grupiliikmetele anda. Nagu asutuste puhul, saab valida kõik õigused korraga või eraldi.</li>
+</ol>
+<p>Kui nime või asutusi pole valitud, kuvatakse vastav veateade. Pärast salvestamist suunatakse sind äsjaloodud grupi detailvaatesse.</p>
+<h2 id="4-kasutajate-lisamine-ja-eemaldamine"><a class="header" href="#4-kasutajate-lisamine-ja-eemaldamine">4. Kasutajate lisamine ja eemaldamine</a></h2>
+<h3 id="kasutajate-lisamine"><a class="header" href="#kasutajate-lisamine">Kasutajate lisamine</a></h3>
+<p>Grupi detailvaates ava <strong>Kasutajad</strong> plokk. Kui sul on õigus <code>user_group.add_user</code>, näed nuppu <strong>Lisa kasutaja</strong>. Sellel klõpsates avaneb leht, kus saad otsida ja valida kasutajaid, keda gruppi lisada. Sobivaid kasutajaid otsitakse õiguse <code>user_group.search_eligible_users</code> alusel.</p>
+<p>Pärast kasutajate lisamist kuvatakse detailvaates lühike edukateade ja uue liikme nimekiri värskendatakse.</p>
+<h3 id="kasutajate-eemaldamine"><a class="header" href="#kasutajate-eemaldamine">Kasutajate eemaldamine</a></h3>
+<p>Grupi liikmete tabelis on iga kasutaja rea lõpus <strong>Eemalda</strong> link, kui sul on õigus <code>user_group.remove_user</code>. Klõpsates seda, kuvatakse kinnitusdialoog. Kinnitamisel eemaldatakse kasutaja kohe grupist. Eemaldamine ei kustuta kasutajakontot, vaid ainult lõpetab grupikuuluvuse.</p>
+<h2 id="5-asutuste-lisamine-ja-eemaldamine"><a class="header" href="#5-asutuste-lisamine-ja-eemaldamine">5. Asutuste lisamine ja eemaldamine</a></h2>
+<p>Grupi detailvaates ava <strong>Seotud asutused</strong> plokk. Kui sul on õigus <code>user_group.update</code>, saad asutusi muuta:</p>
+<ul>
+<li>Klõpsa <strong>Muuda</strong> või vastavat ikooni.</li>
+<li>Tabelis märgi või eemalda märkeruutudelt asutused.</li>
+<li>Salvesta muudatused.</li>
+</ul>
+<p>Asutuste muutmisel saad valida kõik nähtavad asutused korraga või kombineerida asutusi vabalt. Pärast salvestamist värskendatakse grupi seosed. Kui muudad asutusi, võivad gruppi kuuluvate kasutajate juurdepääsud muutuda.</p>
+<h2 id="6-õiguste-seadmine"><a class="header" href="#6-õiguste-seadmine">6. Õiguste seadmine</a></h2>
+<p>Grupi detailvaates ava <strong>Grupi õigused</strong> plokk. Kui sul on õigus <code>user_group.update</code>, saad õigusi muuta:</p>
+<ul>
+<li>Ava plokk ja klõpsa muutmiseks.</li>
+<li>Tabelis märgi või tühista soovitud õigused.</li>
+<li>Salvesta muudatused.</li>
+</ul>
+<p>Õiguste muutmine jõustub kohe. Kõik grupi kasutajad saavad uued õigused, kui nende konto on aktiivne ja asutuslikud piirangud seda võimaldavad. Pärast salvestamist värskendatakse ka kasutaja seansis olevad õigused.</p>
+<h2 id="7-levinud-õiguste-selgitused-näidetega"><a class="header" href="#7-levinud-õiguste-selgitused-näidetega">7. Levinud õiguste selgitused näidetega</a></h2>
+<p>Kasutajagruppide õigused kontrollivad, milliseid andmeid ja tegevusi kasutajad näevad. Siin on levinumate õiguste tähendused ja näited praktilisest kasutusest.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Õigus</th><th>Selgitus</th><th>Näide</th></tr>
+</thead>
+<tbody>
+<tr><td><code>user_group.list.admin</code></td><td>Saab kõiki kasutajagruppe otsida ja nimekirja vaadata.</td><td>Peakasutaja vaatab üle kõikide asutuste gruppid.</td></tr>
+<tr><td><code>user_group.list.local</code></td><td>Saab otsida ja nimekirja vaadata ainult oma asutuse gruppe.</td><td>Asutuse administraator vaatab oma asutuse gruppe.</td></tr>
+<tr><td><code>user_group.read.admin</code></td><td>Saab avada iga grupi detailvaate.</td><td>Kõikide grupide seadete kontrollimine.</td></tr>
+<tr><td><code>user_group.read.local</code></td><td>Saab avada ainult oma asutusega seotud gruppide detailvaate.</td><td>Omane asutuse juhile.</td></tr>
+<tr><td><code>user_group.create</code></td><td>Saab luua uusi kasutajagruppe.</td><td>Uue rolligrupi loomine, nt „PPA analüütikud“.</td></tr>
+<tr><td><code>user_group.update</code></td><td>Saab muuta grupi nime, asutusi ja õigusi.</td><td>Grupi õiguste häälestamine.</td></tr>
+<tr><td><code>user_group.add_user</code></td><td>Saab kasutajaid gruppi lisada.</td><td>Uue töötaja lisamine analüütikute gruppi.</td></tr>
+<tr><td><code>user_group.remove_user</code></td><td>Saab eemaldada kasutajaid grupist.</td><td>Lahkuva töötaja eemaldamine rolligrupist.</td></tr>
+<tr><td><code>user.list.admin</code> / <code>user.list.local</code></td><td>Saab vaadata kasutajate nimekirja vastavalt ulatusele.</td><td>Kasutajate otsimine gruppi lisamiseks.</td></tr>
+<tr><td><code>user.read.admin</code> / <code>user.read.local</code></td><td>Saab vaadata kasutaja andmeid.</td><td>Grupi liikmete nimed klõpsatavad lingid.</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="8-näited-päringutena-curl"><a class="header" href="#8-näited-päringutena-curl">8. Näited päringutena (curl)</a></h2>
+<p>Järgmised näited kasutavad sama autentimise mudelit kui muud adminjuhendid: päringutes peab kaasas olema kehtiv TARA/TIM sessiooniküpsis. Koha täitjad:</p>
+<ul>
+<li><code>https://&lt;base-url&gt;</code> — rakenduse baasaadress, nt <code>https://dev.liiklusvalve.ee</code></li>
+<li><code>&lt;COOKIE&gt;</code> — TARA/TIM sessiooniküpsise väärtus</li>
+</ul>
+<h3 id="kasutajagruppide-otsing"><a class="header" href="#kasutajagruppide-otsing">Kasutajagruppide otsing</a></h3>
+<p>Otsi nime järgi, lehekülg 1, 20 rida lehekülje kohta, administraatori skoobis:</p>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/user-groups/admin/search?q=analyst&amp;page=1&amp;pageSize=20" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<h3 id="kasutajagrupi-õiguste-muutmine"><a class="header" href="#kasutajagrupi-õiguste-muutmine">Kasutajagrupi õiguste muutmine</a></h3>
+<p>Muuda grupi õigusi, määrates täieliku õiguste nimekirja. Kõik varem seotud õigused, mida siin ei ole, eemaldatakse:</p>
+<pre><code class="language-bash">curl -X PUT "https://&lt;base-url&gt;/v1/user-groups/permissions" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": 12,
+    "permissionIds": [3, 7, 15]
+  }'
+</code></pre>
+<p>Otsese API otspunkti <code>PUT /v1/user-groups/permissions</code> puhul kasutatakse õiguste unikaalseid ID-sid (<code>permissionIds</code>), mitte koodinimesid. Kui soovid õiguste koodinimesega määrata, tehakse seda grupi loomisel <code>POST /v1/user-groups</code> päringus:</p>
+<pre><code class="language-bash">curl -X POST "https://&lt;base-url&gt;/v1/user-groups" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "PPA analüütik",
+    "organisationIds": [7],
+    "permissionCodes": ["user.list.local", "user.read.local"]
+  }'
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="klassifikaatorite-haldus"><a class="header" href="#klassifikaatorite-haldus">Klassifikaatorite haldus</a></h1>
+<p>Klassifikaatorid on süsteemi viitede loendid. Näiteks riigid, maakonnad, teed, rikkumiste koodid, sanktsioonid ja ametikohad.</p>
+<h2 id="ligipääs-1"><a class="header" href="#ligipääs-1">Ligipääs</a></h2>
+<p>Menüü → <strong>Haldus → Klassifikaatorid</strong></p>
+<p>Õigus: <code>classifier.list</code></p>
+<h2 id="klassifikaatorite-nimekiri"><a class="header" href="#klassifikaatorite-nimekiri">Klassifikaatorite nimekiri</a></h2>
+<p>Nimekiri kuvab kõik süsteemi klassifikaatorid. Iga klassifikaatori juures on:</p>
+<ul>
+<li>kood</li>
+<li>nimetus</li>
+<li>kehtivusperiood</li>
+<li>väärtuste arv</li>
+</ul>
+<pre><code class="language-mermaid">flowchart TD
+    A[Klassifikaatorite nimekiri] --&gt; B[Otsing]
+    A --&gt; C[Sorteerimine]
+    A --&gt; D[Detailvaade]
+    D --&gt; E[Väärtuste nimekiri]
+    E --&gt; F[Muuda kehtivust]
+    E --&gt; G[Muuda järjekorda]
+</code></pre>
+<h2 id="klassifikaatori-väärtused"><a class="header" href="#klassifikaatori-väärtused">Klassifikaatori väärtused</a></h2>
+<p>Avage klassifikaator, et näha selle väärtusi. Iga väärtus sisaldab:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Kood</td><td>Unikaalne tunnus</td></tr>
+<tr><td>Nimetus</td><td>Inimloetav nimetus</td></tr>
+<tr><td>Kehtiv alates</td><td>Kuupäev, millest väärtus kehtib</td></tr>
+<tr><td>Kehtiv kuni</td><td>Kuupäev, millest väärtus ei kehti</td></tr>
+<tr><td>Järjekord</td><td>Kuvamise järjekord loendites</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="klassifikaatori-väärtuse-muutmine"><a class="header" href="#klassifikaatori-väärtuse-muutmine">Klassifikaatori väärtuse muutmine</a></h2>
+<p>Saate muuta:</p>
+<ul>
+<li>kehtivusaega</li>
+<li>järjekorranumbrit</li>
+</ul>
+<p>Koodi ja nimetuse muutmine võib mõjutada vormides juba sisestatud andmeid, seega tehke seda ettevaatlikult.</p>
+<h2 id="levinud-klassifikaatorid"><a class="header" href="#levinud-klassifikaatorid">Levinud klassifikaatorid</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Klassifikaator</th><th>Kasutus</th></tr>
+</thead>
+<tbody>
+<tr><td>Riigid</td><td>Vormide riigi valikud</td></tr>
+<tr><td>Maakonnad</td><td>Aadressi- ja kontrolliandmed</td></tr>
+<tr><td>Teed</td><td>Liitvormi tee valikud</td></tr>
+<tr><td>Rikkumiste koodid</td><td>EL määruse rikkumised</td></tr>
+<tr><td>Sanktsioonid</td><td>Sanktsioonide valikud</td></tr>
+<tr><td>Ametikohad</td><td>Inspektorite ametikohad</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="api"><a class="header" href="#api">API</a></h2>
+<p>Klassifikaatorite pärimiseks kasutatakse endpointi <code>/v1/classifiers/catalogue</code> või <code>/v1/classifiers/bundle</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="auditilogi"><a class="header" href="#auditilogi">Auditilogi</a></h1>
+<h2 id="ülevaade"><a class="header" href="#ülevaade">Ülevaade</a></h2>
+<p>Auditilogi salvestab LJVIS 2 süsteemis toimunud olulised tegevused ja päringud. Iga kirje on kirjutuskaitstud (<code>INSERT-only</code>) — andmebaasis ei tohi logikirjeid muuta ega kustutada. See tagab, et igal hetkel on võimalik jälgida, kes milliseid kasutaja-, grupi-, klassifikaatori- või välispäritolu rikkumise vormidega seotud toiminguid tegi või milliseid andmeid vaatas.</p>
+<p>Iga sündmus saab unikaalse <code>event_id</code> (ULID), serveripoolse ajatempli, tegija nime, sündmuse tüübi ja kategooria, inimloetava kirjelduse ning struktureeritud <code>log_content</code> JSON-i. Isikukoodid on andmebaasis alati SHA-256 räsis, plaintekstina neid ei säilitata.</p>
+<h2 id="vajalikud-õigused"><a class="header" href="#vajalikud-õigused">Vajalikud õigused</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Lõpp-punkt</th><th>Õigus</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Auditilogi nimekiri (<code>/v1/logs</code>)</td><td><code>audit.read</code></td><td>Loetleb ja otsib logikirjeid.</td></tr>
+<tr><td>Üksiku kirje vaade (<code>/v1/logs/log</code>)</td><td><code>audit.read</code></td><td>Kuvab ühe sündmuse detailid.</td></tr>
+<tr><td>CSV eksport (<code>/v1/logs/export</code>)</td><td><code>audit.read</code></td><td>Laadi logid alla CSV-failina.</td></tr>
+<tr><td>Hash-ahela kontroll (<code>/v1/logs/verify</code>)</td><td><code>audit.verify</code></td><td>Verifitseeri ridadevahelise rägiahela terviklikkus.</td></tr>
+</tbody>
+</table>
+</div>
+<p><code>audit.read</code> annab ligipääsu logidele; <code>audit.verify</code> on eraldi õigus, sest see võimaldab tuvastada, kas logitabeli kallutamiskindlus on säilinud.</p>
+<h2 id="mida-logitakse-1"><a class="header" href="#mida-logitakse-1">Mida logitakse</a></h2>
+<h3 id="sündmuste-kategooriad"><a class="header" href="#sündmuste-kategooriad">Sündmuste kategooriad</a></h3>
+<p>Auditilogis jagunevad sündmused domeenideks:</p>
+<ul>
+<li><code>user_management</code> — kasutajate vaatamine, otsimine, loomine, muutmine ja gruppide seadmine</li>
+<li><code>user_group_management</code> — kasutajagruppide muutmine</li>
+<li><code>classifier_management</code> — klassifikaatorite ja nende väärtuste vaatamine ja muutmine</li>
+<li><code>control_form_management</code> — välispäritolu rikkumiste vormide loomine, muutmine ja vaatamine</li>
+<li><code>access_control</code> — ligipääsurikked ja rate-limit rikked (planeeritud)</li>
+</ul>
+<h3 id="sündmuste-tüübid-ja-tingimused"><a class="header" href="#sündmuste-tüübid-ja-tingimused">Sündmuste tüübid ja tingimused</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th><code>event_type</code></th><th><code>event_category</code></th><th>Millal logitakse</th></tr>
+</thead>
+<tbody>
+<tr><td><code>user.view</code></td><td><code>user_management</code></td><td>Alati, kui avatakse kasutaja detailvaade.</td></tr>
+<tr><td><code>user.list.view</code></td><td><code>user_management</code></td><td>Alati, kui vaadatakse kasutajate nimekirja.</td></tr>
+<tr><td><code>user.list.search</code></td><td><code>user_management</code></td><td>Ainult siis, kui otsingusõna on vähemalt 3 tähemärki pikk.</td></tr>
+<tr><td><code>user.create</code></td><td><code>user_management</code></td><td>Alati uue kasutaja loomisel.</td></tr>
+<tr><td><code>user.update</code></td><td><code>user_management</code></td><td>Alati kasutaja andmete muutmisel.</td></tr>
+<tr><td><code>user.set_groups</code></td><td><code>user_management</code></td><td>Alati, kui salvestatakse kasutaja grupiliikmelisusi, isegi kui muudatusi pole.</td></tr>
+<tr><td><code>user_group.update</code></td><td><code>user_group_management</code></td><td>Alati, kui grupp (asutused, õigused, liikmed) muutub.</td></tr>
+<tr><td><code>classifier.view</code></td><td><code>classifier_management</code></td><td>Alati klassifikaatori detailvaate avamisel.</td></tr>
+<tr><td><code>classifier.list.search</code></td><td><code>classifier_management</code></td><td>Ainult siis, kui otsingusõna on vähemalt 3 tähemärki pikk.</td></tr>
+<tr><td><code>classifier_value.update</code></td><td><code>classifier_management</code></td><td>Alati, kui muudetakse klassifikaatori väärtuse kehtivusaega.</td></tr>
+<tr><td><code>control_form.foreign_violation.create</code></td><td><code>control_form_management</code></td><td>Alati, kui luuakse uus välispäritolu rikkumise vorm.</td></tr>
+<tr><td><code>control_form.foreign_violation.update</code></td><td><code>control_form_management</code></td><td>Ainult siis, kui vähemalt üks väli muutus eelmise seisuga võrreldes.</td></tr>
+<tr><td><code>control_form.foreign_violation.view</code></td><td><code>control_form_management</code></td><td>Ainult siis, kui vaataja ei ole vormi looja.</td></tr>
+<tr><td><code>authz.denied</code></td><td><code>access_control</code></td><td>Kui ligipääsuloa kontroll keelab päringu (403).</td></tr>
+<tr><td><code>authz.scope_violation</code></td><td><code>access_control</code></td><td>Kohaliku skoobi kasutaja proovib pääseda teise asutuse ressurssidele.</td></tr>
+<tr><td><code>input.rate_limited</code></td><td><code>access_control</code></td><td>Kui päring lükatakse tagasi rate-limit rikkumise tõttu (429).</td></tr>
+</tbody>
+</table>
+</div>
+<p>Mõned toimingud logitakse ainult kindlate tingimuste täideminekul. Näiteks kasutajaotsing (<code>user.list.search</code>) või klassifikaatoriotsing (<code>classifier.list.search</code>) salvestatakse alles siis, kui otsingusõna on vähemalt 3 tähemärki pikk; lühema sisendi korral logitakse ainult nimekirja vaatamine (<code>*.list.view</code>).</p>
+<h3 id="logikirje-väljad"><a class="header" href="#logikirje-väljad">Logikirje väljad</a></h3>
+<p>Iga kirje sisaldab vähemalt järgmisi andmeid:</p>
+<ul>
+<li><code>eventId</code> — unikaalne ULID-identifikaator</li>
+<li><code>eventType</code> — sündmuse tüüp (nt <code>user.create</code>)</li>
+<li><code>eventCategory</code> — sündmuse kategooria</li>
+<li><code>actorName</code> — tegija kuvatav nimi</li>
+<li><code>actorPersonalCodeHash</code> — tegija isikukoodi SHA-256 räsi</li>
+<li><code>description</code> — inimloetav kirjelitus eesti keeles</li>
+<li><code>logContent</code> — sündmuse detailid JSON-na (nt muudetud väljad, eelnevad ja uued väärtused)</li>
+<li><code>createdAt</code> — serveripoolne ajatempel</li>
+<li><code>traceId</code> / <code>spanId</code> — võimaldab siduda sündmuse <code>traceparent</code> päise kaudu logimis- ja jälgimistööriistadega</li>
+</ul>
+<h2 id="logide-otsimine-ja-filtreerimine"><a class="header" href="#logide-otsimine-ja-filtreerimine">Logide otsimine ja filtreerimine</a></h2>
+<p>Auditilogide nimekirja päringu aluseks on:</p>
+<pre><code class="language-text">GET /v1/logs
+</code></pre>
+<p>Päringuparameetrid:</p>
+<ul>
+<li><code>search</code> — vabatekstiotsing (nt sündmuse tüüp, tegija nimi või kirjeldus)</li>
+<li><code>page</code> — lehekülje number (vaikimisi <code>1</code>)</li>
+<li><code>pageSize</code> — kirjete arv leheküljel</li>
+<li><code>sorting</code> — sorteerimisparameeter; vaikimisi <code>createdAt desc</code></li>
+</ul>
+<p>Kasutajaliideses laaditakse logid lehekülgedena ja vaikimisi sorteeritakse uuemad enne. Kui soovid kindlat sündmustüüpi, sisesta <code>search</code> väljale nt <code>user.create</code> või <code>user_group.update</code>.</p>
+<p>Logisid saab alla laadida ka CSV-failina:</p>
+<pre><code class="language-text">GET /v1/logs/export
+</code></pre>
+<p>CSV eksport kasutab samu <code>search</code>, <code>page</code>, <code>pageSize</code> ja <code>sorting</code> parameetreid.</p>
+<h2 id="üksiku-kirje-detailvaade"><a class="header" href="#üksiku-kirje-detailvaade">Üksiku kirje detailvaade</a></h2>
+<p>Üksiku sündmuse detailide nägemiseks kasuta:</p>
+<pre><code class="language-text">GET /v1/logs/log?q=&lt;event_id&gt;
+</code></pre>
+<p>Detailvaade kuvab:</p>
+<ul>
+<li>sündmuse identifikaatori, tüübi ja kategooria;</li>
+<li>tegija nime (<code>actorName</code>);</li>
+<li>sündmuse kirjeldus;</li>
+<li>sündmuse toimumise aja;</li>
+<li><code>logContent</code> — struktureeritud JSON, mis sisaldab sündmuse spetsiifilisi andmeid (nt <code>targetPersonalCode</code>, <code>changedFields</code>, <code>formKey</code> vmt);</li>
+<li><code>traceId</code> ja <code>spanId</code>, kui päringu käigus saadeti <code>traceparent</code> päis.</li>
+</ul>
+<p>Kui tegija nime pole salvestatud, kuvatakse selle asemel <code>-</code>.</p>
+<h2 id="hash-ahela-kontroll"><a class="header" href="#hash-ahela-kontroll">Hash-ahela kontroll</a></h2>
+<p>Auditilogi ridad on omavahel seotud rägiahelaga. Iga uue kirje <code>row_hash</code> arvutatakse eelmise rea <code>row_hash</code>-i (<code>prev_row_hash</code>) põhjal. Kui ükski rida pole muudetud, kustutatud ega vahele jäänud, on ahel terviklik.</p>
+<p>Ahela terviklikkust saab kontrollida lõpp-punktiga:</p>
+<pre><code class="language-text">GET /v1/logs/verify
+</code></pre>
+<p>Õigus: <code>audit.verify</code>.</p>
+<p>Valikulised parameetrid:</p>
+<ul>
+<li><code>from</code> — alustava sündmuse <code>event_id</code> (kaasa arvatud)</li>
+<li><code>to</code> — lõpetava sündmuse <code>event_id</code> (kaasa arvatud)</li>
+</ul>
+<p>Kui parameetreid ei ole, kontrollitakse kogu ahelat esimesest kirjerest viimase.</p>
+<h3 id="vastuse-näited"><a class="header" href="#vastuse-näited">Vastuse näited</a></h3>
+<p>Terviklik ahel:</p>
+<pre><code class="language-json">{
+  "ok": true,
+  "checked": 15234,
+  "fromEventId": "01J...",
+  "toEventId": "01J..."
+}
+</code></pre>
+<p>Ahel rikutud:</p>
+<pre><code class="language-json">{
+  "ok": false,
+  "checked": 5721,
+  "firstBreachEventId": "01J...",
+  "reason": "prev_row_hash_mismatch",
+  "fromEventId": "01J...",
+  "toEventId": "01J..."
+}
+</code></pre>
+<p><code>firstBreachEventId</code> näitab esimese kahtlase sündmuse identifikaatorit. Kõnealuse kontrolli läbiviimiseks peab kasutaja olema <code>audit.verify</code> õigusega kasutajagrupis.</p>
+<h2 id="näited"><a class="header" href="#näited">Näited</a></h2>
+<h3 id="auditilogi-nimekirja-pärimine"><a class="header" href="#auditilogi-nimekirja-pärimine">Auditilogi nimekirja pärimine</a></h3>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/logs?search=user.create&amp;page=1&amp;pageSize=50" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<p>See päring tagastab kuni 50 kirjet, kus otsing vastab näiteks sündmuse tüübile <code>user.create</code>.</p>
+<h3 id="üksiku-sündmuse-detailid"><a class="header" href="#üksiku-sündmuse-detailid">Üksiku sündmuse detailid</a></h3>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/logs/log?q=01JAB2C3D4E5F6G7H8J9K0M1N2" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<h3 id="auditilogi-csv-eksport"><a class="header" href="#auditilogi-csv-eksport">Auditilogi CSV eksport</a></h3>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/logs/export?search=classifier&amp;pageSize=100" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -o auditilogi.csv
+</code></pre>
+<h3 id="hash-ahela-verifitseerimine"><a class="header" href="#hash-ahela-verifitseerimine">Hash-ahela verifitseerimine</a></h3>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/logs/verify?from=01JAB2C3D4E5F6G7H8J9K0M1N2&amp;to=01JZB9Y8X7W6V5U4T3S2R1Q0P9" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<p>Kui <code>from</code> ja <code>to</code> ära jätta, kontrollitakse kogu ahel. konkreetse vahemiku kontrolliks anna mõlemad identifikaatorid ette.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="riskihindamine--administraatori-vaade"><a class="header" href="#riskihindamine--administraatori-vaade">Riskihindamine — administraatori vaade</a></h1>
+<p>Administraatorid ja volitatud ametnikud saavad vaadata kõigi Eesti ettevõtete riskitasemete loendit. Samuti saavad nad avada iga ettevõtte detailvaate, mis kuvab sama teavet, mida ettevõtja esindaja näeb oma ettevõtte kohta.</p>
+<h2 id="ligipääs-2"><a class="header" href="#ligipääs-2">Ligipääs</a></h2>
+<p>Menüü → <strong>Haldus → Riskitasemed</strong></p>
+<p>Õigus: <code>risk_report.list</code></p>
+<h2 id="loendi-võimalused"><a class="header" href="#loendi-võimalused">Loendi võimalused</a></h2>
+<p>Riskitasemete loend kuvab järgmised veerud:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Veerg</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>Ettevõtte nimi</td><td>Ettevõtte ärinimi</td></tr>
+<tr><td>Registrikood</td><td>Eesti 8-kohaline registrikood</td></tr>
+<tr><td>Riskiskoor</td><td>Arvutatud R väärtus</td></tr>
+<tr><td>Riskitase</td><td>Hall, Roheline, Kollane, Punane</td></tr>
+<tr><td>Viimase arvutuse aeg</td><td>Millal skoor viimati arvutati</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="filtreerimine-ja-sorteerimine"><a class="header" href="#filtreerimine-ja-sorteerimine">Filtreerimine ja sorteerimine</a></h2>
+<p>Administraatori vaates saab:</p>
+<ul>
+<li>filtreerida riskitaseme järgi</li>
+<li>otsida ettevõtte nime või registrikoodi järgi</li>
+<li>sorteerida riskiskoori või nime järgi</li>
+<li>eksportida andmeid CSV või Excelina</li>
+</ul>
+<h2 id="detailvaade"><a class="header" href="#detailvaade">Detailvaade</a></h2>
+<p>Detailvaates kuvatakse:</p>
+<ul>
+<li>ettevõtte põhiandmed</li>
+<li>riskiskoori koostis</li>
+<li>kontrollid, mis arvesse läksid</li>
+<li>kontrollid, mis välja jäeti</li>
+<li>algoritmi versioon</li>
+</ul>
+<h2 id="rollid-ja-õigused-1"><a class="header" href="#rollid-ja-õigused-1">Rollid ja õigused</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Õigus</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td><code>risk_report.list</code></td><td>Vaadata kõigi ettevõtete riskitasemete loendit</td></tr>
+<tr><td><code>risk_report.view</code></td><td>Avada üksiku ettevõtte detailvaadet</td></tr>
+<tr><td><code>risk_report.export</code></td><td>Eksportida riskiloendeid</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="api-1"><a class="header" href="#api-1">API</a></h2>
+<ul>
+<li><code>GET /v1/admin/risk-scores/list</code> — riskitasemete loend</li>
+<li><code>GET /v1/citizen/risk-scores/my-company</code> — kodaniku oma ettevõtte vaade</li>
+<li><code>POST /v1/risk-scores/recalculate</code> — ühe ettevõtte skoori uuesti arvutamine</li>
+<li><code>POST /v1/risk-scores/current</code> — hetkeseisundi päring (kasutatakse ka ERRU CTUD liideses)</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ljvis-2-api-info"><a class="header" href="#ljvis-2-api-info">LJVIS 2 API info</a></h1>
+<blockquote>
+<p>See juhend käsitleb administraatori vaatenurgast peamisi HTTP-lõpp-punkte, mida kasutatakse kasutajate, kasutajagruppide, klassifikaatorite ja auditilogide haldamiseks.</p>
+</blockquote>
+<h2 id="1-autentimine"><a class="header" href="#1-autentimine">1. Autentimine</a></h2>
+<p>Kõik lõpp-punktid eeldavad kehtivat TARA (TIM) sessiooniküpsist. Päringu vastu võetakse ainult siis, kui küpsis sisaldab kehtivat JWT-d. Testikeskkonnas võivad mõned mokklõpp-punktid olla saadaval ilma TARA autentimata — need on eraldi dokumenteeritud.</p>
+<p>Järgmistes näidetes kasutatakse kohatäiteid:</p>
+<ul>
+<li><code>https://&lt;base-url&gt;</code> — rakenduse baasaadress (nt <code>https://dev.liiklusvalve.ee</code>)</li>
+<li><code>&lt;COOKIE&gt;</code> — TARA/TIM sessiooniküpsise väärtus</li>
+</ul>
+<h2 id="2-kasutajate-lõpp-punktid"><a class="header" href="#2-kasutajate-lõpp-punktid">2. Kasutajate lõpp-punktid</a></h2>
+<p><code>{scope}</code> võib olla <code>admin</code> (kõik asutused) või <code>local</code> (ainult oma asutus).</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Meetod</th><th>Tee</th><th>Nõutav õigus</th><th>Parameetrid</th><th>Kirjeldus</th></tr>
+</thead>
+<tbody>
+<tr><td>GET</td><td><code>/v1/users/{scope}</code></td><td><code>user.read.admin</code> või <code>user.read.local</code></td><td><code>q</code> (UUID, päringus)</td><td>Tagastab ühe kasutaja detailandmed koos aktiivsete gruppidega.</td></tr>
+<tr><td>POST</td><td><code>/v1/users/{scope}</code></td><td><code>user.edit.admin</code> või <code>user.edit.local</code></td><td>Päringu keha: <code>firstName</code>, <code>lastName</code>, <code>personalCode</code>, <code>organisationId</code>, <code>structuralUnit</code>, <code>jobTitle</code>, <code>email</code>, <code>phone</code> (valikuline), <code>accessStart</code>, <code>accessEnd</code> (valikuline)</td><td>Loob uue kasutajakonto.</td></tr>
+<tr><td>PUT</td><td><code>/v1/users/{scope}</code></td><td><code>user.edit.admin</code> või <code>user.edit.local</code></td><td>Päringu keha: <code>id</code> ja uuendatavad väljad</td><td>Uuendab kasutaja isikuandmeid ja ligipääsuaega.</td></tr>
+<tr><td>GET</td><td><code>/v1/users/{scope}/search</code></td><td><code>user.list.admin</code> või <code>user.list.local</code></td><td><code>q</code> (otsing), <code>page</code>, <code>pageSize</code>, <code>sorting</code></td><td>Tagastab leheküljestatud kasutajate nimekirja.</td></tr>
+<tr><td>GET</td><td><code>/v1/users/{scope}/groups</code></td><td><code>user.read.admin</code> või <code>user.read.local</code></td><td><code>q</code> (kasutaja UUID)</td><td>Tagastab kasutaja aktiivsed grupiliikmelisused.</td></tr>
+<tr><td>PUT</td><td><code>/v1/users/{scope}/groups</code></td><td><code>user.edit.admin</code> või <code>user.edit.local</code></td><td>Päringu keha: <code>userId</code> ja gruppide nimekiri</td><td>Salvestab kasutaja grupiliikmelisused ühekorraga.</td></tr>
+<tr><td>POST</td><td><code>/v1/users/{scope}/check-personal-code</code></td><td><code>user.edit.admin</code> või <code>user.edit.local</code></td><td>Päringu keha: <code>personalCode</code></td><td>Kontrollib, kas isikukood on juba süsteemis olemas.</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="näited-1"><a class="header" href="#näited-1">Näited</a></h3>
+<p>Kasutajate nimekirja otsing administraatori skoobis:</p>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/users/admin/search?q=M&amp;page=1&amp;pageSize=20" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<p>Uue kasutaja loomine:</p>
+<pre><code class="language-bash">curl -X POST "https://&lt;base-url&gt;/v1/users/admin" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Siim",
+    "lastName": "Tamm",
+    "personalCode": "39001010001",
+    "organisationId": 7,
+    "structuralUnit": "PÕHJA PREFEKTUUR",
+    "jobTitle": "Senior analyst",
+    "email": "siim.tamm@ppa.ee",
+    "phone": "5555 1234",
+    "accessStart": "2026-01-01",
+    "accessEnd": null
+  }'
+</code></pre>
+<p>Isikukoodi olemasolu kontroll:</p>
+<pre><code class="language-bash">curl -X POST "https://&lt;base-url&gt;/v1/users/admin/check-personal-code" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"personalCode": "39001010001"}'
+</code></pre>
+<h2 id="3-kasutajagruppide-lõpp-punktid"><a class="header" href="#3-kasutajagruppide-lõpp-punktid">3. Kasutajagruppide lõpp-punktid</a></h2>
+<p><code>{scope}</code> võib olla <code>admin</code> või <code>local</code>.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Meetod</th><th>Tee</th><th>Nõutav õigus</th><th>Parameetrid</th><th>Kirjeldus</th></tr>
+</thead>
+<tbody>
+<tr><td>GET</td><td><code>/v1/user-groups/{scope}</code></td><td><code>user_group.read.admin</code> või <code>user_group.read.local</code></td><td><code>q</code> (grupi ID)</td><td>Tagastab ühe kasutajagrupi detailvaate.</td></tr>
+<tr><td>GET</td><td><code>/v1/user-groups/{scope}/search</code></td><td><code>user_group.list.admin</code> või <code>user_group.list.local</code></td><td><code>q</code> (otsing), <code>page</code>, <code>pageSize</code>, <code>sorting</code></td><td>Otsib ja loetleb kasutajagrupid.</td></tr>
+<tr><td>POST</td><td><code>/v1/user-groups</code></td><td><code>user_group.create</code></td><td>Keha: <code>name</code>, <code>organisationIds</code>, <code>permissionCodes</code></td><td>Loob uue kasutajagrupi koos asutuste ja õiguste seostega.</td></tr>
+<tr><td>PUT</td><td><code>/v1/user-groups</code></td><td><code>user_group.update</code></td><td>Keha: <code>id</code>, <code>name</code></td><td>Uuendab kasutajagrupi nime.</td></tr>
+<tr><td>GET</td><td><code>/v1/user-groups/{scope}/organisations</code></td><td><code>user_group.read.admin</code> või <code>user_group.read.local</code></td><td><code>q</code> (grupi ID)</td><td>Tagastab grupiga seotud asutused.</td></tr>
+<tr><td>PUT</td><td><code>/v1/user-groups/organisations</code></td><td><code>user_group.update</code></td><td>Keha: <code>id</code>, <code>organisationIds</code></td><td>Seab grupi asutused.</td></tr>
+<tr><td>GET</td><td><code>/v1/user-groups/{scope}/permissions</code></td><td><code>user_group.read.admin</code> või <code>user_group.read.local</code></td><td><code>q</code> (grupi ID)</td><td>Tagastab grupi õigused.</td></tr>
+<tr><td>PUT</td><td><code>/v1/user-groups/permissions</code></td><td><code>user_group.update</code></td><td>Keha: <code>id</code>, <code>permissionIds</code></td><td>Seab grupi õigused.</td></tr>
+<tr><td>GET</td><td><code>/v1/user-groups/{scope}/users</code></td><td><code>user_group.list_users.admin</code> või <code>user_group.list_users.local</code></td><td><code>q</code> (grupi ID), <code>page</code>, <code>pageSize</code>, <code>sorting</code>, <code>search</code></td><td>Loetleb grupi liikmed.</td></tr>
+<tr><td>PUT</td><td><code>/v1/user-groups/users</code></td><td><code>user_group.add_user</code></td><td>Keha: <code>userGroupId</code>, <code>userAccountIds</code></td><td>Lisab kasutajaid gruppi.</td></tr>
+<tr><td>DELETE</td><td><code>/v1/user-groups/user</code></td><td><code>user_group.remove_user</code></td><td><code>q</code> (grupi ID), <code>userId</code></td><td>Eemaldab kasutaja grupist.</td></tr>
+<tr><td>POST</td><td><code>/v1/user-groups/available-users</code></td><td><code>user_group.search_eligible_users</code></td><td>Keha: grupi ID ja otsinguparameetrid</td><td>Otsib gruppi lisamiseks sobivaid kasutajaid.</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="näited-1-1"><a class="header" href="#näited-1-1">Näited</a></h3>
+<p>Kasutajagruppide otsing:</p>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/user-groups/admin/search?q=analyst&amp;page=1&amp;pageSize=20" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<p>Uue kasutajagrupi loomine:</p>
+<pre><code class="language-bash">curl -X POST "https://&lt;base-url&gt;/v1/user-groups" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "PPA analüütik",
+    "organisationIds": [7],
+    "permissionCodes": ["user.list.local", "user.read.local"]
+  }'
+</code></pre>
+<p>Kasutajate lisamine gruppi:</p>
+<pre><code class="language-bash">curl -X PUT "https://&lt;base-url&gt;/v1/user-groups/users" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userGroupId": 12,
+    "userAccountIds": [101, 102, 103]
+  }'
+</code></pre>
+<h2 id="4-klassifikaatorite-lõpp-punktid"><a class="header" href="#4-klassifikaatorite-lõpp-punktid">4. Klassifikaatorite lõpp-punktid</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Meetod</th><th>Tee</th><th>Nõutav õigus</th><th>Parameetrid</th><th>Kirjeldus</th></tr>
+</thead>
+<tbody>
+<tr><td>GET</td><td><code>/v1/classifiers</code></td><td><code>classifier.list</code></td><td><code>search</code>, <code>page</code>, <code>pageSize</code>, <code>sorting</code></td><td>Tagastab klassifikaatorite leheküljestatud nimekirja.</td></tr>
+<tr><td>GET</td><td><code>/v1/classifiers/classifier</code></td><td><code>classifier.read</code></td><td><code>id</code> (päringus)</td><td>Tagastab ühe klassifikaatori päise.</td></tr>
+<tr><td>PUT</td><td><code>/v1/classifiers/classifier</code></td><td><code>classifier.edit</code></td><td>Keha: <code>classifierId</code>, <code>name</code>, <code>description</code>, <code>code</code></td><td>Uuendab klassifikaatori nime ja kirjeldust.</td></tr>
+<tr><td>GET</td><td><code>/v1/classifiers/values</code></td><td><code>classifier.read</code></td><td><code>classifierId</code>, <code>search</code>, <code>page</code>, <code>pageSize</code>, <code>sorting</code>, <code>activeOnly</code></td><td>Tagastab klassifikaatori väärtuste nimekirja.</td></tr>
+<tr><td>GET</td><td><code>/v1/classifiers/value</code></td><td><code>classifier.read</code></td><td><code>id</code>, <code>valueId</code></td><td>Tagastab ühe väärtuse detailid.</td></tr>
+<tr><td>POST</td><td><code>/v1/classifiers/value</code></td><td><code>classifier_value.edit</code></td><td>Keha: <code>classifierId</code>, <code>code</code>, <code>name</code>, <code>validFrom</code>, <code>validUntil</code></td><td>Lisab klassifikaatorile uue väärtuse.</td></tr>
+<tr><td>PUT</td><td><code>/v1/classifiers/value</code></td><td><code>classifier_value.edit</code></td><td>Keha: <code>classifierValueId</code>, <code>validFrom</code>, <code>validUntil</code></td><td>Uuendab väärtuse kehtivusperioodi.</td></tr>
+<tr><td>POST</td><td><code>/v1/classifiers/check-code</code></td><td><code>classifier_value.edit</code></td><td>Keha: <code>classifierId</code>, <code>code</code></td><td>Kontrollib, kas väärtuse kood on juba olemas.</td></tr>
+<tr><td>GET</td><td><code>/v1/classifiers/catalogue</code></td><td><code>classifier.list</code></td><td>—</td><td>Tagastab kõik klassifikaatorikoodid ja nimed.</td></tr>
+<tr><td>GET</td><td><code>/v1/classifiers/bundle</code></td><td><code>classifier.read</code></td><td>—</td><td>Tagastab kõik klassifikaatorid koos väärtustega.</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="näited-2"><a class="header" href="#näited-2">Näited</a></h3>
+<p>Klassifikaatorite nimekiri:</p>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/classifiers?page=1&amp;pageSize=20" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<p>Klassifikaatori nime uuendamine:</p>
+<pre><code class="language-bash">curl -X PUT "https://&lt;base-url&gt;/v1/classifiers/classifier" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "classifierId": 1,
+    "name": "Riikide ja territooriumide klassifikaator",
+    "description": "ISO 3166 alusel",
+    "code": "RTK"
+  }'
+</code></pre>
+<p>Uue klassifikaatori väärtuse loomine:</p>
+<pre><code class="language-bash">curl -X POST "https://&lt;base-url&gt;/v1/classifiers/value" \
+  -H "Cookie: &lt;COOKIE&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "classifierId": 1,
+    "code": "DE",
+    "name": "Saksamaa",
+    "validFrom": "2026-01-01",
+    "validUntil": null
+  }'
+</code></pre>
+<h2 id="5-auditilogide-lõpp-punktid"><a class="header" href="#5-auditilogide-lõpp-punktid">5. Auditilogide lõpp-punktid</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Meetod</th><th>Tee</th><th>Nõutav õigus</th><th>Parameetrid</th><th>Kirjeldus</th></tr>
+</thead>
+<tbody>
+<tr><td>GET</td><td><code>/v1/logs</code></td><td><code>audit.read</code></td><td><code>search</code>, <code>page</code>, <code>pageSize</code>, <code>sorting</code></td><td>Tagastab auditilogi kirjed lehekülgedena.</td></tr>
+<tr><td>GET</td><td><code>/v1/logs/log</code></td><td><code>audit.read</code></td><td><code>q</code> (sündmuse ID)</td><td>Tagastab ühe auditilogi kirje.</td></tr>
+<tr><td>GET</td><td><code>/v1/logs/export</code></td><td><code>audit.read</code></td><td><code>search</code>, <code>page</code>, <code>pageSize</code>, <code>sorting</code></td><td>Ekspordib auditilogi CSV-failina.</td></tr>
+<tr><td>GET</td><td><code>/v1/logs/verify</code></td><td><code>audit.verify</code></td><td><code>from</code> (valikuline), <code>to</code> (valikuline)</td><td>Kontrollib auditilogi hash-ahela terviklikkust.</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="näited-3"><a class="header" href="#näited-3">Näited</a></h3>
+<p>Auditilogi nimekiri:</p>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/logs?search=login&amp;page=1&amp;pageSize=50" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<p>Hash-ahela verifitseerimine:</p>
+<pre><code class="language-bash">curl -X GET "https://&lt;base-url&gt;/v1/logs/verify?from=01JAB2C3D4E5F6G7H8J9K0M1N2" \
+  -H "Cookie: &lt;COOKIE&gt;"
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="manuste-haldus-ja-s3-hoiustamine"><a class="header" href="#manuste-haldus-ja-s3-hoiustamine">Manuste haldus ja S3 hoiustamine</a></h1>
+<p>Selles jaos kirjeldatakse, kuidas vormidega seotud failid tehniliselt töötavad, millised on piirangud ning kuidas nende ajalugu jälgida.</p>
+<h2 id="lubatud-failiformaadid-ja-suurused"><a class="header" href="#lubatud-failiformaadid-ja-suurused">Lubatud failiformaadid ja suurused</a></h2>
+<p>Kasutajaliidese failivalik (<code>FileUploadBlock</code>) aktsepteerib vaikimisi järgmisi laiendeid:</p>
+<pre><code class="language-tsx">const ALLOWED_ACCEPT = '.pdf,.jpg,.jpeg,.png,.tiff';
+const MAX_SIZE_MB = 10;
+</code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Laiend</th><th>MIME-tüüp</th></tr>
+</thead>
+<tbody>
+<tr><td><code>.pdf</code></td><td><code>application/pdf</code></td></tr>
+<tr><td><code>.jpg</code>, <code>.jpeg</code></td><td><code>image/jpeg</code></td></tr>
+<tr><td><code>.png</code></td><td><code>image/png</code></td></tr>
+<tr><td><code>.tiff</code></td><td><code>image/tiff</code></td></tr>
+</tbody>
+</table>
+</div>
+<p>S3-puhverserveri seadistuses (<code>docker-compose.yml</code>) on vaikimisi lubatud MIME-tüüpide loend laiem:</p>
+<ul>
+<li><code>application/pdf</code></li>
+<li><code>image/jpeg</code></li>
+<li><code>image/png</code></li>
+<li><code>application/vnd.etsi.asic-e+zip</code> (ASiC-e)</li>
+<li><code>application/msword</code> (DOC)</li>
+<li><code>application/vnd.openxmlformats-officedocument.wordprocessingml.document</code> (DOCX)</li>
+</ul>
+<p>Suurusepiirangud:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Kiht</th><th>Piirang</th></tr>
+</thead>
+<tbody>
+<tr><td>Frontend</td><td>10 MB</td></tr>
+<tr><td>S3 proxy (<code>S3_MAX_SIZE_MB</code>)</td><td>20 MB</td></tr>
+<tr><td>Failinime pikkus (<code>S3_MAX_FILENAME_LENGTH</code>)</td><td>200 tähemärki</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="kasutajaliidese-sammud-manuse-lisamiseks"><a class="header" href="#kasutajaliidese-sammud-manuse-lisamiseks">Kasutajaliidese sammud manuse lisamiseks</a></h2>
+<ol>
+<li>Ava vorm, millele soovid faili lisada.</li>
+<li>Klõpsa plokis <strong>Failid</strong> (või sarnasel alal) nuppu <strong>Lisa fail</strong>.</li>
+<li>Vali arvutist lubatud fail.</li>
+<li>Kui vormi number on juba olemas, laaditakse fail automaatselt üles. Kui vormi number puudub, kuvatakse vihje: salvesta vorm kõigepealt.</li>
+<li>Pärast üleslaadimist kuvatakse fail loendis. Klõpsates faili nime, avatakse uues vahekaardis allalaadimise link.</li>
+</ol>
+<pre><code class="language-mermaid">flowchart LR
+    A[Vormivaade] --&gt; B[Failid plokk]
+    B --&gt; C[Vali fail]
+    C --&gt; D[UploadFormFile API]
+    D --&gt; E[Salvesta andmebaasikirje]
+    E --&gt; F[Kuva loendis]
+    F --&gt; G[Allalaadimine eelsigneeritud lingi abil]
+</code></pre>
+<h2 id="tehniline-hoiustamine"><a class="header" href="#tehniline-hoiustamine">Tehniline hoiustamine</a></h2>
+<h3 id="s3-võti"><a class="header" href="#s3-võti">S3 võti</a></h3>
+<p>Iga fail salvestatakse S3-s kausta, mis on moodustatud vormi tüübist ja numbrist:</p>
+<pre><code>&lt;form_type&gt;/&lt;form_number&gt;/&lt;file_name&gt;
+</code></pre>
+<p>Näide:</p>
+<pre><code>foreign-violation-form/vr-2026-00123/luba.pdf
+</code></pre>
+<h3 id="andmebaasi-kirje"><a class="header" href="#andmebaasi-kirje">Andmebaasi kirje</a></h3>
+<p>Andmebaasi tabelis <code>forms.form_attachment</code> hoitakse:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Väli</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td><code>id</code></td><td>Unikaalne kirje ID</td></tr>
+<tr><td><code>form_number</code></td><td>Vormi number</td></tr>
+<tr><td><code>file_name</code></td><td>Originaalne failinimi</td></tr>
+<tr><td><code>s3_key</code></td><td>Täielik S3 objekti võti</td></tr>
+<tr><td><code>status</code></td><td><code>active</code> või <code>deleted</code></td></tr>
+<tr><td><code>created_at</code></td><td>Üleslaadimise aeg</td></tr>
+<tr><td><code>created_by</code></td><td>Laadija isikukood</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="kustutamine-on-pehme"><a class="header" href="#kustutamine-on-pehme">Kustutamine on pehme</a></h2>
+<p>Kasutajaliideses kustutatud manus ei kustu S3-st, vaid märgistatakse andmebaasis staatusega <code>deleted</code>. See tähendab, et faili sisu on endiselt S3-s olemas, kuid seda ei kuvata enam vormi vaates.</p>
+<h2 id="ajalooline-vaade"><a class="header" href="#ajalooline-vaade">Ajalooline vaade</a></h2>
+<h3 id="andmebaasi-kaudu"><a class="header" href="#andmebaasi-kaudu">Andmebaasi kaudu</a></h3>
+<p>Iga üleslaadimise ja kustutamise tegevus jääb kirja tabelisse <code>forms.form_attachment</code>. Administraator saab päringuga näha:</p>
+<ul>
+<li>kõiki üleslaaditud faile kindla vormi numbri kohta</li>
+<li>iga faili laadimise ja kustutamise aega</li>
+<li>kes faili üles laadis või kustutas</li>
+<li>millised failid on aktiivsed ja millised kustutatud</li>
+</ul>
+<p>Kui sama nimega fail uuesti üles laetakse, luuakse uus andmebaasi kirje, kuid S3 võti jääb samaks. Seega näitab <code>forms.form_attachment</code> üleslaadimiste ajalugu, kuid mitte alati iga versiooni sisu (kui S3 versioonihaldus ei ole lubatud).</p>
+<h3 id="s3-versioonihaldus"><a class="header" href="#s3-versioonihaldus">S3 versioonihaldus</a></h3>
+<p>Kui S3-hoidlas on lubatud <strong>S3 versioonihaldus</strong>, salvestatakse sama võtme all ka varasemad versioonid. See võimaldab administraatoril taastada või vaadata vanemaid faile otse S3 konsooli või AWS CLI kaudu.</p>
+<p>Näide S3 CLI-ga vanemate versioonide vaatamiseks:</p>
+<pre><code class="language-bash">aws s3api list-object-versions \
+  --bucket &lt;bucket-name&gt; \
+  --prefix foreign-violation-form/vr-2026-00123/ \
+  --query 'Versions[*].[Key,VersionId,LastModified,Size]'
+</code></pre>
+<p>Vanema versiooni allalaadimiseks:</p>
+<pre><code class="language-bash">aws s3api get-object \
+  --bucket &lt;bucket-name&gt; \
+  --key foreign-violation-form/vr-2026-00123/luba.pdf \
+  --version-id &lt;version-id&gt; \
+  luba_vana.pdf
+</code></pre>
+<h3 id="kasutajaliidese-võimalused"><a class="header" href="#kasutajaliidese-võimalused">Kasutajaliidese võimalused</a></h3>
+<p>Praeguses LJVIS2 liideses kuvatakse vormi vaates ainult aktiivsed manused. Kustutatud või varasemate versioonide taastamiseks tuleb administraatoril:</p>
+<ol>
+<li>päringuid teha otse andmebaasi või auditilogi kaudu, et leida <code>s3_key</code> ja ajatemplid</li>
+<li>kasutada S3 konsooli või CLI-d, kui versioning on lubatud</li>
+<li>vajadusel taastada <code>forms.form_attachment</code> kirje staatus <code>active</code>-ks</li>
+</ol>
+<h2 id="auditilogi-1"><a class="header" href="#auditilogi-1">Auditilogi</a></h2>
+<p>Manuste üleslaadimine, allalaadimine ja kustutamine logitakse auditilogi sündmustega:</p>
+<ul>
+<li><code>form.file.upload</code></li>
+<li><code>form.file.download</code></li>
+<li><code>form.file.delete</code></li>
+</ul>
+<p>Iga sündmus sisaldab faili nime, vormi numbrit, <code>s3_key</code>-d ja tegija andmeid.</p>
+<h2 id="api-lõpp-punktid"><a class="header" href="#api-lõpp-punktid">API lõpp-punktid</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Meetod</th><th>Lõpp-punkt</th><th>Selgitus</th></tr>
+</thead>
+<tbody>
+<tr><td>POST</td><td><code>/v1/&lt;form-type&gt;/files/upload</code></td><td>Lisa uus manus</td></tr>
+<tr><td>GET/POST</td><td><code>/v1/&lt;form-type&gt;/files/list</code></td><td>Loetle aktiivsed manused</td></tr>
+<tr><td>GET/POST</td><td><code>/v1/&lt;form-type&gt;/files/download</code></td><td>Hangi eelsigneeritud allalaadimislink</td></tr>
+<tr><td>POST/DELETE</td><td><code>/v1/&lt;form-type&gt;/files/delete</code></td><td>Märgista manus kustutatuks</td></tr>
+</tbody>
+</table>
+</div>
+<p>Täpsemad autentimise, parameetrite ja <code>curl</code> näidised on dokumendis <a href="#ljvis-2-api-info"><code>07-api-info.md</code></a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>

@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Text, Alert } from '@tedi-design-system/react/tedi';
+import { Button, Text, Alert, Heading } from '@tedi-design-system/react/tedi';
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useFormDetail } from './useFormDetail.ts';
 import { useAuth } from '../../../auth/AuthContext';
+import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import {
   deleteForeignViolationForm,
   getForeignViolationFormSnapshot,
 } from '../../api';
-import { ForeignViolationFormViewCard } from '../../components/ForeignViolationForm/ForeignViolationFormViewCard.tsx';
-import { ForeignViolationFormEditCard } from '../../components/ForeignViolationForm/ForeignViolationFormEditCard.tsx';
+import { ForeignViolationFormFields } from '../../components/ForeignViolationForm/ForeignViolationFormFields.tsx';
+import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
+import { AsyncButton } from '../../../../shared/components/AsyncButton';
+import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 
 export function ForeignViolationFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -35,6 +38,7 @@ export function ForeignViolationFormPage() {
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
   const { form, loading, refetch } = useFormDetail(
     snapshotId ? undefined : id,
@@ -59,20 +63,21 @@ export function ForeignViolationFormPage() {
     }
   }, [form?.status]);
 
+  const isAdmin = useIsAdmin();
+
   const canEdit =
-    hasPermission('foreign_violation_form.write') && form?.status !== 'deleted';
-  const canDelete =
-    hasPermission('control_form.delete') && form?.status !== 'deleted';
+    (isAdmin || hasPermission('foreign_violation_form.write') &&
+      (form?.status === 'confirmed' || form?.status === 'published'));
+  const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
-    hasPermission('foreign_violation_form.write') &&
-    hasPermission('control_form.view_unpublished') &&
-    form?.status !== 'deleted' &&
-    form?.status !== 'confirmed';
+    (isAdmin || hasPermission('foreign_violation_form.write')) &&
+      form?.status === 'saved';
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
+    setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
 
@@ -80,6 +85,7 @@ export function ForeignViolationFormPage() {
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
+    setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
 
@@ -134,16 +140,36 @@ export function ForeignViolationFormPage() {
         >
           {t('common.back')}
         </Button>
-        <ForeignViolationFormViewCard
-          form={snapshot}
+        <div className="card-main">
+          <Heading element="h1">
+            {snapshot.formNumber
+              ? `${snapshot.formNumber}/${(snapshot as { version?: number }).version ?? 1}`
+              : t('forms.foreign_violation_form')}
+          </Heading>
+        </div>
+        <ForeignViolationFormFields
+          formik={
+            {
+              values: snapshot,
+              errors: {},
+              touched: {},
+              setFieldValue: () => Promise.resolve(),
+            } as never
+          }
+          readOnly
           isDesktop={isDesktop}
-          canEdit={false}
           orgOptions={orgOptions}
           structureUnits={structureUnits}
-          onEdit={() => {}}
-          isSnapshot
           formType={FORM_TYPE.FOREIGN_VIOLATION}
         />
+
+        {id && (
+          <FormVersionsTable
+            formId={id}
+            formType={FORM_TYPE.FOREIGN_VIOLATION}
+            refreshKey={versionsRefreshKey}
+          />
+        )}
       </div>
     );
   }
@@ -185,14 +211,21 @@ export function ForeignViolationFormPage() {
         {t('common.back')}
       </Button>
 
-      {isEditActive ? (
-        <ForeignViolationFormEditCard
-          formik={formik}
+      <div className="card-main">
+        <Heading element="h1">
+          {form.formNumber
+            ? `${form.formNumber}/${(form as { version?: number }).version ?? 1}`
+            : t('forms.foreign_violation_form')}
+        </Heading>
+      </div>
+
+      <form onSubmit={formik.handleSubmit}>
+        <ForeignViolationFormFields
+          formik={formik as never}
+          readOnly={!isEditActive}
           isDesktop={isDesktop}
           orgOptions={orgOptions}
           structureUnits={structureUnits}
-          canConfirm={canConfirm}
-          canDelete={canDelete}
           companySearchError={companySearchError}
           setCompanySearchError={setCompanySearchError}
           vehicleSearchError={vehicleSearchError}
@@ -210,26 +243,58 @@ export function ForeignViolationFormPage() {
           closeCompanyPicker={closeCompanyPicker}
           associatedPersons={associatedPersons}
           associatedPersonsLoading={associatedPersonsLoading}
-          onCancel={() => {
-            formik.resetForm();
-            setIsEditActive(false);
-          }}
-          onConfirm={triggerConfirm}
-          onDelete={handleDelete}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
         />
-      ) : (
-        <ForeignViolationFormViewCard
-          key={`${form.id}-${JSON.stringify(form.violations)}`}
-          form={form}
-          isDesktop={isDesktop}
-          canEdit={canEdit}
-          orgOptions={orgOptions}
-          structureUnits={structureUnits}
-          onEdit={() => setIsEditActive(true)}
-          formType={FORM_TYPE.FOREIGN_VIOLATION}
-        />
-      )}
+
+        {id && (
+          <FormVersionsTable
+            formId={id}
+            formType={FORM_TYPE.FOREIGN_VIOLATION}
+            refreshKey={versionsRefreshKey}
+          />
+        )}
+
+        <div className="page-actions">
+          <div className="page-actions-buttons">
+            {isEditActive ? (
+              <>
+                <Button
+                  type="button"
+                  visualType="secondary"
+                  onClick={() => {
+                    formik.resetForm();
+                    setIsEditActive(false);
+                  }}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <AsyncButton type="button" onClick={() => formik.submitForm()}>
+                  {t('common.save')}
+                </AsyncButton>
+                {canConfirm && (
+                  <AsyncButton type="button" onClick={() => triggerConfirm()}>
+                    {t('common.confirm')}
+                  </AsyncButton>
+                )}
+                {isEditActive && canDelete && (
+                  <DeleteConfirmModal onDelete={handleDelete} />
+                )}
+              </>
+            ) : (
+              canEdit && (
+                <Button
+                  iconLeft="edit"
+                  type="button"
+                  visualType="secondary"
+                  onClick={() => setIsEditActive(true)}
+                >
+                  {t('common.edit')}
+                </Button>
+              )
+            )}
+          </div>
+        </div>
+      </form>
     </div>
   );
 }

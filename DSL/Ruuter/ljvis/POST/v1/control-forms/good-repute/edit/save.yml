@@ -33,14 +33,6 @@ declaration:
       - field: unfitUntilDate
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -55,7 +47,9 @@ extractRequestData:
     fitness_status: "${incoming.body.fitnessStatus || ''}"
     unfit_from_date: "${incoming.body.unfitFromDate || ''}"
     unfit_until_date: "${incoming.body.unfitUntilDate || ''}"
-    created_by: "${auth_user.personalcode || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: validateForm
 
 validateForm:
@@ -109,6 +103,24 @@ insertForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: saveRes
+  next: extractInsertResponseData
+
+extractInsertResponseData:
+  assign:
+    good_repute_form_key: "${saveRes.response.body[0].id || ''}"
+  next: logAuditEventInsert
+
+logAuditEventInsert:
+  template: "templates/audit/form/good-repute/log-good-repute-create"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    good_repute_form_key: ${good_repute_form_key}
+    personal_code: ${personal_code}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
   next: returnSuccess
 
 getCurrentFormForStatus:
@@ -129,8 +141,37 @@ extractCurrentStatus:
 
 checkFormNotLocked:
   switch:
-    - condition: ${current_status === 'confirmed' && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+    - condition: ${current_status === 'confirmed' && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
       next: returnFormLockedError
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "templates/form/good-repute/calculate-good-repute-changed-fields"
+  requestType: GET
+  body:
+    form_id: ${id}
+    personal_code: ${personal_code}
+    first_name: ${first_name}
+    last_name: ${last_name}
+    date_of_birth: ${date_of_birth}
+    place_of_birth: ${place_of_birth}
+    certificate_number: ${certificate_number}
+    certificate_issue_date: ${certificate_issue_date}
+    certificate_country_code: ${certificate_country_code}
+    fitness_status: ${fitness_status}
+    unfit_from_date: ${unfit_from_date}
+    unfit_until_date: ${unfit_until_date}
+  result: changedFieldsResult
+  next: extractResult
+
+extractResult:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
+    changed_fields_result: ${parsed_result.changed_fields}
   next: updateForm
 
 updateForm:
@@ -155,6 +196,25 @@ updateForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: saveRes
+  next: extractUpdateResponseData
+
+extractUpdateResponseData:
+  assign:
+    good_repute_form_key: "${saveRes.response.body[0].id || ''}"
+  next: logAuditEventUpdate
+
+logAuditEventUpdate:
+  template: "templates/audit/form/good-repute/log-good-repute-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    good_repute_form_key: ${good_repute_form_key}
+    personal_code: ${personal_code}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    changed_fields: ${changed_fields_result}
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

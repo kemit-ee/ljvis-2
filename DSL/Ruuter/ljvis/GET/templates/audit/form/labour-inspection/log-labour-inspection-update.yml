@@ -21,6 +21,10 @@ declaration:
         type: string
       - field: changed_fields
         type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
 
 delegate:
   template: "templates/audit/log-form-event"
@@ -34,5 +38,7 @@ delegate:
     vormi_number: "${incoming.body.form_number}/${incoming.body.version || 1}"
     isikukood: ${incoming.body.isikukood}
     muudetud_valjad: "${JSON.stringify(incoming.body.changed_fields)}"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
   result: res
   next: end

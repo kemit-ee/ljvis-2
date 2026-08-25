@@ -146,6 +146,9 @@ logIntegrationSuccess:
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
+      person_identifier: ""
+      source_type: "erru_rsi"
+      source_record_id: "${'' + business_case_id}"
   result: log_ok
   next: storeSent
 
@@ -162,6 +165,9 @@ logIntegrationFailure:
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "ERRU RSI transport failure or error response"
+      person_identifier: ""
+      source_type: "erru_rsi"
+      source_record_id: "${'' + business_case_id}"
   result: log_fail
   next: markError
 

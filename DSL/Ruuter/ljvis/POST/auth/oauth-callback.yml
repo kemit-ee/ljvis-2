@@ -47,24 +47,20 @@ check_callback:
       next: normalize_personal_code
   next: callback_error
 
-# Step 2a: TARA returns user_id as "EE60001019906" (the OIDC sub), but
-# users.user_account stores the bare personal code. sub keeps the OIDC value;
-# personalCode and authenticatedAs get the stripped one, so the lookup in
-# templates/check-user-authority matches.
-#
-# EE only. An eIDAS sub is a foreign identifier of up to 256 characters that must not
-# be truncated, so extending this needs a decision on whether the database stores the
-# prefix.
-normalize_personal_code:
+# Step 2a: Strip the "EE" country prefix that TARA adds to the sub claim.
+# TARA returns user_id as "EE60001019906" (OIDC sub), but our DB stores
+# personal codes as plain numeric strings ("60001019906").
+# sub is kept as-is (OIDC standard); personalCode and authenticatedAs
+# get the stripped value so the DB lookup in check-user-authority succeeds.
+# NOTE: two separate assign steps — Ruuter evaluates each step's assignments
+# independently, so raw_user_id must be resolved before personal_code_clean
+# can reference it.
+extract_raw_user_id:
   assign:
     raw_user_id: ${callback_result.response.body.user_profile.user_id}
-  next: strip_country_prefix
+  next: normalize_personal_code
 
-# Two steps, not one: evaluation order inside a single assign block is undefined
-# (Ruuter book, dsl/steps/assign.md), so personal_code_clean cannot read raw_user_id
-# from the same block. Merging them back makes every login fail on the pod starts
-# where the map happens to iterate the other way.
-strip_country_prefix:
+normalize_personal_code:
   assign:
     personal_code_clean: "${raw_user_id.startsWith('EE') ? raw_user_id.substring(2) : raw_user_id}"
   next: generate_jwt

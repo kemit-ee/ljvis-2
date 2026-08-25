@@ -1280,6 +1280,20 @@
     "privacy": "Privaatsussätted",
     "logoAlt": "Euroopa Sotsiaalfond"
   },
+  "etoimik": {
+    "title": "E-toimiku kvalifikatsiooni kontroll",
+    "referenceNumber": "Viitenumber",
+    "person": "Isik",
+    "unnamedDriver": "Nimetu juht",
+    "queryButton": "Päri e-toimikust",
+    "queryFailed": "E-toimiku päring ebaõnnestus. Palun proovi uuesti.",
+    "notFound": "E-toimikust vastavat asja ei leitud.",
+    "proceedingNumber": "Menetlus",
+    "actionTypeCode": "Toimingu liik",
+    "participant": "Osaline",
+    "sanctionTypeCode": "Sanktsiooni liik",
+    "convictionPoint": "Süüdistuspunkt"
+  },
   "erru": {
     "ctud": {
       "notFound": "Tegevusloa kontrolli päringut ei leitud",

@@ -10,6 +10,7 @@ import { AddressFields } from '../../components/shared/AddressFields';
 import type { AddressFieldsValue } from '../../components/shared/AddressFields';
 import type { useTransportInterruptionForm } from './useTransportInterruptionForm.ts';
 import styles from '../adr-form/AdrFormFields.module.css';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
 
 interface TransportInterruptionFormFieldsProps {
   formik: ReturnType<typeof useTransportInterruptionForm>['formik'];
@@ -36,6 +37,9 @@ export function TransportInterruptionFormFields({
 
   const legalBases = getByCode('INTERRUPTION_BASES');
   const values = formik.values;
+  const formNumber = values.subFormNumber
+    ? `${values.subFormNumber}/${values.version ?? 1}`
+    : undefined;
 
   return (
     <>
@@ -155,6 +159,21 @@ export function TransportInterruptionFormFields({
           />
         </Card.Content>
       </Card>
+
+      {formNumber && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.shared.files.label')}
+            </Heading>
+            <FileUploadBlock
+              formPath="transport-interruption"
+              formNumber={formNumber}
+              disabled={!canEdit}
+            />
+          </Card.Content>
+        </Card>
+      )}
     </>
   );
 }

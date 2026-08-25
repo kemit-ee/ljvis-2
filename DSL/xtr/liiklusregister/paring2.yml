@@ -1,0 +1,65 @@
+params:
+  - regmrk
+  - idkood
+  - regtun
+  - vinkood
+  - userId
+
+method: POST
+
+# No `service:` — routed through the configured Security Server
+# (xtr.yaml -> security_server), since liiklusregister is only
+# reachable via X-Road (unlike Ariregister's public HTTPS demo
+# endpoint used by DSL/xtr/ar/*.yml).
+#
+# Service identifier: EE/GOV/70001490/liiklusregister/paring2/v2
+# (LJVIS2-55). Verified against the real Security Server via the
+# allowedMethods meta-service — our subsystem (GOV/70001231/ljvis2)
+# is authorised for paring2/v2 and yvkehtivus/v1.
+#
+# IMPORTANT — elementFormDefault="unqualified" for the
+# liiklusregister XSD (confirmed via the service's own getWsdl
+# meta-service response): only the top-level <paring2> element is
+# namespace-qualified (prod:paring2); its child elements (regmrk,
+# idkood, oma_andmed, kasutajad, regtun, vinkood) must NOT carry the
+# prod: prefix. Getting this wrong produces a SOAP Fault
+# "Päringu sisend puudub" (XteeRequestInputMissingException) even
+# though the request otherwise looks well-formed.
+#
+# The paring2_paring XSD type uses <xsd:all> with every field
+# present (nillable="true") — the producer expects all six fields
+# in the body, using xsi:nil="true" for the ones the caller didn't
+# supply (per LJVIS2-55 spec: "SOAP sisendväljad, mida kutsuja ei
+# edasta, saadetakse xsi:nil='true' väärtusega").
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:prod="http://liiklusregister.x-road.eu">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  <xroad:userId>{{userId}}</xroad:userId>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70001490</id:memberCode>
+  <id:subsystemCode>liiklusregister</id:subsystemCode>
+  <id:serviceCode>paring2</id:serviceCode>
+  <id:serviceVersion>v2</id:serviceVersion>
+  </xroad:service>
+  </soapenv:Header>
+  <soapenv:Body>
+  <prod:paring2>
+  {{#if regmrk}}<regmrk>{{regmrk}}</regmrk>{{else}}<regmrk xsi:nil="true"/>{{/if}}
+  {{#if idkood}}<idkood>{{idkood}}</idkood>{{else}}<idkood xsi:nil="true"/>{{/if}}
+  <oma_andmed xsi:nil="true"/>
+  <kasutajad xsi:nil="true"/>
+  {{#if regtun}}<regtun>{{regtun}}</regtun>{{else}}<regtun xsi:nil="true"/>{{/if}}
+  {{#if vinkood}}<vinkood>{{vinkood}}</vinkood>{{else}}<vinkood xsi:nil="true"/>{{/if}}
+  </prod:paring2>
+  </soapenv:Body>
+  </soapenv:Envelope>

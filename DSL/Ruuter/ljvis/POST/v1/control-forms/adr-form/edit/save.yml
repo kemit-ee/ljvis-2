@@ -55,14 +55,6 @@ declaration:
       - field: notes
         type: string
 
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: extractRequestData
-
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
@@ -88,9 +80,9 @@ extractRequestData:
     seal_opened_date: "${incoming.body.sealOpenedDate || ''}"
     seal_installed_date: "${incoming.body.sealInstalledDate || ''}"
     notes: "${incoming.body.notes || ''}"
-    created_by: "${auth_user.personalcode || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: checkNotesLength
 
 checkNotesLength:
@@ -139,7 +131,57 @@ insertForm:
       notes: ${notes}
       created_by: ${created_by}
   result: saveRes
-  next: logSave
+  next: extractInsertResponseData
+
+extractInsertResponseData:
+  assign:
+    sub_form_key: "${saveRes.response.body[0].id || ''}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber + '/' + saveRes.response.body[0].version}"
+  next: getCompoundFormInsert
+
+getCompoundFormInsert:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${compound_form_key}
+  result: compoundFormRes
+  next: extractDriverCodesInsert
+
+extractDriverCodesInsert:
+  assign:
+    compound_drivers: "${JSON.parse(compoundFormRes.response.body[0].drivers)}"
+  next: extractDriverPersonalCodesInsert
+
+extractDriverPersonalCodesInsert:
+  assign:
+    driver1_personal_code_ee: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeEe || '') : ''}"
+    driver1_personal_code_foreign: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeForeign || '') : ''}"
+    driver2_personal_code_ee: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeEe || '') : ''}"
+    driver2_personal_code_foreign: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeForeign || '') : ''}"
+  next: logAuditEventInsert
+
+logAuditEventInsert:
+  template: "templates/audit/form/adr-form/log-adr-form-create"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    sub_form_key: ${sub_form_key}
+    compound_form_key: ${compound_form_key}
+    sub_form_number: ${sub_form_number}
+    result_type: ${result_type}
+    proceeding_type: ${proceeding_type}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
 
 getCurrentFormForStatus:
   call: http.post
@@ -160,7 +202,7 @@ extractCurrentStatus:
 
 checkFormNotLocked:
   switch:
-    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(auth_user.permissions != null && auth_user.permissions.includes('control_form.edit_locked'))}
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
       next: returnFormLockedError
   next: updateForm
 
@@ -196,32 +238,55 @@ updateForm:
       notes: ${notes}
       created_by: ${created_by}
   result: saveRes
-  next: logSave
+  next: extractUpdateResponseData
 
-logSave:
+extractUpdateResponseData:
   assign:
-    sub_form_key: "${saveRes.response.body[0].id}"
+    sub_form_key: "${saveRes.response.body[0].id || ''}"
     sub_form_number: "${saveRes.response.body[0].subFormNumber + '/' + saveRes.response.body[0].version}"
-    compound_key_for_log: "${compound_form_key || current_compound_form_key}"
-  next: buildLogDescription
+  next: getCompoundFormUpdate
 
-buildLogDescription:
+getCompoundFormUpdate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${current_compound_form_key}
+  result: compoundFormRes
+  next: extractDriverCodesUpdate
+
+extractDriverCodesUpdate:
   assign:
-    description: "ADR alamvorm salvestatud, alamvormi võti=${sub_form_key}, koondvormi võti=${compound_key_for_log}, alamvormi number=${sub_form_number}, tulemus=${result_type}, menetluse liik=${proceeding_type}"
-  next: logAuditEvent
+    compound_drivers: "${JSON.parse(compoundFormRes.response.body[0].drivers)}"
+  next: extractDriverPersonalCodesUpdate
 
-logAuditEvent:
-  template: "templates/audit/log-audit-event"
+extractDriverPersonalCodesUpdate:
+  assign:
+    driver1_personal_code_ee: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeEe || '') : ''}"
+    driver1_personal_code_foreign: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeForeign || '') : ''}"
+    driver2_personal_code_ee: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeEe || '') : ''}"
+    driver2_personal_code_foreign: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeForeign || '') : ''}"
+  next: logAuditEventUpdate
+
+logAuditEventUpdate:
+  template: "templates/audit/form/adr-form/log-adr-form-update"
   requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    event_type: "control_form.adr.save"
-    event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
+    sub_form_key: ${sub_form_key}
+    compound_form_key: ${current_compound_form_key}
+    sub_form_number: ${sub_form_number}
+    result_type: ${result_type}
+    proceeding_type: ${proceeding_type}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
     actor_name: ${actor_name}
-    description: ${description}
-    log_content: "{\"subFormKey\":${sub_form_key},\"compoundFormKey\":${compound_key_for_log},\"subFormNumber\":\"${sub_form_number}\",\"resultType\":\"${result_type}\"}"
+    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

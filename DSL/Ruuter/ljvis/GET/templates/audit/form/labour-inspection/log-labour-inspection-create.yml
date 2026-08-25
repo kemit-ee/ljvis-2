@@ -19,6 +19,10 @@ declaration:
         type: string
       - field: isikukood
         type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
 
 delegate:
   template: "templates/audit/log-form-event"
@@ -31,5 +35,7 @@ delegate:
     akti_voti: ${incoming.body.akti_voti}
     vormi_number: "${incoming.body.form_number}/${incoming.body.version || 1}"
     isikukood: ${incoming.body.isikukood}
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
   result: res
   next: end

@@ -15,14 +15,10 @@ declaration:
         type: string
       - field: old_status
         type: string
-
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
-  next: checkStatus
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
 
 checkStatus:
   switch:
@@ -58,8 +54,8 @@ buildAudit:
   assign:
     description: "Kustutati vorm ${incoming.body.form_number}, olek: ${old_status_label} → Kustutatud"
     log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"deleted\"}"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
   next: logAuditEvent
 
 logAuditEvent:

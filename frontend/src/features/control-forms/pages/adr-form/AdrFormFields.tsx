@@ -20,6 +20,7 @@ import { COUNTRIES } from '../../../../constants/constants';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { useAdrForm } from './useAdrForm';
 import styles from './AdrFormFields.module.css';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
 
 const RESULT_OPTIONS = [
   'ok',
@@ -93,6 +94,9 @@ export function AdrFormFields({
 
   const values = formik.values;
   const notesLength = (values.notes ?? '').length;
+  const formNumber = values.subFormNumber
+    ? `${values.subFormNumber}/${values.version ?? 1}`
+    : undefined;
   const infringementItems = getByCode('DANGEROUS_GOODS_INFRINGEMENTS_NEW');
 
   const citizenshipOptions = COUNTRIES.map((c) => ({
@@ -388,7 +392,10 @@ export function AdrFormFields({
                 ? (formik.touched.dangerousGoods as { quantity?: boolean }[])
                 : undefined
             }
-            showAllErrors={!!formik.touched.dangerousGoods && !Array.isArray(formik.touched.dangerousGoods)}
+            showAllErrors={
+              !!formik.touched.dangerousGoods &&
+              !Array.isArray(formik.touched.dangerousGoods)
+            }
             onQuantityBlur={(index) =>
               formik.setFieldTouched(`dangerousGoods[${index}].quantity`, true)
             }
@@ -811,6 +818,21 @@ export function AdrFormFields({
           />
         </Card.Content>
       </Card>
+
+      {formNumber && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.shared.files.label')}
+            </Heading>
+            <FileUploadBlock
+              formPath="adr-form"
+              formNumber={formNumber}
+              disabled={!canEdit}
+            />
+          </Card.Content>
+        </Card>
+      )}
     </>
   );
 }

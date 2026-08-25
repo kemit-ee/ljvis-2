@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
+import { useContainerWidth } from '../../../../hooks/useContainerWidth';
+import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -60,18 +62,21 @@ import {
   addTab,
   useDeleteAllSubForms,
   useRemoveSubFormTab,
+  cancelAllEdits,
 } from '../../hooks/useSubFormEditActive';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 export function TransportInterruptionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const isAdmin = useIsAdmin();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const canEdit = hasPermission('compound_form.write');
+  const canEdit = hasPermission('compound_form.write') || isAdmin;
 
   const [compoundFormKey, setCompoundFormKey] = useState<number | undefined>(undefined);
   const [loadingEntry, setLoadingEntry] = useState(true);
@@ -110,6 +115,8 @@ export function TransportInterruptionFormPage() {
   };
 
   const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission });
+
+  const containerWidth = useContainerWidth(isDesktop, openTabs);
 
   useEffect(() => {
     if (!snapshotId) return;
@@ -245,6 +252,9 @@ export function TransportInterruptionFormPage() {
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
   const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || adr.editActive || transportInterruption.editActive || compoundEditActive;
+
+  const handleCancelAllEdits = () =>
+    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const addFormDropdown =
     canEdit && addableTabs.length > 0 && anyEditActive ? (
@@ -382,7 +392,7 @@ export function TransportInterruptionFormPage() {
   });
 
   const canDelete =
-    hasPermission('control_form.delete') &&
+    isAdmin &&
     ((transportInterruption.form != null && transportInterruption.form.status !== 'deleted') ||
       (driver.form != null && driver.form.status !== 'deleted') ||
       (teammate.form != null && teammate.form.status !== 'deleted') ||
@@ -471,7 +481,13 @@ export function TransportInterruptionFormPage() {
     if (!snapshot) return <FormNotFoundView title={t('forms.transport_interruption.title')} />;
     return (
       <div>
-        <Button visualType="link" onClick={() => navigate(`/control-forms/transport-interruption/${id}`)} iconLeft="arrow_back">
+        <Button
+          visualType="link"
+          onClick={() =>
+            navigate(`/control-forms/transport-interruption/${id}`)
+          }
+          iconLeft="arrow_back"
+        >
           {t('common.back')}
         </Button>
         <TransportInterruptionFormViewCard
@@ -501,7 +517,7 @@ export function TransportInterruptionFormPage() {
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: containerWidth }}>
       <DeleteConfirmModal
         subForm
         isOpen={removeConfirmTab !== null}
@@ -545,7 +561,7 @@ export function TransportInterruptionFormPage() {
       {!isDesktop && addFormDropdown}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')}>
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
           <Tabs.Trigger id="tab-compound">
             {t('forms.compound.generalPart')}
           </Tabs.Trigger>
@@ -614,6 +630,7 @@ export function TransportInterruptionFormPage() {
             <div
               style={{
                 marginLeft: 'auto',
+                paddingLeft: '1rem',
                 display: 'flex',
                 alignItems: 'center',
                 marginRight: '1rem',
@@ -662,7 +679,11 @@ export function TransportInterruptionFormPage() {
             <CompoundFormViewCard
               form={compoundForm}
               {...sharedCompoundProps}
-              canEdit={canEdit && compoundForm.status !== 'deleted'}
+              canEdit={
+                canEdit &&
+                (compoundForm.status === 'saved' ||
+                  compoundForm.status === 'published')
+              }
               onEdit={() => setCompoundEditActive(true)}
               formType={FORM_TYPE.COMPOUND}
             />
@@ -677,7 +698,10 @@ export function TransportInterruptionFormPage() {
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
             />
@@ -727,7 +751,10 @@ export function TransportInterruptionFormPage() {
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
             />
@@ -777,7 +804,10 @@ export function TransportInterruptionFormPage() {
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
             />
@@ -829,7 +859,10 @@ export function TransportInterruptionFormPage() {
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
             />
@@ -880,7 +913,10 @@ export function TransportInterruptionFormPage() {
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => adr.setEditActive(true)}
               formType={FORM_TYPE.ADR}
             />
@@ -926,7 +962,10 @@ export function TransportInterruptionFormPage() {
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
             />
@@ -992,10 +1031,22 @@ export function TransportInterruptionFormPage() {
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && (
-            <Button type="button" onClick={handleSaveAll}>
-              {t('common.save')}
+          {anyEditActive && subFormsAllConfirmed && (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => {
+                formik.resetForm();
+                handleCancelAllEdits();
+              }}
+            >
+              {t('common.cancel')}
             </Button>
+          )}
+          {anyEditActive && (
+            <AsyncButton type="button" onClick={handleSaveAll}>
+              {t('common.save')}
+            </AsyncButton>
           )}
           {anyEditActive && canDelete && (
             <DeleteConfirmModal onDelete={handleDelete} />
