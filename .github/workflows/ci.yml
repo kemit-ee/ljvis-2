@@ -158,7 +158,7 @@ jobs:
 
       - name: Install Trivy
         run: |
-          TRIVY_VERSION=0.56.2
+          TRIVY_VERSION=0.74.0
           curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
             | tar -xz -C /tmp
           sudo install /tmp/trivy /usr/local/bin/trivy
@@ -232,7 +232,7 @@ jobs:
             echo "Scanning ${image}"
             docker run --rm \
               -v /var/run/docker.sock:/var/run/docker.sock \
-              aquasec/trivy:0.56.2 image \
+              aquasec/trivy:0.74.0 image \
               --severity CRITICAL \
               --exit-code 1 \
               "${image}"
