@@ -219,7 +219,6 @@ jobs:
       - name: Trivy — scan CI images
         run: |
           images=(
-            ljvis-ci-liquibase
             ljvis-ci-resql-ljvis
             ljvis-ci-ruuter
             ljvis-ci-ruuter-internal
