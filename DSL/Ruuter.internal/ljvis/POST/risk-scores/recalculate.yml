@@ -1,0 +1,105 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    LJVIS2-151: recalculates and PERSISTS (see save_risk_score.sql — an
+    insert-only historical table) the EU 2022/695 risk score for one Estonian
+    transport undertaking, over a rolling 2-year window ending "now". Called
+    by (a) the compound-form confirm flow (fire-and-forget,
+    calculation_trigger=kontrollvorm — see
+    DSL/Ruuter/ljvis/POST/v1/control-forms/compound-form/edit/confirm.yml),
+    (b) cronmanager's nightly full-recalculation job (one call per company,
+    calculation_trigger=ooine_ymberarvutus — the loop-over-all-companies
+    scheduling itself is cronmanager's responsibility, out of this task's
+    scope), and (c) manually for testing/ops. No auth required: machine-to-
+    machine only, port 8089 is not exposed outside the Docker network (same
+    trust model as every other Ruuter.internal endpoint in this project).
+  method: post
+  accepts: json
+  returns: json
+  namespace: risk_score
+  allowlist:
+    body:
+      - field: company_reg_code
+        type: string
+      - field: calculation_trigger
+        type: string
+        description: "Optional, default 'admin'. Expected values: kontrollvorm|ooine_ymberarvutus|admin."
+
+extractRequestData:
+  assign:
+    company_reg_code: "${(incoming.body.company_reg_code || '').trim()}"
+    calculation_trigger: "${incoming.body.calculation_trigger || 'admin'}"
+    window_end: "${new Date().toISOString().slice(0, 10)}"
+    window_start: "${new Date(new Date().setFullYear(new Date().getFullYear() - 2)).toISOString().slice(0, 10)}"
+  next: validateRegCode
+
+validateRegCode:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test(company_reg_code)}"
+      next: returnInvalidRegCode
+  next: calculateRiskScore
+
+calculateRiskScore:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/risk_score/calculate_risk_score"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      window_start: ${window_start}
+      window_end: ${window_end}
+  result: calcResult
+  next: checkCalculation
+
+checkCalculation:
+  switch:
+    - condition: "${calcResult.response.status < 200 || calcResult.response.status >= 300 || !calcResult.response.body || calcResult.response.body.length !== 1}"
+      next: returnCalculationError
+  next: extractCalculation
+
+extractCalculation:
+  assign:
+    risk_score: "${calcResult.response.body[0].riskScore}"
+    risk_band_code: "${calcResult.response.body[0].riskBandCode}"
+    total_controls: "${calcResult.response.body[0].totalControls}"
+    company_name: "${calcResult.response.body[0].companyName || ''}"
+  next: saveRiskScore
+
+saveRiskScore:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/risk_score/save_risk_score"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      company_name: ${company_name}
+      risk_score: "${risk_score == null ? '' : String(risk_score)}"
+      risk_band_code: ${risk_band_code}
+      total_controls: ${total_controls}
+      g_factor: "1.0"
+      window_start: ${window_start}
+      window_end: ${window_end}
+      calculation_trigger: ${calculation_trigger}
+      created_by: "system"
+  result: saveResult
+  next: returnSuccess
+
+returnSuccess:
+  status: 200
+  return: "${({riskScore: risk_score, riskBandCode: risk_band_code, totalControls: total_controls, companyName: company_name})}"
+  next: end
+
+# Object-literal `${(...)}` form, NOT a quoted JSON string literal — see
+# current.yml's returnNoRecord comment for why (confirmed live via Newman).
+returnInvalidRegCode:
+  status: 400
+  return: "${({error: 'INVALID_PARAMETER', message: 'company_reg_code must be 8 digits'})}"
+  next: end
+
+returnCalculationError:
+  status: 500
+  return: "${({error: 'CALCULATION_ERROR', message: 'Risk score calculation failed'})}"
+  next: end

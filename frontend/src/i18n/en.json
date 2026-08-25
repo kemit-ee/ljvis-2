@@ -957,7 +957,8 @@
     "cgr": "Check good repute requests",
     "search": "Search",
     "rsi": "RSI messages",
-    "ncr": "NCR messages"
+    "ncr": "NCR messages",
+    "riskLevels": "Risk levels"
   },
   "users": {
     "title": "Users",
@@ -1181,6 +1182,23 @@
     "cookies": "Cookies",
     "privacy": "Privacy policy",
     "logoAlt": "COMING"
+  },
+  "riskScores": {
+    "title": "Risk levels",
+    "companyName": "Transport undertaking",
+    "companyRegCode": "Registry code",
+    "riskScore": "Risk score",
+    "riskBand": "Risk level",
+    "totalControls": "Total controls",
+    "filterCompany": "Transport undertaking",
+    "filterRegCode": "Registry code",
+    "filterRiskBand": "Risk level",
+    "search": "Search",
+    "clear": "Clear",
+    "bandHall": "Not assessed",
+    "bandRoheline": "Green",
+    "bandKollane": "Amber",
+    "bandPunane": "Red" 
   },
   "etoimik": {
     "title": "e-Toimik qualification check",

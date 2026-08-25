@@ -1,0 +1,14 @@
+# LJVIS2-150: citizen endpoints use a TARA JWT session (a company
+# representative), NOT the officer session that templates/check-user-authority
+# expects (it additionally requires the personal code to exist in
+# users.user_group, which citizens never do). The parent GET/v1/.guard
+# would otherwise reject every citizen request with 403 before my-company.yml
+# even runs — override it here and let my-company.yml perform its own
+# TIM /jwt/userinfo + Ariregister-representative authorisation inline.
+declaration:
+  override_ancestors: true
+
+guard_allow_all:
+  return: "success"
+  status: 200
+  next: end

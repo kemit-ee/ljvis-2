@@ -138,6 +138,10 @@ newman run "$COL/xroad-provide-write.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/xroad-provide-write.html"
 
+newman run "$COL/risk-scores.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/risk-scores.html"
+
 echo ""
 echo "All collections passed."
 echo "HTML reports:"
