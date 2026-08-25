@@ -5,10 +5,11 @@ declaration:
     Query e-Toimik for väärteomenetlus qualification data (menetlused,
     toimingud, osalised, sanktsioonid, süüdistuspunktid, kvalifikatsiooni
     paragrahvid) by case/reference number and person identification
-    (LJVIS2-56), via X-Road SOAP AnnaIsikuKvalifikatsioonid/v5 routed through
-    XTR (see xtr.yaml -> security_server and
-    DSL/xtr/etoimik/AnnaIsikuKvalifikatsioonid.yml). The subsystem code is
-    read from [#ETOIMIK_SUBSYSTEM_CODE] (constants.ini) — confirmed live to
+    (LJVIS2-56), via X-Road SOAP AnnaIsikuKvalifikatsioonid/v6 (per §28/§44/
+    §99 of the spec) routed through XTR (see xtr.yaml -> security_server and
+    DSL/xtr/etoimik/AnnaIsikuKvalifikatsioonid.yml). The subsystem code and
+    service version are read from [#ETOIMIK_SUBSYSTEM_CODE] /
+    [#ETOIMIK_SERVICE_VERSION] (constants.ini) — subsystem confirmed live to
     be `etoimik-arendus` in ee-dev (NOT plain `etoimik`, which produces a
     misleading unknown_member fault there), but this WILL differ per
     environment; see constants.ini's comment and .ai/testing-guide.md before
@@ -128,6 +129,7 @@ callXtr:
       # "etoimik" (confirmed live for ee-dev only, 2026-08-25; re-verify
       # per environment via listClients/allowedMethods, see constants.ini).
       subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
+      service_version: "[#ETOIMIK_SERVICE_VERSION]"
   result: xtrResponse
   next: checkXtrStatus
 
@@ -253,7 +255,7 @@ logSuccessFound:
     headers:
       type: json
     body:
-      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v5"
+      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
       request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
       response_xml: "${JSON.stringify(mapped_case)}"
       duration_ms: "${new Date().getTime() - start_time}"
@@ -277,7 +279,7 @@ logSuccessNotFound:
     headers:
       type: json
     body:
-      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v5"
+      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
       request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
       response_xml: "null"
       duration_ms: "${new Date().getTime() - start_time}"
@@ -307,7 +309,7 @@ logFailure:
     headers:
       type: json
     body:
-      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v5"
+      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
       request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
       response_xml: "${JSON.stringify(xtrResponse.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"

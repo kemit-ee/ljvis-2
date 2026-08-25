@@ -7,43 +7,12 @@ params:
   - birth_date
   - userId
   - subsystem_code
+  - service_version
 
 method: POST
 
 # No `service:` — routed through the configured Security Server, same as
 # liiklusregister/*.yml (e-Toimik is only reachable via X-Road).
-#
-# Service identifier: EE/GOV/70000310/<subsystem_code>/AnnaIsikuKvalifikatsioonid/v5
-# (LJVIS2-56). subsystem_code is a PARAM, not hardcoded — it varies per
-# environment (see constants.ini ETOIMIK_SUBSYSTEM_CODE). Confirmed live
-# against the real ee-dev sandbox security server (2026-08-25) via the
-# `listClients` meta-service: ee-dev does NOT have a subsystem literally
-# called `etoimik` under member GOV/70000310 — the actual one there is
-# `etoimik-arendus`; a wrong subsystemCode produces a misleading
-# `server.clientproxy.unknown_member` fault that looks like an ACL block but
-# isn't. Production/ee-test almost certainly use the plain `etoimik` name
-# instead (per the wiki table in .ai/ljvis-tasks/LJVIS2-23/initial.md) — this
-# must be re-verified per environment, never assumed. `allowedMethods`
-# against `etoimik-arendus` confirmed our subsystem (GOV/70001231/ljvis2) is
-# authorised for v4/v5/v6 in ee-dev. See .ai/testing-guide.md
-# §"Testing X-tee services directly with curl" for the full live-verification
-# trace, including a real end-to-end v5 call.
-#
-# Envelope shape confirmed against the REAL WSDL fetched live via the
-# `getWsdl` meta-service (2026-08-25) — not guessed from the wiki alone:
-#   - xs:choice(AsjaNR | Viitenumber) and xs:choice(Isikukood | IsikuEesnimi+
-#     IsikuNimi+IsikuSynniKP) — per LJVIS2-56 §Valideerimise reeglid, the
-#     absent alternative must be OMITTED from the envelope entirely, NOT sent
-#     as xsi:nil="true" (unlike paring2/yvkehtivus's xs:all-based XSDs) — the
-#     provider's own XSD validation rejects xsi:nil here.
-#   - Body-level elementFormDefault is unqualified — child elements of
-#     <et:AnnaIsikuKvalifikatsioonid>/<request> do NOT need a namespace
-#     prefix (same convention as paring2.yml/yvkehtivus.yml).
-#   - Custom REQUIRED header <et:userName>ljvis</et:userName> — namespace is
-#     http://etoimik.x-road.eu/ (the SAME namespace as the request/response
-#     elements), NOT the standard x-road.eu/xsd/xroad.xsd namespace. Value is
-#     always the literal string "ljvis" per LJVIS2-56 §Teenuse käitumine
-#     ("SOAP päise element userName peab olema seatud väärtusele ljvis").
 envelope: >
   <?xml version="1.0" encoding="UTF-8"?>
   <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
@@ -61,7 +30,7 @@ envelope: >
   <id:memberCode>70000310</id:memberCode>
   <id:subsystemCode>{{subsystem_code}}</id:subsystemCode>
   <id:serviceCode>AnnaIsikuKvalifikatsioonid</id:serviceCode>
-  <id:serviceVersion>v5</id:serviceVersion>
+  <id:serviceVersion>{{service_version}}</id:serviceVersion>
   </xroad:service>
   <et:userName>ljvis</et:userName>
   </soapenv:Header>

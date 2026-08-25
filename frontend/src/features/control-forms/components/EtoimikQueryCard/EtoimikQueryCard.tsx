@@ -66,6 +66,12 @@ export function EtoimikQueryCard({
     const isEeCitizen = !!selectedDriver.personalCodeEe;
     try {
       const data = await queryEtoimikQualifications({
+        // caseNumber is intentionally never sent from this card: no
+        // sub-form on the koondvorm stores a "case number" — only
+        // proceedingReferenceNumber exists (see plan §3) — so referenceNumber
+        // is the only identification path this UI can offer. The backend
+        // (kvalifikatsioonid.yml) still accepts caseNumber for other callers
+        // (e.g. a future labour_inspection_form card, or the nightly batch).
         caseNumber: '',
         referenceNumber: selectedReference,
         personalCode: isEeCitizen ? selectedDriver.personalCodeEe : '',
