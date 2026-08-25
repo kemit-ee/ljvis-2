@@ -5,6 +5,7 @@ import { Button, Text, Alert, Heading } from '@tedi-design-system/react/tedi';
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useFormDetail } from './useFormDetail.ts';
 import { useAuth } from '../../../auth/AuthContext';
+import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import {
@@ -62,15 +63,15 @@ export function ForeignViolationFormPage() {
     }
   }, [form?.status]);
 
+  const isAdmin = useIsAdmin();
+
   const canEdit =
-    hasPermission('foreign_violation_form.write') && form?.status !== 'deleted';
-  const canDelete =
-    hasPermission('control_form.delete') && form?.status !== 'deleted';
+    (isAdmin || hasPermission('foreign_violation_form.write') &&
+      (form?.status === 'confirmed' || form?.status === 'published'));
+  const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
-    hasPermission('foreign_violation_form.write') &&
-    hasPermission('control_form.view_unpublished') &&
-    form?.status !== 'deleted' &&
-    form?.status !== 'confirmed';
+    (isAdmin || hasPermission('foreign_violation_form.write')) &&
+      form?.status === 'saved';
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');

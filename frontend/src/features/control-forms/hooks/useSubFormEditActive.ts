@@ -8,6 +8,14 @@ import { deleteDriveRestForm, deleteTechnicalCheckForm, deleteAdrForm, deleteTra
 
 type StatusForm = { status?: string } | null | undefined;
 
+export function isAdminUser(hasPermission: (perm: string) => boolean): boolean {
+  return (
+    hasPermission('control_form.view_unpublished') &&
+    hasPermission('control_form.edit_locked') &&
+    hasPermission('control_form.delete')
+  );
+}
+
 export function isAnySubFormSaved(
   driverForm: StatusForm,
   teammateForm: StatusForm,
@@ -172,6 +180,24 @@ interface CanConfirmActiveSubFormOptions {
   hasPermission: (perm: string) => boolean;
 }
 
+function buildTabFormPermission(
+  driver: SubFormWithStatus,
+  teammate: SubFormWithStatus,
+  vehicle: SubFormWithStatus,
+  trailer: SubFormWithStatus,
+  adr?: SubFormWithStatus,
+  transportInterruption?: SubFormWithStatus,
+): Record<string, { form: { id?: unknown; status?: string } | null; perm: string }> {
+  return {
+    'tab-driver': { form: driver.form, perm: 'sp_driver_form.write' },
+    'tab-teammate': { form: teammate.form, perm: 'sp_teammate_form.write' },
+    'tab-vehicle-technical-check': { form: vehicle.form, perm: 'vehicle_technical_form.write' },
+    'tab-trailer-technical-check': { form: trailer.form, perm: 'trailer_technical_form.write' },
+    'tab-adr': { form: adr?.form ?? null, perm: 'adr_form.write' },
+    'tab-transport-interruption': { form: transportInterruption?.form ?? null, perm: 'transport_interruption_form.write' },
+  };
+}
+
 export function canConfirmActiveSubForm({
   activeTab,
   driver,
@@ -182,17 +208,11 @@ export function canConfirmActiveSubForm({
   transportInterruption,
   hasPermission,
 }: CanConfirmActiveSubFormOptions): boolean {
-  const tabFormPermission: Record<string, { form: { id?: unknown; status?: string } | null; perm: string }> = {
-    'tab-driver': { form: driver.form, perm: 'sp_driver_form.write' },
-    'tab-teammate': { form: teammate.form, perm: 'sp_teammate_form.write' },
-    'tab-vehicle-technical-check': { form: vehicle.form, perm: 'vehicle_technical_form.write' },
-    'tab-trailer-technical-check': { form: trailer.form, perm: 'trailer_technical_form.write' },
-    'tab-adr': { form: adr?.form ?? null, perm: 'adr_form.write' },
-    'tab-transport-interruption': { form: transportInterruption?.form ?? null, perm: 'transport_interruption_form.write' },
-  };
+  const tabFormPermission = buildTabFormPermission(driver, teammate, vehicle, trailer, adr, transportInterruption);
+  const isAdmin = isAdminUser(hasPermission);
   const entry = tabFormPermission[activeTab];
   if (!entry) return false;
-  return !!entry.form?.id && entry.form.status === 'saved' && hasPermission(entry.perm);
+  return !!entry.form?.id && entry.form.status === 'saved' && (isAdmin || hasPermission(entry.perm));
 }
 
 export function canEditActiveSubForm({
@@ -205,17 +225,11 @@ export function canEditActiveSubForm({
   transportInterruption,
   hasPermission,
 }: CanConfirmActiveSubFormOptions): boolean {
-  const tabFormPermission: Record<string, { form: { id?: unknown; status?: string } | null; perm: string }> = {
-    'tab-driver': { form: driver.form, perm: 'sp_driver_form.write' },
-    'tab-teammate': { form: teammate.form, perm: 'sp_teammate_form.write' },
-    'tab-vehicle-technical-check': { form: vehicle.form, perm: 'vehicle_technical_form.write' },
-    'tab-trailer-technical-check': { form: trailer.form, perm: 'trailer_technical_form.write' },
-    'tab-adr': { form: adr?.form ?? null, perm: 'adr_form.write' },
-    'tab-transport-interruption': { form: transportInterruption?.form ?? null, perm: 'transport_interruption_form.write' },
-  };
+  const tabFormPermission = buildTabFormPermission(driver, teammate, vehicle, trailer, adr, transportInterruption);
+  const isAdmin = isAdminUser(hasPermission);
   const entry = tabFormPermission[activeTab];
   if (!entry) return false;
-  return !!entry.form?.id && hasPermission(entry.perm);
+  return !!entry.form?.id && (isAdmin || hasPermission(entry.perm));
 }
 
 interface UseSubFormPermissionsOptions {

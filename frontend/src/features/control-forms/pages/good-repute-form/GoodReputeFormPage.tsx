@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
+import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { usePersonSearch } from '../../../xroad/hooks/usePersonSearch';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
@@ -40,6 +41,8 @@ export function GoodReputeFormPage() {
     hasPermission('control_form.view_unpublished')
   );
 
+  const isAdmin = useIsAdmin();
+
   const [isEditActive, setIsEditActive] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
@@ -71,14 +74,13 @@ export function GoodReputeFormPage() {
   }, [form?.status]);
 
   const canEdit =
-    hasPermission('good_repute_form.write') &&
-    form?.status !== 'deleted';
+    (isAdmin || hasPermission('good_repute_form.write')) &&
+    (form?.status === 'confirmed' || form?.status === 'published');
   const canConfirm =
-    hasPermission('good_repute_form.write') &&
-    form?.status !== 'deleted' &&
-    form?.status !== 'confirmed';
+    (isAdmin || hasPermission('good_repute_form.write')) &&
+    form?.status === 'saved';
   const canDelete =
-    hasPermission('control_form.delete') && form?.status !== 'deleted';
+    isAdmin && form?.status !== 'deleted';
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');

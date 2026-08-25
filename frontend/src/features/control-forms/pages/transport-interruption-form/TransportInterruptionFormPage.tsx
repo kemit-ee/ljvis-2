@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useContainerWidth } from '../../../../hooks/useContainerWidth';
+import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -73,8 +74,9 @@ export function TransportInterruptionFormPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const isAdmin = useIsAdmin();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const canEdit = hasPermission('compound_form.write');
+  const canEdit = hasPermission('compound_form.write') || isAdmin;
 
   const [compoundFormKey, setCompoundFormKey] = useState<number | undefined>(undefined);
   const [loadingEntry, setLoadingEntry] = useState(true);
@@ -390,7 +392,7 @@ export function TransportInterruptionFormPage() {
   });
 
   const canDelete =
-    hasPermission('control_form.delete') &&
+    isAdmin &&
     ((transportInterruption.form != null && transportInterruption.form.status !== 'deleted') ||
       (driver.form != null && driver.form.status !== 'deleted') ||
       (teammate.form != null && teammate.form.status !== 'deleted') ||
@@ -677,7 +679,11 @@ export function TransportInterruptionFormPage() {
             <CompoundFormViewCard
               form={compoundForm}
               {...sharedCompoundProps}
-              canEdit={canEdit && compoundForm.status !== 'deleted'}
+              canEdit={
+                canEdit &&
+                (compoundForm.status === 'saved' ||
+                  compoundForm.status === 'published')
+              }
               onEdit={() => setCompoundEditActive(true)}
               formType={FORM_TYPE.COMPOUND}
             />
@@ -692,7 +698,10 @@ export function TransportInterruptionFormPage() {
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
             />
@@ -742,7 +751,10 @@ export function TransportInterruptionFormPage() {
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
             />
@@ -792,7 +804,10 @@ export function TransportInterruptionFormPage() {
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
             />
@@ -844,7 +859,10 @@ export function TransportInterruptionFormPage() {
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
             />
@@ -895,7 +913,10 @@ export function TransportInterruptionFormPage() {
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => adr.setEditActive(true)}
               formType={FORM_TYPE.ADR}
             />
@@ -941,7 +962,10 @@ export function TransportInterruptionFormPage() {
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
             />
