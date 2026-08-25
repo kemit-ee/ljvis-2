@@ -67,6 +67,9 @@ logSuccess:
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
+      person_identifier: ""
+      source_type: "xroad_client"
+      source_record_id: "${incoming.headers['x-road-client']}"
   result: logResult
   next: buildResponse
 
@@ -95,6 +98,9 @@ logFailure:
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "${'Resql HTTP ' + kontrollResult.response.status}"
+      person_identifier: ""
+      source_type: "xroad_client"
+      source_record_id: "${incoming.headers['x-road-client']}"
   result: logResult
   next: returnServerError
 

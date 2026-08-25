@@ -146,6 +146,9 @@ logSuccess:
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
+      person_identifier: ""
+      source_type: "job_inspection"
+      source_record_id: "${'' + kontrolli_id}"
   result: logResult
   next: returnSuccess
 
@@ -167,6 +170,9 @@ logFailure:
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "${'Resql HTTP ' + insertResult.response.status}"
+      person_identifier: ""
+      source_type: "job_inspection"
+      source_record_id: "${'' + kontrolli_id}"
   result: logResult
   next: returnServerError
 

@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
-import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem } from '../../types';
+import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem, Driver } from '../../types';
 import {
   getTechnicalCheckForm,
   getTechnicalCheckFormSnapshot,
@@ -26,6 +26,7 @@ import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
+import { EtoimikQueryCard } from '../../components/EtoimikQueryCard/EtoimikQueryCard';
 import { TechnicalCheckFormViewCard } from '../../components/TechnicalCheckForm/TechnicalCheckFormViewCard';
 import { TechnicalCheckFormEditCard, type TechnicalCheckFormEditCardRef } from '../../components/TechnicalCheckForm/TechnicalCheckFormEditCard';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
@@ -451,6 +452,32 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       (transportInterruption.form != null && transportInterruption.form.status !== 'deleted') ||
       (compoundForm != null && compoundForm.status !== 'deleted'));
 
+  // LJVIS2-56: e-Toimik query card data — driver identification already lives
+  // on compoundForm.drivers[], reference numbers on whichever loaded
+  // sub-form(s) have one set. No new data-fetching needed (see plan §3/§5).
+  const compoundFormDrivers: Driver[] = Array.isArray(compoundForm?.drivers)
+    ? compoundForm.drivers
+    : typeof compoundForm?.drivers === 'string'
+      ? JSON.parse(compoundForm.drivers)
+      : [];
+
+  const etoimikReferenceOptions = (
+    [
+      vehicle.form && { label: t('forms.technical_check.vehicleTitle'), form: vehicle.form },
+      trailer.form && { label: t('forms.technical_check.trailerTitle'), form: trailer.form },
+      driver.form && { label: t('forms.driver_drive_rest_form'), form: driver.form },
+      teammate.form && { label: t('forms.teammate_drive_rest_form'), form: teammate.form },
+      adr.form && { label: t('forms.adr.title'), form: adr.form },
+    ] as ({ label: string; form: { subFormNumber?: string; proceedingReferenceNumber?: string } } | null)[]
+  )
+    .filter((entry): entry is { label: string; form: { subFormNumber?: string; proceedingReferenceNumber?: string } } =>
+      !!entry && !!entry.form.proceedingReferenceNumber,
+    )
+    .map((entry) => ({
+      label: `${entry.label} ${entry.form.subFormNumber ?? ''} — ${entry.form.proceedingReferenceNumber}`,
+      value: entry.form.proceedingReferenceNumber as string,
+    }));
+
   const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, transportInterruption, compoundForm });
 
   const { removeConfirmTab, setRemoveConfirmTab, handleRemove, handleRemoveConfirmed } = useRemoveSubFormTab({
@@ -541,6 +568,14 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       </Button>
 
       {!isDesktop && addFormDropdown}
+
+      {compoundForm && compoundFormKey && (
+        <EtoimikQueryCard
+          drivers={compoundFormDrivers}
+          referenceNumberOptions={etoimikReferenceOptions}
+          compoundFormKey={compoundFormKey}
+        />
+      )}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.compound_form')}>
