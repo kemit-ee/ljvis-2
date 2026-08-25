@@ -1,0 +1,14 @@
+{
+    "content": [
+        {{#each items}}
+        {
+            "companyName": {{#if this.companyName}}"{{this.companyName}}"{{else}}null{{/if}},
+            "companyRegCode": "{{this.companyRegCode}}",
+            "riskScore": {{#if this.riskScore}}{{this.riskScore}}{{else}}null{{/if}},
+            "riskBandCode": "{{this.riskBandCode}}",
+            "totalControls": {{this.totalControls}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with items.[0]}}{{total}}{{else}}0{{/with}}
+}

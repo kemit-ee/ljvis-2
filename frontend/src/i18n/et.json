@@ -282,7 +282,8 @@
     "cgr": "Mainepäringud",
     "search": "Otsing",
     "rsi": "RSI teated",
-    "ncr": "NCR teated"
+    "ncr": "NCR teated",
+    "riskLevels": "Riskitasemed"
   },
   "desktop": {
     "title": "Töölaud",
@@ -1279,6 +1280,23 @@
     "cookies": "Küpsised",
     "privacy": "Privaatsussätted",
     "logoAlt": "Euroopa Sotsiaalfond"
+  },
+  "riskScores": {
+    "title": "Riskitasemed",
+    "companyName": "Veoettevõtja",
+    "companyRegCode": "Registrikood",
+    "riskScore": "Riskiskoor",
+    "riskBand": "Riskitase",
+    "totalControls": "Kontrolle kokku",
+    "filterCompany": "Veoettevõtja",
+    "filterRegCode": "Registrikood",
+    "filterRiskBand": "Riskitase",
+    "search": "Otsi",
+    "clear": "Tühjenda",
+    "bandHall": "Kontrollimata",
+    "bandRoheline": "Roheline",
+    "bandKollane": "Kollane",
+    "bandPunane": "Punane"
   },
   "erru": {
     "ctud": {
