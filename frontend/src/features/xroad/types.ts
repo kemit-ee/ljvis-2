@@ -30,3 +30,14 @@ export interface XRoadAssociatedPerson {
   endDate?: string;
   status?: string;
 }
+
+export interface XRoadVehicle {
+  registrationNumber: string;
+  registrationCountryCode: string;
+  make?: string;
+  model?: string;
+  vin?: string;
+  bodyType?: string;
+  categoryCode?: string;
+  firstRegistrationDate?: string;
+}
