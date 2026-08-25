@@ -36,3 +36,6 @@ TEST-*.md
 tests/postman/reports/*
 jira_comments.sh
 confluence_test_report.sh
+
+# mdBook generated output
+docs/book/

@@ -1,10 +1,8 @@
-# Planeeritud riskihindamine
-
-> **Märkus:** Riskihindamine on arendamisel (LJVIS2-150 / 151 / 152). See peatükk kirjeldab planeeritud käitumust.
+# Riskihindamine
 
 ## Mis on riskihindamine
 
-LJVIS2 hakkab automaatselt hindama Eesti ettevõtete riskitaset kontrollaktide põhjal. Riskiskoor arvutatakse Euroopa Liidu määruse 2022/695 (veoettevõtja hea maine ja juhtide juurdepääs kutsele) alusel.
+LJVIS2 hindab automaatselt Eesti ettevõtete riskitaset kontrollaktide põhjal. Riskiskoor arvutatakse Euroopa Liidu määruse 2022/695 (veoettevõtja hea maine ja juhtide juurdepääs kutsele) alusel.
 
 ## Arvutusvalem
 
