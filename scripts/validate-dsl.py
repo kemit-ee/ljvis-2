@@ -3,12 +3,13 @@
 
 Ported from the GitHub Actions `validate-dsl` job. Sonar does not understand the
 Ruuter DSL, so this is the only check that catches a broken flow before the image is
-built. Four checks:
+built. Five checks:
 
   1. every Ruuter YAML file parses;
   2. no step is unreachable and no `next` reference dangles;
   3. the declaration block is one Rust Ruuter will accept;
-  4. no SQL file is empty.
+  4. no SQL file is empty;
+  5. no `assign` block reads a key it sets itself (warning only, see check 5).
 
 Mock DSL files (any path containing /mock/) are excluded: they are deliberate stubs.
 
@@ -24,12 +25,15 @@ from __future__ import annotations
 import argparse
 import glob
 import os
+import re
 import sys
 
 import yaml
 
 RUUTER_GLOBS = ("DSL/Ruuter/**/*.yml", "DSL/Ruuter.internal/**/*.yml")
 SQL_DIRS = ("DSL/Resql", "DSL/Liquibase/changelog")
+# `${...}` payloads only, so a plain string value cannot look like a variable reference.
+EXPRESSION_RE = re.compile(r"\$\{([^}]*)\}")
 
 
 def ruuter_files() -> list[str]:
@@ -144,6 +148,42 @@ def check_declaration(parsed: dict[str, dict]) -> list[str]:
     return errors
 
 
+def check_assign_blocks(parsed: dict[str, dict]) -> list[str]:
+    """One key of an `assign` block reading another key of the same block.
+
+    Rust Ruuter keeps the step map in an IndexMap but a single `assign` block in a
+    std HashMap, and its book states the evaluation order inside one block is undefined.
+    The referenced key may therefore not be set yet, and only variables already set are
+    bound onto globalThis (src/scripting/quickjs.rs), so the expression reads an
+    undeclared identifier, JavaScript raises a ReferenceError and the engine halts the
+    run. The map seed is drawn per process, so the same DSL can serve requests for weeks
+    and then fail for a whole pod lifetime after a restart.
+
+    Reported as a warning, not a failure: this repository has ~190 of these, mostly in
+    the audit and changed-field templates, and blocking the pipeline on all of them is
+    not this script's call to make.
+    """
+    warnings: list[str] = []
+    for path, data in parsed.items():
+        for step_name, body in data.items():
+            if step_name == "declaration" or not isinstance(body, dict):
+                continue
+            block = body.get("assign")
+            if not isinstance(block, dict):
+                continue
+            keys = [k for k in block if isinstance(k, str)]
+            for key in keys:
+                expressions = " ".join(EXPRESSION_RE.findall(str(block[key])))
+                for other in keys:
+                    # A dotted prefix (`user_profile.user_id`) is a field, not the variable.
+                    if other != key and re.search(rf"(?<![\w.]){re.escape(other)}\b", expressions):
+                        warnings.append(
+                            f"{path}: step `{step_name}` assigns `{key}` from `{other}`,"
+                            " which the same assign block sets — split into two assign steps"
+                        )
+    return warnings
+
+
 def check_sql_non_empty() -> tuple[list[str], int]:
     errors: list[str] = []
     total = 0
@@ -171,6 +211,7 @@ def main() -> int:
     parse_errors, parsed = check_parses(paths)
     flow_errors = check_flow(parsed) if not parse_errors else []
     decl_errors = check_declaration(parsed) if not parse_errors else []
+    assign_warnings = check_assign_blocks(parsed) if not parse_errors else []
     sql_errors, sql_total = check_sql_non_empty()
 
     failed = False
@@ -197,6 +238,13 @@ def main() -> int:
             print(f"        {error}")
     elif not parse_errors:
         print(f"OK    {len(parsed)} declaration blocks: no `call`, version is a string")
+
+    if assign_warnings:
+        print(f"WARN  assign block evaluation order ({len(assign_warnings)}) — does not fail the build")
+        for warning in assign_warnings:
+            print(f"        {warning}")
+    elif not parse_errors:
+        print(f"OK    {len(parsed)} flows: no assign block reads a key it sets")
 
     if sql_errors:
         failed = True
