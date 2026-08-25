@@ -1178,6 +1178,20 @@
     "privacy": "Privacy policy",
     "logoAlt": "COMING"
   },
+  "etoimik": {
+    "title": "e-Toimik qualification check",
+    "referenceNumber": "Reference number",
+    "person": "Person",
+    "unnamedDriver": "Unnamed driver",
+    "queryButton": "Query e-Toimik",
+    "queryFailed": "The e-Toimik query failed. Please try again.",
+    "notFound": "No matching case found in e-Toimik.",
+    "proceedingNumber": "Proceeding",
+    "actionTypeCode": "Action type",
+    "participant": "Participant",
+    "sanctionTypeCode": "Sanction type",
+    "convictionPoint": "Conviction point"
+  },
   "erru": {
     "ctud": {
       "notFound": "CTUD request not found",

@@ -1,0 +1,49 @@
+params:
+  - case_number
+  - reference_number
+  - personal_code
+  - first_name
+  - last_name
+  - birth_date
+  - userId
+  - subsystem_code
+  - service_version
+
+method: POST
+
+# No `service:` — routed through the configured Security Server, same as
+# liiklusregister/*.yml (e-Toimik is only reachable via X-Road).
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:et="http://etoimik.x-road.eu/">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  <xroad:userId>{{userId}}</xroad:userId>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70000310</id:memberCode>
+  <id:subsystemCode>{{subsystem_code}}</id:subsystemCode>
+  <id:serviceCode>AnnaIsikuKvalifikatsioonid</id:serviceCode>
+  <id:serviceVersion>{{service_version}}</id:serviceVersion>
+  </xroad:service>
+  <et:userName>ljvis</et:userName>
+  </soapenv:Header>
+  <soapenv:Body>
+  <et:AnnaIsikuKvalifikatsioonid>
+  <request>
+  {{#if case_number}}<AsjaNR>{{case_number}}</AsjaNR>{{/if}}
+  {{#if reference_number}}<Viitenumber>{{reference_number}}</Viitenumber>{{/if}}
+  {{#if personal_code}}<Isikukood>{{personal_code}}</Isikukood>{{/if}}
+  {{#if first_name}}<IsikuEesnimi>{{first_name}}</IsikuEesnimi>{{/if}}
+  {{#if last_name}}<IsikuNimi>{{last_name}}</IsikuNimi>{{/if}}
+  {{#if birth_date}}<IsikuSynniKP>{{birth_date}}</IsikuSynniKP>{{/if}}
+  </request>
+  </et:AnnaIsikuKvalifikatsioonid>
+  </soapenv:Body>
+  </soapenv:Envelope>

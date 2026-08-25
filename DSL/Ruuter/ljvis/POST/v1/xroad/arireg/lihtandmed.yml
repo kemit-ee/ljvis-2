@@ -75,6 +75,9 @@ logSuccess:
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
   result: logResult
   next: returnResponse
 
@@ -91,6 +94,9 @@ logFailure:
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
   result: logResult
   next: returnError
 

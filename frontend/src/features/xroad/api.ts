@@ -4,6 +4,7 @@ import type {
   XRoadAssociatedPerson,
   XRoadPerson,
   XRoadVehicle,
+  EtoimikCase,
 } from './types';
 
 interface LihtandmedCompanyRaw {
@@ -155,4 +156,37 @@ export const searchVehicleByRegNr = async (
     { registrationNumber },
   );
   return raw?.data ?? [];
+};
+
+/**
+ * LJVIS2-56: e-Toimik AnnaIsikuKvalifikatsioonid — manual koondvorm query
+ * (see EtoimikQueryCard). Ruuter's declaration.allowlist requires every
+ * field to be present as a key even when unused by the caller's chosen
+ * xs:choice branch (Ruuter-on-Rust `declare` step quirk — see
+ * .ai/coding_guidelines_and_lessons_learned.md) — callers must always pass
+ * all 8 fields, using `''` for the ones not applicable.
+ */
+export interface EtoimikQueryParams {
+  caseNumber: string;
+  referenceNumber: string;
+  personalCode: string;
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  sourceType: string;
+  sourceRecordId: string;
+}
+
+interface EtoimikQueryRawResponse {
+  data: EtoimikCase | null;
+}
+
+export const queryEtoimikQualifications = async (
+  params: EtoimikQueryParams,
+): Promise<EtoimikCase | null> => {
+  const raw = await post<EtoimikQueryRawResponse>(
+    '/v1/xroad/etoimik/kvalifikatsioonid',
+    { ...params },
+  );
+  return raw?.data ?? null;
 };
