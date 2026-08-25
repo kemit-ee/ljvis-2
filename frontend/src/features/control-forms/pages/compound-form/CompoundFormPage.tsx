@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
   Text,
   Alert,
-  Heading,
   Tabs,
   Dropdown,
   StatusIndicator,
@@ -73,49 +72,6 @@ import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
-
-
-/**
- * LJVIS2-74: minimal navigation into the transport-interruption sub-form of
- * this compound form. Same stopgap pattern as TechnicalCheckFormsSection above
- * pending the real "Koondvormi alamvormide haldamine" tab-bar infrastructure.
- */
-export function TransportInterruptionSection({
-  compoundFormKey,
-  canEdit,
-}: {
-  compoundFormKey: number;
-  canEdit: boolean;
-}) {
-  const { t } = useTranslation();
-  const [items, setItems] = useState<TransportInterruptionFormListItem[]>([]);
-
-  useEffect(() => {
-    listTransportInterruptionFormsByCompoundFormKey(compoundFormKey)
-      .then((data) => setItems(Array.isArray(data) ? data : []))
-      .catch(() => setItems([]));
-  }, [compoundFormKey]);
-
-  return (
-    <div className="mb-1">
-      <Heading element="h3">{t('forms.transport_interruption.sectionTitle')}</Heading>
-      <ul>
-        {items.map((item) => (
-          <li key={item.id}>
-            <Link to={`/control-forms/transport-interruption/${item.id}`}>
-              {item.subFormNumber}/{item.version}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {canEdit && (
-        <Link to={`/control-forms/transport-interruption/new/${compoundFormKey}`}>
-          {t('forms.transport_interruption.addNew')}
-        </Link>
-      )}
-    </div>
-  );
-}
 
 export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();

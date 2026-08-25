@@ -38,6 +38,7 @@ export function ForeignViolationFormPage() {
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
   const { form, loading, refetch } = useFormDetail(
@@ -71,12 +72,16 @@ export function ForeignViolationFormPage() {
   const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
     (isAdmin || hasPermission('foreign_violation_form.write')) &&
-      form?.status === 'saved';
+    form?.status === 'saved';
+  const canPublish =
+    (isAdmin || hasPermission('foreign_violation_form.write')) &&
+    form?.status === 'confirmed';
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
+    setShowPublishedAlert(false);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
@@ -85,6 +90,16 @@ export function ForeignViolationFormPage() {
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
+    setShowPublishedAlert(false);
+    setVersionsRefreshKey((k) => k + 1);
+    refetch();
+  };
+
+  const handlePublished = () => {
+    setIsEditActive(false);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setShowPublishedAlert(true);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
@@ -111,10 +126,12 @@ export function ForeignViolationFormPage() {
     associatedPersons,
     associatedPersonsLoading,
     triggerConfirm,
+    triggerPublish,
   } = useForeignViolationForm(
     form ?? undefined,
     handleEditSaved,
     handleConfirmed,
+    handlePublished,
   );
 
   const handleDelete = async () => {
@@ -202,6 +219,17 @@ export function ForeignViolationFormPage() {
           {t('forms.confirmedNote')}
         </Alert>
       )}
+      {showPublishedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowPublishedAlert(false)}
+          type="success"
+          size="small"
+        >
+          {t('forms.publishedNote')}
+        </Alert>
+      )}
 
       <Button
         visualType="link"
@@ -282,14 +310,21 @@ export function ForeignViolationFormPage() {
               </>
             ) : (
               canEdit && (
-                <Button
-                  iconLeft="edit"
-                  type="button"
-                  visualType="secondary"
-                  onClick={() => setIsEditActive(true)}
-                >
-                  {t('common.edit')}
-                </Button>
+                <>
+                  <Button
+                    iconLeft="edit"
+                    type="button"
+                    visualType="secondary"
+                    onClick={() => setIsEditActive(true)}
+                  >
+                    {t('common.edit')}
+                  </Button>
+                  {canPublish && (
+                    <AsyncButton type="button" onClick={() => triggerPublish()}>
+                      {t('common.publish')}
+                    </AsyncButton>
+                  )}
+                </>
               )
             )}
           </div>

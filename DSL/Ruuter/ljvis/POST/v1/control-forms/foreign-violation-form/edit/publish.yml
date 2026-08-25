@@ -1,0 +1,179 @@
+declaration:
+
+  version: "1.0"
+  description: "Publish (avalikusta) a foreign violation form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    status: "published"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFormIsConfirmed
+
+checkFormIsConfirmed:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormIsConfirmedSwitch
+
+checkFormIsConfirmedSwitch:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: returnAlreadyPublishedError
+    - condition: ${current_status !== 'confirmed'}
+      next: returnNotConfirmedError
+  next: extractCurrentFormData
+
+extractCurrentFormData:
+  assign:
+    form_number: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].formNumber) || ''}"
+    reporting_country_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].reportingCountryCode) || ''}"
+    reporting_authority: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].reportingAuthority) || ''}"
+    inspection_country_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionCountryCode) || ''}"
+    inspection_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionDate) || ''}"
+    inspection_time: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionTime) || ''}"
+    inspection_address_line1: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionAddressLine1) || ''}"
+    inspection_address_line2: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionAddressLine2) || ''}"
+    inspection_region: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionRegion) || ''}"
+    inspection_city: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionCity) || ''}"
+    company_reg_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyRegCode) || ''}"
+    company_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyName) || ''}"
+    company_country_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyCountryCode) || ''}"
+    company_address_line1: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyAddressLine1) || ''}"
+    company_address_line2: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyAddressLine2) || ''}"
+    company_city: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyCity) || ''}"
+    company_postal_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyPostalCode) || ''}"
+    driver_first_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].driverFirstName) || ''}"
+    driver_last_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].driverLastName) || ''}"
+    vehicle_reg_nr: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleRegNr) || ''}"
+    vehicle_make: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleMake) || ''}"
+    vehicle_model: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleModel) || ''}"
+    vehicle_country_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleCountryCode) || ''}"
+    vehicle_vin: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleVin) || ''}"
+    vehicle_first_registration: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleFirstRegistration) || ''}"
+    vehicle_body_type: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleBodyType) || ''}"
+    licence_copy_number: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].licenceCopyNumber) || ''}"
+    violation_description: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].violationDescription) || ''}"
+    minor_violations_count: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].minorViolationsCount) || ''}"
+    sanction_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].sanctionCode) || ''}"
+    sanction_notes: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].sanctionNotes) || ''}"
+    recommended_measure_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].recommendedMeasureCode) || ''}"
+    recommended_measure_notes: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].recommendedMeasureNotes) || ''}"
+    recommended_measure_general_notes: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].recommendedMeasureGeneralNotes) || ''}"
+    violations: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].violations) || '[]'}"
+    data_entry_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].dataEntryDate) || ''}"
+    inspector_first_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectorFirstName) || ''}"
+    inspector_last_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectorLastName) || ''}"
+    inspector_organisation_id: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectorOrganisationId) || ''}"
+    inspector_unit: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectorUnit) || ''}"
+    inspector_profession: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectorProfession) || ''}"
+  next: publishForm
+
+publishForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      formNumber: ${form_number}
+      reportingCountryCode: ${reporting_country_code}
+      reportingAuthority: ${reporting_authority}
+      inspectionCountryCode: ${inspection_country_code}
+      inspectionDate: ${inspection_date}
+      inspectionTime: ${inspection_time}
+      inspectionAddressLine1: ${inspection_address_line1}
+      inspectionAddressLine2: ${inspection_address_line2}
+      inspectionRegion: ${inspection_region}
+      inspectionCity: ${inspection_city}
+      companyRegCode: ${company_reg_code}
+      companyName: ${company_name}
+      companyCountryCode: ${company_country_code}
+      companyAddressLine1: ${company_address_line1}
+      companyAddressLine2: ${company_address_line2}
+      companyCity: ${company_city}
+      companyPostalCode: ${company_postal_code}
+      driverFirstName: ${driver_first_name}
+      driverLastName: ${driver_last_name}
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ${vehicle_make}
+      vehicleModel: ${vehicle_model}
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ${vehicle_vin}
+      vehicleFirstRegistration: ${vehicle_first_registration}
+      vehicleBodyType: ${vehicle_body_type}
+      licenceCopyNumber: ${licence_copy_number}
+      violationDescription: ${violation_description}
+      minorViolationsCount: ${minor_violations_count}
+      sanctionCode: ${sanction_code}
+      sanctionNotes: ${sanction_notes}
+      recommendedMeasureCode: ${recommended_measure_code}
+      recommendedMeasureNotes: ${recommended_measure_notes}
+      recommendedMeasureGeneralNotes: ${recommended_measure_general_notes}
+      violations: ${violations}
+      dataEntryDate: ${data_entry_date}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      status: ${status}
+      created_by: ${created_by}
+  result: publishRes
+  next: extractResponseData
+
+extractResponseData:
+  assign:
+    form_number: "${publishRes.response.body[0].formNumber || ''}"
+    old_status: ${current_status}
+    new_status: ${status}
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-publish"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    old_status: ${old_status}
+    new_status: ${new_status}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${publishRes.response.body}
+  next: end
+
+returnAlreadyPublishedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnNotConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"not_confirmed"}'
+  next: end

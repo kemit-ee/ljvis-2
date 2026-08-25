@@ -7,6 +7,7 @@ import type { ForeignViolationForm } from '../../../control-forms/types';
 import {
   saveForeignViolationForm,
   confirmForeignViolationForm,
+  publishForeignViolationForm,
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
 import { listOrganisations } from '../../../organisations/api';
@@ -22,6 +23,7 @@ export function useForeignViolationForm(
   form: ForeignViolationForm | undefined,
   onSaved: (id?: string) => void,
   onConfirmed?: () => void,
+  onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
@@ -36,6 +38,7 @@ export function useForeignViolationForm(
     useState(false);
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
 
   const incrementFormNumber = (formNumber: string): string => {
     const match = formNumber.match(/^(.+\/)([0-9]+)$/);
@@ -157,13 +160,17 @@ export function useForeignViolationForm(
     onSubmit: async (values, { setFieldError }) => {
       try {
         const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
-        const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
+        pendingPublish.current = false;
+        const isReconfirmedEdit = !isConfirming && !isPublishing && form?.status === 'confirmed';
         const nextStatus = isConfirming
           ? 'confirmed'
-          : isReconfirmedEdit
-            ? 'confirmed'
-            : 'saved';
+          : isPublishing
+            ? 'published'
+            : isReconfirmedEdit
+              ? 'confirmed'
+              : 'saved';
         const nextFormNumber = isReconfirmedEdit
           ? incrementFormNumber(formNumberString)
           : formNumberString;
@@ -186,12 +193,16 @@ export function useForeignViolationForm(
         const result = isEdit
           ? isConfirming
             ? await confirmForeignViolationForm(payload)
-            : await saveForeignViolationForm(payload)
+            : form?.id && isPublishing
+              ? await publishForeignViolationForm(form.id)
+              : await saveForeignViolationForm(payload)
           : await saveForeignViolationForm(
               trimmedValues as unknown as ForeignViolationForm,
             );
         if (isConfirming && onConfirmed) {
           onConfirmed();
+        } else if (isPublishing && onPublished) {
+          onPublished();
         } else {
           onSaved(result[0]?.id);
         }
@@ -296,10 +307,16 @@ export function useForeignViolationForm(
     formik.submitForm();
   };
 
+  const triggerPublish = () => {
+    pendingPublish.current = true;
+    formik.submitForm();
+  };
+
   return {
     formik,
     isEdit,
     triggerConfirm,
+    triggerPublish,
     structureUnits,
     orgOptions,
     handleOrgChange,

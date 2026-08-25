@@ -51,6 +51,12 @@ export const confirmForeignViolationForm = (data: ForeignViolationForm) =>
     data as unknown as Record<string, unknown>,
   );
 
+export const publishForeignViolationForm = (id: string) =>
+  post<ForeignViolationForm[]>(
+    `/v1/control-forms/foreign-violation-form/edit/publish`,
+    { id },
+  );
+
 export const deleteForeignViolationForm = (
   id: string,
   form_number: string,
@@ -209,6 +215,12 @@ export const confirmLabourInspectionForm = (data: LabourInspectionForm) =>
   post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/confirm`,
     data as unknown as Record<string, unknown>,
+  );
+
+export const publishLabourInspectionForm = (id: string) =>
+  post<LabourInspectionForm[]>(
+    `/v1/control-forms/labour-inspection/edit/publish`,
+    { id },
   );
 
 export const deleteLabourInspectionForm = (id: string, old_status: string) =>
@@ -386,6 +398,12 @@ export const confirmGoodReputeForm = (data: GoodReputeForm) =>
   post<GoodReputeForm[]>(
     `/v1/control-forms/good-repute/edit/confirm`,
     data as unknown as Record<string, unknown>,
+  );
+
+export const publishGoodReputeForm = (id: string) =>
+  post<GoodReputeForm[]>(
+    `/v1/control-forms/good-repute/edit/publish`,
+    { id },
   );
 
 

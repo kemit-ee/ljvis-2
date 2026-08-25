@@ -274,6 +274,9 @@
     "addForm": "+ Add"
   },
   "forms": {
+    "savedNote": "Form has been saved",
+    "confirmedNote": "Form has been confirmed",
+    "publishedNote": "Form has been published",
     "shared": {
       "files": {
         "label": "Files",
@@ -1147,13 +1150,14 @@
     "yes": "Yes",
     "no": "No",
     "tableIsEmpty": "COMING",
-    "confirm": "Kinnitan",
-    "discard": "Loobun",
+    "confirm": "Confirm",
+    "discard": "Discard",
     "look": "View",
     "close": "Close",
     "enterNotesPlaceHolder": "Enter notes...",
     "search": "Search",
     "remove": "Remove",
+    "publish": "Publish",
     "cancel": "Cancel",
     "download": "Download",
     "space": " ",

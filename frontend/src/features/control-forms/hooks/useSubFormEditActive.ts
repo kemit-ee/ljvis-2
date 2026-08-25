@@ -482,3 +482,30 @@ export function makeCheckAndAutoConfirm({
     if (allConfirmed) triggerConfirm();
   };
 }
+
+interface MakeCheckAndAutoPublishOptions {
+  compoundForm: Pick<CompoundForm, 'status'> | null | undefined;
+  triggerPublish: () => void;
+}
+
+export function makeCheckAndAutoPublish({
+  compoundForm,
+  triggerPublish,
+}: MakeCheckAndAutoPublishOptions) {
+  return (
+    latestDriver: DriveRestForm | null,
+    latestTeammate: DriveRestForm | null,
+    latestVehicle: TechnicalCheckForm | null,
+    latestTrailer: TechnicalCheckForm | null,
+    latestAdr: AdrForm | null,
+    latestTransportInterruption: TransportInterruptionForm | null,
+  ) => {
+    if (!compoundForm || compoundForm.status === 'published') return;
+    const forms = [latestDriver, latestTeammate, latestVehicle, latestTrailer, latestAdr, latestTransportInterruption].filter(
+      Boolean,
+    ) as { status?: string }[];
+    if (forms.length === 0) return;
+    const allPublished = forms.every((f) => f.status === 'published');
+    if (allPublished) triggerPublish();
+  };
+}

@@ -1,0 +1,115 @@
+declaration:
+
+  version: "1.0"
+  description: "Publish (avalikusta) a good repute form (hea maine vorm). Publishing re-saves current field values, then transitions status confirmed -> published. One-way: an already-published form cannot be published again."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    status: "published"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFormNotAlreadyPublished
+
+checkFormNotAlreadyPublished:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'confirmed'}"
+  next: checkFormNotAlreadyPublishedSwitch
+
+checkFormNotAlreadyPublishedSwitch:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: returnAlreadyPublishedError
+  next: extractCurrentFormData
+
+extractCurrentFormData:
+  assign:
+    personal_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].personalCode) || ''}"
+    first_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].firstName) || ''}"
+    last_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].lastName) || ''}"
+    date_of_birth: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].dateOfBirth) || ''}"
+    place_of_birth: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].placeOfBirth) || ''}"
+    certificate_number: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].certificateNumber) || ''}"
+    certificate_issue_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].certificateIssueDate) || ''}"
+    certificate_country_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].certificateCountryCode) || ''}"
+    fitness_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].fitnessStatus) || ''}"
+    unfit_from_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].unfitFromDate) || ''}"
+    unfit_until_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].unfitUntilDate) || ''}"
+  next: publishForm
+
+publishForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: ${status}
+      personalCode: ${personal_code}
+      firstName: ${first_name}
+      lastName: ${last_name}
+      dateOfBirth: ${date_of_birth}
+      placeOfBirth: ${place_of_birth}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateCountryCode: ${certificate_country_code}
+      fitnessStatus: ${fitness_status}
+      unfitFromDate: ${unfit_from_date}
+      unfitUntilDate: ${unfit_until_date}
+      created_by: ${created_by}
+  result: confirmRes
+  next: extractConfirmResponseData
+
+extractConfirmResponseData:
+  assign:
+    good_repute_form_key: "${confirmRes.response.body[0].id || ''}"
+    form_number: "${confirmRes.response.body[0].formNumber || ''}"
+    old_status: ${current_status}
+    new_status: ${status}
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/good-repute/log-good-repute-publish"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    good_repute_form_key: ${good_repute_form_key}
+    personal_code: ${personal_code}
+    old_status: ${old_status}
+    new_status: ${new_status}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${confirmRes.response.body}
+  next: end
+
+returnAlreadyPublishedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
