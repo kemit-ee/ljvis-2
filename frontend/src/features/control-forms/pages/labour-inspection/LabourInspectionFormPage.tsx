@@ -77,7 +77,8 @@ export function LabourInspectionFormPage() {
     (form?.violations?.length ?? 0) === 0;
   const canPublish =
     (isAdmin || hasPermission('labour_inspection_form.write')) &&
-    form?.status === 'confirmed';
+    form?.status === 'confirmed' &&
+    (form?.violations?.length ?? 0) === 0;
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');
