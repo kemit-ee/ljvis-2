@@ -92,8 +92,6 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
-      - field: status
-        type: string
 
 extractRequestData:
   assign:
@@ -139,7 +137,6 @@ extractRequestData:
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
-    status: "${incoming.body.status}"
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
@@ -158,6 +155,7 @@ insertForm:
     headers:
       type: json
     body:
+      status: saved
       formNumber: ${form_number}
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
@@ -199,7 +197,6 @@ insertForm:
       inspectorOrganisationId: ${inspector_organisation_id}
       inspectorUnit: ${inspector_unit}
       inspectorProfession: ${inspector_profession}
-      status: ${status}
       created_by: ${created_by}
   result: saveRes
   next: extractInsertResponseData
@@ -348,7 +345,7 @@ updateForm:
       inspectorOrganisationId: ${inspector_organisation_id}
       inspectorUnit: ${inspector_unit}
       inspectorProfession: ${inspector_profession}
-      status: ${status}
+      status: ${current_status}
       created_by: ${created_by}
   result: saveRes
   next: extractUpdateResponseData

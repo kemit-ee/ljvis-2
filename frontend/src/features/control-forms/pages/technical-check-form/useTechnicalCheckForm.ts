@@ -11,7 +11,7 @@ import type {
   PartDefectEntry,
   PartSeverity,
 } from '../../types';
-import { confirmTechnicalCheckForm, saveTechnicalCheckForm } from '../../api';
+import { confirmTechnicalCheckForm, saveTechnicalCheckForm, publishTechnicalCheckForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 
 /** Parts excluded from the trailer variant (LJVIS2-72 §0/§4). */
@@ -59,9 +59,11 @@ export function useTechnicalCheckForm(
   onSaved: (id?: string) => void,
   compoundFormKey?: number,
   isEditLocked = false,
+  onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
   const compoundFormKeyOverride = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode, getChildren } = useClassifiers();
@@ -138,7 +140,14 @@ export function useTechnicalCheckForm(
       setFormError(null);
       try {
         const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
+        pendingPublish.current = false;
+        if (isPublishing && form?.id) {
+          await publishTechnicalCheckForm(variant, form.id);
+          onPublished?.();
+          return;
+        }
         const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
         const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
         const payload = {
@@ -171,6 +180,11 @@ export function useTechnicalCheckForm(
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
+    return formik.submitForm();
+  };
+
+  const triggerPublish = () => {
+    pendingPublish.current = true;
     return formik.submitForm();
   };
 
@@ -319,6 +333,7 @@ export function useTechnicalCheckForm(
     toggleViolation,
     isDrivingBanTriggerActive,
     triggerConfirm,
+    triggerPublish,
     formError,
     compoundFormKeyOverride,
   };

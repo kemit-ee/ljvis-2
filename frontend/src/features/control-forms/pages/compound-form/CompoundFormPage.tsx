@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
   Text,
   Alert,
-  Heading,
   Tabs,
   Dropdown,
   StatusIndicator,
@@ -30,6 +29,10 @@ import {
   saveAdrForm,
   saveTransportInterruptionForm,
   saveTechnicalCheckForm,
+  publishDriveRestForm,
+  publishTechnicalCheckForm,
+  publishAdrForm,
+  publishTransportInterruptionForm,
 } from '../../api';
 import type {
   DriveRestForm,
@@ -71,51 +74,9 @@ import {
 import { SubFormTab } from '../../components/SubFormTab/SubFormTab';
 import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
-import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
+import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
-
-
-/**
- * LJVIS2-74: minimal navigation into the transport-interruption sub-form of
- * this compound form. Same stopgap pattern as TechnicalCheckFormsSection above
- * pending the real "Koondvormi alamvormide haldamine" tab-bar infrastructure.
- */
-export function TransportInterruptionSection({
-  compoundFormKey,
-  canEdit,
-}: {
-  compoundFormKey: number;
-  canEdit: boolean;
-}) {
-  const { t } = useTranslation();
-  const [items, setItems] = useState<TransportInterruptionFormListItem[]>([]);
-
-  useEffect(() => {
-    listTransportInterruptionFormsByCompoundFormKey(compoundFormKey)
-      .then((data) => setItems(Array.isArray(data) ? data : []))
-      .catch(() => setItems([]));
-  }, [compoundFormKey]);
-
-  return (
-    <div className="mb-1">
-      <Heading element="h3">{t('forms.transport_interruption.sectionTitle')}</Heading>
-      <ul>
-        {items.map((item) => (
-          <li key={item.id}>
-            <Link to={`/control-forms/transport-interruption/${item.id}`}>
-              {item.subFormNumber}/{item.version}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {canEdit && (
-        <Link to={`/control-forms/transport-interruption/new/${compoundFormKey}`}>
-          {t('forms.transport_interruption.addNew')}
-        </Link>
-      )}
-    </div>
-  );
-}
+import {useIsAdmin} from "../../../../hooks/useIsAdmin.ts";
 
 export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -124,6 +85,8 @@ export function CompoundFormPage() {
   const location = useLocation();
   const { hasPermission } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+
+  const isAdmin = useIsAdmin();
 
   const forbidden = !(
     (hasPermission('compound_form.read') ||
@@ -136,6 +99,7 @@ export function CompoundFormPage() {
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState('tab-compound');
   const [openTabs, setOpenTabs] = useState<string[]>([]);
@@ -245,6 +209,7 @@ export function CompoundFormPage() {
         const latestDriver = scope === 'driver' ? res : driver.form;
         const latestTeammate = scope === 'teammate' ? res : teammate.form;
         checkAndAutoConfirmCompound(latestDriver, latestTeammate, vehicle.form, trailer.form, adr.form, transportInterruption.form);
+        checkAndAutoPublishCompound(latestDriver, latestTeammate, vehicle.form, trailer.form, adr.form, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -261,6 +226,14 @@ export function CompoundFormPage() {
           : null;
         transportInterruption.setForm(full ?? null);
         checkAndAutoConfirmCompound(
+          driver.form,
+          teammate.form,
+          vehicle.form,
+          trailer.form,
+          adr.form,
+          full
+        );
+        checkAndAutoPublishCompound(
           driver.form,
           teammate.form,
           vehicle.form,
@@ -291,6 +264,14 @@ export function CompoundFormPage() {
           full,
           transportInterruption.form
         );
+        checkAndAutoPublishCompound(
+          driver.form,
+          teammate.form,
+          vehicle.form,
+          trailer.form,
+          full,
+          transportInterruption.form
+        );
         onDone?.();
       })
       .catch(console.error);
@@ -308,15 +289,15 @@ export function CompoundFormPage() {
         const latestVehicle = scope === 'vehicle' ? full : vehicle.form;
         const latestTrailer = scope === 'trailer' ? full : trailer.form;
         checkAndAutoConfirmCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
+        checkAndAutoPublishCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
   };
 
-  const canEdit =
-    hasPermission('compound_form.write') && form?.status !== 'deleted';
+  const canEdit = isAdmin && form?.status !== 'deleted';
 
-  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
   const canDelete =
     hasPermission('control_form.delete') && form?.status !== 'deleted';
   const canConfirm =
@@ -328,6 +309,7 @@ export function CompoundFormPage() {
   const handleEditSaved = () => {
     setIsEditActive(true);
     setShowSavedAlert(true);
+    setShowPublishedAlert(false);
     setShowConfirmedAlert(false);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
@@ -342,7 +324,17 @@ export function CompoundFormPage() {
     adr.setEditActive(false);
     transportInterruption.setEditActive(false);
     setShowSavedAlert(false);
+    setShowPublishedAlert(false);
     setShowConfirmedAlert(true);
+    refetch();
+  };
+
+  const handlePublished = () => {
+    setIsEditActive(false);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setShowPublishedAlert(true);
+    setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
 
@@ -373,16 +365,19 @@ export function CompoundFormPage() {
     handleTrailerSearch,
     handleMtrSearch,
     triggerConfirm,
+    triggerPublish,
     triggerSaveAsSaved,
   } = useCompoundForm(
     form ?? undefined,
     handleEditSaved,
     handleConfirmed,
-    subFormsAllConfirmed,
+    subFormsAllConfirmedOrPublished,
     () => { refetch(); },
+    handlePublished,
   );
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm: form, triggerConfirm });
+  const checkAndAutoPublishCompound = makeCheckAndAutoPublish({ compoundForm: form, triggerPublish });
 
   const resetCompoundFormToSaved = () => {
     if (!form || form.status !== 'confirmed') return;
@@ -523,7 +518,7 @@ export function CompoundFormPage() {
 
   const handleDeleteAll = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, transportInterruption, compoundForm: form });
 
-  const { canEdit: canEditSubForms, canConfirm: canConfirmSubform } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { canPublish: canPublishSubforms,  canConfirm: canConfirmSubform } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
@@ -669,6 +664,17 @@ export function CompoundFormPage() {
             {t('forms.confirmedNote')}
           </Alert>
         )}
+        {showPublishedAlert && (
+          <Alert
+            icon="check_circle"
+            className="mb-1"
+            onClose={() => setShowPublishedAlert(false)}
+            type="success"
+            size="small"
+          >
+            {t('forms.publishedNote')}
+          </Alert>
+        )}
         <Button
           visualType="link"
           onClick={() => navigate('/')}
@@ -720,7 +726,7 @@ export function CompoundFormPage() {
         onClose={() => setRemoveConfirmTab(null)}
         onDelete={handleRemoveConfirmed}
       />
-      {showSavedAlert && !showConfirmedAlert && (
+      {showSavedAlert && !showConfirmedAlert && !showPublishedAlert && (
         <Alert
           icon="check_circle"
           className="mb-1"
@@ -743,6 +749,17 @@ export function CompoundFormPage() {
           size="small"
         >
           {t('forms.confirmedNote')}
+        </Alert>
+      )}
+      {showPublishedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowPublishedAlert(false)}
+          type="success"
+          size="small"
+        >
+          {t('forms.publishedNote')}
         </Alert>
       )}
 
@@ -858,9 +875,13 @@ export function CompoundFormPage() {
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishDriveRestForm('driver', form.id!).then(() =>
+                  refetchDriveRest('driver'),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -909,9 +930,13 @@ export function CompoundFormPage() {
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishDriveRestForm('teammate', form.id!).then(() =>
+                  refetchDriveRest('teammate'),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -960,9 +985,13 @@ export function CompoundFormPage() {
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('vehicle', form.id!).then(() =>
+                  refetchTechCheck('vehicle'),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1014,9 +1043,13 @@ export function CompoundFormPage() {
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('trailer', form.id!).then(() =>
+                  refetchTechCheck('trailer'),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1067,9 +1100,11 @@ export function CompoundFormPage() {
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => adr.setEditActive(true)}
               formType="adr-form"
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishAdrForm(form.id!).then(() => refetchAdr())
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1116,9 +1151,13 @@ export function CompoundFormPage() {
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTransportInterruptionForm(form.id!).then(() =>
+                  refetchTransportInterruption(),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1163,7 +1202,7 @@ export function CompoundFormPage() {
       </Tabs>
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {hasPermission('control_form.edit_locked') &&
+          {isAdmin &&
             !anyEditActive &&
             form?.status !== 'deleted' && (
               <Button
@@ -1184,7 +1223,7 @@ export function CompoundFormPage() {
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && subFormsAllConfirmed && (
+          {anyEditActive && subFormsAllConfirmedOrPublished && (
             <Button
               type="button"
               visualType="secondary"

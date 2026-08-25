@@ -291,6 +291,7 @@
   "forms": {
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
+    "publishedNote": "Vorm on avaldatud",
     "versions": {
       "title": "Versioonid",
       "version": "Versioon",
@@ -1227,6 +1228,7 @@
     "delete": "Kustuta",
     "edit": "Muuda",
     "cancel": "Tühista",
+    "publish": "Avalikusta",
     "loading": "Laadimine...",
     "error": "Tekkis viga",
     "forbidden": "Teil puudub ligipääs sellele lehele",

@@ -10,7 +10,7 @@ import type {
   AdrInfringementEntry,
   AdrInfringementCheckStatus,
 } from '../../types';
-import { confirmAdrForm, saveAdrForm } from '../../api';
+import { confirmAdrForm, saveAdrForm, publishAdrForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 
@@ -77,9 +77,11 @@ export function useAdrForm(
   form: AdrForm | undefined,
   onSaved: (id?: string) => void,
   compoundFormKey?: number,
+  onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
   const pendingCompoundFormKey = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode } = useClassifiers();
@@ -132,7 +134,14 @@ export function useAdrForm(
       setFormError(null);
       try {
         const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
+        pendingPublish.current = false;
+        if (isPublishing && form?.id) {
+          await publishAdrForm(form.id);
+          onPublished?.();
+          return;
+        }
         const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
         const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
         const overrideKey = pendingCompoundFormKey.current;
@@ -183,6 +192,11 @@ export function useAdrForm(
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
+    return formik.submitForm();
+  };
+
+  const triggerPublish = () => {
+    pendingPublish.current = true;
     return formik.submitForm();
   };
 
@@ -254,6 +268,7 @@ export function useAdrForm(
     formik,
     pendingCompoundFormKey,
     triggerConfirm,
+    triggerPublish,
     formError,
     counties,
     setDriverAssistant,
