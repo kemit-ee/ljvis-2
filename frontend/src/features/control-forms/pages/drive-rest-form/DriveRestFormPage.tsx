@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useContainerWidth } from '../../../../hooks/useContainerWidth';
+import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -108,6 +109,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       hasPermission('control_form.view_unpublished')) &&
     hasPermission('classifier.read')
   );
+
+  const isAdmin = useIsAdmin();
 
   const [snapshot, setSnapshot] = useState<
     import('../../types').DriveRestForm | null
@@ -422,7 +425,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   });
 
   const canDelete =
-    hasPermission('control_form.delete') &&
+    isAdmin &&
     ((driver.form != null && driver.form.status !== 'deleted') ||
       (teammate.form != null && teammate.form.status !== 'deleted') ||
       (compoundForm != null && compoundForm.status !== 'deleted') ||
@@ -766,7 +769,11 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <CompoundFormViewCard
               form={compoundForm}
               {...sharedCompoundProps}
-              canEdit={canEdit && compoundForm.status !== 'deleted'}
+              canEdit={
+                canEdit &&
+                (compoundForm.status === 'saved' ||
+                  compoundForm.status === 'published')
+              }
               onEdit={() => setCompoundEditActive(true)}
               formType={FORM_TYPE.COMPOUND}
             />
@@ -781,7 +788,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
             />
@@ -831,7 +841,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
             />
@@ -881,7 +894,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
             />
@@ -933,7 +949,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
             />
@@ -984,7 +1003,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => adr.setEditActive(true)}
               formType={FORM_TYPE.ADR}
             />
@@ -1030,7 +1052,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
             />

@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
+import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import { useLabourInspectionForm } from './useLabourInspectionForm';
@@ -63,15 +64,15 @@ export function LabourInspectionFormPage() {
     }
   }, [form?.status]);
 
+  const isAdmin = useIsAdmin();
+
   const canEdit =
-    hasPermission('labour_inspection_form.write') && form?.status !== 'deleted';
-  const canDelete =
-    hasPermission('control_form.delete') && form?.status !== 'deleted';
+    (isAdmin || hasPermission('labour_inspection_form.write')) &&
+    (form?.status === 'confirmed' || form?.status === 'published');
+  const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
-    hasPermission('labour_inspection_form.write') &&
-    hasPermission('control_form.view_unpublished') &&
-    form?.status !== 'deleted' &&
-    form?.status !== 'confirmed' &&
+    (isAdmin || hasPermission('labour_inspection_form.write')) &&
+    form?.status === 'saved' &&
     (form?.violations?.length ?? 0) === 0;
 
   const handleEditSaved = () => {

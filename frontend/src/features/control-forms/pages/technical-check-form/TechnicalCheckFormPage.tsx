@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useContainerWidth } from '../../../../hooks/useContainerWidth';
+import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator } from '@tedi-design-system/react/tedi';
@@ -54,6 +55,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const navigate = useNavigate();
   const location = useLocation();
   const { hasPermission } = useAuth();
+  const isAdmin = useIsAdmin();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const tabId = variant === 'vehicle' ? 'tab-vehicle-technical-check' : 'tab-trailer-technical-check';
@@ -427,7 +429,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const handleCancelAllEdits = () =>
     cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
-  const canEdit = hasPermission('compound_form.write');
+  const canEdit = hasPermission('compound_form.write') || isAdmin;
 
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
@@ -450,7 +452,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     ) : null;
 
   const canDelete =
-    hasPermission('control_form.delete') &&
+    isAdmin &&
     ((vehicle.form != null && vehicle.form.status !== 'deleted') ||
       (trailer.form != null && trailer.form.status !== 'deleted') ||
       (driver.form != null && driver.form.status !== 'deleted') ||
@@ -669,7 +671,11 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
             <CompoundFormViewCard
               form={compoundForm}
               {...sharedCompoundProps}
-              canEdit={canEdit && compoundForm.status !== 'deleted'}
+              canEdit={
+                canEdit &&
+                (compoundForm.status === 'saved' ||
+                  compoundForm.status === 'published')
+              }
               onEdit={() => setCompoundEditActive(true)}
               formType={FORM_TYPE.COMPOUND}
             />
@@ -684,7 +690,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
             />
@@ -733,7 +742,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
             />
@@ -782,7 +794,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
             />
@@ -830,7 +845,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
             />
@@ -877,7 +895,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form.status === 'published')
+              }
               onEdit={() => adr.setEditActive(true)}
               formType={FORM_TYPE.ADR}
             />
@@ -922,7 +943,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
+              canEdit={
+                canEditSubForms() &&
+                (form.status === 'saved' || form?.status === 'published')
+              }
               onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
             />
