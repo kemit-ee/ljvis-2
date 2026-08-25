@@ -32,6 +32,10 @@ import {
   listTransportInterruptionFormsByCompoundFormKey,
   getTransportInterruptionForm,
   saveTransportInterruptionForm,
+  publishDriveRestForm,
+  publishTechnicalCheckForm,
+  publishAdrForm,
+  publishTransportInterruptionForm,
 } from '../../api';
 import {
   serializeDriveRestFormValues,
@@ -58,7 +62,7 @@ import { TransportInterruptionFormEditCard, type TransportInterruptionFormEditCa
 import { listTechnicalCheckFormsByCompoundFormKey, getTechnicalCheckForm, saveTechnicalCheckForm } from '../../api';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
-import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
+import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 interface DriveRestFormPageProps {
@@ -70,8 +74,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+  const isAdmin = useIsAdmin();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const canEdit = hasPermission('compound_form.write');
+  const canEdit = isAdmin;
 
   const [compoundFormKey, setCompoundFormKey] = useState<number | undefined>(
     undefined,
@@ -89,6 +94,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const [compoundEditActive, setCompoundEditActive] = useState(false);
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [compoundVersionsRefreshKey, setCompoundVersionsRefreshKey] =
     useState(0);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
@@ -99,9 +105,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const driver = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_driver_form' });
   const teammate = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_teammate_form' });
   const adr = useSubForm<AdrForm, AdrFormEditCardRef>({ permPrefix: 'adr_form' });
-  const transportInterruption = useSubForm<TransportInterruptionForm, TransportInterruptionFormEditCardRef>({ permPrefix: 'transport_interruption_form' });
+  const transportInterruption = useSubForm<
+    TransportInterruptionForm,
+    TransportInterruptionFormEditCardRef
+  >({ permPrefix: 'transport_interruption_form' });
 
-  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const forbidden = !(
     ((entryType === 'driver' && hasPermission('sp_driver_form.read')) ||
@@ -109,8 +118,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       hasPermission('control_form.view_unpublished')) &&
     hasPermission('classifier.read')
   );
-
-  const isAdmin = useIsAdmin();
 
   const [snapshot, setSnapshot] = useState<
     import('../../types').DriveRestForm | null
@@ -193,6 +200,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const full = item?.id ? await getTransportInterruptionForm(item.id).catch(() => null) : null;
         transportInterruption.setForm(full ?? null);
         checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
+        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
         onDone?.();
       })
       .catch(console.error);
@@ -206,6 +214,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const full = item?.id ? await getAdrForm(item.id).catch(() => null) : null;
         adr.setForm(full);
         checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
+        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -221,6 +230,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const latestVehicle = scope === 'vehicle' ? full : vehicle.form;
         const latestTrailer = scope === 'trailer' ? full : trailer.form;
         checkAndAutoConfirmCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
+        checkAndAutoPublishCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -332,13 +342,16 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   const handleCompoundSaved = () => {
     setShowSavedAlert(true);
+    setShowPublishedAlert(false);
     const openSubForms = [
       openTabs.includes('tab-driver') ? driver.form : null,
       openTabs.includes('tab-teammate') ? teammate.form : null,
       openTabs.includes('tab-vehicle-technical-check') ? vehicle.form : null,
       openTabs.includes('tab-trailer-technical-check') ? trailer.form : null,
     ].filter(Boolean);
-    const allConfirmed = openSubForms.length > 0 && openSubForms.every((f) => f?.status === 'confirmed');
+    const allConfirmed =
+      openSubForms.length > 0 &&
+      openSubForms.every((f) => f?.status === 'confirmed');
     if (allConfirmed) setCompoundEditActive(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
@@ -348,10 +361,31 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const handleCompoundConfirmed = () => {
     setShowConfirmedAlert(true);
     setCompoundEditActive(false);
+    setShowPublishedAlert(false);
     driver.setEditActive(driver.form?.status === 'saved');
     teammate.setEditActive(teammate.form?.status === 'saved');
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
+    window.scrollTo(0, 0);
+  };
+
+  const handleCompoundPublished = () => {
+    setShowPublishedAlert(true);
+    setCompoundEditActive(false);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setCompoundVersionsRefreshKey((k) => k + 1);
+    refetchCompoundRef.current();
+    window.scrollTo(0, 0);
+  };
+
+  const handlePublished = (refetch: () => void) => {
+    setShowPublishedAlert(true);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setCompoundVersionsRefreshKey((k) => k + 1);
+    refetchCompoundRef.current();
+    refetch();
     window.scrollTo(0, 0);
   };
 
@@ -360,7 +394,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     triggerCompoundSaveAsSaved();
   };
 
-  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const {
     formik,
@@ -389,15 +423,15 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     handleTrailerSearch,
     handleMtrSearch,
     triggerConfirm: triggerConfirmCompound,
+    triggerPublish: triggerPublishCompound,
     triggerSaveAsSaved: triggerCompoundSaveAsSaved,
   } = useCompoundForm(
     compoundForm ?? undefined,
     handleCompoundSaved,
     handleCompoundConfirmed,
-    subFormsAllConfirmed,
-    () => {
-      refetchCompoundRef.current();
-    },
+    subFormsAllConfirmedOrPublished,
+    () => { refetchCompoundRef.current(); },
+    handleCompoundPublished,
   );
 
   useEffect(() => {
@@ -410,6 +444,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   }, [compoundForm?.status]);
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm, triggerConfirm: triggerConfirmCompound });
+  const checkAndAutoPublishCompound = makeCheckAndAutoPublish({ compoundForm, triggerPublish: triggerPublishCompound });
 
   const { removeConfirmTab, setRemoveConfirmTab, handleRemove, handleRemoveConfirmed } = useRemoveSubFormTab({
     driver,
@@ -523,6 +558,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         getDriveRestFormByCompoundFormKey('teammate', compoundFormKey)
           .then((tm) => {
             checkAndAutoConfirmCompound(res, tm, vehicle.form, trailer.form, adr.form, transportInterruption.form);
+            checkAndAutoPublishCompound(res, tm, vehicle.form, trailer.form, adr.form, transportInterruption.form);
           })
           .catch(console.error);
         onDone?.();
@@ -538,6 +574,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         getDriveRestFormByCompoundFormKey('driver', compoundFormKey)
           .then((dr) => {
             checkAndAutoConfirmCompound(dr, res, vehicle.form, trailer.form, adr.form, transportInterruption.form);
+            checkAndAutoPublishCompound(dr, res, vehicle.form, trailer.form, adr.form, transportInterruption.form);
           })
           .catch(console.error);
         onDone?.();
@@ -563,8 +600,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <DriveRestFormViewCard
               scope="driver"
               form={snapshot}
-              canEdit={false}
-              onEdit={() => {}}
               formType={FORM_TYPE.DRIVER}
             />
           </div>
@@ -580,8 +615,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <DriveRestFormViewCard
               scope="teammate"
               form={snapshot}
-              canEdit={false}
-              onEdit={() => {}}
               formType={FORM_TYPE.TEAMMATE}
             />
           </div>
@@ -637,6 +670,17 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           size="small"
         >
           {t('forms.confirmedNote')}
+        </Alert>
+      )}
+      {showPublishedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowPublishedAlert(false)}
+          type="success"
+          size="small"
+        >
+          {t('forms.publishedNote')}
         </Alert>
       )}
 
@@ -788,12 +832,13 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishDriveRestForm('driver', form.id!).then(() =>
+                  handlePublished(() => refetchDriver()),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -841,12 +886,13 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishDriveRestForm('teammate', form.id!).then(() =>
+                  handlePublished(() => refetchTeammate()),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -894,12 +940,13 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('vehicle', form.id!).then(() =>
+                  handlePublished(() => refetchTechCheck(vehicle, 'vehicle')),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -949,12 +996,13 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('trailer', form.id!).then(() =>
+                  handlePublished(() => refetchTechCheck(trailer, 'trailer')),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1003,12 +1051,13 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => adr.setEditActive(true)}
               formType={FORM_TYPE.ADR}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishAdrForm(form.id!).then(() =>
+                  handlePublished(() => refetchAdr()),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1052,12 +1101,13 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishTransportInterruptionForm(form.id!).then(() =>
+                  handlePublished(() => refetchTransportInterruption()),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1099,7 +1149,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       </Tabs>
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {hasPermission('control_form.edit_locked') &&
+          {isAdmin &&
             !compoundEditActive &&
             !driver.editActive &&
             !teammate.editActive &&
@@ -1122,7 +1172,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && subFormsAllConfirmed && (
+          {anyEditActive && subFormsAllConfirmedOrPublished && (
             <Button
               type="button"
               visualType="secondary"

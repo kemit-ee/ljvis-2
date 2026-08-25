@@ -274,6 +274,9 @@
     "addForm": "+ Add"
   },
   "forms": {
+    "savedNote": "Form has been saved",
+    "confirmedNote": "Form has been confirmed",
+    "publishedNote": "Form has been published",
     "shared": {
       "files": {
         "label": "Files",
@@ -1148,13 +1151,14 @@
     "yes": "Yes",
     "no": "No",
     "tableIsEmpty": "COMING",
-    "confirm": "Kinnitan",
-    "discard": "Loobun",
+    "confirm": "Confirm",
+    "discard": "Discard",
     "look": "View",
     "close": "Close",
     "enterNotesPlaceHolder": "Enter notes...",
     "search": "Search",
     "remove": "Remove",
+    "publish": "Publish",
     "cancel": "Cancel",
     "download": "Download",
     "space": " ",
@@ -1194,7 +1198,21 @@
     "bandHall": "Not assessed",
     "bandRoheline": "Green",
     "bandKollane": "Amber",
-    "bandPunane": "Red"
+    "bandPunane": "Red" 
+  },
+  "etoimik": {
+    "title": "e-Toimik qualification check",
+    "referenceNumber": "Reference number",
+    "person": "Person",
+    "unnamedDriver": "Unnamed driver",
+    "queryButton": "Query e-Toimik",
+    "queryFailed": "The e-Toimik query failed. Please try again.",
+    "notFound": "No matching case found in e-Toimik.",
+    "proceedingNumber": "Proceeding",
+    "actionTypeCode": "Action type",
+    "participant": "Participant",
+    "sanctionTypeCode": "Sanction type",
+    "convictionPoint": "Conviction point"
   },
   "erru": {
     "ctud": {

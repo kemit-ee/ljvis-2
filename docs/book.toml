@@ -1,0 +1,13 @@
+[book]
+title = "LJVIS2 dokumentatsioon"
+authors = ["KEMIT"]
+language = "et"
+src = "."
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/kemit-ee/ljvis-2"

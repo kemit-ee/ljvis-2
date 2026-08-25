@@ -12,7 +12,7 @@ import type {
   Violation,
   MassDimensionMeasurement,
 } from '../../types';
-import { saveDriveRestForm, confirmDriveRestForm } from '../../api';
+import { saveDriveRestForm, confirmDriveRestForm, publishDriveRestForm } from '../../api';
 
 export function createDriveRestValidationSchema(
   t: (key: string) => string,
@@ -110,9 +110,11 @@ export function useDriveRestForm(
   onSaved: (id?: string) => void,
   type: 'driver' | 'teammate',
   compoundFormKey?: number,
+  onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
   const pendingCompoundFormKey = useRef<number | undefined>(undefined);
 
   const { getByCode } = useClassifiers();
@@ -246,7 +248,14 @@ export function useDriveRestForm(
     onSubmit: async (values) => {
       try {
         const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
+        pendingPublish.current = false;
+        if (isPublishing && form?.id) {
+          await publishDriveRestForm(type, form.id);
+          onPublished?.();
+          return;
+        }
         const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
         const nextStatus =
           isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
@@ -292,6 +301,11 @@ export function useDriveRestForm(
     formik.submitForm();
   };
 
+  const triggerPublish = () => {
+    pendingPublish.current = true;
+    formik.submitForm();
+  };
+
   return {
     formik,
     pendingCompoundFormKey,
@@ -304,5 +318,6 @@ export function useDriveRestForm(
     drivingViolations,
     massDimensions,
     triggerConfirm,
+    triggerPublish,
   };
 }

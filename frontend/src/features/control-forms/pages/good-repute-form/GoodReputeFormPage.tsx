@@ -50,6 +50,7 @@ export function GoodReputeFormPage() {
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
   const { form, loading, refetch } = useGoodReputeFormDetail(
@@ -73,19 +74,20 @@ export function GoodReputeFormPage() {
     }
   }, [form?.status]);
 
-  const canEdit =
-    (isAdmin || hasPermission('good_repute_form.write')) &&
-    (form?.status === 'confirmed' || form?.status === 'published');
+  const canEdit = isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
   const canConfirm =
     (isAdmin || hasPermission('good_repute_form.write')) &&
     form?.status === 'saved';
-  const canDelete =
-    isAdmin && form?.status !== 'deleted';
+  const canDelete = isAdmin && form?.status !== 'deleted';
+  const canPublish =
+    (isAdmin || hasPermission('good_repute_form.write')) &&
+    form?.status === 'confirmed';
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
+    setShowPublishedAlert(false);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
@@ -94,6 +96,16 @@ export function GoodReputeFormPage() {
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
+    setShowPublishedAlert(false);
+    setVersionsRefreshKey((k) => k + 1);
+    refetch();
+  };
+
+  const handlePublished = () => {
+    setIsEditActive(false);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setShowPublishedAlert(true);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
@@ -108,10 +120,11 @@ export function GoodReputeFormPage() {
     }
   };
 
-  const { formik, triggerConfirm, formError } = useGoodReputeForm(
+  const { formik, triggerConfirm, triggerPublish, formError } = useGoodReputeForm(
     form ?? undefined,
     handleEditSaved,
     handleConfirmed,
+    handlePublished,
   );
 
   const { searchByPersonalCode, loading: searchLoading, error: searchError, setError: setSearchError, notFound: searchNotFound, setNotFound: setSearchNotFound } =
@@ -210,6 +223,17 @@ export function GoodReputeFormPage() {
           {t('forms.confirmedNote')}
         </Alert>
       )}
+      {showPublishedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowPublishedAlert(false)}
+          type="success"
+          size="small"
+        >
+          {t('forms.publishedNote')}
+        </Alert>
+      )}
       {formError && (
         <Alert type="danger" size="small" className="mb-1">
           {formError}
@@ -282,14 +306,21 @@ export function GoodReputeFormPage() {
               </>
             ) : (
               canEdit && (
-                <AsyncButton
-                  iconLeft="edit"
-                  type="button"
-                  visualType="secondary"
-                  onClick={() => setIsEditActive(true)}
-                >
-                  {t('common.edit')}
-                </AsyncButton>
+                <>
+                  <Button
+                    iconLeft="edit"
+                    type="button"
+                    visualType="secondary"
+                    onClick={() => setIsEditActive(true)}
+                  >
+                    {t('common.edit')}
+                  </Button>
+                  {canPublish && (
+                    <AsyncButton type="button" onClick={() => triggerPublish()}>
+                      {t('common.publish')}
+                    </AsyncButton>
+                  )}
+                </>
               )
             )}
           </div>

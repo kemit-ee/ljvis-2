@@ -1,14 +1,12 @@
-# Planeeritud riskihindamise administraatori vaade
-
-> **Märkus:** See funktsioon on arendamisel (LJVIS2-152).
+# Riskihindamine — administraatori vaade
 
 Administraatorid ja volitatud ametnikud saavad vaadata kõigi Eesti ettevõtete riskitasemete loendit. Samuti saavad nad avada iga ettevõtte detailvaate, mis kuvab sama teavet, mida ettevõtja esindaja näeb oma ettevõtte kohta.
 
 ## Ligipääs
 
-Menüü → **Haldus → Riskitasemed** (tulevikus)
+Menüü → **Haldus → Riskitasemed**
 
-Õigus: `risk_report.list` (planeeritud)
+Õigus: `risk_report.list`
 
 ## Loendi võimalused
 
@@ -50,8 +48,6 @@ Detailvaates kuvatakse:
 | `risk_report.export` | Eksportida riskiloendeid |
 
 ## API
-
-Planeeritud administraatori endpointid:
 
 - `GET /v1/admin/risk-scores/list` — riskitasemete loend
 - `GET /v1/citizen/risk-scores/my-company` — kodaniku oma ettevõtte vaade

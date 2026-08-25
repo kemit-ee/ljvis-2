@@ -32,6 +32,10 @@ import {
   listTransportInterruptionFormsByCompoundFormKey,
   getTransportInterruptionForm,
   saveTransportInterruptionForm,
+  publishAdrForm,
+  publishDriveRestForm,
+  publishTechnicalCheckForm,
+  publishTransportInterruptionForm,
 } from '../../api';
 import {
   serializeDriveRestFormValues,
@@ -57,8 +61,9 @@ import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import {
   useSubFormEditActive,
   makeCheckAndAutoConfirm,
+  makeCheckAndAutoPublish,
   useSubFormPermissions,
-  subFormsAllConfirmed as getSubFormsStatus,
+  subFormsAllConfirmedOrPublished as getSubFormsStatus,
   addTab,
   useDeleteAllSubForms,
   useRemoveSubFormTab,
@@ -76,7 +81,7 @@ export function AdrFormPage() {
   const { hasPermission } = useAuth();
   const isAdmin = useIsAdmin();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const canEdit = hasPermission('compound_form.write') || isAdmin;
+  const canEdit = isAdmin;
 
   const [compoundFormKey, setCompoundFormKey] = useState<number | undefined>(undefined);
   const [loadingEntry, setLoadingEntry] = useState(true);
@@ -88,6 +93,7 @@ export function AdrFormPage() {
   const [compoundEditActive, setCompoundEditActive] = useState(false);
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [compoundVersionsRefreshKey, setCompoundVersionsRefreshKey] = useState(0);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
@@ -99,7 +105,7 @@ export function AdrFormPage() {
   const adr = useSubForm<AdrForm, AdrFormEditCardRef>({ permPrefix: 'adr_form' });
   const transportInterruption = useSubForm<TransportInterruptionForm, TransportInterruptionFormEditCardRef>({ permPrefix: 'transport_interruption_form' });
 
-  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const forbidden = !(
     (hasPermission('adr_form.read') || hasPermission('control_form.view_unpublished')) &&
@@ -190,6 +196,7 @@ export function AdrFormPage() {
         const full = item?.id ? await getTransportInterruptionForm(item.id).catch(() => null) : null;
         transportInterruption.setForm(full ?? null);
         checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
+        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
         onDone?.();
       })
       .catch(console.error);
@@ -203,6 +210,7 @@ export function AdrFormPage() {
         const full = item?.id ? await getAdrForm(item.id).catch(() => null) : null;
         adr.setForm(full);
         checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
+        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -218,6 +226,7 @@ export function AdrFormPage() {
         const latestVehicle = scope === 'vehicle' ? full : vehicle.form;
         const latestTrailer = scope === 'trailer' ? full : trailer.form;
         checkAndAutoConfirmCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
+        checkAndAutoPublishCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -229,7 +238,7 @@ export function AdrFormPage() {
       .then((res) => {
         driver.setForm(res);
         getDriveRestFormByCompoundFormKey('teammate', compoundFormKey)
-          .then((tm) => { checkAndAutoConfirmCompound(res, tm, vehicle.form, trailer.form, adr.form, transportInterruption.form); })
+          .then((tm) => { checkAndAutoConfirmCompound(res, tm, vehicle.form, trailer.form, adr.form, transportInterruption.form); checkAndAutoPublishCompound(res, tm, vehicle.form, trailer.form, adr.form, transportInterruption.form); })
           .catch(console.error);
         onDone?.();
       })
@@ -242,7 +251,7 @@ export function AdrFormPage() {
       .then((res) => {
         teammate.setForm(res);
         getDriveRestFormByCompoundFormKey('driver', compoundFormKey)
-          .then((dr) => { checkAndAutoConfirmCompound(dr, res, vehicle.form, trailer.form, adr.form, transportInterruption.form); })
+          .then((dr) => { checkAndAutoConfirmCompound(dr, res, vehicle.form, trailer.form, adr.form, transportInterruption.form); checkAndAutoPublishCompound(dr, res, vehicle.form, trailer.form, adr.form, transportInterruption.form); })
           .catch(console.error);
         onDone?.();
       })
@@ -312,6 +321,7 @@ export function AdrFormPage() {
 
   const handleCompoundSaved = () => {
     setShowSavedAlert(true);
+    setShowPublishedAlert(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
     window.scrollTo(0, 0);
@@ -320,8 +330,28 @@ export function AdrFormPage() {
   const handleCompoundConfirmed = () => {
     setShowConfirmedAlert(true);
     setCompoundEditActive(false);
+    setShowPublishedAlert(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
+    window.scrollTo(0, 0);
+  };
+
+  const handleCompoundPublished = () => {
+    setShowPublishedAlert(true);
+    setCompoundEditActive(false);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setCompoundVersionsRefreshKey((k) => k + 1);
+    refetchCompoundRef.current();
+    window.scrollTo(0, 0);
+  };
+
+  const handlePublished = (refetch: () => void) => {
+    setShowPublishedAlert(true);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    refetchCompoundRef.current();
+    refetch();
     window.scrollTo(0, 0);
   };
 
@@ -330,7 +360,7 @@ export function AdrFormPage() {
     triggerCompoundSaveAsSaved();
   };
 
-  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const {
     formik,
@@ -359,13 +389,15 @@ export function AdrFormPage() {
     handleTrailerSearch,
     handleMtrSearch,
     triggerConfirm: triggerConfirmCompound,
+    triggerPublish: triggerPublishCompound,
     triggerSaveAsSaved: triggerCompoundSaveAsSaved,
   } = useCompoundForm(
     compoundForm ?? undefined,
     handleCompoundSaved,
     handleCompoundConfirmed,
-    subFormsAllConfirmed,
+    subFormsAllConfirmedOrPublished,
     () => { refetchCompoundRef.current(); },
+    handleCompoundPublished,
   );
 
   useEffect(() => {
@@ -377,6 +409,7 @@ export function AdrFormPage() {
   }, [compoundForm?.status]);
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm, triggerConfirm: triggerConfirmCompound });
+  const checkAndAutoPublishCompound = makeCheckAndAutoPublish({ compoundForm, triggerPublish: triggerPublishCompound });
 
   const { removeConfirmTab, setRemoveConfirmTab, handleRemove, handleRemoveConfirmed } = useRemoveSubFormTab({
     driver,
@@ -486,8 +519,6 @@ export function AdrFormPage() {
         </Button>
         <AdrFormViewCard
           form={snapshot}
-          canEdit={false}
-          onEdit={() => {}}
           formType={FORM_TYPE.ADR}
         />
       </div>
@@ -541,6 +572,17 @@ export function AdrFormPage() {
           size="small"
         >
           {t('forms.confirmedNote')}
+        </Alert>
+      )}
+      {showPublishedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowPublishedAlert(false)}
+          type="success"
+          size="small"
+        >
+          {t('forms.publishedNote')}
         </Alert>
       )}
 
@@ -692,12 +734,9 @@ export function AdrFormPage() {
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
+              canPublish={canPublishSubForms()}
+              onPublish={() => publishDriveRestForm('driver', form.id!).then(() => handlePublished(() => refetchDriver()))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -745,12 +784,9 @@ export function AdrFormPage() {
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
+              canPublish={canPublishSubForms()}
+              onPublish={() => publishDriveRestForm('teammate', form.id!).then(() => handlePublished(() => refetchTeammate()))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -798,12 +834,9 @@ export function AdrFormPage() {
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
+              canPublish={canPublishSubForms()}
+              onPublish={() => publishTechnicalCheckForm('vehicle', form.id!).then(() => handlePublished(() => refetchTechCheck(vehicle, 'vehicle')))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -853,12 +886,9 @@ export function AdrFormPage() {
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
+              canPublish={canPublishSubForms()}
+              onPublish={() => publishTechnicalCheckForm('trailer', form.id!).then(() => handlePublished(() => refetchTechCheck(trailer, 'trailer')))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -907,12 +937,9 @@ export function AdrFormPage() {
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => adr.setEditActive(true)}
               formType={FORM_TYPE.ADR}
+              canPublish={canPublishSubForms()}
+              onPublish={() => publishAdrForm(form.id!).then(() => handlePublished(() => refetchAdr()))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -956,12 +983,9 @@ export function AdrFormPage() {
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+              canPublish={canPublishSubForms()}
+              onPublish={() => publishTransportInterruptionForm(form.id!).then(() => handlePublished(() => refetchTransportInterruption()))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -1004,7 +1028,7 @@ export function AdrFormPage() {
 
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {hasPermission('control_form.edit_locked') &&
+          {isAdmin &&
             !anyEditActive &&
             compoundForm?.status !== 'deleted' && (
               <Button
@@ -1025,7 +1049,7 @@ export function AdrFormPage() {
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && subFormsAllConfirmed && (
+          {anyEditActive && subFormsAllConfirmedOrPublished && (
             <Button
               type="button"
               visualType="secondary"

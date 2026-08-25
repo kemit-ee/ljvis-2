@@ -9,6 +9,7 @@ import type { AddressFieldsValue } from '../../components/shared/AddressFields';
 import {
   confirmTransportInterruptionForm,
   saveTransportInterruptionForm,
+  publishTransportInterruptionForm,
 } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 
@@ -37,10 +38,12 @@ export function useTransportInterruptionForm(
   form: TransportInterruptionForm | undefined,
   onSaved: (id?: string) => void,
   compoundFormKey?: number,
+  onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
   const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
   const pendingCompoundFormKey = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode } = useClassifiers();
@@ -98,7 +101,14 @@ export function useTransportInterruptionForm(
       setFormError(null);
       try {
         const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
+        pendingPublish.current = false;
+        if (isPublishing && form?.id) {
+          await publishTransportInterruptionForm(form.id);
+          onPublished?.();
+          return;
+        }
         const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
         const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
         const overrideKey = pendingCompoundFormKey.current;
@@ -130,6 +140,11 @@ export function useTransportInterruptionForm(
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
+    return formik.submitForm();
+  };
+
+  const triggerPublish = () => {
+    pendingPublish.current = true;
     return formik.submitForm();
   };
 
@@ -165,6 +180,7 @@ export function useTransportInterruptionForm(
     setAddressValue,
     toggleLegalBasis,
     triggerConfirm,
+    triggerPublish,
     formError,
   };
 }

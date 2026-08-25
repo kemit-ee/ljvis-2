@@ -41,6 +41,7 @@ export function LabourInspectionFormPage() {
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
   const { form, loading, refetch } = useLabourInspectionFormDetail(
@@ -67,18 +68,22 @@ export function LabourInspectionFormPage() {
   const isAdmin = useIsAdmin();
 
   const canEdit =
-    (isAdmin || hasPermission('labour_inspection_form.write')) &&
-    (form?.status === 'confirmed' || form?.status === 'published');
+    isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
   const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
     (isAdmin || hasPermission('labour_inspection_form.write')) &&
     form?.status === 'saved' &&
+    (form?.violations?.length ?? 0) === 0;
+  const canPublish =
+    (isAdmin || hasPermission('labour_inspection_form.write')) &&
+    form?.status === 'confirmed' &&
     (form?.violations?.length ?? 0) === 0;
 
   const handleEditSaved = () => {
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
+    setShowPublishedAlert(false);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
@@ -87,6 +92,16 @@ export function LabourInspectionFormPage() {
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
+    setShowPublishedAlert(false);
+    setVersionsRefreshKey((k) => k + 1);
+    refetch();
+  };
+
+  const handlePublished = () => {
+    setIsEditActive(false);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setShowPublishedAlert(true);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
   };
@@ -101,8 +116,9 @@ export function LabourInspectionFormPage() {
     addViolation,
     removeViolation,
     triggerConfirm,
+    triggerPublish,
     formError,
-  } = useLabourInspectionForm(form ?? undefined, handleEditSaved, handleConfirmed);
+  } = useLabourInspectionForm(form ?? undefined, handleEditSaved, handleConfirmed, handlePublished);
 
   const handleDelete = async () => {
     if (!id || !form) return;
@@ -185,6 +201,17 @@ export function LabourInspectionFormPage() {
           {t('forms.confirmedNote')}
         </Alert>
       )}
+      {showPublishedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowPublishedAlert(false)}
+          type="success"
+          size="small"
+        >
+          {t('forms.publishedNote')}
+        </Alert>
+      )}
       {formError && (
         <Alert type="danger" size="small" className="mb-1">
           {formError}
@@ -259,14 +286,21 @@ export function LabourInspectionFormPage() {
               </>
             ) : (
               canEdit && (
-                <AsyncButton
-                  type="button"
-                  iconLeft="edit"
-                  visualType="secondary"
-                  onClick={() => setIsEditActive(true)}
-                >
-                  {t('common.edit')}
-                </AsyncButton>
+                <>
+                  <AsyncButton
+                    type="button"
+                    iconLeft="edit"
+                    visualType="secondary"
+                    onClick={() => setIsEditActive(true)}
+                  >
+                    {t('common.edit')}
+                  </AsyncButton>
+                  {canPublish && (
+                    <AsyncButton type="button" onClick={() => triggerPublish()}>
+                      {t('common.publish')}
+                    </AsyncButton>
+                  )}
+                </>
               )
             )}
             {isEditActive && canDelete && (

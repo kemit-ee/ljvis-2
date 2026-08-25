@@ -1,4 +1,7 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, Heading } from '@tedi-design-system/react/tedi';
+import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import type { AdrForm } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { useAdrForm } from '../../pages/adr-form/useAdrForm';
@@ -8,12 +11,14 @@ import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 interface AdrFormViewCardProps {
   form: AdrForm;
-  canEdit: boolean;
-  onEdit: () => void;
   formType: string;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
 }
 
-export function AdrFormViewCard({ form, formType }: AdrFormViewCardProps) {
+export function AdrFormViewCard({ form, formType, canPublish, onPublish }: AdrFormViewCardProps) {
+  const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const { t } = useTranslation();
   const {
     formik,
     counties,
@@ -57,7 +62,16 @@ export function AdrFormViewCard({ form, formType }: AdrFormViewCardProps) {
           isDesktop={isDesktop}
         />
 
-        {form.id && <FormVersionsTable formId={form.id} formType={formType} />}
+        {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
+        <div className="confirm-button">
+          <div>
+            {canPublish && onPublish && (
+              <AsyncButton type="button" onClick={() => onPublish().then(() => setVersionsRefreshKey((k) => k + 1))}>
+                {t('common.publish')}
+              </AsyncButton>
+            )}
+          </div>
+        </div>
       </Card.Content>
     </Card>
   );

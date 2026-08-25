@@ -92,12 +92,11 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
-      - field: status
-        type: string
 
 extractRequestData:
   assign:
     key: "${incoming.body.id}"
+    status: "confirmed"
     form_number: "${incoming.body.formNumber}"
     reporting_country_code: "${incoming.body.reportingCountryCode}"
     reporting_authority: "${incoming.body.reportingAuthority}"
@@ -139,7 +138,6 @@ extractRequestData:
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
-    status: "${incoming.body.status}"
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"

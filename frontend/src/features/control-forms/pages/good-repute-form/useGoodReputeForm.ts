@@ -3,17 +3,19 @@ import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import type { GoodReputeForm } from '../../types';
-import { saveGoodReputeForm, confirmGoodReputeForm } from '../../api';
+import { saveGoodReputeForm, confirmGoodReputeForm, publishGoodReputeForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 
 export function useGoodReputeForm(
   form: GoodReputeForm | undefined,
   onSaved: (id?: string) => void,
   onConfirmed?: () => void,
+  onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const validationSchema = Yup.object({
@@ -92,16 +94,22 @@ export function useGoodReputeForm(
       setFormError(null);
       try {
         const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
+        pendingPublish.current = false;
         const payload = {
           ...values,
           id: form?.id ?? '',
         } as unknown as GoodReputeForm;
         const result = isConfirming
           ? await confirmGoodReputeForm(payload)
-          : await saveGoodReputeForm(payload);
+          : form?.id && isPublishing
+            ? await publishGoodReputeForm(form.id)
+            : await saveGoodReputeForm(payload);
         if (isConfirming && onConfirmed) {
           onConfirmed();
+        } else if (isPublishing && onPublished) {
+          onPublished();
         } else {
           onSaved((result[0] as { id?: string })?.id);
         }
@@ -124,10 +132,16 @@ export function useGoodReputeForm(
     return formik.submitForm();
   };
 
+  const triggerPublish = () => {
+    pendingPublish.current = true;
+    return formik.submitForm();
+  };
+
   return {
     formik,
     isEdit,
     triggerConfirm,
+    triggerPublish,
     formError,
   };
 }

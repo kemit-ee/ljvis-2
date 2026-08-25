@@ -1,4 +1,7 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, Heading } from '@tedi-design-system/react/tedi';
+import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import type { TransportInterruptionForm } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { useTransportInterruptionForm } from '../../pages/transport-interruption-form/useTransportInterruptionForm';
@@ -8,12 +11,14 @@ import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 interface TransportInterruptionFormViewCardProps {
   form: TransportInterruptionForm;
-  canEdit: boolean;
-  onEdit: () => void;
   formType: string;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
 }
 
-export function TransportInterruptionFormViewCard({ form, formType }: TransportInterruptionFormViewCardProps) {
+export function TransportInterruptionFormViewCard({ form, formType, canPublish, onPublish }: TransportInterruptionFormViewCardProps) {
+  const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const { t } = useTranslation();
   const { formik, counties, addressValue, setAddressValue, toggleLegalBasis } =
     useTransportInterruptionForm(
       form,
@@ -44,7 +49,16 @@ export function TransportInterruptionFormViewCard({ form, formType }: TransportI
           isDesktop={isDesktop}
         />
 
-        {form.id && <FormVersionsTable formId={form.id} formType={formType} />}
+        {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
+        <div className="confirm-button">
+          <div>
+            {canPublish && onPublish && (
+              <AsyncButton type="button" onClick={() => onPublish().then(() => setVersionsRefreshKey((k) => k + 1))}>
+                {t('common.publish')}
+              </AsyncButton>
+            )}
+          </div>
+        </div>
       </Card.Content>
     </Card>
   );

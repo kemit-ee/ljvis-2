@@ -292,6 +292,7 @@
   "forms": {
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
+    "publishedNote": "Vorm on avaldatud",
     "versions": {
       "title": "Versioonid",
       "version": "Versioon",
@@ -1228,6 +1229,7 @@
     "delete": "Kustuta",
     "edit": "Muuda",
     "cancel": "Tühista",
+    "publish": "Avalikusta",
     "loading": "Laadimine...",
     "error": "Tekkis viga",
     "forbidden": "Teil puudub ligipääs sellele lehele",
@@ -1297,6 +1299,20 @@
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
     "bandPunane": "Punane"
+   },
+  "etoimik": {
+    "title": "E-toimiku kvalifikatsiooni kontroll",
+    "referenceNumber": "Viitenumber",
+    "person": "Isik",
+    "unnamedDriver": "Nimetu juht",
+    "queryButton": "Päri e-toimikust",
+    "queryFailed": "E-toimiku päring ebaõnnestus. Palun proovi uuesti.",
+    "notFound": "E-toimikust vastavat asja ei leitud.",
+    "proceedingNumber": "Menetlus",
+    "actionTypeCode": "Toimingu liik",
+    "participant": "Osaline",
+    "sanctionTypeCode": "Sanktsiooni liik",
+    "convictionPoint": "Süüdistuspunkt"
   },
   "erru": {
     "ctud": {

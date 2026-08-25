@@ -119,7 +119,7 @@ interface SubFormsAllConfirmedOptions {
   transportInterruption?: Pick<SubFormHandle<{ status?: string }>, 'form'>;
 }
 
-export function subFormsAllConfirmed({
+export function subFormsAllConfirmedOrPublished({
   openTabs,
   driver,
   teammate,
@@ -127,7 +127,7 @@ export function subFormsAllConfirmed({
   trailer,
   adr,
   transportInterruption,
-}: SubFormsAllConfirmedOptions): { hasNewUnsavedSubForm: boolean; subFormsAllConfirmed: boolean } {
+}: SubFormsAllConfirmedOptions): { hasNewUnsavedSubForm: boolean; subFormsAllConfirmedOrPublished: boolean } {
   const hasNewUnsavedSubForm =
     (openTabs.includes('tab-driver') && !driver.form) ||
     (openTabs.includes('tab-teammate') && !teammate.form) ||
@@ -139,8 +139,8 @@ export function subFormsAllConfirmed({
     !hasNewUnsavedSubForm &&
     [driver.form, teammate.form, vehicle.form, trailer.form, adr?.form, transportInterruption?.form]
       .filter(Boolean)
-      .every((f) => f?.status === 'confirmed');
-  return { hasNewUnsavedSubForm, subFormsAllConfirmed: allConfirmed };
+      .every((f) => f?.status === 'confirmed' || f?.status === 'published');
+  return { hasNewUnsavedSubForm, subFormsAllConfirmedOrPublished: allConfirmed };
 }
 
 export type SubFormTabId = 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr' | 'tab-transport-interruption';
@@ -215,7 +215,7 @@ export function canConfirmActiveSubForm({
   return !!entry.form?.id && entry.form.status === 'saved' && (isAdmin || hasPermission(entry.perm));
 }
 
-export function canEditActiveSubForm({
+export function canPublishActiveSubForm({
   activeTab,
   driver,
   teammate,
@@ -225,11 +225,18 @@ export function canEditActiveSubForm({
   transportInterruption,
   hasPermission,
 }: CanConfirmActiveSubFormOptions): boolean {
-  const tabFormPermission = buildTabFormPermission(driver, teammate, vehicle, trailer, adr, transportInterruption);
+  const tabFormPermission = buildTabFormPermission(
+    driver,
+    teammate,
+    vehicle,
+    trailer,
+    adr,
+    transportInterruption,
+  );
   const isAdmin = isAdminUser(hasPermission);
   const entry = tabFormPermission[activeTab];
   if (!entry) return false;
-  return !!entry.form?.id && (isAdmin || hasPermission(entry.perm));
+  return !!entry.form?.id && entry.form.status === 'confirmed' && (isAdmin || hasPermission(entry.perm));
 }
 
 interface UseSubFormPermissionsOptions {
@@ -245,7 +252,7 @@ interface UseSubFormPermissionsOptions {
 export function useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption }: UseSubFormPermissionsOptions) {
   const { hasPermission } = useAuth();
   return {
-    canEdit: () => canEditActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission }),
+    canPublish: () => canPublishActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission }),
     canConfirm: () => canConfirmActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission }),
   };
 }
@@ -480,5 +487,32 @@ export function makeCheckAndAutoConfirm({
     if (forms.length === 0) return;
     const allConfirmed = forms.every((f) => f.status === 'confirmed');
     if (allConfirmed) triggerConfirm();
+  };
+}
+
+interface MakeCheckAndAutoPublishOptions {
+  compoundForm: Pick<CompoundForm, 'status'> | null | undefined;
+  triggerPublish: () => void;
+}
+
+export function makeCheckAndAutoPublish({
+  compoundForm,
+  triggerPublish,
+}: MakeCheckAndAutoPublishOptions) {
+  return (
+    latestDriver: DriveRestForm | null,
+    latestTeammate: DriveRestForm | null,
+    latestVehicle: TechnicalCheckForm | null,
+    latestTrailer: TechnicalCheckForm | null,
+    latestAdr: AdrForm | null,
+    latestTransportInterruption: TransportInterruptionForm | null,
+  ) => {
+    if (!compoundForm || compoundForm.status === 'published') return;
+    const forms = [latestDriver, latestTeammate, latestVehicle, latestTrailer, latestAdr, latestTransportInterruption].filter(
+      Boolean,
+    ) as { status?: string }[];
+    if (forms.length === 0) return;
+    const allPublished = forms.every((f) => f.status === 'published');
+    if (allPublished) triggerPublish();
   };
 }

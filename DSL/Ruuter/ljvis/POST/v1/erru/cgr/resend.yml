@@ -120,6 +120,9 @@ logIntegrationSuccess:
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
+      person_identifier: ""
+      source_type: "erru_cgr_resend"
+      source_record_id: "${'' + business_case_id}"
   result: log_ok
   next: checkResponseEnvelope
 
@@ -136,6 +139,9 @@ logIntegrationFailure:
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "ERRU transport failure during resend"
+      person_identifier: ""
+      source_type: "erru_cgr_resend"
+      source_record_id: "${'' + business_case_id}"
   result: log_fail
   next: logAuditResendFailed
 
