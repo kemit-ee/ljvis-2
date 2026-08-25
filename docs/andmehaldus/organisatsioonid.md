@@ -1,6 +1,6 @@
 # Asutused (organisatsioonid)
 
-Toodangus vajalikud asutused laetakse Liquibase migratsiooniga:
+Toodangus vajalikud asutused laaditakse Liquibase'i migratsiooniga:
 `DSL/Liquibase/changelog/20260828300000-initial-organisations.sql`
 
 ## Toodangus kasutatavad asutused (Liquibase kaudu)
@@ -18,12 +18,12 @@ Migratsioon on idempotentne (`ON CONFLICT (code) DO NOTHING`).
 
 ## CI-testikeskkonnas lisatavad asutused
 
-Allpool olevad asutused lisatakse ainult CI stackis (`tests/bootstrap/seed_test_data.sql`) ja **ei kuulu toodangusse**:
+Allpool loetletud asutused lisatakse ainult CI-keskkonnas (`tests/bootstrap/seed_test_data.sql`) ja **ei kuulu toodangusse**:
 
 | Kood | Nimi | Eesmärk |
 |---|---|---|
-| JUM | Justiitsministeerium | Local Admin testikasutaja (Postman testid) |
-| CBO | CI Bootstrap Organisation | Üldine CI bootstrap |
+| JUM | Justiitsministeerium | kohaliku administraatori testikasutaja (Postmani testid) |
+| CBO | CI alglaadimise asutus | Üldine CI bootstrap |
 
 ## Uute asutuste lisamine
 

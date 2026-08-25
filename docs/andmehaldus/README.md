@@ -1,20 +1,20 @@
 # Andmehaldus — Liquibase referentsandmed
 
-LJVIS2 süsteemi töötamiseks vajalikud referentsandmed (klassifikaatorid, õigused, asutused) laetakse andmebaasi automaatselt Liquibase migratsioonidega asukohas:
+LJVIS2 süsteemi toimimiseks vajalikud lähteandmed (klassifikaatorid, õigused ja asutused) laaditakse andmebaasi automaatselt Liquibase'i migratsioonidega asukohas:
 
 `DSL/Liquibase/changelog/`
 
-## Mis andmed lähevad Liquibase kaudu baasi?
+## Millised andmed laaditakse Liquibase'i kaudu baasi?
 
 | Andmetüüp | Kirjeldus | Dokument |
 |---|---|---|
-| **Klassifikaatorid** | Dropdown-menüüde valikud (riikide loend, ERRU staatused, vormide tüübid, rikkumiskoodid jt) | [klassifikaatorid.md](klassifikaatorid.md) |
-| **Õigused** | Kasutajagruppidele määratavad süsteemiõigused (permission koodid + kirjeldused) | [oigused.md](oigused.md) |
+| **Klassifikaatorid** | Rippmenüüde valikud (riikide loend, ERRU staatused, vormitüübid, rikkumiskoodid jm) | [klassifikaatorid.md](klassifikaatorid.md) |
+| **Õigused** | Kasutajagruppidele määratavad süsteemiõigused (õiguste koodid ja kirjeldused) | [oigused.md](oigused.md) |
 | **Asutused** | Organisatsioonid, millele kasutajaid saab luua | [organisatsioonid.md](organisatsioonid.md) |
 
 ## Kuidas see töötab?
 
-1. Liquibase jookseb automaatselt konteinerite käivitamisel (`docker compose up`)
+1. Liquibase käivitatakse konteinerite käivitamisel automaatselt (`docker compose up`)
 2. Migratsioonid on **idempotentsed** — sama skripti korduskäivitamine andmeid ei dubleeri (`ON CONFLICT DO NOTHING` või `WHERE NOT EXISTS`)
 3. Uued klassifikaatoriväärtused lisatakse rakenduse kasutajaliidese kaudu (Administraatori juhend → Klassifikaatorid)
 

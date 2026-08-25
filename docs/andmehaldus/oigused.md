@@ -1,6 +1,6 @@
 # Süsteemi õigused
 
-Kõik õigused laetakse Liquibase migratsioonidega (`DSL/Liquibase/changelog/`).
+Kõik õigused laaditakse Liquibase'i migratsioonidega (`DSL/Liquibase/changelog/`).
 
 > Õiguse olemasolu andmebaasis ei anna kellelegi automaatselt ligipääsu —
 > õigused peavad olema **kasutajagrupile määratud** (Administraatori juhend → Kasutajagrupid).
@@ -14,12 +14,12 @@ Migratsioon: `20260828100000-initial-permissions-users.sql`
 |---|---|
 | user_group.list.admin | Kasutajagruppide nimekirja vaatamine kõigi asutuste ulatuses |
 | user_group.list.local | Kasutajagruppide nimekirja vaatamine ainult oma asutusega seotud gruppidele |
-| user_group.read.admin | Kasutajagrupi detailvaate algandmete vaatamine kõigi gruppide ulatuses |
-| user_group.read.local | Kasutajagrupi detailvaate algandmete vaatamine ainult oma asutusega seotud gruppidele |
+| user_group.read.admin | Kasutajagrupi detailvaate lähteandmete vaatamine kõigi gruppide ulatuses |
+| user_group.read.local | Kasutajagrupi detailvaate lähteandmete vaatamine ainult oma asutusega seotud gruppidele |
 | user_group.create | Uue kasutajagrupi loomine |
 | user_group.update | Kasutajagrupi nimetuse, asutuste ja õiguste-seoste muutmine |
-| user_group.list_users.admin | Kasutajagrupi liikmete pagineeritud nimekiri kõigi asutuste ulatuses |
-| user_group.list_users.local | Kasutajagrupi liikmete pagineeritud nimekiri ainult oma asutuse kasutajatele |
+| user_group.list_users.admin | Kasutajagrupi liikmete lehekülgede kaupa kuvatav nimekiri kõigi asutuste ulatuses |
+| user_group.list_users.local | Kasutajagrupi liikmete lehekülgede kaupa kuvatav nimekiri ainult oma asutuse kasutajatele |
 | user_group.search_eligible_users | Gruppi sidumiseks sobivate kasutajate otsimine |
 | user_group.add_user | Kasutaja(te) sidumine kasutajagrupiga |
 | user_group.remove_user | Kasutaja eemaldamine kasutajagrupist |

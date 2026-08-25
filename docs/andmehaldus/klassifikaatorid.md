@@ -1,8 +1,8 @@
 # Klassifikaatorid
 
-Kõik allpool loetletud klassifikaatorid laetakse Liquibase migratsioonidega asukohas `DSL/Liquibase/changelog/`.
+Kõik allpool loetletud klassifikaatorid laaditakse Liquibase'i migratsioonidega asukohas `DSL/Liquibase/changelog/`.
 
-Migratsioonid on idempotentsed — kui klassifikaator juba eksisteerib, jäetakse INSERT vahele (`WHERE NOT EXISTS`).
+Migratsioonid on idempotentsed — kui klassifikaator on juba olemas, jäetakse lisamine vahele (`WHERE NOT EXISTS`).
 
 ---
 
@@ -406,7 +406,7 @@ Migratsioon: `20260828270000-initial-form-type-classifier.sql`
 
 Hierarhiline (2 taset). Põhiväärtused:
 
-| Kood | Nimi | Parent |
+| Kood | Nimi | Ülemväärtus |
 |---|---|---|
 | TI_KONTROLLKAART | Tööinspektsiooni kontrollkaart | — |
 | FOREIGN_AUDIT | Välisriigis teostatud autoveoalase kontrolli kontrollkaart | — |
@@ -461,7 +461,7 @@ Põhimaanteed vastavalt KLIM määrusele nr 48 (11 teed).
 ### Tehniline kontroll — TRAILER_CATEGORY, VEHICLE_CATEGORY, MASS_DIMENSION
 Migratsioon: `20260828274000-initial-technical-check-classifiers.sql`
 
-Kolm klassifikaatorit tehniline kontrolli ja haagise kontrollvormide jaoks (kategooriad ja massi/mõõtme rikkumiskoodid).
+Kolm klassifikaatorit tehnilise kontrolli ja haagise kontrollvormide jaoks (kategooriad ning massi- ja mõõdunõuete rikkumiskoodid).
 
 ### Välisriigi rikkumine — EU_INFRINGEMENT, CARGO_CABOTAGE_VIOLATION, PASSENGER_CABOTAGE_VIOLATION
 Migratsioon: `20260828275000-initial-foreign-infringement-classifiers.sql`
@@ -476,7 +476,7 @@ Kaks klassifikaatorit tööinspektsiooni kontrollakti jaoks (transpordiliikide k
 ### Sõidu- ja puhkeaeg — DRIVING_VIOLATION, TACHOGRAPH_TYPES, OTHER_DOCUMENTS
 Migratsioon: `20260828277000-initial-sp-form-classifiers.sql`
 
-Kolm klassifikaatorit sõidu- ja puhkeaja kontrollvormide jaoks. DRIVING_VIOLATION on kolmetasemeline hierarhia MSI/VSI/SI rikkumiskoodidega.
+Kolm klassifikaatorit sõidu- ja puhkeaja kontrollvormide jaoks. DRIVING_VIOLATION on kolmetasemeline hierarhia MSI-, VSI- ja SI-rikkumiskoodidega.
 
 ---
 
