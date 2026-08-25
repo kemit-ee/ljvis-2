@@ -44,7 +44,7 @@ call_tim_callback:
 check_callback:
   switch:
     - condition: ${200 <= callback_result.response.status && callback_result.response.status < 300}
-      next: normalize_personal_code
+      next: extract_raw_user_id
   next: callback_error
 
 # Step 2a: Strip the "EE" country prefix that TARA adds to the sub claim.
