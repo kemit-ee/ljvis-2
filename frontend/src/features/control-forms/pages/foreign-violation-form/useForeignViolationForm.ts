@@ -164,19 +164,11 @@ export function useForeignViolationForm(
         pendingConfirm.current = false;
         pendingPublish.current = false;
         const isReconfirmedEdit = !isConfirming && !isPublishing && form?.status === 'confirmed';
-        const nextStatus = isConfirming
-          ? 'confirmed'
-          : isPublishing
-            ? 'published'
-            : isReconfirmedEdit
-              ? 'confirmed'
-              : 'saved';
         const nextFormNumber = isReconfirmedEdit
           ? incrementFormNumber(formNumberString)
           : formNumberString;
         const trimmedValues = {
           ...values,
-          status: nextStatus,
           formNumber: nextFormNumber,
           inspectionDate: toIsoDate(values.inspectionDate),
           inspectionTime: toIsoTime(values.inspectionTime),
@@ -188,17 +180,13 @@ export function useForeignViolationForm(
         };
         const payload = {
           ...trimmedValues,
-          id: form?.id,
+          id: form?.id ?? '',
         } as unknown as ForeignViolationForm;
-        const result = isEdit
-          ? isConfirming
-            ? await confirmForeignViolationForm(payload)
-            : form?.id && isPublishing
-              ? await publishForeignViolationForm(form.id)
-              : await saveForeignViolationForm(payload)
-          : await saveForeignViolationForm(
-              trimmedValues as unknown as ForeignViolationForm,
-            );
+        const result = isConfirming
+          ? await confirmForeignViolationForm(payload)
+          : form?.id && isPublishing
+            ? await publishForeignViolationForm(form.id)
+            : await saveForeignViolationForm(payload);
         if (isConfirming && onConfirmed) {
           onConfirmed();
         } else if (isPublishing && onPublished) {

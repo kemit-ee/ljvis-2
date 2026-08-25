@@ -68,8 +68,7 @@ export function LabourInspectionFormPage() {
   const isAdmin = useIsAdmin();
 
   const canEdit =
-    (isAdmin || hasPermission('labour_inspection_form.write')) &&
-    (form?.status === 'confirmed' || form?.status === 'published');
+    isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
   const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
     (isAdmin || hasPermission('labour_inspection_form.write')) &&

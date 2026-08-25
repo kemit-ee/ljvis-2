@@ -76,6 +76,7 @@ import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import {useIsAdmin} from "../../../../hooks/useIsAdmin.ts";
 
 export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -84,6 +85,8 @@ export function CompoundFormPage() {
   const location = useLocation();
   const { hasPermission } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+
+  const isAdmin = useIsAdmin();
 
   const forbidden = !(
     (hasPermission('compound_form.read') ||
@@ -292,8 +295,7 @@ export function CompoundFormPage() {
       .catch(console.error);
   };
 
-  const canEdit =
-    hasPermission('compound_form.write') && form?.status !== 'deleted';
+  const canEdit = isAdmin && form?.status !== 'deleted';
 
   const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
   const canDelete =
@@ -516,7 +518,7 @@ export function CompoundFormPage() {
 
   const handleDeleteAll = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, transportInterruption, compoundForm: form });
 
-  const { canEdit: canEditSubForms, canConfirm: canConfirmSubform } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { canPublish: canPublishSubforms,  canConfirm: canConfirmSubform } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
@@ -873,11 +875,13 @@ export function CompoundFormPage() {
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
-              onPublish={() => publishDriveRestForm('driver', form.id!).then(() => refetchDriveRest('driver'))}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishDriveRestForm('driver', form.id!).then(() =>
+                  refetchDriveRest('driver'),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -926,11 +930,13 @@ export function CompoundFormPage() {
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
-              onPublish={() => publishDriveRestForm('teammate', form.id!).then(() => refetchDriveRest('teammate'))}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishDriveRestForm('teammate', form.id!).then(() =>
+                  refetchDriveRest('teammate'),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -979,11 +985,13 @@ export function CompoundFormPage() {
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
-              onPublish={() => publishTechnicalCheckForm('vehicle', form.id!).then(() => refetchTechCheck('vehicle'))}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('vehicle', form.id!).then(() =>
+                  refetchTechCheck('vehicle'),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1035,11 +1043,13 @@ export function CompoundFormPage() {
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
-              onPublish={() => publishTechnicalCheckForm('trailer', form.id!).then(() => refetchTechCheck('trailer'))}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('trailer', form.id!).then(() =>
+                  refetchTechCheck('trailer'),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1090,11 +1100,11 @@ export function CompoundFormPage() {
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => adr.setEditActive(true)}
               formType="adr-form"
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
-              onPublish={() => publishAdrForm(form.id!).then(() => refetchAdr())}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishAdrForm(form.id!).then(() => refetchAdr())
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1141,11 +1151,13 @@ export function CompoundFormPage() {
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={canEditSubForms() && form.status !== 'deleted'}
-              onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
-              onPublish={() => publishTransportInterruptionForm(form.id!).then(() => refetchTransportInterruption())}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTransportInterruptionForm(form.id!).then(() =>
+                  refetchTransportInterruption(),
+                )
+              }
             />
           )}
           renderEdit={(form, ref) => (
@@ -1190,7 +1202,7 @@ export function CompoundFormPage() {
       </Tabs>
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {hasPermission('control_form.edit_locked') &&
+          {isAdmin &&
             !anyEditActive &&
             form?.status !== 'deleted' && (
               <Button

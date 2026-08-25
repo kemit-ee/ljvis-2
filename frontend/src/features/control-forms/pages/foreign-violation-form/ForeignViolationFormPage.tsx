@@ -66,9 +66,7 @@ export function ForeignViolationFormPage() {
 
   const isAdmin = useIsAdmin();
 
-  const canEdit =
-    (isAdmin || hasPermission('foreign_violation_form.write') &&
-      (form?.status === 'confirmed' || form?.status === 'published'));
+  const canEdit = isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
   const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
     (isAdmin || hasPermission('foreign_violation_form.write')) &&

@@ -14,8 +14,6 @@ import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
 interface DriveRestFormViewCardProps {
   scope: 'driver' | 'teammate';
   form: DriveRestForm;
-  canEdit: boolean;
-  onEdit: () => void;
   formType: string;
   canPublish?: boolean;
   onPublish?: () => Promise<unknown>;

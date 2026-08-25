@@ -10,8 +10,6 @@ import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
 interface TechnicalCheckFormViewCardProps {
   scope: 'vehicle' | 'trailer';
   form: TechnicalCheckForm;
-  canEdit: boolean;
-  onEdit: () => void;
   formType: string;
   canPublish?: boolean;
   onPublish?: () => Promise<unknown>;

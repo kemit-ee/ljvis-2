@@ -74,9 +74,7 @@ export function GoodReputeFormPage() {
     }
   }, [form?.status]);
 
-  const canEdit =
-    (isAdmin || hasPermission('good_repute_form.write')) &&
-    (form?.status === 'confirmed' || form?.status === 'published');
+  const canEdit = isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
   const canConfirm =
     (isAdmin || hasPermission('good_repute_form.write')) &&
     form?.status === 'saved';

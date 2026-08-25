@@ -11,8 +11,6 @@ import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 interface TransportInterruptionFormViewCardProps {
   form: TransportInterruptionForm;
-  canEdit: boolean;
-  onEdit: () => void;
   formType: string;
   canPublish?: boolean;
   onPublish?: () => Promise<unknown>;

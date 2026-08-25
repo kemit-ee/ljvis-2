@@ -81,7 +81,7 @@ export function TransportInterruptionFormPage() {
   const { hasPermission } = useAuth();
   const isAdmin = useIsAdmin();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const canEdit = hasPermission('compound_form.write') || isAdmin;
+  const canEdit = isAdmin;
 
   const [compoundFormKey, setCompoundFormKey] = useState<number | undefined>(undefined);
   const [loadingEntry, setLoadingEntry] = useState(true);
@@ -105,7 +105,7 @@ export function TransportInterruptionFormPage() {
   const adr = useSubForm<AdrForm, AdrFormEditCardRef>({ permPrefix: 'adr_form' });
   const transportInterruption = useSubForm<TransportInterruptionForm, TransportInterruptionFormEditCardRef>({ permPrefix: 'transport_interruption_form' });
 
-  const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const forbidden = !(
     (hasPermission('transport_interruption_form.read') || hasPermission('control_form.view_unpublished')) &&
@@ -524,8 +524,6 @@ export function TransportInterruptionFormPage() {
         </Button>
         <TransportInterruptionFormViewCard
           form={snapshot}
-          canEdit={false}
-          onEdit={() => {}}
           formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
         />
       </div>
@@ -741,13 +739,8 @@ export function TransportInterruptionFormPage() {
             <DriveRestFormViewCard
               scope="driver"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              canPublish={canPublishSubForms()}
               onPublish={() => publishDriveRestForm('driver', form.id!).then(() => handlePublished(() => refetchDriver()))}
             />
           )}
@@ -796,13 +789,8 @@ export function TransportInterruptionFormPage() {
             <DriveRestFormViewCard
               scope="teammate"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              canPublish={canPublishSubForms()}
               onPublish={() => publishDriveRestForm('teammate', form.id!).then(() => handlePublished(() => refetchTeammate()))}
             />
           )}
@@ -851,13 +839,8 @@ export function TransportInterruptionFormPage() {
             <TechnicalCheckFormViewCard
               scope="vehicle"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              canPublish={canPublishSubForms()}
               onPublish={() => publishTechnicalCheckForm('vehicle', form.id!).then(() => handlePublished(() => refetchTechCheck(vehicle, 'vehicle')))}
             />
           )}
@@ -908,13 +891,8 @@ export function TransportInterruptionFormPage() {
             <TechnicalCheckFormViewCard
               scope="trailer"
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              canPublish={canPublishSubForms()}
               onPublish={() => publishTechnicalCheckForm('trailer', form.id!).then(() => handlePublished(() => refetchTechCheck(trailer, 'trailer')))}
             />
           )}
@@ -964,13 +942,8 @@ export function TransportInterruptionFormPage() {
           renderView={(form) => (
             <AdrFormViewCard
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => adr.setEditActive(true)}
               formType={FORM_TYPE.ADR}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              canPublish={canPublishSubForms()}
               onPublish={() => publishAdrForm(form.id!).then(() => handlePublished(() => refetchAdr()))}
             />
           )}
@@ -1015,13 +988,8 @@ export function TransportInterruptionFormPage() {
           renderView={(form) => (
             <TransportInterruptionFormViewCard
               form={form}
-              canEdit={
-                canEditSubForms() &&
-                (form.status === 'saved' || form.status === 'published')
-              }
-              onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
-              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              canPublish={canPublishSubForms()}
               onPublish={() => publishTransportInterruptionForm(form.id!).then(() => handlePublished(() => refetchTransportInterruption()))}
             />
           )}
@@ -1065,7 +1033,7 @@ export function TransportInterruptionFormPage() {
 
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {hasPermission('control_form.edit_locked') &&
+          {isAdmin &&
             !anyEditActive &&
             compoundForm?.status !== 'deleted' && (
               <Button

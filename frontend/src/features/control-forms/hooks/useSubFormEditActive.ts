@@ -215,7 +215,7 @@ export function canConfirmActiveSubForm({
   return !!entry.form?.id && entry.form.status === 'saved' && (isAdmin || hasPermission(entry.perm));
 }
 
-export function canEditActiveSubForm({
+export function canPublishActiveSubForm({
   activeTab,
   driver,
   teammate,
@@ -225,11 +225,18 @@ export function canEditActiveSubForm({
   transportInterruption,
   hasPermission,
 }: CanConfirmActiveSubFormOptions): boolean {
-  const tabFormPermission = buildTabFormPermission(driver, teammate, vehicle, trailer, adr, transportInterruption);
+  const tabFormPermission = buildTabFormPermission(
+    driver,
+    teammate,
+    vehicle,
+    trailer,
+    adr,
+    transportInterruption,
+  );
   const isAdmin = isAdminUser(hasPermission);
   const entry = tabFormPermission[activeTab];
   if (!entry) return false;
-  return !!entry.form?.id && (isAdmin || hasPermission(entry.perm));
+  return !!entry.form?.id && entry.form.status === 'confirmed' && (isAdmin || hasPermission(entry.perm));
 }
 
 interface UseSubFormPermissionsOptions {
@@ -245,7 +252,7 @@ interface UseSubFormPermissionsOptions {
 export function useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption }: UseSubFormPermissionsOptions) {
   const { hasPermission } = useAuth();
   return {
-    canEdit: () => canEditActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission }),
+    canPublish: () => canPublishActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission }),
     canConfirm: () => canConfirmActiveSubForm({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission }),
   };
 }
