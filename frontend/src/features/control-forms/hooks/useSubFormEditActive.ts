@@ -119,7 +119,7 @@ interface SubFormsAllConfirmedOptions {
   transportInterruption?: Pick<SubFormHandle<{ status?: string }>, 'form'>;
 }
 
-export function subFormsAllConfirmed({
+export function subFormsAllConfirmedOrPublished({
   openTabs,
   driver,
   teammate,
@@ -127,7 +127,7 @@ export function subFormsAllConfirmed({
   trailer,
   adr,
   transportInterruption,
-}: SubFormsAllConfirmedOptions): { hasNewUnsavedSubForm: boolean; subFormsAllConfirmed: boolean } {
+}: SubFormsAllConfirmedOptions): { hasNewUnsavedSubForm: boolean; subFormsAllConfirmedOrPublished: boolean } {
   const hasNewUnsavedSubForm =
     (openTabs.includes('tab-driver') && !driver.form) ||
     (openTabs.includes('tab-teammate') && !teammate.form) ||
@@ -139,8 +139,8 @@ export function subFormsAllConfirmed({
     !hasNewUnsavedSubForm &&
     [driver.form, teammate.form, vehicle.form, trailer.form, adr?.form, transportInterruption?.form]
       .filter(Boolean)
-      .every((f) => f?.status === 'confirmed');
-  return { hasNewUnsavedSubForm, subFormsAllConfirmed: allConfirmed };
+      .every((f) => f?.status === 'confirmed' || f?.status === 'published');
+  return { hasNewUnsavedSubForm, subFormsAllConfirmedOrPublished: allConfirmed };
 }
 
 export type SubFormTabId = 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr' | 'tab-transport-interruption';

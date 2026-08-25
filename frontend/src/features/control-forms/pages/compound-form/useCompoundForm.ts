@@ -8,6 +8,7 @@ import { listOrganisations } from '../../../organisations/api';
 import {
   confirmCompoundForm,
   saveCompoundForm,
+  publishCompoundForm,
 } from '../../api';
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
@@ -43,17 +44,19 @@ export function useCompoundForm(
   form: CompoundForm | undefined,
   onSaved: (id?: string) => void,
   onConfirmed?: () => void,
-  subFormsAllConfirmed?: boolean,
+  subFormsAllConfirmedOrPublished?: boolean,
   onResetToSaved?: () => void,
+  onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const { user: authUser, permissions } = useAuth();
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
   const pendingForceSaved = useRef(false);
-  const subFormsAllConfirmedRef = useRef(subFormsAllConfirmed);
+  const subFormsAllConfirmedOrPublishedRef = useRef(subFormsAllConfirmedOrPublished);
   useEffect(() => {
-    subFormsAllConfirmedRef.current = subFormsAllConfirmed;
+    subFormsAllConfirmedOrPublishedRef.current = subFormsAllConfirmedOrPublished;
   });
   const { getByCode, getChildren } = useClassifiers();
 
@@ -333,16 +336,26 @@ export function useCompoundForm(
     onSubmit: async (values) => {
       try {
         const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
+        pendingPublish.current = false;
         const forceSaved = pendingForceSaved.current;
         pendingForceSaved.current = false;
-        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedRef.current ?? true);
+        if (isPublishing && form?.id) {
+          await publishCompoundForm(form.id);
+          onPublished?.();
+          return;
+        }
+        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedOrPublishedRef.current ?? true);
+        const isRepublishedEdit = !isConfirming && !forceSaved && form?.status === 'published' && (subFormsAllConfirmedOrPublishedRef.current ?? true);
         const nextStatus = isConfirming
           ? 'confirmed'
           : isReconfirmedEdit
             ? 'confirmed'
-            : 'saved';
-        const nextFormNumber = isReconfirmedEdit
+            : isRepublishedEdit
+              ? 'published'
+              : 'saved';
+        const nextFormNumber = (isReconfirmedEdit || isRepublishedEdit)
           ? incrementFormNumber(formNumberString)
           : formNumberString;
         const driver1 = values.drivers[0];
@@ -376,7 +389,11 @@ export function useCompoundForm(
           if (isConfirming || isReconfirmedEdit) {
             await confirmCompoundForm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
-          } else {
+          } else if (isPublishing || isRepublishedEdit) {
+            await publishCompoundForm(values.id);
+            onPublished?.();
+          }
+          else {
             await saveCompoundForm(trimmedValues as unknown as CompoundForm);
             if (forceSaved && onResetToSaved) {
               onResetToSaved();
@@ -407,6 +424,11 @@ export function useCompoundForm(
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
+    formik.submitForm();
+  };
+
+  const triggerPublish = () => {
+    pendingPublish.current = true;
     formik.submitForm();
   };
 
@@ -558,6 +580,7 @@ export function useCompoundForm(
     handleTrailerSearch,
     handleMtrSearch,
     triggerConfirm,
+    triggerPublish,
     triggerSaveAsSaved,
     availableForms,
   };

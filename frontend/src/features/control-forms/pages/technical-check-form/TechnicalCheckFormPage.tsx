@@ -19,6 +19,10 @@ import {
   listTransportInterruptionFormsByCompoundFormKey,
   getTransportInterruptionForm,
   saveTransportInterruptionForm,
+  publishTechnicalCheckForm,
+  publishDriveRestForm,
+  publishAdrForm,
+  publishTransportInterruptionForm,
 } from '../../api';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
@@ -43,7 +47,7 @@ import { createDriveRestValidationSchema, serializeDriveRestFormValues } from '.
 import { createTechnicalCheckValidationSchema } from './useTechnicalCheckForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
-import { useSubFormEditActive, makeCheckAndAutoConfirm, useSubFormPermissions, subFormsAllConfirmed as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
+import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
@@ -85,6 +89,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
+  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [compoundVersionsRefreshKey, setCompoundVersionsRefreshKey] = useState(0);
   const [openTabs, setOpenTabs] = useState<string[]>([tabId]);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
@@ -195,6 +200,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   const handleCompoundSaved = () => {
     setShowSavedAlert(true);
+    setShowPublishedAlert(false);
     const openSubForms = [
       openTabs.includes('tab-vehicle-technical-check') ? vehicle.form : null,
       openTabs.includes('tab-trailer-technical-check') ? trailer.form : null,
@@ -211,12 +217,33 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const handleCompoundConfirmed = () => {
     setShowConfirmedAlert(true);
     setCompoundEditActive(false);
+    setShowPublishedAlert(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
     window.scrollTo(0, 0);
   };
 
-  const { subFormsAllConfirmed } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const handleCompoundPublished = () => {
+    setShowPublishedAlert(true);
+    setCompoundEditActive(false);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setCompoundVersionsRefreshKey((k) => k + 1);
+    refetchCompoundRef.current();
+    window.scrollTo(0, 0);
+  };
+
+  const handlePublished = (refetch: () => void) => {
+    setShowPublishedAlert(true);
+    setShowSavedAlert(false);
+    setShowConfirmedAlert(false);
+    setCompoundVersionsRefreshKey((k) => k + 1);
+    refetchCompoundRef.current();
+    refetch();
+    window.scrollTo(0, 0);
+  };
+
+  const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const {
     formik,
@@ -241,6 +268,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     mtrSearchError,
     setMtrSearchError,
     triggerConfirm: triggerConfirmCompound,
+    triggerPublish: triggerPublishCompound,
     handleCompanySearch,
     handleVehicleSearch,
     handleTrailerSearch,
@@ -249,8 +277,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     compoundForm ?? undefined,
     handleCompoundSaved,
     handleCompoundConfirmed,
-    subFormsAllConfirmed,
+    subFormsAllConfirmedOrPublished,
     () => { refetchCompoundRef.current(); },
+    handleCompoundPublished,
   );
 
   useEffect(() => {
@@ -262,6 +291,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const { canEdit: canEditSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm, triggerConfirm: triggerConfirmCompound });
+  const checkAndAutoPublishCompound = makeCheckAndAutoPublish({ compoundForm, triggerPublish: triggerPublishCompound });
 
   const refetchTransportInterruption = (onDone?: () => void) => {
     if (!compoundFormKey) return;
@@ -271,6 +301,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         const full = item?.id ? await getTransportInterruptionForm(item.id).catch(() => null) : null;
         transportInterruption.setForm(full ?? null);
         checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
+        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
         onDone?.();
       })
       .catch(console.error);
@@ -284,6 +315,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         const full = item?.id ? await getAdrForm(item.id).catch(() => null) : null;
         adr.setForm(full);
         checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
+        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
@@ -306,6 +338,14 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           adr.form,
           transportInterruption.form
         );
+        checkAndAutoPublishCompound(
+          driver.form,
+          teammate.form,
+          latestVehicle,
+          latestTrailer,
+          adr.form,
+          transportInterruption.form
+        );
         onDone?.();
       })
       .catch(console.error);
@@ -318,6 +358,14 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         const latestDriver = scope === 'driver' ? res : driver.form;
         const latestTeammate = scope === 'teammate' ? res : teammate.form;
         checkAndAutoConfirmCompound(
+          latestDriver,
+          latestTeammate,
+          vehicle.form,
+          trailer.form,
+          adr.form,
+          transportInterruption.form
+        );
+        checkAndAutoPublishCompound(
           latestDriver,
           latestTeammate,
           vehicle.form,
@@ -540,6 +588,17 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           {t('forms.confirmedNote')}
         </Alert>
       )}
+      {showPublishedAlert && (
+        <Alert
+          icon="check_circle"
+          className="mb-1"
+          onClose={() => setShowPublishedAlert(false)}
+          type="success"
+          size="small"
+        >
+          {t('forms.publishedNote')}
+        </Alert>
+      )}
 
       <Button
         visualType="link"
@@ -696,6 +755,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               }
               onEdit={() => driver.setEditActive(true)}
               formType={FORM_TYPE.DRIVER}
+              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              onPublish={() => publishDriveRestForm('driver', form.id!).then(() => handlePublished(() => refetchDriveRest(driver, 'driver')))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -748,6 +809,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               }
               onEdit={() => teammate.setEditActive(true)}
               formType={FORM_TYPE.TEAMMATE}
+              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              onPublish={() => publishDriveRestForm('teammate', form.id!).then(() => handlePublished(() => refetchDriveRest(teammate, 'teammate')))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -800,6 +863,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               }
               onEdit={() => vehicle.setEditActive(true)}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
+              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              onPublish={() => publishTechnicalCheckForm('vehicle', form.id!).then(() => handlePublished(() => refetchTechCheck(vehicle, 'vehicle')))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -851,6 +916,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               }
               onEdit={() => trailer.setEditActive(true)}
               formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
+              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              onPublish={() => publishTechnicalCheckForm('trailer', form.id!).then(() => handlePublished(() => refetchTechCheck(trailer, 'trailer')))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -901,6 +968,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               }
               onEdit={() => adr.setEditActive(true)}
               formType={FORM_TYPE.ADR}
+              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              onPublish={() => publishAdrForm(form.id!).then(() => handlePublished(() => refetchAdr()))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -949,6 +1018,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               }
               onEdit={() => transportInterruption.setEditActive(true)}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+              canPublish={canEditSubForms() && form.status === 'confirmed'}
+              onPublish={() => publishTransportInterruptionForm(form.id!).then(() => handlePublished(() => refetchTransportInterruption()))}
             />
           )}
           renderEdit={(form, ref) => (
@@ -1012,7 +1083,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                 {t('common.edit')}
               </Button>
             )}
-          {anyEditActive && subFormsAllConfirmed && (
+          {anyEditActive && subFormsAllConfirmedOrPublished && (
             <Button
               type="button"
               visualType="secondary"

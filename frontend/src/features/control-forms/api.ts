@@ -87,6 +87,12 @@ export const confirmCompoundForm = (data: CompoundForm) =>
     data as unknown as Record<string, unknown>,
   );
 
+export const publishCompoundForm = (id: string) =>
+  post<CompoundForm[]>(
+    `/v1/control-forms/compound-form/edit/publish`,
+    { id }
+  );
+
 export const deleteCompoundForm = (
   id: string,
   form_number: string,
@@ -147,6 +153,15 @@ export const confirmDriveRestForm = (
   post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/confirm`,
     data as unknown as Record<string, unknown>,
+  );
+
+export const publishDriveRestForm = (
+  scope: 'driver' | 'teammate',
+  id: string,
+) =>
+  post<DriveRestForm[]>(
+    `/v1/control-forms/drive-rest-form/${scope}/edit/publish`,
+    { id },
   );
 
 export const getDriveRestForm = (scope: 'driver' | 'teammate', id: number) =>
@@ -280,6 +295,15 @@ export const confirmTechnicalCheckForm = (
     data as unknown as Record<string, unknown>,
   );
 
+export const publishTechnicalCheckForm = (
+  variant: TechnicalCheckVariant,
+  id: string,
+) =>
+  post<TechnicalCheckForm[]>(
+    `/v1/control-forms/${technicalCheckPath(variant)}/edit/publish`,
+    { id }
+  );
+
 export const saveTechnicalCheckFormXroadFields = (
   variant: TechnicalCheckVariant,
   data: {
@@ -332,6 +356,13 @@ export const confirmTransportInterruptionForm = (
     data as unknown as Record<string, unknown>,
   );
 
+export const publishTransportInterruptionForm = (
+  id: string,
+) =>
+  post<TransportInterruptionForm[]>(
+    `/v1/control-forms/transport-interruption/edit/publish`,
+    { id }
+  );
 
 export const getAdrForm = (id: string) =>
   get<AdrForm>(`/v1/control-forms/adr-form`, { q: id });
@@ -355,6 +386,12 @@ export const confirmAdrForm = (data: AdrForm) =>
   post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/confirm`,
     data as unknown as Record<string, unknown>,
+  );
+
+export const publishAdrForm = (id: string) =>
+  post<AdrForm[]>(
+    `/v1/control-forms/adr-form/edit/publish`,
+    { id }
   );
 
 export const saveAdrFormXroadFields = (data: {
