@@ -1,11 +1,11 @@
 # LJVIS2 code/build repo. One release view: verify -> build -> package -> dev.
 #
-# Eight images are built, seven wrapper charts are packaged, and all seven workload pins
-# move atomically in one Git commit. Liquibase has no independent pin: resql-ljvis renders
-# it as a PreSync hook using the same release version.
+# Eight images are built, seven wrapper charts are packaged, and all seven workload
+# entries move atomically in one Git release-manifest commit. Liquibase has no independent
+# entry: resql-ljvis renders it as a PreSync hook using the same release version.
 #
-# Only dev exists. Adding test also requires its infra/config values; workload pins alone
-# are not a deployable environment.
+# Only dev exists. Adding test also requires its infra/config values; a release manifest
+# alone is not a deployable environment.
 #
 # Required CI/CD variables: HARBOR_URL, HARBOR_USERNAME, HARBOR_PASSWORD,
 # SERVICECODE=ljvis2, SONAR_HOST_URL, SONAR_TOKEN, GITOPS_TOKEN and nonlive Argo CD
@@ -31,17 +31,17 @@ workflow:
     - when: never
 
 include:
-  - component: gitlab.kemitaws.ee/platform/ci-components/release-version@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/release-version@6.0.0
     inputs: { base: $VERSION_BASE, arch: arm64 }
 
   # Sonar runs on amd64 because the pinned scanner image has no arm64 variant.
-  - component: gitlab.kemitaws.ee/platform/ci-components/sonar-scan@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/sonar-scan@6.0.0
     inputs:
       name: frontend
       sources: frontend
       quality_gate: false
       extra_args: "-Dsonar.exclusions=**/node_modules/**,**/dist/**"
-  - component: gitlab.kemitaws.ee/platform/ci-components/sonar-scan@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/sonar-scan@6.0.0
     inputs:
       name: backend
       sources: DSL
@@ -49,38 +49,39 @@ include:
       extra_args: "-Dsonar.exclusions=**/draft/**,**/test/**"
   - template: Security/Secret-Detection.gitlab-ci.yml
 
-  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
     inputs: { name: ruuter, image_path: ruuter/images, dockerfile: docker/ruuter/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
     inputs: { name: ruuter-internal, image_path: ruuter-internal/images, dockerfile: docker/ruuter-internal/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
     inputs: { name: xtr, image_path: xtr/images, dockerfile: docker/xtr/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
     inputs: { name: frontend, image_path: frontend/images, dockerfile: frontend/Dockerfile, context: frontend, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
     inputs: { name: s3-proxy, image_path: s3-proxy/images, dockerfile: docker/s3-proxy/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
     inputs: { name: liquibase, image_path: liquibase/images, dockerfile: docker/liquibase/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
     inputs: { name: resql-ljvis, image_path: resql-ljvis/images, dockerfile: docker/resql-ljvis/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
     inputs: { name: data-mapper, image_path: data-mapper/images, dockerfile: docker/data-mapper/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
 
-  - component: gitlab.kemitaws.ee/platform/ci-components/gitops-pin@5.0.0
+  - component: gitlab.kemitaws.ee/platform/ci-components/release-pin@6.0.0
     inputs:
       environment: dev
       repository: gitlab.kemitaws.ee/services/ljvis2/devops.git
       stage: deploy-dev
       version: $RELEASE_VERSION
       argocd_context: $NONLIVE_CLUSTER
-      pin_files: >-
-        environments/dev/pins/resql-ljvis.yaml
-        environments/dev/pins/data-mapper.yaml
-        environments/dev/pins/xtr.yaml
-        environments/dev/pins/ruuter.yaml
-        environments/dev/pins/ruuter-internal.yaml
-        environments/dev/pins/s3-proxy.yaml
-        environments/dev/pins/frontend.yaml
+      release_file: environments/dev/release.yaml
+      components: >-
+        resql-ljvis
+        data-mapper
+        xtr
+        ruuter
+        ruuter-internal
+        s3-proxy
+        frontend
       artifacts: >-
         $CHART_REPOSITORY/resql-ljvis
         $CHART_REPOSITORY/data-mapper
@@ -191,8 +192,11 @@ package:charts:
     # Forward the resolved dotenv value under a different name across the trigger.
     IMAGE_VERSION: $RELEASE_VERSION
 
-"gitops:pin:dev":
-  extends: .protected-refs
+"release:pin:dev":
+  # release/* produces immutable artifacts for manual promotion; it must not overwrite
+  # the main-owned dev environment.
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   environment:
     name: dev
     url: https://ljvis2dev.kemitaws.ee
