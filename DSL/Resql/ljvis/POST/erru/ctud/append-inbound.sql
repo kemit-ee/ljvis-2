@@ -1,62 +1,51 @@
 /*
-description: "Record an INCOMING CTUD request arriving from another member state (LJVIS2-144). Appends the first snapshot with status 'received' and a fresh logical key. Idempotent: ON CONFLICT on the partial unique index uq_ctud_inbound_technical_id means a redelivered ERRU message yields zero rows instead of a duplicate request, so the caller can detect the replay and return the previously produced response. business_case_id is stored verbatim as sent by the peer, and sent_at comes from the message header rather than the clock."
-namespace: erru
-params:
-  technicalId:
-    type: string
-    required: false
-  workflowId:
-    type: string
-    required: false
-  sentAt:
-    type: string
-    required: false
-  ctudFrom:
-    type: string
-    required: false
-  businessCaseId:
-    type: string
-    required: false
-  originatingAuthority:
-    type: string
-    required: false
-  requestSource:
-    type: string
-    required: false
-  requestPurpose:
-    type: string
-    required: false
-  transportUndertakingName:
-    type: string
-    required: false
-  communityLicenceNumber:
-    type: string
-    required: false
-  vehicleRegistrationNumber:
-    type: string
-    required: false
-  vehicleRegistrationCountry:
-    type: string
-    required: false
-  requestAllVehicles:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Record an INCOMING CTUD request arriving from another member state (LJVIS2-144). Appends the first snapshot with status 'received' and a fresh logical key. Idempotent: ON CONFLICT on the partial unique index uq_ctud_inbound_technical_id means a redelivered ERRU message yields zero rows instead of a duplicate request, so the caller can detect the replay and return the previously produced response. business_case_id is stored verbatim as sent by the peer, and sent_at comes from the message header rather than the clock."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: sentAt
+        type: string
+      - field: ctudFrom
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: requestAllVehicles
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: business_case_id
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
 */
 WITH ins AS (
   INSERT INTO erru.ctud_request (

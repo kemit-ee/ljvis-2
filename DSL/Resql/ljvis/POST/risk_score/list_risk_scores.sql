@@ -1,44 +1,45 @@
 /*
-description: "LJVIS2-152: paginated, filtered admin list of the LATEST risk-score record per company (risk.company_risk_score is insert-only/historical — see docs/risk-score/formula.md). Filters are plain AND. Sorting is whitelisted; total via COUNT(*) OVER() to keep round trips to one. Mirrors DSL/Resql/ljvis/POST/erru/ncr/search.sql's \"latest per key\" + pagination pattern."
-namespace: risk_score
-params:
-  company_name:
-    type: string
-    required: false
-  company_reg_code:
-    type: string
-    required: false
-  risk_band_code:
-    type: string
-    required: false
-  sorting:
-    type: string
-    required: false
-  page:
-    type: string
-    required: false
-  page_size:
-    type: string
-    required: false
-returns:
-  - name: company_name
-    type: string
-    nullable: true
-  - name: company_reg_code
-    type: string
-    nullable: true
-  - name: risk_score
-    type: string
-    nullable: true
-  - name: risk_band_code
-    type: string
-    nullable: true
-  - name: total_controls
-    type: number
-    nullable: true
-  - name: total
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: >-
+    LJVIS2-152: paginated, filtered admin list of the LATEST risk-score
+    record per company (risk.company_risk_score is insert-only/historical —
+    see docs/risk-score/formula.md). Filters are plain AND. Sorting is
+    whitelisted; total via COUNT(*) OVER() to keep round trips to one.
+    Mirrors DSL/Resql/ljvis/POST/erru/ncr/search.sql's "latest per key" +
+    pagination pattern.
+  method: post
+  accepts: json
+  returns: json
+  namespace: risk_score
+  allowlist:
+    body:
+      - field: company_name
+        type: string
+      - field: company_reg_code
+        type: string
+      - field: risk_band_code
+        type: string
+      - field: sorting
+        type: string
+      - field: page
+        type: string
+      - field: page_size
+        type: string
+  response:
+    fields:
+      - field: company_name
+        type: string
+      - field: company_reg_code
+        type: string
+      - field: risk_score
+        type: string
+      - field: risk_band_code
+        type: string
+      - field: total_controls
+        type: number
+      - field: total
+        type: number
 */
 WITH latest AS (
   SELECT DISTINCT ON (company_reg_code) *

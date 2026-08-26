@@ -1,68 +1,61 @@
 /*
-description: "Revise an OUTGOING NCR request draft (LJVIS2-63, 'täiendamine'). Appends a new snapshot with version + 1, keeping status 'initiated'. Guarded: the INSERT .. SELECT produces zero rows unless the latest snapshot is status='initiated' AND direction='outgoing', so a sent/acknowledged/responded request can never be edited — the caller detects the empty result and returns 422 not_editable. Identity/envelope fields (business_case_id, ncr_from, technical_id, workflow_id, sent_at, ack_*, response_*) are carried forward untouched. Same Pass/CleanCheck clearing rule as append-request-draft.sql applies on every revision."
-namespace: erru
-params:
-  businessCaseId:
-    type: string
-    required: false
-  originatingAuthority:
-    type: string
-    required: false
-  requestSource:
-    type: string
-    required: false
-  requestPurpose:
-    type: string
-    required: false
-  ncrTo:
-    type: string
-    required: false
-  transportUndertakingName:
-    type: string
-    required: false
-  communityLicenceNumber:
-    type: string
-    required: false
-  vehicleRegistrationNumber:
-    type: string
-    required: false
-  vehicleRegistrationCountry:
-    type: string
-    required: false
-  checkResult:
-    type: string
-    required: false
-  checkDate:
-    type: string
-    required: false
-  minorInfringement:
-    type: string
-    required: false
-  seriousInfringements:
-    type: string
-    required: false
-  handlerPersonalCode:
-    type: string
-    required: false
-  handlerName:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Revise an OUTGOING NCR request draft (LJVIS2-63, 'täiendamine'). Appends a new
+    snapshot with version + 1, keeping status 'initiated'. Guarded: the INSERT .. SELECT
+    produces zero rows unless the latest snapshot is status='initiated' AND direction='outgoing',
+    so a sent/acknowledged/responded request can never be edited — the caller detects the empty
+    result and returns 422 not_editable. Identity/envelope fields (business_case_id, ncr_from,
+    technical_id, workflow_id, sent_at, ack_*, response_*) are carried forward untouched. Same
+    Pass/CleanCheck clearing rule as append-request-draft.sql applies on every revision."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: ncrTo
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: checkResult
+        type: string
+      - field: checkDate
+        type: string
+      - field: minorInfringement
+        type: string
+      - field: seriousInfringements
+        type: string
+      - field: handlerPersonalCode
+        type: string
+      - field: handlerName
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: business_case_id
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
 */
 WITH latest AS (
   SELECT *

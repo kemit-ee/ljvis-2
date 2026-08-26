@@ -1,80 +1,63 @@
 /*
-description: "Record an INCOMING RSI (RoadSideInspection) notification arriving from another member state (LJVIS2-148). Appends the first snapshot with status 'received' and a fresh logical key from seq_rsi_message_key. Idempotent: ON CONFLICT on the partial unique index uq_rsi_inbound_technical_id (direction='incoming' AND status='received') means a redelivered RSI message yields zero rows instead of a duplicate, allowing the caller to replay the stored response. Unlike CGR, RSI carries vehicle data (not transport manager data) and the checked_items are already in ERRU format. rsi_from is the sending country from the ERRU envelope; rsi_to is always EE (us). response_status_code is NULL on receipt — it is set by the separate append-transition call that stores the 'answered' snapshot."
-namespace: erru
-params:
-  technicalId:
-    type: string
-    required: false
-  workflowId:
-    type: string
-    required: false
-  sentAt:
-    type: string
-    required: false
-  rsiFrom:
-    type: string
-    required: false
-  businessCaseId:
-    type: string
-    required: false
-  originatingAuthority:
-    type: string
-    required: false
-  requestSource:
-    type: string
-    required: false
-  requestPurpose:
-    type: string
-    required: false
-  vehicleRegistrationNumber:
-    type: string
-    required: false
-  vehicleRegistrationCountry:
-    type: string
-    required: false
-  vehicleCategory:
-    type: string
-    required: false
-  vehicleIdentificationNumber:
-    type: string
-    required: false
-  inspectionLocation:
-    type: string
-    required: false
-  inspectionDatetime:
-    type: string
-    required: false
-  inspectionAuthorityOrName:
-    type: string
-    required: false
-  inspectionPassed:
-    type: string
-    required: false
-  ptiRequested:
-    type: string
-    required: false
-  vehicleProhibitionOrRestriction:
-    type: string
-    required: false
-  checkedItems:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Record an INCOMING RSI (RoadSideInspection) notification arriving from another member state (LJVIS2-148). Appends the first snapshot with status 'received' and a fresh logical key from seq_rsi_message_key. Idempotent: ON CONFLICT on the partial unique index uq_rsi_inbound_technical_id (direction='incoming' AND status='received') means a redelivered RSI message yields zero rows instead of a duplicate, allowing the caller to replay the stored response. Unlike CGR, RSI carries vehicle data (not transport manager data) and the checked_items are already in ERRU format. rsi_from is the sending country from the ERRU envelope; rsi_to is always EE (us). response_status_code is NULL on receipt — it is set by the separate append-transition call that stores the 'answered' snapshot."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: sentAt
+        type: string
+      - field: rsiFrom
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: vehicleCategory
+        type: string
+      - field: vehicleIdentificationNumber
+        type: string
+      - field: inspectionLocation
+        type: string
+      - field: inspectionDatetime
+        type: string
+      - field: inspectionAuthorityOrName
+        type: string
+      - field: inspectionPassed
+        type: string
+      - field: ptiRequested
+        type: string
+      - field: vehicleProhibitionOrRestriction
+        type: string
+      - field: checkedItems
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: business_case_id
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
 */
 WITH ins AS (
   INSERT INTO erru.rsi_message (

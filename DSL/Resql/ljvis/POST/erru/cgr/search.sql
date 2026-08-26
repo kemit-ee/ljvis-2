@@ -1,74 +1,59 @@
 /*
-description: "Paginated, filtered list of OUTGOING CGR requests only (LJVIS2-140) — the specification explicitly scopes this list to requests Estonia has sent ('väljaminevad päringud'), unlike the CTUD list which covers both directions. The `latest` CTE reduces the append-only table to exactly one row per request (the newest snapshot) before any filtering or paging. All filters are optional and AND-combined — unlike CTUD, tmFirstName/tmFamilyName are separate AND-combined fields, not an OR-group, per the task specification. response_status_code is derived here (not a stored column, unlike CTUD): for a single-country request (cgr_to <> 'ZZ') with exactly one member_states entry, it is that entry's statusCode; for a broadcast request (cgr_to = 'ZZ') it is always NULL — the per-country breakdown is shown only in the request detail view, never in the list. Sorting is whitelisted; total is returned via COUNT(*) OVER () so the caller needs only one round trip."
-namespace: erru
-params:
-  businessCaseId:
-    type: string
-    required: false
-  tmFirstName:
-    type: string
-    required: false
-  tmFamilyName:
-    type: string
-    required: false
-  sentFrom:
-    type: string
-    required: false
-  sentUntil:
-    type: string
-    required: false
-  cgrTo:
-    type: string
-    required: false
-  status:
-    type: string
-    required: false
-  handlerPersonalCode:
-    type: string
-    required: false
-  sorting:
-    type: string
-    required: false
-  page:
-    type: string
-    required: false
-  page_size:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: sent_at
-    type: string
-    nullable: true
-  - name: tm_first_name
-    type: string
-    nullable: true
-  - name: tm_family_name
-    type: string
-    nullable: true
-  - name: cgr_to
-    type: string
-    nullable: true
-  - name: response_status_code
-    type: string
-    nullable: true
-  - name: handler_name
-    type: string
-    nullable: true
-  - name: total
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Paginated, filtered list of OUTGOING CGR requests only (LJVIS2-140) — the specification explicitly scopes this list to requests Estonia has sent ('väljaminevad päringud'), unlike the CTUD list which covers both directions. The `latest` CTE reduces the append-only table to exactly one row per request (the newest snapshot) before any filtering or paging. All filters are optional and AND-combined — unlike CTUD, tmFirstName/tmFamilyName are separate AND-combined fields, not an OR-group, per the task specification. response_status_code is derived here (not a stored column, unlike CTUD): for a single-country request (cgr_to <> 'ZZ') with exactly one member_states entry, it is that entry's statusCode; for a broadcast request (cgr_to = 'ZZ') it is always NULL — the per-country breakdown is shown only in the request detail view, never in the list. Sorting is whitelisted; total is returned via COUNT(*) OVER () so the caller needs only one round trip."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+      - field: tmFirstName
+        type: string
+      - field: tmFamilyName
+        type: string
+      - field: sentFrom
+        type: string
+      - field: sentUntil
+        type: string
+      - field: cgrTo
+        type: string
+      - field: status
+        type: string
+      - field: handlerPersonalCode
+        type: string
+      - field: sorting
+        type: string
+      - field: page
+        type: string
+      - field: page_size
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: version
+        type: number
+      - field: status
+        type: string
+      - field: business_case_id
+        type: string
+      - field: sent_at
+        type: string
+      - field: tm_first_name
+        type: string
+      - field: tm_family_name
+        type: string
+      - field: cgr_to
+        type: string
+      - field: response_status_code
+        type: string
+      - field: handler_name
+        type: string
+      - field: total
+        type: number
 */
 WITH latest AS (
   SELECT DISTINCT ON (cgr_request_key)

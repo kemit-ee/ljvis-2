@@ -1,48 +1,59 @@
 /*
-description: "Eeltäitmine (LJVIS2-64 §4.1): build a new OUTGOING NCR request draft from an SP control-form sub-form (forms.sp_driver_form or forms.sp_teammate_form, selected by :spFormType) and its parent forms.compound_form. Appends the first snapshot of a new erru.ncr_message with status 'initiated', same as append-request-draft.sql, but the field values are DERIVED from the SP sub-form instead of being passed by the caller. checkResult is Pass when the sub-form's erru_points[] contains no MSI/VSI/SI entries, Fail otherwise — CleanCheck is never produced (LJVIS2-64 §4.1: 'ERRU väärtust CleanCheck ei kasutata'). Each MSI/VSI/SI erru_point becomes one seriousInfringements[] entry with category+infringementType only (penaltiesImposed/penaltiesRequested are left empty for the officer to fill in on the NCR form, per spec 'Karistuste andmeid ... ei eeltäideta'). M1 exception (LJVIS2-64 §4.1 'Sõidukeelu erand'): when the compound_form's vehicle category is M1 (private car), the '302' (driving ban / sõidukeeld) infringement is dropped from the draft even if present in erru_points — that penalty applies only to transport undertakings, not private individuals. minorInfringement is never eeltäidetud (spec: officer fills it in manually on the form). Returns zero rows if the SP sub-form or its parent compound_form cannot be found, or if erru.ncr_message insert should not create a business_case_id (never happens here, since insert-only) — caller maps empty result to 404/422."
-namespace: erru
-params:
-  spFormKey:
-    type: number
-    required: false
-  spFormType:
-    type: string
-    required: false
-    description: "'driver' or 'teammate' — selects sp_driver_form vs sp_teammate_form"
-  originatingAuthority:
-    type: string
-    required: false
-  requestSource:
-    type: string
-    required: false
-  requestPurpose:
-    type: string
-    required: false
-  ncrTo:
-    type: string
-    required: false
-  handlerPersonalCode:
-    type: string
-    required: false
-  handlerName:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Eeltäitmine (LJVIS2-64 §4.1): build a new OUTGOING NCR request draft from an
+    SP control-form sub-form (forms.sp_driver_form or forms.sp_teammate_form, selected by
+    :spFormType) and its parent forms.compound_form. Appends the first snapshot of a new
+    erru.ncr_message with status 'initiated', same as append-request-draft.sql, but the
+    field values are DERIVED from the SP sub-form instead of being passed by the caller.
+    checkResult is Pass when the sub-form's erru_points[] contains no MSI/VSI/SI entries,
+    Fail otherwise — CleanCheck is never produced (LJVIS2-64 §4.1: 'ERRU väärtust CleanCheck
+    ei kasutata'). Each MSI/VSI/SI erru_point becomes one seriousInfringements[] entry with
+    category+infringementType only (penaltiesImposed/penaltiesRequested are left empty for
+    the officer to fill in on the NCR form, per spec 'Karistuste andmeid ... ei eeltäideta').
+    M1 exception (LJVIS2-64 §4.1 'Sõidukeelu erand'): when the compound_form's vehicle
+    category is M1 (private car), the '302' (driving ban / sõidukeeld) infringement is
+    dropped from the draft even if present in erru_points — that penalty applies only to
+    transport undertakings, not private individuals. minorInfringement is never eeltäidetud
+    (spec: officer fills it in manually on the form). Returns zero rows if the SP sub-form or
+    its parent compound_form cannot be found, or if erru.ncr_message insert should not create
+    a business_case_id (never happens here, since insert-only) — caller maps empty result to
+    404/422."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: spFormKey
+        type: string
+      - field: spFormType
+        type: string
+        description: "'driver' or 'teammate' — selects sp_driver_form vs sp_teammate_form"
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: ncrTo
+        type: string
+      - field: handlerPersonalCode
+        type: string
+      - field: handlerName
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: business_case_id
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
 */
 WITH sp AS (
   (

@@ -52,7 +52,6 @@ WITH latest AS (
     atp_violation_found,
     atp_violation_description,
     erru_points,
-    files,
     enforcement_decision,
     proceeding_closure_basis,
     notes
@@ -91,7 +90,6 @@ INSERT INTO forms.sp_teammate_form (
   atp_violation_found,
   atp_violation_description,
   erru_points,
-  files,
   enforcement_decision,
   proceeding_closure_basis,
   notes,
@@ -128,7 +126,6 @@ SELECT
   l.atp_violation_found,
   l.atp_violation_description,
   l.erru_points,
-  l.files,
   l.enforcement_decision,
   l.proceeding_closure_basis,
   l.notes,

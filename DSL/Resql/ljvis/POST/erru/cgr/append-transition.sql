@@ -1,44 +1,39 @@
 /*
-description: "Apply a CGR lifecycle state transition (LJVIS2-139). Appends exactly one new snapshot iff (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero rows and nothing is written, which the caller maps to 422 invalid_transition. Atomic by construction: the guard is evaluated inside the same INSERT .. SELECT. CGR differs from CTUD in two ways: (1) 'sent' is the outgoing TERMINAL state — responses are stored in member_states JSONB in the same call, so there is no separate 'responded' status; (2) resend adds a new snapshot that also transitions 'sent -> sent' with updated member_states for one member state. NYSIIS search keys are carried forward untouched from the previous snapshot."
-namespace: erru
-params:
-  key:
-    type: number
-    required: false
-  newStatus:
-    type: string
-    required: false
-  memberStates:
-    type: string
-    required: false
-  tmFirstNameSearchKey:
-    type: string
-    required: false
-  tmFamilyNameSearchKey:
-    type: string
-    required: false
-  errorMessage:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: workflow_id
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Apply a CGR lifecycle state transition (LJVIS2-139). Appends exactly one new snapshot iff (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero rows and nothing is written, which the caller maps to 422 invalid_transition. Atomic by construction: the guard is evaluated inside the same INSERT .. SELECT. CGR differs from CTUD in two ways: (1) 'sent' is the outgoing TERMINAL state — responses are stored in member_states JSONB in the same call, so there is no separate 'responded' status; (2) resend adds a new snapshot that also transitions 'sent -> sent' with updated member_states for one member state. NYSIIS search keys are carried forward untouched from the previous snapshot."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: key
+        type: string
+      - field: newStatus
+        type: string
+      - field: memberStates
+        type: string
+      - field: tmFirstNameSearchKey
+        type: string
+      - field: tmFamilyNameSearchKey
+        type: string
+      - field: errorMessage
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: business_case_id
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
+      - field: workflow_id
+        type: string
 */
 WITH latest AS (
   SELECT *

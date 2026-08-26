@@ -1,59 +1,55 @@
 /*
-description: "X-tee ErakorralineYVquery (v1): tagastab ajavahemikul erakorralisele tehnoülevaatusele suunatud sõidukid. Filtrid: result_type IN ('extraordinary_inspection', 'extraordinary_inspection_ta'), compound_form.control_date BETWEEN alates AND kuni, vehicle_country_code IS NULL OR 'EE'. Kaasab parts_defects JSONB ja era_yv_mnt_* flagid, mille YAML kaardistab vastuse formaati."
-namespace: xroad
-params:
-  alates:
-    type: string
-    required: false
-  kuni:
-    type: string
-    required: false
-returns:
-  - name: licence_plate_no
-    type: string
-    nullable: true
-  - name: trailer_no
-    type: string
-    nullable: true
-  - name: inspection_id
-    type: string
-    nullable: true
-  - name: inspection_no
-    type: string
-    nullable: true
-  - name: inspection_date
-    type: string
-    nullable: true
-  - name: inspection_type
-    type: string
-    nullable: true
-  - name: inspection_unit
-    type: string
-    nullable: true
-  - name: inspection_notes
-    type: string
-    nullable: true
-  - name: inspector
-    type: string
-    nullable: true
-  - name: issues_json
-    type: string
-    nullable: true
-  - name: era_yv_mnt_regnr
-    type: boolean
-    nullable: true
-  - name: era_yv_mnt_vintin
-    type: boolean
-    nullable: true
-  - name: era_yv_mnt_axles
-    type: boolean
-    nullable: true
-  - name: era_yv_mnt_places
-    type: boolean
-    nullable: true
-  - name: era_yv_mnt_rebuilt
-    type: boolean
-    nullable: true
+declaration:
+  version: 0.1
+  description: >-
+    X-tee ErakorralineYVquery (v1): tagastab ajavahemikul erakorralisele
+    tehnoülevaatusele suunatud sõidukid. Filtrid: result_type IN
+    ('extraordinary_inspection', 'extraordinary_inspection_ta'),
+    compound_form.control_date BETWEEN alates AND kuni,
+    vehicle_country_code IS NULL OR 'EE'. Kaasab parts_defects JSONB
+    ja era_yv_mnt_* flagid, mille YAML kaardistab vastuse formaati.
+  method: post
+  accepts: json
+  returns: json
+  namespace: xroad
+  allowlist:
+    body:
+      - field: alates
+        type: string
+      - field: kuni
+        type: string
+  response:
+    fields:
+      - field: licence_plate_no
+        type: string
+      - field: trailer_no
+        type: string
+      - field: inspection_id
+        type: string
+      - field: inspection_no
+        type: string
+      - field: inspection_date
+        type: string
+      - field: inspection_type
+        type: string
+      - field: inspection_unit
+        type: string
+      - field: inspection_notes
+        type: string
+      - field: inspector
+        type: string
+      - field: issues_json
+        type: string
+      - field: era_yv_mnt_regnr
+        type: boolean
+      - field: era_yv_mnt_vintin
+        type: boolean
+      - field: era_yv_mnt_axles
+        type: boolean
+      - field: era_yv_mnt_places
+        type: boolean
+      - field: era_yv_mnt_rebuilt
+        type: boolean
 */
 
 WITH latest_vtf AS (

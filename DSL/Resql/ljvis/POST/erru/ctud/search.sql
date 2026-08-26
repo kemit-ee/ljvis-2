@@ -1,95 +1,73 @@
 /*
-description: "Paginated, filtered list of CTUD requests, both directions in one table (LJVIS2-145). The `latest` CTE reduces the append-only table to exactly one row per request (the newest snapshot) before any filtering or paging, so a request with ten snapshots still occupies one list row. All filters are optional and AND-combined, except the three search-criteria fields (undertaking name, community licence number, vehicle registration number) which are OR-combined with each other and then AND-combined with the rest. Sorting is whitelisted; total is returned via COUNT(*) OVER () so the caller needs only one round trip."
-namespace: erru
-params:
-  businessCaseId:
-    type: string
-    required: false
-  sentFrom:
-    type: string
-    required: false
-  sentUntil:
-    type: string
-    required: false
-  ctudFrom:
-    type: string
-    required: false
-  ctudTo:
-    type: string
-    required: false
-  transportUndertakingName:
-    type: string
-    required: false
-  communityLicenceNumber:
-    type: string
-    required: false
-  vehicleRegistrationNumber:
-    type: string
-    required: false
-  handlerPersonalCode:
-    type: string
-    required: false
-  status:
-    type: string
-    required: false
-  direction:
-    type: string
-    required: false
-  sorting:
-    type: string
-    required: false
-  page:
-    type: string
-    required: false
-  page_size:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: direction
-    type: string
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: sent_at
-    type: string
-    nullable: true
-  - name: ctud_from
-    type: string
-    nullable: true
-  - name: ctud_to
-    type: string
-    nullable: true
-  - name: transport_undertaking_name
-    type: string
-    nullable: true
-  - name: community_licence_number
-    type: string
-    nullable: true
-  - name: vehicle_registration_number
-    type: string
-    nullable: true
-  - name: response_status_code
-    type: string
-    nullable: true
-  - name: handler_personal_code
-    type: string
-    nullable: true
-  - name: handler_name
-    type: string
-    nullable: true
-  - name: total
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Paginated, filtered list of CTUD requests, both directions in one table (LJVIS2-145). The `latest` CTE reduces the append-only table to exactly one row per request (the newest snapshot) before any filtering or paging, so a request with ten snapshots still occupies one list row. All filters are optional and AND-combined, except the three search-criteria fields (undertaking name, community licence number, vehicle registration number) which are OR-combined with each other and then AND-combined with the rest. Sorting is whitelisted; total is returned via COUNT(*) OVER () so the caller needs only one round trip."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+      - field: sentFrom
+        type: string
+      - field: sentUntil
+        type: string
+      - field: ctudFrom
+        type: string
+      - field: ctudTo
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: handlerPersonalCode
+        type: string
+      - field: status
+        type: string
+      - field: direction
+        type: string
+      - field: sorting
+        type: string
+      - field: page
+        type: string
+      - field: page_size
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: version
+        type: number
+      - field: direction
+        type: string
+      - field: status
+        type: string
+      - field: business_case_id
+        type: string
+      - field: sent_at
+        type: string
+      - field: ctud_from
+        type: string
+      - field: ctud_to
+        type: string
+      - field: transport_undertaking_name
+        type: string
+      - field: community_licence_number
+        type: string
+      - field: vehicle_registration_number
+        type: string
+      - field: response_status_code
+        type: string
+      - field: handler_personal_code
+        type: string
+      - field: handler_name
+        type: string
+      - field: total
+        type: number
 */
 WITH latest AS (
   SELECT DISTINCT ON (ctud_request_key)

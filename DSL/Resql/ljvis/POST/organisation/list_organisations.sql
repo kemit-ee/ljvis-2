@@ -11,9 +11,12 @@ declaration:
         type: string
       - field: name
         type: string
+      - field: code
+        type: string
 */
 SELECT
     id,
-    name
+    name,
+    code
 FROM users.organisation
 ORDER BY name COLLATE "et-EE-x-icu";

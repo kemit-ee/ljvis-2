@@ -1,41 +1,37 @@
 /*
-description: "Apply an RSI lifecycle state transition (LJVIS2-148). Appends exactly one new snapshot iff (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero rows and nothing is written — the caller maps that to 422 invalid_transition. RSI differs from CGR in three critical ways: (1) error is a TERMINAL outgoing state — there is no error→sent retry path; a failed message must be discarded and a brand-new one composed. (2) RSI is asynchronous — after 'sent' the response arrives later via a separate inbound-response call, so there is a distinct 'responded' status in the outgoing chain. (3) There is no resend (no sent→sent); every send attempt must start from 'initiated'. Columns not driven by the transition (vehicle data, driver data, inspection data, identification_details, checked_items) are carried forward verbatim from the latest snapshot. response_status_code/response_status_message are set only on the responded/answered transitions."
-namespace: erru
-params:
-  key:
-    type: number
-    required: false
-  newStatus:
-    type: string
-    required: false
-  responseStatusCode:
-    type: string
-    required: false
-  responseStatusMessage:
-    type: string
-    required: false
-  errorMessage:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: workflow_id
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Apply an RSI lifecycle state transition (LJVIS2-148). Appends exactly one new snapshot iff (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero rows and nothing is written — the caller maps that to 422 invalid_transition. RSI differs from CGR in three critical ways: (1) error is a TERMINAL outgoing state — there is no error→sent retry path; a failed message must be discarded and a brand-new one composed. (2) RSI is asynchronous — after 'sent' the response arrives later via a separate inbound-response call, so there is a distinct 'responded' status in the outgoing chain. (3) There is no resend (no sent→sent); every send attempt must start from 'initiated'. Columns not driven by the transition (vehicle data, driver data, inspection data, identification_details, checked_items) are carried forward verbatim from the latest snapshot. response_status_code/response_status_message are set only on the responded/answered transitions."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: key
+        type: string
+      - field: newStatus
+        type: string
+      - field: responseStatusCode
+        type: string
+      - field: responseStatusMessage
+        type: string
+      - field: errorMessage
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: business_case_id
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
+      - field: workflow_id
+        type: string
 */
 WITH latest AS (
   SELECT *

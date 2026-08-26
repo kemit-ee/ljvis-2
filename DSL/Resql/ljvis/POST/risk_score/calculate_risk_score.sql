@@ -1,29 +1,41 @@
 /*
-description: "LJVIS2-151: computes (but does NOT persist — see save_risk_score.sql) the EU 2022/695 risk score R for one Estonian transport undertaking, over a caller-supplied [window_start, window_end] date window (normally \"now - 2 years\" .. \"now\"). Only forms.compound_form rows with status='published' and an 8-digit Estonian company_reg_code count; \"enforcement date\" is the first time a given compound_form_key reached status='published' (MIN(created_at) FILTER). Violation severity/isDetected keys inside the JSONB violation arrays are camelCase (violationCode/severityCode/ isDetected) because they are the raw frontend Formik field shape (frontend/src/features/control-forms/types.ts Violation/DocumentCheck/ CabotageViolation) persisted as-is — NOT snake_case. See docs/risk-score/formula.md for the full formula/rules writeup."
-namespace: risk_score
-params:
-  company_reg_code:
-    type: string
-    required: false
-  window_start:
-    type: string
-    required: false
-  window_end:
-    type: string
-    required: false
-returns:
-  - name: risk_score
-    type: string
-    nullable: true
-  - name: risk_band_code
-    type: string
-    nullable: true
-  - name: total_controls
-    type: number
-    nullable: true
-  - name: company_name
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: >-
+    LJVIS2-151: computes (but does NOT persist — see save_risk_score.sql) the
+    EU 2022/695 risk score R for one Estonian transport undertaking, over a
+    caller-supplied [window_start, window_end] date window (normally "now -
+    2 years" .. "now"). Only forms.compound_form rows with status='published'
+    and an 8-digit Estonian company_reg_code count; "enforcement date" is the
+    first time a given compound_form_key reached status='published'
+    (MIN(created_at) FILTER). Violation severity/isDetected keys inside the
+    JSONB violation arrays are camelCase (violationCode/severityCode/
+    isDetected) because they are the raw frontend Formik field shape
+    (frontend/src/features/control-forms/types.ts Violation/DocumentCheck/
+    CabotageViolation) persisted as-is — NOT snake_case. See
+    docs/risk-score/formula.md for the full formula/rules writeup.
+  method: post
+  accepts: json
+  returns: json
+  namespace: risk_score
+  allowlist:
+    body:
+      - field: company_reg_code
+        type: string
+      - field: window_start
+        type: string
+      - field: window_end
+        type: string
+  response:
+    fields:
+      - field: risk_score
+        type: string
+      - field: risk_band_code
+        type: string
+      - field: total_controls
+        type: number
+      - field: company_name
+        type: string
 */
 WITH enforcement_dates AS (
   -- Jõustumiskuupäev = first time this compound_form_key became 'published'.

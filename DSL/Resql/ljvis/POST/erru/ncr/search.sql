@@ -1,77 +1,71 @@
 /*
-description: "Paginated, filtered list of NCR cases — BOTH incoming and outgoing (LJVIS2-65). The latest CTE reduces the append-only table to one row per CASE (ncr_message_key) before filtering or paging — NOT per workflow_id as the task's 'Peamised komponendid' section literally states, since workflow_id is NULL on every unsent outgoing draft (would collapse all drafts into a single NULL group and drop the rest); ncr_message_key is the correct, always-populated logical case identity used identically by get.sql/get-by-workflow-id.sql elsewhere in this module. All filters are plain AND (no OR-pair like RSI/CGR's id/regNr — NCR only has one text filter, businessCaseId). hasInfringement is computed from jsonb_array_length(serious_infringements) > 0 for the red-highlight row styling (LJVIS2-65 §4 'Rikkumisega teadete eristus'). Sorting is whitelisted; total via COUNT(*) OVER() to keep round trips to one."
-namespace: erru
-params:
-  businessCaseId:
-    type: string
-    required: false
-  sentFrom:
-    type: string
-    required: false
-  sentUntil:
-    type: string
-    required: false
-  ncrFrom:
-    type: string
-    required: false
-  ncrTo:
-    type: string
-    required: false
-  status:
-    type: string
-    required: false
-  direction:
-    type: string
-    required: false
-  handlerPersonalCode:
-    type: string
-    required: false
-  sorting:
-    type: string
-    required: false
-  page:
-    type: string
-    required: false
-  page_size:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: direction
-    type: string
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: business_case_id
-    type: string
-    nullable: true
-  - name: sent_at
-    type: string
-    nullable: true
-  - name: ncr_from
-    type: string
-    nullable: true
-  - name: ncr_to
-    type: string
-    nullable: true
-  - name: transport_undertaking_name
-    type: string
-    nullable: true
-  - name: handler_name
-    type: string
-    nullable: true
-  - name: has_infringement
-    type: boolean
-    nullable: true
-  - name: total
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Paginated, filtered list of NCR cases — BOTH incoming and outgoing (LJVIS2-65).
+    The latest CTE reduces the append-only table to one row per CASE (ncr_message_key) before
+    filtering or paging — NOT per workflow_id as the task's 'Peamised komponendid' section
+    literally states, since workflow_id is NULL on every unsent outgoing draft (would collapse
+    all drafts into a single NULL group and drop the rest); ncr_message_key is the correct,
+    always-populated logical case identity used identically by get.sql/get-by-workflow-id.sql
+    elsewhere in this module. All filters are plain AND (no OR-pair like RSI/CGR's id/regNr —
+    NCR only has one text filter, businessCaseId). hasInfringement is computed from
+    jsonb_array_length(serious_infringements) > 0 for the red-highlight row styling (LJVIS2-65
+    §4 'Rikkumisega teadete eristus'). Sorting is whitelisted; total via COUNT(*) OVER() to
+    keep round trips to one."
+  method: post
+  accepts: json
+  returns: json
+  namespace: erru
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+      - field: sentFrom
+        type: string
+      - field: sentUntil
+        type: string
+      - field: ncrFrom
+        type: string
+      - field: ncrTo
+        type: string
+      - field: status
+        type: string
+      - field: direction
+        type: string
+      - field: handlerPersonalCode
+        type: string
+      - field: sorting
+        type: string
+      - field: page
+        type: string
+      - field: page_size
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: version
+        type: number
+      - field: direction
+        type: string
+      - field: status
+        type: string
+      - field: business_case_id
+        type: string
+      - field: sent_at
+        type: string
+      - field: ncr_from
+        type: string
+      - field: ncr_to
+        type: string
+      - field: transport_undertaking_name
+        type: string
+      - field: handler_name
+        type: string
+      - field: has_infringement
+        type: boolean
+      - field: total
+        type: number
 */
 WITH latest AS (
   SELECT DISTINCT ON (ncr_message_key)
