@@ -535,7 +535,7 @@ audit row directly to the trace in Grafana Tempo — and vice versa.
 ## 11. Related documents
 
 - `docs/openapi.yaml` — full API contract
-- `docs/api-endpoints.md` — tabular list of all endpoints
+- `api-endpoints.md` — tabular list of all endpoints
 - `docs/permissions-matrix.md` — resource → permission catalogue, endpoint access matrix
 - `docs/audit-logging.md` — audit-event logging rules and hash chain
 - `docs/logging-spec.md` — general logging format and forbidden data

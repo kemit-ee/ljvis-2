@@ -4,7 +4,7 @@ How classifier data is fetched, cached, and consumed across the LJVIS 2 frontend
 
 ## Backend sources
 
-Two Ruuter/Resql endpoints expose classifier values in bulk (see `docs/api-endpoints.md` / `docs/openapi.yaml` for full contracts):
+Two Ruuter/Resql endpoints expose classifier values in bulk (see `api-endpoints.md` / `../openapi.yaml` for full contracts):
 
 | Endpoint | Permission | Shape | Notes |
 |---|---|---|---|
