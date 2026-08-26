@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "MOCK ERRU hub for CGR (Check Good Repute / Mainepäring) request/response — dev and CI only (ERRU_CGR_ENDPOINT points at XTR in production). Unlike CTUD (one country → one response), CGR is a BROADCAST operation: every other member state must respond. The mock returns an array of member_state entries (member_states field) matching the structure of the ERRU 3.5 CheckGoodRepute_Response body. Scenario selection is by cgrTo: ZZ (broadcast) returns 4 entries with mixed statuses covering every downstream rendering branch (Found/NotFound/Timeout/NotAvailable). A specific country code returns a single-entry array for that country. Special cgrTo=FI returns HTTP 502 so the transport-failure branch is exercisable. Per LJVIS2-139 spec §3: ERRU v2.4 member states appear as NotAvailable ('Sihtriik ei ole kättesaadav'). Response shape: member_states is the top-level key containing the array; each entry has memberStateCode, statusCode, statusMessage, plus transportManagerDetails when statusCode=Found. transportManagerDetails shape follows ERRU 3.5 CheckGoodRepute_ResponseBodyMemberState from legacy CheckGoodRepute_Types.cs."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

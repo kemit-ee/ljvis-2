@@ -6,9 +6,6 @@ declaration:
     rikkumised ühe isikukoodi kohta. Andmeallikad: compound_form.drivers JSONB ja
     labour_inspection_form.punished_person_id_code. Juurdepääs ainult X-tee
     turvaserveri kaudu — ruuter-internal ei ole nginx-ist proxitud. Vt docs/xtee/01-isiku-kontroll.md.
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
 
 # Samm 1: Kontrolli X-Road-Client päise olemasolu — kohustuslik kõigis X-tee teenustes

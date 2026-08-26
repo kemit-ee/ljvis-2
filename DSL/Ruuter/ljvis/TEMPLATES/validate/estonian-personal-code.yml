@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Validate Estonian personal code (isikukood) - length, digits, date and checksum"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

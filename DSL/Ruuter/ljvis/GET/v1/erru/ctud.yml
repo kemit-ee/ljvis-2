@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Get a single CTUD request (erru.ctud_request) by its logical key, returning the latest snapshot (LJVIS2-143). Read-only; serves all three form modes (outgoing draft, sent outgoing request with response, inbound request). Per the specification the view is audited on EVERY open — unlike the control forms there is no viewer-equals-creator exemption, because the view always exposes transport undertaking data."
-  method: get
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     params:

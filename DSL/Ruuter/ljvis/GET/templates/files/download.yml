@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get presigned download URL for a file attachment. Expects: id"
-  method: post
-  accepts: json
-  returns: json
   namespace: templates
 
 getAttachmentRecord:

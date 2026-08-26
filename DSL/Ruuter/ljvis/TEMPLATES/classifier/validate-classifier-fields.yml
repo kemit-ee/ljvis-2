@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Validate all required classifier form fields"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

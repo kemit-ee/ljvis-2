@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Search/list users filtered by own organisation (local scope)"
-  method: get
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     params:

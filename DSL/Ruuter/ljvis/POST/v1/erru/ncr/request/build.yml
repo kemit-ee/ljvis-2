@@ -5,9 +5,6 @@ declaration:
     ncr.create only. Delegates all derivation logic (Pass/Fail, M1 302 exclusion, serious
     infringements from erru_points) to build.sql. Exactly one new draft is created per call,
     in status 'initiated'; the caller (frontend) then navigates to the NCR form in edit mode."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

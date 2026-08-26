@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Add new users to user group"
-  method: put
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     body:

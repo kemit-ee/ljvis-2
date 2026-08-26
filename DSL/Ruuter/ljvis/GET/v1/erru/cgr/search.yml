@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Paginated, filtered list of OUTGOING CGR requests only (LJVIS2-140) — 'väljaminevad päringud' per the task specification, unlike the CTUD list which covers both directions; direction is hard-coded to 'outgoing' in search.sql, not exposed as a filter. All eight filters are optional and AND-combined, including tmFirstName/tmFamilyName (separate fields, not an OR-group like CTUD's search criteria). Method is GET per docs/rest-api-design-guide.md section 2.3, which lists POST-based list retrieval as a forbidden pattern; the task specification's POST /erru/cgr/list is deliberately not followed, mirroring the CTUD precedent. Audited on every load because the list exposes transport manager and handler names."
-  method: get
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     params:

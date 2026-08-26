@@ -7,9 +7,6 @@ declaration:
     This follows TIM-on-Rust's API-first design: TIM returns JSON
     (session_id + user_profile), and this DSL converts that into a
     browser-compatible Set-Cookie response.
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:
