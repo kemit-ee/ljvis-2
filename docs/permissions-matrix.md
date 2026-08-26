@@ -69,6 +69,7 @@ changelog:
 | `ncr`          | `respond`                 | `ncr.respond`                            | Compose and save the Estonian response draft to an incoming ERRU NCR message. Editable only while the message is `viewed` or `answer_drafted`. |
 | `ncr`          | `send`                    | `ncr.send`                               | Send an ERRU NCR request or response to ERRU, including retrying from `error` (unlike RSI, NCR's `error` state is not terminal). Serving *inbound* requests and receiving the separately-correlated asynchronous response need no permission — both are automatic system processes. |
 | `ncr`          | `list`                    | `ncr.list`                               | View the ERRU NCR case list and filter it. Deliberately a **separate** permission from `ncr.read` — the specification (LJVIS2-65) names it explicitly, unlike RSI/CGR where list access is folded into `*.read`. |
+| `risk_report`  | `list`                    | `risk_report.list`                       | View the admin risk-score list across all Estonian transport undertakings (LJVIS2-152), including filtering by name/registry code/risk band. The citizen "my company" view (LJVIS2-150) and the internal CTUD/cronmanager integration points use a different authorisation model (TARA session + Ariregister representative check, resp. no auth / Docker-network-only) and require no `risk_report.*` permission — see `docs/risk-score/formula.md`. |
 
 ## 2. API endpoint access matrix
 
@@ -236,7 +237,19 @@ changelog:
 > implemented**: forwarding a case to `forms.foreign_violation_form` (`viewed ↔ forwarded`) has no
 > endpoint yet — see LJVIS2-64 §5 and the UI test-cases document for details.
 
-### 2.11 Authentication
+### 2.11 Risk scores (LJVIS2-150/151/152 — EU 2022/695)
+
+| Endpoint                           | HTTP | operationId               | Required permissions |
+| ----------------------------------- | ---- | -------------------------- | --------------------- |
+| `/v1/admin/risk-scores/list`        | GET  | `getRiskScoresList`        | `risk_report.list`   |
+| `/v1/citizen/risk-scores/my-company`| GET  | `getRiskScoreMyCompany`    | — (TARA session + Ariregister representative check, no `risk_report.*` permission) |
+
+> The Ruuter.internal `POST risk-scores/recalculate` and `POST risk-scores/current`
+> endpoints (port 8089, not reachable outside the Docker network) require no
+> permission at all — same machine-to-machine trust model as CTUD/CGR/RSI/NCR's
+> internal counterparts. See `docs/risk-score/formula.md` for the full design.
+
+### 2.12 Authentication
 
 | Endpoint             | HTTP | operationId          | Required permissions                     |
 | -------------------- | ---- | -------------------- | ---------------------------------------- |

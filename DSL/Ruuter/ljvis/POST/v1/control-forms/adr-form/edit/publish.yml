@@ -1,0 +1,149 @@
+declaration:
+
+  version: "1.0"
+  description: "Publish (avalikusta) the ADR sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: checkFormIsConfirmed
+
+checkFormIsConfirmed:
+  assign:
+    current_status: "${currentFormRes.response.body[0].status}"
+    compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
+  next: checkStatusSwitch
+
+checkStatusSwitch:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: returnAlreadyPublishedError
+    - condition: ${current_status !== 'confirmed'}
+      next: returnNotConfirmedError
+  next: extractCurrentFormData
+
+extractCurrentFormData:
+  assign:
+    driver_assistant: "${currentFormRes.response.body[0].driverAssistant || ''}"
+    driver_adr_certificate_number: "${currentFormRes.response.body[0].driverAdrCertificateNumber || ''}"
+    crew_adr_certificate_number: "${currentFormRes.response.body[0].crewAdrCertificateNumber || ''}"
+    assistant_adr_certificate_number: "${currentFormRes.response.body[0].assistantAdrCertificateNumber || ''}"
+    last_load_address: "${currentFormRes.response.body[0].lastLoadAddress || ''}"
+    last_load_date: "${currentFormRes.response.body[0].lastLoadDate || ''}"
+    next_load_address: "${currentFormRes.response.body[0].nextLoadAddress || ''}"
+    dangerous_goods: "${currentFormRes.response.body[0].dangerousGoods || '[]'}"
+    exemption_applied: "${currentFormRes.response.body[0].exemptionApplied || false}"
+    exemption_adr_provision: "${currentFormRes.response.body[0].exemptionAdrProvision || ''}"
+    container_type: "${currentFormRes.response.body[0].containerType || ''}"
+    infringements: "${currentFormRes.response.body[0].infringements || '[]'}"
+    other_violations: "${currentFormRes.response.body[0].otherViolations || ''}"
+    result_type: "${currentFormRes.response.body[0].resultType || 'ok'}"
+    proceeding_type: "${currentFormRes.response.body[0].proceedingType || ''}"
+    proceeding_reference_number: "${currentFormRes.response.body[0].proceedingReferenceNumber || ''}"
+    corrective_measures: "${currentFormRes.response.body[0].correctiveMeasures || '[]'}"
+    seal_opened: "${currentFormRes.response.body[0].sealOpened || false}"
+    seal_opened_date: "${currentFormRes.response.body[0].sealOpenedDate || ''}"
+    seal_installed_date: "${currentFormRes.response.body[0].sealInstalledDate || ''}"
+    notes: "${currentFormRes.response.body[0].notes || ''}"
+  next: publishForm
+
+publishForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: published
+      driverAssistant: ${driver_assistant}
+      driverAdrCertificateNumber: ${driver_adr_certificate_number}
+      crewAdrCertificateNumber: ${crew_adr_certificate_number}
+      assistantAdrCertificateNumber: ${assistant_adr_certificate_number}
+      lastLoadAddress: ${last_load_address}
+      lastLoadDate: ${last_load_date}
+      nextLoadAddress: ${next_load_address}
+      dangerousGoods: ${dangerous_goods}
+      exemptionApplied: ${exemption_applied}
+      exemptionAdrProvision: ${exemption_adr_provision}
+      containerType: ${container_type}
+      infringements: ${infringements}
+      otherViolations: ${other_violations}
+      resultType: ${result_type}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      correctiveMeasures: ${corrective_measures}
+      sealOpened: ${seal_opened}
+      sealOpenedDate: ${seal_opened_date}
+      sealInstalledDate: ${seal_installed_date}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: publishRes
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "ADR alamvorm avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${publishRes.response.body[0].subFormNumber}/${publishRes.response.body[0].version}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.adr.publish"
+    event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: ${description}
+    log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${publishRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnAlreadyPublishedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnNotConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"not_confirmed"}'
+  next: end

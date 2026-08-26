@@ -46,6 +46,7 @@ export const PERMISSIONS = {
   CGR_READ: 'cgr.read',
   RSI_READ: 'rsi.read',
   NCR_LIST: 'ncr.list',
+  RISK_REPORT_LIST: 'risk_report.list',
 } as const;
 
 export const FORM_READ_PERMISSIONS: string[] = [

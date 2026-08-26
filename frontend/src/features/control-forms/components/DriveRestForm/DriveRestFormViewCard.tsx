@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
+import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import type { DriveRestForm } from '../../types';
 import { useDriveRestForm } from '../../pages/drive-rest-form/useDriveRestForm';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -13,16 +14,19 @@ import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
 interface DriveRestFormViewCardProps {
   scope: 'driver' | 'teammate';
   form: DriveRestForm;
-  canEdit: boolean;
-  onEdit: () => void;
   formType: string;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
 }
 
 export function DriveRestFormViewCard({
   scope,
   form,
   formType,
+  canPublish,
+  onPublish,
 }: DriveRestFormViewCardProps) {
+  const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
   const { t } = useTranslation();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { hasAnyPermission } = useAuth();
@@ -81,7 +85,16 @@ export function DriveRestFormViewCard({
           massDimensions={massDimensions}
           readOnly
         />
-        {form.id && <FormVersionsTable formId={form.id} formType={formType} />}
+        {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
+        <div className="confirm-button">
+          <div>
+            {canPublish && onPublish && (
+              <AsyncButton type="button" onClick={() => onPublish().then(() => setVersionsRefreshKey((k) => k + 1))}>
+                {t('common.publish')}
+              </AsyncButton>
+            )}
+          </div>
+        </div>
         {canBuildNcr && form.id && (
           <NcrBuildModal
             spFormKey={form.id}

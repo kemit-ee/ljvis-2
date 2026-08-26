@@ -7,7 +7,7 @@ import type {
   ControlsMatrixRow,
   ViolationEntry,
 } from '../../types';
-import { saveLabourInspectionForm, confirmLabourInspectionForm } from '../../api';
+import { saveLabourInspectionForm, confirmLabourInspectionForm, publishLabourInspectionForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 
@@ -25,10 +25,12 @@ export function useLabourInspectionForm(
   form: LabourInspectionForm | undefined,
   onSaved: (id?: string) => void,
   onConfirmed?: () => void,
+  onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode } = useClassifiers();
 
@@ -92,20 +94,30 @@ export function useLabourInspectionForm(
       setFormError(null);
       try {
         const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
+        pendingPublish.current = false;
         const payload = {
           ...values,
           id: form?.id ?? '',
-          status: isConfirming ? 'confirmed' : 'saved',
+          status: isConfirming
+            ? 'confirmed'
+            : isPublishing
+              ? 'published'
+              : 'saved',
           controlsMatrix: JSON.stringify(values.controlsMatrix ?? []),
           violations: JSON.stringify(values.violations ?? []),
           prescriptionComposed: values.prescriptionComposed ? 'true' : 'false',
         } as unknown as LabourInspectionForm;
         const result = isConfirming
           ? await confirmLabourInspectionForm(payload)
-          : await saveLabourInspectionForm(payload);
+          : form?.id && isPublishing
+            ? await publishLabourInspectionForm(form.id)
+            : await saveLabourInspectionForm(payload);
         if (isConfirming && onConfirmed) {
           onConfirmed();
+        } else if (isPublishing && onPublished) {
+          onPublished();
         } else {
           onSaved((result[0] as { id?: string })?.id);
         }
@@ -125,6 +137,11 @@ export function useLabourInspectionForm(
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
+    return formik.submitForm();
+  };
+
+  const triggerPublish = () => {
+    pendingPublish.current = true;
     return formik.submitForm();
   };
 
@@ -166,6 +183,7 @@ export function useLabourInspectionForm(
     formik,
     isEdit,
     triggerConfirm,
+    triggerPublish,
     transportTypes,
     violationClassifiers,
     addMatrixRow,

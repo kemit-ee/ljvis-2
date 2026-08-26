@@ -16,6 +16,7 @@ import { ClassifierDetailPage } from './features/classifiers/pages/ClassifierDet
 import { ClassifierValueCreatePage } from './features/classifiers/pages/ClassifierValueCreatePage/ClassifierValueCreatePage';
 import { ClassifierValueEditPage } from './features/classifiers/pages/ClassifierValueEditPage/ClassifierValueEditPage';
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
+import { RiskScoresListPage } from './features/risk-scores/pages/RiskScoresListPage/RiskScoresListPage';
 import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDetailPage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
 import { AuthCallback } from './features/auth/AuthCallback';
@@ -90,6 +91,7 @@ function AppRoutes() {
             element={<ClassifierValueEditPage />}
           />
           <Route path="/logs" element={<LogListPage />} />
+          <Route path="/admin/risk-scores" element={<RiskScoresListPage />} />
           <Route path="/logs/:id" element={<LogDetailPage />} />
           <Route
             path="/control-forms/foreign-violation/new"

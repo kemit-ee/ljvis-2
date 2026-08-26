@@ -1,0 +1,82 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    LJVIS2-151/144: returns the latest PERSISTED risk score for a company —
+    never recomputes (see recalculate.yml for that). Consumed by (a) the CTUD
+    inbound-request handler (LJVIS2-144, not built yet — will map riskScore
+    -> ERRU riskRating and riskBandErru -> ERRU riskBand) and (b) the citizen
+    my-company endpoint (DSL/Ruuter/ljvis/GET/v1/citizen/risk-scores/
+    my-company.yml), which strips riskBandErru before returning to the
+    browser. ERRU riskBand wire values are English classifier codes already
+    seeded in classifier.classifier_value under RISK_BAND (Grey/Green/Amber/
+    Red) — Kollane maps to "Amber", NOT "Yellow" (the ERRU 3.5 XSD enum has
+    no Yellow value; confirmed against that classifier seed). No auth
+    required: machine-to-machine only, port 8089 is not exposed outside the
+    Docker network.
+  method: post
+  accepts: json
+  returns: json
+  namespace: risk_score
+  allowlist:
+    body:
+      - field: company_reg_code
+        type: string
+
+extractRequestData:
+  assign:
+    company_reg_code: "${(incoming.body.company_reg_code || '').trim()}"
+  next: getCurrentRiskScore
+
+getCurrentRiskScore:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/risk_score/get_current_risk_score"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: "${!res.response.body || res.response.body.length === 0}"
+      next: returnNoRecord
+  next: mapErruBand
+
+mapErruBand:
+  assign:
+    row: "${res.response.body[0]}"
+    band_erru_map: "${({Hall: 'Grey', Roheline: 'Green', Kollane: 'Amber', Punane: 'Red'})}"
+  next: buildResult
+
+buildResult:
+  assign:
+    risk_band_erru: "${band_erru_map[row.riskBandCode] || 'Grey'}"
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: >-
+    ${({
+      riskScore: row.riskScore,
+      riskBandCode: row.riskBandCode,
+      riskBandErru: risk_band_erru,
+      totalControls: row.totalControls,
+      companyName: row.companyName,
+      windowStart: row.windowStart,
+      windowEnd: row.windowEnd
+    })}
+  next: end
+
+# JS-expression object-literal form, NOT a quoted JSON string literal — the
+# latter gets serialized as a nested STRING inside `response` (confirmed live
+# via Newman: a quoted-string `return:` here made every field read back as
+# `undefined` through pm.response.json().response.riskBandCode etc., exactly
+# the pitfall already documented in DSL/xtr/etoimik/.../kvalifikatsioonid.yml
+# and DSL/xtr/liiklusregister/paring2.yml's returnResult step).
+returnNoRecord:
+  status: 200
+  return: "${({riskScore: null, riskBandCode: 'Hall', riskBandErru: 'Grey', totalControls: 0, companyName: null, windowStart: null, windowEnd: null})}"
+  next: end

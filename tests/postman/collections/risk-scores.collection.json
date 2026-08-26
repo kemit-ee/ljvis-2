@@ -1,0 +1,915 @@
+{
+  "info": {
+    "name": "LJVIS — Risk Scores",
+    "_postman_id": "ljvis-risk-scores-v1",
+    "description": "Functional tests for the risk-score module (LJVIS2-150/151/152, EU 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation. Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001/02/03 = Punane/Nullpunkt/Valistatud). See docs/risk-score/formula.md and .ai/ljvis-tasks/LJVIS2-150/test-cases.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin (risk_report.list)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Punane company (90000001) -> 200, Punane, R=230",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000001\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Punane', () => pm.expect(b.riskBandCode).to.eql('Punane'));",
+              "pm.test('riskScore 230', () => pm.expect(parseFloat(b.riskScore)).to.eql(230));",
+              "pm.test('totalControls 2', () => pm.expect(b.totalControls).to.eql(2));",
+              "pm.test('companyName present', () => pm.expect(b.companyName).to.eql('Riskiskoori Test AS Punane'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Nullpunkt company (90000002) -> 200, Roheline, R=0",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000002\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Roheline', () => pm.expect(b.riskBandCode).to.eql('Roheline'));",
+              "pm.test('totalControls 1', () => pm.expect(b.totalControls).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Valistatud company (90000003) -> 200, Hall, r=0",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000003\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Hall', () => pm.expect(b.riskBandCode).to.eql('Hall'));",
+              "pm.test('riskScore is null', () => pm.expect(b.riskScore).to.eql(null));",
+              "pm.test('totalControls 0', () => pm.expect(b.totalControls).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Company with 2 compound_forms, different names -> latest name wins",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000004\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('companyName is the MOST RECENT compound_form name, not an arbitrary one', () => pm.expect(b.companyName).to.eql('Riskiskoori Test AS Uus Nimi'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Unknown company (99999999) -> 200, Hall, r=0 (no qualifying forms)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"99999999\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Hall', () => pm.expect(b.riskBandCode).to.eql('Hall'));",
+              "pm.test('totalControls 0', () => pm.expect(b.totalControls).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Invalid reg code format (3 digits) -> 400 INVALID_PARAMETER",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"123\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('error INVALID_PARAMETER', () => pm.expect(b.error).to.eql('INVALID_PARAMETER'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Current] Punane -> riskBandCode Punane, riskBandErru Red",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/current",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "current"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000001\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Punane', () => pm.expect(b.riskBandCode).to.eql('Punane'));",
+              "pm.test('riskBandErru Red (NOT Yellow)', () => pm.expect(b.riskBandErru).to.eql('Red'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Current] Nullpunkt -> riskBandCode Roheline, riskBandErru Green",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/current",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "current"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000002\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Roheline', () => pm.expect(b.riskBandCode).to.eql('Roheline'));",
+              "pm.test('riskBandErru Green', () => pm.expect(b.riskBandErru).to.eql('Green'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Current] Valistatud -> riskBandCode Hall, riskBandErru Grey",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/current",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "current"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000003\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Hall', () => pm.expect(b.riskBandCode).to.eql('Hall'));",
+              "pm.test('riskBandErru Grey', () => pm.expect(b.riskBandErru).to.eql('Grey'));",
+              "pm.test('riskScore null', () => pm.expect(b.riskScore).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Current] Company with no record at all -> Hall/Grey defaults",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/current",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "current"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"88888888\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Hall', () => pm.expect(b.riskBandCode).to.eql('Hall'));",
+              "pm.test('riskBandErru Grey', () => pm.expect(b.riskBandErru).to.eql('Grey'));",
+              "pm.test('riskScore null', () => pm.expect(b.riskScore).to.eql(null));",
+              "pm.test('totalControls 0', () => pm.expect(b.totalControls).to.eql(0));",
+              "pm.test('companyName null', () => pm.expect(b.companyName).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Admin List] 403 without auth cookie",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/admin/risk-scores/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "admin",
+            "risk-scores",
+            "list"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Admin List] 403 without risk_report.list permission",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/admin/risk-scores/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "admin",
+            "risk-scores",
+            "list"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Admin List] Basic list — contains all 3 fixture companies",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/admin/risk-scores/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "admin",
+            "risk-scores",
+            "list"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('has content array', () => pm.expect(b).to.have.property('content').that.is.an('array'));",
+              "pm.test('has total', () => pm.expect(b).to.have.property('total').that.is.a('number'));",
+              "pm.test('total >= 3 (fixtures)', () => pm.expect(b.total).to.be.at.least(3));",
+              "var regs = b.content.map(function(r){return r.companyRegCode;});",
+              "pm.test('contains all 3 fixture reg codes', () => { pm.expect(regs).to.include('90000001'); pm.expect(regs).to.include('90000002'); pm.expect(regs).to.include('90000003'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Admin List] Filter riskBand=Hall -> only Valistatud",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/admin/risk-scores/list?riskBand=Hall",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "admin",
+            "risk-scores",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "riskBand",
+              "value": "Hall"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('every row is Hall', () => pm.expect(b.content.every(function(r){return r.riskBandCode==='Hall';})).to.be.true);",
+              "pm.test('contains Valistatud', () => { var regs = b.content.map(function(r){return r.companyRegCode;}); pm.expect(regs).to.include('90000003'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Admin List] Filter regCode=90000002 -> only Nullpunkt",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/admin/risk-scores/list?regCode=90000002",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "admin",
+            "risk-scores",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "regCode",
+              "value": "90000002"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('exactly 1 result', () => pm.expect(b.content).to.have.lengthOf(1));",
+              "pm.test('is Nullpunkt company', () => pm.expect(b.content[0].companyRegCode).to.eql('90000002'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Admin List] Filter q=Punane (company name) -> only Punane",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/admin/risk-scores/list?q=Punane",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "admin",
+            "risk-scores",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "Punane"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('exactly 1 result', () => pm.expect(b.content).to.have.lengthOf(1));",
+              "pm.test('is Punane company', () => pm.expect(b.content[0].companyRegCode).to.eql('90000001'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Admin List] Sort risk_score desc — Hall(null) sorts LAST",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/admin/risk-scores/list?sorting=risk_score desc",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "admin",
+            "risk-scores",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "sorting",
+              "value": "risk_score desc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "var fixtureRows = b.content.filter(function(r){return ['90000001','90000002','90000003'].indexOf(r.companyRegCode) !== -1;});",
+              "pm.test('3 fixture rows present', () => pm.expect(fixtureRows).to.have.lengthOf(3));",
+              "pm.test('last of the 3 fixture rows is the Hall/null one', () => pm.expect(fixtureRows[fixtureRows.length-1].companyRegCode).to.eql('90000003'));",
+              "pm.test('first fixture row is Punane (highest score)', () => pm.expect(fixtureRows[0].companyRegCode).to.eql('90000001'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Admin List] Sort company_name asc — matches frontend's actual sort key (regression)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/admin/risk-scores/list?sorting=company_name asc",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "admin",
+            "risk-scores",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "sorting",
+              "value": "company_name asc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "var fixtureRows = b.content.filter(function(r){return ['90000001','90000002','90000003','90000004'].indexOf(r.companyRegCode) !== -1;});",
+              "pm.test('4 fixture rows present', () => pm.expect(fixtureRows).to.have.lengthOf(4));",
+              "var names = fixtureRows.map(function(r){return r.companyName;});",
+              "pm.test('NOT sorted by regCode (regression guard: frontend sends company_name, not name)', () => { var regs = fixtureRows.map(function(r){return r.companyRegCode;}); pm.expect(regs).to.not.eql(['90000001','90000002','90000003','90000004']); });",
+              "var sorted = names.slice().sort(function(a,b){return a.localeCompare(b, 'et');});",
+              "pm.test('actually alphabetically sorted by company name', () => pm.expect(names).to.eql(sorted));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Citizen] Invalid regCode format -> 400 (auth guard correctly bypassed)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/citizen/risk-scores/my-company?q=abc",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "citizen",
+            "risk-scores",
+            "my-company"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "abc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('error INVALID_PARAMETER', () => pm.expect(b.error).to.eql('INVALID_PARAMETER'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Citizen] No auth cookie -> 400 UNAUTHENTICATED (NOT 403 from parent guard)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/citizen/risk-scores/my-company?q=90000001",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "citizen",
+            "risk-scores",
+            "my-company"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "90000001"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 (own auth check, not the parent /v1/.guard 403)', () => pm.response.to.have.status(400));",
+              "var raw = pm.response.json();",
+              "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('error UNAUTHENTICATED', () => pm.expect(b.error).to.eql('UNAUTHENTICATED'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

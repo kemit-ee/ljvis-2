@@ -1,0 +1,164 @@
+declaration:
+
+  version: "1.0"
+  description: "Publish (avalikusta) compound form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: extractCurrentFormData
+
+extractCurrentFormData:
+  assign:
+    form_number: "${currentFormRes.response.body[0].formNumber || ''}"
+    control_date: "${currentFormRes.response.body[0].controlDate || ''}"
+    control_time: "${currentFormRes.response.body[0].controlTime || ''}"
+    control_country_code: "${currentFormRes.response.body[0].controlCountryCode || ''}"
+    county: "${currentFormRes.response.body[0].county || ''}"
+    city: "${currentFormRes.response.body[0].city || ''}"
+    road: "${currentFormRes.response.body[0].road || ''}"
+    road_other: "${currentFormRes.response.body[0].roadOther || ''}"
+    kilometer: "${currentFormRes.response.body[0].kilometer || ''}"
+    address: "${currentFormRes.response.body[0].address || ''}"
+    road_type: "${currentFormRes.response.body[0].road_type || ''}"
+    road_tax_status: "${currentFormRes.response.body[0].roadTaxStatus || ''}"
+    road_tax_notes: "${currentFormRes.response.body[0].roadTaxNotes || ''}"
+    vehicle_reg_nr: "${currentFormRes.response.body[0].vehicleRegNr || ''}"
+    vehicle_make: "${currentFormRes.response.body[0].vehicleMake || ''}"
+    vehicle_model: "${currentFormRes.response.body[0].vehicleModel || ''}"
+    vehicle_country_code: "${currentFormRes.response.body[0].vehicleCountryCode || ''}"
+    vehicle_vin: "${currentFormRes.response.body[0].vehicleVin || ''}"
+    vehicle_first_registration: "${currentFormRes.response.body[0].vehicleFirstRegistration || ''}"
+    vehicle_body_type: "${currentFormRes.response.body[0].vehicleBodyType || ''}"
+    vehicle_category_code: "${currentFormRes.response.body[0].vehicleCategoryCode || ''}"
+    vehicle_category_other: "${currentFormRes.response.body[0].vehicleCategoryOther || ''}"
+    vehicle_mileage: "${currentFormRes.response.body[0].vehicleMileage || ''}"
+    trailers: "${currentFormRes.response.body[0].trailers || '[]'}"
+    company_reg_code: "${currentFormRes.response.body[0].companyRegCode || ''}"
+    company_name: "${currentFormRes.response.body[0].companyName || ''}"
+    company_country_code: "${currentFormRes.response.body[0].companyCountryCode || ''}"
+    company_county: "${currentFormRes.response.body[0].companyCounty || ''}"
+    company_city: "${currentFormRes.response.body[0].companyCity || ''}"
+    company_address_line1: "${currentFormRes.response.body[0].companyAddressLine1 || ''}"
+    company_postal_code: "${currentFormRes.response.body[0].companyPostalCode || ''}"
+    company_owner_first_name: "${currentFormRes.response.body[0].companyOwnerFirstName || ''}"
+    company_owner_last_name: "${currentFormRes.response.body[0].companyOwnerLastName || ''}"
+    company_activity_licence_copy_number: "${currentFormRes.response.body[0].companyActivityLicenceCopyNumber || ''}"
+    drivers: "${currentFormRes.response.body[0].drivers || '[]'}"
+    inspector_first_name: "${currentFormRes.response.body[0].inspectorFirstName || ''}"
+    inspector_last_name: "${currentFormRes.response.body[0].inspectorLastName || ''}"
+    inspector_organisation_id: "${currentFormRes.response.body[0].inspectorOrganisationId || ''}"
+    inspector_unit: "${currentFormRes.response.body[0].inspectorUnit || ''}"
+    inspector_profession: "${currentFormRes.response.body[0].inspectorProfession || ''}"
+  next: publishForm
+
+publishForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      formNumber: ${form_number}
+      status: published
+      controlDate: ${control_date}
+      controlTime: ${control_time}
+      controlCountryCode: ${control_country_code}
+      county: ${county}
+      city: ${city}
+      road: ${road}
+      roadOther: ${road_other}
+      kilometer: ${kilometer}
+      address: ${address}
+      road_type: ${road_type}
+      roadTaxStatus: ${road_tax_status}
+      roadTaxNotes: ${road_tax_notes}
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ${vehicle_make}
+      vehicleModel: ${vehicle_model}
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ${vehicle_vin}
+      vehicleFirstRegistration: ${vehicle_first_registration}
+      vehicleBodyType: ${vehicle_body_type}
+      vehicleCategoryCode: ${vehicle_category_code}
+      vehicleCategoryOther: ${vehicle_category_other}
+      vehicleMileage: ${vehicle_mileage}
+      trailers: ${trailers}
+      companyRegCode: ${company_reg_code}
+      companyName: ${company_name}
+      companyCountryCode: ${company_country_code}
+      companyCounty: ${company_county}
+      companyCity: ${company_city}
+      companyAddressLine1: ${company_address_line1}
+      companyPostalCode: ${company_postal_code}
+      companyOwnerFirstName: ${company_owner_first_name}
+      companyOwnerLastName: ${company_owner_last_name}
+      companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
+      drivers: ${drivers}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      created_by: ${created_by}
+  result: publishRes
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    compound_form_key: "${publishRes.response.body[0].id || ''}"
+    description: "Koondvorm avalikustatud, vormi võti=${id}, vormi number=${form_number}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.compound_form.publish"
+    event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: ${description}
+    log_content: "{\"compoundFormKey\":${compound_form_key},\"formNumber\":\"${form_number}\"}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${publishRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end
