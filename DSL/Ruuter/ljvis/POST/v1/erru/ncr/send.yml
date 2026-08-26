@@ -10,9 +10,6 @@ declaration:
     negative ack (Timeout/NotAvailable) or a transport failure both transition to 'error'.
     The ERRU hub endpoint is resolved from ERRU_NCR_ENDPOINT (mock in dev/CI, XTR in
     production)."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

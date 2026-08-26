@@ -1,47 +1,56 @@
 /*
-declaration:
-  version: 0.1
-  description: "Create a new OUTGOING CTUD request draft (LJVIS2-143). Appends the first snapshot of a new erru.ctud_request with status 'initiated'. Allocates both the logical key and the human-readable business_case_id (CTUD-EE-AAAA-NNNNN) server-side — neither is ever taken from the client. ctud_from is hardcoded to EE because an outgoing request is by definition issued by Estonia. status and direction are hardcoded here, never accepted from the caller."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: ctudTo
-        type: string
-      - field: originatingAuthority
-        type: string
-      - field: requestSource
-        type: string
-      - field: requestPurpose
-        type: string
-      - field: transportUndertakingName
-        type: string
-      - field: communityLicenceNumber
-        type: string
-      - field: vehicleRegistrationNumber
-        type: string
-      - field: vehicleRegistrationCountry
-        type: string
-      - field: requestAllVehicles
-        type: string
-      - field: handlerPersonalCode
-        type: string
-      - field: handlerName
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
+description: "Create a new OUTGOING CTUD request draft (LJVIS2-143). Appends the first snapshot of a new erru.ctud_request with status 'initiated'. Allocates both the logical key and the human-readable business_case_id (CTUD-EE-AAAA-NNNNN) server-side — neither is ever taken from the client. ctud_from is hardcoded to EE because an outgoing request is by definition issued by Estonia. status and direction are hardcoded here, never accepted from the caller."
+namespace: erru
+params:
+  ctudTo:
+    type: string
+    required: false
+  originatingAuthority:
+    type: string
+    required: false
+  requestSource:
+    type: string
+    required: false
+  requestPurpose:
+    type: string
+    required: false
+  transportUndertakingName:
+    type: string
+    required: false
+  communityLicenceNumber:
+    type: string
+    required: false
+  vehicleRegistrationNumber:
+    type: string
+    required: false
+  vehicleRegistrationCountry:
+    type: string
+    required: false
+  requestAllVehicles:
+    type: string
+    required: false
+  handlerPersonalCode:
+    type: string
+    required: false
+  handlerName:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
 */
 WITH ins AS (
   INSERT INTO erru.ctud_request (

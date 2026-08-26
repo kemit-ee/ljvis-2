@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Walk the audit-log hash chain and verify integrity. Returns ok=true when every row's prev_row_hash matches the preceding row's row_hash; ok=false with the first breach location otherwise."
-  method: get
-  accepts: json
-  returns: json
   namespace: logs
   allowlist:
     params:

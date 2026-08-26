@@ -1,3 +1,9 @@
+/*
+params:
+  id:
+    type: string
+    required: false
+*/
 SELECT DISTINCT ON (classifier_key)
     classifier_key   AS id,
     code,

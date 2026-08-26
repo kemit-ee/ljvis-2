@@ -1,72 +1,80 @@
 /*
-declaration:
-  version: 0.1
-  description: "Paginated, filtered list of RSI messages — BOTH incoming and outgoing (LJVIS2-149).
-    Unlike the CGR list (outgoing-only), the spec explicitly includes both directions: 'kuvab
-    sissetulevad ja väljaminevad tehnokontrolli teated ühes tabelis'. The latest CTE reduces the
-    append-only table to one row per message before filtering or paging. Text filters businessCaseId
-    and vehicleRegistrationNumber are OR-combined with each other, then AND-combined with all other
-    filters — this is an explicit requirement of the spec ('Väljad ID ja Sõiduki registreerimisnumber
-    on otsitavad väljad — nende omavaheline seos on VÕI-loogika'). direction is an exposed filter
-    parameter (not hard-coded). response_status_code is a direct column from the latest snapshot —
-    no derived computation like in CGR (RSI always targets a single country, no broadcast ZZ).
-    Sorting is whitelisted; total via COUNT(*) OVER () to keep round trips to one."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: businessCaseId
-        type: string
-      - field: vehicleRegistrationNumber
-        type: string
-      - field: sentFrom
-        type: string
-      - field: sentUntil
-        type: string
-      - field: rsiFrom
-        type: string
-      - field: rsiTo
-        type: string
-      - field: status
-        type: string
-      - field: direction
-        type: string
-      - field: handlerPersonalCode
-        type: string
-      - field: sorting
-        type: string
-      - field: page
-        type: string
-      - field: page_size
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: version
-        type: number
-      - field: direction
-        type: string
-      - field: status
-        type: string
-      - field: business_case_id
-        type: string
-      - field: sent_at
-        type: string
-      - field: rsi_from
-        type: string
-      - field: rsi_to
-        type: string
-      - field: vehicle_registration_number
-        type: string
-      - field: response_status_code
-        type: string
-      - field: handler_name
-        type: string
-      - field: total
-        type: number
+description: "Paginated, filtered list of RSI messages — BOTH incoming and outgoing (LJVIS2-149). Unlike the CGR list (outgoing-only), the spec explicitly includes both directions: 'kuvab sissetulevad ja väljaminevad tehnokontrolli teated ühes tabelis'. The latest CTE reduces the append-only table to one row per message before filtering or paging. Text filters businessCaseId and vehicleRegistrationNumber are OR-combined with each other, then AND-combined with all other filters — this is an explicit requirement of the spec ('Väljad ID ja Sõiduki registreerimisnumber on otsitavad väljad — nende omavaheline seos on VÕI-loogika'). direction is an exposed filter parameter (not hard-coded). response_status_code is a direct column from the latest snapshot — no derived computation like in CGR (RSI always targets a single country, no broadcast ZZ). Sorting is whitelisted; total via COUNT(*) OVER () to keep round trips to one."
+namespace: erru
+params:
+  businessCaseId:
+    type: string
+    required: false
+  vehicleRegistrationNumber:
+    type: string
+    required: false
+  sentFrom:
+    type: string
+    required: false
+  sentUntil:
+    type: string
+    required: false
+  rsiFrom:
+    type: string
+    required: false
+  rsiTo:
+    type: string
+    required: false
+  status:
+    type: string
+    required: false
+  direction:
+    type: string
+    required: false
+  handlerPersonalCode:
+    type: string
+    required: false
+  sorting:
+    type: string
+    required: false
+  page:
+    type: string
+    required: false
+  page_size:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: direction
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: sent_at
+    type: string
+    nullable: true
+  - name: rsi_from
+    type: string
+    nullable: true
+  - name: rsi_to
+    type: string
+    nullable: true
+  - name: vehicle_registration_number
+    type: string
+    nullable: true
+  - name: response_status_code
+    type: string
+    nullable: true
+  - name: handler_name
+    type: string
+    nullable: true
+  - name: total
+    type: number
+    nullable: true
 */
 WITH latest AS (
   SELECT DISTINCT ON (rsi_message_key)

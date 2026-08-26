@@ -1,74 +1,96 @@
 /*
-declaration:
-  version: 0.1
-  description: "Read one CGR request by its logical key (LJVIS2-138). Returns the LATEST snapshot only — current state is always the most recent row for cgr_request_key. Returns zero rows when the key does not exist, which the caller maps to 404. Columns are emitted in snake_case and serialised to camelCase by Resql; member_states is cast to text so the JSONB document is passed through verbatim."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: id
-        type: string
-        description: "CGR request logical key (cgr_request_key)"
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: version
-        type: number
-      - field: direction
-        type: string
-      - field: status
-        type: string
-      - field: business_case_id
-        type: string
-      - field: technical_id
-        type: string
-      - field: workflow_id
-        type: string
-      - field: sent_at
-        type: string
-      - field: cgr_from
-        type: string
-      - field: cgr_to
-        type: string
-      - field: originating_authority
-        type: string
-      - field: request_source
-        type: string
-      - field: request_purpose
-        type: string
-      - field: tm_first_name
-        type: string
-      - field: tm_family_name
-        type: string
-      - field: tm_date_of_birth
-        type: string
-      - field: tm_place_of_birth
-        type: string
-      - field: tm_first_name_search_key
-        type: string
-      - field: tm_family_name_search_key
-        type: string
-      - field: certificate_number
-        type: string
-      - field: certificate_issue_date
-        type: string
-      - field: certificate_issue_country
-        type: string
-      - field: member_states
-        type: string
-      - field: handler_personal_code
-        type: string
-      - field: handler_name
-        type: string
-      - field: error_message
-        type: string
-      - field: created_at
-        type: string
-      - field: created_by
-        type: string
+description: "Read one CGR request by its logical key (LJVIS2-138). Returns the LATEST snapshot only — current state is always the most recent row for cgr_request_key. Returns zero rows when the key does not exist, which the caller maps to 404. Columns are emitted in snake_case and serialised to camelCase by Resql; member_states is cast to text so the JSONB document is passed through verbatim."
+namespace: erru
+params:
+  id:
+    type: string
+    required: false
+    description: "CGR request logical key (cgr_request_key)"
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: direction
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: technical_id
+    type: string
+    nullable: true
+  - name: workflow_id
+    type: string
+    nullable: true
+  - name: sent_at
+    type: string
+    nullable: true
+  - name: cgr_from
+    type: string
+    nullable: true
+  - name: cgr_to
+    type: string
+    nullable: true
+  - name: originating_authority
+    type: string
+    nullable: true
+  - name: request_source
+    type: string
+    nullable: true
+  - name: request_purpose
+    type: string
+    nullable: true
+  - name: tm_first_name
+    type: string
+    nullable: true
+  - name: tm_family_name
+    type: string
+    nullable: true
+  - name: tm_date_of_birth
+    type: string
+    nullable: true
+  - name: tm_place_of_birth
+    type: string
+    nullable: true
+  - name: tm_first_name_search_key
+    type: string
+    nullable: true
+  - name: tm_family_name_search_key
+    type: string
+    nullable: true
+  - name: certificate_number
+    type: string
+    nullable: true
+  - name: certificate_issue_date
+    type: string
+    nullable: true
+  - name: certificate_issue_country
+    type: string
+    nullable: true
+  - name: member_states
+    type: string
+    nullable: true
+  - name: handler_personal_code
+    type: string
+    nullable: true
+  - name: handler_name
+    type: string
+    nullable: true
+  - name: error_message
+    type: string
+    nullable: true
+  - name: created_at
+    type: string
+    nullable: true
+  - name: created_by
+    type: string
+    nullable: true
 */
 SELECT
   cgr_request_key AS id,

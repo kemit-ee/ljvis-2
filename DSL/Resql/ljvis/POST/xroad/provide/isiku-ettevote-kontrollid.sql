@@ -1,43 +1,44 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    X-tee IsikuEttevoteKontrollid (v1): tagastab kõik LJVIS kontrollid ettevõtete
-    kohta, millega antud isik on seotud (juhi rollina koondvormis või karistatu
-    tööinspektsiooniaktis). Ainult lokaalne DB — Äriregistri välispäringut ei tehta.
-    Kustutatud staatuses vormid välistatakse.
-  method: post
-  accepts: json
-  returns: json
-  namespace: xroad
-  allowlist:
-    body:
-      - field: isikukood
-        type: string
-  response:
-    fields:
-      - field: ettevote_reg_nr
-        type: string
-      - field: kuupaev
-        type: string
-      - field: kontrolli_nimetus
-        type: string
-      - field: asutus
-        type: string
-      - field: nimetus
-        type: string
-      - field: soiduki_reg_nr
-        type: string
-      - field: juhi_nimi
-        type: string
-      - field: juhi_perekonnanimi
-        type: string
-      - field: rikkumise_liik
-        type: string
-      - field: rikkumised
-        type: string
-      - field: rikkumised_lopetatud
-        type: string
+description: "X-tee IsikuEttevoteKontrollid (v1): tagastab kõik LJVIS kontrollid ettevõtete kohta, millega antud isik on seotud (juhi rollina koondvormis või karistatu tööinspektsiooniaktis). Ainult lokaalne DB — Äriregistri välispäringut ei tehta. Kustutatud staatuses vormid välistatakse."
+namespace: xroad
+params:
+  isikukood:
+    type: string
+    required: false
+returns:
+  - name: ettevote_reg_nr
+    type: string
+    nullable: true
+  - name: kuupaev
+    type: string
+    nullable: true
+  - name: kontrolli_nimetus
+    type: string
+    nullable: true
+  - name: asutus
+    type: string
+    nullable: true
+  - name: nimetus
+    type: string
+    nullable: true
+  - name: soiduki_reg_nr
+    type: string
+    nullable: true
+  - name: juhi_nimi
+    type: string
+    nullable: true
+  - name: juhi_perekonnanimi
+    type: string
+    nullable: true
+  - name: rikkumise_liik
+    type: string
+    nullable: true
+  - name: rikkumised
+    type: string
+    nullable: true
+  - name: rikkumised_lopetatud
+    type: string
+    nullable: true
 */
 
 -- CTE 1: leia kõik ettevõtete registrikoodid, millega isik on seotud

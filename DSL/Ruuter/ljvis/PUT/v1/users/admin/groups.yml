@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Replace all group memberships for a user"
-  method: put
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     body:

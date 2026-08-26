@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List of all counties (fixed set)"
-  method: get
-  accepts: json
-  returns: json
   namespace: classifiers
 
 getCountries:

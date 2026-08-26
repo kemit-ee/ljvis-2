@@ -1,98 +1,125 @@
 /*
-declaration:
-  version: 0.1
-  description: "Read the full history of one NCR case (LJVIS2-63). Returns EVERY snapshot for
-    the given business_case_id, ordered by created_at ASC — the caller treats the LAST element
-    as the current state (for the editable header/blocks) and the WHOLE array as the read-only
-    'Juhtumi teadete loend'. Returns zero rows when the case does not exist, which the caller
-    maps to 404. Columns are emitted in snake_case and serialised to camelCase by Resql; JSONB
-    columns are cast to text so the documents pass through verbatim to the DMapper template."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: businessCaseId
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: version
-        type: number
-      - field: direction
-        type: string
-      - field: status
-        type: string
-      - field: pre_forwarding_status
-        type: string
-      - field: business_case_id
-        type: string
-      - field: technical_id
-        type: string
-      - field: workflow_id
-        type: string
-      - field: sent_at
-        type: string
-      - field: ncr_from
-        type: string
-      - field: ncr_to
-        type: string
-      - field: originating_authority
-        type: string
-      - field: request_source
-        type: string
-      - field: request_purpose
-        type: string
-      - field: ack_status_code
-        type: string
-      - field: ack_status_message
-        type: string
-      - field: ack_received_at
-        type: string
-      - field: response_status_code
-        type: string
-      - field: response_status_message
-        type: string
-      - field: transport_undertaking_name
-        type: string
-      - field: community_licence_number
-        type: string
-      - field: vehicle_registration_number
-        type: string
-      - field: vehicle_registration_country
-        type: string
-      - field: check_result
-        type: string
-      - field: check_date
-        type: string
-      - field: minor_infringement
-        type: string
-      - field: serious_infringements
-        type: string
-      - field: response_penalties_imposed
-        type: string
-      - field: responding_authority
-        type: string
-      - field: response_number_of_vehicles
-        type: number
-      - field: response_community_licence_status
-        type: string
-      - field: response_address
-        type: string
-      - field: linked_foreign_violation_form_key
-        type: number
-      - field: handler_personal_code
-        type: string
-      - field: handler_name
-        type: string
-      - field: error_message
-        type: string
-      - field: created_at
-        type: string
-      - field: created_by
-        type: string
+description: "Read the full history of one NCR case (LJVIS2-63). Returns EVERY snapshot for the given business_case_id, ordered by created_at ASC — the caller treats the LAST element as the current state (for the editable header/blocks) and the WHOLE array as the read-only 'Juhtumi teadete loend'. Returns zero rows when the case does not exist, which the caller maps to 404. Columns are emitted in snake_case and serialised to camelCase by Resql; JSONB columns are cast to text so the documents pass through verbatim to the DMapper template."
+namespace: erru
+params:
+  businessCaseId:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: direction
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: pre_forwarding_status
+    type: string
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: technical_id
+    type: string
+    nullable: true
+  - name: workflow_id
+    type: string
+    nullable: true
+  - name: sent_at
+    type: string
+    nullable: true
+  - name: ncr_from
+    type: string
+    nullable: true
+  - name: ncr_to
+    type: string
+    nullable: true
+  - name: originating_authority
+    type: string
+    nullable: true
+  - name: request_source
+    type: string
+    nullable: true
+  - name: request_purpose
+    type: string
+    nullable: true
+  - name: ack_status_code
+    type: string
+    nullable: true
+  - name: ack_status_message
+    type: string
+    nullable: true
+  - name: ack_received_at
+    type: string
+    nullable: true
+  - name: response_status_code
+    type: string
+    nullable: true
+  - name: response_status_message
+    type: string
+    nullable: true
+  - name: transport_undertaking_name
+    type: string
+    nullable: true
+  - name: community_licence_number
+    type: string
+    nullable: true
+  - name: vehicle_registration_number
+    type: string
+    nullable: true
+  - name: vehicle_registration_country
+    type: string
+    nullable: true
+  - name: check_result
+    type: string
+    nullable: true
+  - name: check_date
+    type: string
+    nullable: true
+  - name: minor_infringement
+    type: string
+    nullable: true
+  - name: serious_infringements
+    type: string
+    nullable: true
+  - name: response_penalties_imposed
+    type: string
+    nullable: true
+  - name: responding_authority
+    type: string
+    nullable: true
+  - name: response_number_of_vehicles
+    type: number
+    nullable: true
+  - name: response_community_licence_status
+    type: string
+    nullable: true
+  - name: response_address
+    type: string
+    nullable: true
+  - name: linked_foreign_violation_form_key
+    type: number
+    nullable: true
+  - name: handler_personal_code
+    type: string
+    nullable: true
+  - name: handler_name
+    type: string
+    nullable: true
+  - name: error_message
+    type: string
+    nullable: true
+  - name: created_at
+    type: string
+    nullable: true
+  - name: created_by
+    type: string
+    nullable: true
 */
 SELECT
   ncr_message_key AS id,

@@ -1,33 +1,23 @@
 /*
-declaration:
-  version: 0.1
-  description: "Automatic received -> viewed transition (LJVIS2-62 §4 üleminekute tabel: 'Saabunud
-    -> Vaadatud | Menetleja avab juhtumi | Käsitsi'). Triggered as a side effect of the first GET
-    /v1/erru/ncr/get.yml open of an incoming case, per LJVIS2-63 §4 'Teate esmakordsel avamisel
-    liigub teade olekusse Vaadatud'. Guarded: the INSERT .. SELECT produces zero rows unless the
-    latest snapshot is status='received' AND direction='incoming', so opening an already-viewed
-    (or outgoing, or terminal) case is a harmless no-op — the caller simply keeps using the
-    already-fetched snapshot. All fields are carried forward unchanged; created_by is 'system'
-    since this transition has no human actor (LJVIS2-62 §Testimine: 'automaatsel üleminekul on
-    actorPersonalCode väärtus null')."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: businessCaseId
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
+description: "Automatic received -> viewed transition (LJVIS2-62 §4 üleminekute tabel: 'Saabunud -> Vaadatud | Menetleja avab juhtumi | Käsitsi'). Triggered as a side effect of the first GET /v1/erru/ncr/get.yml open of an incoming case, per LJVIS2-63 §4 'Teate esmakordsel avamisel liigub teade olekusse Vaadatud'. Guarded: the INSERT .. SELECT produces zero rows unless the latest snapshot is status='received' AND direction='incoming', so opening an already-viewed (or outgoing, or terminal) case is a harmless no-op — the caller simply keeps using the already-fetched snapshot. All fields are carried forward unchanged; created_by is 'system' since this transition has no human actor (LJVIS2-62 §Testimine: 'automaatsel üleminekul on actorPersonalCode väärtus null')."
+namespace: erru
+params:
+  businessCaseId:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
 */
 WITH latest AS (
   SELECT *

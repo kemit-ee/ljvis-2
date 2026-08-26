@@ -1,38 +1,40 @@
 /*
-declaration:
-  version: 0.1
-  description: "List all user groups with their organisations"
-  method: post
-  namespace: user_group
-  returns: json
-  allowlist:
-    body:
-      - field: search
-        type: string
-        description: "Search by group name or organisation name"
-      - field: page
-        type: number
-        description: "Page number"
-      - field: page_size
-        type: number
-        description: "Items per page"
-      - field: sorting
-        type: string
-        description: "Sort column and direction"
-      - field: organisation_id
-        type: number
-        description: "Filter by organisation ID (for local admin), 0 means no filter"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: name
-        type: string
-      - field: organisations
-        type: array
-        description: "Array of organisation names"
-      - field: total
-        type: number
+description: "List all user groups with their organisations"
+namespace: user_group
+params:
+  search:
+    type: string
+    required: false
+    description: "Search by group name or organisation name"
+  page:
+    type: number
+    required: false
+    description: "Page number"
+  page_size:
+    type: number
+    required: false
+    description: "Items per page"
+  sorting:
+    type: string
+    required: false
+    description: "Sort column and direction"
+  organisation_id:
+    type: number
+    required: false
+    description: "Filter by organisation ID (for local admin), 0 means no filter"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: name
+    type: string
+    nullable: true
+  - name: organisations
+    type: array
+    nullable: true
+  - name: total
+    type: number
+    nullable: true
 */
 WITH latest AS (
     SELECT DISTINCT ON (user_group_key)

@@ -1,49 +1,59 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get good repute form (hea maine vorm) by key — latest snapshot"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: id
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: form_number
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
-      - field: personal_code
-        type: string
-      - field: first_name
-        type: string
-      - field: last_name
-        type: string
-      - field: date_of_birth
-        type: string
-      - field: place_of_birth
-        type: string
-      - field: certificate_number
-        type: string
-      - field: certificate_issue_date
-        type: string
-      - field: certificate_country_code
-        type: string
-      - field: fitness_status
-        type: string
-      - field: unfit_from_date
-        type: string
-      - field: unfit_until_date
-        type: string
-      - field: created_by
-        type: string
+description: "Get good repute form (hea maine vorm) by key — latest snapshot"
+namespace: control-forms
+params:
+  id:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: form_number
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: personal_code
+    type: string
+    nullable: true
+  - name: first_name
+    type: string
+    nullable: true
+  - name: last_name
+    type: string
+    nullable: true
+  - name: date_of_birth
+    type: string
+    nullable: true
+  - name: place_of_birth
+    type: string
+    nullable: true
+  - name: certificate_number
+    type: string
+    nullable: true
+  - name: certificate_issue_date
+    type: string
+    nullable: true
+  - name: certificate_country_code
+    type: string
+    nullable: true
+  - name: fitness_status
+    type: string
+    nullable: true
+  - name: unfit_from_date
+    type: string
+    nullable: true
+  - name: unfit_until_date
+    type: string
+    nullable: true
+  - name: created_by
+    type: string
+    nullable: true
 */
 SELECT
   good_repute_form_key AS id,

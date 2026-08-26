@@ -1,40 +1,45 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get user with aggregated permissions by personal_code"
-  method: post
-  namespace: user
-  returns: json
-  allowlist:
-    body:
-      - field: personal_code
-        type: string
-        description: "User personal code (isikukood)"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: firstname
-        type: string
-      - field: lastname
-        type: string
-      - field: personalcode
-        type: string
-      - field: organisationid
-        type: string
-      - field: organisationname
-        type: string
-      - field: email
-        type: string
-      - field: status
-        type: string
-      - field: structuralunit
-        type: string
-      - field: jobtitle
-        type: string
-      - field: permissions
-        type: array
-        description: "Array of permission codes from all user groups"
+description: "Get user with aggregated permissions by personal_code"
+namespace: user
+params:
+  personal_code:
+    type: string
+    required: false
+    description: "User personal code (isikukood)"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: firstname
+    type: string
+    nullable: true
+  - name: lastname
+    type: string
+    nullable: true
+  - name: personalcode
+    type: string
+    nullable: true
+  - name: organisationid
+    type: string
+    nullable: true
+  - name: organisationname
+    type: string
+    nullable: true
+  - name: email
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: structuralunit
+    type: string
+    nullable: true
+  - name: jobtitle
+    type: string
+    nullable: true
+  - name: permissions
+    type: array
+    nullable: true
 */
 WITH latest_user AS (
     SELECT DISTINCT ON (user_account_key)

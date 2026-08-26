@@ -1,53 +1,64 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get a single good repute form snapshot by snapshot ID (for the read-only historical version view)"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: id
-        type: string
-        description: "Snapshot ID (primary key)"
-      - field: form_key
-        type: string
-        description: "Good repute form key"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: form_number
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
-      - field: personal_code
-        type: string
-      - field: first_name
-        type: string
-      - field: last_name
-        type: string
-      - field: date_of_birth
-        type: string
-      - field: place_of_birth
-        type: string
-      - field: certificate_number
-        type: string
-      - field: certificate_issue_date
-        type: string
-      - field: certificate_country_code
-        type: string
-      - field: fitness_status
-        type: string
-      - field: unfit_from_date
-        type: string
-      - field: unfit_until_date
-        type: string
-      - field: created_by
-        type: string
+description: "Get a single good repute form snapshot by snapshot ID (for the read-only historical version view)"
+namespace: control-forms
+params:
+  id:
+    type: string
+    required: false
+    description: "Snapshot ID (primary key)"
+  form_key:
+    type: string
+    required: false
+    description: "Good repute form key"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: form_number
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: personal_code
+    type: string
+    nullable: true
+  - name: first_name
+    type: string
+    nullable: true
+  - name: last_name
+    type: string
+    nullable: true
+  - name: date_of_birth
+    type: string
+    nullable: true
+  - name: place_of_birth
+    type: string
+    nullable: true
+  - name: certificate_number
+    type: string
+    nullable: true
+  - name: certificate_issue_date
+    type: string
+    nullable: true
+  - name: certificate_country_code
+    type: string
+    nullable: true
+  - name: fitness_status
+    type: string
+    nullable: true
+  - name: unfit_from_date
+    type: string
+    nullable: true
+  - name: unfit_until_date
+    type: string
+    nullable: true
+  - name: created_by
+    type: string
+    nullable: true
 */
 SELECT
   id,

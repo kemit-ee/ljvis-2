@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Audit: CGR request draft saved (LJVIS2-138). Logged on every draft save — initial create, revision, and creation-as-copy ('Kopeeri päring', LJVIS2-140). The description carries the request identifier, the source request identifier when created as a copy, the list of changed fields and the resulting status."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

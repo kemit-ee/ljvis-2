@@ -1,53 +1,65 @@
 /*
-declaration:
-  version: 0.1
-  description: "Insert trailer technical-check sub-form (haagise tehnovorm) — first save"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: compoundFormKey
-        type: number
-      - field: status
-        type: string
-      - field: partsSummary
-        type: string
-      - field: partsDefects
-        type: string
-      - field: resultType
-        type: string
-      - field: resultTransportInterruption
-        type: boolean
-      - field: eraYvMntRegnr
-        type: boolean
-      - field: eraYvMntVintin
-        type: boolean
-      - field: eraYvMntAxles
-        type: boolean
-      - field: eraYvMntPlaces
-        type: boolean
-      - field: eraYvMntRebuilt
-        type: boolean
-      - field: proceedingType
-        type: string
-      - field: proceedingReferenceNumber
-        type: string
-      - field: violations
-        type: string
-      - field: notes
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: subFormNumber
-        type: string
-      - field: version
-        type: number
+description: "Insert trailer technical-check sub-form (haagise tehnovorm) — first save"
+namespace: control-forms
+params:
+  compoundFormKey:
+    type: number
+    required: false
+  status:
+    type: string
+    required: false
+  partsSummary:
+    type: string
+    required: false
+  partsDefects:
+    type: string
+    required: false
+  resultType:
+    type: string
+    required: false
+  resultTransportInterruption:
+    type: boolean
+    required: false
+  eraYvMntRegnr:
+    type: boolean
+    required: false
+  eraYvMntVintin:
+    type: boolean
+    required: false
+  eraYvMntAxles:
+    type: boolean
+    required: false
+  eraYvMntPlaces:
+    type: boolean
+    required: false
+  eraYvMntRebuilt:
+    type: boolean
+    required: false
+  proceedingType:
+    type: string
+    required: false
+  proceedingReferenceNumber:
+    type: string
+    required: false
+  violations:
+    type: string
+    required: false
+  notes:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: subFormNumber
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
 */
 WITH ins AS (
   INSERT INTO forms.trailer_technical_form (

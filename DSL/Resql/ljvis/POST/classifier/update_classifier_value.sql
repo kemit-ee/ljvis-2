@@ -1,29 +1,28 @@
 /*
-declaration:
-  version: 0.1
-  description: "Edit classifier value — copy latest snapshot with new validity dates and optional name"
-  method: post
-  accepts: json
-  returns: json
-  namespace: classifier
-  allowlist:
-    body:
-      - field: classifier_value_id
-        type: string
-        description: "classifier_value_key of the target value"
-      - field: name
-        type: string
-        description: "New name; omit or leave empty to carry forward existing name"
-      - field: valid_from
-        type: string
-      - field: valid_until
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
+description: "Edit classifier value — copy latest snapshot with new validity dates and optional name"
+namespace: classifier
+params:
+  classifier_value_id:
+    type: string
+    required: false
+    description: "classifier_value_key of the target value"
+  name:
+    type: string
+    required: false
+    description: "New name; omit or leave empty to carry forward existing name"
+  valid_from:
+    type: string
+    required: false
+  valid_until:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
 */
 WITH latest AS (
     SELECT DISTINCT ON (classifier_value_key)

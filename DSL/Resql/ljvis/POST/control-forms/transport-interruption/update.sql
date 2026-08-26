@@ -1,47 +1,56 @@
 /*
-declaration:
-  version: 0.1
-  description: "Update transport-interruption sub-form — appends a new snapshot row. sub_form_number is always read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published) data."
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: key
-        type: string
-      - field: status
-        type: string
-      - field: headerText
-        type: string
-      - field: residenceCountry
-        type: string
-      - field: residenceRegion
-        type: string
-      - field: residenceCity
-        type: string
-      - field: residenceAddressLine
-        type: string
-      - field: residencePostalCode
-        type: string
-      - field: interruptionReason
-        type: string
-      - field: legalBases
-        type: string
-      - field: terminationCondition
-        type: string
-      - field: personApplications
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: subFormNumber
-        type: string
-      - field: version
-        type: number
+description: "Update transport-interruption sub-form — appends a new snapshot row. sub_form_number is always read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published) data."
+namespace: control-forms
+params:
+  key:
+    type: string
+    required: false
+  status:
+    type: string
+    required: false
+  headerText:
+    type: string
+    required: false
+  residenceCountry:
+    type: string
+    required: false
+  residenceRegion:
+    type: string
+    required: false
+  residenceCity:
+    type: string
+    required: false
+  residenceAddressLine:
+    type: string
+    required: false
+  residencePostalCode:
+    type: string
+    required: false
+  interruptionReason:
+    type: string
+    required: false
+  legalBases:
+    type: string
+    required: false
+  terminationCondition:
+    type: string
+    required: false
+  personApplications:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: subFormNumber
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
 */
 WITH latest AS (
   SELECT sub_form_number,

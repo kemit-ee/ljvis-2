@@ -1,52 +1,56 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    X-tee RegisterJobInspection v1: INSERT INTO forms.labour_inspection_form.
-    Kaardistab vana WSDL RegisterJobInspectionRequestType välju.
-    Idempotentsuse võti: external_inspection_id (kontrolli_id stringina).
-    ON CONFLICT DO NOTHING: korduspäring sama id-ga ei tekita duplikaati.
-    inspection_type tuletab YAML (passenger/cargo).
-  method: post
-  accepts: json
-  returns: json
-  namespace: xroad
-  allowlist:
-    body:
-      - field: externalInspectionId
-        type: string
-      - field: inspectorName
-        type: string
-      - field: inspectionDate
-        type: string
-      - field: inspectionType
-        type: string
-      - field: companyName
-        type: string
-      - field: companyRegCode
-        type: string
-      - field: vehicleCount
-        type: string
-      - field: prescriptionComposed
-        type: string
-      - field: controlsMatrix
-        type: string
-      - field: violations
-        type: string
-      - field: proceedingReferenceNumber
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: form_number
-        type: string
-      - field: version
-        type: number
-      - field: skipped
-        type: boolean
+description: "X-tee RegisterJobInspection v1: INSERT INTO forms.labour_inspection_form. Kaardistab vana WSDL RegisterJobInspectionRequestType välju. Idempotentsuse võti: external_inspection_id (kontrolli_id stringina). ON CONFLICT DO NOTHING: korduspäring sama id-ga ei tekita duplikaati. inspection_type tuletab YAML (passenger/cargo)."
+namespace: xroad
+params:
+  externalInspectionId:
+    type: string
+    required: false
+  inspectorName:
+    type: string
+    required: false
+  inspectionDate:
+    type: string
+    required: false
+  inspectionType:
+    type: string
+    required: false
+  companyName:
+    type: string
+    required: false
+  companyRegCode:
+    type: string
+    required: false
+  vehicleCount:
+    type: string
+    required: false
+  prescriptionComposed:
+    type: string
+    required: false
+  controlsMatrix:
+    type: string
+    required: false
+  violations:
+    type: string
+    required: false
+  proceedingReferenceNumber:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: form_number
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: skipped
+    type: boolean
+    nullable: true
 */
 
 -- Idempotentsuse kontroll: kas sama external_inspection_id on juba olemas?

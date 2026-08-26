@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List of all vehicle categories"
-  method: get
-  accepts: json
-  returns: json
   namespace: vehicle-categories
 
 getVehicleCategories:

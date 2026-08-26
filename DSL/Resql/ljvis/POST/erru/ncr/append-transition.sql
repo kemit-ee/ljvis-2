@@ -1,70 +1,74 @@
 /*
-declaration:
-  version: 0.1
-  description: "Apply an NCR lifecycle state transition (LJVIS2-64). Appends exactly one new
-    snapshot iff (current status, new status, direction) is in the allowed-transition
-    whitelist; otherwise yields zero rows and nothing is written — the caller maps that to
-    422 not_sendable / invalid_transition. Unlike RSI, NCR's error state is NOT terminal: a
-    failed send can be retried from 'error' back to 'sent' (outgoing) or 'answered'
-    (incoming response), per LJVIS2-62 §4 'Viga olekus saab teate või vastuse uuesti saata'.
-    The synchronous ack (sent->acknowledged) and the asynchronous substantive response
-    (acknowledged->responded) are modelled as two separate transitions, matching the
-    elutsükkel (LJVIS2-62) transition table, even though in the current mock both the send
-    and the ack happen within one HTTP call (send.yml appends BOTH snapshots back to back).
-    Columns not driven by the transition (transport undertaking, vehicle, infringements,
-    response content) are carried forward verbatim from the latest snapshot."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: businessCaseId
-        type: string
-      - field: newStatus
-        type: string
-      - field: technicalId
-        type: string
-      - field: workflowId
-        type: string
-      - field: sentAt
-        type: string
-      - field: ackStatusCode
-        type: string
-      - field: ackStatusMessage
-        type: string
-      - field: respondingAuthority
-        type: string
-      - field: transportUndertakingName
-        type: string
-      - field: responseStatusCode
-        type: string
-      - field: responseStatusMessage
-        type: string
-      - field: responseNumberOfVehicles
-        type: string
-      - field: responseCommunityLicenceStatus
-        type: string
-      - field: responseAddress
-        type: string
-      - field: responsePenaltiesImposed
-        type: string
-      - field: errorMessage
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
-      - field: workflow_id
-        type: string
+description: "Apply an NCR lifecycle state transition (LJVIS2-64). Appends exactly one new snapshot iff (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero rows and nothing is written — the caller maps that to 422 not_sendable / invalid_transition. Unlike RSI, NCR's error state is NOT terminal: a failed send can be retried from 'error' back to 'sent' (outgoing) or 'answered' (incoming response), per LJVIS2-62 §4 'Viga olekus saab teate või vastuse uuesti saata'. The synchronous ack (sent->acknowledged) and the asynchronous substantive response (acknowledged->responded) are modelled as two separate transitions, matching the elutsükkel (LJVIS2-62) transition table, even though in the current mock both the send and the ack happen within one HTTP call (send.yml appends BOTH snapshots back to back). Columns not driven by the transition (transport undertaking, vehicle, infringements, response content) are carried forward verbatim from the latest snapshot."
+namespace: erru
+params:
+  businessCaseId:
+    type: string
+    required: false
+  newStatus:
+    type: string
+    required: false
+  technicalId:
+    type: string
+    required: false
+  workflowId:
+    type: string
+    required: false
+  sentAt:
+    type: string
+    required: false
+  ackStatusCode:
+    type: string
+    required: false
+  ackStatusMessage:
+    type: string
+    required: false
+  respondingAuthority:
+    type: string
+    required: false
+  transportUndertakingName:
+    type: string
+    required: false
+  responseStatusCode:
+    type: string
+    required: false
+  responseStatusMessage:
+    type: string
+    required: false
+  responseNumberOfVehicles:
+    type: string
+    required: false
+  responseCommunityLicenceStatus:
+    type: string
+    required: false
+  responseAddress:
+    type: string
+    required: false
+  responsePenaltiesImposed:
+    type: string
+    required: false
+  errorMessage:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: workflow_id
+    type: string
+    nullable: true
 */
 WITH latest AS (
   SELECT *

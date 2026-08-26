@@ -1,63 +1,65 @@
 /*
-declaration:
-  version: 0.1
-  description: "Create a new OUTGOING NCR request draft (LJVIS2-63). Appends the first snapshot
-    of a new erru.ncr_message with status 'initiated'. Allocates both the logical key and the
-    human-readable business_case_id server-side, format NCR-EE-{year}-{seq} per LJVIS2-63 §4
-    'Teate number' (e.g. NCR-EE-2026-25994) — note this differs from the country-first EE-RSI-/
-    EE-CGR- convention used by the sibling ERRU families; the NCR-EE- ordering is explicit in
-    the specification's own worked example and is followed verbatim. ncr_from is hardcoded EE.
-    minorInfringement/seriousInfringements arrive as JSON text (already split into category +
-    infringementType by the caller, per LJVIS2-63 §4 Plokk 'Rasked rikkumised ja karistused').
-    Server-side data-integrity rule (LJVIS2-63 §4 'Edukalt läbitud kontroll'): when checkResult
-    is Pass or CleanCheck, minorInfringement and seriousInfringements are FORCED to NULL / '[]'
-    regardless of what the caller submits — this is a clearing rule, not just a display toggle."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: originatingAuthority
-        type: string
-      - field: requestSource
-        type: string
-      - field: requestPurpose
-        type: string
-      - field: ncrTo
-        type: string
-      - field: transportUndertakingName
-        type: string
-      - field: communityLicenceNumber
-        type: string
-      - field: vehicleRegistrationNumber
-        type: string
-      - field: vehicleRegistrationCountry
-        type: string
-      - field: checkResult
-        type: string
-      - field: checkDate
-        type: string
-      - field: minorInfringement
-        type: string
-      - field: seriousInfringements
-        type: string
-      - field: handlerPersonalCode
-        type: string
-      - field: handlerName
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
+description: "Create a new OUTGOING NCR request draft (LJVIS2-63). Appends the first snapshot of a new erru.ncr_message with status 'initiated'. Allocates both the logical key and the human-readable business_case_id server-side, format NCR-EE-{year}-{seq} per LJVIS2-63 §4 'Teate number' (e.g. NCR-EE-2026-25994) — note this differs from the country-first EE-RSI-/ EE-CGR- convention used by the sibling ERRU families; the NCR-EE- ordering is explicit in the specification's own worked example and is followed verbatim. ncr_from is hardcoded EE. minorInfringement/seriousInfringements arrive as JSON text (already split into category + infringementType by the caller, per LJVIS2-63 §4 Plokk 'Rasked rikkumised ja karistused'). Server-side data-integrity rule (LJVIS2-63 §4 'Edukalt läbitud kontroll'): when checkResult is Pass or CleanCheck, minorInfringement and seriousInfringements are FORCED to NULL / '[]' regardless of what the caller submits — this is a clearing rule, not just a display toggle."
+namespace: erru
+params:
+  originatingAuthority:
+    type: string
+    required: false
+  requestSource:
+    type: string
+    required: false
+  requestPurpose:
+    type: string
+    required: false
+  ncrTo:
+    type: string
+    required: false
+  transportUndertakingName:
+    type: string
+    required: false
+  communityLicenceNumber:
+    type: string
+    required: false
+  vehicleRegistrationNumber:
+    type: string
+    required: false
+  vehicleRegistrationCountry:
+    type: string
+    required: false
+  checkResult:
+    type: string
+    required: false
+  checkDate:
+    type: string
+    required: false
+  minorInfringement:
+    type: string
+    required: false
+  seriousInfringements:
+    type: string
+    required: false
+  handlerPersonalCode:
+    type: string
+    required: false
+  handlerName:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
 */
 WITH ins AS (
   INSERT INTO erru.ncr_message (

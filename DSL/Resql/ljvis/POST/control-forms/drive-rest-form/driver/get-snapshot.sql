@@ -1,93 +1,124 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get a single drive rest form (driver) snapshot by snapshot ID"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: id
-        type: string
-        description: "Snapshot ID (primary key)"
-      - field: form_key
-        type: string
-        description: "sp_driver_form_key"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: compoundFormKey
-        type: string
-      - field: subFormNumber
-        type: string
-      - field: status
-        type: string
-      - field: selectionStatus
-        type: string
-      - field: transportType
-        type: string
-      - field: transportEmptyRun
-        type: boolean
-      - field: transportNature
-        type: string
-      - field: transportNatureExempt
-        type: boolean
-      - field: transportClasses
-        type: string
-      - field: cabotageViolations
-        type: string
-      - field: resultType
-        type: string
-      - field: proceedingType
-        type: string
-      - field: proceedingReferenceNumber
-        type: string
-      - field: documentChecks
-        type: string
-      - field: otherDocuments
-        type: string
-      - field: spApplicability
-        type: string
-      - field: tachographTypeCode
-        type: string
-      - field: tachographDataNotDownloaded
-        type: boolean
-      - field: checkedDaysCount
-        type: number
-      - field: workDaysCount
-        type: number
-      - field: otherActivityDaysCount
-        type: number
-      - field: violations5612006
-        type: string
-      - field: violations1652014
-        type: string
-      - field: violations200215
-        type: string
-      - field: violations5932008
-        type: string
-      - field: violations20201057
-        type: string
-      - field: massDimensionNonCompliant
-        type: boolean
-      - field: massDimensionMeasurements
-        type: string
-      - field: atpViolationFound
-        type: boolean
-      - field: atpViolationDescription
-        type: string
-      - field: erruPoints
-        type: string
-      - field: enforcementDecision
-        type: string
-      - field: proceedingClosureBasis
-        type: string
-      - field: notes
-        type: string
-      - field: createdBy
-        type: string
+description: "Get a single drive rest form (driver) snapshot by snapshot ID"
+namespace: control-forms
+params:
+  id:
+    type: string
+    required: false
+    description: "Snapshot ID (primary key)"
+  form_key:
+    type: string
+    required: false
+    description: "sp_driver_form_key"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: compoundFormKey
+    type: string
+    nullable: true
+  - name: subFormNumber
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: selectionStatus
+    type: string
+    nullable: true
+  - name: transportType
+    type: string
+    nullable: true
+  - name: transportEmptyRun
+    type: boolean
+    nullable: true
+  - name: transportNature
+    type: string
+    nullable: true
+  - name: transportNatureExempt
+    type: boolean
+    nullable: true
+  - name: transportClasses
+    type: string
+    nullable: true
+  - name: cabotageViolations
+    type: string
+    nullable: true
+  - name: resultType
+    type: string
+    nullable: true
+  - name: proceedingType
+    type: string
+    nullable: true
+  - name: proceedingReferenceNumber
+    type: string
+    nullable: true
+  - name: documentChecks
+    type: string
+    nullable: true
+  - name: otherDocuments
+    type: string
+    nullable: true
+  - name: spApplicability
+    type: string
+    nullable: true
+  - name: tachographTypeCode
+    type: string
+    nullable: true
+  - name: tachographDataNotDownloaded
+    type: boolean
+    nullable: true
+  - name: checkedDaysCount
+    type: number
+    nullable: true
+  - name: workDaysCount
+    type: number
+    nullable: true
+  - name: otherActivityDaysCount
+    type: number
+    nullable: true
+  - name: violations5612006
+    type: string
+    nullable: true
+  - name: violations1652014
+    type: string
+    nullable: true
+  - name: violations200215
+    type: string
+    nullable: true
+  - name: violations5932008
+    type: string
+    nullable: true
+  - name: violations20201057
+    type: string
+    nullable: true
+  - name: massDimensionNonCompliant
+    type: boolean
+    nullable: true
+  - name: massDimensionMeasurements
+    type: string
+    nullable: true
+  - name: atpViolationFound
+    type: boolean
+    nullable: true
+  - name: atpViolationDescription
+    type: string
+    nullable: true
+  - name: erruPoints
+    type: string
+    nullable: true
+  - name: enforcementDecision
+    type: string
+    nullable: true
+  - name: proceedingClosureBasis
+    type: string
+    nullable: true
+  - name: notes
+    type: string
+    nullable: true
+  - name: createdBy
+    type: string
+    nullable: true
 */
 SELECT
   sp_driver_form_key AS id,

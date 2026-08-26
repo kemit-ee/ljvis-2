@@ -1,24 +1,22 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get user group detail by ID"
-  method: post
-  namespace: user_group
-  returns: json
-  allowlist:
-    body:
-      - field: id
-        type: string
-        description: "User group ID"
-      - field: organisation_id
-        type: number
-        description: "Optional organisation filter (0 = no filter)"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: name
-        type: string
+description: "Get user group detail by ID"
+namespace: user_group
+params:
+  id:
+    type: string
+    required: false
+    description: "User group ID"
+  organisation_id:
+    type: number
+    required: false
+    description: "Optional organisation filter (0 = no filter)"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: name
+    type: string
+    nullable: true
 */
 WITH latest AS (
     SELECT DISTINCT ON (user_group_key)

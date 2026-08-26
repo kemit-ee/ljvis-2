@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Calculate changed fields for drivers array - compares up to two drivers"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Single source of truth for RSI message field validation (LJVIS2-147) — shared by the single unified save endpoint (POST /v1/erru/rsi/request/save, create+revise). Mirrors the erru.rsi_message CHECK constraints (chk_rsi_identification_choice) plus the optional-block rules from LJVIS2-147 §4: 'Juhi andmed' and 'Veoettevõtja või omaniku andmed' are closed by default — if ANY field of a block is filled, the block's own required sub-fields become mandatory; if none are filled, the whole block is skipped (never partially required). Returns '{\"valid\":true}' when all checks pass, otherwise the standard VALIDATION_ERROR shape ready to forward to the client as-is.\n\nSame Ruuter caveat as validate-cgr-request.yml: every condition reads incoming.body directly (never a pre-assigned variable) and every emptiness test is truthiness-first, because ScriptingHelper.filterEmptyOptional discards an assign that evaluates to '', turning it into undefined. identificationDetails arrives as a JSON string and is parsed here for the choice checks."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

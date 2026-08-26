@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Create or update a good repute form (hea maine vorm) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136). Confirmed forms can only be re-saved by a user with control_form.edit_locked."
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

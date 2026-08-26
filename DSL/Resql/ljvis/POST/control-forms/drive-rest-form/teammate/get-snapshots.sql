@@ -1,28 +1,27 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get version history snapshots for a drive rest form (teammate)"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: id
-        type: string
-        description: "sp_teammate_form_key"
-  response:
-    fields:
-      - field: snapshot_id
-        type: number
-      - field: version
-        type: string
-      - field: status
-        type: string
-      - field: created_at
-        type: string
-      - field: created_by
-        type: string
+description: "Get version history snapshots for a drive rest form (teammate)"
+namespace: control-forms
+params:
+  id:
+    type: string
+    required: false
+    description: "sp_teammate_form_key"
+returns:
+  - name: snapshot_id
+    type: number
+    nullable: true
+  - name: version
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: created_at
+    type: string
+    nullable: true
+  - name: created_by
+    type: string
+    nullable: true
 */
 WITH ranked AS (
   SELECT

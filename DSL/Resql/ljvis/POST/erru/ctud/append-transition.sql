@@ -1,45 +1,53 @@
 /*
-declaration:
-  version: 0.1
-  description: "Apply a CTUD lifecycle state transition (LJVIS2-142). Appends exactly one new snapshot iff (current status, new status, direction) is in the allowed-transition whitelist; otherwise the INSERT .. SELECT yields zero rows and nothing is written at all, which is what the specification requires of a rejected transition. The caller detects the empty result and returns 422 invalid_transition. Atomic by construction: the guard is evaluated inside the same statement as the insert, so a concurrent double transition cannot slip through."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: key
-        type: string
-      - field: newStatus
-        type: string
-      - field: technicalId
-        type: string
-      - field: workflowId
-        type: string
-      - field: respondingAuthority
-        type: string
-      - field: responseStatusCode
-        type: string
-      - field: responseStatusMessage
-        type: string
-      - field: responseContent
-        type: string
-      - field: errorMessage
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
-      - field: response_status_code
-        type: string
+description: "Apply a CTUD lifecycle state transition (LJVIS2-142). Appends exactly one new snapshot iff (current status, new status, direction) is in the allowed-transition whitelist; otherwise the INSERT .. SELECT yields zero rows and nothing is written at all, which is what the specification requires of a rejected transition. The caller detects the empty result and returns 422 invalid_transition. Atomic by construction: the guard is evaluated inside the same statement as the insert, so a concurrent double transition cannot slip through."
+namespace: erru
+params:
+  key:
+    type: string
+    required: false
+  newStatus:
+    type: string
+    required: false
+  technicalId:
+    type: string
+    required: false
+  workflowId:
+    type: string
+    required: false
+  respondingAuthority:
+    type: string
+    required: false
+  responseStatusCode:
+    type: string
+    required: false
+  responseStatusMessage:
+    type: string
+    required: false
+  responseContent:
+    type: string
+    required: false
+  errorMessage:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: response_status_code
+    type: string
+    nullable: true
 */
 WITH latest AS (
   SELECT *

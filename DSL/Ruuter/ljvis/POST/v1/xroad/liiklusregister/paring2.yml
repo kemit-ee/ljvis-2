@@ -7,9 +7,6 @@ declaration:
     security_server and DSL/xtr/liiklusregister/paring2.yml). Backs the
     "Otsi" lookup on koondvorm (sõiduk + haagis) and välisriigi rikkumise
     vorm. Service identifier: EE/GOV/70001490/liiklusregister/paring2/v2.
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
   allowlist:
     body:

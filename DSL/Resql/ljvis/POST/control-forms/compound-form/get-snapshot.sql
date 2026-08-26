@@ -1,107 +1,145 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get a single compound form snapshot by snapshot ID"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: id
-        type: string
-        description: "Snapshot ID (primary key)"
-      - field: form_key
-        type: string
-        description: "Compound form key"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: form_number
-        type: string
-      - field: status
-        type: string
-      - field: control_date
-        type: string
-      - field: control_time
-        type: string
-      - field: control_country_code
-        type: string
-      - field: county
-        type: string
-      - field: city
-        type: string
-      - field: road
-        type: string
-      - field: road_other
-        type: string
-      - field: kilometer
-        type: string
-      - field: address
-        type: string
-      - field: road_type
-        type: string
-      - field: road_tax_status
-        type: string
-      - field: road_tax_notes
-        type: string
-      - field: vehicle_reg_nr
-        type: string
-      - field: vehicle_make
-        type: string
-      - field: vehicle_model
-        type: string
-      - field: vehicle_country_code
-        type: string
-      - field: vehicle_vin
-        type: string
-      - field: vehicle_first_registration
-        type: string
-      - field: vehicle_body_type
-        type: string
-      - field: vehicle_category_code
-        type: string
-      - field: vehicle_category_other
-        type: string
-      - field: vehicle_mileage
-        type: string
-      - field: trailers
-        type: string
-      - field: company_reg_code
-        type: string
-      - field: company_name
-        type: string
-      - field: company_country_code
-        type: string
-      - field: company_county
-        type: string
-      - field: company_city
-        type: string
-      - field: company_address
-        type: string
-      - field: company_postal_code
-        type: string
-      - field: company_owner_first_name
-        type: string
-      - field: company_owner_last_name
-        type: string
-      - field: company_activity_licence_copy_number
-        type: string
-      - field: drivers
-        type: string
-      - field: inspector_first_name
-        type: string
-      - field: inspector_last_name
-        type: string
-      - field: inspector_organisation_id
-        type: string
-      - field: inspector_unit
-        type: string
-      - field: inspector_profession
-        type: string
-      - field: created_by
-        type: string
+description: "Get a single compound form snapshot by snapshot ID"
+namespace: control-forms
+params:
+  id:
+    type: string
+    required: false
+    description: "Snapshot ID (primary key)"
+  form_key:
+    type: string
+    required: false
+    description: "Compound form key"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: form_number
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: control_date
+    type: string
+    nullable: true
+  - name: control_time
+    type: string
+    nullable: true
+  - name: control_country_code
+    type: string
+    nullable: true
+  - name: county
+    type: string
+    nullable: true
+  - name: city
+    type: string
+    nullable: true
+  - name: road
+    type: string
+    nullable: true
+  - name: road_other
+    type: string
+    nullable: true
+  - name: kilometer
+    type: string
+    nullable: true
+  - name: address
+    type: string
+    nullable: true
+  - name: road_type
+    type: string
+    nullable: true
+  - name: road_tax_status
+    type: string
+    nullable: true
+  - name: road_tax_notes
+    type: string
+    nullable: true
+  - name: vehicle_reg_nr
+    type: string
+    nullable: true
+  - name: vehicle_make
+    type: string
+    nullable: true
+  - name: vehicle_model
+    type: string
+    nullable: true
+  - name: vehicle_country_code
+    type: string
+    nullable: true
+  - name: vehicle_vin
+    type: string
+    nullable: true
+  - name: vehicle_first_registration
+    type: string
+    nullable: true
+  - name: vehicle_body_type
+    type: string
+    nullable: true
+  - name: vehicle_category_code
+    type: string
+    nullable: true
+  - name: vehicle_category_other
+    type: string
+    nullable: true
+  - name: vehicle_mileage
+    type: string
+    nullable: true
+  - name: trailers
+    type: string
+    nullable: true
+  - name: company_reg_code
+    type: string
+    nullable: true
+  - name: company_name
+    type: string
+    nullable: true
+  - name: company_country_code
+    type: string
+    nullable: true
+  - name: company_county
+    type: string
+    nullable: true
+  - name: company_city
+    type: string
+    nullable: true
+  - name: company_address
+    type: string
+    nullable: true
+  - name: company_postal_code
+    type: string
+    nullable: true
+  - name: company_owner_first_name
+    type: string
+    nullable: true
+  - name: company_owner_last_name
+    type: string
+    nullable: true
+  - name: company_activity_licence_copy_number
+    type: string
+    nullable: true
+  - name: drivers
+    type: string
+    nullable: true
+  - name: inspector_first_name
+    type: string
+    nullable: true
+  - name: inspector_last_name
+    type: string
+    nullable: true
+  - name: inspector_organisation_id
+    type: string
+    nullable: true
+  - name: inspector_unit
+    type: string
+    nullable: true
+  - name: inspector_profession
+    type: string
+    nullable: true
+  - name: created_by
+    type: string
+    nullable: true
 */
 SELECT
   compound_form_key AS id,

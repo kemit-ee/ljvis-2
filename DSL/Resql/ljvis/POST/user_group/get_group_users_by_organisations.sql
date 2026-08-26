@@ -1,23 +1,19 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get user IDs that belong to a user group and whose organisation is in the given list"
-  method: post
-  accepts: json
-  returns: json
-  namespace: user_group
-  allowlist:
-    body:
-      - field: user_group_id
-        type: string
-        description: "user_group_key of the target group"
-      - field: organisation_ids
-        type: string
-        description: "Comma-separated organisation IDs to filter by"
-  response:
-    fields:
-      - field: user_ids
-        type: string
+description: "Get user IDs that belong to a user group and whose organisation is in the given list"
+namespace: user_group
+params:
+  user_group_id:
+    type: string
+    required: false
+    description: "user_group_key of the target group"
+  organisation_ids:
+    type: string
+    required: false
+    description: "Comma-separated organisation IDs to filter by"
+returns:
+  - name: user_ids
+    type: string
+    nullable: true
 */
 WITH org_list AS (
     SELECT unnest(string_to_array(NULLIF(:organisation_ids, ''), ','))::BIGINT AS org_id

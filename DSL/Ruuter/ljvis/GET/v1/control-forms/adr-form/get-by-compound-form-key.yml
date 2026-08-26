@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List latest snapshots of all ADR sub-forms linked to a compound form key"
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

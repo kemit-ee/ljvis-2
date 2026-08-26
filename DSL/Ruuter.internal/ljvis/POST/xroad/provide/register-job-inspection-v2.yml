@@ -7,9 +7,6 @@ declaration:
     väljad. Salvestatakse samasse forms.labour_inspection_form tabelisse.
     Idempotentsuse võti: 'v2-' || kontrolli_id (et eristada v1 kirjetest).
     Vt docs/xtee/06-register-job-inspection-v2.md.
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
 
 # Samm 1: X-Road-Client päise kontroll

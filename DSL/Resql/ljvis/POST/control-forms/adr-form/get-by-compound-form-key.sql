@@ -1,31 +1,32 @@
 /*
-declaration:
-  version: 0.1
-  description: "List latest snapshots of all ADR sub-forms linked to a compound form key"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: compoundFormKey
-        type: number
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: compoundFormKey
-        type: number
-      - field: subFormNumber
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
-      - field: resultType
-        type: string
-      - field: createdBy
-        type: string
+description: "List latest snapshots of all ADR sub-forms linked to a compound form key"
+namespace: control-forms
+params:
+  compoundFormKey:
+    type: number
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: compoundFormKey
+    type: number
+    nullable: true
+  - name: subFormNumber
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: resultType
+    type: string
+    nullable: true
+  - name: createdBy
+    type: string
+    nullable: true
 */
 SELECT DISTINCT ON (adr_form_key)
   adr_form_key AS id,

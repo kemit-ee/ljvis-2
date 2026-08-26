@@ -1,71 +1,92 @@
 /*
-declaration:
-  version: 0.1
-  description: "Create a new OUTGOING RSI message draft (LJVIS2-147), including pre-filling from a published negative technical-check card (LJVIS2-148 §4.1 — the caller pre-fills vehicle/inspection/identification fields before calling this same query, there is no separate build query). Appends the first snapshot of a new erru.rsi_message with status 'initiated'. Allocates both the logical key and the human-readable business_case_id (EE-RSI-AAAA-NNNNN) server-side. rsi_from is hardcoded to EE; rsi_to is derived from vehicleRegistrationCountry (LJVIS2-147 §Plokk 'Sõiduki andmed'). identification_details/checked_items arrive as JSON text and are cast to jsonb verbatim."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: originatingAuthority
-        type: string
-      - field: requestSource
-        type: string
-      - field: requestPurpose
-        type: string
-      - field: vehicleCategory
-        type: string
-      - field: vehicleRegistrationNumber
-        type: string
-      - field: vehicleRegistrationCountry
-        type: string
-      - field: vehicleIdentificationNumber
-        type: string
-      - field: odometerReading
-        type: string
-      - field: driverFirstName
-        type: string
-      - field: driverFamilyName
-        type: string
-      - field: driverLicenceNumber
-        type: string
-      - field: driverLicenceCountry
-        type: string
-      - field: identificationDetails
-        type: string
-      - field: inspectionIdentifier
-        type: string
-      - field: inspectionLocation
-        type: string
-      - field: inspectionDatetime
-        type: string
-      - field: inspectionAuthorityOrName
-        type: string
-      - field: inspectionPassed
-        type: string
-      - field: ptiRequested
-        type: string
-      - field: vehicleProhibitionOrRestriction
-        type: string
-      - field: checkedItems
-        type: string
-      - field: handlerPersonalCode
-        type: string
-      - field: handlerName
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
+description: "Create a new OUTGOING RSI message draft (LJVIS2-147), including pre-filling from a published negative technical-check card (LJVIS2-148 §4.1 — the caller pre-fills vehicle/inspection/identification fields before calling this same query, there is no separate build query). Appends the first snapshot of a new erru.rsi_message with status 'initiated'. Allocates both the logical key and the human-readable business_case_id (EE-RSI-AAAA-NNNNN) server-side. rsi_from is hardcoded to EE; rsi_to is derived from vehicleRegistrationCountry (LJVIS2-147 §Plokk 'Sõiduki andmed'). identification_details/checked_items arrive as JSON text and are cast to jsonb verbatim."
+namespace: erru
+params:
+  originatingAuthority:
+    type: string
+    required: false
+  requestSource:
+    type: string
+    required: false
+  requestPurpose:
+    type: string
+    required: false
+  vehicleCategory:
+    type: string
+    required: false
+  vehicleRegistrationNumber:
+    type: string
+    required: false
+  vehicleRegistrationCountry:
+    type: string
+    required: false
+  vehicleIdentificationNumber:
+    type: string
+    required: false
+  odometerReading:
+    type: string
+    required: false
+  driverFirstName:
+    type: string
+    required: false
+  driverFamilyName:
+    type: string
+    required: false
+  driverLicenceNumber:
+    type: string
+    required: false
+  driverLicenceCountry:
+    type: string
+    required: false
+  identificationDetails:
+    type: string
+    required: false
+  inspectionIdentifier:
+    type: string
+    required: false
+  inspectionLocation:
+    type: string
+    required: false
+  inspectionDatetime:
+    type: string
+    required: false
+  inspectionAuthorityOrName:
+    type: string
+    required: false
+  inspectionPassed:
+    type: string
+    required: false
+  ptiRequested:
+    type: string
+    required: false
+  vehicleProhibitionOrRestriction:
+    type: string
+    required: false
+  checkedItems:
+    type: string
+    required: false
+  handlerPersonalCode:
+    type: string
+    required: false
+  handlerName:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
 */
 WITH ins AS (
   INSERT INTO erru.rsi_message (

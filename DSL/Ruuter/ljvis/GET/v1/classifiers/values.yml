@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get classifier values by classifier ID"
-  method: get
-  accepts: json
-  returns: json
   namespace: classifiers
   allowlist:
     params:

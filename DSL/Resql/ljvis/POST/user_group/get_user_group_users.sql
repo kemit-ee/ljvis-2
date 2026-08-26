@@ -1,50 +1,59 @@
 /*
-declaration:
-  version: 0.1
-  description: "List members of a user group with pagination, sorting, and optional search"
-  method: post
-  namespace: user_group
-  returns: json
-  allowlist:
-    body:
-      - field: user_group_id
-        type: number
-        description: "User group ID to filter members by (0 = no filter)"
-      - field: user_organisation_id
-        type: number
-        description: "Organisation ID for local admin scope filtering (0 = no filter)"
-      - field: page
-        type: number
-        description: "Page number"
-      - field: page_size
-        type: number
-        description: "Items per page"
-      - field: search
-        type: string
-        description: "Search by first or last name"
-      - field: sorting
-        type: string
-        description: "Sort column and direction"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: first_name
-        type: string
-      - field: last_name
-        type: string
-      - field: personal_code
-        type: string
-      - field: organisation_name
-        type: string
-      - field: status
-        type: string
-      - field: page
-        type: number
-      - field: total_pages
-        type: number
-      - field: total
-        type: number
+description: "List members of a user group with pagination, sorting, and optional search"
+namespace: user_group
+params:
+  user_group_id:
+    type: number
+    required: false
+    description: "User group ID to filter members by (0 = no filter)"
+  user_organisation_id:
+    type: number
+    required: false
+    description: "Organisation ID for local admin scope filtering (0 = no filter)"
+  page:
+    type: number
+    required: false
+    description: "Page number"
+  page_size:
+    type: number
+    required: false
+    description: "Items per page"
+  search:
+    type: string
+    required: false
+    description: "Search by first or last name"
+  sorting:
+    type: string
+    required: false
+    description: "Sort column and direction"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: first_name
+    type: string
+    nullable: true
+  - name: last_name
+    type: string
+    nullable: true
+  - name: personal_code
+    type: string
+    nullable: true
+  - name: organisation_name
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: page
+    type: number
+    nullable: true
+  - name: total_pages
+    type: number
+    nullable: true
+  - name: total
+    type: number
+    nullable: true
 */
 WITH latest AS (
     SELECT DISTINCT ON (user_account_key)

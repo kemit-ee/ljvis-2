@@ -1,57 +1,71 @@
 /*
-declaration:
-  version: 0.1
-  description: "Revise an OUTGOING CGR request draft (LJVIS2-138, 'täiendamine'). Appends a new snapshot with version + 1, keeping status 'initiated'. Guarded: the INSERT .. SELECT produces zero rows unless the latest snapshot is status='initiated' AND direction='outgoing', so a sent request or an inbound request can never be edited — the caller detects the empty result and returns 422. Editable fields are fully replaced from the request body; identity and envelope fields (business_case_id, cgr_from, technical_id, workflow_id, sent_at, member_states) are carried forward untouched. An empty cgrTo defaults to the broadcast marker ZZ, same as append-draft.sql."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: key
-        type: string
-      - field: cgrTo
-        type: string
-      - field: originatingAuthority
-        type: string
-      - field: requestSource
-        type: string
-      - field: requestPurpose
-        type: string
-      - field: tmFirstName
-        type: string
-      - field: tmFamilyName
-        type: string
-      - field: tmDateOfBirth
-        type: string
-      - field: tmPlaceOfBirth
-        type: string
-      - field: tmFirstNameSearchKey
-        type: string
-      - field: tmFamilyNameSearchKey
-        type: string
-      - field: certificateNumber
-        type: string
-      - field: certificateIssueDate
-        type: string
-      - field: certificateIssueCountry
-        type: string
-      - field: handlerPersonalCode
-        type: string
-      - field: handlerName
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
+description: "Revise an OUTGOING CGR request draft (LJVIS2-138, 'täiendamine'). Appends a new snapshot with version + 1, keeping status 'initiated'. Guarded: the INSERT .. SELECT produces zero rows unless the latest snapshot is status='initiated' AND direction='outgoing', so a sent request or an inbound request can never be edited — the caller detects the empty result and returns 422. Editable fields are fully replaced from the request body; identity and envelope fields (business_case_id, cgr_from, technical_id, workflow_id, sent_at, member_states) are carried forward untouched. An empty cgrTo defaults to the broadcast marker ZZ, same as append-draft.sql."
+namespace: erru
+params:
+  key:
+    type: string
+    required: false
+  cgrTo:
+    type: string
+    required: false
+  originatingAuthority:
+    type: string
+    required: false
+  requestSource:
+    type: string
+    required: false
+  requestPurpose:
+    type: string
+    required: false
+  tmFirstName:
+    type: string
+    required: false
+  tmFamilyName:
+    type: string
+    required: false
+  tmDateOfBirth:
+    type: string
+    required: false
+  tmPlaceOfBirth:
+    type: string
+    required: false
+  tmFirstNameSearchKey:
+    type: string
+    required: false
+  tmFamilyNameSearchKey:
+    type: string
+    required: false
+  certificateNumber:
+    type: string
+    required: false
+  certificateIssueDate:
+    type: string
+    required: false
+  certificateIssueCountry:
+    type: string
+    required: false
+  handlerPersonalCode:
+    type: string
+    required: false
+  handlerName:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
 */
 WITH latest AS (
   SELECT *

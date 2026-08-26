@@ -1,92 +1,116 @@
 /*
-declaration:
-  version: 0.1
-  description: "LJVIS2-9 cross-entity form search over forms.form_search view. Filters, pagination, sorting, row-level type allow-list."
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: allowed_types
-        type: string
-        description: "Comma-separated form_type codes the caller may see (row-level)"
-      - field: page
-        type: number
-        description: "Page number (1-based)"
-      - field: page_size
-        type: number
-        description: "Rows per page"
-      - field: sorting
-        type: string
-        description: "Sort column and direction, e.g. 'main_date desc'"
-      - field: date_from
-        type: string
-        description: "Control date lower bound (inclusive), ISO yyyy-mm-dd"
-      - field: date_to
-        type: string
-        description: "Control date upper bound (inclusive), ISO yyyy-mm-dd"
-      - field: form_type
-        type: string
-        description: "Filter by a single form type"
-      - field: vehicle_reg_nr
-        type: string
-        description: "Vehicle registration number (ILIKE)"
-      - field: company_reg_code
-        type: string
-        description: "Company registry code (ILIKE)"
-      - field: company_name
-        type: string
-        description: "Company name (ILIKE)"
-      - field: driver
-        type: string
-        description: "Driver personal code or name (ILIKE over driver_search)"
-      - field: county
-        type: string
-        description: "Control location county / maakond (ILIKE)"
-      - field: inspector_org_id
-        type: string
-        description: "Performing authority organisation id"
-      - field: has_violation
-        type: string
-        description: "'true' / 'false' — filter by violation presence"
-      - field: status
-        type: string
-        description: "Form lifecycle status"
-  response:
-    fields:
-      - field: form_type
-        type: string
-      - field: form_key
-        type: number
-      - field: compound_form_key
-        type: number
-      - field: form_number
-        type: string
-      - field: status
-        type: string
-      - field: main_date
-        type: string
-      - field: county
-        type: string
-      - field: vehicle_reg_nr
-        type: string
-      - field: company_reg_code
-        type: string
-      - field: company_name
-        type: string
-      - field: driver_search
-        type: string
-      - field: inspector_org_id
-        type: string
-      - field: inspector_name
-        type: string
-      - field: has_violation
-        type: boolean
-      - field: created_by
-        type: string
-      - field: total
-        type: number
+description: "LJVIS2-9 cross-entity form search over forms.form_search view. Filters, pagination, sorting, row-level type allow-list."
+namespace: control-forms
+params:
+  allowed_types:
+    type: string
+    required: false
+    description: "Comma-separated form_type codes the caller may see (row-level)"
+  page:
+    type: number
+    required: false
+    description: "Page number (1-based)"
+  page_size:
+    type: number
+    required: false
+    description: "Rows per page"
+  sorting:
+    type: string
+    required: false
+    description: "Sort column and direction, e.g. 'main_date desc'"
+  date_from:
+    type: string
+    required: false
+    description: "Control date lower bound (inclusive), ISO yyyy-mm-dd"
+  date_to:
+    type: string
+    required: false
+    description: "Control date upper bound (inclusive), ISO yyyy-mm-dd"
+  form_type:
+    type: string
+    required: false
+    description: "Filter by a single form type"
+  vehicle_reg_nr:
+    type: string
+    required: false
+    description: "Vehicle registration number (ILIKE)"
+  company_reg_code:
+    type: string
+    required: false
+    description: "Company registry code (ILIKE)"
+  company_name:
+    type: string
+    required: false
+    description: "Company name (ILIKE)"
+  driver:
+    type: string
+    required: false
+    description: "Driver personal code or name (ILIKE over driver_search)"
+  county:
+    type: string
+    required: false
+    description: "Control location county / maakond (ILIKE)"
+  inspector_org_id:
+    type: string
+    required: false
+    description: "Performing authority organisation id"
+  has_violation:
+    type: string
+    required: false
+    description: "'true' / 'false' — filter by violation presence"
+  status:
+    type: string
+    required: false
+    description: "Form lifecycle status"
+returns:
+  - name: form_type
+    type: string
+    nullable: true
+  - name: form_key
+    type: number
+    nullable: true
+  - name: compound_form_key
+    type: number
+    nullable: true
+  - name: form_number
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: main_date
+    type: string
+    nullable: true
+  - name: county
+    type: string
+    nullable: true
+  - name: vehicle_reg_nr
+    type: string
+    nullable: true
+  - name: company_reg_code
+    type: string
+    nullable: true
+  - name: company_name
+    type: string
+    nullable: true
+  - name: driver_search
+    type: string
+    nullable: true
+  - name: inspector_org_id
+    type: string
+    nullable: true
+  - name: inspector_name
+    type: string
+    nullable: true
+  - name: has_violation
+    type: boolean
+    nullable: true
+  - name: created_by
+    type: string
+    nullable: true
+  - name: total
+    type: number
+    nullable: true
 */
 SELECT
     fs.form_type,

@@ -1,18 +1,17 @@
 /*
-declaration:
-  version: 0.1
-  description: "List all counties (EHAK level 1)"
-  method: post
-  namespace: ehak
-  returns: json
-  response:
-    fields:
-      - field: classifier_value_key
-        type: number
-      - field: code
-        type: string
-      - field: name
-        type: string
+description: "List all counties (EHAK level 1)"
+namespace: ehak
+params: {}
+returns:
+  - name: classifier_value_key
+    type: number
+    nullable: true
+  - name: code
+    type: string
+    nullable: true
+  - name: name
+    type: string
+    nullable: true
 */
 SELECT
     cv.classifier_value_key AS id,

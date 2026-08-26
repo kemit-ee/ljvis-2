@@ -1,69 +1,89 @@
 /*
-declaration:
-  version: 0.1
-  description: "Insert ADR sub-form (ohtlik veos) — first save"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: compoundFormKey
-        type: number
-      - field: status
-        type: string
-      - field: driverAssistant
-        type: string
-      - field: driverAdrCertificateNumber
-        type: string
-      - field: crewAdrCertificateNumber
-        type: string
-      - field: assistantAdrCertificateNumber
-        type: string
-      - field: lastLoadAddress
-        type: string
-      - field: lastLoadDate
-        type: string
-      - field: nextLoadAddress
-        type: string
-      - field: dangerousGoods
-        type: string
-      - field: exemptionApplied
-        type: boolean
-      - field: exemptionAdrProvision
-        type: string
-      - field: containerType
-        type: string
-      - field: infringements
-        type: string
-      - field: otherViolations
-        type: string
-      - field: resultType
-        type: string
-      - field: proceedingType
-        type: string
-      - field: proceedingReferenceNumber
-        type: string
-      - field: correctiveMeasures
-        type: string
-      - field: sealOpened
-        type: boolean
-      - field: sealOpenedDate
-        type: string
-      - field: sealInstalledDate
-        type: string
-      - field: notes
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: subFormNumber
-        type: string
-      - field: version
-        type: number
+description: "Insert ADR sub-form (ohtlik veos) — first save"
+namespace: control-forms
+params:
+  compoundFormKey:
+    type: number
+    required: false
+  status:
+    type: string
+    required: false
+  driverAssistant:
+    type: string
+    required: false
+  driverAdrCertificateNumber:
+    type: string
+    required: false
+  crewAdrCertificateNumber:
+    type: string
+    required: false
+  assistantAdrCertificateNumber:
+    type: string
+    required: false
+  lastLoadAddress:
+    type: string
+    required: false
+  lastLoadDate:
+    type: string
+    required: false
+  nextLoadAddress:
+    type: string
+    required: false
+  dangerousGoods:
+    type: string
+    required: false
+  exemptionApplied:
+    type: boolean
+    required: false
+  exemptionAdrProvision:
+    type: string
+    required: false
+  containerType:
+    type: string
+    required: false
+  infringements:
+    type: string
+    required: false
+  otherViolations:
+    type: string
+    required: false
+  resultType:
+    type: string
+    required: false
+  proceedingType:
+    type: string
+    required: false
+  proceedingReferenceNumber:
+    type: string
+    required: false
+  correctiveMeasures:
+    type: string
+    required: false
+  sealOpened:
+    type: boolean
+    required: false
+  sealOpenedDate:
+    type: string
+    required: false
+  sealInstalledDate:
+    type: string
+    required: false
+  notes:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: subFormNumber
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
 */
 WITH ins AS (
   INSERT INTO forms.adr_form (

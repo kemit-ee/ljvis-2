@@ -1,49 +1,59 @@
 /*
-declaration:
-  version: 0.1
-  description: "Update good repute form (hea maine vorm) — appends a new snapshot row. Per LJVIS2-136: version is unchanged while the latest snapshot's status is 'saved' (repeat saves, and the saved->confirmed transition, do not bump /V); version increments only when re-saving already-locked (confirmed) data."
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: key
-        type: string
-      - field: status
-        type: string
-      - field: personalCode
-        type: string
-      - field: firstName
-        type: string
-      - field: lastName
-        type: string
-      - field: dateOfBirth
-        type: string
-      - field: placeOfBirth
-        type: string
-      - field: certificateNumber
-        type: string
-      - field: certificateIssueDate
-        type: string
-      - field: certificateCountryCode
-        type: string
-      - field: fitnessStatus
-        type: string
-      - field: unfitFromDate
-        type: string
-      - field: unfitUntilDate
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: form_number
-        type: string
-      - field: version
-        type: number
+description: "Update good repute form (hea maine vorm) — appends a new snapshot row. Per LJVIS2-136: version is unchanged while the latest snapshot's status is 'saved' (repeat saves, and the saved->confirmed transition, do not bump /V); version increments only when re-saving already-locked (confirmed) data."
+namespace: control-forms
+params:
+  key:
+    type: string
+    required: false
+  status:
+    type: string
+    required: false
+  personalCode:
+    type: string
+    required: false
+  firstName:
+    type: string
+    required: false
+  lastName:
+    type: string
+    required: false
+  dateOfBirth:
+    type: string
+    required: false
+  placeOfBirth:
+    type: string
+    required: false
+  certificateNumber:
+    type: string
+    required: false
+  certificateIssueDate:
+    type: string
+    required: false
+  certificateCountryCode:
+    type: string
+    required: false
+  fitnessStatus:
+    type: string
+    required: false
+  unfitFromDate:
+    type: string
+    required: false
+  unfitUntilDate:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: form_number
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
 */
 WITH latest AS (
   SELECT form_number,

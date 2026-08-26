@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Create a new outgoing CTUD request draft (LJVIS2-143). POST is creation per docs/rest-api-design-guide.md section 1; revising an existing draft is PUT /v1/erru/ctud. Validation is delegated to the shared TEMPLATES/erru/ctud/validate-ctud-request template so the create, revise and inbound paths cannot drift. status ('initiated'), direction ('outgoing'), ctud_from ('EE') and business_case_id are all assigned server-side in append-draft.sql and are never accepted from the client. Text fields are upper-cased per the application-wide rule."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

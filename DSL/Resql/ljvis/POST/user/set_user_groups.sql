@@ -1,28 +1,26 @@
 /*
-declaration:
-  version: 0.1
-  description: "Update user group memberships — copy latest snapshot with modified user_groups JSONB (add or remove group keys)"
-  method: post
-  accepts: json
-  returns: json
-  namespace: user
-  allowlist:
-    body:
-      - field: user_account_id
-        type: string
-        description: "user_account_key of the target user"
-      - field: group_ids
-        type: string
-        description: "Comma-separated user_group_key values"
-      - field: status
-        type: string
-        description: "active (add) or removed (remove)"
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
+description: "Update user group memberships — copy latest snapshot with modified user_groups JSONB (add or remove group keys)"
+namespace: user
+params:
+  user_account_id:
+    type: string
+    required: false
+    description: "user_account_key of the target user"
+  group_ids:
+    type: string
+    required: false
+    description: "Comma-separated user_group_key values"
+  status:
+    type: string
+    required: false
+    description: "active (add) or removed (remove)"
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
 */
 WITH group_key_list AS (
     SELECT unnest(string_to_array(:group_ids, ','))::BIGINT AS group_key

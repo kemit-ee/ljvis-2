@@ -1,55 +1,68 @@
 /*
-declaration:
-  version: 0.1
-  description: "Create a new OUTGOING CGR request draft (LJVIS2-138), including a copy-from-existing draft ('Kopeeri päring', LJVIS2-140) — the caller (POST/v1/erru/cgr.yml) pre-fills tmFirstName/tmFamilyName/tmDateOfBirth/tmPlaceOfBirth/certificateNumber/certificateIssueDate/certificateIssueCountry from the source request via GET before calling this same query, there is no separate copy query. Appends the first snapshot of a new erru.cgr_request with status 'initiated'. Allocates both the logical key and the human-readable business_case_id (CGR-EE-AAAA-NNNNN) server-side. cgr_from is hardcoded to EE. An empty cgrTo defaults to the broadcast marker ZZ ('Kõik riigid') per LJVIS2-138 §4. NYSIIS search keys are computed by the caller (TEMPLATES/erru/cgr/nysiis-key.yml) and passed in verbatim — this query never derives them."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: cgrTo
-        type: string
-      - field: originatingAuthority
-        type: string
-      - field: requestSource
-        type: string
-      - field: requestPurpose
-        type: string
-      - field: tmFirstName
-        type: string
-      - field: tmFamilyName
-        type: string
-      - field: tmDateOfBirth
-        type: string
-      - field: tmPlaceOfBirth
-        type: string
-      - field: tmFirstNameSearchKey
-        type: string
-      - field: tmFamilyNameSearchKey
-        type: string
-      - field: certificateNumber
-        type: string
-      - field: certificateIssueDate
-        type: string
-      - field: certificateIssueCountry
-        type: string
-      - field: handlerPersonalCode
-        type: string
-      - field: handlerName
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
+description: "Create a new OUTGOING CGR request draft (LJVIS2-138), including a copy-from-existing draft ('Kopeeri päring', LJVIS2-140) — the caller (POST/v1/erru/cgr.yml) pre-fills tmFirstName/tmFamilyName/tmDateOfBirth/tmPlaceOfBirth/certificateNumber/certificateIssueDate/certificateIssueCountry from the source request via GET before calling this same query, there is no separate copy query. Appends the first snapshot of a new erru.cgr_request with status 'initiated'. Allocates both the logical key and the human-readable business_case_id (CGR-EE-AAAA-NNNNN) server-side. cgr_from is hardcoded to EE. An empty cgrTo defaults to the broadcast marker ZZ ('Kõik riigid') per LJVIS2-138 §4. NYSIIS search keys are computed by the caller (TEMPLATES/erru/cgr/nysiis-key.yml) and passed in verbatim — this query never derives them."
+namespace: erru
+params:
+  cgrTo:
+    type: string
+    required: false
+  originatingAuthority:
+    type: string
+    required: false
+  requestSource:
+    type: string
+    required: false
+  requestPurpose:
+    type: string
+    required: false
+  tmFirstName:
+    type: string
+    required: false
+  tmFamilyName:
+    type: string
+    required: false
+  tmDateOfBirth:
+    type: string
+    required: false
+  tmPlaceOfBirth:
+    type: string
+    required: false
+  tmFirstNameSearchKey:
+    type: string
+    required: false
+  tmFamilyNameSearchKey:
+    type: string
+    required: false
+  certificateNumber:
+    type: string
+    required: false
+  certificateIssueDate:
+    type: string
+    required: false
+  certificateIssueCountry:
+    type: string
+    required: false
+  handlerPersonalCode:
+    type: string
+    required: false
+  handlerName:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
 */
 WITH ins AS (
   INSERT INTO erru.cgr_request (

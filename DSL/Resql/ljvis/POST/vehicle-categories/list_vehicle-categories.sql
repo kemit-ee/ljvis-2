@@ -1,16 +1,14 @@
 /*
-declaration:
-  version: 0.1
-  description: "List all of vehicle categories"
-  method: post
-  namespace: vehicle-categories
-  returns: json
-  response:
-    fields:
-      - field: code
-        type: string
-      - field: name
-        type: string
+description: "List all of vehicle categories"
+namespace: vehicle-categories
+params: {}
+returns:
+  - name: code
+    type: string
+    nullable: true
+  - name: name
+    type: string
+    nullable: true
 */
 SELECT
     cv.code,

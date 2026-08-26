@@ -1,47 +1,56 @@
 /*
-declaration:
-  version: 0.1
-  description: "Insert transport-interruption sub-form (autoveo katkestamise kontrollvorm) — first save. Free-text fields are uppercased server-side (LJVIS2-74 §4)."
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: compoundFormKey
-        type: number
-      - field: status
-        type: string
-      - field: headerText
-        type: string
-      - field: residenceCountry
-        type: string
-      - field: residenceRegion
-        type: string
-      - field: residenceCity
-        type: string
-      - field: residenceAddressLine
-        type: string
-      - field: residencePostalCode
-        type: string
-      - field: interruptionReason
-        type: string
-      - field: legalBases
-        type: string
-      - field: terminationCondition
-        type: string
-      - field: personApplications
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: subFormNumber
-        type: string
-      - field: version
-        type: number
+description: "Insert transport-interruption sub-form (autoveo katkestamise kontrollvorm) — first save. Free-text fields are uppercased server-side (LJVIS2-74 §4)."
+namespace: control-forms
+params:
+  compoundFormKey:
+    type: number
+    required: false
+  status:
+    type: string
+    required: false
+  headerText:
+    type: string
+    required: false
+  residenceCountry:
+    type: string
+    required: false
+  residenceRegion:
+    type: string
+    required: false
+  residenceCity:
+    type: string
+    required: false
+  residenceAddressLine:
+    type: string
+    required: false
+  residencePostalCode:
+    type: string
+    required: false
+  interruptionReason:
+    type: string
+    required: false
+  legalBases:
+    type: string
+    required: false
+  terminationCondition:
+    type: string
+    required: false
+  personApplications:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: subFormNumber
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
 */
 WITH ins AS (
   INSERT INTO forms.kv_form (

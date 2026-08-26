@@ -1,53 +1,61 @@
 /*
-declaration:
-  version: 0.1
-  description: "List users with pagination, sorting, and optional search"
-  method: post
-  namespace: user
-  returns: json
-  allowlist:
-    body:
-      - field: page
-        type: number
-        description: "Page number"
-      - field: page_size
-        type: number
-        description: "Items per page"
-      - field: search
-        type: string
-        description: "Search by name or personal code"
-      - field: sorting
-        type: string
-        description: "Sorting column and direction"
-      - field: organisation_id
-        type: string
-        description: "Filter by organisation ID (local scope)"
-  response:
-    fields:
-      - field: id
-        type: string
-        description: "User ID"
-      - field: first_name
-        type: string
-      - field: last_name
-        type: string
-      - field: personal_code
-        type: string
-      - field: organisation_id
-        type: string
-      - field: organisation_name
-        type: string
-      - field: status
-        type: string
-      - field: user_groups
-        type: string
-        description: "Comma-separated group names"
-      - field: page
-        type: number
-      - field: total_pages
-        type: number
-      - field: total
-        type: number
+description: "List users with pagination, sorting, and optional search"
+namespace: user
+params:
+  page:
+    type: number
+    required: false
+    description: "Page number"
+  page_size:
+    type: number
+    required: false
+    description: "Items per page"
+  search:
+    type: string
+    required: false
+    description: "Search by name or personal code"
+  sorting:
+    type: string
+    required: false
+    description: "Sorting column and direction"
+  organisation_id:
+    type: string
+    required: false
+    description: "Filter by organisation ID (local scope)"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: first_name
+    type: string
+    nullable: true
+  - name: last_name
+    type: string
+    nullable: true
+  - name: personal_code
+    type: string
+    nullable: true
+  - name: organisation_id
+    type: string
+    nullable: true
+  - name: organisation_name
+    type: string
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: user_groups
+    type: string
+    nullable: true
+  - name: page
+    type: number
+    nullable: true
+  - name: total_pages
+    type: number
+    nullable: true
+  - name: total
+    type: number
+    nullable: true
 */
 WITH latest AS (
     SELECT DISTINCT ON (user_account_key)

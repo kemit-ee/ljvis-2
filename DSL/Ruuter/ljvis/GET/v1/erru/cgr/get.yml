@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Get a single CGR request (erru.cgr_request) by its logical key, returning the latest snapshot (LJVIS2-138). Read-only; serves both an unsent outgoing draft and a sent/answered request. Audited on EVERY open because the view exposes the searched transport manager's personal data (name, date of birth). URL is nested one level deeper than CTUD's bare '/v1/erru/ctud' (which is '/v1/erru/cgr/get' here) because CGR needs its own guard-isolated directory distinct from CTUD's — see GET/v1/erru/cgr/.guard."
-  method: get
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     params:

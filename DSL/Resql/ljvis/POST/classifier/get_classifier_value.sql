@@ -1,3 +1,9 @@
+/*
+params:
+  classifier_value_id:
+    type: string
+    required: false
+*/
 SELECT
     cv.classifier_key       AS classifier_id,
     cv.classifier_value_key AS classifier_value_id,

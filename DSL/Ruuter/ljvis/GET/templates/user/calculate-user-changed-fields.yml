@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Calculate changed fields for user including SQL lookup"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

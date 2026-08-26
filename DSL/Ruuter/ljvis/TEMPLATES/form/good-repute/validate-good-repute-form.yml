@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Single source of truth for good repute form (hea maine vorm) field validation — shared by save.yml (insert + update) and confirm.yml. Mirrors the frontend Yup schema and the forms.good_repute_form table CHECK constraints (LJVIS2-136). Returns '{\"valid\":true}' when all checks pass, otherwise a VALIDATION_ERROR shape ready to be forwarded to the client as-is."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

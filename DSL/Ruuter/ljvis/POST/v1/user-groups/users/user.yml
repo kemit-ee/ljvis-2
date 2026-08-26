@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Delete a user from a user group"
-  method: post
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     body:

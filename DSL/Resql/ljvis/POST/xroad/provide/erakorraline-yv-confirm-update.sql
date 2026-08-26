@@ -1,33 +1,26 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    X-tee ErakorralineYVconfirm (v1): uuendab vehicle_technical_form X-tee bloki
-    välja in-place. Kood INSPECTION_DATE -> extraordinary_inspection_date,
-    ENFORCEMENT_DECISION -> enforcement_decision, CLOSURE_BASIS -> proceeding_closure_basis.
-    Uuendatakse ainult 'confirmed' staatusega vormi viimast snapshot'i.
-    Ei loo uut snapshot'i (versiooni number ei muutu).
-    Tagastab tühja array kui inspection_id ei leitud (YAML käsitleb kui NOT_FOUND).
-  method: post
-  accepts: json
-  returns: json
-  namespace: xroad
-  allowlist:
-    body:
-      - field: inspectionId
-        type: string
-      - field: code
-        type: string
-      - field: value
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: sub_form_number
-        type: string
-      - field: version
-        type: number
+description: "X-tee ErakorralineYVconfirm (v1): uuendab vehicle_technical_form X-tee bloki välja in-place. Kood INSPECTION_DATE -> extraordinary_inspection_date, ENFORCEMENT_DECISION -> enforcement_decision, CLOSURE_BASIS -> proceeding_closure_basis. Uuendatakse ainult 'confirmed' staatusega vormi viimast snapshot'i. Ei loo uut snapshot'i (versiooni number ei muutu). Tagastab tühja array kui inspection_id ei leitud (YAML käsitleb kui NOT_FOUND)."
+namespace: xroad
+params:
+  inspectionId:
+    type: string
+    required: false
+  code:
+    type: string
+    required: false
+  value:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: sub_form_number
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
 */
 
 -- Leia kinnitatava vormi viimane snapshot

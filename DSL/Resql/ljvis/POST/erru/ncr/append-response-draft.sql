@@ -1,59 +1,59 @@
 /*
-declaration:
-  version: 0.1
-  description: "Save/revise the Estonian RESPONSE draft to an INCOMING NCR message (LJVIS2-63).
-    Appends a new snapshot with status 'answer_drafted', keeping all request-side fields
-    (transport undertaking, infringements, etc.) carried forward unchanged — only the response
-    block and version/status advance. Guarded: the INSERT .. SELECT produces zero rows unless
-    the latest snapshot is status IN ('viewed', 'answer_drafted') AND direction='incoming' — a
-    not-yet-opened (received), already-answered, or outgoing message cannot be 'responded to'
-    via this endpoint; the caller detects the empty result and returns 422 not_editable.
-    penaltiesImposed[] completeness (every penaltyRequestedIdentifier from the request covered
-    exactly once) is validated by the CALLER (response/save.yml) before this query runs — this
-    query trusts the caller's payload and does not re-derive coverage. isImposed=false rows are
-    expected to already have penaltyTypeImposed/startDate/endDate stripped by the caller."
-  method: post
-  accepts: json
-  returns: json
-  namespace: erru
-  allowlist:
-    body:
-      - field: businessCaseId
-        type: string
-      - field: respondingAuthority
-        type: string
-      - field: responseStatusCode
-        type: string
-      - field: responseStatusMessage
-        type: string
-      - field: responseNumberOfVehicles
-        type: string
-      - field: responseCommunityLicenceStatus
-        type: string
-      - field: responseAddress
-        type: string
-      - field: responsePenaltiesImposed
-        type: string
-      - field: transportUndertakingName
-        type: string
-      - field: communityLicenceNumber
-        type: string
-      - field: handlerPersonalCode
-        type: string
-      - field: handlerName
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: business_case_id
-        type: string
-      - field: version
-        type: number
-      - field: status
-        type: string
+description: "Save/revise the Estonian RESPONSE draft to an INCOMING NCR message (LJVIS2-63). Appends a new snapshot with status 'answer_drafted', keeping all request-side fields (transport undertaking, infringements, etc.) carried forward unchanged — only the response block and version/status advance. Guarded: the INSERT .. SELECT produces zero rows unless the latest snapshot is status IN ('viewed', 'answer_drafted') AND direction='incoming' — a not-yet-opened (received), already-answered, or outgoing message cannot be 'responded to' via this endpoint; the caller detects the empty result and returns 422 not_editable. penaltiesImposed[] completeness (every penaltyRequestedIdentifier from the request covered exactly once) is validated by the CALLER (response/save.yml) before this query runs — this query trusts the caller's payload and does not re-derive coverage. isImposed=false rows are expected to already have penaltyTypeImposed/startDate/endDate stripped by the caller."
+namespace: erru
+params:
+  businessCaseId:
+    type: string
+    required: false
+  respondingAuthority:
+    type: string
+    required: false
+  responseStatusCode:
+    type: string
+    required: false
+  responseStatusMessage:
+    type: string
+    required: false
+  responseNumberOfVehicles:
+    type: string
+    required: false
+  responseCommunityLicenceStatus:
+    type: string
+    required: false
+  responseAddress:
+    type: string
+    required: false
+  responsePenaltiesImposed:
+    type: string
+    required: false
+  transportUndertakingName:
+    type: string
+    required: false
+  communityLicenceNumber:
+    type: string
+    required: false
+  handlerPersonalCode:
+    type: string
+    required: false
+  handlerName:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: business_case_id
+    type: string
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
 */
 WITH latest AS (
   SELECT *

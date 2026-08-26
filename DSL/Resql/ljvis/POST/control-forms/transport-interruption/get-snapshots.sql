@@ -1,30 +1,30 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get version history snapshots for a transport-interruption form"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: id
-        type: string
-        description: "KV form key"
-  response:
-    fields:
-      - field: snapshot_id
-        type: number
-      - field: version
-        type: number
-      - field: status
-        type: string
-      - field: created_at
-        type: string
-      - field: created_by
-        type: string
-      - field: org_name
-        type: string
+description: "Get version history snapshots for a transport-interruption form"
+namespace: control-forms
+params:
+  id:
+    type: string
+    required: false
+    description: "KV form key"
+returns:
+  - name: snapshot_id
+    type: number
+    nullable: true
+  - name: version
+    type: number
+    nullable: true
+  - name: status
+    type: string
+    nullable: true
+  - name: created_at
+    type: string
+    nullable: true
+  - name: created_by
+    type: string
+    nullable: true
+  - name: org_name
+    type: string
+    nullable: true
 */
 WITH ranked AS (
   SELECT

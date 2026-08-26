@@ -1,46 +1,51 @@
 /*
-declaration:
-  version: 0.1
-  description: "Insert generic audit event"
-  method: post
-  namespace: audit
-  returns: json
-  allowlist:
-    body:
-      - field: event_id
-        type: string
-        description: "ULID (26-char base32 Crockford). If omitted or empty, the DB generates one via audit.generate_ulid()."
-      - field: event_type
-        type: string
-        description: "Type of the event"
-      - field: event_category
-        type: string
-        description: "Category of the event"
-      - field: actor_name
-        type: string
-        description: "Display name of the actor"
-      - field: actor_personal_code
-        type: string
-        description: "Cleartext personal code of the actor — hashed to SHA-256 before storage"
-      - field: description
-        type: string
-        description: "Human-readable description of the event"
-      - field: log_content
-        type: string
-        description: "JSON object with additional event data"
-      - field: created_by
-        type: string
-        description: "Identifier of the user or process that wrote the record"
-      - field: trace_id
-        type: string
-        description: "W3C tracecontext trace id (32-hex) from the originating request traceparent header. NULL if absent."
-      - field: span_id
-        type: string
-        description: "W3C tracecontext span id (16-hex) from the originating request traceparent header. NULL if absent."
-  response:
-    fields:
-      - field: event_id
-        type: string
+description: "Insert generic audit event"
+namespace: audit
+params:
+  event_id:
+    type: string
+    required: false
+    description: "ULID (26-char base32 Crockford). If omitted or empty, the DB generates one via audit.generate_ulid()."
+  event_type:
+    type: string
+    required: false
+    description: "Type of the event"
+  event_category:
+    type: string
+    required: false
+    description: "Category of the event"
+  actor_name:
+    type: string
+    required: false
+    description: "Display name of the actor"
+  actor_personal_code:
+    type: string
+    required: false
+    description: "Cleartext personal code of the actor — hashed to SHA-256 before storage"
+  description:
+    type: string
+    required: false
+    description: "Human-readable description of the event"
+  log_content:
+    type: string
+    required: false
+    description: "JSON object with additional event data"
+  created_by:
+    type: string
+    required: false
+    description: "Identifier of the user or process that wrote the record"
+  trace_id:
+    type: string
+    required: false
+    description: "W3C tracecontext trace id (32-hex) from the originating request traceparent header. NULL if absent."
+  span_id:
+    type: string
+    required: false
+    description: "W3C tracecontext span id (16-hex) from the originating request traceparent header. NULL if absent."
+returns:
+  - name: event_id
+    type: string
+    nullable: true
 */
 INSERT INTO audit.audit_event (
     event_id,

@@ -1,103 +1,140 @@
 /*
-declaration:
-  version: 0.1
-  description: "Insert foreign violation form"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: status
-        type: string
-      - field: reportingCountryCode
-        type: string
-      - field: reportingAuthority
-        type: string
-      - field: inspectionCountryCode
-        type: string
-      - field: inspectionDate
-        type: string
-      - field: inspectionTime
-        type: string
-      - field: inspectionAddressLine1
-        type: string
-      - field: inspectionAddressLine2
-        type: string
-      - field: inspectionRegion
-        type: string
-      - field: inspectionCity
-        type: string
-      - field: companyRegCode
-        type: string
-      - field: companyName
-        type: string
-      - field: companyCountryCode
-        type: string
-      - field: companyAddressLine1
-        type: string
-      - field: companyAddressLine2
-        type: string
-      - field: companyCity
-        type: string
-      - field: companyPostalCode
-        type: string
-      - field: driverFirstName
-        type: string
-      - field: driverLastName
-        type: string
-      - field: vehicleRegNr
-        type: string
-      - field: vehicleMake
-        type: string
-      - field: vehicleModel
-        type: string
-      - field: vehicleCountryCode
-        type: string
-      - field: vehicleVin
-        type: string
-      - field: vehicleFirstRegistration
-        type: string
-      - field: vehicleBodyType
-        type: string
-      - field: licenceCopyNumber
-        type: string
-      - field: violationDescription
-        type: string
-      - field: minorViolationsCount
-        type: string
-      - field: sanctionCode
-        type: string
-      - field: sanctionNotes
-        type: string
-      - field: recommendedMeasureCode
-        type: string
-      - field: recommendedMeasureNotes
-        type: string
-      - field: recommendedMeasureGeneralNotes
-        type: string
-      - field: violations
-        type: string
-      - field: dataEntryDate
-        type: string
-      - field: inspectorFirstName
-        type: string
-      - field: inspectorLastName
-        type: string
-      - field: inspectorOrganisationId
-        type: string
-      - field: inspectorUnit
-        type: string
-      - field: inspectorProfession
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: form_number
-        type: string
+description: "Insert foreign violation form"
+namespace: control-forms
+params:
+  status:
+    type: string
+    required: false
+  reportingCountryCode:
+    type: string
+    required: false
+  reportingAuthority:
+    type: string
+    required: false
+  inspectionCountryCode:
+    type: string
+    required: false
+  inspectionDate:
+    type: string
+    required: false
+  inspectionTime:
+    type: string
+    required: false
+  inspectionAddressLine1:
+    type: string
+    required: false
+  inspectionAddressLine2:
+    type: string
+    required: false
+  inspectionRegion:
+    type: string
+    required: false
+  inspectionCity:
+    type: string
+    required: false
+  companyRegCode:
+    type: string
+    required: false
+  companyName:
+    type: string
+    required: false
+  companyCountryCode:
+    type: string
+    required: false
+  companyAddressLine1:
+    type: string
+    required: false
+  companyAddressLine2:
+    type: string
+    required: false
+  companyCity:
+    type: string
+    required: false
+  companyPostalCode:
+    type: string
+    required: false
+  driverFirstName:
+    type: string
+    required: false
+  driverLastName:
+    type: string
+    required: false
+  vehicleRegNr:
+    type: string
+    required: false
+  vehicleMake:
+    type: string
+    required: false
+  vehicleModel:
+    type: string
+    required: false
+  vehicleCountryCode:
+    type: string
+    required: false
+  vehicleVin:
+    type: string
+    required: false
+  vehicleFirstRegistration:
+    type: string
+    required: false
+  vehicleBodyType:
+    type: string
+    required: false
+  licenceCopyNumber:
+    type: string
+    required: false
+  violationDescription:
+    type: string
+    required: false
+  minorViolationsCount:
+    type: string
+    required: false
+  sanctionCode:
+    type: string
+    required: false
+  sanctionNotes:
+    type: string
+    required: false
+  recommendedMeasureCode:
+    type: string
+    required: false
+  recommendedMeasureNotes:
+    type: string
+    required: false
+  recommendedMeasureGeneralNotes:
+    type: string
+    required: false
+  violations:
+    type: string
+    required: false
+  dataEntryDate:
+    type: string
+    required: false
+  inspectorFirstName:
+    type: string
+    required: false
+  inspectorLastName:
+    type: string
+    required: false
+  inspectorOrganisationId:
+    type: string
+    required: false
+  inspectorUnit:
+    type: string
+    required: false
+  inspectorProfession:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: form_number
+    type: string
+    nullable: true
 */
 INSERT INTO forms.foreign_violation_form (
   foreign_violation_form_key,

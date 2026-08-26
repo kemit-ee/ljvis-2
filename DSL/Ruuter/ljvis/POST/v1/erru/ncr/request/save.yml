@@ -13,9 +13,6 @@ declaration:
     infringement-clearing rule (LJVIS2-63 §4) is enforced server-side inside the Resql query,
     not just here, so a stale client payload can never smuggle infringement data past a
     checkResult=Pass save."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

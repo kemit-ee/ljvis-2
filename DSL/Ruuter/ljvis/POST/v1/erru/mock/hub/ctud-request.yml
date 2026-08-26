@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "MOCK ERRU hub for CTUD request/response — dev and CI only, never reachable in production (ERRU_CTUD_ENDPOINT points at XTR there). Stands in for the MOVEHUB / s-TESTA synchronous request-response interface, which is unavailable in this environment. Modelled on the legacy SimulationController from the 2010 Erru.Receiver, which served the same purpose (its CheckCommunityLicence_Response DTO shape maps 1:1 onto the fields below, mod camelCase and the 2.4→3.5 singular→array delta). The scenario is selected by the target country so every branch of the send flow is reachable from a test: DE=Found with a full payload, LV=NotFound, PL=Timeout, GR=NotAvailable (a member state still on ERRU v2.4), anything else=Found with a minimal payload. FI is handled by returning HTTP 502 so the transport-failure branch can be exercised. FR/IT/ES/NL cover the remaining COMMUNITY_LICENCE_STATUS values (Suspended/Withdrawn/Expired/LostOrStolen) so the frontend's licence-status rendering has fixtures beyond the default Active. Response shapes follow ERRU 3.5 as derived from the 2.4 CheckCommunityLicence schema plus the LJVIS2-144 specification."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

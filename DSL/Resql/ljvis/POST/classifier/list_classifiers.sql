@@ -1,36 +1,38 @@
 /*
-declaration:
-  version: 0.1
-  description: "List all classifiers"
-  method: post
-  namespace: classifier
-  returns: json
-  allowlist:
-    body:
-      - field: search
-        type: string
-        description: "Search by classifier code or name"
-      - field: page
-        type: number
-        description: "Page number"
-      - field: page_size
-        type: number
-        description: "Items per page"
-      - field: sorting
-        type: string
-        description: "Sort column and direction (code, name)"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: code
-        type: string
-      - field: name
-        type: string
-      - field: description
-        type: string
-      - field: total
-        type: number
+description: "List all classifiers"
+namespace: classifier
+params:
+  search:
+    type: string
+    required: false
+    description: "Search by classifier code or name"
+  sorting:
+    type: string
+    required: false
+    description: "Sort column and direction (code, name)"
+  pageSize:
+    type: string
+    required: false
+  page:
+    type: number
+    required: false
+    description: "Page number"
+returns:
+  - name: id
+    type: string
+    nullable: true
+  - name: code
+    type: string
+    nullable: true
+  - name: name
+    type: string
+    nullable: true
+  - name: description
+    type: string
+    nullable: true
+  - name: total
+    type: number
+    nullable: true
 */
 WITH latest AS (
     SELECT DISTINCT ON (classifier_key)
