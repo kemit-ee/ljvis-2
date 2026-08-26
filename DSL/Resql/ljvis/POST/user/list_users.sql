@@ -19,7 +19,7 @@ params:
     required: false
     description: "Sorting column and direction"
   organisation_id:
-    type: string
+    type: number
     required: false
     description: "Filter by organisation ID (local scope)"
 returns:

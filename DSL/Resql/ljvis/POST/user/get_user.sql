@@ -7,7 +7,7 @@ params:
     required: false
     description: "User UUID"
   organisation_id:
-    type: string
+    type: number
     required: false
     description: "Optional organisation filter"
 returns:
