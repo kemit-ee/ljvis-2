@@ -226,7 +226,21 @@ jobs:
       - name: Run E2E tests
         run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json
 
+      - name: ZAP — baseline scan (stack already running)
+        run: |
+          mkdir -p zap-reports
+          docker run --rm \
+            --network host \
+            -v "$(pwd)/zap-reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+              -t http://localhost:9086 \
+              -r zap-report.html \
+              -J zap-report.json \
+              -I || true
+
       - name: Trivy — scan CI images
+        if: always()
         run: |
           images=(
             ljvis-ci-resql-ljvis
@@ -247,26 +261,6 @@ jobs:
               "${image}"
           done
 
-      - name: ZAP — baseline scan (stack already running)
-        run: |
-          mkdir -p zap-reports
-          docker run --rm \
-            --network host \
-            -v "$(pwd)/zap-reports:/zap/wrk/:rw" \
-            ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py \
-              -t http://localhost:9086 \
-              -r zap-report.html \
-              -J zap-report.json \
-              -I || true
-
-      - name: Upload ZAP report
-        if: always() && env.ACT != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: zap-reports/
-
       - name: Show logs on failure
         if: failure()
         run: |
@@ -280,6 +274,13 @@ jobs:
       - name: Tear down CI stack
         if: always()
         run: docker compose -f docker-compose.ci.yml -p ljvis-ci down -v
+
+      - name: Upload ZAP report
+        if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap-reports/
 
   # ── 5. Frontend lint ────────────────────────────────────────────────────────
   frontend-lint:
