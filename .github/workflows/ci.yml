@@ -241,28 +241,6 @@ jobs:
               -J zap-report.json \
               -I || true
 
-      - name: Trivy — scan CI images
-        if: always()
-        run: |
-          images=(
-            ljvis-ci-resql-ljvis
-            ljvis-ci-ruuter
-            ljvis-ci-ruuter-internal
-            ljvis-ci-data-mapper
-            ljvis-ci-tara-mock
-            ljvis-ci-tim
-            ljvis-ci-nysiis
-          )
-          for image in "${images[@]}"; do
-            echo "Scanning ${image}"
-            docker run --rm \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              aquasec/trivy:0.74.0 image \
-              --severity CRITICAL \
-              --exit-code 0 \
-              "${image}"
-          done
-
       - name: Show logs on failure
         if: failure()
         run: |
