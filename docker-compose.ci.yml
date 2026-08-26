@@ -151,7 +151,7 @@ services:
       nysiis:
         condition: service_healthy
     environment:
-      - RUST_LOG=info
+      - RUST_LOG=ruuter_on_rust::steps::http=debug,info
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/health > /dev/null 2>&1"]
       interval: 10s
@@ -177,7 +177,7 @@ services:
     depends_on:
       - bootstrap
     environment:
-      - RUST_LOG=info
+      - RUST_LOG=ruuter_on_rust::steps::http=debug,info
     volumes:
       - ./DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro
       - ./constants.ini:/app/constants.ini:ro
