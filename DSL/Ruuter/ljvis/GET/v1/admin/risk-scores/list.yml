@@ -7,9 +7,6 @@ declaration:
     .guard. Audited on every load since the list exposes undertaking names
     and risk classifications (mirrors DSL/Ruuter/ljvis/GET/v1/erru/ctud/
     search.yml's audit-on-load convention).
-  method: get
-  accepts: json
-  returns: json
   namespace: risk_score
   allowlist:
     params:

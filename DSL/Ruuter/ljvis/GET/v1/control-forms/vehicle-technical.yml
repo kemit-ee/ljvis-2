@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get vehicle technical-check sub-form by id (latest snapshot). Logs a view event only when the viewing user differs from the sub-form's creator (LJVIS2-72 §7)."
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

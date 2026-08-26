@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "MOCK Estonian transport manager good-repute lookup — dev and CI only. Stands in for the X-tee MTR CheckTransportManagerGoodRepute service that the inbound CGR handler must call when the transport manager is NOT found in the local good_repute_form UNFIT register (see LJVIS2-139, comment by Eda Rembel). Production points ERRU_CGR_MTR_ENDPOINT at the real service via XTR. Match rule is deterministic so Newman tests can rely on it: a transport manager is Found when tmFamilyName is 'TAMM' or tmFirstName is 'MART'; everything else is NotFound. The Found response returns a single EE undertaking with fitnessStatus 'Fit', mirroring the structure of the ERRU 3.5 CheckGoodRepute_ResponseBodyMemberState transportManagerDetails field. The certificate number EE-CPC-2020-00111 is also a match trigger so CPC-based inbound searches can be tested."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

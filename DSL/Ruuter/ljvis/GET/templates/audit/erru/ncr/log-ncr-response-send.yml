@@ -2,9 +2,6 @@ declaration:
   version: "1.0"
   description: "Audit: NCR response send attempt to an incoming message (LJVIS2-64 §4.5).
     Logged on every send attempt, whether it results in answered or error."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

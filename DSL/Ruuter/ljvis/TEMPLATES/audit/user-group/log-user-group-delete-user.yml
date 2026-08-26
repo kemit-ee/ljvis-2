@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Audit: user group delete-user event — fetches removed user personal code internally"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:
@@ -26,7 +23,7 @@ fetchUser:
       type: json
     body:
       id: ${incoming.body.user_id}
-      organisation_id: ""
+      organisation_id: null
   result: personalCodesRes
   next: buildAudit
 

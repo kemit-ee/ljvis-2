@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Replace all permission links for a user group"
-  method: put
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     body:

@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get the latest active drive rest form (teammate) for a compound form"
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

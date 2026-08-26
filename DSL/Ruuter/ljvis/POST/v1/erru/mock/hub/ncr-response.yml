@@ -5,9 +5,6 @@ declaration:
     ncr-request.yml. Scenario selection is by ncrTo (the ORIGINAL requesting member state,
     since roles reverse when Estonia answers an incoming request): FI -> HTTP 502 (transport
     failure); NO -> ack Timeout; IS -> ack NotAvailable; everything else -> ack OK."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

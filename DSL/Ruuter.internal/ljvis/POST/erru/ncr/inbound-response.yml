@@ -28,9 +28,6 @@ declaration:
 
     TODO(M2M): OAuth2 machine-token auth. Runs on ruuter-internal (port 8089, allowedIPs
     127.0.0.1 only) following the CGR/CTUD/RSI inbound precedent.
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

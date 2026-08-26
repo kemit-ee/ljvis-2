@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Replace all group memberships for a user"
-  method: put
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     body:
@@ -84,7 +81,7 @@ getUser:
       type: json
     body:
       id: ${user_account_id}
-      organisation_id: ""
+      organisation_id: null
   result: userRes
   next: buildAuditLog
 

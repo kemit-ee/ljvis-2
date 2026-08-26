@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Calculate changed fields for foreign violation form including SQL lookup"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

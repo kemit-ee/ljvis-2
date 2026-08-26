@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get a single transport-interruption form snapshot by snapshot ID, for the read-only historical version view."
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

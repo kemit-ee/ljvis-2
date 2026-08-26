@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Audit: foreign violation form create event"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

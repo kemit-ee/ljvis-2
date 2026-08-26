@@ -3,9 +3,6 @@ declaration:
   description: "Audit: NCR case viewed (LJVIS2-63). Logged on EVERY case open because the case
     shows transport undertaking and handler personal data. Description carries the case
     identifier, the number of snapshots shown and the acting handler's personal code."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

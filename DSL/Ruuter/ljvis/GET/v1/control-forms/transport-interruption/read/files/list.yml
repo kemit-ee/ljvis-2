@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List active file attachments for a transport-interruption sub-form"
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

@@ -26,9 +26,6 @@ declaration:
     TODO(M2M): OAuth2 machine-token auth. Until Ruuter supports client_credentials this
     runs on ruuter-internal (port 8089, allowedIPs 127.0.0.1 only) following the CGR/CTUD
     inbound-request precedent.
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

@@ -9,9 +9,6 @@ declaration:
     identifiers both fail with 422 penalty_coverage_incomplete. isImposed=false entries have
     penaltyTypeImposed stripped server-side regardless of what the client submitted (LJVIS2-63
     §4 'Määrati karistus = Ei peidab ja tühjendab [Kehtestatud karistuse] välja')."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

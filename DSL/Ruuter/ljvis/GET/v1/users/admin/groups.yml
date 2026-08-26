@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get groups assigned to a user"
-  method: get
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     params:

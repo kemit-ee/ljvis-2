@@ -14,9 +14,6 @@ declaration:
     scope), and (c) manually for testing/ops. No auth required: machine-to-
     machine only, port 8089 is not exposed outside the Docker network (same
     trust model as every other Ruuter.internal endpoint in this project).
-  method: post
-  accepts: json
-  returns: json
   namespace: risk_score
   allowlist:
     body:

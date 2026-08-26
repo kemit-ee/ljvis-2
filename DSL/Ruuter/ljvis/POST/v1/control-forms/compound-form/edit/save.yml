@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Create or update the compound form — single unified save endpoint, branches internally on presence of id. Status is always computed/controlled server-side and never trusts client input."
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

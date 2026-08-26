@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Create a new user"
-  method: post
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     body:

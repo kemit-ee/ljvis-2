@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Audit: CTUD request draft saved (LJVIS2-143). Logged on every draft save, both the initial create and each revision. The description carries the request identifier, the list of changed fields and the resulting status. changed_fields is empty on create (everything is new) and computed by comparing against the previous snapshot on revision."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

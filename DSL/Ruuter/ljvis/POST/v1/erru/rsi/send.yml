@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Send an outgoing RSI (RoadSideInspection) notification to the ERRU hub and store the ACK (LJVIS2-148). RSI is asynchronous and single-country: only 'initiated' messages can be sent (no retry from error — a failed RSI notification is abandoned and a new one composed). Flow: get the draft, validate it is sendable, convert checked_items from the national TECHNICAL_CHECK format to the ERRU rsiCheckedItemType format (CAA_10 excluded — no ERRU equivalent; severity mapped VO→Minor/OV→Major/EOV→Dangerous), call the ERRU hub, receive only an ACK (no vehicle status — that arrives separately via inbound-response.yml), append exactly one 'sent' snapshot with a newly generated workflowId/technicalId (append-transition.sql), and return the workflowId to the caller so they can display 'Teade saadetud'. A transport failure transitions to 'error' (terminal — no retry). The ERRU hub endpoint is resolved from ERRU_RSI_ENDPOINT (mock in dev/CI, XTR in production). The mock response may be Ruuter-enveloped (dev/CI: {'response': '...'}) or direct (XTR): both shapes are handled."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

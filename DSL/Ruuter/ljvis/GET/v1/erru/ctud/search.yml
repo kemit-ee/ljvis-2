@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Paginated, filtered list of CTUD requests, outgoing and incoming in one table (LJVIS2-145). All eleven filters are optional; the three search-criteria filters (undertaking name, community licence number, vehicle registration number) are OR-combined with each other and AND-combined with the rest — that logic lives in search.sql. Method is GET per docs/rest-api-design-guide.md section 2.3, which lists POST-based list retrieval as a forbidden pattern; the task specification's POST /erru/ctud/list is deliberately not followed. Audited on every load because the list exposes undertaking and handler names."
-  method: get
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     params:

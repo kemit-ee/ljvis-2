@@ -247,8 +247,8 @@ Lähemalt: [`docs/rest-api-design-guide.md`](rest-api-design-guide.md)
 | Klassifikaatorid | `GET /v1/classifiers/classifier?id=` | `GET /v1/classifiers` | — | `PUT /v1/classifiers` |
 | Audit-logi | `GET /v1/logs/log?q=` | `GET /v1/logs` | — | — |
 
-Täielik loetelu: [`docs/api-endpoints.md`](api-endpoints.md)  
-OpenAPI spetsifikatsioon: [`docs/openapi.yaml`](openapi.yaml)
+Täielik loetelu: [`api-endpoints.md`](api-endpoints.md)
+OpenAPI spetsifikatsioon: [`openapi.yaml`](../openapi.yaml)
 
 ### 6.3 Valideerimise loogika
 
@@ -384,8 +384,8 @@ Lähemalt: [`docs/data_model.md`](data_model.md)
 | Dokument | Sisu |
 |----------|------|
 | [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md) | DSL failide struktuur, mallid, valideerimine |
-| [`docs/api-endpoints.md`](api-endpoints.md) | Kõik API endpointid ja mock-teed |
-| [`docs/openapi.yaml`](openapi.yaml) | OpenAPI 3 spetsifikatsioon |
+| [`api-endpoints.md`](api-endpoints.md) | Kõik API endpointid ja mock-teed |
+| [`openapi.yaml`](../openapi.yaml) | OpenAPI 3 spetsifikatsioon |
 | [`docs/rest-api-design-guide.md`](rest-api-design-guide.md) | REST API kujundamise reeglid |
 | [`docs/permissions-matrix.md`](permissions-matrix.md) | Ressursside õiguste maatriks |
 | [`docs/audit-logging.md`](audit-logging.md) | Audit-logimise loogika ja sündmused |
