@@ -250,7 +250,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=20",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=60",
           "host": [
             "{{api_url}}"
           ],
@@ -266,7 +266,7 @@
             },
             {
               "key": "pageSize",
-              "value": "20"
+              "value": "60"
             }
           ]
         }
@@ -416,7 +416,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=20",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=60",
           "host": [
             "{{api_url}}"
           ],
@@ -436,7 +436,7 @@
             },
             {
               "key": "pageSize",
-              "value": "20"
+              "value": "60"
             }
           ]
         }
@@ -702,7 +702,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
+          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=30",
           "host": [
             "{{api_url}}"
           ],
@@ -723,7 +723,7 @@
             },
             {
               "key": "pageSize",
-              "value": "20"
+              "value": "30"
             }
           ]
         }
@@ -745,10 +745,10 @@
               "    pm.expect(v).to.include.keys('classifierValueId', 'code', 'name', 'isValid', 'classifierId');",
               "  });",
               "});",
-              "pm.test('3 valid and 1 expired value', () => {",
+              "pm.test('27 valid and 1 expired value', () => {",
               "  const valid = data.filter(v => v.isValid === 'true').length;",
               "  const expired = data.filter(v => v.isValid === 'false').length;",
-              "  pm.expect(valid).to.eql(3);",
+              "  pm.expect(valid).to.eql(27);",
               "  pm.expect(expired).to.eql(1);",
               "});"
             ]
@@ -767,7 +767,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
+          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=30",
           "host": [
             "{{api_url}}"
           ],
@@ -788,7 +788,7 @@
             },
             {
               "key": "pageSize",
-              "value": "20"
+              "value": "30"
             }
           ]
         }
