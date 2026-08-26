@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Return current user info + permissions from JWT cookie"
-  method: get
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

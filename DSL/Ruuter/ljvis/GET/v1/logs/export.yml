@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Export audit logs as CSV"
-  method: get
-  accepts: json
-  returns: json
   namespace: logs
   allowlist:
     params:

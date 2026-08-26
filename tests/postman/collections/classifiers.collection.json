@@ -250,7 +250,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=20",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=60",
           "host": [
             "{{api_url}}"
           ],
@@ -266,7 +266,7 @@
             },
             {
               "key": "pageSize",
-              "value": "20"
+              "value": "60"
             }
           ]
         }
@@ -283,7 +283,7 @@
               "  pm.expect(Array.isArray(data.content)).to.be.true;",
               "  pm.expect(data.total).to.be.a('number');",
               "});",
-              "pm.test('Total equals 4 (seeded: RTK + TEST, plus production-seeded TECHNICAL_CHECK + INTERRUPTION_BASES)', () => pm.expect(data.total).to.eql(4));",
+              "pm.test('Total equals 55 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(55));",
               "pm.test('Each item has id, code, name, description', () => {",
               "  data.content.forEach(c => {",
               "    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
@@ -416,7 +416,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=20",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=60",
           "host": [
             "{{api_url}}"
           ],
@@ -436,7 +436,7 @@
             },
             {
               "key": "pageSize",
-              "value": "20"
+              "value": "60"
             }
           ]
         }
@@ -512,7 +512,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=4",
+      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=55",
       "request": {
         "method": "GET",
         "header": [
@@ -552,7 +552,7 @@
               "var body = pm.response.json();",
               "var data = (body && body.response) ? body.response : body;",
               "pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-              "pm.test('Total is still 4', () => pm.expect(data.total).to.eql(4));"
+              "pm.test('Total is still 55', () => pm.expect(data.total).to.eql(55));"
             ]
           }
         }
@@ -692,7 +692,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers/values — RTK has 4 values (3 valid + 1 expired)",
+      "name": "GET /v1/classifiers/values — RTK has 28 values (27 valid + 1 expired)",
       "request": {
         "method": "GET",
         "header": [
@@ -702,7 +702,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
+          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=30",
           "host": [
             "{{api_url}}"
           ],
@@ -723,7 +723,7 @@
             },
             {
               "key": "pageSize",
-              "value": "20"
+              "value": "30"
             }
           ]
         }
@@ -739,16 +739,16 @@
               "var data = resp.content || [];",
               "var total = resp.total || 0;",
               "pm.test('Response has content array', () => pm.expect(Array.isArray(data)).to.be.true);",
-              "pm.test('Total equals 4', () => pm.expect(parseInt(total)).to.eql(4));",
+              "pm.test('Total equals 28 (27 EL liikmesriiki + 1 aegunud XX testtunnus)', () => pm.expect(parseInt(total)).to.eql(28));",
               "pm.test('Each value has classifierValueId, code, name, isValid, classifierId', () => {",
               "  data.forEach(v => {",
               "    pm.expect(v).to.include.keys('classifierValueId', 'code', 'name', 'isValid', 'classifierId');",
               "  });",
               "});",
-              "pm.test('3 valid and 1 expired value', () => {",
+              "pm.test('27 valid and 1 expired value', () => {",
               "  const valid = data.filter(v => v.isValid === 'true').length;",
               "  const expired = data.filter(v => v.isValid === 'false').length;",
-              "  pm.expect(valid).to.eql(3);",
+              "  pm.expect(valid).to.eql(27);",
               "  pm.expect(expired).to.eql(1);",
               "});"
             ]
@@ -767,7 +767,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=20",
+          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{seeded_classifier_id}}&page=1&pageSize=30",
           "host": [
             "{{api_url}}"
           ],
@@ -788,7 +788,7 @@
             },
             {
               "key": "pageSize",
-              "value": "20"
+              "value": "30"
             }
           ]
         }
@@ -872,7 +872,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers/values — sort code asc → EE first",
+      "name": "GET /v1/classifiers/values — sort code asc → AT first",
       "request": {
         "method": "GET",
         "header": [
@@ -921,14 +921,14 @@
               "var body = pm.response.json();",
               "var resp = (body && body.response) ? body.response : body;",
               "var data = resp.content || [];",
-              "pm.test('First value code is EE (code asc)', () => pm.expect(data[0].code).to.eql('EE'));"
+              "pm.test('First value code is AT (code asc, Austria is first EU member alphabetically)', () => pm.expect(data[0].code).to.eql('AT'));"
             ]
           }
         }
       ]
     },
     {
-      "name": "GET /v1/classifiers/values — pagination pageSize=2 returns 2 items, total=4",
+      "name": "GET /v1/classifiers/values — pagination pageSize=2 returns 2 items, total=28",
       "request": {
         "method": "GET",
         "header": [
@@ -975,7 +975,7 @@
               "var data = resp.content || [];",
               "var total = resp.total || 0;",
               "pm.test('Page has exactly 2 items', () => pm.expect(data.length).to.eql(2));",
-              "pm.test('Total is still 4', () => pm.expect(parseInt(total)).to.eql(4));"
+              "pm.test('Total is still 28', () => pm.expect(parseInt(total)).to.eql(28));"
             ]
           }
         }

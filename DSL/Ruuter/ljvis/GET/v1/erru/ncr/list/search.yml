@@ -6,9 +6,6 @@ declaration:
     drives the red-row highlight on the frontend. Protected by the new ncr.list permission
     (list/.guard), distinct from ncr.read which protects get.yml. Audited on every load
     because the list exposes transport undertaking and handler names."
-  method: get
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     params:

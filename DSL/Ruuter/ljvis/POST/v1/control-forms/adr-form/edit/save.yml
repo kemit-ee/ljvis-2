@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Create or update the ADR sub-form (ohtlik veos, LJVIS2-141) — single unified save endpoint, branches internally on presence of id. Status is always server-controlled. Requires an already-existing compoundFormKey. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

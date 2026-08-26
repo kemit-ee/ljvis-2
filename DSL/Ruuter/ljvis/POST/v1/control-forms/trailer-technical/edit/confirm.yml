@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Confirm (kinnita) the trailer technical-check sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

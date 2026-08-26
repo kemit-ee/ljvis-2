@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Single source of truth for CTUD request field validation (LJVIS2-143) — shared by the create (POST), revise (PUT) and inbound-request paths so the ERRU rules are defined once. Mirrors the erru.ctud_request CHECK constraints (chk_ctud_min_two_search_criteria, chk_ctud_name_not_unknown, chk_ctud_vehicle_country_required) and the frontend Yup schema in useCtudForm.ts. Returns '{\"valid\":true}' when all checks pass, otherwise the standard VALIDATION_ERROR shape ready to forward to the client as-is.\n\nIMPORTANT — why every condition reads incoming.body directly instead of pre-assigned variables: Ruuter's ScriptingHelper.filterEmptyOptional discards an assigned variable whose evaluated value is an empty string, so `assign`ing an optional field yields *undefined* rather than ''. A later `x !== ''` test then passes for a genuinely empty field and `x.length` throws. Every value is therefore coerced at the point of use with ('' + (… || '')) and every emptiness test is truthiness-first, which is safe for both '' and undefined."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

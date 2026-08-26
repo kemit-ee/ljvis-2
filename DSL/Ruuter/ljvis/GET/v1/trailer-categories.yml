@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List all trailer categories"
-  method: get
-  accepts: json
-  returns: json
   namespace: trailer-categories
 
 getTrailerCategories:

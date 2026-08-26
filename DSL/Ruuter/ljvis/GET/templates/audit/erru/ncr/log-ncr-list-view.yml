@@ -4,9 +4,6 @@ declaration:
     exposes transport undertaking and handler names (personal-data footprint). The description
     carries the applied filters (including the handler personal code), the number of rows shown and
     the page number. Actor is supplied by the caller, which has already resolved it via TIM userinfo."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

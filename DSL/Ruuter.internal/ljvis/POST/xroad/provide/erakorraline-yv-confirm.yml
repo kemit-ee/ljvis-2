@@ -8,9 +8,6 @@ declaration:
     Atomaarne: ühe elemendi ebaõnnestumisel terve batch ebaõnnestub.
     Idempotentne: korduspäring sama kombinatsiooniga annab sama tulemuse.
     Vt docs/xtee/04-erakorraline-yv-confirm.md.
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
 
 # Samm 1: X-Road-Client päise kontroll

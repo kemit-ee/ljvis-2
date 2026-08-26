@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Audit: RSI notification sent or failed to the ERRU hub (LJVIS2-148). Logged on every send attempt, successful (sent) or not (error). The description carries the business case identifier, the target member state, the result status, and the inspected vehicle registration number, making the event traceable. Unlike CGR, RSI does not carry personal name data in the send path — the vehicle registration number is the primary identifying field."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

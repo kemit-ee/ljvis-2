@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Confirm (kinnita) the drive/rest teammate sub-form. Uses the same fields as save (update), but forces status=confirmed server-side. Blocked if the sub-form is already confirmed or published."
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

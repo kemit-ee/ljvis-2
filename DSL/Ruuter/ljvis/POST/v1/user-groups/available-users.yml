@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get list of available users for a user group with pagination, sorting and search"
-  method: post
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     body:

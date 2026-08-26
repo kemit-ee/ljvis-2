@@ -201,22 +201,42 @@ SELECT nextval('classifier.seq_classifier_key'), 'TEST', 'Test Classifier', 'boo
 WHERE NOT EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TEST');
 
 -- ============================================================
--- Classifier values — RTK (3 valid + 1 expired for isValid tests)
+-- Classifier values — RTK
+-- EE/LV/LT are already seeded by the Liquibase migration (initial-rtk-classifier).
+-- XX is a fictitious non-ISO code used only for isValid/expired testing in CI.
 -- ============================================================
 INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
 SELECT nextval('classifier.seq_classifier_value_key'),
        (SELECT classifier_key FROM classifier.classifier WHERE code = 'RTK' ORDER BY created_at DESC LIMIT 1),
        v.code, v.name, v.vf::DATE, v.vu::DATE, 'bootstrap'
 FROM (VALUES
-    ('EE', 'Eesti',             '2024-01-01'::DATE, NULL::DATE),
-    ('LV', 'Läti',              '2024-01-01'::DATE, NULL::DATE),
-    ('LT', 'Leedu',             '2024-01-01'::DATE, NULL::DATE),
-    ('FI', 'Soome (aegunud)',   '2019-01-01'::DATE, '2020-01-01'::DATE)
+    ('EE', 'Eesti',                        '2004-05-01'::DATE, NULL::DATE),
+    ('LV', 'Läti',                         '2004-05-01'::DATE, NULL::DATE),
+    ('LT', 'Leedu',                        '2004-05-01'::DATE, NULL::DATE),
+    ('XX', 'Kehtetu testtunnus (aegunud)', '2019-01-01'::DATE, '2020-01-01'::DATE)
 ) AS v(code, name, vf, vu)
 WHERE NOT EXISTS (
     SELECT 1 FROM classifier.classifier_value cv2
     JOIN classifier.classifier c2 ON c2.classifier_key = cv2.classifier_key
     WHERE c2.code = 'RTK' AND cv2.code = v.code
+);
+
+-- ============================================================
+-- Classifier values — COUNTRY (expired test entry)
+-- The 247 real ISO 3166-1 countries are seeded by Liquibase (initial-country-classifier).
+-- XY is a fictitious code used only for isValid/expired testing in CI.
+-- ============================================================
+INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+SELECT nextval('classifier.seq_classifier_value_key'),
+       (SELECT classifier_key FROM classifier.classifier WHERE code = 'COUNTRY' ORDER BY created_at DESC LIMIT 1),
+       v.code, v.name, v.vf::DATE, v.vu::DATE, 'bootstrap'
+FROM (VALUES
+    ('XY', 'Katsemaariik (aegunud)', '2019-01-01'::DATE, '2020-01-01'::DATE)
+) AS v(code, name, vf, vu)
+WHERE NOT EXISTS (
+    SELECT 1 FROM classifier.classifier_value cv2
+    JOIN classifier.classifier c2 ON c2.classifier_key = cv2.classifier_key
+    WHERE c2.code = 'COUNTRY' AND cv2.code = v.code
 );
 
 -- ============================================================

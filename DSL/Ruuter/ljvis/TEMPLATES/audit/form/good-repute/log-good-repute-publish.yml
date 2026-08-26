@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Audit: good repute form publish event"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

@@ -6,9 +6,6 @@ declaration:
     kontrollid ettevõtete kohta millega isik on seotud (juhi rollina).
     Ainult lokaalne DB — Äriregistri välispäringut ei tehta.
     Vt docs/xtee/02-isiku-ettevote-kontrollid.md.
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
 
 # Samm 1: Kontrolli X-Road-Client päise olemasolu

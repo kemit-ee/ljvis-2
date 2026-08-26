@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Generic control-form audit logger (currently used only by labour-inspection create/update/view). See .ai/coding_guidelines_and_lessons_learned.md § Ruuter DSL for why this file avoids literal '{'/'}' inside ${...} expressions and uses TIM /jwt/userinfo directly instead of check-user-authority."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:
