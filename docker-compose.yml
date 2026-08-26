@@ -209,7 +209,7 @@ services:
     container_name: xtr
     image: turnerrainer/xtr:rc
     environment:
-      - RUST_LOG=info
+      - RUST_LOG=debug
       - XTR_KEYSTORE_PASSWORD=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
       - SSL_CERT_FILE=/app/xtr-config/ca-bundle-with-cammy.pem
     volumes:
