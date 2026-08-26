@@ -143,10 +143,12 @@ jobs:
           echo "✅ $count SQL files non-empty"
 
   # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
-  # Runs in parallel with DSL validation — no stack needed.
+  # Runs after E2E so the security checks are the final CI validation stage.
   # Secret findings are blocking on main, but remain advisory on dev.
   security-scan:
     name: Security Scan (Trivy)
+    needs: e2e
+    if: always()
     runs-on: ubuntu-22.04
     permissions:
       contents: read
