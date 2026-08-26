@@ -34,3 +34,25 @@
 - [Riskihindamine](admin-guide/06-riskihindamine-admin.md)
 - [API info](admin-guide/07-api-info.md)
 - [Manused](admin-guide/08-manused.md)
+
+---
+
+# Andmehaldus
+
+- [Ülevaade](andmehaldus/README.md)
+- [Klassifikaatorid](andmehaldus/klassifikaatorid.md)
+- [Õigused](andmehaldus/oigused.md)
+- [Asutused](andmehaldus/organisatsioonid.md)
+
+---
+
+# Töödokumendid
+
+- [Ülevaade](workingdocs/README.md)
+- [API otspunktid](workingdocs/api-endpoints.md)
+- [Administraatori juhend](workingdocs/admin-guide.md)
+- [Administraatori paigaldus- ja seadistusjuhend](workingdocs/admin-deployment-guide.md)
+- [Klassifikaatorite vahemälu](workingdocs/classifier-caching.md)
+- [Arhitektuur](workingdocs/LJVIS_arhitektuur.md)
+- [Auditilogimine](workingdocs/audit-logging.md)
+- [Õiguste maatriks](workingdocs/permissions-matrix.md)

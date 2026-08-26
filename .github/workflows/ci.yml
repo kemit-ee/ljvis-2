@@ -143,15 +143,16 @@ jobs:
           echo "✅ $count SQL files non-empty"
 
   # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
-  # Runs in parallel with DSL validation — no stack needed.
-  # continue-on-error: true — establish baseline first, then tighten.
+  # Runs after E2E so the security checks are the final CI validation stage.
+  # Secret findings are blocking on main, but remain advisory on dev.
   security-scan:
     name: Security Scan (Trivy)
+    needs: e2e
+    if: always()
     runs-on: ubuntu-22.04
-    continue-on-error: true
-#    permissions:
-#      security-events: write
-#      contents: read
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout
@@ -159,13 +160,16 @@ jobs:
 
       - name: Install Trivy
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          TRIVY_VERSION=0.74.0
+          curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+            | tar -xz -C /tmp
+          sudo install /tmp/trivy /usr/local/bin/trivy
 
       - name: Trivy — secret detection (whole repo)
+        continue-on-error: ${{ github.ref == 'refs/heads/dev' || github.base_ref == 'dev' }}
         run: trivy fs . --scanners secret --format table --exit-code 1
 
-      - name: Trivy — frontend dependency CVEs
-        if: always()
+      - name: Trivy — frontend vulnerability scan
         run: |
           trivy fs frontend/ \
             --scanners vuln \
@@ -213,39 +217,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Build and start CI stack
-        run: docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --build
-
-      - name: Wait for Resql
-        run: |
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:9087/healthz > /dev/null 2>&1; then
-              echo "resql ready"; break
-            fi
-            if [ "$i" = "60" ]; then echo "❌ resql not ready after 300s"; exit 1; fi
-            sleep 5
-          done
-
-      - name: Wait for ruuter
-        run: |
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:9086/health > /dev/null 2>&1; then
-              echo "ruuter ready"; break
-            fi
-            if [ "$i" = "60" ]; then echo "❌ ruuter not ready after 300s"; exit 1; fi
-            sleep 5
-          done
-
-      - name: Wait for TIM
-        run: |
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:9085/health > /dev/null 2>&1; then
-              echo "TIM ready"; break
-            fi
-            if [ "$i" = "60" ]; then echo "❌ TIM not ready after 300s"; exit 1; fi
-            sleep 5
-          done
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -256,7 +227,6 @@ jobs:
 
       - name: Run E2E tests
         run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json
-
 
       - name: ZAP — baseline scan (stack already running)
         run: |
@@ -271,12 +241,27 @@ jobs:
               -J zap-report.json \
               -I || true
 
-      - name: Upload ZAP report
-        if: always() && env.ACT != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: zap-reports/
+      - name: Trivy — scan CI images
+        if: always()
+        run: |
+          images=(
+            ljvis-ci-resql-ljvis
+            ljvis-ci-ruuter
+            ljvis-ci-ruuter-internal
+            ljvis-ci-data-mapper
+            ljvis-ci-tara-mock
+            ljvis-ci-tim
+            ljvis-ci-nysiis
+          )
+          for image in "${images[@]}"; do
+            echo "Scanning ${image}"
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy:0.74.0 image \
+              --severity CRITICAL \
+              --exit-code 0 \
+              "${image}"
+          done
 
       - name: Show logs on failure
         if: failure()
@@ -291,6 +276,13 @@ jobs:
       - name: Tear down CI stack
         if: always()
         run: docker compose -f docker-compose.ci.yml -p ljvis-ci down -v
+
+      - name: Upload ZAP report
+        if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap-reports/
 
   # ── 5. Frontend lint ────────────────────────────────────────────────────────
   frontend-lint:

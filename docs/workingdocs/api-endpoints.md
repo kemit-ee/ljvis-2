@@ -1,6 +1,6 @@
 # LJVIS API otspunktid
 
-Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioonis.
+Kõik Ruuteri kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioonis. Klassifikaatorite laadimise ja esiküljel kehtiva vahemälu täpsem kirjeldus on dokumendis [`classifier-caching.md`](classifier-caching.md).
 
 > **Ruuter DSL konventsioon:** `id` ja muud ressursiidentifikaatorid edastatakse query paramitena (`?q=...`), mitte URL path segmentidena. Path segmendid tähistavad ainult staatilisi ressursikollektsioone või toiminguid. `?q=` on ühtne parameeter nii ID-otsingul (üksik ressurss) kui ka teksti-otsingul (nimekiri).
 
@@ -24,8 +24,8 @@ Kõik Ruuter kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioon
 | PUT | `/v1/classifiers/value` | — | uuenda kehtivusperioodi (classifierId, classifierValueId body-s) |
 | POST | `/v1/classifiers/check-code` | — | *(planeeritud — DSL fail puudub)* |
 | GET | `/v1/classifiers/catalogue` | — | *(planeeritud — DSL fail puudub)* |
-| GET | `/v1/classifier-values` | — | Kõikide klassifikaatorite väärtuste lame nimekiri (viimane snapshot, koos kehtivusega). Nõuab ainult sisselogimist (`/v1/.guard`), **mitte** `classifier.read`. FE laeb selle korra sisselogimisel `ClassifierProvider` kaudu — vt `docs/classifier-caching.md`. |
-| GET | `/v1/classifiers/bundle` | — | Kõik klassifikaatorid + väärtused ühes bulk-vastuses, rühmitatud klassifikaatori metaandmetega (`classifierId`, `classifierName`). Nõuab `classifier.read`. Kasutamiseks ainult admin-kontekstides, kus on tagatud vastav õigus — tavaliste vormide dropdown'ite jaoks kasuta `/v1/classifier-values` kaudu täidetavat kešši. |
+| GET | `/v1/classifier-values` | — | Kõigi klassifikaatorite väärtuste lame nimekiri (iga väärtuse viimane snapshot koos kehtivusinfoga). Nõuab ainult sisselogimist (`/v1/.guard`), **mitte** õigust `classifier.read`. Esikülg laadib andmed sisselogimisel ühe korra `ClassifierProvider`i kaudu — vt [`classifier-caching.md`](classifier-caching.md). |
+| GET | `/v1/classifiers/bundle` | — | Kõik klassifikaatorid + väärtused ühes bulk-vastuses, rühmitatud klassifikaatori metaandmetega (`classifierId`, `classifierName`). Nõuab `classifier.read`. Kasutamiseks ainult admin-kontekstides, kus on tagatud vastav õigus — tavaliste vormide dropdown'ite jaoks kasuta `/v1/classifier-values` kaudu täidetavat vahemälu. |
 
 ### Kasutajagrupid
 | Meetod | Tee | Query paramid | Märkus |
