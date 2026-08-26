@@ -1237,6 +1237,8 @@ COALESCE(:organisation_id::TEXT, '') = ''
 
 ## Piirangud ja teadaolevad erinevused
 
+### Rust Ruuter
+
 | Teema | Olukord |
 |---|---|
 | **`state.*`** | Ainult ühe protsessi mälu — kahe replika vahel ei sünkroniseeru. Kasuta Resql-i persistentseks KV-ks. |
@@ -1246,3 +1248,13 @@ COALESCE(:organisation_id::TEXT, '') = ''
 | **WebSocket** | `DSL/<project>/WS/<path>.yml` → endpoint `ws://host/<project>/<path>`. OpenAPI-s ei kuvata (AsyncAPI's töö). |
 | **Idempotency-Key** | Raamistik ei käsitle enam — DSL peab ise implementeerima `state.set` + body hash mustriga. |
 | **Path parameetrid** | Toetatud: üks DSL fail saab vastata `/things`, `/things/{id}`, `/things/{id}/{sub}` (task 018). |
+
+### askendest/resql:0.1.0-alpha.5 SQL-piirangud
+
+| Teema | Olukord | Lahendus |
+|---|---|---|
+| **Kõik deklareeritud parameetrid kohustuslikud** | Iga `allowlist.body` väli peab olema päringu kehas — puuduv parameeter annab `No value supplied for the SQL parameter 'X'`. `required: false` ei mõjuta käitumist. | Ruuter DSL peab alati kõik parameetrid saatma; valikuliste puhul kasuta `null` või tühja stringi (`""`) |
+| **Numbriliste ID-de cast parameeter-poolel** | `:id::BIGINT` — cast peab olema parameetri küljel, mitte veeru küljel (`ua.user_account_key::TEXT = :id` **ei tööta**). | Kasuta alati `:id::BIGINT` (parameeter cast), mitte veeru poole `::TEXT` cast'i |
+| **Valikulised string-filtrid** | `NULL` parameetrit ei saa otseselt `IS NULL`-iga kontrollida SQL-is (Resql alpha 5 sidub null'i tühja stringina `''`). | Kasuta `COALESCE(:param::TEXT, '') = ''` mustrit: `WHERE (COALESCE(:organisation_id::TEXT, '') = '' OR veerg::TEXT = :organisation_id::TEXT)` |
+| **Valikulised number-filtrid (org ID võtmete puhul)** | BIGINT veerge ei saa tekstiliselt `COALESCE::TEXT` mustriga filtreerida ilma cast'ita mõlemal pool. | Kasuta `l.organisation_id::TEXT = :organisation_id::TEXT` koos `COALESCE(:organisation_id::TEXT, '') = ''` eeltingimusega |
+| **Restart SQL muutuste järel** | Resql **ei laadi SQL faile hot-reload'iga** — konteineri restart on vajalik pärast iga SQL muutust. | `docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --force-recreate resql-ljvis` |
