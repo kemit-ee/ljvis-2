@@ -3,7 +3,7 @@ description: "Read one CTUD request by its logical key (LJVIS2-143). Returns the
 namespace: erru
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "CTUD request logical key (ctud_request_key)"
 returns:

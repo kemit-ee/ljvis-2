@@ -3,7 +3,7 @@ description: "Delete drive rest form for driver — copy latest snapshot with st
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
   status:
     type: string

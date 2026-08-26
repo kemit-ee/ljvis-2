@@ -3,7 +3,7 @@ description: "Delete trailer technical-check sub-form — copy latest snapshot w
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
   status:
     type: string

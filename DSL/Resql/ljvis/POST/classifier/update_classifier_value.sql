@@ -3,7 +3,7 @@ description: "Edit classifier value — copy latest snapshot with new validity d
 namespace: classifier
 params:
   classifier_value_id:
-    type: string
+    type: number
     required: false
     description: "classifier_value_key of the target value"
   name:

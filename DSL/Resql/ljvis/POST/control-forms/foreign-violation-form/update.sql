@@ -3,7 +3,7 @@ description: "Update foreign violation form"
 namespace: control-forms
 params:
   key:
-    type: string
+    type: number
     required: false
   formNumber:
     type: string

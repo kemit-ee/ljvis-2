@@ -3,7 +3,7 @@ description: "Apply an RSI lifecycle state transition (LJVIS2-148). Appends exac
 namespace: erru
 params:
   key:
-    type: string
+    type: number
     required: false
   newStatus:
     type: string

@@ -3,7 +3,7 @@ description: "Get version history snapshots for a vehicle technical-check form"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Vehicle technical form key"
 returns:

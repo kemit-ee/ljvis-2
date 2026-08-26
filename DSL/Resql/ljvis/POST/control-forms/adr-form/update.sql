@@ -3,7 +3,7 @@ description: "Update ADR sub-form — appends a new snapshot row. sub_form_numbe
 namespace: control-forms
 params:
   key:
-    type: string
+    type: number
     required: false
   status:
     type: string

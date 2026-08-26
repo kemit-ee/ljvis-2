@@ -3,11 +3,11 @@ description: "Get a single drive rest form (teammate) snapshot by snapshot ID"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Snapshot ID (primary key)"
   form_key:
-    type: string
+    type: number
     required: false
     description: "sp_teammate_form_key"
 returns:

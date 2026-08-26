@@ -3,7 +3,7 @@ description: "Delete foreign violation form — copy latest snapshot with status
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
   status:
     type: string

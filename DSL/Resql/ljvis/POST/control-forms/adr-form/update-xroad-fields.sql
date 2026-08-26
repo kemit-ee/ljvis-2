@@ -3,7 +3,7 @@ description: "Update X-tee fields on the latest confirmed ADR sub-form snapshot 
 namespace: control-forms
 params:
   key:
-    type: string
+    type: number
     required: false
   enforcementDecision:
     type: string

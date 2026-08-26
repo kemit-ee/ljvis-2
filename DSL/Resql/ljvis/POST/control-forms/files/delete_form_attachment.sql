@@ -3,7 +3,7 @@ description: "Soft-delete a file attachment by setting status to deleted"
 namespace: forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Attachment record ID"
 returns:

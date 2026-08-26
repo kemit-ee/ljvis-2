@@ -3,7 +3,7 @@ description: "Update compound form — insert new snapshot with updated data"
 namespace: control-forms
 params:
   key:
-    type: string
+    type: number
     required: false
   formNumber:
     type: string

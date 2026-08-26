@@ -3,7 +3,7 @@ description: "Get compound form by ID"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Compound form key"
 returns:

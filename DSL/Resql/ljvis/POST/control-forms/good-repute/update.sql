@@ -3,7 +3,7 @@ description: "Update good repute form (hea maine vorm) — appends a new snapsho
 namespace: control-forms
 params:
   key:
-    type: string
+    type: number
     required: false
   status:
     type: string

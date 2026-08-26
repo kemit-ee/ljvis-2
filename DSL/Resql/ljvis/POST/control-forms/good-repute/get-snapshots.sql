@@ -3,7 +3,7 @@ description: "Get version history snapshots for a good repute form"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Good repute form key"
 returns:

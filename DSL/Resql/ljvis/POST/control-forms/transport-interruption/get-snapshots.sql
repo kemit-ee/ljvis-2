@@ -3,7 +3,7 @@ description: "Get version history snapshots for a transport-interruption form"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "KV form key"
 returns:

@@ -3,7 +3,7 @@ description: "Get the latest active drive rest form (teammate) for a compound fo
 namespace: control-forms
 params:
   compoundFormKey:
-    type: string
+    type: number
     required: false
 returns:
   - name: id

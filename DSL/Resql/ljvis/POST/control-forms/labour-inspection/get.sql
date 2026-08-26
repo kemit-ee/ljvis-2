@@ -3,7 +3,7 @@ description: "Get labour inspection form by ID (latest snapshot)"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Labour inspection form ID"
 returns:

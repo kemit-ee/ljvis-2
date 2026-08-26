@@ -3,11 +3,11 @@ description: "Get a single ADR form snapshot by snapshot ID"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Snapshot ID (primary key)"
   form_key:
-    type: string
+    type: number
     required: false
     description: "ADR form key"
 returns:

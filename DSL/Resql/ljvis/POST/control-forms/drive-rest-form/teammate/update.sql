@@ -3,7 +3,7 @@ description: "Update drive rest form for teammate — insert new snapshot with u
 namespace: control-forms
 params:
   key:
-    type: string
+    type: number
     required: false
   compoundFormKey:
     type: number

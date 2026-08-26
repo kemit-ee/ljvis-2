@@ -3,11 +3,11 @@ description: "Get a single good repute form snapshot by snapshot ID (for the rea
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Snapshot ID (primary key)"
   form_key:
-    type: string
+    type: number
     required: false
     description: "Good repute form key"
 returns:

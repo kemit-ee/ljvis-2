@@ -3,7 +3,7 @@ description: "Eeltäitmine (LJVIS2-64 §4.1): build a new OUTGOING NCR request d
 namespace: erru
 params:
   spFormKey:
-    type: string
+    type: number
     required: false
   spFormType:
     type: string

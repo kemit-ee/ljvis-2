@@ -3,7 +3,7 @@ description: "Get version history snapshots for a drive rest form (driver)"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "sp_driver_form_key"
 returns:

@@ -3,7 +3,7 @@ description: "Update the X-tee block fields (extraordinary_inspection_date, enfo
 namespace: control-forms
 params:
   key:
-    type: string
+    type: number
     required: false
   extraordinaryInspectionDate:
     type: string

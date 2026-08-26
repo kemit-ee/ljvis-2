@@ -3,7 +3,7 @@ description: "Update labour inspection form (Tööinspektsiooni kontrollakt) —
 namespace: control-forms
 params:
   key:
-    type: string
+    type: number
     required: false
   status:
     type: string

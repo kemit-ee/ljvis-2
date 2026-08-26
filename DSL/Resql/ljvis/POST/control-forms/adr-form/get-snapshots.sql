@@ -3,7 +3,7 @@ description: "Get version history snapshots for an ADR form"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "ADR form key"
 returns:

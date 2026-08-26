@@ -3,7 +3,7 @@ description: "Apply a CTUD lifecycle state transition (LJVIS2-142). Appends exac
 namespace: erru
 params:
   key:
-    type: string
+    type: number
     required: false
   newStatus:
     type: string

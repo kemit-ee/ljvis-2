@@ -3,7 +3,7 @@ description: "Read one RSI message by its logical key (LJVIS2-147). Returns the 
 namespace: erru
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "RSI message logical key (rsi_message_key)"
 returns:

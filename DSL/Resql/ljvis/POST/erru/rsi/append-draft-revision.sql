@@ -3,7 +3,7 @@ description: "Revise an OUTGOING RSI message draft (LJVIS2-147, 'täiendamine').
 namespace: erru
 params:
   key:
-    type: string
+    type: number
     required: false
   originatingAuthority:
     type: string

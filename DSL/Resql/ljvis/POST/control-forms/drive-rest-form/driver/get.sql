@@ -3,7 +3,7 @@ description: "Get drive rest form (driver) by key"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "sp_driver_form_key"
 returns:

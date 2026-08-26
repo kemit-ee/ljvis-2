@@ -3,7 +3,7 @@ description: "Revise an OUTGOING CGR request draft (LJVIS2-138, 'täiendamine').
 namespace: erru
 params:
   key:
-    type: string
+    type: number
     required: false
   cgrTo:
     type: string

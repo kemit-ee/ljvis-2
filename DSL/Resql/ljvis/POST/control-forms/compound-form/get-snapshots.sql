@@ -3,7 +3,7 @@ description: "Get version history snapshots for a compound form"
 namespace: control-forms
 params:
   id:
-    type: string
+    type: number
     required: false
     description: "Compound form ID"
 returns:
