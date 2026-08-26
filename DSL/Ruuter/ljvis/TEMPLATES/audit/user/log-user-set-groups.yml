@@ -27,7 +27,7 @@ fetchUser:
       type: json
     body:
       id: ${incoming.body.user_account_id}
-      organisation_id: ""
+      organisation_id: null
   result: userRes
   next: buildLogContent
 

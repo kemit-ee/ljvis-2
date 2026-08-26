@@ -1,98 +1,75 @@
 /*
-description: "Get ADR sub-form by key (latest snapshot)"
-namespace: control-forms
-params:
-  id:
-    type: number
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: compoundFormKey
-    type: number
-    nullable: true
-  - name: subFormNumber
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: driverAssistant
-    type: string
-    nullable: true
-  - name: driverAdrCertificateNumber
-    type: string
-    nullable: true
-  - name: crewAdrCertificateNumber
-    type: string
-    nullable: true
-  - name: assistantAdrCertificateNumber
-    type: string
-    nullable: true
-  - name: lastLoadAddress
-    type: string
-    nullable: true
-  - name: lastLoadDate
-    type: string
-    nullable: true
-  - name: nextLoadAddress
-    type: string
-    nullable: true
-  - name: dangerousGoods
-    type: string
-    nullable: true
-  - name: exemptionApplied
-    type: boolean
-    nullable: true
-  - name: exemptionAdrProvision
-    type: string
-    nullable: true
-  - name: containerType
-    type: string
-    nullable: true
-  - name: infringements
-    type: string
-    nullable: true
-  - name: otherViolations
-    type: string
-    nullable: true
-  - name: resultType
-    type: string
-    nullable: true
-  - name: proceedingType
-    type: string
-    nullable: true
-  - name: proceedingReferenceNumber
-    type: string
-    nullable: true
-  - name: correctiveMeasures
-    type: string
-    nullable: true
-  - name: sealOpened
-    type: boolean
-    nullable: true
-  - name: sealOpenedDate
-    type: string
-    nullable: true
-  - name: sealInstalledDate
-    type: string
-    nullable: true
-  - name: notes
-    type: string
-    nullable: true
-  - name: enforcementDecision
-    type: string
-    nullable: true
-  - name: proceedingClosureBasis
-    type: string
-    nullable: true
-  - name: createdBy
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get ADR sub-form by key (latest snapshot)"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: compoundFormKey
+        type: number
+      - field: subFormNumber
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
+      - field: driverAssistant
+        type: string
+      - field: driverAdrCertificateNumber
+        type: string
+      - field: crewAdrCertificateNumber
+        type: string
+      - field: assistantAdrCertificateNumber
+        type: string
+      - field: lastLoadAddress
+        type: string
+      - field: lastLoadDate
+        type: string
+      - field: nextLoadAddress
+        type: string
+      - field: dangerousGoods
+        type: string
+      - field: exemptionApplied
+        type: boolean
+      - field: exemptionAdrProvision
+        type: string
+      - field: containerType
+        type: string
+      - field: infringements
+        type: string
+      - field: otherViolations
+        type: string
+      - field: resultType
+        type: string
+      - field: proceedingType
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: correctiveMeasures
+        type: string
+      - field: sealOpened
+        type: boolean
+      - field: sealOpenedDate
+        type: string
+      - field: sealInstalledDate
+        type: string
+      - field: notes
+        type: string
+      - field: enforcementDecision
+        type: string
+      - field: proceedingClosureBasis
+        type: string
+      - field: createdBy
+        type: string
 */
 SELECT
   adr_form_key AS id,

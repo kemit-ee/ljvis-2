@@ -1,79 +1,63 @@
 /*
-description: "Get a single vehicle technical-check form snapshot by snapshot ID"
-namespace: control-forms
-params:
-  id:
-    type: number
-    required: false
-    description: "Snapshot ID (primary key)"
-  form_key:
-    type: number
-    required: false
-    description: "Vehicle technical form key"
-returns:
-  - name: id
-    type: string
-    nullable: true
-  - name: subFormNumber
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: partsSummary
-    type: string
-    nullable: true
-  - name: partsDefects
-    type: string
-    nullable: true
-  - name: resultType
-    type: string
-    nullable: true
-  - name: resultTransportInterruption
-    type: string
-    nullable: true
-  - name: eraYvMntRegnr
-    type: string
-    nullable: true
-  - name: eraYvMntVintin
-    type: string
-    nullable: true
-  - name: eraYvMntAxles
-    type: string
-    nullable: true
-  - name: eraYvMntPlaces
-    type: string
-    nullable: true
-  - name: eraYvMntRebuilt
-    type: string
-    nullable: true
-  - name: proceedingType
-    type: string
-    nullable: true
-  - name: proceedingReferenceNumber
-    type: string
-    nullable: true
-  - name: violations
-    type: string
-    nullable: true
-  - name: notes
-    type: string
-    nullable: true
-  - name: extraordinaryInspectionDate
-    type: string
-    nullable: true
-  - name: enforcementDecision
-    type: string
-    nullable: true
-  - name: proceedingClosureBasis
-    type: string
-    nullable: true
-  - name: createdBy
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get a single vehicle technical-check form snapshot by snapshot ID"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "Snapshot ID (primary key)"
+      - field: form_key
+        type: string
+        description: "Vehicle technical form key"
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: subFormNumber
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
+      - field: partsSummary
+        type: string
+      - field: partsDefects
+        type: string
+      - field: resultType
+        type: string
+      - field: resultTransportInterruption
+        type: string
+      - field: eraYvMntRegnr
+        type: string
+      - field: eraYvMntVintin
+        type: string
+      - field: eraYvMntAxles
+        type: string
+      - field: eraYvMntPlaces
+        type: string
+      - field: eraYvMntRebuilt
+        type: string
+      - field: proceedingType
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: violations
+        type: string
+      - field: notes
+        type: string
+      - field: extraordinaryInspectionDate
+        type: string
+      - field: enforcementDecision
+        type: string
+      - field: proceedingClosureBasis
+        type: string
+      - field: createdBy
+        type: string
 */
 SELECT
   vehicle_technical_form_key AS id,

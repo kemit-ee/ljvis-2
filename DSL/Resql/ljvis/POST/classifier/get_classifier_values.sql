@@ -1,21 +1,3 @@
-/*
-params:
-  classifierId:
-    type: string
-    required: false
-  search:
-    type: string
-    required: false
-  sorting:
-    type: string
-    required: false
-  pageSize:
-    type: string
-    required: false
-  page:
-    type: string
-    required: false
-*/
 WITH latest AS (
     SELECT DISTINCT ON (classifier_value_key)
         classifier_key,

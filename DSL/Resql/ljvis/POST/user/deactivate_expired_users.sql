@@ -1,14 +1,19 @@
 /*
-description: "Deactivate users with past access_end: insert inactive state (cron job)"
-namespace: user
-params:
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Deactivate users with past access_end: insert inactive state (cron job)"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user
+  allowlist:
+    body:
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
 */
 WITH expired AS (
     SELECT DISTINCT ON (user_account_key)

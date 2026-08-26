@@ -1,20 +1,21 @@
 /*
-description: "List all cities/parishes of a county (EHAK level 2)"
-namespace: ehak
-params:
-  parentId:
-    type: number
-    required: false
-returns:
-  - name: classifier_value_key
-    type: number
-    nullable: true
-  - name: code
-    type: string
-    nullable: true
-  - name: name
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "List all cities/parishes of a county (EHAK level 2)"
+  method: post
+  namespace: ehak
+  accepts:
+    - field: parentId
+      type: number
+  returns: json
+  response:
+    fields:
+      - field: classifier_value_key
+        type: number
+      - field: code
+        type: string
+      - field: name
+        type: string
 */
 SELECT
     cv.classifier_value_key AS id,

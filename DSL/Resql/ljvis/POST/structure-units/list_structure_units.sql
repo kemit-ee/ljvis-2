@@ -1,17 +1,19 @@
 /*
-description: "List all structure units"
-namespace: structure-units
-params:
-  organisationId:
-    type: number
-    required: false
-returns:
-  - name: code
-    type: string
-    nullable: true
-  - name: name
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "List all structure units"
+  method: post
+  namespace: structure-units
+  accepts:
+    - field: organisationId
+      type: number
+  returns: json
+  response:
+    fields:
+      - field: code
+        type: string
+      - field: name
+        type: string
 */
 SELECT
     cv.code,

@@ -57,7 +57,7 @@ getRemovedUserPersonalCode:
       type: json
     body:
       id: ${user_id}
-      organisation_id: ""
+      organisation_id: null
   result: personalCodesRes
   next: buildAuditEvent
 

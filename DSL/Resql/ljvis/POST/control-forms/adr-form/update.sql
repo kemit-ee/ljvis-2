@@ -1,89 +1,69 @@
 /*
-description: "Update ADR sub-form — appends a new snapshot row. sub_form_number is always read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published) data. Carries X-tee fields forward from the latest snapshot."
-namespace: control-forms
-params:
-  key:
-    type: number
-    required: false
-  status:
-    type: string
-    required: false
-  driverAssistant:
-    type: string
-    required: false
-  driverAdrCertificateNumber:
-    type: string
-    required: false
-  crewAdrCertificateNumber:
-    type: string
-    required: false
-  assistantAdrCertificateNumber:
-    type: string
-    required: false
-  lastLoadAddress:
-    type: string
-    required: false
-  lastLoadDate:
-    type: string
-    required: false
-  nextLoadAddress:
-    type: string
-    required: false
-  dangerousGoods:
-    type: string
-    required: false
-  exemptionApplied:
-    type: boolean
-    required: false
-  exemptionAdrProvision:
-    type: string
-    required: false
-  containerType:
-    type: string
-    required: false
-  infringements:
-    type: string
-    required: false
-  otherViolations:
-    type: string
-    required: false
-  resultType:
-    type: string
-    required: false
-  proceedingType:
-    type: string
-    required: false
-  proceedingReferenceNumber:
-    type: string
-    required: false
-  correctiveMeasures:
-    type: string
-    required: false
-  sealOpened:
-    type: boolean
-    required: false
-  sealOpenedDate:
-    type: string
-    required: false
-  sealInstalledDate:
-    type: string
-    required: false
-  notes:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: subFormNumber
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Update ADR sub-form — appends a new snapshot row. sub_form_number is always read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published) data. Carries X-tee fields forward from the latest snapshot."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: key
+        type: string
+      - field: status
+        type: string
+      - field: driverAssistant
+        type: string
+      - field: driverAdrCertificateNumber
+        type: string
+      - field: crewAdrCertificateNumber
+        type: string
+      - field: assistantAdrCertificateNumber
+        type: string
+      - field: lastLoadAddress
+        type: string
+      - field: lastLoadDate
+        type: string
+      - field: nextLoadAddress
+        type: string
+      - field: dangerousGoods
+        type: string
+      - field: exemptionApplied
+        type: boolean
+      - field: exemptionAdrProvision
+        type: string
+      - field: containerType
+        type: string
+      - field: infringements
+        type: string
+      - field: otherViolations
+        type: string
+      - field: resultType
+        type: string
+      - field: proceedingType
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: correctiveMeasures
+        type: string
+      - field: sealOpened
+        type: boolean
+      - field: sealOpenedDate
+        type: string
+      - field: sealInstalledDate
+        type: string
+      - field: notes
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: subFormNumber
+        type: string
+      - field: version
+        type: number
 */
 WITH latest AS (
   SELECT compound_form_key, sub_form_number,

@@ -1,29 +1,29 @@
 /*
-description: "Update the X-tee block fields (extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis) IN PLACE on the latest snapshot row. Does not append a new snapshot and does not bump version — the sub-form number's /V suffix is intentionally unaffected (LJVIS2-72 §4). Caller (Ruuter .guard) must already have verified control_form.edit_locked and that the latest snapshot status is confirmed."
-namespace: control-forms
-params:
-  key:
-    type: number
-    required: false
-  extraordinaryInspectionDate:
-    type: string
-    required: false
-  enforcementDecision:
-    type: string
-    required: false
-  proceedingClosureBasis:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: subFormNumber
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Update the X-tee block fields (extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis) IN PLACE on the latest snapshot row. Does not append a new snapshot and does not bump version — the sub-form number's /V suffix is intentionally unaffected (LJVIS2-72 §4). Caller (Ruuter .guard) must already have verified control_form.edit_locked and that the latest snapshot status is confirmed."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: key
+        type: string
+      - field: extraordinaryInspectionDate
+        type: string
+      - field: enforcementDecision
+        type: string
+      - field: proceedingClosureBasis
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: subFormNumber
+        type: string
+      - field: version
+        type: number
 */
 WITH latest AS (
   SELECT id

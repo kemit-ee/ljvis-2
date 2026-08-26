@@ -1,15 +1,19 @@
 /*
-description: "Get personal codes for multiple users by comma-separated IDs"
-namespace: user
-params:
-  user_ids:
-    type: string
-    required: false
-    description: "Comma-separated user_account_key values"
-returns:
-  - name: personal_code
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get personal codes for multiple users by comma-separated IDs"
+  method: post
+  namespace: user
+  returns: json
+  allowlist:
+    body:
+      - field: user_ids
+        type: string
+        description: "Comma-separated user_account_key values"
+  response:
+    fields:
+      - field: personal_code
+        type: string
 */
 SELECT DISTINCT ON (ua.user_account_key)
     ua.personal_code

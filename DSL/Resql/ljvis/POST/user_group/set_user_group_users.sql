@@ -1,26 +1,28 @@
 /*
-description: "Update group membership for multiple users — copy latest snapshot for each user with user_group_key added or removed"
-namespace: user_group
-params:
-  user_group_id:
-    type: string
-    required: false
-    description: "user_group_key to add or remove"
-  user_ids:
-    type: string
-    required: false
-    description: "Comma-separated user_account_key values"
-  status:
-    type: string
-    required: false
-    description: "active (add) or removed (remove)"
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Update group membership for multiple users — copy latest snapshot for each user with user_group_key added or removed"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user_group
+  allowlist:
+    body:
+      - field: user_group_id
+        type: string
+        description: "user_group_key to add or remove"
+      - field: user_ids
+        type: string
+        description: "Comma-separated user_account_key values"
+      - field: status
+        type: string
+        description: "active (add) or removed (remove)"
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
 */
 WITH user_key_list AS (
     SELECT unnest(string_to_array(:user_ids, ','))::BIGINT AS user_account_key

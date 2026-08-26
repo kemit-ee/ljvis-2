@@ -1,18 +1,21 @@
 /*
-description: "Get all user groups assigned to a specific user"
-namespace: user
-params:
-  user_id:
-    type: string
-    required: false
-    description: "User ID"
-returns:
-  - name: user_group_id
-    type: string
-    nullable: true
-  - name: name
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get all user groups assigned to a specific user"
+  method: post
+  namespace: user
+  returns: json
+  allowlist:
+    body:
+      - field: user_id
+        type: string
+        description: "User ID"
+  response:
+    fields:
+      - field: user_group_id
+        type: string
+      - field: name
+        type: string
 */
 WITH latest_user AS (
     SELECT DISTINCT ON (user_account_key)

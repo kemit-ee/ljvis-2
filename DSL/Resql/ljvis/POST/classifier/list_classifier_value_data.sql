@@ -1,35 +1,30 @@
 /*
-description: "List of all classifier values (latest snapshot per classifier_value_key, with validity)"
-namespace: classifier
-params: {}
-returns:
-  - name: classifier_value_key
-    type: number
-    nullable: true
-  - name: classifier_code
-    type: string
-    nullable: true
-  - name: code
-    type: string
-    nullable: true
-  - name: name
-    type: string
-    nullable: true
-  - name: parent_key
-    type: number
-    nullable: true
-  - name: description
-    type: string
-    nullable: true
-  - name: valid_from
-    type: string
-    nullable: true
-  - name: valid_until
-    type: string
-    nullable: true
-  - name: is_valid
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "List of all classifier values (latest snapshot per classifier_value_key, with validity)"
+  method: post
+  namespace: classifier
+  returns: json
+  response:
+    fields:
+      - field: classifier_value_key
+        type: number
+      - field: classifier_code
+        type: string
+      - field: code
+        type: string
+      - field: name
+        type: string
+      - field: parent_key
+        type: number
+      - field: description
+        type: string
+      - field: valid_from
+        type: string
+      - field: valid_until
+        type: string
+      - field: is_valid
+        type: string
 */
 WITH latest_value AS (
     SELECT DISTINCT ON (classifier_value_key)

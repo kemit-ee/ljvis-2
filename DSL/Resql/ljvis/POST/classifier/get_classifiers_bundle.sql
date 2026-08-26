@@ -1,38 +1,32 @@
 /*
-description: "Get all classifiers with all their (valid + invalid) values, flattened, for FE bulk bundle loading"
-namespace: classifier
-params: {}
-returns:
-  - name: classifier_id
-    type: string
-    nullable: true
-  - name: classifier_code
-    type: string
-    nullable: true
-  - name: classifier_name
-    type: string
-    nullable: true
-  - name: classifier_value_id
-    type: string
-    nullable: true
-  - name: parent_key
-    type: string
-    nullable: true
-  - name: code
-    type: string
-    nullable: true
-  - name: name
-    type: string
-    nullable: true
-  - name: valid_from
-    type: string
-    nullable: true
-  - name: valid_until
-    type: string
-    nullable: true
-  - name: is_valid
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get all classifiers with all their (valid + invalid) values, flattened, for FE bulk bundle loading"
+  method: post
+  namespace: classifier
+  returns: json
+  response:
+    fields:
+      - field: classifier_id
+        type: string
+      - field: classifier_code
+        type: string
+      - field: classifier_name
+        type: string
+      - field: classifier_value_id
+        type: string
+      - field: parent_key
+        type: string
+      - field: code
+        type: string
+      - field: name
+        type: string
+      - field: valid_from
+        type: string
+      - field: valid_until
+        type: string
+      - field: is_valid
+        type: string
 */
 WITH latest_classifier AS (
     SELECT DISTINCT ON (classifier_key)

@@ -1,68 +1,55 @@
 /*
-description: "Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row. version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed) data."
-namespace: control-forms
-params:
-  key:
-    type: number
-    required: false
-  status:
-    type: string
-    required: false
-  inspectorName:
-    type: string
-    required: false
-  inspectionDate:
-    type: string
-    required: false
-  inspectionType:
-    type: string
-    required: false
-  companyName:
-    type: string
-    required: false
-  companyRegCode:
-    type: string
-    required: false
-  vehicleCount:
-    type: string
-    required: false
-  totalDriversCount:
-    type: string
-    required: false
-  controlsMatrix:
-    type: string
-    required: false
-  prescriptionComposed:
-    type: string
-    required: false
-  punishedPersonIdCode:
-    type: string
-    required: false
-  punishedPersonFirstName:
-    type: string
-    required: false
-  punishedPersonLastName:
-    type: string
-    required: false
-  proceedingReferenceNumber:
-    type: string
-    required: false
-  violations:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: form_number
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row. version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed) data."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: key
+        type: string
+      - field: status
+        type: string
+      - field: inspectorName
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: inspectionType
+        type: string
+      - field: companyName
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: vehicleCount
+        type: string
+      - field: totalDriversCount
+        type: string
+      - field: controlsMatrix
+        type: string
+      - field: prescriptionComposed
+        type: string
+      - field: punishedPersonIdCode
+        type: string
+      - field: punishedPersonFirstName
+        type: string
+      - field: punishedPersonLastName
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: violations
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: form_number
+        type: string
+      - field: version
+        type: number
 */
 -- `latest` reads form_number and current version from the most recent
 -- snapshot of this act. version only increments when the snapshot being

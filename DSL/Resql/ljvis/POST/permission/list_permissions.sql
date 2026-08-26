@@ -1,17 +1,18 @@
 /*
-description: "List all permissions (fixed set)"
-namespace: permission
-params: {}
-returns:
-  - name: id
-    type: string
-    nullable: true
-  - name: code
-    type: string
-    nullable: true
-  - name: description
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "List all permissions (fixed set)"
+  method: post
+  namespace: permission
+  returns: json
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: code
+        type: string
+      - field: description
+        type: string
 */
 SELECT
     id,

@@ -1,26 +1,27 @@
 /*
-description: "Update X-tee fields on the latest confirmed ADR sub-form snapshot row in place — does NOT bump version."
-namespace: control-forms
-params:
-  key:
-    type: number
-    required: false
-  enforcementDecision:
-    type: string
-    required: false
-  proceedingClosureBasis:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: subFormNumber
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Update X-tee fields on the latest confirmed ADR sub-form snapshot row in place — does NOT bump version."
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: key
+        type: string
+      - field: enforcementDecision
+        type: string
+      - field: proceedingClosureBasis
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: subFormNumber
+        type: string
+      - field: version
+        type: number
 */
 UPDATE forms.adr_form
 SET

@@ -1,33 +1,31 @@
 /*
-description: "Get user by personal_code (isikukood) for authentication"
-namespace: user
-params:
-  personal_code:
-    type: string
-    required: false
-    description: "User personal code (isikukood)"
-returns:
-  - name: id
-    type: string
-    nullable: true
-  - name: first_name
-    type: string
-    nullable: true
-  - name: last_name
-    type: string
-    nullable: true
-  - name: personal_code
-    type: string
-    nullable: true
-  - name: organisation_id
-    type: string
-    nullable: true
-  - name: organisation_name
-    type: string
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get user by personal_code (isikukood) for authentication"
+  method: post
+  namespace: user
+  returns: json
+  allowlist:
+    body:
+      - field: personal_code
+        type: string
+        description: "User personal code (isikukood)"
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: first_name
+        type: string
+      - field: last_name
+        type: string
+      - field: personal_code
+        type: string
+      - field: organisation_id
+        type: string
+      - field: organisation_name
+        type: string
+      - field: status
+        type: string
 */
 SELECT DISTINCT ON (ua.user_account_key)
     ua.user_account_key AS id,

@@ -1,14 +1,16 @@
 /*
-description: "List of all trailer categories"
-namespace: trailers
-params: {}
-returns:
-  - name: code
-    type: string
-    nullable: true
-  - name: name
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "List of all trailer categories"
+  method: post
+  namespace: trailers
+  returns: json
+  response:
+    fields:
+      - field: code
+        type: string
+      - field: name
+        type: string
 */
 SELECT
     cv.code,

@@ -23,7 +23,7 @@ fetchUser:
       type: json
     body:
       id: ${incoming.body.user_id}
-      organisation_id: ""
+      organisation_id: null
   result: personalCodesRes
   next: buildAudit
 

@@ -1,55 +1,46 @@
 /*
-description: "Get a single user by ID with organisation and groups"
-namespace: user
-params:
-  id:
-    type: string
-    required: false
-    description: "User UUID"
-  organisation_id:
-    type: number
-    required: false
-    description: "Optional organisation filter"
-returns:
-  - name: id
-    type: string
-    nullable: true
-  - name: first_name
-    type: string
-    nullable: true
-  - name: last_name
-    type: string
-    nullable: true
-  - name: personal_code
-    type: string
-    nullable: true
-  - name: organisation_id
-    type: string
-    nullable: true
-  - name: organisation_name
-    type: string
-    nullable: true
-  - name: email
-    type: string
-    nullable: true
-  - name: phone
-    type: string
-    nullable: true
-  - name: structural_unit
-    type: string
-    nullable: true
-  - name: job_title
-    type: string
-    nullable: true
-  - name: access_start
-    type: string
-    nullable: true
-  - name: access_end
-    type: string
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get a single user by ID with organisation and groups"
+  method: post
+  namespace: user
+  returns: json
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "User UUID"
+      - field: organisation_id
+        type: string
+        description: "Optional organisation filter"
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: first_name
+        type: string
+      - field: last_name
+        type: string
+      - field: personal_code
+        type: string
+      - field: organisation_id
+        type: string
+      - field: organisation_name
+        type: string
+      - field: email
+        type: string
+      - field: phone
+        type: string
+      - field: structural_unit
+        type: string
+      - field: job_title
+        type: string
+      - field: access_start
+        type: string
+      - field: access_end
+        type: string
+      - field: status
+        type: string
 */
 SELECT DISTINCT ON (ua.user_account_key)
     ua.user_account_key AS id,

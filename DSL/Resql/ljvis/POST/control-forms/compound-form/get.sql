@@ -1,148 +1,111 @@
 /*
-description: "Get compound form by ID"
-namespace: control-forms
-params:
-  id:
-    type: number
-    required: false
-    description: "Compound form key"
-returns:
-  - name: id
-    type: string
-    nullable: true
-  - name: formNumber
-    type: string
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: controlDate
-    type: string
-    nullable: true
-  - name: controlTime
-    type: string
-    nullable: true
-  - name: controlCountryCode
-    type: string
-    nullable: true
-  - name: county
-    type: string
-    nullable: true
-  - name: city
-    type: string
-    nullable: true
-  - name: road
-    type: string
-    nullable: true
-  - name: roadOther
-    type: string
-    nullable: true
-  - name: kilometer
-    type: string
-    nullable: true
-  - name: address
-    type: string
-    nullable: true
-  - name: roadType
-    type: string
-    nullable: true
-  - name: roadTaxStatus
-    type: string
-    nullable: true
-  - name: roadTaxNotes
-    type: string
-    nullable: true
-  - name: vehicleRegNr
-    type: string
-    nullable: true
-  - name: vehicleMake
-    type: string
-    nullable: true
-  - name: vehicleModel
-    type: string
-    nullable: true
-  - name: vehicleCountryCode
-    type: string
-    nullable: true
-  - name: vehicleVin
-    type: string
-    nullable: true
-  - name: vehicleFirstRegistration
-    type: string
-    nullable: true
-  - name: vehicleBodyType
-    type: string
-    nullable: true
-  - name: vehicleCategoryCode
-    type: string
-    nullable: true
-  - name: vehicleCategoryOther
-    type: string
-    nullable: true
-  - name: vehicleMileage
-    type: string
-    nullable: true
-  - name: trailers
-    type: string
-    nullable: true
-  - name: companyRegCode
-    type: string
-    nullable: true
-  - name: companyName
-    type: string
-    nullable: true
-  - name: companyCountryCode
-    type: string
-    nullable: true
-  - name: companyCounty
-    type: string
-    nullable: true
-  - name: companyCity
-    type: string
-    nullable: true
-  - name: companyAddressLine1
-    type: string
-    nullable: true
-  - name: companyPostalCode
-    type: string
-    nullable: true
-  - name: companyOwnerFirstName
-    type: string
-    nullable: true
-  - name: companyOwnerLastName
-    type: string
-    nullable: true
-  - name: companyActivityLicenceCopyNumber
-    type: string
-    nullable: true
-  - name: drivers
-    type: string
-    nullable: true
-  - name: inspectorFirstName
-    type: string
-    nullable: true
-  - name: inspectorLastName
-    type: string
-    nullable: true
-  - name: inspectorOrganisationId
-    type: string
-    nullable: true
-  - name: inspectorUnit
-    type: string
-    nullable: true
-  - name: inspectorProfession
-    type: string
-    nullable: true
-  - name: created_by
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get compound form by ID"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "Compound form key"
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: formNumber
+        type: string
+      - field: status
+        type: string
+      - field: controlDate
+        type: string
+      - field: controlTime
+        type: string
+      - field: controlCountryCode
+        type: string
+      - field: county
+        type: string
+      - field: city
+        type: string
+      - field: road
+        type: string
+      - field: roadOther
+        type: string
+      - field: kilometer
+        type: string
+      - field: address
+        type: string
+      - field: roadType
+        type: string
+      - field: roadTaxStatus
+        type: string
+      - field: roadTaxNotes
+        type: string
+      - field: vehicleRegNr
+        type: string
+      - field: vehicleMake
+        type: string
+      - field: vehicleModel
+        type: string
+      - field: vehicleCountryCode
+        type: string
+      - field: vehicleVin
+        type: string
+      - field: vehicleFirstRegistration
+        type: string
+      - field: vehicleBodyType
+        type: string
+      - field: vehicleCategoryCode
+        type: string
+      - field: vehicleCategoryOther
+        type: string
+      - field: vehicleMileage
+        type: string
+      - field: trailers
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: companyName
+        type: string
+      - field: companyCountryCode
+        type: string
+      - field: companyCounty
+        type: string
+      - field: companyCity
+        type: string
+      - field: companyAddressLine1
+        type: string
+      - field: companyPostalCode
+        type: string
+      - field: companyOwnerFirstName
+        type: string
+      - field: companyOwnerLastName
+        type: string
+      - field: companyActivityLicenceCopyNumber
+        type: string
+      - field: drivers
+        type: string
+      - field: inspectorFirstName
+        type: string
+      - field: inspectorLastName
+        type: string
+      - field: inspectorOrganisationId
+        type: string
+      - field: inspectorUnit
+        type: string
+      - field: inspectorProfession
+        type: string
+      - field: created_by
+        type: string
 */
 SELECT
   compound_form_key AS id,
   form_number,
   status,
   control_date,
-  control_time::TEXT AS control_time,
+  control_time,
   control_country_code,
   county,
   city,

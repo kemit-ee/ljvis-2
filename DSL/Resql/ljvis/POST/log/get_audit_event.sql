@@ -1,45 +1,39 @@
 /*
-description: "Get audit event by id"
-namespace: log
-params:
-  id:
-    type: string
-    required: false
-    description: "Audit event id"
-returns:
-  - name: event_id
-    type: string
-    nullable: true
-  - name: event_type
-    type: string
-    nullable: true
-  - name: event_category
-    type: string
-    nullable: true
-  - name: actor_name
-    type: string
-    nullable: true
-  - name: actor_personal_code_hash
-    type: string
-    nullable: true
-  - name: description
-    type: string
-    nullable: true
-  - name: log_content
-    type: object
-    nullable: true
-  - name: created_at
-    type: string
-    nullable: true
-  - name: created_by
-    type: string
-    nullable: true
-  - name: trace_id
-    type: string
-    nullable: true
-  - name: span_id
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get audit event by id"
+  method: post
+  namespace: log
+  returns: json
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "Audit event id"
+  response:
+    fields:
+      - field: event_id
+        type: string
+      - field: event_type
+        type: string
+      - field: event_category
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code_hash
+        type: string
+      - field: description
+        type: string
+      - field: log_content
+        type: json
+      - field: created_at
+        type: string
+      - field: created_by
+        type: string
+      - field: trace_id
+        type: string
+      - field: span_id
+        type: string
 */
 SELECT
     e.event_id,

@@ -1,82 +1,65 @@
 /*
-description: "Get a single labour inspection form snapshot by snapshot ID"
-namespace: control-forms
-params:
-  id:
-    type: number
-    required: false
-    description: "Snapshot ID (primary key)"
-  form_key:
-    type: number
-    required: false
-    description: "Labour inspection form key"
-returns:
-  - name: id
-    type: string
-    nullable: true
-  - name: form_number
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: inspector_name
-    type: string
-    nullable: true
-  - name: inspection_date
-    type: string
-    nullable: true
-  - name: external_inspection_id
-    type: string
-    nullable: true
-  - name: inspection_type
-    type: string
-    nullable: true
-  - name: company_name
-    type: string
-    nullable: true
-  - name: company_reg_code
-    type: string
-    nullable: true
-  - name: vehicle_count
-    type: string
-    nullable: true
-  - name: total_drivers_count
-    type: string
-    nullable: true
-  - name: controls_matrix
-    type: string
-    nullable: true
-  - name: prescription_composed
-    type: string
-    nullable: true
-  - name: punished_person_id_code
-    type: string
-    nullable: true
-  - name: punished_person_first_name
-    type: string
-    nullable: true
-  - name: punished_person_last_name
-    type: string
-    nullable: true
-  - name: proceeding_reference_number
-    type: string
-    nullable: true
-  - name: enforcement_decision
-    type: string
-    nullable: true
-  - name: proceeding_closure_basis
-    type: string
-    nullable: true
-  - name: violations
-    type: string
-    nullable: true
-  - name: created_by
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get a single labour inspection form snapshot by snapshot ID"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "Snapshot ID (primary key)"
+      - field: form_key
+        type: string
+        description: "Labour inspection form key"
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: form_number
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
+      - field: inspector_name
+        type: string
+      - field: inspection_date
+        type: string
+      - field: external_inspection_id
+        type: string
+      - field: inspection_type
+        type: string
+      - field: company_name
+        type: string
+      - field: company_reg_code
+        type: string
+      - field: vehicle_count
+        type: string
+      - field: total_drivers_count
+        type: string
+      - field: controls_matrix
+        type: string
+      - field: prescription_composed
+        type: string
+      - field: punished_person_id_code
+        type: string
+      - field: punished_person_first_name
+        type: string
+      - field: punished_person_last_name
+        type: string
+      - field: proceeding_reference_number
+        type: string
+      - field: enforcement_decision
+        type: string
+      - field: proceeding_closure_basis
+        type: string
+      - field: violations
+        type: string
+      - field: created_by
+        type: string
 */
 SELECT
   id,

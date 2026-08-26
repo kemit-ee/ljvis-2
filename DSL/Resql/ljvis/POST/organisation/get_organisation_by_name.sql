@@ -1,15 +1,19 @@
 /*
-description: "Get organisation ID by name"
-namespace: organisation
-params:
-  name:
-    type: string
-    required: false
-    description: "Organisation name"
-returns:
-  - name: id
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get organisation ID by name"
+  method: post
+  namespace: organisation
+  returns: json
+  allowlist:
+    body:
+      - field: name
+        type: string
+        description: "Organisation name"
+  response:
+    fields:
+      - field: id
+        type: number
 */
 SELECT id
 FROM users.organisation

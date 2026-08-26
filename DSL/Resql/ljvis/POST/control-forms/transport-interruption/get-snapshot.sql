@@ -1,61 +1,51 @@
 /*
-description: "Get a single transport-interruption form snapshot by snapshot ID"
-namespace: control-forms
-params:
-  id:
-    type: number
-    required: false
-    description: "Snapshot ID (primary key)"
-  form_key:
-    type: number
-    required: false
-    description: "KV form key"
-returns:
-  - name: id
-    type: string
-    nullable: true
-  - name: subFormNumber
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
-  - name: status
-    type: string
-    nullable: true
-  - name: headerText
-    type: string
-    nullable: true
-  - name: residenceCountry
-    type: string
-    nullable: true
-  - name: residenceRegion
-    type: string
-    nullable: true
-  - name: residenceCity
-    type: string
-    nullable: true
-  - name: residenceAddressLine
-    type: string
-    nullable: true
-  - name: residencePostalCode
-    type: string
-    nullable: true
-  - name: interruptionReason
-    type: string
-    nullable: true
-  - name: legalBases
-    type: string
-    nullable: true
-  - name: terminationCondition
-    type: string
-    nullable: true
-  - name: personApplications
-    type: string
-    nullable: true
-  - name: createdBy
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Get a single transport-interruption form snapshot by snapshot ID"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "Snapshot ID (primary key)"
+      - field: form_key
+        type: string
+        description: "KV form key"
+  response:
+    fields:
+      - field: id
+        type: string
+      - field: subFormNumber
+        type: string
+      - field: version
+        type: number
+      - field: status
+        type: string
+      - field: headerText
+        type: string
+      - field: residenceCountry
+        type: string
+      - field: residenceRegion
+        type: string
+      - field: residenceCity
+        type: string
+      - field: residenceAddressLine
+        type: string
+      - field: residencePostalCode
+        type: string
+      - field: interruptionReason
+        type: string
+      - field: legalBases
+        type: string
+      - field: terminationCondition
+        type: string
+      - field: personApplications
+        type: string
+      - field: createdBy
+        type: string
 */
 SELECT
   kv_form_key AS id,

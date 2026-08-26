@@ -1,24 +1,26 @@
 /*
-description: "Edit classifier name/description — copy latest snapshot with new values"
-namespace: classifier
-params:
-  classifier_id:
-    type: number
-    required: false
-    description: "classifier_key of the target classifier"
-  name:
-    type: string
-    required: false
-  description:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Edit classifier name/description — copy latest snapshot with new values"
+  method: post
+  accepts: json
+  returns: json
+  namespace: classifier
+  allowlist:
+    body:
+      - field: classifier_id
+        type: string
+        description: "classifier_key of the target classifier"
+      - field: name
+        type: string
+      - field: description
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
 */
 WITH latest AS (
     SELECT DISTINCT ON (classifier_key)

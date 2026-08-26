@@ -1,44 +1,39 @@
 /*
-description: "Create a new user — single snapshot INSERT (replaces v1 insert_user_account + insert_user_account_data_state + insert_user_account_state + rebuild)"
-namespace: user
-params:
-  personal_code:
-    type: string
-    required: false
-  first_name:
-    type: string
-    required: false
-  last_name:
-    type: string
-    required: false
-  organisation_id:
-    type: string
-    required: false
-  email:
-    type: string
-    required: false
-  phone:
-    type: string
-    required: false
-  structural_unit:
-    type: string
-    required: false
-  job_title:
-    type: string
-    required: false
-  access_start:
-    type: string
-    required: false
-  access_end:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Create a new user — single snapshot INSERT (replaces v1 insert_user_account + insert_user_account_data_state + insert_user_account_state + rebuild)"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user
+  allowlist:
+    body:
+      - field: personal_code
+        type: string
+      - field: first_name
+        type: string
+      - field: last_name
+        type: string
+      - field: organisation_id
+        type: string
+      - field: email
+        type: string
+      - field: phone
+        type: string
+      - field: structural_unit
+        type: string
+      - field: job_title
+        type: string
+      - field: access_start
+        type: string
+      - field: access_end
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
 */
 INSERT INTO users.user_account (
     user_account_key, personal_code, first_name, last_name,

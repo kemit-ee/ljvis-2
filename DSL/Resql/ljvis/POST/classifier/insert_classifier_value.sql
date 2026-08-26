@@ -1,30 +1,29 @@
 /*
-description: "Create a new classifier value — full snapshot INSERT"
-namespace: classifier
-params:
-  classifier_id:
-    type: number
-    required: false
-    description: "classifier_key of the owning classifier"
-  code:
-    type: string
-    required: false
-  name:
-    type: string
-    required: false
-  valid_from:
-    type: string
-    required: false
-  valid_until:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Create a new classifier value — full snapshot INSERT"
+  method: post
+  namespace: classifier
+  returns: json
+  allowlist:
+    body:
+      - field: classifier_id
+        type: string
+        description: "classifier_key of the owning classifier"
+      - field: code
+        type: string
+      - field: name
+        type: string
+      - field: valid_from
+        type: string
+      - field: valid_until
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
 */
 INSERT INTO classifier.classifier_value (
     classifier_value_key, classifier_key,

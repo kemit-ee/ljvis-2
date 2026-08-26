@@ -1,23 +1,25 @@
 /*
-description: "Delete drive rest form for driver — copy latest snapshot with status=deleted"
-namespace: control-forms
-params:
-  id:
-    type: number
-    required: false
-  status:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: subFormNumber
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Delete drive rest form for driver — copy latest snapshot with status=deleted"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: status
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: subFormNumber
+        type: string
 */
 WITH latest AS (
   SELECT DISTINCT ON (sp_driver_form_key)
@@ -53,6 +55,7 @@ WITH latest AS (
     atp_violation_found,
     atp_violation_description,
     erru_points,
+    files,
     enforcement_decision,
     proceeding_closure_basis,
     notes
@@ -94,6 +97,7 @@ INSERT INTO forms.sp_driver_form (
   atp_violation_found,
   atp_violation_description,
   erru_points,
+  files,
   enforcement_decision,
   proceeding_closure_basis,
   notes,
@@ -133,6 +137,7 @@ SELECT
   l.atp_violation_found,
   l.atp_violation_description,
   l.erru_points,
+  l.files,
   l.enforcement_decision,
   l.proceeding_closure_basis,
   l.notes,

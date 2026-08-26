@@ -1,26 +1,27 @@
 /*
-description: "Delete good-repute form — copy latest snapshot with status=deleted"
-namespace: control-forms
-params:
-  id:
-    type: number
-    required: false
-  status:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: form_number
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Delete good-repute form — copy latest snapshot with status=deleted"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: status
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: form_number
+        type: string
+      - field: version
+        type: number
 */
 WITH latest AS (
   SELECT DISTINCT ON (good_repute_form_key)

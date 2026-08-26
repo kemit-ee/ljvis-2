@@ -1,25 +1,27 @@
 /*
-description: "Create a new user group — snapshot INSERT with name, organisations and permissions"
-namespace: user_group
-params:
-  name:
-    type: string
-    required: false
-  organisation_ids:
-    type: string
-    required: false
-    description: "Comma-separated organisation IDs"
-  permission_ids:
-    type: string
-    required: false
-    description: "Comma-separated permission IDs"
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Create a new user group — snapshot INSERT with name, organisations and permissions"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user_group
+  allowlist:
+    body:
+      - field: name
+        type: string
+      - field: organisation_ids
+        type: string
+        description: "Comma-separated organisation IDs"
+      - field: permission_ids
+        type: string
+        description: "Comma-separated permission IDs"
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
 */
 INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
 VALUES (

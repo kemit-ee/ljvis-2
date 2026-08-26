@@ -1,57 +1,48 @@
 /*
-description: "List all audit events"
-namespace: log
-params:
-  search:
-    type: string
-    required: false
-    description: "Search by event type, description or actor name"
-  page:
-    type: number
-    required: false
-    description: "Page number"
-  page_size:
-    type: number
-    required: false
-    description: "Items per page"
-  sorting:
-    type: string
-    required: false
-    description: "Sort column and direction (createdAt, eventType, eventCategory, actorName)"
-returns:
-  - name: event_id
-    type: string
-    nullable: true
-  - name: event_type
-    type: string
-    nullable: true
-  - name: event_category
-    type: string
-    nullable: true
-  - name: actor_name
-    type: string
-    nullable: true
-  - name: actor_personal_code_hash
-    type: string
-    nullable: true
-  - name: description
-    type: string
-    nullable: true
-  - name: created_at
-    type: string
-    nullable: true
-  - name: created_by
-    type: string
-    nullable: true
-  - name: trace_id
-    type: string
-    nullable: true
-  - name: span_id
-    type: string
-    nullable: true
-  - name: total
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "List all audit events"
+  method: post
+  namespace: log
+  returns: json
+  allowlist:
+    body:
+      - field: search
+        type: string
+        description: "Search by event type, description or actor name"
+      - field: page
+        type: number
+        description: "Page number"
+      - field: page_size
+        type: number
+        description: "Items per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction (createdAt, eventType, eventCategory, actorName)"
+  response:
+    fields:
+      - field: event_id
+        type: string
+      - field: event_type
+        type: string
+      - field: event_category
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code_hash
+        type: string
+      - field: description
+        type: string
+      - field: created_at
+        type: string
+      - field: created_by
+        type: string
+      - field: trace_id
+        type: string
+      - field: span_id
+        type: string
+      - field: total
+        type: number
 */
 SELECT
     e.event_id,

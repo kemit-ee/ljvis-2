@@ -1,65 +1,53 @@
 /*
-description: "Insert labour inspection form (Tööinspektsiooni kontrollakt) — first save"
-namespace: control-forms
-params:
-  status:
-    type: string
-    required: false
-  inspectorName:
-    type: string
-    required: false
-  inspectionDate:
-    type: string
-    required: false
-  inspectionType:
-    type: string
-    required: false
-  companyName:
-    type: string
-    required: false
-  companyRegCode:
-    type: string
-    required: false
-  vehicleCount:
-    type: string
-    required: false
-  totalDriversCount:
-    type: string
-    required: false
-  controlsMatrix:
-    type: string
-    required: false
-  prescriptionComposed:
-    type: string
-    required: false
-  punishedPersonIdCode:
-    type: string
-    required: false
-  punishedPersonFirstName:
-    type: string
-    required: false
-  punishedPersonLastName:
-    type: string
-    required: false
-  proceedingReferenceNumber:
-    type: string
-    required: false
-  violations:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: form_number
-    type: string
-    nullable: true
-  - name: version
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Insert labour inspection form (Tööinspektsiooni kontrollakt) — first save"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: status
+        type: string
+      - field: inspectorName
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: inspectionType
+        type: string
+      - field: companyName
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: vehicleCount
+        type: string
+      - field: totalDriversCount
+        type: string
+      - field: controlsMatrix
+        type: string
+      - field: prescriptionComposed
+        type: string
+      - field: punishedPersonIdCode
+        type: string
+      - field: punishedPersonFirstName
+        type: string
+      - field: punishedPersonLastName
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: violations
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: form_number
+        type: string
+      - field: version
+        type: number
 */
 WITH ins AS (
   INSERT INTO forms.labour_inspection_form (

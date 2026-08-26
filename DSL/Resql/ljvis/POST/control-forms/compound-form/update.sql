@@ -1,143 +1,105 @@
 /*
-description: "Update compound form — insert new snapshot with updated data"
-namespace: control-forms
-params:
-  key:
-    type: number
-    required: false
-  formNumber:
-    type: string
-    required: false
-  status:
-    type: string
-    required: false
-  controlDate:
-    type: string
-    required: false
-  controlTime:
-    type: string
-    required: false
-  controlCountryCode:
-    type: string
-    required: false
-  county:
-    type: string
-    required: false
-  city:
-    type: string
-    required: false
-  road:
-    type: string
-    required: false
-  roadOther:
-    type: string
-    required: false
-  kilometer:
-    type: string
-    required: false
-  address:
-    type: string
-    required: false
-  road_type:
-    type: string
-    required: false
-  roadTaxStatus:
-    type: string
-    required: false
-  roadTaxNotes:
-    type: string
-    required: false
-  vehicleRegNr:
-    type: string
-    required: false
-  vehicleMake:
-    type: string
-    required: false
-  vehicleModel:
-    type: string
-    required: false
-  vehicleCountryCode:
-    type: string
-    required: false
-  vehicleVin:
-    type: string
-    required: false
-  vehicleFirstRegistration:
-    type: string
-    required: false
-  vehicleBodyType:
-    type: string
-    required: false
-  vehicleCategoryCode:
-    type: string
-    required: false
-  vehicleCategoryOther:
-    type: string
-    required: false
-  vehicleMileage:
-    type: string
-    required: false
-  trailers:
-    type: string
-    required: false
-  companyRegCode:
-    type: string
-    required: false
-  companyName:
-    type: string
-    required: false
-  companyCountryCode:
-    type: string
-    required: false
-  companyCounty:
-    type: string
-    required: false
-  companyCity:
-    type: string
-    required: false
-  companyAddressLine1:
-    type: string
-    required: false
-  companyPostalCode:
-    type: string
-    required: false
-  companyOwnerFirstName:
-    type: string
-    required: false
-  companyOwnerLastName:
-    type: string
-    required: false
-  companyActivityLicenceCopyNumber:
-    type: string
-    required: false
-  drivers:
-    type: string
-    required: false
-  inspectorFirstName:
-    type: string
-    required: false
-  inspectorLastName:
-    type: string
-    required: false
-  inspectorOrganisationId:
-    type: string
-    required: false
-  inspectorUnit:
-    type: string
-    required: false
-  inspectorProfession:
-    type: string
-    required: false
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
-  - name: formNumber
-    type: string
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Update compound form — insert new snapshot with updated data"
+  method: post
+  accepts: json
+  returns: json
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: key
+        type: string
+      - field: formNumber
+        type: string
+      - field: status
+        type: string
+      - field: controlDate
+        type: string
+      - field: controlTime
+        type: string
+      - field: controlCountryCode
+        type: string
+      - field: county
+        type: string
+      - field: city
+        type: string
+      - field: road
+        type: string
+      - field: roadOther
+        type: string
+      - field: kilometer
+        type: string
+      - field: address
+        type: string
+      - field: road_type
+        type: string
+      - field: roadTaxStatus
+        type: string
+      - field: roadTaxNotes
+        type: string
+      - field: vehicleRegNr
+        type: string
+      - field: vehicleMake
+        type: string
+      - field: vehicleModel
+        type: string
+      - field: vehicleCountryCode
+        type: string
+      - field: vehicleVin
+        type: string
+      - field: vehicleFirstRegistration
+        type: string
+      - field: vehicleBodyType
+        type: string
+      - field: vehicleCategoryCode
+        type: string
+      - field: vehicleCategoryOther
+        type: string
+      - field: vehicleMileage
+        type: string
+      - field: trailers
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: companyName
+        type: string
+      - field: companyCountryCode
+        type: string
+      - field: companyCounty
+        type: string
+      - field: companyCity
+        type: string
+      - field: companyAddressLine1
+        type: string
+      - field: companyPostalCode
+        type: string
+      - field: companyOwnerFirstName
+        type: string
+      - field: companyOwnerLastName
+        type: string
+      - field: companyActivityLicenceCopyNumber
+        type: string
+      - field: drivers
+        type: string
+      - field: inspectorFirstName
+        type: string
+      - field: inspectorLastName
+        type: string
+      - field: inspectorOrganisationId
+        type: string
+      - field: inspectorUnit
+        type: string
+      - field: inspectorProfession
+        type: string
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+      - field: formNumber
+        type: string
 */
 WITH latest AS (
   SELECT form_number, template_version, control_year

@@ -1,26 +1,28 @@
 /*
-description: "Update user group permissions — apply added and removed permission IDs in a single insert"
-namespace: user_group
-params:
-  user_group_id:
-    type: string
-    required: false
-    description: "user_group_key of the target group"
-  added_permission_ids:
-    type: string
-    required: false
-    description: "Comma-separated permission catalogue IDs to add"
-  removed_permission_ids:
-    type: string
-    required: false
-    description: "Comma-separated permission catalogue IDs to remove"
-  created_by:
-    type: string
-    required: false
-returns:
-  - name: id
-    type: number
-    nullable: true
+declaration:
+  version: 0.1
+  description: "Update user group permissions — apply added and removed permission IDs in a single insert"
+  method: post
+  accepts: json
+  returns: json
+  namespace: user_group
+  allowlist:
+    body:
+      - field: user_group_id
+        type: string
+        description: "user_group_key of the target group"
+      - field: added_permission_ids
+        type: string
+        description: "Comma-separated permission catalogue IDs to add"
+      - field: removed_permission_ids
+        type: string
+        description: "Comma-separated permission catalogue IDs to remove"
+      - field: created_by
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
 */
 WITH removed_ids_list AS (
     SELECT unnest(string_to_array(NULLIF(:removed_permission_ids, ''), ','))::BIGINT AS perm_id

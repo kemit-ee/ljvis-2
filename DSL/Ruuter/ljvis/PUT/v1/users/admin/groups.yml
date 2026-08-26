@@ -81,7 +81,7 @@ getUser:
       type: json
     body:
       id: ${user_account_id}
-      organisation_id: ""
+      organisation_id: null
   result: userRes
   next: buildAuditLog
 
