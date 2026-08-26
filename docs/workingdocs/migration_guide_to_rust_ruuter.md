@@ -12,7 +12,7 @@ Muutub **mitte midagi** — URL-id, HTTP meetodid ja vastuse formaadid jäävad 
 
 ### DSL kirjeldajale (arendajale)
 
-| Teema | Java Ruuter | Rust Ruuter |
+| Teema | Java Ruuter | Rust Ruuter (0.9.0-rc.1+) |
 |-------|-------------|-------------|
 | **Konfiguratsioonifail** | `application.yml` (Spring Boot) | `ruuter.yaml` (projekti juurkaustas) |
 | **Konstandiviide** | `[#KEY]` | `[#KEY]` (säilib) **või** uus `#{KEY}` süntaks |
@@ -28,6 +28,17 @@ Muutub **mitte midagi** — URL-id, HTTP meetodid ja vastuse formaadid jäävad 
 | **OpenAPI spec** | puudub | automaatne `GET /_/openapi.json` |
 | **Hot-reload** | restart vajalik | opt-in `dsl.allow_dsl_reloading: true` (ainult dev) |
 | **Idempotency-Key** | raamistiku sees | eemaldatud — DSL-i vastutus (`state.set` + body hash) |
+| **`declaration:` väljad** | `method`, `accepts`, `returns` lubatud | `method`, `accepts`, `returns: json` **eemaldatud** — serveri käivitumine katkeb |
+
+### Resql (turnerrainer/resql:alpha — 0.1.0-alpha.3+)
+
+| Teema | Vana Resql | Uus Resql (:alpha) |
+|-------|-----------|-------------------|
+| **Image** | `askendest/resql:0.1.0-alpha.5` | `turnerrainer/resql:alpha` |
+| **Deklaratsioon** | Valikuline `/* declaration: ... */` blokk | **Kohustuslik** `/* params: ... */` blokk |
+| **Parameetrid** | `allowlist.body` list | `params:` mapping |
+| **Tagastusväljad** | `response.fields` list | `returns:` list |
+| **Validatsioon** | Puudub | Boot-ajal kontrollitakse kõiki SQL faile — orphan params ja puuduvad params katkestab |
 
 ---
 
@@ -218,17 +229,122 @@ dsl:
 
 ---
 
+### Samm 6 — `docker/resql-ljvis/Dockerfile` — uuenda Resql image
+
+**Praegu:**
+```dockerfile
+FROM askendest/resql:0.1.0-alpha.5
+COPY docker/resql-ljvis/resql.yaml /app/resql.yaml
+COPY DSL/Resql /DSL
+```
+
+**Pärast:**
+```dockerfile
+FROM turnerrainer/resql:alpha
+COPY docker/resql-ljvis/resql.yaml /app/resql.yaml
+COPY DSL/Resql /DSL
+```
+
+> `turnerrainer/resql:alpha` vastab versioonile `0.1.0-alpha.4` (ja uuematele) ning nõuab kõikidelt SQL failidelt kohustuslikku `/* params: ... */` deklaratsioonblokki.
+
+---
+
+### Samm 7 — Uuenda Resql SQL failide deklaratsioonid
+
+Kõik `DSL/Resql/**/*.sql` failid peavad saama uue deklaratsioonivormingu.
+
+**Vana formaat (askendest/resql):**
+```sql
+/*
+declaration:
+  version: 0.1
+  description: "Loo uus klassifikaator"
+  method: post
+  accepts: json
+  returns: json
+  namespace: classifier
+  allowlist:
+    body:
+      - field: code
+        type: string
+      - field: name
+        type: string
+  response:
+    fields:
+      - field: id
+        type: number
+*/
+INSERT INTO classifier.classifier (code, name)
+VALUES (:code, :name)
+RETURNING classifier_key AS id;
+```
+
+**Uus formaat (turnerrainer/resql:alpha):**
+```sql
+/*
+description: "Loo uus klassifikaator"
+namespace: classifier
+params:
+  code:
+    type: string
+    required: false
+  name:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+*/
+INSERT INTO classifier.classifier (code, name)
+VALUES (:code, :name)
+RETURNING classifier_key AS id;
+```
+
+**Teisendusreeglid:**
+
+| Vana | Uus |
+|---|---|
+| `declaration:` wrapper (üks sisend sügavamale) | Eemaldatakse — väljad lähevad ülemisele tasemele |
+| `version: 0.1` | Eemaldatakse |
+| `method: post` | Eemaldatakse |
+| `accepts: json` | Eemaldatakse |
+| `returns: json` (string) | Eemaldatakse |
+| `allowlist.body[].field` + `type` | `params.<name>.type: <type>` + `required: false` |
+| `response.fields[].field` + `type` | `returns[].name: <name>` + `type:` + `nullable: true` |
+| Puuduv `params:` | Lisatakse `params: {}` (kohustuslik isegi kui SQL-il pole parameetreid) |
+
+**Kriitilised reeglid:**
+- Iga `:paramNimi` SQL-is **peab** olema `params:` all — muidu boot error
+- Iga `params:` kirje **peab** SQL-is `:paramNimi`-na esinema (orphan params) — muidu boot error
+- `type: json` **ei ole** kehtiv — kasuta `type: object`
+- `params:` on **kohustuslik** ka parameetriteta päringutes: `params: {}`
+
+**Valideerimine:**
+```bash
+docker run --rm \
+  -e RESQL_DB_PASSWORD=test \
+  -v $(pwd)/DSL/Resql:/DSL \
+  -v $(pwd)/docker/resql-ljvis/resql.yaml:/app/resql.yaml \
+  turnerrainer/resql:alpha 2>&1 | head -5
+```
+
+Kui ainult DB-ühenduse viga → kõik deklaratsioonid on korrektsed.
+
+---
+
 ### Muudatuste kokkuvõte — failid mida tuleb puudutada
 
 | Fail | Muudatus |
 |------|----------|
 | `docker/ruuter/Dockerfile` | Image + COPY sihtkausta muutus |
 | `docker/ruuter-internal/Dockerfile` | Image + COPY sihtkausta muutus |
+| `docker/resql-ljvis/Dockerfile` | Image: `turnerrainer/resql:alpha` |
 | `docker-compose.yml` | `ruuter` + `ruuter-internal` teenuste env + volumes + port |
 | `ruuter.yaml` | **Uus fail** — asendab Spring Boot env muutujad |
 | `ruuter-internal.yaml` | **Uus fail** — `ruuter-internal` jaoks eraldi konfig (vajadusel) |
-
-**DSL failid ei muutu** (`DSL/Ruuter/ljvis/**/*.yml`, `constants.ini`, `.guard` failid).
+| `DSL/Ruuter/**/*.yml` | `declaration:` blokist eemalda `method`, `accepts`, `returns: json` |
+| `DSL/Resql/**/*.sql` | Teisenda kõik deklaratsioonid uuele formaadile (vt Samm 7) |
 
 ---
 
@@ -880,17 +996,18 @@ ruuter:
 
 ### Failid mis **ei muutu**
 
-- `DSL/Ruuter/ljvis/**/*.yml` — DSL YAML-id on ühilduvad (samad sammutüübid)
 - `constants.ini` — sama formaat, sama süntaks `[#KEY]`
 - `DSL/Ruuter/ljvis/**/.guard` — Java-legacy guard failid töötavad
 
 ### Failid mis **muutuvad**
 
-| Java Ruuter | Rust Ruuter | Muudatus |
+| Vana | Uus | Muudatus |
 |---|---|---|
 | `application.yml` (Spring) | `ruuter.yaml` | Täiesti erinev formaat |
 | `application.properties` | `ruuter.yaml` | Sama |
-| `docker-compose.yml` (image) | `docker-compose.yml` | Image: `turnerrainer/ruuter:rc` |
+| `docker-compose.yml` (image) | `docker-compose.yml` | Ruuter: `turnerrainer/ruuter:rc`; Resql: `turnerrainer/resql:alpha` |
+| `DSL/Ruuter/**/*.yml` — `declaration:` | `DSL/Ruuter/**/*.yml` | Eemalda `method`, `accepts`, `returns: json` |
+| `DSL/Resql/**/*.sql` — vana `declaration:` | `DSL/Resql/**/*.sql` | Teisenda uuele `params:`/`returns:` formaadile (vt Samm 7) |
 
 ### Uued failid
 
@@ -903,14 +1020,20 @@ ruuter:
 
 ## Täielik DSL näide: X-Road Äriregister päring
 
+> **NB:** `declaration:` blokis ei tohi enam kasutada `method`, `accepts` ega `returns: json` (eemaldatud 0.9.0-rc.1-s). Kasuta `allowlist.body` koos `field` + `type` sisestustega.
+
 ```yaml
 # DSL/Ruuter/ljvis/POST/v1/xroad/arireg/lihtandmed.yml
 
 declaration:
   description: "Äriregistri lihtandmete päring X-Road kaudu"
-  allowed_body:
-    - registryCode
-    - companyName
+  namespace: xroad
+  allowlist:
+    body:
+      - field: registryCode
+        type: string
+      - field: companyName
+        type: string
 
 validate_input:
   switch:
