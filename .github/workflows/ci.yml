@@ -216,27 +216,6 @@ jobs:
       - name: Build and start CI stack
         run: docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --build
 
-      - name: Trivy — scan CI images
-        run: |
-          images=(
-            ljvis-ci-resql-ljvis
-            ljvis-ci-ruuter
-            ljvis-ci-ruuter-internal
-            ljvis-ci-data-mapper
-            ljvis-ci-tara-mock
-            ljvis-ci-tim
-            ljvis-ci-nysiis
-          )
-          for image in "${images[@]}"; do
-            echo "Scanning ${image}"
-            docker run --rm \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              aquasec/trivy:0.74.0 image \
-              --severity CRITICAL \
-              --exit-code 0 \
-              "${image}"
-          done
-
       - name: Wait for Resql
         run: |
           for i in $(seq 1 60); do
@@ -278,6 +257,26 @@ jobs:
       - name: Run E2E tests
         run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json
 
+      - name: Trivy — scan CI images
+        run: |
+          images=(
+            ljvis-ci-resql-ljvis
+            ljvis-ci-ruuter
+            ljvis-ci-ruuter-internal
+            ljvis-ci-data-mapper
+            ljvis-ci-tara-mock
+            ljvis-ci-tim
+            ljvis-ci-nysiis
+          )
+          for image in "${images[@]}"; do
+            echo "Scanning ${image}"
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy:0.74.0 image \
+              --severity CRITICAL \
+              --exit-code 0 \
+              "${image}"
+          done
 
       - name: ZAP — baseline scan (stack already running)
         run: |
