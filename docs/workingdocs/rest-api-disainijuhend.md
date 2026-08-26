@@ -326,3 +326,210 @@ for f in glob.glob('DSL/Ruuter/**/*.yml', recursive=True):
 - `docs/errors.json` — kõigi veatüüpide masinarloetav kataloog (kood, sõnum, stsenaariumid, otspunktid)
 - `docs/db_errorhandling_rules.md` — andmebaasi veakäsitluse reeglid
 - `DSL/Ruuter/ljvis/` — Ruuter DSL failid (tegelik implementatsioon)
+
+---
+
+## 10. Ruuter DSL `declaration:` blokk
+
+Iga Ruuter DSL fail võib alata valikulise `declaration:` blokiga. See annab Ruuterile lisainfot OpenAPI speci genereerimiseks ja strict-key posture'i jaoks.
+
+### 10.1 Kehtiv formaat (turnerrainer/ruuter:rc — 0.9.0-rc.1+)
+
+```yaml
+declaration:
+  version: "1.0"
+  description: "Loo uus kohalik kasutaja"
+  namespace: users
+  allowlist:
+    body:
+      - field: firstName
+        type: string
+      - field: lastName
+        type: string
+      - field: personalCode
+        type: string
+
+create_user:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/v1/users/local/insert"
+    body:
+      firstName: ${incoming.body.firstName}
+      lastName: ${incoming.body.lastName}
+  result: insertResult
+  next: respond
+```
+
+**Kehtivad `declaration:` väljad:**
+
+| Väli | Tüüp | Kirjeldus |
+|---|---|---|
+| `version` | string | DSL versiooni märge (informatiivne) |
+| `description` | string | OpenAPI summary/description |
+| `namespace` | string | OpenAPI `tags` grupeering |
+| `allowlist.body` | list | Lubatud keha väljad (strict-key mode + OpenAPI `requestBody`) |
+| `allowlist.header` | list | Lubatud päise väljad |
+| `allowlist.params` | list | Lubatud query parameetrid |
+| `override_ancestors` | bool | `true` = asenda kõik esivanem-guard'id (guard failides) |
+
+### 10.2 Eemaldatud väljad (0.9.0-rc.1-s eemaldatud)
+
+Järgmised väljad olid kasutusel vanas Java-Ruuteri-ühilduvus-kihis ja **ei tohi esineda** uutes DSL failides — Ruuter `0.9.0-rc.1` lükkab need tagasi:
+
+| Eemaldatud väli | Selgitus |
+|---|---|
+| `method: post` | HTTP meetod tuleneb kaustast (`GET/`, `POST/` jne) — redundantne |
+| `accepts: json` | Kõik päringud aktsepteerivad JSON-i vaikimisi |
+| `returns: json` | Asendunud `returns:` listiga Resql-is; Ruuteris ei ole mõistlik |
+
+> **Kui `method`, `accepts` või `returns: json` esineb `declaration:` blokis, katkestab Ruuter 0.9.0-rc.1+ käivitumise parse-veaga.**
+
+### 10.3 `declaration:` on valikuline
+
+Kui `declaration:` puudub, laeb Ruuter DSL faili edukalt — genereerib lihtsalt minimaalse OpenAPI kirje. Strict-key mode ja kehaparam-filtreerimine on siis väljas.
+
+---
+
+## 11. Resql SQL deklaratsioonid
+
+Alates `turnerrainer/resql:alpha` (0.1.0-alpha.3+) on **iga `.sql` fail kohustuslik algama YAML-deklaratsiooni blokiga** `/* ... */` kommentaarina.
+
+> Resql keeldub käivitumast, kui mõni SQL fail on deklaratsiooniblokita või deklaratsioon on vigane.
+
+### 11.1 Minimaalne nõutav formaat
+
+```sql
+/*
+params: {}
+*/
+SELECT * FROM classifier.classifier;
+```
+
+Isegi kui SQL-il pole ühtegi parameetrit, peab `params:` väli olema olemas (tühja mappinguna `{}`).
+
+### 11.2 Täielik formaat
+
+```sql
+/*
+description: "Loo uus klassifikaator"
+namespace: classifier
+params:
+  code:
+    type: string
+    required: false
+  name:
+    type: string
+    required: false
+    description: "Inimloetav nimi"
+  created_by:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: number
+    nullable: true
+*/
+INSERT INTO classifier.classifier (classifier_key, code, name, created_by)
+VALUES (nextval('classifier.seq_classifier_key'), :code, :name, :created_by)
+RETURNING classifier_key AS id;
+```
+
+**Deklaratsioonibloki väljad:**
+
+| Väli | Kohustuslik | Kirjeldus |
+|---|---|---|
+| `params:` | **Jah** | Parameetrite mapping. Tühi `{}` kui parameetreid pole. |
+| `description:` | Ei | SQL faili eesmärgi kirjeldus |
+| `namespace:` | Ei | Grupeering (nt `classifier`, `user`) |
+| `returns:` | Ei | Tagastusväljad OpenAPI jaoks |
+
+### 11.3 `params:` välja reeglid
+
+Iga parameeter on mapping, mille võtmeks on parameeter nime täpselt nii nagu ta esineb SQL-is (`:paramNimi`):
+
+```yaml
+params:
+  pageSize:       # vastab SQL-is :pageSize
+    type: integer
+    required: false
+  search:
+    type: string
+    required: false
+    description: "Otsingufraas"
+```
+
+**Parameetri väljad:**
+
+| Väli | Kirjeldus |
+|---|---|
+| `type` | Kohustuslik. Vt kehtivad tüübid allpool. |
+| `required` | `true` / `false`. Vaikimisi `false`. |
+| `description` | Valikuline kirjeldus. |
+
+**Kehtivad tüübid:**
+
+| Tüüp | Kasutus |
+|---|---|
+| `string` | Tekstiväljad, koodid, UUIDid (vaikimisi) |
+| `integer` | Täisarvud (`page`, `pageSize`, ID-d kui `BIGINT`) |
+| `number` | Ujukomaarvud |
+| `boolean` | Tõeväärtused |
+| `array` | JSON-massiivid |
+| `object` | JSON-objektid |
+| `date` | Kuupäev (`YYYY-MM-DD`) |
+| `datetime` | Kuupäev ja kellaaeg (ISO 8601) |
+| `uuid` | UUID formaat |
+
+> **Märkus:** `json` ei ole kehtiv tüüp — kasuta `object` või `array`.
+
+### 11.4 `returns:` välja formaat
+
+```yaml
+returns:
+  - name: id
+    type: number
+    nullable: true
+  - name: code
+    type: string
+    nullable: false
+  - name: metadata
+    type: object
+    nullable: true
+```
+
+### 11.5 Kriitilised valideerimisreeglid
+
+Resql kontrollib käivitamisel kõiki SQL faile:
+
+| Reegel | Rikkumise tulemus |
+|---|---|
+| Iga `/* ... */`-ta fail katkestab käivitumise | Boot error |
+| Iga `:paramNimi` SQL-is peab olema `params:` all | Boot error: "declaration fails to cover :paramNimi" |
+| Iga `params:` kirje peab SQL-is `:paramNimi`-na esinema | Boot error: "orphan param paramNimi" |
+| `params:` väli on kohustuslik (ka `{}`) | Boot error: "missing field params" |
+| `type: json` ei ole kehtiv | Boot error: "unknown variant json, expected..." |
+
+### 11.6 Resql valideerimine käsureal
+
+```bash
+docker run --rm \
+  -e RESQL_DB_PASSWORD=test \
+  -v $(pwd)/DSL/Resql:/DSL \
+  -v $(pwd)/docker/resql-ljvis/resql.yaml:/app/resql.yaml \
+  turnerrainer/resql:alpha 2>&1 | head -5
+```
+
+Kui kõik deklaratsioonid on korrektsed, saad ainult DB-ühenduse vea (mis on oodatav ilma andmebaasita) — **mitte** "Invalid declaration" viga.
+
+---
+
+## 12. Seotud dokumendid (uuendatud)
+
+- `docs/openapi.yaml` — täielik API leping
+- `api-endpoints.md` — kõigi otspunktide loend tabelina
+- `docs/audit-logging.md` — audit sündmuste logimise reeglid
+- `docs/errors.json` — kõigi veatüüpide masinarloetav kataloog (kood, sõnum, stsenaariumid, otspunktid)
+- `docs/db_errorhandling_rules.md` — andmebaasi veakäsitluse reeglid
+- `docs/workingdocs/migration_guide_to_rust_ruuter.md` — Ruuter ja Resql migratsioonijuhend
+- `DSL/Ruuter/ljvis/` — Ruuter DSL failid (tegelik implementatsioon)
+- `DSL/Resql/ljvis/` — Resql SQL failid (tegelik implementatsioon)
