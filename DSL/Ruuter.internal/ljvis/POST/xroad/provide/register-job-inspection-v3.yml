@@ -2,21 +2,14 @@ declaration:
 
   version: "1.0"
   description: >-
-    X-tee pakutav teenus RegisterJobInspection_v2: uuem töökontrolli leping —
+    X-tee pakutav teenus RegisterJobInspection_v3: uuem töökontrolli leping —
     lisanduvad sõiduki (reg_nr, VIN), juhi (isikukood) ja menetluse (liik, number)
     väljad. Salvestatakse samasse forms.labour_inspection_form tabelisse.
-    Idempotentsuse võti: 'v2-' || kontrolli_id (et eristada v1 kirjetest).
-    Vt docs/xtee/06-register-job-inspection-v2.md.
+    Idempotentsuse võti: 'v3-' || kontrolli_id (et eristada v1 kirjetest).
+    Vt docs/xtee/07-register-job-inspection-v3.md.
   namespace: xroad
 
-# Samm 1: X-Road-Client päise kontroll
-validateXRoadClient:
-  switch:
-    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
-      next: returnMissingHeader
-  next: validateKontrollija
-
-# Samm 2-6: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
+# Samm 1-5: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
 validateKontrollija:
   switch:
     - condition: "${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}"
@@ -55,27 +48,27 @@ validateKontrollimised:
       next: returnMissingEttekirjutus
   next: validateJuhiIsikukood
 
-# Samm 7: V2 lisavalideerimine — juhi isikukood on valikuline, kuid kui esitatud peab olema korrektne
+# Samm 6: V3 lisavalideerimine — juhi isikukood on valikuline, kuid kui esitatud peab olema korrektne
 validateJuhiIsikukood:
   switch:
     - condition: "${incoming.body.juhi_isikukood != null && incoming.body.juhi_isikukood != '' && !(/^[1-6][0-9]{10}$/.test(String(incoming.body.juhi_isikukood).trim()))}"
       next: returnInvalidIsikukood
   next: validateMenetluseLiik
 
-# Samm 8: V2 lisavalideerimine — menetluse liik on valikuline enum
+# Samm 7: V3 lisavalideerimine — menetluse liik on valikuline enum
 validateMenetluseLiik:
   switch:
     - condition: "${incoming.body.menetluse_liik != null && incoming.body.menetluse_liik != '' && !(['lyhimenetlus','kiirmenetlus','uldmenetlus'].indexOf(incoming.body.menetluse_liik) >= 0)}"
       next: returnInvalidMenetluseLiik
   next: assignParams
 
-# Samm 9: Kogu parameetrid
-# Oluline: v2 prefiksib kontrolli_id-le 'v2-' et eristada v1 kirjetest
-# controls_matrix sisaldab v2 lisaväljad (sõiduki andmed, menetluse liik)
+# Samm 8: Kogu parameetrid
+# Oluline: v3 prefiksib kontrolli_id-le 'v3-' et eristada v1 kirjetest
+# controls_matrix sisaldab v3 lisaväljad (sõiduki andmed, menetluse liik)
 assignParams:
   assign:
     kontrollija: "${incoming.body.kontrollija.trim()}"
-    kontrolli_id: "${'v2-' + String(incoming.body.kontrolli_id)}"    # v2 prefiks idempotentsuse jaoks
+    kontrolli_id: "${'v3-' + String(incoming.body.kontrolli_id)}"    # v3 prefiks idempotentsuse jaoks
     kontrolli_kp: "${incoming.body.kontrolli_kp}"
     tooandja_nimi: "${incoming.body.tooandja_nimi.trim()}"
     tooandja_reg_kood: "${incoming.body.tooandja_reg_kood.trim()}"
@@ -86,7 +79,7 @@ assignParams:
     juhi_perekonnanimi: "${incoming.body.juhi_perekonnanimi || ''}"
     menetluse_number: "${incoming.body.menetluse_number || ''}"
     inspection_type: "${(incoming.body.kontrollimised && incoming.body.kontrollimised.kontrollitud_soitjate_veol) ? 'passenger' : 'cargo'}"
-    # V2 laiendab controls_matrix JSONB-i sõiduki andmetega ja menetluse liigiga
+    # V3 laiendab controls_matrix JSONB-i sõiduki andmetega ja menetluse liigiga
     controls_matrix_with_vehicle: >-
       ${JSON.stringify(Object.assign({}, incoming.body.kontrollimised, {
         v2_soiduki_reg_nr: incoming.body.soiduki_reg_nr || null,
@@ -97,11 +90,11 @@ assignParams:
     start_time: "${new Date().getTime()}"
   next: insertInspection
 
-# Samm 10: Salvesta Resql-i kaudu
+# Samm 9: Salvesta Resql-i kaudu
 insertInspection:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-v2-insert"
+    url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-v3-insert"
     headers:
       type: json
     body:
@@ -137,7 +130,7 @@ logSuccess:
     headers:
       type: json
     body:
-      service_code: "xroad.provide.register-job-inspection-v2"
+      service_code: "xroad.provide.register-job-inspection-v3"
       request_xml: "${'kontrolli_id=' + kontrolli_id + '&reg_kood=' + tooandja_reg_kood}"
       response_xml: "${JSON.stringify(insertResult.response.body || {})}"
       duration_ms: "${new Date().getTime() - start_time}"
@@ -161,7 +154,7 @@ logFailure:
     headers:
       type: json
     body:
-      service_code: "xroad.provide.register-job-inspection-v2"
+      service_code: "xroad.provide.register-job-inspection-v3"
       request_xml: "${'kontrolli_id=' + kontrolli_id}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
@@ -177,11 +170,6 @@ logFailure:
 returnServerError:
   status: 500
   return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
-  next: end
-
-returnMissingHeader:
-  status: 400
-  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
   next: end
 
 returnMissingKontrollija:
