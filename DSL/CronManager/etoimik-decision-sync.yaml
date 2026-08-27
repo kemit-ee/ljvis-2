@@ -1,0 +1,11 @@
+# Trigger is Quartz-cron (sec min hour day month day-of-week), evaluated in
+# the container's local time. Set TZ=Europe/Tallinn on the cronmanager
+# service if it needs to be exactly 01:00 Tallinn time.
+etoimik_decision_sync:
+  trigger: "0 0 1 * * ?"
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/etoimik-decision-sync
+  retryCount: 2
+  retryDelay: 60000
+  ignoreFailures: true

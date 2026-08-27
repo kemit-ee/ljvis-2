@@ -1,0 +1,526 @@
+{
+  "info": {
+    "name": "LJVIS — Cron Jobs (LJVIS2-12, LJVIS2-56/69, LJVIS2-135/58/23)",
+    "_postman_id": "ljvis-cron-jobs-v1",
+    "description": "Functional tests for the CronManager-triggered batch endpoints: nightly user deactivation (LJVIS2-12), nightly e-toimik decision sync + auto-publish (LJVIS2-56/LJVIS2-69), and hourly yvkehtivus sync (LJVIS2-135/58/23). No auth needed — all endpoints under test are either Ruuter.internal (no session) or Resql called directly. XTR is not part of the CI stack (no certs/secrets available there), so e-toimik/yvkehtivus are tested at the Resql layer, which is where the real bugs were found (latest-snapshot-vs-filter resolution order, idempotency guards, not clobbering manually-entered fields); the X-Road round-trip was verified manually against the real ee-dev sandbox instead (see .ai/future-plans/etoimik-vaarteomenetlus-nightly.md and cronmanager-scheduled-jobs.md). The last folder regression-tests that a bad candidate never takes the whole ruuter-internal process down, using the CI stack's absence of `xtr` as the fault condition.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Setup] Resolve an organisation id (for user seeding)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/organisation/list_organisations", "host": ["{{resql_ljvis_url}}"], "path": ["organisation", "list_organisations"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const orgs = body.response || body;",
+        "pm.test('At least one organisation exists', () => pm.expect(orgs.length).to.be.at.least(1));",
+        "pm.environment.set('cron_org_id', String(orgs[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12 Setup] Insert user with past access_end + no groups yet",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/user/insert_user_account", "host": ["{{resql_ljvis_url}}"], "path": ["user", "insert_user_account"]},
+        "body": {"mode": "raw", "raw": "{\"personal_code\":\"39901010001\",\"first_name\":\"Cron\",\"last_name\":\"ExpiredTest\",\"organisation_id\":\"{{cron_org_id}}\",\"email\":\"cron-expired@example.com\",\"phone\":\"\",\"structural_unit\":\"\",\"job_title\":\"Tester\",\"access_start\":\"2020-01-01\",\"access_end\":\"2020-06-01\",\"created_by\":\"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('User inserted', () => pm.expect(rows[0].id).to.exist);",
+        "pm.environment.set('cron_expired_user_id', String(rows[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12 Setup] Resolve a real user group id",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/user_group/list_user_groups", "host": ["{{resql_ljvis_url}}"], "path": ["user_group", "list_user_groups"]},
+        "body": {"mode": "raw", "raw": "{\"search\":\"\",\"page\":1,\"page_size\":50,\"sorting\":\"\",\"organisation_id\":0}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const groups = body.response || body;",
+        "pm.test('At least one user group exists', () => pm.expect(groups.length).to.be.at.least(1));",
+        "pm.environment.set('cron_group_id', String(groups[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12 Setup] Attach a user group to the expired user",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/user/set_user_groups", "host": ["{{resql_ljvis_url}}"], "path": ["user", "set_user_groups"]},
+        "body": {"mode": "raw", "raw": "{\"user_account_id\":\"{{cron_expired_user_id}}\",\"group_ids\":\"{{cron_group_id}}\",\"status\":\"active\",\"created_by\":\"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12 Setup] Confirm status=active before deactivation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/user/get_user", "host": ["{{resql_ljvis_url}}"], "path": ["user", "get_user"]},
+        "body": {"mode": "raw", "raw": "{\"id\":\"{{cron_expired_user_id}}\",\"organisation_id\":\"\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('Status is still active before the job runs', () => pm.expect(rows[0].status).to.eql('active'));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12 Setup] Confirm groups attached before deactivation",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/user/get_user_groups", "host": ["{{resql_ljvis_url}}"], "path": ["user", "get_user_groups"]},
+        "body": {"mode": "raw", "raw": "{\"user_id\":\"{{cron_expired_user_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('Has at least one group before the job runs', () => pm.expect(rows.length).to.be.at.least(1));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12] POST cron/users/deactivate-expired — deactivates and clears groups",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{internal_api_url}}/ljvis/users/deactivate-expired", "host": ["{{internal_api_url}}"], "path": ["ljvis", "users", "deactivate-expired"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200 (regression: previously 500\\'d via a call to a non-existent rebuild_user_account_latest endpoint)', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "const ids = rows.map(r => String(r.id));",
+        "pm.test('Our seeded expired user is in the deactivated list', () => pm.expect(ids).to.include(pm.environment.get('cron_expired_user_id')));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12] Verify: status=inactive",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/user/get_user", "host": ["{{resql_ljvis_url}}"], "path": ["user", "get_user"]},
+        "body": {"mode": "raw", "raw": "{\"id\":\"{{cron_expired_user_id}}\",\"organisation_id\":\"\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('status = inactive', () => pm.expect(rows[0].status).to.eql('inactive'));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12] Verify: user_groups cleared (LJVIS2-12 AC#2)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/user/get_user_groups", "host": ["{{resql_ljvis_url}}"], "path": ["user", "get_user_groups"]},
+        "body": {"mode": "raw", "raw": "{\"user_id\":\"{{cron_expired_user_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('No groups remain (LJVIS2-12 AC#2)', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[LJVIS2-12] Idempotency: re-running the job does not re-select the same user",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{internal_api_url}}/ljvis/users/deactivate-expired", "host": ["{{internal_api_url}}"], "path": ["ljvis", "users", "deactivate-expired"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "const ids = rows.map(r => String(r.id));",
+        "pm.test('Regression: our already-inactive user is NOT re-selected (fixed latest-row-vs-filter bug)', () => pm.expect(ids).to.not.include(pm.environment.get('cron_expired_user_id')));"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik Setup] Insert confirmed labour_inspection_form (candidate)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/insert", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"status\":\"confirmed\",\"inspectorName\":\"Newman Tester\",\"inspectionDate\":\"2026-01-15\",\"inspectionType\":\"cargo\",\"companyName\":\"Newman OU\",\"companyRegCode\":\"12345678\",\"vehicleCount\":\"\",\"totalDriversCount\":\"\",\"controlsMatrix\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"60001019906\",\"punishedPersonFirstName\":\"Admin\",\"punishedPersonLastName\":\"Super\",\"proceedingReferenceNumber\":\"1-20/26/CRON-TEST\",\"violations\":\"[]\",\"created_by\":\"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.environment.set('cron_lif_id', String(rows[0].id));",
+        "pm.environment.set('cron_lif_form_number', rows[0].formNumber || rows[0].form_number);"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik] select_etoimik_candidates — new act is a candidate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/select_etoimik_candidates", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "select_etoimik_candidates"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "const ids = rows.map(r => String(r.id));",
+        "pm.test('Seeded act appears as a candidate', () => pm.expect(ids).to.include(pm.environment.get('cron_lif_id')));"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik] apply_etoimik_decision found=false — no-op (0 rows)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/apply_etoimik_decision", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "apply_etoimik_decision"]},
+        "body": {"mode": "raw", "raw": "{\"key\":\"{{cron_lif_id}}\",\"found\":\"false\",\"enforcementDecision\":\"\",\"proceedingClosureBasis\":\"\",\"created_by\":\"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('found=false writes nothing', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik] apply_etoimik_decision found=true — publishes + writes decision",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/apply_etoimik_decision", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "apply_etoimik_decision"]},
+        "body": {"mode": "raw", "raw": "{\"key\":\"{{cron_lif_id}}\",\"found\":\"true\",\"enforcementDecision\":\"Trahv 200 eurot (2026-08-01)\",\"proceedingClosureBasis\":\"VTMS § 29\",\"created_by\":\"e-toimik\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('Wrote exactly one new snapshot', () => pm.expect(rows.length).to.eql(1));",
+        "pm.test('status is published (LJVIS2-69 auto-publish)', () => pm.expect(rows[0].status).to.eql('published'));",
+        "pm.test('version bumped to 2', () => pm.expect(rows[0].version).to.eql(2));"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik] select_etoimik_candidates — resolved act no longer a candidate (regression)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/select_etoimik_candidates", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "select_etoimik_candidates"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "const ids = rows.map(r => String(r.id));",
+        "pm.test('Regression: resolved act does NOT reappear (fixed latest-row-vs-filter bug)', () => pm.expect(ids).to.not.include(pm.environment.get('cron_lif_id')));"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik] apply_etoimik_decision again, same key — guarded no-op (already published)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/apply_etoimik_decision", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "apply_etoimik_decision"]},
+        "body": {"mode": "raw", "raw": "{\"key\":\"{{cron_lif_id}}\",\"found\":\"true\",\"enforcementDecision\":\"Should not be written again\",\"proceedingClosureBasis\":\"Should not be written again\",\"created_by\":\"e-toimik\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('No double-publish — status<>confirmed guard holds', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik] Verify final state via get.sql (decision persisted, no double snapshot)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/get", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\":\"{{cron_lif_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('status = published', () => pm.expect(rows[0].status).to.eql('published'));",
+        "pm.test('version = 2 (not 3 — the repeat apply call above was a true no-op)', () => pm.expect(rows[0].version).to.eql(2));",
+        "pm.test('enforcement_decision persisted', () => pm.expect(rows[0].enforcementDecision).to.eql('Trahv 200 eurot (2026-08-01)'));",
+        "pm.test('proceeding_closure_basis persisted', () => pm.expect(rows[0].proceedingClosureBasis).to.eql('VTMS § 29'));"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik] log_etoimik_publish_audit found=false — no audit row",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/log_etoimik_publish_audit", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "log_etoimik_publish_audit"]},
+        "body": {"mode": "raw", "raw": "{\"found\":\"false\",\"key\":\"{{cron_lif_id}}\",\"form_number\":\"{{cron_lif_form_number}}\",\"punished_person_id_code\":\"60001019906\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('No audit event written', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[e-toimik] log_etoimik_publish_audit found=true — audit event written",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/log_etoimik_publish_audit", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "log_etoimik_publish_audit"]},
+        "body": {"mode": "raw", "raw": "{\"found\":\"true\",\"key\":\"{{cron_lif_id}}\",\"form_number\":\"{{cron_lif_form_number}}\",\"punished_person_id_code\":\"60001019906\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('Audit event written with an event_id', () => { pm.expect(rows.length).to.eql(1); pm.expect(rows[0].eventId || rows[0].event_id).to.exist; });"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus Setup] Insert compound_form with a vehicle reg number",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/compound-form/insert", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "compound-form", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"status\":\"confirmed\",\"controlDate\":\"2026-08-01\",\"controlTime\":\"10:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"123ABC\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"12345678\",\"companyName\":\"Newman OU\",\"companyCountryCode\":\"EE\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"Newman\",\"inspectorLastName\":\"Tester\",\"inspectorOrganisationId\":\"{{cron_org_id}}\",\"inspectorUnit\":\"Unit\",\"inspectorProfession\":\"Tester\",\"created_by\":\"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.environment.set('cron_cf_id', String(rows[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus Setup] Insert confirmed vehicle_technical_form (extraordinary_inspection)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/insert", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"compoundFormKey\":\"{{cron_cf_id}}\",\"status\":\"confirmed\",\"partsSummary\":\"[]\",\"partsDefects\":\"[]\",\"resultType\":\"extraordinary_inspection\",\"resultTransportInterruption\":false,\"eraYvMntRegnr\":false,\"eraYvMntVintin\":false,\"eraYvMntAxles\":false,\"eraYvMntPlaces\":false,\"eraYvMntRebuilt\":false,\"proceedingType\":\"\",\"proceedingReferenceNumber\":\"\",\"violations\":\"[]\",\"notes\":\"\",\"created_by\":\"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.environment.set('cron_vtf_id', String(rows[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/select_yvkehtivus_candidates", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "select_yvkehtivus_candidates"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "const match = rows.find(r => String(r.id) === pm.environment.get('cron_vtf_id'));",
+        "pm.test('Seeded sub-form appears as a candidate', () => pm.expect(match).to.exist);",
+        "pm.test('Candidate carries the right registration number', () => pm.expect(match.registrationNumber).to.eql('123ABC'));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus] update-extraordinary-inspection-date, empty date — no-op (0 rows)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update-extraordinary-inspection-date", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "update-extraordinary-inspection-date"]},
+        "body": {"mode": "raw", "raw": "{\"key\":\"{{cron_vtf_id}}\",\"extraordinaryInspectionDate\":\"\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('Empty date writes nothing (regression: previously this would have thrown on \\'\\'::DATE if reached, so the guard matters)', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus] update-extraordinary-inspection-date, real date — writes in place",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update-extraordinary-inspection-date", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "update-extraordinary-inspection-date"]},
+        "body": {"mode": "raw", "raw": "{\"key\":\"{{cron_vtf_id}}\",\"extraordinaryInspectionDate\":\"2024-07-29\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('Wrote exactly one row', () => pm.expect(rows.length).to.eql(1));",
+        "pm.test('version stays 1 — in-place update, not a new snapshot (LJVIS2-72 §4 convention)', () => pm.expect(rows[0].version).to.eql(1));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus] select_yvkehtivus_candidates — resolved sub-form no longer a candidate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/select_yvkehtivus_candidates", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "select_yvkehtivus_candidates"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "const ids = rows.map(r => String(r.id));",
+        "pm.test('Resolved sub-form does not reappear', () => pm.expect(ids).to.not.include(pm.environment.get('cron_vtf_id')));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus] update-extraordinary-inspection-date again, same key — idempotent no-op",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update-extraordinary-inspection-date", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "update-extraordinary-inspection-date"]},
+        "body": {"mode": "raw", "raw": "{\"key\":\"{{cron_vtf_id}}\",\"extraordinaryInspectionDate\":\"2024-08-15\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('Already-resolved sub-form is not overwritten again', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus] Verify final state — date set, xroad fields untouched (no clobbering)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/get", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\":\"{{cron_vtf_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('extraordinary_inspection_date is the FIRST value written, not the second no-op attempt', () => pm.expect(rows[0].extraordinaryInspectionDate).to.eql('2024-07-29'));",
+        "pm.test('enforcement_decision untouched (still null) — this job must never clobber it', () => pm.expect(rows[0].enforcementDecision).to.be.oneOf([null, '']));",
+        "pm.test('proceeding_closure_basis untouched (still null)', () => pm.expect(rows[0].proceedingClosureBasis).to.be.oneOf([null, '']));",
+        "pm.test('version still 1', () => pm.expect(rows[0].version).to.eql(1));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus] log_yvkehtivus_audit found=false — no audit row",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/log_yvkehtivus_audit", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "log_yvkehtivus_audit"]},
+        "body": {"mode": "raw", "raw": "{\"applied\":\"false\",\"key\":\"{{cron_vtf_id}}\",\"sub_form_number\":\"\",\"version\":\"\",\"inspection_date\":\"\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('No audit event written', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[yvkehtivus] log_yvkehtivus_audit found=true — audit event written",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/log_yvkehtivus_audit", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "vehicle-technical", "log_yvkehtivus_audit"]},
+        "body": {"mode": "raw", "raw": "{\"applied\":\"true\",\"key\":\"{{cron_vtf_id}}\",\"sub_form_number\":\"th-test\",\"version\":\"1\",\"inspection_date\":\"2024-07-29\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('Audit event written with an event_id', () => { pm.expect(rows.length).to.eql(1); pm.expect(rows[0].eventId || rows[0].event_id).to.exist; });"
+      ]}}]
+    },
+    {
+      "name": "[Resilience Setup] Insert another confirmed candidate for the orchestrator run",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/insert", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "labour-inspection", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"status\":\"confirmed\",\"inspectorName\":\"Newman Tester 2\",\"inspectionDate\":\"2026-01-16\",\"inspectionType\":\"cargo\",\"companyName\":\"Newman OU 2\",\"companyRegCode\":\"87654321\",\"vehicleCount\":\"\",\"totalDriversCount\":\"\",\"controlsMatrix\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"60001019906\",\"punishedPersonFirstName\":\"Admin\",\"punishedPersonLastName\":\"Super\",\"proceedingReferenceNumber\":\"1-20/26/CRON-TEST-2\",\"violations\":\"[]\",\"created_by\":\"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.environment.set('cron_resilience_lif_id', String(rows[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[Resilience] cron/etoimik-decision-sync with XTR unreachable — no crash",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{internal_api_url}}/ljvis/cron/etoimik-decision-sync", "host": ["{{internal_api_url}}"], "path": ["ljvis", "cron", "etoimik-decision-sync"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "// CI has no `xtr` service, so this call is expected to fail reaching X-Road with a plain",
+        "// 500 (Ruuter's http.post has no try/catch). A clean 200 is equally acceptable if XTR is",
+        "// ever available here — the point of this test is the health check right after, not this code.",
+        "pm.test('Does not hang / returns some HTTP response', () => pm.expect(pm.response.code).to.be.oneOf([200, 500, 502]));"
+      ]}}]
+    },
+    {
+      "name": "[Resilience] ruuter-internal is still alive after the failed run (regression: undefined-to-JSON panic used to kill the whole process)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {"raw": "{{internal_api_url}}/health", "host": ["{{internal_api_url}}"], "path": ["health"]}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('ruuter-internal /health still responds 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "[Resilience] cron/yvkehtivus-sync with XTR unreachable — no crash",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{internal_api_url}}/ljvis/cron/yvkehtivus-sync", "host": ["{{internal_api_url}}"], "path": ["ljvis", "cron", "yvkehtivus-sync"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Does not hang / returns some HTTP response', () => pm.expect(pm.response.code).to.be.oneOf([200, 500, 502]));"
+      ]}}]
+    },
+    {
+      "name": "[Resilience] ruuter-internal is still alive after the second failed run",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {"raw": "{{internal_api_url}}/health", "host": ["{{internal_api_url}}"], "path": ["health"]}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('ruuter-internal /health still responds 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    }
+  ]
+}

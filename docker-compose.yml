@@ -236,6 +236,23 @@ services:
     networks:
       - ljvisnetwork
 
+  cronmanager:
+    container_name: cronmanager
+    image: turnerrainer/cronmanager:alpha
+    environment:
+      - CRONMANAGER_CONFIG=/app/cronmanager.yaml
+    volumes:
+      - ./cronmanager.yaml:/app/cronmanager.yaml:ro
+      - ./DSL/CronManager:/app/DSL/jobs:ro
+    depends_on:
+      - ruuter-internal
+    ports:
+      - 8087:8080
+    networks:
+      - ljvisnetwork
+    cpus: "0.25"
+    mem_limit: "128M"
+
 volumes:
   tara-mock-vault:
   tim-jwt-key:
