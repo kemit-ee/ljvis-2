@@ -14,7 +14,7 @@ declaration:
 
 validate:
   switch:
-    - condition: "${incoming.body.registryCode == null && incoming.body.companyName == null}"
+    - condition: "${(incoming.body.registryCode == null || incoming.body.registryCode == '') && (incoming.body.companyName == null || incoming.body.companyName == '')}"
       next: returnMissingParam
     - condition: "${incoming.body.maxResults != null && (incoming.body.maxResults < 1 || incoming.body.maxResults > 100)}"
       next: returnInvalidParam
