@@ -1,0 +1,17 @@
+# LJVIS2-150/151/152: nightly full risk-score recalculation. Logic lives in
+# DSL/Ruuter.internal/ljvis/POST/cron/risk-score-recalc-sync.yml (candidate
+# selection, per-company recalculate call).
+#
+# Runs at 03:00, after etoimik (01:00) and yvkehtivus (hourly at :05) to
+# avoid overlap. Trigger is Quartz-cron (sec min hour day month
+# day-of-week), evaluated in the container's local time — set
+# TZ=Europe/Tallinn on the cronmanager service if it needs to be exactly
+# 03:00 Tallinn time.
+risk_score_recalc:
+  trigger: "0 0 3 * * ?"
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/risk-score-recalc-sync
+  retryCount: 2
+  retryDelay: 60000
+  ignoreFailures: true

@@ -1,0 +1,77 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Nightly full risk-score recalculation (LJVIS2-150/151/152): for every
+    distinct Estonian company that has ever had a published compound_form
+    (select_companies_for_recalc.sql), call
+    [#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate with
+    calculation_trigger='ooine_ymberarvutus'. Unlike the etoimik/yvkehtivus
+    cron jobs, this one calls back into Ruuter.internal itself (not XTR) —
+    there's no external-service resilience gap, since recalculate.yml
+    always returns a clean HTTP response for a valid 8-digit reg code
+    (200 on success, 500 only if calculate_risk_score.sql itself errors).
+    risk.company_risk_score is insert-only history by design (see
+    docs/risk-score/formula.md §5) — every run appends a new row per
+    company, it never "resolves" a candidate out of the selection query
+    the way the other three cron jobs do. No audit.audit_event is written
+    for this job; the score history table is its own audit trail.
+
+    Called by CronManager nightly (DSL/CronManager/risk-score-recalc.yaml).
+  namespace: cron
+
+fetchCompanies:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/risk_score/select_companies_for_recalc"
+    headers:
+      type: json
+    body: {}
+  result: companiesRes
+  next: assignCompanies
+
+assignCompanies:
+  assign:
+    companies: "${companiesRes.response.body || []}"
+  next: processCompanies
+
+# Flat `do:` sequence only, same constraints as the other cron orchestrators
+# (see cron/yvkehtivus-sync.yml's comment): no `next:` branching inside
+# `do:`, every `${...}` assign always returns a defined object, no `//`
+# line comments inside any `>-` folded block scalar.
+processCompanies:
+  iterate:
+    over: "${companies}"
+    as: company
+    max_items: 5000
+    do:
+      - assign:
+          company_reg_code: "${company.companyRegCode || company.company_reg_code || ''}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+          headers:
+            type: json
+          body:
+            company_reg_code: ${company_reg_code}
+            calculation_trigger: "ooine_ymberarvutus"
+        result: recalcRes
+
+      - assign:
+          outcome: >-
+            ${(function(){
+              var httpOk = recalcRes.response.status >= 200 && recalcRes.response.status < 300;
+              if (!httpOk) {
+                return { success: false, riskBandCode: '' };
+              }
+              return { success: true, riskBandCode: (recalcRes.response.body && recalcRes.response.body.riskBandCode) || '' };
+            })()}
+    collect: "${({ companyRegCode: company_reg_code, success: outcome.success })}"
+    into: results
+  next: returnSummary
+
+returnSummary:
+  status: 200
+  return: "${({ companiesChecked: companies.length, recalculated: results.filter(r => r.success).length, failures: results.filter(r => !r.success).length })}"
+  next: end

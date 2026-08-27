@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Cron Jobs (LJVIS2-12, LJVIS2-56/69, LJVIS2-135/58/23)",
     "_postman_id": "ljvis-cron-jobs-v1",
-    "description": "Functional tests for the CronManager-triggered batch endpoints: nightly user deactivation (LJVIS2-12), nightly e-toimik decision sync + auto-publish (LJVIS2-56/LJVIS2-69), and hourly yvkehtivus sync (LJVIS2-135/58/23). No auth needed — all endpoints under test are either Ruuter.internal (no session) or Resql called directly. XTR is not part of the CI stack (no certs/secrets available there), so e-toimik/yvkehtivus are tested at the Resql layer, which is where the real bugs were found (latest-snapshot-vs-filter resolution order, idempotency guards, not clobbering manually-entered fields); the X-Road round-trip was verified manually against the real ee-dev sandbox instead (see .ai/future-plans/etoimik-vaarteomenetlus-nightly.md and cronmanager-scheduled-jobs.md). The last folder regression-tests that a bad candidate never takes the whole ruuter-internal process down, using the CI stack's absence of `xtr` as the fault condition.",
+    "description": "Functional tests for the CronManager-triggered batch endpoints: nightly user deactivation (LJVIS2-12), nightly e-toimik decision sync + auto-publish (LJVIS2-56/LJVIS2-69), hourly yvkehtivus sync (LJVIS2-135/58/23), and nightly risk-score recalculation (LJVIS2-150/151/152). No auth needed — all endpoints under test are either Ruuter.internal (no session) or Resql called directly. XTR is not part of the CI stack (no certs/secrets available there), so e-toimik/yvkehtivus are tested at the Resql layer, which is where the real bugs were found (latest-snapshot-vs-filter resolution order, idempotency guards, not clobbering manually-entered fields); the X-Road round-trip was verified manually against the real ee-dev sandbox instead (see .ai/future-plans/etoimik-vaarteomenetlus-nightly.md and cronmanager-scheduled-jobs.md). The etoimik/yvkehtivus resilience folder regression-tests that a bad candidate never takes the whole ruuter-internal process down, using the CI stack's absence of `xtr` as the fault condition — the risk-score-recalc block doesn't need that folder at all, since it calls Ruuter.internal's own `risk-scores/recalculate` endpoint (no XTR dependency).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -513,6 +513,108 @@
     },
     {
       "name": "[Resilience] ruuter-internal is still alive after the second failed run",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {"raw": "{{internal_api_url}}/health", "host": ["{{internal_api_url}}"], "path": ["health"]}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('ruuter-internal /health still responds 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "[risk-score-recalc Setup] Insert a published compound_form with a fresh reg code",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/compound-form/insert", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "compound-form", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"status\":\"published\",\"controlDate\":\"2026-08-01\",\"controlTime\":\"10:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"90055501\",\"companyName\":\"Newman Risk Recalc OU\",\"companyCountryCode\":\"EE\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"Newman\",\"inspectorLastName\":\"Tester\",\"inspectorOrganisationId\":\"{{cron_org_id}}\",\"inspectorUnit\":\"Unit\",\"inspectorProfession\":\"Tester\",\"created_by\":\"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.environment.set('cron_risk_cf_id', String(rows[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[risk-score-recalc] select_companies_for_recalc — new company is a candidate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/risk_score/select_companies_for_recalc", "host": ["{{resql_ljvis_url}}"], "path": ["risk_score", "select_companies_for_recalc"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "const regs = rows.map(r => r.companyRegCode);",
+        "pm.test('New company appears as a candidate', () => pm.expect(regs).to.include('90055501'));"
+      ]}}]
+    },
+    {
+      "name": "[risk-score-recalc] POST cron/risk-score-recalc-sync — full nightly run",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{internal_api_url}}/ljvis/cron/risk-score-recalc-sync", "host": ["{{internal_api_url}}"], "path": ["ljvis", "cron", "risk-score-recalc-sync"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200 (no XTR dependency, unlike etoimik/yvkehtivus)', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json().response;",
+        "pm.test('At least our one company was checked', () => pm.expect(body.companiesChecked).to.be.at.least(1));",
+        "pm.test('No failures', () => pm.expect(body.failures).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[risk-score-recalc] Verify: our company got a saved score with calculation_trigger",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/risk_score/get_current_risk_score", "host": ["{{resql_ljvis_url}}"], "path": ["risk_score", "get_current_risk_score"]},
+        "body": {"mode": "raw", "raw": "{\"company_reg_code\":\"90055501\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "pm.test('A score row exists', () => pm.expect(rows.length).to.eql(1));",
+        "pm.test('riskBandCode is Hall (no SP forms on this synthetic company)', () => pm.expect(rows[0].riskBandCode).to.eql('Hall'));",
+        "pm.environment.set('cron_risk_first_created_at', rows[0].createdAt);"
+      ]}}]
+    },
+    {
+      "name": "[risk-score-recalc] Re-run — appends a NEW history row (insert-only, not a no-op)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{internal_api_url}}/ljvis/cron/risk-score-recalc-sync", "host": ["{{internal_api_url}}"], "path": ["ljvis", "cron", "risk-score-recalc-sync"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+      ]}}]
+    },
+    {
+      "name": "[risk-score-recalc] Verify: created_at advanced (unlike the other 3 jobs, this one is NOT a resolve-once idempotency pattern)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/risk_score/get_current_risk_score", "host": ["{{resql_ljvis_url}}"], "path": ["risk_score", "get_current_risk_score"]},
+        "body": {"mode": "raw", "raw": "{\"company_reg_code\":\"90055501\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "const rows = body.response || body;",
+        "const firstCreatedAt = pm.environment.get('cron_risk_first_created_at');",
+        "pm.test('Latest row is newer than the first run — a new history row was appended', () => pm.expect(new Date(rows[0].createdAt).getTime()).to.be.above(new Date(firstCreatedAt).getTime()));"
+      ]}}]
+    },
+    {
+      "name": "[risk-score-recalc] ruuter-internal is still alive after two runs",
       "request": {
         "method": "GET",
         "header": [],
