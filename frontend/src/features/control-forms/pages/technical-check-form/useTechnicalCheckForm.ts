@@ -134,6 +134,7 @@ export function useTechnicalCheckForm(
       extraordinaryInspectionDate: form?.extraordinaryInspectionDate ?? '',
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
+      trailerRegNr: form?.trailerRegNr ?? '',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {

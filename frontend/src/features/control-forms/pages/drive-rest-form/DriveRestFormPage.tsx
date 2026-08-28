@@ -41,7 +41,7 @@ import {
   serializeDriveRestFormValues,
   createDriveRestValidationSchema,
 } from './useDriveRestForm';
-import type { DriveRestForm, TechnicalCheckForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem } from '../../types';
+import type { DriveRestForm, TechnicalCheckForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem, Trailer } from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 import { DriveRestFormViewCard } from '../../components/DriveRestForm/DriveRestFormViewCard';
@@ -101,7 +101,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
 
   const vehicle = useSubForm<TechnicalCheckForm, TechnicalCheckFormEditCardRef>({ permPrefix: 'vehicle_technical_form' });
-  const trailer = useSubForm<TechnicalCheckForm, TechnicalCheckFormEditCardRef>({ permPrefix: 'trailer_technical_form' });
+  const trailer0 = useSubForm<TechnicalCheckForm, TechnicalCheckFormEditCardRef>({ permPrefix: 'trailer_technical_form' });
+  const trailer1 = useSubForm<TechnicalCheckForm, TechnicalCheckFormEditCardRef>({ permPrefix: 'trailer_technical_form' });
+  const trailer2 = useSubForm<TechnicalCheckForm, TechnicalCheckFormEditCardRef>({ permPrefix: 'trailer_technical_form' });
+  const trailers = [trailer0, trailer1, trailer2];
   const driver = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_driver_form' });
   const teammate = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_teammate_form' });
   const adr = useSubForm<AdrForm, AdrFormEditCardRef>({ permPrefix: 'adr_form' });
@@ -110,7 +113,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     TransportInterruptionFormEditCardRef
   >({ permPrefix: 'transport_interruption_form' });
 
-  const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const forbidden = !(
     ((entryType === 'driver' && hasPermission('sp_driver_form.read')) ||
@@ -129,7 +132,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     return tabErrors[tabId] ?? false;
   };
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailer, adr, transportInterruption, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
 
   const containerWidth = useContainerWidth(isDesktop, openTabs);
 
@@ -145,8 +148,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       .finally(() => setSnapshotLoading(false));
   }, [snapshotId, id]);
 
-  const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr' | 'tab-transport-interruption') =>
-    addTab(tabId, { driver, teammate, vehicle, trailer, adr, transportInterruption, setOpenTabs, setActiveTab });
+  const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | `tab-trailer-technical-check-${number}` | 'tab-adr' | 'tab-transport-interruption') =>
+    addTab(tabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab });
 
   // Load vehicle and trailer technical check forms once compoundFormKey is known
   useEffect(() => {
@@ -163,13 +166,15 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
     listTechnicalCheckFormsByCompoundFormKey('trailer', compoundFormKey)
       .then(async (list) => {
-        const item = Array.isArray(list) ? list[0] : null;
-        const full = item?.id ? await getTechnicalCheckForm('trailer', item.id).catch(() => null) : null;
-        trailer.setForm(full);
-        if (full) setOpenTabs((prev) => prev.includes('tab-trailer-technical-check') ? prev : [...prev, 'tab-trailer-technical-check']);
+        const items = Array.isArray(list) ? list.slice(0, 3) : [];
+        const fulls = await Promise.all(items.map((item) => item?.id ? getTechnicalCheckForm('trailer', item.id).catch(() => null) : Promise.resolve(null)));
+        fulls.forEach((full, idx) => {
+          trailers[idx].setForm(full);
+          if (full) setOpenTabs((prev) => prev.includes(`tab-trailer-technical-check-${idx}`) ? prev : [...prev, `tab-trailer-technical-check-${idx}`]);
+        });
       })
       .catch(console.error)
-      .finally(() => trailer.setLoaded(true));
+      .finally(() => trailers.forEach((t) => t.setLoaded(true)));
 
     listAdrFormsByCompoundFormKey(compoundFormKey)
       .then(async (list) => {
@@ -199,8 +204,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const item = Array.isArray(list) ? (list as TransportInterruptionFormListItem[])[0] : null;
         const full = item?.id ? await getTransportInterruptionForm(item.id).catch(() => null) : null;
         transportInterruption.setForm(full ?? null);
-        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
-        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailer.form, adr.form, full);
+        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailers.map((t) => t.form), adr.form, full);
+        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailers.map((t) => t.form), adr.form, full);
         onDone?.();
       })
       .catch(console.error);
@@ -213,27 +218,39 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         const item = Array.isArray(list) ? list[0] : null;
         const full = item?.id ? await getAdrForm(item.id).catch(() => null) : null;
         adr.setForm(full);
-        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
-        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailer.form, full, transportInterruption.form);
+        checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, trailers.map((t) => t.form), full, transportInterruption.form);
+        checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, trailers.map((t) => t.form), full, transportInterruption.form);
         onDone?.();
       })
       .catch(console.error);
   };
 
-  const refetchTechCheck = (subForm: typeof vehicle, scope: 'vehicle' | 'trailer', onDone?: () => void) => {
+  const refetchTechCheck = (subForm: typeof vehicle | typeof trailers[0], scope: 'vehicle' | 'trailer', _trailerIdx?: number, onDone?: () => void) => {
     if (!compoundFormKey) return;
-    listTechnicalCheckFormsByCompoundFormKey(scope, compoundFormKey)
-      .then(async (list) => {
-        const item = Array.isArray(list) ? list[0] : null;
-        const full = item?.id ? await getTechnicalCheckForm(scope, item.id).catch(() => null) : null;
-        subForm.setForm(full);
-        const latestVehicle = scope === 'vehicle' ? full : vehicle.form;
-        const latestTrailer = scope === 'trailer' ? full : trailer.form;
-        checkAndAutoConfirmCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
-        checkAndAutoPublishCompound(driver.form, teammate.form, latestVehicle, latestTrailer, adr.form, transportInterruption.form);
-        onDone?.();
-      })
-      .catch(console.error);
+    if (scope === 'vehicle') {
+      listTechnicalCheckFormsByCompoundFormKey('vehicle', compoundFormKey)
+        .then(async (list) => {
+          const item = Array.isArray(list) ? list[0] : null;
+          const full = item?.id ? await getTechnicalCheckForm('vehicle', item.id).catch(() => null) : null;
+          subForm.setForm(full);
+          checkAndAutoConfirmCompound(driver.form, teammate.form, full, trailers.map((t) => t.form), adr.form, transportInterruption.form);
+          checkAndAutoPublishCompound(driver.form, teammate.form, full, trailers.map((t) => t.form), adr.form, transportInterruption.form);
+          onDone?.();
+        })
+        .catch(console.error);
+    } else {
+      listTechnicalCheckFormsByCompoundFormKey('trailer', compoundFormKey)
+        .then(async (list) => {
+          const items = Array.isArray(list) ? list.slice(0, 3) : [];
+          const fulls = await Promise.all(items.map((item) => item?.id ? getTechnicalCheckForm('trailer', item.id).catch(() => null) : Promise.resolve(null)));
+          fulls.forEach((full, i) => trailers[i].setForm(full));
+          const latestTrailerForms = trailers.map((t, i) => fulls[i] ?? t.form);
+          checkAndAutoConfirmCompound(driver.form, teammate.form, vehicle.form, latestTrailerForms, adr.form, transportInterruption.form);
+          checkAndAutoPublishCompound(driver.form, teammate.form, vehicle.form, latestTrailerForms, adr.form, transportInterruption.form);
+          onDone?.();
+        })
+        .catch(console.error);
+    }
   };
 
   // Load the sibling sub-form (driver <-> teammate) once compoundFormKey is known
@@ -267,10 +284,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
-  const anyEditActive = vehicle.editActive || trailer.editActive || driver.editActive || teammate.editActive || adr.editActive || transportInterruption.editActive || compoundEditActive;
+  const anyEditActive = vehicle.editActive || trailers.some((t) => t.editActive) || driver.editActive || teammate.editActive || adr.editActive || transportInterruption.editActive || compoundEditActive;
 
   const handleCancelAllEdits = () =>
-    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailer, adr, transportInterruption });
+    cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const addFormDropdown =
     canEdit && addableTabs.length > 0 && anyEditActive ? (
@@ -343,11 +360,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const handleCompoundSaved = () => {
     setShowSavedAlert(true);
     setShowPublishedAlert(false);
+    setTabErrors((p) => ({ ...p, 'tab-compound': false }));
     const openSubForms = [
       openTabs.includes('tab-driver') ? driver.form : null,
       openTabs.includes('tab-teammate') ? teammate.form : null,
       openTabs.includes('tab-vehicle-technical-check') ? vehicle.form : null,
-      openTabs.includes('tab-trailer-technical-check') ? trailer.form : null,
+      ...trailers.filter((_, i) => openTabs.includes(`tab-trailer-technical-check-${i}`)).map((tr) => tr.form),
     ].filter(Boolean);
     const allConfirmed =
       openSubForms.length > 0 &&
@@ -394,7 +412,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     triggerCompoundSaveAsSaved();
   };
 
-  const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailer, adr, transportInterruption });
+  const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const {
     formik,
@@ -446,17 +464,18 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm, triggerConfirm: triggerConfirmCompound });
   const checkAndAutoPublishCompound = makeCheckAndAutoPublish({ compoundForm, triggerPublish: triggerPublishCompound });
 
-  const { removeConfirmTab, setRemoveConfirmTab, handleRemove, handleRemoveConfirmed } = useRemoveSubFormTab({
+  const { removeConfirmTab, handleRemove, handleRemoveTrailerFromCompound, handleRemoveConfirmed, handleRemoveCancel, removeTrailerFromCompound } = useRemoveSubFormTab({
     driver,
     teammate,
     vehicle,
-    trailer,
+    trailers,
     adr,
     transportInterruption,
     setOpenTabs,
     setActiveTab,
     checkAndAutoConfirm: checkAndAutoConfirmCompound,
     navigateAfterRemove: () => navigate(`/control-forms/compound/${compoundFormKey}`),
+    onTrailerRemoved: (index: number) => formik.setFieldValue('trailers', formik.values.trailers.filter((_: unknown, i: number) => i !== index)),
   });
 
   const canDelete =
@@ -465,11 +484,11 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       (teammate.form != null && teammate.form.status !== 'deleted') ||
       (compoundForm != null && compoundForm.status !== 'deleted') ||
       (vehicle.form != null && vehicle.form.status !== 'deleted') ||
-      (trailer.form != null && trailer.form.status !== 'deleted') ||
+      trailers.some((t) => t.form != null && t.form.status !== 'deleted') ||
       (transportInterruption.form != null && transportInterruption.form.status !== 'deleted')
     );
 
-  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailer, adr, transportInterruption, compoundForm });
+  const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailers, adr, transportInterruption, compoundForm });
 
   const handleSaveAll = createSaveAllHandler({
     activeTab,
@@ -477,6 +496,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     setValidatedTabs,
     compoundEditActive,
     onCompoundSave: () => formik.handleSubmit(),
+    onCompoundValidate: async () => { const errors = await formik.validateForm(); const hasErrors = Object.keys(errors).length > 0; setTabErrors((p) => ({ ...p, 'tab-compound': hasErrors })); setValidatedTabs((p) => { const n = new Set(p); n.add('tab-compound'); return n; }); if (hasErrors) { const dt = (v: unknown): unknown => Array.isArray(v) ? v.map(dt) : v && typeof v === 'object' ? Object.fromEntries(Object.keys(v as object).map((k) => [k, dt((v as Record<string, unknown>)[k])])) : true; void formik.setTouched(dt(formik.values) as typeof formik.touched); } return !hasErrors; },
     subForms: [
       {
         tabId: 'tab-vehicle-technical-check',
@@ -485,19 +505,19 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         fallbackSave: (draft) => {
           const d = draft as TechnicalCheckForm;
           const payload = { ...d, partsSummary: JSON.stringify(d.partsSummary ?? []), partsDefects: JSON.stringify(d.partsDefects ?? []), violations: JSON.stringify(d.violations ?? []) } as unknown as TechnicalCheckForm;
-          saveTechnicalCheckForm('vehicle', payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTechCheck(vehicle, 'vehicle', () => { vehicle.draftRef.current = null; vehicle.setDraft(null); }); handleSubformEditActive();}).catch(console.error);
+          saveTechnicalCheckForm('vehicle', payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTechCheck(vehicle, 'vehicle', undefined, () => { vehicle.draftRef.current = null; vehicle.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
         },
       },
-      {
-        tabId: 'tab-trailer-technical-check',
-        subForm: trailer as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
+      ...trailers.map((trailerHandle, idx) => ({
+        tabId: `tab-trailer-technical-check-${idx}`,
+        subForm: trailerHandle as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
         schema: createTechnicalCheckValidationSchema(t) as ReturnType<typeof createTechnicalCheckValidationSchema>,
-        fallbackSave: (draft) => {
+        fallbackSave: (draft: unknown) => {
           const d = draft as TechnicalCheckForm;
           const payload = { ...d, partsSummary: JSON.stringify(d.partsSummary ?? []), partsDefects: JSON.stringify(d.partsDefects ?? []), violations: JSON.stringify(d.violations ?? []) } as unknown as TechnicalCheckForm;
-          saveTechnicalCheckForm('trailer', payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTechCheck(trailer, 'trailer', () => { trailer.draftRef.current = null; trailer.setDraft(null); }); handleSubformEditActive();}).catch(console.error);
+          saveTechnicalCheckForm('trailer', payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchTechCheck(trailerHandle, 'trailer', idx, () => { trailerHandle.draftRef.current = null; trailerHandle.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
         },
-      },
+      })),
       {
         tabId: 'tab-driver',
         subForm: driver as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
@@ -557,8 +577,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         driver.setForm(res);
         getDriveRestFormByCompoundFormKey('teammate', compoundFormKey)
           .then((tm) => {
-            checkAndAutoConfirmCompound(res, tm, vehicle.form, trailer.form, adr.form, transportInterruption.form);
-            checkAndAutoPublishCompound(res, tm, vehicle.form, trailer.form, adr.form, transportInterruption.form);
+            checkAndAutoConfirmCompound(res, tm, vehicle.form, trailers.map((t) => t.form), adr.form, transportInterruption.form);
+            checkAndAutoPublishCompound(res, tm, vehicle.form, trailers.map((t) => t.form), adr.form, transportInterruption.form);
           })
           .catch(console.error);
         onDone?.();
@@ -573,8 +593,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         teammate.setForm(res);
         getDriveRestFormByCompoundFormKey('driver', compoundFormKey)
           .then((dr) => {
-            checkAndAutoConfirmCompound(dr, res, vehicle.form, trailer.form, adr.form, transportInterruption.form);
-            checkAndAutoPublishCompound(dr, res, vehicle.form, trailer.form, adr.form, transportInterruption.form);
+            checkAndAutoConfirmCompound(dr, res, vehicle.form, trailers.map((t) => t.form), adr.form, transportInterruption.form);
+            checkAndAutoPublishCompound(dr, res, vehicle.form, trailers.map((t) => t.form), adr.form, transportInterruption.form);
           })
           .catch(console.error);
         onDone?.();
@@ -642,9 +662,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   return (
     <div style={{ maxWidth: containerWidth }}>
       <DeleteConfirmModal
-        subForm
+        subForm={!removeTrailerFromCompound}
+        trailerSubForm={removeTrailerFromCompound}
         isOpen={removeConfirmTab !== null}
-        onClose={() => setRemoveConfirmTab(null)}
+        onClose={handleRemoveCancel}
         onDelete={handleRemoveConfirmed}
       />
       {showSavedAlert && !showConfirmedAlert && (
@@ -697,9 +718,14 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
           <Tabs.Trigger id="tab-compound">
-            {t('forms.compound.generalPart')}
+            <span style={{ position: 'relative' }}>
+              {t('forms.compound.generalPart')}
+              {hasTabErrors('tab-compound') && <StatusIndicator type="danger" position="top-right" />}
+            </span>
           </Tabs.Trigger>
           {(() => {
+            const compoundTrailersList: Trailer[] = Array.isArray(formik.values.trailers) && (formik.values.trailers as Trailer[]).length > 0 ? (formik.values.trailers as Trailer[]) : Array.isArray(compoundForm?.trailers) ? (compoundForm.trailers as Trailer[]) : typeof compoundForm?.trailers === 'string' ? JSON.parse(compoundForm.trailers) : [];
+            const compoundTrailerRegNrs = compoundTrailersList.map((tr) => tr.regNr ?? '');
             const tabSubForms: Record<
               string,
               { form: unknown; editActive: boolean }
@@ -707,24 +733,17 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               'tab-driver': driver,
               'tab-teammate': teammate,
               'tab-vehicle-technical-check': vehicle,
-              'tab-trailer-technical-check': trailer,
               'tab-adr': adr,
               'tab-transport-interruption': transportInterruption,
             };
+            trailers.forEach((tr, idx) => { tabSubForms[`tab-trailer-technical-check-${idx}`] = tr; });
             const tabsWithStatus = openTabs.filter(
               (tid) => tid !== 'tab-compound' && tabSubForms[tid]?.form != null,
             ).length;
-            return (
-              [
-                'tab-driver',
-                'tab-teammate',
-                'tab-vehicle-technical-check',
-                'tab-trailer-technical-check',
-                'tab-adr',
-                'tab-transport-interruption',
-              ] as const
-            ).map((tid) => {
-              if (!openTabs.includes(tid)) return null;
+            const staticTabs = ['tab-driver', 'tab-teammate', 'tab-vehicle-technical-check', 'tab-adr', 'tab-transport-interruption'] as const;
+            const trailerTabIds = openTabs.filter((t) => t.startsWith('tab-trailer-technical-check-'));
+            const allTabIds = [...staticTabs.filter((tid) => openTabs.includes(tid)), ...trailerTabIds];
+            return allTabIds.map((tid) => {
               const subForm = tabSubForms[tid];
               const label =
                 tid === 'tab-driver'
@@ -737,7 +756,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                         ? t('forms.adr.title')
                         : tid === 'tab-transport-interruption'
                           ? t('forms.transport_interruption.title')
-                          : t('forms.technical_check.trailerTitle');
+                          : (() => { const idx = Number(tid.replace('tab-trailer-technical-check-', '')); const regNr = compoundTrailerRegNrs[idx] || (trailers[idx]?.form as TechnicalCheckForm | null)?.trailerRegNr; return regNr ? `${t('forms.technical_check.trailerTitle')} (${regNr})` : t('forms.technical_check.trailerTitle'); })();
               return (
                 <Tabs.Trigger key={tid} id={tid}>
                   <span style={{ position: 'relative' }}>
@@ -746,13 +765,13 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                       <StatusIndicator type="danger" position="top-right" />
                     )}
                   </span>
-                  {subForm.editActive &&
+                  {subForm?.editActive &&
                     (tabsWithStatus > 1 || !subForm.form) && (
                       <ClosingButton
                         size="small"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleRemove(tid);
+                          handleRemove(tid as Parameters<typeof handleRemove>[0]);
                         }}
                       />
                     )}
@@ -808,6 +827,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               onDelete={() => {}}
               formType={FORM_TYPE.COMPOUND}
               versionsRefreshKey={compoundVersionsRefreshKey}
+              trailerFormRegNrs={trailers.map((t) => t.form?.trailerRegNr ?? null)}
+              onAddTrailerControlForm={(index) => handleAddTab(`tab-trailer-technical-check-${index}`)}
+              onEditTrailerControlForm={(index) => setActiveTab(`tab-trailer-technical-check-${index}`)}
+              onRemoveTrailer={(index) => handleRemoveTrailerFromCompound(`tab-trailer-technical-check-${index}` as Parameters<typeof handleRemove>[0])}
             />
           ) : (
             <CompoundFormViewCard
@@ -944,7 +967,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               canPublish={canPublishSubForms()}
               onPublish={() =>
                 publishTechnicalCheckForm('vehicle', form.id!).then(() =>
-                  handlePublished(() => refetchTechCheck(vehicle, 'vehicle')),
+                  handlePublished(() => refetchTechCheck(vehicle, 'vehicle', undefined)),
                 )
               }
             />
@@ -962,7 +985,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                   ...p,
                   'tab-vehicle-technical-check': false,
                 }));
-                refetchTechCheck(vehicle, 'vehicle', () => {
+                refetchTechCheck(vehicle, 'vehicle', undefined, () => {
                   vehicle.draftRef.current = null;
                   vehicle.setDraft(null);
                 });
@@ -988,61 +1011,68 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           )}
         />
 
-        <SubFormTab
-          id="tab-trailer-technical-check"
-          open={openTabs.includes('tab-trailer-technical-check')}
-          subForm={trailer}
-          renderView={(form) => (
-            <TechnicalCheckFormViewCard
-              scope="trailer"
-              form={form}
-              formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
-              canPublish={canPublishSubForms()}
-              onPublish={() =>
-                publishTechnicalCheckForm('trailer', form.id!).then(() =>
-                  handlePublished(() => refetchTechCheck(trailer, 'trailer')),
-                )
-              }
-            />
-          )}
-          renderEdit={(form, ref) => (
-            <TechnicalCheckFormEditCard
-              ref={ref}
-              scope="trailer"
-              form={trailer.draft ?? form}
-              compoundFormKey={compoundFormKey!}
-              onSaved={() => {
-                setShowSavedAlert(true);
-                window.scrollTo(0, 0);
-                setTabErrors((p) => ({
-                  ...p,
-                  'tab-trailer-technical-check': false,
-                }));
-                refetchTechCheck(trailer, 'trailer', () => {
-                  trailer.draftRef.current = null;
-                  trailer.setDraft(null);
-                });
-              }}
-              onCancel={() => {
-                trailer.setEditActive(false);
-                trailer.draftRef.current = null;
-                trailer.setDraft(null);
-              }}
-              canConfirm={canConfirm()}
-              onConfirm={() => {}}
-              formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
-              onValuesChange={(v) => {
-                const next = {
-                  ...(trailer.draftRef.current ?? form),
-                  ...v,
-                } as TechnicalCheckForm;
-                trailer.draftRef.current = next;
-                trailer.setDraft(next);
-              }}
-              initialValidate={validatedTabs.has('tab-trailer-technical-check')}
-            />
-          )}
-        />
+        {trailers.map((trailerHandle, idx) => (
+          <SubFormTab
+            key={`tab-trailer-technical-check-${idx}`}
+            id={`tab-trailer-technical-check-${idx}`}
+            open={openTabs.includes(`tab-trailer-technical-check-${idx}`)}
+            subForm={trailerHandle}
+            renderView={(form) => (
+              <TechnicalCheckFormViewCard
+                scope="trailer"
+                form={form}
+                formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
+                canPublish={canPublishSubForms()}
+                onPublish={() =>
+                  publishTechnicalCheckForm('trailer', form.id!).then(() =>
+                    handlePublished(() => refetchTechCheck(trailerHandle, 'trailer', idx)),
+                  )
+                }
+              />
+            )}
+            renderEdit={(form, ref) => (
+              <TechnicalCheckFormEditCard
+                ref={ref}
+                scope="trailer"
+                form={trailerHandle.draft ?? form}
+                compoundFormKey={compoundFormKey!}
+                trailerIndex={idx}
+                compoundTrailers={
+                  Array.isArray(formik.values.trailers) && (formik.values.trailers as Trailer[]).length > 0
+                    ? (formik.values.trailers as Trailer[])
+                    : Array.isArray(compoundForm?.trailers)
+                      ? compoundForm.trailers
+                      : typeof compoundForm?.trailers === 'string'
+                        ? JSON.parse(compoundForm.trailers)
+                        : []
+                }
+                onSaved={() => {
+                  setShowSavedAlert(true);
+                  window.scrollTo(0, 0);
+                  setTabErrors((p) => ({ ...p, [`tab-trailer-technical-check-${idx}`]: false }));
+                  refetchTechCheck(trailerHandle, 'trailer', idx, () => {
+                    trailerHandle.draftRef.current = null;
+                    trailerHandle.setDraft(null);
+                  });
+                }}
+                onCancel={() => {
+                  trailerHandle.setEditActive(false);
+                  trailerHandle.draftRef.current = null;
+                  trailerHandle.setDraft(null);
+                }}
+                canConfirm={canConfirm()}
+                onConfirm={() => {}}
+                formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
+                onValuesChange={(v) => {
+                  const next = { ...(trailerHandle.draftRef.current ?? form), ...v } as TechnicalCheckForm;
+                  trailerHandle.draftRef.current = next;
+                  trailerHandle.setDraft(next);
+                }}
+                initialValidate={validatedTabs.has(`tab-trailer-technical-check-${idx}`)}
+              />
+            )}
+          />
+        ))}
 
         <SubFormTab
           id="tab-adr"
@@ -1163,7 +1193,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                   if (driver.form) driver.setEditActive(true);
                   if (teammate.form) teammate.setEditActive(true);
                   if (vehicle.form) vehicle.setEditActive(true);
-                  if (trailer.form) trailer.setEditActive(true);
+                  trailers.forEach((tr) => { if (tr.form) tr.setEditActive(true); });
                   if (adr.form) adr.setEditActive(true);
                   if (transportInterruption.form)
                     transportInterruption.setEditActive(true);

@@ -65,6 +65,7 @@ extractCurrentFormData:
     proceeding_reference_number: "${currentFormRes.response.body[0].proceedingReferenceNumber || ''}"
     violations: "${currentFormRes.response.body[0].violations || '[]'}"
     notes: "${currentFormRes.response.body[0].notes || ''}"
+    trailer_reg_nr: "${currentFormRes.response.body[0].trailerRegNr || ''}"
   next: publishForm
 
 publishForm:
@@ -89,6 +90,7 @@ publishForm:
       proceedingReferenceNumber: ${proceeding_reference_number}
       violations: ${violations}
       notes: ${notes}
+      trailerRegNr: ${trailer_reg_nr}
       created_by: ${created_by}
   result: publishRes
   next: buildLogDescription

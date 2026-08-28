@@ -423,6 +423,8 @@
       "vehicleTitle": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
       "trailerTitle": "Haagise tehnonõuetele vastavuse kontrollvorm",
       "addNew": "Lisa uus tehnovorm",
+      "trailerDetection": "Haagise tuvastamine",
+      "trailerRegNr": "Haagise registreerimisnumber",
       "validation": {
         "required": "Kohustuslik väli",
         "notesMaxLength": "Märkuste maht on piiratud 2000 tähemärgiga",
@@ -725,6 +727,9 @@
       "roadTaxNotes": "Märkus",
       "trailer": "Haagis",
       "addTrailer": "Lisa haagis",
+      "trailerNumber": "Haagis #{{number}}",
+      "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
+      "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
       "removeTrailer": "Eemalda haagis",
       "trailerRegNr": "Registreerimismärk",
       "trailerCountry": "Riigi tunnusmärk",
@@ -1263,6 +1268,8 @@
     "download": "Laadi alla",
     "clear": "Tühista filtrid",
     "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
+    "deleteTrailerSubConfirmTitle": "Haagise eemaldamine ja alamvormi kustutamine",
+    "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada?",
     "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju."
   },
   "xroad": {

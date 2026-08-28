@@ -1,7 +1,9 @@
 import { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
-import type { TechnicalCheckVariant, TechnicalCheckForm } from '../../types';
+import type { TechnicalCheckVariant, TechnicalCheckForm, Trailer } from '../../types';
 import { useTechnicalCheckForm } from './useTechnicalCheckForm';
 import { TechnicalCheckFormFields } from './TechnicalCheckFormFields';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
+import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 interface Props {
   type: TechnicalCheckVariant;
@@ -10,6 +12,8 @@ interface Props {
   onSaved?: (id?: string) => void;
   onValuesChange?: (values: Partial<TechnicalCheckForm>) => void;
   initialValidate?: boolean;
+  compoundTrailers?: Trailer[];
+  trailerIndex?: number;
 }
 
 export interface TechnicalCheckFormCreatePageRef {
@@ -23,7 +27,7 @@ export interface TechnicalCheckFormCreatePageRef {
 }
 
 export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreatePageRef, Props>(
-  ({ type, initialData, compoundFormKey, onSaved, onValuesChange, initialValidate }, ref) => {
+  ({ type, initialData, compoundFormKey, onSaved, onValuesChange, initialValidate, compoundTrailers, trailerIndex }, ref) => {
     const {
       formik,
       parts,
@@ -79,6 +83,12 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
     }, [formik.values]);
 
     useEffect(() => {
+      if (trailerIndex !== undefined && compoundTrailers?.[trailerIndex]?.regNr && !formik.values.trailerRegNr) {
+        void formik.setFieldValue('trailerRegNr', compoundTrailers[trailerIndex].regNr);
+      }
+    }, [trailerIndex, compoundTrailers]);
+
+    useEffect(() => {
       if (initialValidate) {
         // If this tab was already validated before (e.g. via a save attempt
         // while it was inactive/unmounted), mark all fields as touched as soon
@@ -92,6 +102,8 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
         });
       }
     }, []);
+
+    const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
     return (
       <form onSubmit={formik.handleSubmit}>
@@ -110,6 +122,9 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
           canEditXroadFields={false}
           isEditLocked={false}
           xroadBlockVisible={false}
+          isDesktop={isDesktop}
+          compoundTrailers={compoundTrailers}
+          trailerIndex={trailerIndex}
         />
       </form>
     );

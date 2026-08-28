@@ -40,6 +40,8 @@ declaration:
         type: string
       - field: created_by
         type: string
+      - field: trailerRegNr
+        type: string
   response:
     fields:
       - field: id
@@ -80,6 +82,7 @@ INSERT INTO forms.trailer_technical_form (
   extraordinary_inspection_date,
   enforcement_decision,
   proceeding_closure_basis,
+  trailer_reg_nr,
   created_by
 )
 SELECT
@@ -104,6 +107,7 @@ SELECT
   latest.extraordinary_inspection_date,
   latest.enforcement_decision,
   latest.proceeding_closure_basis,
+  NULLIF(:trailerRegNr, ''),
   :created_by
 FROM latest
 RETURNING trailer_technical_form_key AS id, sub_form_number, version;
