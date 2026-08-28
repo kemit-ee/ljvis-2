@@ -133,10 +133,14 @@ Migratsioon: `DSL/Liquibase/changelog/20260827100000-initial-risk-score.sql`.
 |---|---|---|---|---|
 | 1 | `[LJVIS_RESQL]/risk_score/calculate_risk_score` | POST (ResQL) | — | Arvutab R jooksvalt, EI salvesta. |
 | 2 | `[LJVIS_RESQL]/risk_score/save_risk_score` | POST (ResQL) | — | Lisab ühe ajaloolise kirje. |
-| 3 | `ruuter-internal:8089/risk-scores/recalculate` | POST | Docker-network-only | Arvutab + salvestab. Kutsub kontrollvormi kinnitamine (fire-and-forget) ja cronmanager. |
+| 3 | `ruuter-internal:8089/risk-scores/recalculate` | POST | Docker-network-only | Arvutab + salvestab. Kutsub koondvormi avaldamine (fire-and-forget) ja cronmanager. |
 | 4 | `ruuter-internal:8089/risk-scores/current` | POST | Docker-network-only | Tagastab viimase salvestatud skoori + `riskBandErru` (ERRU jaoks). CTUD ja kodanikuotspunkti allikas. |
 | 5 | `GET /v1/admin/risk-scores/list` | GET | `risk_report.list` | Pagineeritud, filtreeritud administraatori loend. |
-| 6 | `GET /v1/citizen/risk-scores/my-company?q=<regcode>` | GET | TARA sessioon + AR esindaja kontroll | Ettevõtte esindaja vaade, ilma `riskBandErru` väljata. |
+| 6 | `GET /v1/citizen/risk-scores/my-company?q=<regcode>` | GET | TARA sessioon + AR esindaja kontroll | Ettevõtte esindaja riskiskoori vaade, ilma `riskBandErru` väljata. |
+| 7 | `GET /v1/citizen/me` | GET | TARA sessioon | Kodaniku sessiooniandmed JWT-st (ilma DB-ta). Plaanitud: #168. |
+| 8 | `GET /v1/citizen/my-companies` | GET | TARA sessioon | AR esindusõiguse päring → esindatavad ettevõtted. Plaanitud: #168. |
+| 9 | `GET /v1/citizen/risk-scores/controls?q=<regcode>` | GET | TARA sessioon + AR esindaja kontroll | Ettevõtte avaldatud kontrollide loend kodanikule. Plaanitud: #168. |
+| 10 | `GET /v1/citizen/my-protocols` | GET | TARA sessioon | Kõik avaldatud protokollid kus isik on osaline (juht/karistatu). Plaanitud: #168. |
 
 ### Ruuter.internal teekonventsioon
 
@@ -145,19 +149,16 @@ Migratsioon: `DSL/Liquibase/changelog/20260827100000-initial-risk-score.sql`.
 `POST/v1/risk-scores/...`) — sama muster nagu `xroad/provide/*` ja
 `erru/*` failidel.
 
-## 7. Kontrollvormi kinnitamine → automaatne ümberarvutus
+## 7. Kontrollvormi avaldamine → automaatne ümberarvutus
 
-`DSL/Ruuter/ljvis/POST/v1/control-forms/compound-form/edit/confirm.yml`
-kutsub pärast edukat kinnitamist "fire-and-forget" viisil
-`risk-scores/recalculate`'i (`calculation_trigger: kontrollvorm`) — ükski
-selle kutse viga ei blokeeri koondvormi kinnitamist.
+Koondvormi elutsükkel: `saved → confirmed → published`.
+`calculate_risk_score.sql` arvestab ainult `status='published'` kirjeid.
 
-**Tuntud piirang:** `confirm.yml` seab oleku `'confirmed'`, MITTE
-`'published'` — koondvormi avaldamise voog (LJVIS2-69) pole veel ehitatud.
-Seetõttu ei leia `calculate_risk_score.sql` kunagi ühtegi kvalifitseeruvat
-kontrolli reaalsete andmete pealt ja iga arvutatud skoor on `Hall`/`r=0`, kuni
-LJVIS2-69 valmib. Kood on korrektne ja hakkab õigeid skoore tootma kohe, kui
-avaldamisvoog lisandub — täiendavaid muudatusi selles moodulis pole vaja.
+`publish.yml` (`DSL/Ruuter/ljvis/POST/v1/control-forms/compound-form/edit/publish.yml`)
+kutsub pärast edukat avaldamist fire-and-forget viisil `risk-scores/recalculate`'i
+(`calculation_trigger: kontrollvorm`) — ükski selle kutse viga ei blokeeri
+vormi avaldamist. Ainult Eesti 8-kohalise registrikoodiga ettevõtjad
+käivitavad ümberarvutuse (regex `^[0-9]{8}$`); välismaised ettevõtjad jäetakse vahele.
 
 ## 8. ERRU CTUD integratsioon (LJVIS2-144, väljaspool skoopi)
 
@@ -180,6 +181,6 @@ Testfixture'id: `DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql`
 
 ## 10. Viited
 
-- Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD, väljaspool skoopi), LJVIS2-69 (avaldamisvoog, blokeerija — väljaspool skoopi), LJVIS2-137 (kodaniku TARA sessioon, osaline sõltuvus)
+- Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD, väljaspool skoopi), #168 (kodaniku töölaud — uued kodaniku endpointid)
 - Confluence: 11-1 Riskiskoori arvutamine, 11-2 Riskitasemete vaade, 10-3-3 CTUD ERRU integratsioon
 - `.ai/ljvis-tasks/LJVIS2-150/riskihindamine.md` — täielik ärianalüüs
