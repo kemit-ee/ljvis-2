@@ -205,7 +205,7 @@ export function CompoundFormEditCard({
                         formik.setFieldValue('road', '');
                         formik.setFieldValue('roadOther', '');
                         formik.setFieldValue('kilometer', '');
-                        formik.setFieldValue('road_type', ROAD.NATIONAL);
+                        formik.setFieldValue('road_type', ROAD.LOCAL);
                       }
                     }}
                     {...(formik.touched.address && formik.errors.address
