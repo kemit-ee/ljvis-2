@@ -8,14 +8,7 @@ declaration:
     ei ole lubatud. Vt docs/xtee/03-erakorraline-yv-query.md.
   namespace: xroad
 
-# Samm 1: X-Road-Client päise kontroll — kohustuslik kõigis X-tee teenustes
-validateXRoadClient:
-  switch:
-    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
-      next: returnMissingHeader
-  next: validateAlates
-
-# Samm 2a: Alguskuupäev on kohustuslik (piiramatu päring pole lubatud)
+# Samm 1: Alguskuupäev on kohustuslik (piiramatu päring pole lubatud)
 validateAlates:
   switch:
     - condition: "${incoming.body.alates == null || incoming.body.alates == ''}"
@@ -146,11 +139,6 @@ logFailure:
 returnServerError:
   status: 500
   return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
-  next: end
-
-returnMissingHeader:
-  status: 400
-  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
   next: end
 
 returnMissingAlates:

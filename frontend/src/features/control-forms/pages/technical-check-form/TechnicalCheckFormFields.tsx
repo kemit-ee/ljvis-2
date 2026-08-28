@@ -137,7 +137,7 @@ export function TechnicalCheckFormFields({
         open={modalPartCode !== null}
         onClose={() => setModalPartCode(null)}
         partCode={modalPartCode}
-        partName={modalPart ? `${modalPart.code} — ${modalPart.name}` : ''}
+        partName={modalPart ? `${modalPart.code.replace(/^[A-Z]+_/, '')} \u2014 ${modalPart.name}` : ''}
         defects={modalDefects}
         existingDefects={(values.partsDefects ?? []).filter((d) => d.partCode === modalPartCode)}
         onConfirm={(selected) => {
