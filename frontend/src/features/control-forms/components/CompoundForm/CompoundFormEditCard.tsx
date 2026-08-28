@@ -591,7 +591,7 @@ export function CompoundFormEditCard({
                       value={formik.values.vehicleCategoryOther}
                       input={{ maxLength: 100 }}
                       onChange={(v) =>
-                        formik.setFieldValue('vehicleCategoryOther', v)
+                        formik.setFieldValue('vehicleCategoryOther', v.toUpperCase())
                       }
                       required
                       {...(formik.touched.vehicleCategoryOther &&
@@ -907,7 +907,7 @@ export function CompoundFormEditCard({
                               input={{ maxLength: 100 }}
                               onChange={(v) => {
                                 const u = [...formik.values.trailers];
-                                u[index] = { ...u[index], categoryOther: v };
+                                u[index] = { ...u[index], categoryOther: v.toUpperCase() };
                                 formik.setFieldValue('trailers', u);
                               }}
                               required
