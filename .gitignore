@@ -23,6 +23,11 @@ tim-db/
 .env.*.local
 .env.tara
 
+# Local secrets override for constants.ini (real AR_USERNAME/AR_PASSWORD etc.);
+# never commit real credentials into the tracked constants.ini. See CONSTANTS_FILE
+# in .env.example.
+constants.local.ini
+
 AGENTS.md
 .actrc
 
