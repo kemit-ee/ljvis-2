@@ -8,6 +8,7 @@ import {
   TextField,
   Text,
   DateField,
+  Alert,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { ClassifierEntry } from '../../../classifiers/types';
@@ -46,6 +47,9 @@ interface TechnicalCheckFormFieldsProps {
    * canEditXroadFields which additionally requires status=confirmed. */
   isEditLocked: boolean;
   xroadBlockVisible: boolean;
+  checkError?: string | null;
+  onCheckErrorClose?: () => void;
+  validationTriggered?: boolean;
 }
 
 const RESULT_OPTIONS = [
@@ -72,6 +76,9 @@ export function TechnicalCheckFormFields({
   canEditXroadFields,
   isEditLocked,
   xroadBlockVisible,
+  checkError,
+  onCheckErrorClose,
+  validationTriggered,
 }: TechnicalCheckFormFieldsProps) {
   const { t } = useTranslation();
   const [modalPartCode, setModalPartCode] = useState<string | null>(null);
@@ -107,10 +114,21 @@ export function TechnicalCheckFormFields({
   // rejected on click by setResultType, which looked like a broken radio.
   const defectSeverities = (values.partsDefects ?? []).map((d) => d.severity);
   const autoLevel = defectSeverities.includes('EOV') ? 2 : defectSeverities.includes('OV') ? 1 : 0;
-  const optionLevel = (opt: string) => (opt === 'driving_ban' ? 2 : opt === 'ok' ? 0 : 1);
+  const optionLevel = (opt: string) =>
+    opt === 'driving_ban' ? 2 : opt === 'ok' ? 0 : 1;
 
   return (
     <div>
+      {(checkError || (validationTriggered && formik.errors.partsSummary)) && (
+        <Alert
+          type="danger"
+          size="small"
+          className="mb-1"
+          onClose={onCheckErrorClose}
+        >
+          {t('forms.technical_check.validation.checkError')}
+        </Alert>
+      )}
       <Card className="mb-1">
         <Card.Content>
           <Heading element="h3" className="mb-1">

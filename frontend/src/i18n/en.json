@@ -401,6 +401,7 @@
       "validation": {
         "required": "Required field",
         "notesMaxLength": "Notes are limited to 2000 characters",
+        "checkError": "To save, at least one vehicle part or assembly must be checked",
         "api": {
           "required": "Required field",
           "max_length_2000": "Notes are limited to 2000 characters",
