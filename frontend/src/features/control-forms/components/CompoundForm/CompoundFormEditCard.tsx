@@ -220,14 +220,18 @@ export function CompoundFormEditCard({
                   <Select
                     id="road"
                     label={t('forms.compound.road')}
-                    options={roads.map((r) => ({
-                      value: r.code,
-                      label: r.name,
-                    }))}
+                    options={[
+                      { value: '', label: '' },
+                      ...roads.map((r) => ({
+                        value: r.code,
+                        label: r.name,
+                      })),
+                    ]}
                     value={
-                      roads
-                        .map((r) => ({ value: r.code, label: r.name }))
-                        .find((o) => o.value === formik.values.road) ?? null
+                      [
+                        { value: '', label: '' },
+                        ...roads.map((r) => ({ value: r.code, label: r.name })),
+                      ].find((o) => o.value === formik.values.road) ?? null
                     }
                     onChange={(val) => {
                       const roadValue =
@@ -235,11 +239,14 @@ export function CompoundFormEditCard({
                           ? (val as { value: string }).value
                           : '';
                       formik.setFieldValue('road', roadValue);
-                      if (roadValue === OTHER.ROAD) {
-                        formik.setFieldValue('road_type', ROAD.LOCAL);
+                      if (!roadValue) {
+                        formik.setFieldValue('kilometer', '');
+                        formik.setFieldValue('roadOther', '');
                       } else if (roadValue) {
                         formik.setFieldValue('road_type', ROAD.NATIONAL);
-                        formik.setFieldValue('address', '');
+                        if (roadValue !== OTHER.ROAD) {
+                          formik.setFieldValue('address', '');
+                        }
                       }
                     }}
                     {...(formik.touched.road && formik.errors.road
