@@ -297,36 +297,12 @@ export function CompoundFormEditCard({
                       ]
                     }
                   >
-                    <Select
+                    <TextField
                       id="controlCountryCode"
                       label={t('forms.foreign_violation.control_country_code')}
-                      options={countries}
-                      value={
-                        countries.find(
-                          (o) => o.value === formik.values.controlCountryCode,
-                        ) ?? null
-                      }
-                      onChange={(val) => {
-                        const newCode =
-                          val && !Array.isArray(val)
-                            ? (val as { value: string }).value
-                            : '';
-                        formik.setFieldValue('controlCountryCode', newCode);
-                        if (newCode !== 'EE') {
-                          formik.setFieldValue('county', '');
-                          formik.setFieldValue('city', '');
-                        }
-                      }}
-                      required
-                      {...(formik.touched.controlCountryCode &&
-                      formik.errors.controlCountryCode
-                        ? {
-                            helper: {
-                              text: formik.errors.controlCountryCode as string,
-                              type: 'error' as const,
-                            },
-                          }
-                        : {})}
+                      value={t('countries.EE')}
+                      disabled
+                      onChange={() => undefined}
                     />
                     <Select
                       id="county"
