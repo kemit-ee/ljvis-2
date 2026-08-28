@@ -558,28 +558,20 @@ export function CompoundFormEditCard({
                       placeholder={t('common.dateFieldPlaceholder')}
                     />
                   </div>
-                  <Select
+                  <ChoiceGroup
                     id="vehicleCategoryCode"
                     label={t('forms.compound.vehicleCategory')}
-                    options={vehicleCategories.map((c) => ({
+                    inputType="radio"
+                    direction="row"
+                    value={formik.values.vehicleCategoryCode}
+                    onChange={(val) =>
+                      formik.setFieldValue('vehicleCategoryCode', val)
+                    }
+                    items={vehicleCategories.map((c) => ({
+                      id: `vehicleCat-${c.code}`,
                       value: c.code,
                       label: c.name,
                     }))}
-                    value={
-                      vehicleCategories
-                        .map((c) => ({ value: c.code, label: c.name }))
-                        .find(
-                          (o) => o.value === formik.values.vehicleCategoryCode,
-                        ) ?? null
-                    }
-                    onChange={(val) =>
-                      formik.setFieldValue(
-                        'vehicleCategoryCode',
-                        val && !Array.isArray(val)
-                          ? (val as { value: string }).value
-                          : '',
-                      )
-                    }
                     required
                     {...(formik.touched.vehicleCategoryCode &&
                     formik.errors.vehicleCategoryCode
@@ -872,31 +864,25 @@ export function CompoundFormEditCard({
                               placeholder={t('common.dateFieldPlaceholder')}
                             />
                           </div>
-                          <Select
+                          <ChoiceGroup
                             id={`trailerCategoryCode_${index}`}
                             label={t('forms.compound.trailerCategory')}
-                            options={trailerCategories.map((c) => ({
-                              value: c.code,
-                              label: c.name,
-                            }))}
-                            value={
-                              trailerCategories
-                                .map((c) => ({ value: c.code, label: c.name }))
-                                .find(
-                                  (o) => o.value === trailer.categoryCode,
-                                ) ?? null
-                            }
+                            inputType="radio"
+                            direction="row"
+                            value={trailer.categoryCode}
                             onChange={(val) => {
                               const u = [...formik.values.trailers];
                               u[index] = {
                                 ...u[index],
-                                categoryCode:
-                                  val && !Array.isArray(val)
-                                    ? (val as { value: string }).value
-                                    : '',
+                                categoryCode: val as string,
                               };
                               formik.setFieldValue('trailers', u);
                             }}
+                            items={trailerCategories.map((c) => ({
+                              id: `trailerCat-${index}-${c.code}`,
+                              value: c.code,
+                              label: c.name,
+                            }))}
                             required
                             {...((
                               formik.touched.trailers as TrailerTouched[]
