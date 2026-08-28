@@ -766,7 +766,7 @@
       "removeDriver": "Eemalda juht",
       "inspector": "Sõidukit kontrollinud ametiisiku andmed",
       "inspectorFirstName": "Eesnimi",
-      "inspectorLastName": "Perenimi",
+      "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuurüksus",
       "inspectorProfession": "Ametinimetus"
@@ -1001,7 +1001,7 @@
       "dataEntryDate": "Andmete sisestamise kuupäev",
       "inspectorBasicInfo": "Andmete sisestaja",
       "inspectorFirstName": "Eesnimi",
-      "inspectorLastName": "Perenimi",
+      "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus",
