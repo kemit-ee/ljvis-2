@@ -1009,7 +1009,6 @@ export function CompoundFormEditCard({
                         onChange={(v) =>
                           formik.setFieldValue('companyRegCode', v)
                         }
-                        required
                         {...(formik.touched.companyRegCode &&
                         formik.errors.companyRegCode
                           ? {
@@ -1026,7 +1025,6 @@ export function CompoundFormEditCard({
                         value={formik.values.companyName}
                         input={{ maxLength: 300 }}
                         onChange={(v) => formik.setFieldValue('companyName', v)}
-                        required
                         {...(formik.touched.companyName &&
                         formik.errors.companyName
                           ? {
@@ -1068,7 +1066,7 @@ export function CompoundFormEditCard({
                             formik.setFieldValue('companyCity', '');
                           }
                         }}
-                        required
+                        required={!!formik.values.companyName}
                         {...(formik.touched.companyCountryCode &&
                         formik.errors.companyCountryCode
                           ? {
