@@ -8,9 +8,6 @@ declaration:
     array is re-fetched after the transition so the caller always sees the up-to-date state.
     Audited on EVERY open (ncr.case.view) because the case shows the transport undertaking's and
     handler's personal data."
-  method: get
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     params:

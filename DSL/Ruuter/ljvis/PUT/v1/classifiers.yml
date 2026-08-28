@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Update classifier"
-  method: post
-  accepts: json
-  returns: json
   namespace: classifiers
   allowlist:
     body:

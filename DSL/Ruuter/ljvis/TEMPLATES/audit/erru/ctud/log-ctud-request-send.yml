@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Audit: CTUD request sent to ERRU (LJVIS2-144). Logged on every send attempt, successful or not. The description carries the request identifier, the target country, the reached status (responded or error), the target country's response code and the searched undertaking name and licence number, which makes it traceable whose undertaking data was requested. response_code is empty when the send failed. CTUD carries no personal data, so no personal code of a searched subject is logged."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

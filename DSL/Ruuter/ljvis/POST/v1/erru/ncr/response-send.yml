@@ -9,9 +9,6 @@ declaration:
     'error' and can be retried. Note the path is POST /v1/erru/ncr/response-send (not nested
     under response/) so it can be protected by the ncr.send guard at erru/ncr/.guard, distinct
     from erru/ncr/response/.guard (ncr.respond) which protects only response/save.yml."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

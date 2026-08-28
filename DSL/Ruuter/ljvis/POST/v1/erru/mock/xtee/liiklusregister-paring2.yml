@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "MOCK Estonian vehicle register lookup (X-tee Liiklusregister paring2) — dev and CI only. Stands in for the X-tee Liiklusregister service that the inbound RSI handler must call to confirm whether an inspected vehicle is registered in Estonia. Production points ERRU_RSI_LIIKLUSREGISTER_ENDPOINT at the real service via XTR. Match rule is deterministic so Newman tests can rely on it: a vehicle is Found (OK) when vehicleRegistrationNumber is 'EE-MOCK-OK' (any country) OR when vehicleRegistrationCountry is 'EE' (assume all EE-registered vehicles are in our register). vehicleRegistrationNumber 'EE-MOCK-502' triggers a 502 for transport-failure branch testing. Everything else → NotFound. The Found response returns minimal vehicle details matching the Liiklusregister response shape."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

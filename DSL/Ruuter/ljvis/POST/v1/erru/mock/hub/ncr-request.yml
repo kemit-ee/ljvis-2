@@ -8,9 +8,6 @@ declaration:
     returned here — it arrives later via the separate inbound-response endpoint, exercised
     directly by Newman. Scenario selection is by ncrTo: FI -> HTTP 502 (transport failure);
     NO -> ack Timeout; IS -> ack NotAvailable; everything else -> ack OK."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

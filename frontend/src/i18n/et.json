@@ -428,6 +428,7 @@
       "validation": {
         "required": "Kohustuslik väli",
         "notesMaxLength": "Märkuste maht on piiratud 2000 tähemärgiga",
+        "checkError": "Salvestamiseks peab olema vähemalt üks sõiduki osa või sõlm kontrollitud",
         "api": {
           "required": "Kohustuslik väli",
           "max_length_2000": "Märkuste maht on piiratud 2000 tähemärgiga",

@@ -27,9 +27,6 @@ declaration:
     and failure) to xroad.xroad_integration_log, recording person_identifier
     in plaintext ONLY for the personalCode path (never for the
     name+birthdate/foreigner path, per §7 Logimine).
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
   allowlist:
     body:

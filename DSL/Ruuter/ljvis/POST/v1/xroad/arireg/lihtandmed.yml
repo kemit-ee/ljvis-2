@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Search Ariregister company data (lihtandmed_v3) via XTR"
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
   allowlist:
     body:

@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List all audit logs"
-  method: get
-  accepts: json
-  returns: json
   namespace: logs
   allowlist:
     params:

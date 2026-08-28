@@ -7,19 +7,9 @@ declaration:
     forms.labour_inspection_form tabelisse. Idempotentne: sama kontrolli_id uuesti
     saatmine ei tekita duplikaati (INSERT ON CONFLICT DO NOTHING).
     Vt docs/xtee/05-register-job-inspection.md.
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
 
-# Samm 1: X-Road-Client päise kontroll
-validateXRoadClient:
-  switch:
-    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
-      next: returnMissingHeader
-  next: validateKontrollija
-
-# Samm 2: Valideeri kontrollija — WSDL väli 'kontrollija'
+# Samm 1: Valideeri kontrollija — WSDL väli 'kontrollija'
 validateKontrollija:
   switch:
     - condition: "${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}"
@@ -160,11 +150,6 @@ logFailure:
 returnServerError:
   status: 500
   return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
-  next: end
-
-returnMissingHeader:
-  status: 400
-  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
   next: end
 
 returnMissingKontrollija:

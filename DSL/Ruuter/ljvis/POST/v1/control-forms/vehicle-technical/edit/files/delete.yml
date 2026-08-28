@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Delete a file attachment for a vehicle technical check form"
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List all roads"
-  method: get
-  accepts: json
-  returns: json
   namespace: roads
 
 getRoads:

@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List all classifiers"
-  method: get
-  accepts: json
-  returns: json
   namespace: classifiers
   allowlist:
     params:

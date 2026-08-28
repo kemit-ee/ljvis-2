@@ -32,9 +32,6 @@ declaration:
 
     Validation: envelope fields are checked here. The CGR 7A/7B choice rule (chk_cgr_search_
     choice) is enforced by the DB constraint — a single source of truth, no drift possible.
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

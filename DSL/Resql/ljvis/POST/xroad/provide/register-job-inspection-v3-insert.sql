@@ -2,10 +2,10 @@
 declaration:
   version: 0.1
   description: >-
-    X-tee RegisterJobInspection_v2: INSERT INTO forms.labour_inspection_form.
+    X-tee RegisterJobInspection_v3: INSERT INTO forms.labour_inspection_form.
     Uuem leping — lisaks v1 väljadele: sõiduki andmed controls_matrix JSONB-s,
     juhi isikukood ja nimi, menetluse liik.
-    Idempotentsuse võti: external_inspection_id = 'v2-' || kontrolli_id.
+    Idempotentsuse võti: external_inspection_id = 'v3-' || kontrolli_id.
     ON CONFLICT DO NOTHING: korduspäring sama id-ga ei tekita duplikaati.
   method: post
   accepts: json
@@ -55,12 +55,12 @@ declaration:
         type: boolean
 */
 
--- Idempotentsuse kontroll: 'v2-' prefiksiga external_inspection_id eristab v1 kirjetest
--- Sama v2 kontrolli_id kordussaatmine tagastab olemasoleva rea (skipped=true)
+-- Idempotentsuse kontroll: 'v3-' prefiksiga external_inspection_id eristab v1 kirjetest
+-- Sama v3 kontrolli_id kordussaatmine tagastab olemasoleva rea (skipped=true)
 WITH existing AS (
   SELECT labour_inspection_form_key, form_number, 1 AS version
   FROM forms.labour_inspection_form
-  WHERE external_inspection_id = :externalInspectionId   -- sisaldab juba 'v2-' prefiksit
+  WHERE external_inspection_id = :externalInspectionId   -- sisaldab juba 'v3-' prefiksit
   ORDER BY created_at DESC
   LIMIT 1
 ),
@@ -77,14 +77,14 @@ ins AS (
     company_name,
     company_reg_code,
     vehicle_count,
-    controls_matrix,       -- v2 lisaväljad: v2_soiduki_reg_nr, v2_soiduki_vin, v2_menetluse_liik
+    controls_matrix,       -- v3 lisaväljad: v2_soiduki_reg_nr, v2_soiduki_vin, v2_menetluse_liik
     prescription_composed,
     violations,
-    external_inspection_id,         -- 'v2-' + kontrolli_id
-    punished_person_id_code,        -- v2 lisandus: juhi isikukood
-    punished_person_first_name,     -- v2 lisandus: juhi eesnimi
-    punished_person_last_name,      -- v2 lisandus: juhi perekonnanimi
-    proceeding_reference_number,    -- v2: menetluse number
+    external_inspection_id,         -- 'v3-' + kontrolli_id
+    punished_person_id_code,        -- v3 lisandus: juhi isikukood
+    punished_person_first_name,     -- v3 lisandus: juhi eesnimi
+    punished_person_last_name,      -- v3 lisandus: juhi perekonnanimi
+    proceeding_reference_number,    -- v3: menetluse number
     created_by
   )
   SELECT
@@ -98,7 +98,7 @@ ins AS (
     :companyName,
     :companyRegCode,
     NULLIF(:vehicleCount, '')::INTEGER,
-    -- controls_matrix sisaldab nii v1 kontrollimised-andmeid kui v2 sõiduki lisaandmeid
+    -- controls_matrix sisaldab nii v1 kontrollimised-andmeid kui v3 sõiduki lisaandmeid
     COALESCE(NULLIF(:controlsMatrix, ''), '[]')::JSONB,
     CASE WHEN :prescriptionComposed IN ('true', '1', 'yes') THEN true ELSE false END,
     COALESCE(NULLIF(:violations, ''), '[]')::JSONB,

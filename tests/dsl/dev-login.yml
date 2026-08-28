@@ -2,9 +2,6 @@ declaration:
 
   version: "0.1"
   description: "TEST ONLY — Generate a TIM-signed JWT by personalCode. Mounted via docker-compose only; NOT baked into the Docker image; NOT deployed to production Helm."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Create or update a foreign violation form — single unified save endpoint, branches internally on presence of id. Confirmed forms can only be re-saved by a user with control_form.edit_locked."
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:
