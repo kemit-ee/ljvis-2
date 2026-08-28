@@ -73,7 +73,12 @@ export function useTechnicalCheckForm(
   const parts: ClassifierEntry[] = useMemo(() => {
     const level1 = allParts
       .filter((p) => p.parentKey === null)
-      .sort((a, b) => a.code.localeCompare(b.code));
+      .sort((a, b) => {
+        const numA = parseInt(a.code.replace(/^\D+/, ''), 10);
+        const numB = parseInt(b.code.replace(/^\D+/, ''), 10);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.code.localeCompare(b.code);
+      });
     return variant === 'trailer'
       ? level1.filter((p) => !TRAILER_EXCLUDED_PARTS.includes(p.code))
       : level1;
