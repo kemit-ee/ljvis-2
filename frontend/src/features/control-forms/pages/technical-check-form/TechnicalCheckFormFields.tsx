@@ -12,6 +12,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { ClassifierEntry } from '../../../classifiers/types';
+import type { Trailer } from '../../types';
 import type {
   TechnicalCheckForm,
   TechnicalCheckVariant,
@@ -47,6 +48,11 @@ interface TechnicalCheckFormFieldsProps {
    * canEditXroadFields which additionally requires status=confirmed. */
   isEditLocked: boolean;
   xroadBlockVisible: boolean;
+  isDesktop: boolean;
+  /** Trailers from the parent compound form — used to populate the trailer reg-nr selector. */
+  compoundTrailers?: Trailer[];
+  /** Index of this trailer's tab within compoundTrailers — drives the live reg-nr display. */
+  trailerIndex?: number;
   checkError?: string | null;
   onCheckErrorClose?: () => void;
   validationTriggered?: boolean;
@@ -76,6 +82,9 @@ export function TechnicalCheckFormFields({
   canEditXroadFields,
   isEditLocked,
   xroadBlockVisible,
+  isDesktop,
+  compoundTrailers,
+  trailerIndex,
   checkError,
   onCheckErrorClose,
   validationTriggered,
@@ -129,6 +138,34 @@ export function TechnicalCheckFormFields({
           {t('forms.technical_check.validation.checkError')}
         </Alert>
       )}
+
+      {variant === 'trailer' && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.technical_check.trailerDetection')}
+            </Heading>
+            <div
+              className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}
+            >
+              <TextField
+                id="trailerRegNr"
+                label={t('forms.technical_check.trailerRegNr')}
+                value={
+                  (trailerIndex !== undefined
+                    ? compoundTrailers?.[trailerIndex]?.regNr
+                    : undefined)
+                  ?? values.trailerRegNr
+                  ?? ''
+                }
+                disabled
+                onChange={() => undefined}
+              />
+            </div>
+          </Card.Content>
+        </Card>
+      )}
+
       <Card className="mb-1">
         <Card.Content>
           <Heading element="h3" className="mb-1">
@@ -157,7 +194,9 @@ export function TechnicalCheckFormFields({
         partCode={modalPartCode}
         partName={modalPart ? `${modalPart.code.replace(/^[A-Z]+_/, '')} \u2014 ${modalPart.name}` : ''}
         defects={modalDefects}
-        existingDefects={(values.partsDefects ?? []).filter((d) => d.partCode === modalPartCode)}
+        existingDefects={(values.partsDefects ?? []).filter(
+          (d) => d.partCode === modalPartCode,
+        )}
         onConfirm={(selected) => {
           if (modalPartCode) applyPartDefects(modalPartCode, selected);
           setModalPartCode(null);
@@ -211,7 +250,9 @@ export function TechnicalCheckFormFields({
                 {
                   id: 'resultTransportInterruption-item',
                   value: 'true',
-                  label: t('forms.technical_check.result.transportInterruption'),
+                  label: t(
+                    'forms.technical_check.result.transportInterruption',
+                  ),
                   disabled: !canEdit,
                 },
               ]}
@@ -220,35 +261,73 @@ export function TechnicalCheckFormFields({
 
           {values.resultType === 'extraordinary_inspection_ta' && (
             <div className="mb-1">
-              <Text modifiers="bold">{t('forms.technical_check.result.taFieldsTitle')}</Text>
+              <Text modifiers="bold">
+                {t('forms.technical_check.result.taFieldsTitle')}
+              </Text>
               <ChoiceGroup
                 id="taFields"
                 name="taFields"
                 label={t('forms.technical_check.result.taFieldsTitle')}
                 hideLabel
                 inputType="checkbox"
-                value={[
-                  values.eraYvMntRegnr && 'regnr',
-                  values.eraYvMntVintin && 'vintin',
-                  values.eraYvMntAxles && 'axles',
-                  values.eraYvMntPlaces && 'places',
-                  values.eraYvMntRebuilt && 'rebuilt',
-                ].filter(Boolean) as string[]}
+                value={
+                  [
+                    values.eraYvMntRegnr && 'regnr',
+                    values.eraYvMntVintin && 'vintin',
+                    values.eraYvMntAxles && 'axles',
+                    values.eraYvMntPlaces && 'places',
+                    values.eraYvMntRebuilt && 'rebuilt',
+                  ].filter(Boolean) as string[]
+                }
                 onChange={(val) => {
                   if (!canEdit) return;
                   const arr = Array.isArray(val) ? val : [];
                   formik.setFieldValue('eraYvMntRegnr', arr.includes('regnr'));
-                  formik.setFieldValue('eraYvMntVintin', arr.includes('vintin'));
+                  formik.setFieldValue(
+                    'eraYvMntVintin',
+                    arr.includes('vintin'),
+                  );
                   formik.setFieldValue('eraYvMntAxles', arr.includes('axles'));
-                  formik.setFieldValue('eraYvMntPlaces', arr.includes('places'));
-                  formik.setFieldValue('eraYvMntRebuilt', arr.includes('rebuilt'));
+                  formik.setFieldValue(
+                    'eraYvMntPlaces',
+                    arr.includes('places'),
+                  );
+                  formik.setFieldValue(
+                    'eraYvMntRebuilt',
+                    arr.includes('rebuilt'),
+                  );
                 }}
                 items={[
-                  { id: 'ta-regnr', value: 'regnr', label: t('forms.technical_check.result.taRegnr'), disabled: !canEdit },
-                  { id: 'ta-vintin', value: 'vintin', label: t('forms.technical_check.result.taVintin'), disabled: !canEdit },
-                  { id: 'ta-axles', value: 'axles', label: t('forms.technical_check.result.taAxles'), disabled: !canEdit },
-                  { id: 'ta-places', value: 'places', label: t('forms.technical_check.result.taPlaces'), disabled: !canEdit },
-                  { id: 'ta-rebuilt', value: 'rebuilt', label: t('forms.technical_check.result.taRebuilt'), disabled: !canEdit },
+                  {
+                    id: 'ta-regnr',
+                    value: 'regnr',
+                    label: t('forms.technical_check.result.taRegnr'),
+                    disabled: !canEdit,
+                  },
+                  {
+                    id: 'ta-vintin',
+                    value: 'vintin',
+                    label: t('forms.technical_check.result.taVintin'),
+                    disabled: !canEdit,
+                  },
+                  {
+                    id: 'ta-axles',
+                    value: 'axles',
+                    label: t('forms.technical_check.result.taAxles'),
+                    disabled: !canEdit,
+                  },
+                  {
+                    id: 'ta-places',
+                    value: 'places',
+                    label: t('forms.technical_check.result.taPlaces'),
+                    disabled: !canEdit,
+                  },
+                  {
+                    id: 'ta-rebuilt',
+                    value: 'rebuilt',
+                    label: t('forms.technical_check.result.taRebuilt'),
+                    disabled: !canEdit,
+                  },
                 ]}
               />
             </div>
@@ -263,25 +342,34 @@ export function TechnicalCheckFormFields({
                 inputType="radio"
                 direction="row"
                 value={values.proceedingType ?? ''}
-                onChange={(val) => canEdit && formik.setFieldValue('proceedingType', val)}
+                onChange={(val) =>
+                  canEdit && formik.setFieldValue('proceedingType', val)
+                }
                 items={PROCEEDING_TYPES.map((pt) => ({
                   id: `proceedingType-${pt}`,
                   value: pt,
-                  label: t(`forms.technical_check.result.proceedingTypes.${pt}`),
+                  label: t(
+                    `forms.technical_check.result.proceedingTypes.${pt}`,
+                  ),
                   disabled: !canEdit,
                 }))}
               />
               {values.proceedingType && (
                 <TextField
                   id="proceedingReferenceNumber"
-                  label={t('forms.technical_check.result.proceedingReferenceNumber')}
+                  label={t(
+                    'forms.technical_check.result.proceedingReferenceNumber',
+                  )}
                   value={values.proceedingReferenceNumber ?? ''}
-                  onChange={(v) => formik.setFieldValue('proceedingReferenceNumber', v)}
+                  onChange={(v) =>
+                    formik.setFieldValue('proceedingReferenceNumber', v)
+                  }
                   disabled={!canEdit}
                   helper={
                     formik.errors.proceedingReferenceNumber
                       ? {
-                          text: formik.errors.proceedingReferenceNumber as string,
+                          text: formik.errors
+                            .proceedingReferenceNumber as string,
                           type: 'error',
                         }
                       : undefined
@@ -340,7 +428,9 @@ export function TechnicalCheckFormFields({
                       const arr = Array.isArray(val) ? val : [];
                       items.forEach((i) => {
                         const shouldBeChecked = arr.includes(i.code);
-                        const isChecked = (values.violations ?? []).includes(i.code);
+                        const isChecked = (values.violations ?? []).includes(
+                          i.code,
+                        );
                         if (shouldBeChecked !== isChecked) {
                           toggleViolation(i.code, shouldBeChecked);
                         }
@@ -371,7 +461,11 @@ export function TechnicalCheckFormFields({
             <Heading element="h3" className="mb-1">
               {t('forms.shared.files.label')}
             </Heading>
-            <FileUploadBlock formPath={formPath} formNumber={formNumber} disabled={!canEdit} />
+            <FileUploadBlock
+              formPath={formPath}
+              formNumber={formNumber}
+              disabled={!canEdit}
+            />
           </Card.Content>
         </Card>
       )}
@@ -384,13 +478,20 @@ export function TechnicalCheckFormFields({
             </Heading>
             <DateField
               id="extraordinaryInspectionDate"
-              label={t('forms.technical_check.xroad.extraordinaryInspectionDate')}
+              label={t(
+                'forms.technical_check.xroad.extraordinaryInspectionDate',
+              )}
               selected={
                 values.extraordinaryInspectionDate
                   ? new Date(values.extraordinaryInspectionDate)
                   : undefined
               }
-              onSelect={(v) => formik.setFieldValue('extraordinaryInspectionDate', toIsoDate(v as Date | undefined))}
+              onSelect={(v) =>
+                formik.setFieldValue(
+                  'extraordinaryInspectionDate',
+                  toIsoDate(v as Date | undefined),
+                )
+              }
               readOnly={!canEditXroadFields}
             />
             <TextArea
@@ -404,7 +505,9 @@ export function TechnicalCheckFormFields({
               id="proceedingClosureBasis"
               label={t('forms.technical_check.xroad.proceedingClosureBasis')}
               value={values.proceedingClosureBasis ?? ''}
-              onChange={(v) => formik.setFieldValue('proceedingClosureBasis', v)}
+              onChange={(v) =>
+                formik.setFieldValue('proceedingClosureBasis', v)
+              }
               disabled={!canEditXroadFields}
             />
           </Card.Content>

@@ -21,6 +21,7 @@ import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import React from 'react';
 
 interface CompoundFormValues {
   id: string;
@@ -132,6 +133,10 @@ interface CompoundFormEditCardProps {
   onDelete: () => void;
   formType: string;
   versionsRefreshKey?: number;
+  trailerFormRegNrs?: (string | null)[];
+  onAddTrailerControlForm?: (index: number) => void;
+  onEditTrailerControlForm?: (index: number) => void;
+  onRemoveTrailer?: (index: number) => void;
 }
 
 export function CompoundFormEditCard({
@@ -163,6 +168,10 @@ export function CompoundFormEditCard({
   handleMtrSearch,
   formType,
   versionsRefreshKey,
+  trailerFormRegNrs,
+  onAddTrailerControlForm,
+  onEditTrailerControlForm,
+  onRemoveTrailer,
 }: CompoundFormEditCardProps) {
   const { t } = useTranslation();
 
@@ -733,6 +742,11 @@ export function CompoundFormEditCard({
                             </Alert>
                           </div>
                         )}
+                        <Heading element="h3" className="mb-1">
+                          {t('forms.compound.trailerNumber', {
+                            number: index + 1,
+                          })}
+                        </Heading>
                         <div
                           className={gridClass}
                           style={{ alignItems: 'start' }}
@@ -967,20 +981,55 @@ export function CompoundFormEditCard({
                               display: 'flex',
                               justifyContent: 'flex-end',
                               alignItems: 'flex-end',
+                              gap: '0.5rem',
                             }}
                             className={styles['full-span']}
                           >
+                            {(onAddTrailerControlForm ||
+                              onEditTrailerControlForm) &&
+                              (() => {
+                                const trailerRegNrMatches =
+                                  trailerFormRegNrs?.some(
+                                    (r) => r && r === trailer.regNr,
+                                  );
+                                return trailerRegNrMatches ? (
+                                  <Button
+                                    type="button"
+                                    visualType="secondary"
+                                    onClick={() =>
+                                      onEditTrailerControlForm?.(index)
+                                    }
+                                  >
+                                    {t('forms.compound.editTrailerControlForm')}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    type="button"
+                                    visualType="secondary"
+                                    disabled={!trailer.regNr}
+                                    onClick={() =>
+                                      onAddTrailerControlForm?.(index)
+                                    }
+                                  >
+                                    {t('forms.compound.addTrailerControlForm')}
+                                  </Button>
+                                );
+                              })()}
                             <Button
                               type="button"
                               visualType="secondary"
-                              onClick={() =>
-                                formik.setFieldValue(
-                                  'trailers',
-                                  formik.values.trailers.filter(
-                                    (_: Trailer, i: number) => i !== index,
-                                  ),
-                                )
-                              }
+                              onClick={() => {
+                                if (onRemoveTrailer) {
+                                  onRemoveTrailer(index);
+                                } else {
+                                  formik.setFieldValue(
+                                    'trailers',
+                                    formik.values.trailers.filter(
+                                      (_: Trailer, i: number) => i !== index,
+                                    ),
+                                  );
+                                }
+                              }}
                             >
                               {t('forms.compound.removeTrailer')}
                             </Button>
