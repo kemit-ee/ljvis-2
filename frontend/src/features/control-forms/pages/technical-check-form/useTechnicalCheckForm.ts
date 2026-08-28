@@ -50,6 +50,17 @@ export function createTechnicalCheckValidationSchema(
       otherwise: (schema) => schema.optional(),
     }),
     notes: Yup.string().max(2000, t('forms.technical_check.validation.notesMaxLength')),
+    partsSummary: Yup.array().test(
+      'at-least-one-checked',
+      t('forms.technical_check.validation.checkError'),
+      function (value) {
+        const resultType: string = (this.parent as { resultType?: string }).resultType ?? 'ok';
+        if (resultType !== 'ok') return true;
+        return (value ?? []).some(
+          (p: { status: string }) => p.status === 'checked' || p.status === 'non_compliant',
+        );
+      },
+    ),
   });
 }
 
@@ -340,6 +351,7 @@ export function useTechnicalCheckForm(
     triggerConfirm,
     triggerPublish,
     formError,
+    setFormError,
     compoundFormKeyOverride,
   };
 }
