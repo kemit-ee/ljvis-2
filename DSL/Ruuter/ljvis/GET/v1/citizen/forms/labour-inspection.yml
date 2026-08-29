@@ -1,0 +1,154 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing read-only single labour_inspection_form detail. Guarded by
+    GET/v1/citizen/.guard (templates/citizen-authority) — any valid citizen
+    session can call this, but the row is only returned when it actually
+    belongs to that session: company scope requires row.company_reg_code ==
+    activeRegistryCode, citizen-self scope requires row.punished_person_id_code
+    == the session's own personalCode. Citizen-visible status is 'published'
+    only (same threshold as citizen/forms/search.sql). Reuses the officer
+    resql (control-forms/labour-inspection/get.sql) and DMapper template
+    (map_labour_inspection_form) so the response shape matches
+    frontend/src/features/control-forms/types.ts's LabourInspectionForm
+    exactly — the same type the officer detail page already renders
+    read-only via LabourInspectionFormFields.
+
+    GDPR: in company scope, punishedPersonIdCode belongs to a third party
+    (the sanctioned individual, e.g. an employee) relative to whoever is
+    representing the company — partially masked (last 2 digits only) before
+    returning, since the company needs to know WHO was sanctioned (name kept
+    as-is, already visible in the officer search view for the same reason)
+    but not their full national ID. citizen-self scope is the person's own
+    data — never masked. Conservative default pending product/legal review.
+  namespace: citizen
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    params:
+      - field: q
+        type: string
+        description: "Labour inspection form ID"
+
+getSessionClaims:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkSession
+
+checkSession:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractClaims
+
+extractClaims:
+  assign:
+    personal_code: "${authority.personalCode}"
+    active_role: "${authority.activeRole}"
+    active_registry_code: "${authority.activeRegistryCode ?? ''}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
+    headers:
+      type: json
+    body:
+      id: "${incoming.params.q}"
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: "${res.response.body.length != 1}"
+      next: returnNotFound
+  next: checkVisibleAndOwned
+
+checkVisibleAndOwned:
+  assign:
+    row: "${res.response.body[0]}"
+  next: checkOwnership
+
+checkOwnership:
+  switch:
+    - condition: "${row.status !== 'published'}"
+      next: returnNotFound
+    - condition: "${active_role === 'company' && row.companyRegCode === active_registry_code}"
+      next: mapResponse
+    - condition: "${active_role === 'citizen-self' && !!row.punishedPersonIdCode && row.punishedPersonIdCode === personal_code}"
+      next: mapResponse
+  next: returnForbidden
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: applyGdprMasking
+
+applyGdprMasking:
+  assign:
+    masked_form: >-
+      ${(function(){
+        var f = mapped.response.body;
+        if (active_role !== 'company' || !f.punishedPersonIdCode) return f;
+        var code = String(f.punishedPersonIdCode);
+        var masked = code.length > 2 ? ('*'.repeat(code.length - 2) + code.slice(-2)) : code;
+        return Object.assign({}, f, { punishedPersonIdCode: masked });
+      })()}
+  next: checkShouldLog
+
+checkShouldLog:
+  switch:
+    - condition: "${active_role === 'company'}"
+      next: logAuditEvent
+  next: returnSuccess
+
+# Audit third-party PII access: a company representative viewing this form
+# sees the sanctioned individual's data. citizen-self access to one's own
+# record isn't logged (same convention officer detail endpoints use —
+# skipping the audit call when actor_personal_code === created_by).
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "citizen.control_form.labour_inspection.view"
+    event_category: "control_form"
+    description: "Esindaja vaatas töökontrolli vormi ${row.formNumber}"
+    log_content: "${JSON.stringify({formKey: row.id, companyRegCode: active_registry_code})}"
+    actor_name: ${personal_code}
+    actor_personal_code: ${personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${masked_form}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "${({error: 'NOT_FOUND', message: 'Form not found'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'FORBIDDEN', message: 'This form does not belong to your active representation'})}"
+  next: end
+
+returnUnauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

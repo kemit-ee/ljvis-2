@@ -45,6 +45,11 @@ import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-re
 import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
 import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
 import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
+import { CompanyFormsListPage } from './features/citizen/pages/CompanyFormsListPage/CompanyFormsListPage';
+import { CitizenLabourInspectionDetailPage } from './features/citizen/pages/CitizenLabourInspectionDetailPage/CitizenLabourInspectionDetailPage';
+import { CitizenCompoundDetailPage } from './features/citizen/pages/CitizenCompoundDetailPage/CitizenCompoundDetailPage';
+import { CitizenForeignViolationDetailPage } from './features/citizen/pages/CitizenForeignViolationDetailPage/CitizenForeignViolationDetailPage';
+import { CitizenGoodReputeDetailPage } from './features/citizen/pages/CitizenGoodReputeDetailPage/CitizenGoodReputeDetailPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -64,11 +69,45 @@ function AppRoutes() {
     return <LoginPage />;
   }
 
+  // Citizen sessions (citizen-self / company) have no permissions and get
+  // their own read-only "Minu ettevõte" landing instead of the officer
+  // desktop — officer routes below are still guarded server-side too
+  // (POST/.guard's check-user-authority), this is UX-only, not the security
+  // boundary.
+  const isCitizen = user.activeRole !== 'officer';
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<DesktopPage />} />
+          {isCitizen ? (
+            <>
+              <Route path="/" element={<CompanyFormsListPage />} />
+              <Route
+                path="/minu-ettevotte"
+                element={<CompanyFormsListPage />}
+              />
+              <Route
+                path="/minu-ettevotte/labour-inspection/:id"
+                element={<CitizenLabourInspectionDetailPage />}
+              />
+              <Route
+                path="/minu-ettevotte/compound/:id"
+                element={<CitizenCompoundDetailPage />}
+              />
+              <Route
+                path="/minu-ettevotte/foreign-violation/:id"
+                element={<CitizenForeignViolationDetailPage />}
+              />
+              <Route
+                path="/minu-ettevotte/good-repute/:id"
+                element={<CitizenGoodReputeDetailPage />}
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          ) : (
+            <>
+              <Route path="/" element={<DesktopPage />} />
           <Route path="/search" element={<FormSearchPage />} />
           <Route path="/users" element={<UserListPage />} />
           <Route path="/users/new" element={<UserCreatePage />} />
@@ -218,7 +257,9 @@ function AppRoutes() {
             path="/control-forms/good-repute/:id/:snapshotId"
             element={<GoodReputeFormPage />}
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          )}
         </Route>
       </Routes>
     </Suspense>

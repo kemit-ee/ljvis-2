@@ -1,0 +1,28 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing equivalent of GET/v1/classifier-values.yml — same resql,
+    same shape. Classifier values (codes/labels used to render form fields,
+    e.g. TRANSPORT_TYPE/DRIVING_VIOLATION) are non-sensitive read-only
+    reference data; a separate citizen route exists only because
+    /v1/classifier-values.yml lives directly under GET/v1/ alongside many
+    officer-only siblings, so its guard (GET/v1/.guard) can't be scoped to
+    just this one file without moving it (which would change its URL).
+    Guarded by GET/v1/citizen/.guard (templates/citizen-authority) — reuses
+    the existing override_ancestors set up for the citizen namespace.
+  namespace: citizen
+
+getClassifierValues:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/list_classifier_value_data"
+    headers:
+      type: json
+    body: {}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

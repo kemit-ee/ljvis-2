@@ -1,0 +1,101 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing read-only single good_repute_form (hea maine vorm) detail.
+    Guarded by GET/v1/citizen/.guard (templates/citizen-authority).
+    citizen-self scope ONLY — ownership requires row.personalCode == the
+    session's own personalCode. Company scope is not supported and always
+    returns 403: forms.good_repute_form has NO company_reg_code column at
+    all (it records the transport manager personally, not the undertaking —
+    see DSL/Liquibase/.../initial-good-repute-form.sql), so there is no data
+    to authorize a company representative against. Citizen-visible status is
+    'confirmed', NOT 'published' — good_repute_form's lifecycle
+    (chk_grf_status) never reaches 'published', 'confirmed' is its terminal
+    state (same threshold as citizen/forms/search.sql already uses for this
+    type). Reuses the officer resql (control-forms/good-repute/get.sql); no
+    DMapper template exists for this type (see GET/v1/control-forms/
+    good-repute.yml, which also returns the raw resql row unmapped).
+
+    GDPR: no masking — this is exclusively the citizen's own record in
+    citizen-self scope (company scope isn't reachable at all), so there's no
+    third party whose data would need masking here.
+  namespace: citizen
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    params:
+      - field: q
+        type: string
+        description: "Good repute form key"
+
+getSessionClaims:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkSession
+
+checkSession:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractClaims
+
+extractClaims:
+  assign:
+    personal_code: "${authority.personalCode}"
+    active_role: "${authority.activeRole}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
+    headers:
+      type: json
+    body:
+      id: "${incoming.params.q}"
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: "${res.response.body == null || res.response.body.length !== 1}"
+      next: returnNotFound
+  next: checkOwnership
+
+checkOwnership:
+  assign:
+    row: "${res.response.body[0]}"
+  next: checkOwnershipSwitch
+
+checkOwnershipSwitch:
+  switch:
+    - condition: "${row.status !== 'confirmed'}"
+      next: returnNotFound
+    - condition: "${active_role === 'citizen-self' && !!row.personalCode && row.personalCode === personal_code}"
+      next: returnSuccess
+  next: returnForbidden
+
+returnSuccess:
+  return: ${row}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "${({error: 'NOT_FOUND', message: 'Form not found'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'FORBIDDEN', message: 'This form does not belong to your active representation'})}"
+  next: end
+
+returnUnauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

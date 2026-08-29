@@ -1,0 +1,129 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing read-only form listing (control-forms + foreign_violation +
+    labour_inspection + good_repute, via forms.form_search — LJVIS2-9).
+    Guarded by POST/v1/citizen/.guard (templates/citizen-authority). Scope
+    depends on the session's activeRole claim — never trusted from the
+    request body: 'company' lists the active company's forms
+    (activeRegistryCode), 'citizen-self' lists forms where the session's own
+    personalCode appears as driver/punished person/good-repute subject.
+    'officer' is rejected (this endpoint is citizen-only; officers use
+    control-forms/search).
+  namespace: citizen
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    body:
+      - field: page
+        type: number
+        description: "Page number (1-based)"
+      - field: page_size
+        type: number
+        description: "Rows per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction, e.g. 'main_date desc'"
+      - field: form_type
+        type: string
+        description: "Filter by a single form type"
+
+getSessionClaims:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkSession
+
+checkSession:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractActiveCompany
+
+extractActiveCompany:
+  assign:
+    active_role: "${authority.activeRole}"
+    active_registry_code: "${authority.activeRegistryCode ?? ''}"
+    session_personal_code: "${authority.personalCode}"
+  next: checkScope
+
+checkScope:
+  switch:
+    - condition: "${active_role === 'company' && !active_registry_code}"
+      next: returnNoActiveCompany
+    - condition: "${active_role === 'company'}"
+      next: callResqlCompany
+    - condition: "${active_role === 'citizen-self' && !!session_personal_code}"
+      next: callResqlSelf
+  next: returnNoActiveCompany
+
+callResqlCompany:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/citizen/forms/search"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${active_registry_code}
+      personal_code: ""
+      page: "${incoming.body.page || 1}"
+      page_size: "${incoming.body.page_size || 20}"
+      sorting: "${incoming.body.sorting || 'main_date desc'}"
+      form_type: "${incoming.body.form_type || ''}"
+  result: search_res
+  next: logCompanyListAudit
+
+# Audit third-party PII access: listing a company's forms reveals which
+# drivers/individuals were involved in each. citizen-self listing is the
+# viewer's own forms, so it isn't logged (same convention as the detail
+# endpoints — see e.g. citizen/forms/compound.yml's checkShouldLog).
+logCompanyListAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "citizen.control_form.list.view"
+    event_category: "control_form"
+    description: "Esindaja vaatas ettevõtte ${active_registry_code} vormide loetelu"
+    log_content: "${JSON.stringify({companyRegCode: active_registry_code, page: incoming.body.page || 1, formType: incoming.body.form_type || null})}"
+    actor_name: ${session_personal_code}
+    actor_personal_code: ${session_personal_code}
+  result: audit_result
+  next: returnResults
+
+callResqlSelf:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/citizen/forms/search"
+    headers:
+      type: json
+    body:
+      company_reg_code: ""
+      personal_code: ${session_personal_code}
+      page: "${incoming.body.page || 1}"
+      page_size: "${incoming.body.page_size || 20}"
+      sorting: "${incoming.body.sorting || 'main_date desc'}"
+      form_type: "${incoming.body.form_type || ''}"
+  result: search_res
+  next: returnResults
+
+returnResults:
+  status: 200
+  return: "${search_res.response.body}"
+  next: end
+
+returnNoActiveCompany:
+  status: 400
+  return: "${({error: 'NO_ACTIVE_COMPANY', message: 'Select a company representation before listing its forms'})}"
+  next: end
+
+returnUnauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

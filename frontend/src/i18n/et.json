@@ -16,7 +16,10 @@
     "citizen": "Kodanikule",
     "official": "Ametnikule",
     "citizenInfo": "Liiklusjärelevalve infosüsteemi logides on füüsilisel ja juriidilisel isikul võimalik saada temaga seotud andmeid liiklusjärelevalve infosüsteemist. Juriidilise isikuga seotud andmete liiklusjärelevalve infosüsteemis on juurdepääsuõigus ettevõtte juhatuse liikmel, kelle seotust asjaomase ettevõttega kontrollitakse äriregistrist.",
-    "officialInfo": "Liiklusjärelevalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest."
+    "officialInfo": "Liiklusjärelevalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest.",
+    "roleLabel": "Esindan",
+    "roleOfficer": "Ametnik",
+    "roleCitizenSelf": "Füüsiline isik"
   },
   "countries": {
     "AD": "Andorra",
@@ -283,7 +286,37 @@
     "search": "Otsing",
     "rsi": "RSI teated",
     "ncr": "NCR teated",
-    "riskLevels": "Riskitasemed"
+    "riskLevels": "Riskitasemed",
+    "myCompany": "Minu ettevõte"
+  },
+  "citizen": {
+    "formsList": {
+      "title": "Minu ettevõte",
+      "formType": "Vormi tüüp",
+      "formNumber": "Vormi number",
+      "mainDate": "Kuupäev",
+      "vehicleRegNr": "Sõiduki reg-nr",
+      "hasViolation": "Rikkumine",
+      "yes": "Jah",
+      "no": "Ei",
+      "noCompanies": "Teiega ei ole seotud ühtegi ettevõtet.",
+      "selectCompany": "Valige päisest ettevõte, mille andmeid soovite vaadata.",
+      "view": "Vaata"
+    },
+    "compoundDetail": {
+      "controlSection": "Kontrolli andmed",
+      "controlDate": "Kuupäev",
+      "county": "Maakond",
+      "address": "Aadress",
+      "vehicleRegNr": "Sõiduki reg-nr",
+      "companySection": "Ettevõtte andmed",
+      "companyName": "Ettevõtte nimi",
+      "companyRegCode": "Registrikood",
+      "driversSection": "Juhid",
+      "noDrivers": "Juhte ei ole lisatud",
+      "driverName": "Nimi",
+      "driverPersonalCode": "Isikukood"
+    }
   },
   "desktop": {
     "title": "Töölaud",

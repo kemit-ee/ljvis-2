@@ -22,10 +22,11 @@ interface UseSideNavPropsResult {
 export function useSideNavProps(): UseSideNavPropsResult {
   const { pathname } = useLocation();
   const { t } = useTranslation();
-  const { hasPermission, hasAnyPermission } = useAuth();
+  const { hasPermission, hasAnyPermission, user } = useAuth();
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+  const isCitizen = user?.activeRole !== 'officer';
 
   React.useEffect(() => {
     if (isMobileOpen) {
@@ -35,6 +36,18 @@ export function useSideNavProps(): UseSideNavPropsResult {
 
   const navItems = React.useMemo(() => {
     const items: Parameters<typeof SideNav>[0]['navItems'] = [];
+
+    // Citizen sessions (citizen-self / company) have no permissions and get
+    // a single "Minu ettevõte" entry instead of the whole officer menu.
+    if (isCitizen) {
+      items.push({
+        children: t('nav.myCompany', 'Minu ettevõte'),
+        icon: 'apartment',
+        to: '/minu-ettevotte',
+        isActive: pathname.startsWith('/minu-ettevotte') || pathname === '/',
+      });
+      return items;
+    }
 
     const adminSubItems = [];
 
@@ -143,16 +156,18 @@ export function useSideNavProps(): UseSideNavPropsResult {
 
     const adminIsActive = adminSubItems.some((item) => item.isActive);
 
-    items.push({
-      children: t('nav.administration'),
-      icon: 'account_circle',
-      isActive: adminIsActive,
-      isDefaultOpen: adminIsActive,
-      subItems: adminSubItems,
-    });
+    if (adminSubItems.length > 0) {
+      items.push({
+        children: t('nav.administration'),
+        icon: 'account_circle',
+        isActive: adminIsActive,
+        isDefaultOpen: adminIsActive,
+        subItems: adminSubItems,
+      });
+    }
 
     return items;
-  }, [pathname, t, hasPermission, hasAnyPermission]);
+  }, [pathname, t, hasPermission, hasAnyPermission, isCitizen]);
 
   const getWrapperClassName = () => {
     const classes = [styles.wrapper];

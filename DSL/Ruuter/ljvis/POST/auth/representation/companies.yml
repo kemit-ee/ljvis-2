@@ -1,0 +1,172 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Lazily resolve the companies the current TARA session's personal code may
+    represent (Äriregister esindus_v2), for the header representation dropdown.
+    Calls XTR directly rather than going through POST/v1/xroad/arireg/esindus:
+    that endpoint sits behind POST/.guard (officer session via
+    templates/check-user-authority), which a citizen's TARA session can never
+    satisfy — same reasoning as GET/v1/citizen/risk-scores/my-company.yml.
+    If representedCompanies is already cached in the JWT (set by a previous
+    call here or by representation/switch), it's returned as-is without a new
+    AR call. AR unavailable/failure -> empty list, not an error (session stays
+    valid, per LJVIS2-137: representation list may be empty) — but that empty
+    list is NOT cached in the JWT (see returnEmptyWithoutCaching), so it
+    doesn't get confused with "no representation rights" (which IS cached)
+    and doesn't stick around for the rest of the session once AR recovers.
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+
+check_for_cookie:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: return_unauthenticated
+  next: get_userinfo
+
+# Not using templates/citizen-authority here: it defaults representedCompanies
+# to [] when the claim is absent, which would make "never cached yet" (null)
+# indistinguishable from "cached as empty" ([]) — a distinction this endpoint
+# depends on (see check_personal_code below).
+get_userinfo:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: userinfo_res
+  next: check_userinfo
+
+check_userinfo:
+  switch:
+    - condition: "${userinfo_res.response.status < 200 || userinfo_res.response.status >= 300}"
+      next: return_unauthenticated
+  next: extract_claims
+
+extract_claims:
+  assign:
+    personal_code: "${userinfo_res.response.body.userinfo?.claims?.personalCode ?? userinfo_res.response.body.userinfo?.subject ?? ''}"
+    cached_companies: "${userinfo_res.response.body.userinfo?.claims?.representedCompanies ?? null}"
+    active_role_claim: "${userinfo_res.response.body.userinfo?.claims?.activeRole ?? ''}"
+    active_registry_code_claim: "${userinfo_res.response.body.userinfo?.claims?.activeRegistryCode ?? null}"
+  next: check_personal_code
+
+check_personal_code:
+  switch:
+    - condition: "${!personal_code}"
+      next: return_unauthenticated
+    - condition: "${cached_companies != null}"
+      next: return_cached
+  next: callXtr
+
+return_cached:
+  status: 200
+  return: "${({ companies: cached_companies })}"
+  next: end
+
+callXtr:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    headers:
+      type: json
+    body:
+      reg_code: ""
+      personal_code: ${personal_code}
+      personal_code_country: "EST"
+      username: "[#AR_USERNAME]"
+      password: "[#AR_PASSWORD]"
+  result: xtrResponse
+  next: checkXtrStatus
+
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: returnEmptyWithoutCaching
+  next: mapCompanies
+
+# Same namespace-stripping approach as POST/v1/xroad/arireg/esindus.yml — only
+# registryCode/companyName are needed here (full representative details aren't
+# relevant for the role switcher).
+mapCompanies:
+  assign:
+    companies: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function stripNs(v) {
+          if (Array.isArray(v)) return v.map(stripNs);
+          if (v && typeof v === 'object') {
+            var out = {};
+            Object.keys(v).forEach(function(k) {
+              if (k.charAt(0) === '@') return;
+              var shortKey = k.indexOf(':') >= 0 ? k.substring(k.indexOf(':') + 1) : k;
+              out[shortKey] = stripNs(v[k]);
+            });
+            return out;
+          }
+          return v;
+        }
+        var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
+        var keha = responseNode.keha || {};
+        var items = toArray(keha.ettevotjad && keha.ettevotjad.item);
+        return items.map(function(c) {
+          return {
+            registryCode: c.ariregistri_kood != null ? String(c.ariregistri_kood) : '',
+            companyName: c.arinimi || ''
+          };
+        });
+      })()}
+  next: cacheAndReturn
+
+# Cache the result in the JWT so re-opening the dropdown within the same
+# session doesn't re-hit AR every time — activeRole/activeRegistryCode are
+# preserved as-is (this endpoint never changes the active representation,
+# only refreshes the available list; see representation/switch for that).
+cacheAndReturn:
+  call: http.post
+  args:
+    url: "[#LJVIS_TIM]/jwt/custom/generate"
+    headers:
+      type: json
+      X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
+    body:
+      content:
+        sub: ${personal_code}
+        personalCode: ${personal_code}
+        authenticatedAs: ${personal_code}
+        activeRole: "${active_role_claim || 'citizen-self'}"
+        activeRegistryCode: ${active_registry_code_claim}
+        representedCompanies: ${companies}
+      expirationInMinutes: 480
+      JWTName: "customJwtCookie"
+  result: jwt_result
+  next: return_companies_with_cookie
+
+# AR unavailable/erroring is NOT the same as "genuinely has no
+# representation rights" — don't mint a JWT caching [] here, or the session
+# would stay stuck with an empty company list (cached_companies != null
+# above short-circuits future calls) until re-login/expiry (480 min), even
+# once AR recovers. Just return [] for this one response; the next call
+# retries AR since nothing was cached.
+returnEmptyWithoutCaching:
+  status: 200
+  return: "${({ companies: [] })}"
+  next: end
+
+return_companies_with_cookie:
+  status: 200
+  headers:
+    Set-Cookie: "customJwtCookie=${jwt_result.response.body.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=28800"
+  return: "${({ companies: companies })}"
+  next: end
+
+return_unauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

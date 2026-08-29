@@ -1,0 +1,95 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Unified session info. Unlike GET/auth/jwt/userinfo (templates/check-user-authority),
+    this endpoint does NOT fail when the personal code has no users.user_account row —
+    it simply reports officerAvailable=false. This lets a citizen-only TARA login (no
+    officer account) past the frontend's initial auth check. Officer permissions are
+    still resolved here (best-effort) so the header/nav can offer the "Ametnik" role
+    when available. representedCompanies/activeRole/activeRegistryCode come from JWT
+    custom claims set by representation/companies and representation/switch.
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+
+check_for_cookie:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: return_unauthenticated
+  next: get_userinfo
+
+get_userinfo:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: userinfo_res
+  next: check_userinfo
+
+check_userinfo:
+  switch:
+    - condition: "${userinfo_res.response.status < 200 || userinfo_res.response.status >= 300}"
+      next: return_unauthenticated
+  next: extract_claims
+
+extract_claims:
+  assign:
+    personal_code: "${userinfo_res.response.body.userinfo?.claims?.personalCode ?? userinfo_res.response.body.userinfo?.subject ?? ''}"
+    active_role_claim: "${userinfo_res.response.body.userinfo?.claims?.activeRole ?? ''}"
+    active_registry_code: "${userinfo_res.response.body.userinfo?.claims?.activeRegistryCode ?? null}"
+    represented_companies: "${userinfo_res.response.body.userinfo?.claims?.representedCompanies ?? []}"
+  next: check_personal_code
+
+check_personal_code:
+  switch:
+    - condition: "${!personal_code}"
+      next: return_unauthenticated
+  next: lookup_officer_profile
+
+lookup_officer_profile:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
+    headers:
+      type: json
+    body:
+      personal_code: ${personal_code}
+  result: officer_res
+  next: composeSession
+
+# Officer availability is decided purely by whether the DB lookup returned a row —
+# a missing/failed lookup never blocks the session (that's the whole point of this
+# endpoint vs. templates/check-user-authority).
+composeSession:
+  assign:
+    officer_available: "${Array.isArray(officer_res.response.body) && officer_res.response.body.length > 0}"
+    officer_profile: "${(Array.isArray(officer_res.response.body) && officer_res.response.body.length > 0) ? officer_res.response.body[0] : null}"
+  next: return_session
+
+return_session:
+  status: 200
+  return: >-
+    ${({
+      personalCode: personal_code,
+      id: officer_profile ? officer_profile.id : null,
+      officerAvailable: officer_available,
+      firstname: officer_profile ? officer_profile.firstname : null,
+      lastname: officer_profile ? officer_profile.lastname : null,
+      organisationid: officer_profile ? officer_profile.organisationid : null,
+      organisationname: officer_profile ? officer_profile.organisationname : null,
+      permissions: officer_profile ? officer_profile.permissions : [],
+      activeRole: active_role_claim || (officer_available ? 'officer' : 'citizen-self'),
+      activeRegistryCode: active_registry_code,
+      representedCompanies: represented_companies
+    })}
+  next: end
+
+return_unauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

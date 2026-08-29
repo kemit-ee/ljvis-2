@@ -1,3 +1,13 @@
 .header-role-border {
   border-bottom: 4px solid #005aa3;
 }
+
+.header-role-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+
+.header-role-menu-item-active {
+  font-weight: bold;
+}

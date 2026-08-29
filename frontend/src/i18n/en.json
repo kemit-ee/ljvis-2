@@ -16,7 +16,10 @@
     "citizen": "For the citizen",
     "official": "For the officail",
     "citizenInfo": "COMING",
-    "officialInfo": "COMING"
+    "officialInfo": "COMING",
+    "roleLabel": "Representing",
+    "roleOfficer": "Officer",
+    "roleCitizenSelf": "Private person"
   },
   "countries": {
     "AD": "Andorra",
@@ -958,7 +961,37 @@
     "search": "Search",
     "rsi": "RSI messages",
     "ncr": "NCR messages",
-    "riskLevels": "Risk levels"
+    "riskLevels": "Risk levels",
+    "myCompany": "My company"
+  },
+  "citizen": {
+    "formsList": {
+      "title": "My company",
+      "formType": "Form type",
+      "formNumber": "Form number",
+      "mainDate": "Date",
+      "vehicleRegNr": "Vehicle reg. no",
+      "hasViolation": "Violation",
+      "yes": "Yes",
+      "no": "No",
+      "noCompanies": "You are not associated with any company.",
+      "selectCompany": "Select a company from the header to view its data.",
+      "view": "View"
+    },
+    "compoundDetail": {
+      "controlSection": "Control details",
+      "controlDate": "Date",
+      "county": "County",
+      "address": "Address",
+      "vehicleRegNr": "Vehicle reg. no",
+      "companySection": "Company details",
+      "companyName": "Company name",
+      "companyRegCode": "Registry code",
+      "driversSection": "Drivers",
+      "noDrivers": "No drivers added",
+      "driverName": "Name",
+      "driverPersonalCode": "Personal code"
+    }
   },
   "users": {
     "title": "Users",
