@@ -221,7 +221,7 @@ export function CompoundFormEditCard({
                     id="road"
                     label={t('forms.compound.road')}
                     options={[
-                      { value: '', label: '' },
+                      { value: '', label: '\u00a0' },
                       ...roads.map((r) => ({
                         value: r.code,
                         label: r.name,
@@ -229,7 +229,7 @@ export function CompoundFormEditCard({
                     ]}
                     value={
                       [
-                        { value: '', label: '' },
+                        { value: '', label: '\u00a0' },
                         ...roads.map((r) => ({ value: r.code, label: r.name })),
                       ].find((o) => o.value === formik.values.road) ?? null
                     }
@@ -560,6 +560,7 @@ export function CompoundFormEditCard({
                   </div>
                   <ChoiceGroup
                     id="vehicleCategoryCode"
+                    name="vehicleCategoryCode"
                     label={t('forms.compound.vehicleCategory')}
                     inputType="radio"
                     direction="row"
@@ -591,7 +592,10 @@ export function CompoundFormEditCard({
                       value={formik.values.vehicleCategoryOther}
                       input={{ maxLength: 100 }}
                       onChange={(v) =>
-                        formik.setFieldValue('vehicleCategoryOther', v.toUpperCase())
+                        formik.setFieldValue(
+                          'vehicleCategoryOther',
+                          v.toUpperCase(),
+                        )
                       }
                       required
                       {...(formik.touched.vehicleCategoryOther &&
@@ -866,6 +870,7 @@ export function CompoundFormEditCard({
                           </div>
                           <ChoiceGroup
                             id={`trailerCategoryCode_${index}`}
+                            name={`trailerCategoryCode_${index}`}
                             label={t('forms.compound.trailerCategory')}
                             inputType="radio"
                             direction="row"
@@ -907,7 +912,10 @@ export function CompoundFormEditCard({
                               input={{ maxLength: 100 }}
                               onChange={(v) => {
                                 const u = [...formik.values.trailers];
-                                u[index] = { ...u[index], categoryOther: v.toUpperCase() };
+                                u[index] = {
+                                  ...u[index],
+                                  categoryOther: v.toUpperCase(),
+                                };
                                 formik.setFieldValue('trailers', u);
                               }}
                               required
