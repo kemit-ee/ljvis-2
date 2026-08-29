@@ -398,9 +398,12 @@
       "vehicleTitle": "Vehicle technical roadworthiness check form",
       "trailerTitle": "Trailer technical roadworthiness check form",
       "addNew": "Add new technical check form",
+      "trailerDetection": "Trailer detection",
+      "trailerRegNr": "Trailer registration number",
       "validation": {
         "required": "Required field",
         "notesMaxLength": "Notes are limited to 2000 characters",
+        "checkError": "To save, at least one vehicle part or assembly must be checked",
         "api": {
           "required": "Required field",
           "max_length_2000": "Notes are limited to 2000 characters",
@@ -641,6 +644,9 @@
       "roadTaxNotes": "Notes",
       "trailer": "Trailer",
       "addTrailer": "Add trailer",
+      "trailerNumber": "Trailer #{{number}}",
+      "addTrailerControlForm": "Add trailer control form",
+      "editTrailerControlForm": "Edit trailer control form",
       "removeTrailer": "Remove trailer",
       "trailerRegNr": "Registration mark",
       "trailerCountry": "Country code",
@@ -1163,7 +1169,9 @@
     "download": "Download",
     "space": " ",
     "clear": "Clear filters",
-    "formHasErrors": "The form contains errors. Please check the fields marked in red."
+    "formHasErrors": "The form contains errors. Please check the fields marked in red.",
+    "deleteTrailerSubConfirmTitle": "Remove trailer and delete sub-form",
+    "deleteTrailerSubConfirm": "Are you sure you want to remove the trailer and delete the sub-form?"
   },
   "xroad": {
     "companyPicker": {
