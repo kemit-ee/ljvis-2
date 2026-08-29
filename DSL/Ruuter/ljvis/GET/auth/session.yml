@@ -9,6 +9,10 @@ declaration:
     still resolved here (best-effort) so the header/nav can offer the "Ametnik" role
     when available. representedCompanies/activeRole/activeRegistryCode come from JWT
     custom claims set by representation/companies and representation/switch.
+    firstname/lastname prefer the officer profile (users.user_account) when one
+    exists, falling back to TARA's own given_name/family_name (TIM claims
+    first_name/last_name, per docker/tim/tim.yaml's claim_mappings) — the only
+    name available for a citizen with no officer account.
   namespace: service
   allowlist:
     headers:
@@ -43,6 +47,8 @@ extract_claims:
     active_role_claim: "${userinfo_res.response.body.userinfo?.claims?.activeRole ?? ''}"
     active_registry_code: "${userinfo_res.response.body.userinfo?.claims?.activeRegistryCode ?? null}"
     represented_companies: "${userinfo_res.response.body.userinfo?.claims?.representedCompanies ?? []}"
+    tara_first_name: "${userinfo_res.response.body.userinfo?.claims?.first_name ?? null}"
+    tara_last_name: "${userinfo_res.response.body.userinfo?.claims?.last_name ?? null}"
   next: check_personal_code
 
 check_personal_code:
@@ -75,11 +81,11 @@ return_session:
   status: 200
   return: >-
     ${({
-      personalCode: personal_code,
+      personalcode: personal_code,
       id: officer_profile ? officer_profile.id : null,
       officerAvailable: officer_available,
-      firstname: officer_profile ? officer_profile.firstname : null,
-      lastname: officer_profile ? officer_profile.lastname : null,
+      firstname: officer_profile ? officer_profile.firstname : tara_first_name,
+      lastname: officer_profile ? officer_profile.lastname : tara_last_name,
       organisationid: officer_profile ? officer_profile.organisationid : null,
       organisationname: officer_profile ? officer_profile.organisationname : null,
       permissions: officer_profile ? officer_profile.permissions : [],

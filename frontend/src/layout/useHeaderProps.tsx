@@ -103,11 +103,15 @@ export function useHeaderProps(): HeaderProps<'a'> {
           (c) => c.registryCode === user.activeRegistryCode,
         )?.companyName
       : undefined;
-  const displayName =
-    activeCompanyName ||
-    `${user?.firstname || ''} ${user?.lastname || ''}`.trim() ||
-    user?.personalcode ||
-    '';
+  const fullName = `${user?.firstname || ''} ${user?.lastname || ''}`.trim();
+  // citizen-self has no organisation to name, so show the person's own
+  // name + personal code instead — otherwise this would just be blank/the
+  // raw isikukood for a citizen with no officer account.
+  const selfDisplayName =
+    user?.activeRole === 'citizen-self' && fullName && user?.personalcode
+      ? `${fullName} (${user.personalcode})`
+      : fullName;
+  const displayName = activeCompanyName || selfDisplayName || user?.personalcode || '';
 
   return {
     logo: {
