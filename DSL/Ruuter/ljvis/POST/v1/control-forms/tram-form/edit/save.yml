@@ -154,6 +154,25 @@ checkInsertOrUpdate:
   switch:
     - condition: ${id == null || id === ''}
       next: check_driver1_personal_code_not_empty_insert
+  next: verifyTramAuthority
+
+# Fail-fast, kui id ei viita TRAM-koondvormile — väldib PPA-vormi väljade
+# lugemist calculateChangedFields sammus (tram-form/get filtreerib authority='TRAM').
+verifyTramAuthority:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: tramAuthorityCheck
+  next: checkTramAuthorityFound
+
+checkTramAuthorityFound:
+  switch:
+    - condition: ${tramAuthorityCheck.response.body == null || tramAuthorityCheck.response.body.length !== 1}
+      next: returnNotFound
   next: calculateChangedFields
 
 calculateChangedFields:
@@ -463,4 +482,9 @@ propagate_pc1_error:
 propagate_pc2_error:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"drivers[1].personalCodeEe","code":"invalid_personal_code"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
   next: end
