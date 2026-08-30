@@ -198,7 +198,7 @@ logAuditEvent:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    event_type: "control_form.tram_driver_form.confirm"
+    event_type: "control_form.sp_driver_form.confirm"
     event_category: "control_form"
     actor_personal_code: ${actor_personal_code}
     actor_name: ${actor_name}

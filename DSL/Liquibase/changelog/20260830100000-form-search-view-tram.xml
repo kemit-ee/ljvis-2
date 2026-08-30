@@ -4,9 +4,9 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
     <changeSet id="20260830100000" author="ljvis">
-        <sqlFile path="changelog/20260830100000-form-search-view-tram.sql" splitStatements="false" />
+        <sqlFile path="changelog/20260830100000-form-search-view-tram.sql" />
         <rollback>
-            <sqlFile path="changelog/20260830100000-rollback.sql" splitStatements="false" />
+            <sqlFile path="changelog/20260830100000-rollback.sql" />
         </rollback>
     </changeSet>
 </databaseChangeLog>

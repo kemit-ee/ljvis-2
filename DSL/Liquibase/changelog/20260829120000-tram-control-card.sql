@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20260829120000 splitStatements:false
+-- changeset ljvis:20260829120000 ignore:true
 
 -- ── TRAM (Transpordiamet) kontrollkaart ────────────────────────────────
 -- TRAM autojuhi kontrollkaart jagab PPA sõidu- ja puhkeaja vormiga samu

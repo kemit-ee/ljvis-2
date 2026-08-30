@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20260830100000 splitStatements:false
+-- changeset ljvis:20260830100000 ignore:true
 --
 -- TRAM (ADR-001): forms.form_search eristab TRAM- ja PPA-ridu authority veeru järgi.
 -- compound -> tram_compound, sp_driver -> tram_driver, kui compound_form.authority = 'TRAM'.
