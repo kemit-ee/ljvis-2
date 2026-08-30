@@ -646,6 +646,7 @@
     "teammate_drive_rest_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
     "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
     "sp_teammate_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
+    "tram_driver_form": "Transpordiameti kontrollkaart",
     "sp_form": {
       "transportClass": "Veoliik",
       "transportType": "Veoliik",
@@ -1300,7 +1301,7 @@
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
     "bandPunane": "Punane"
-   },
+  },
   "etoimik": {
     "title": "E-toimiku kvalifikatsiooni kontroll",
     "referenceNumber": "Viitenumber",

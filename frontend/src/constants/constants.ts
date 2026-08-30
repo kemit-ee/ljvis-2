@@ -13,6 +13,8 @@ export const FORM_TYPE = {
   TRAILER_TECHNICAL_CHECK: 'trailer-technical',
   ADR: 'adr-form',
   TRANSPORT_INTERRUPTION: 'transport-interruption',
+  TRAM_COMPOUND: 'tram-form',
+  TRAM_DRIVER: 'tram-form/sp-driver',
 } as const;
 
 export const ALL_FORM_TABS: {
@@ -61,6 +63,7 @@ export const FORM_READ_PERMISSIONS: string[] = [
   'trailer_technical_form.read',
   'adr_form.read',
   'transport_interruption_form.read',
+  'tram_driver_form.read',
 ];
 
 export const DESKTOP = {
