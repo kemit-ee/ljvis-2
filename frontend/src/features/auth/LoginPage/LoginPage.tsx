@@ -13,7 +13,14 @@ import { DescriptionList } from '../DescriptionList';
 import { useFooterProps } from '../../../layout/useFooterProps';
 import styles from './LoginPage.module.css';
 
-async function startLogin() {
+type LoginIntent = 'citizen' | 'officer';
+
+async function startLogin(intent: LoginIntent) {
+  // Persist intent so AuthCallback can pre-select the right role after
+  // the TARA redirect round-trip (sessionStorage survives redirects within
+  // the same tab).
+  sessionStorage.setItem('loginIntent', intent);
+
   // redirect_uri tells TIM (and TARA) where to send the authorization
   // code after authentication. This is a frontend route — AuthCallback
   // picks up code+state and forwards them to Ruuter.
@@ -122,7 +129,7 @@ export function LoginPage() {
                   <Button
                     id="Default"
                     visualType="secondary"
-                    onClick={() => startLogin()}
+                    onClick={() => startLogin('citizen')}
                     className={styles['login-button']}
                   >
                     {t('auth.login', 'Sisene süsteemi')}
@@ -155,7 +162,7 @@ export function LoginPage() {
                   <Button
                     id="Default"
                     visualType="secondary"
-                    onClick={() => startLogin()}
+                    onClick={() => startLogin('officer')}
                     className={styles['login-button']}
                   >
                     {t('auth.login', 'Sisene süsteemi')}
