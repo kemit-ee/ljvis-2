@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update drive rest form for driver — insert new snapshot with updated data"
+  description: "Update TRAM control card driver sub-form — insert new snapshot with updated data"
   method: post
   accepts: json
   returns: json
@@ -91,6 +91,7 @@ WITH latest AS (
   SELECT sub_form_number, template_version, compound_form_key
   FROM forms.sp_driver_form
   WHERE sp_driver_form_key = :key::BIGINT
+  AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')
   ORDER BY created_at DESC
   LIMIT 1
 )

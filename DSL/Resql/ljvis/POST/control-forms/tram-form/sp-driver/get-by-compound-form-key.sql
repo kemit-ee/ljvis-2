@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Get the latest active drive rest form (driver) for a compound form"
+  description: "Get the latest active TRAM control card driver sub-form for a compound form"
   method: post
   accepts: json
   returns: json
@@ -125,5 +125,6 @@ SELECT
 FROM forms.sp_driver_form
 WHERE compound_form_key = :compoundFormKey::BIGINT
   AND selection_status = 'active'
+  AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = :compoundFormKey::BIGINT AND cf.authority = 'TRAM')
 ORDER BY created_at DESC
 LIMIT 1;

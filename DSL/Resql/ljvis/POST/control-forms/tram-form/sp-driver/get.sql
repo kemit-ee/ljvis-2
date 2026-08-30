@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Get drive rest form (driver) by key"
+  description: "Get TRAM control card driver sub-form by key"
   method: post
   accepts: json
   returns: json
@@ -125,5 +125,6 @@ SELECT
   created_by
 FROM forms.sp_driver_form
 WHERE sp_driver_form_key = :id::BIGINT
+  AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')
 ORDER BY created_at DESC
 LIMIT 1;

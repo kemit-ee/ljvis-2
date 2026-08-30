@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Delete drive rest form for driver — copy latest snapshot with status=deleted"
+  description: "Delete TRAM control card driver sub-form — copy latest snapshot with status=deleted"
   method: post
   accepts: json
   returns: json
@@ -60,6 +60,7 @@ WITH latest AS (
     notes
   FROM forms.sp_driver_form
   WHERE sp_driver_form_key = :id::BIGINT
+  AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')
   ORDER BY sp_driver_form_key, created_at DESC
 )
 INSERT INTO forms.sp_driver_form (

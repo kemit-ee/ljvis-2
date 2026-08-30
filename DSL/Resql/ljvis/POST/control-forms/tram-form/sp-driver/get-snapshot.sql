@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Get a single drive rest form (driver) snapshot by snapshot ID"
+  description: "Get a single TRAM control card driver sub-form snapshot by snapshot ID"
   method: post
   accepts: json
   returns: json
@@ -128,4 +128,5 @@ SELECT
   created_by
 FROM forms.sp_driver_form
 WHERE id = :id::BIGINT
-  AND sp_driver_form_key = :form_key::BIGINT;
+  AND sp_driver_form_key = :form_key::BIGINT
+  AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM');

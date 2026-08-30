@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Insert drive rest form for driver"
+  description: "Insert TRAM control card driver sub-form (shares sp- number series with PPA per ADR-001 otsus 2)"
   method: post
   accepts: json
   returns: json

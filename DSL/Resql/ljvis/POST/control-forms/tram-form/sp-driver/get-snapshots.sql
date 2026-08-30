@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Get version history snapshots for a drive rest form (driver)"
+  description: "Get version history snapshots for a TRAM control card driver sub-form"
   method: post
   accepts: json
   returns: json
@@ -38,6 +38,7 @@ WITH ranked AS (
     ) AS next_status
   FROM forms.sp_driver_form
   WHERE sp_driver_form_key = :id::BIGINT
+  AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')
 ),
 filtered AS (
   SELECT
