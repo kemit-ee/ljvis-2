@@ -35,7 +35,7 @@ markRead:
   next: returnResult
 
 returnResult:
-  return: ${res.response.body[0] ?? {notification_id: notification_id, user_code: user_code}}
+  return: "${res.response.body[0] ?? {notification_id: notification_id, user_code: user_code}}"
   next: end
 
 returnBadRequest:
