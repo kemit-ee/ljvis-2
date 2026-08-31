@@ -43,6 +43,13 @@ interface Props {
   drivingViolations: ClassifierValueData[];
   massDimensions: ClassifierValueData[];
   readOnly?: boolean;
+  /**
+   * TRAM kontrollkaardil (issue #180, 2. faas) on kolm sektsiooni peidetud:
+   * „Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass ja mõõtmed" ja
+   * „ATP kokkuleppe nõuete kontroll". Backend täidab need salvestamisel
+   * vaikeväärtustega (sp_applicability='not_checked', mass/atp = false).
+   */
+  hideDriveRestExtras?: boolean;
 }
 
 export function DriveRestFormFields({
@@ -58,6 +65,7 @@ export function DriveRestFormFields({
   drivingViolations,
   massDimensions,
   readOnly,
+  hideDriveRestExtras,
 }: Props) {
   const { t } = useTranslation();
 
@@ -650,7 +658,8 @@ export function DriveRestFormFields({
           </div>
         )}
       {/* Plokk: Sõidu- ja puhkeaja nõuete täitmine */}
-      {formik.values.resultType !== '' &&
+      {!hideDriveRestExtras &&
+        formik.values.resultType !== '' &&
         formik.values.resultType !== 'KORRAS' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
@@ -825,7 +834,8 @@ export function DriveRestFormFields({
           </div>
         )}
       {/* Plokk: Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta ainult autojuhile */}
-      {formik.values.resultType !== '' &&
+      {!hideDriveRestExtras &&
+        formik.values.resultType !== '' &&
         formik.values.resultType !== 'KORRAS' &&
         type === 'driver' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
@@ -861,6 +871,7 @@ export function DriveRestFormFields({
           </div>
         )}
       {/* Plokk: ATP kokkuleppe nõuete kontroll */}
+      {!hideDriveRestExtras && (
       <Row className="m-0">
         <Col className="p-0">
           <Card className="mb-1">
@@ -937,6 +948,7 @@ export function DriveRestFormFields({
           </Card>
         </Col>
       </Row>
+      )}
       {/* Plokk: Failid */}
       <Row className="m-0">
         <Col className="p-0">

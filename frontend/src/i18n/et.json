@@ -423,9 +423,12 @@
       "vehicleTitle": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
       "trailerTitle": "Haagise tehnonõuetele vastavuse kontrollvorm",
       "addNew": "Lisa uus tehnovorm",
+      "trailerDetection": "Haagise tuvastamine",
+      "trailerRegNr": "Haagise registreerimisnumber",
       "validation": {
         "required": "Kohustuslik väli",
         "notesMaxLength": "Märkuste maht on piiratud 2000 tähemärgiga",
+        "checkError": "Salvestamiseks peab olema vähemalt üks sõiduki osa või sõlm kontrollitud",
         "api": {
           "required": "Kohustuslik väli",
           "max_length_2000": "Märkuste maht on piiratud 2000 tähemärgiga",
@@ -645,6 +648,8 @@
     "teammate_drive_rest_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
     "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
     "sp_teammate_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
+    "tram_driver_form": "Transpordiameti kontrollkaart",
+    "tram_add_driver": "Lisa autojuht",
     "sp_form": {
       "transportClass": "Veoliik",
       "transportType": "Veoliik",
@@ -725,6 +730,9 @@
       "roadTaxNotes": "Märkus",
       "trailer": "Haagis",
       "addTrailer": "Lisa haagis",
+      "trailerNumber": "Haagis #{{number}}",
+      "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
+      "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
       "removeTrailer": "Eemalda haagis",
       "trailerRegNr": "Registreerimismärk",
       "trailerCountry": "Riigi tunnusmärk",
@@ -757,7 +765,7 @@
       "driver2": "Teise juhi / meeskonna liikme andmed",
       "driverPersonalCodeEe": "Eesti isikukood",
       "driverFirstName": "Eesnimi",
-      "driverLastName": "Perenimi",
+      "driverLastName": "Perekonnanimi",
       "driverCitizenshipCode": "Kodakondsus",
       "driverPersonalCodeForeign": "Välisriigi isikukood",
       "driverBirthDate": "Sünniaeg",
@@ -765,7 +773,7 @@
       "removeDriver": "Eemalda juht",
       "inspector": "Sõidukit kontrollinud ametiisiku andmed",
       "inspectorFirstName": "Eesnimi",
-      "inspectorLastName": "Perenimi",
+      "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuurüksus",
       "inspectorProfession": "Ametinimetus"
@@ -800,7 +808,7 @@
       "companyPostalCode": "Sihtnumber",
       "driverBasicInfo": "Autojuhi andmed",
       "driverFirstName": "Eesnimi",
-      "driverLastName": "Perenimi",
+      "driverLastName": "Perekonnanimi",
       "vehicleBasicInfo": "Sõiduki andmed",
       "vehicleRegNr": "Registreerimismärk",
       "vehicleMake": "Mark",
@@ -1000,7 +1008,7 @@
       "dataEntryDate": "Andmete sisestamise kuupäev",
       "inspectorBasicInfo": "Andmete sisestaja",
       "inspectorFirstName": "Eesnimi",
-      "inspectorLastName": "Perenimi",
+      "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus",
@@ -1263,6 +1271,8 @@
     "download": "Laadi alla",
     "clear": "Tühista filtrid",
     "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
+    "deleteTrailerSubConfirmTitle": "Haagise eemaldamine ja alamvormi kustutamine",
+    "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada?",
     "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju."
   },
   "xroad": {
@@ -1299,7 +1309,7 @@
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
     "bandPunane": "Punane"
-   },
+  },
   "etoimik": {
     "title": "E-toimiku kvalifikatsiooni kontroll",
     "referenceNumber": "Viitenumber",
@@ -1735,7 +1745,9 @@
       "vehicleTechnical": "Tehnonõuetele vastavus (sõiduk)",
       "trailerTechnical": "Tehnonõuetele vastavus (haagis)",
       "adr": "Ohtlik veos (ADR)",
-      "kv": "Autoveo katkestamine"
+      "kv": "Autoveo katkestamine",
+      "tramCompound": "Transpordiameti kontrollkaart",
+      "tramDriver": "Transpordiameti kontrollkaart (autojuht)"
     },
     "status": {
       "saved": "Salvestatud",

@@ -13,16 +13,17 @@ export const FORM_TYPE = {
   TRAILER_TECHNICAL_CHECK: 'trailer-technical',
   ADR: 'adr-form',
   TRANSPORT_INTERRUPTION: 'transport-interruption',
+  TRAM_COMPOUND: 'tram-form',
+  TRAM_DRIVER: 'tram-form/sp-driver',
 } as const;
 
 export const ALL_FORM_TABS: {
-  tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-trailer-technical-check' | 'tab-adr' | 'tab-transport-interruption';
+  tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-adr' | 'tab-transport-interruption';
   labelKey: string;
 }[] = [
   { tabId: 'tab-driver', labelKey: 'forms.driver_drive_rest_form' },
   { tabId: 'tab-teammate', labelKey: 'forms.teammate_drive_rest_form' },
   { tabId: 'tab-vehicle-technical-check', labelKey: 'forms.technical_check.vehicleTitle' },
-  { tabId: 'tab-trailer-technical-check', labelKey: 'forms.technical_check.trailerTitle' },
   { tabId: 'tab-adr', labelKey: 'forms.adr.title' },
   { tabId: 'tab-transport-interruption', labelKey: 'forms.transport_interruption.title' },
 ];
@@ -61,6 +62,7 @@ export const FORM_READ_PERMISSIONS: string[] = [
   'trailer_technical_form.read',
   'adr_form.read',
   'transport_interruption_form.read',
+  'tram_driver_form.read',
 ];
 
 export const DESKTOP = {

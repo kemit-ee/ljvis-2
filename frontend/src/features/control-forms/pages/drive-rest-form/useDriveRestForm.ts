@@ -12,7 +12,16 @@ import type {
   Violation,
   MassDimensionMeasurement,
 } from '../../types';
-import { saveDriveRestForm, confirmDriveRestForm, publishDriveRestForm } from '../../api';
+import {
+  saveDriveRestForm,
+  confirmDriveRestForm,
+  publishDriveRestForm,
+  saveTramDriverForm,
+  confirmTramDriverForm,
+  publishTramDriverForm,
+} from '../../api';
+
+export type FormAuthority = 'PPA' | 'TRAM';
 
 export function createDriveRestValidationSchema(
   t: (key: string) => string,
@@ -111,8 +120,27 @@ export function useDriveRestForm(
   type: 'driver' | 'teammate',
   compoundFormKey?: number,
   onPublished?: () => void,
+  authority: FormAuthority = 'PPA',
 ) {
   const { t } = useTranslation();
+
+  // TRAM driver sub-form hits its own guarded endpoints; everything else
+  // (fields, validation, serialization) is identical to the PPA driver form.
+  const api =
+    authority === 'TRAM'
+      ? {
+          save: (_scope: 'driver' | 'teammate', data: DriveRestForm) =>
+            saveTramDriverForm(data),
+          confirm: (_scope: 'driver' | 'teammate', data: DriveRestForm) =>
+            confirmTramDriverForm(data),
+          publish: (_scope: 'driver' | 'teammate', id: string) =>
+            publishTramDriverForm(id),
+        }
+      : {
+          save: saveDriveRestForm,
+          confirm: confirmDriveRestForm,
+          publish: publishDriveRestForm,
+        };
   const pendingConfirm = useRef(false);
   const pendingPublish = useRef(false);
   const pendingCompoundFormKey = useRef<number | undefined>(undefined);
@@ -252,7 +280,7 @@ export function useDriveRestForm(
         pendingConfirm.current = false;
         pendingPublish.current = false;
         if (isPublishing && form?.id) {
-          await publishDriveRestForm(type, form.id);
+          await api.publish(type, form.id);
           onPublished?.();
           return;
         }
@@ -278,8 +306,8 @@ export function useDriveRestForm(
         };
 
         const result = isConfirming
-          ? await confirmDriveRestForm(type, trimmedValues as unknown as DriveRestForm)
-          : await saveDriveRestForm(type, trimmedValues as unknown as DriveRestForm);
+          ? await api.confirm(type, trimmedValues as unknown as DriveRestForm)
+          : await api.save(type, trimmedValues as unknown as DriveRestForm);
         onSaved(result[0]?.id);
       } catch (e) {
         console.error('Save failed', e);

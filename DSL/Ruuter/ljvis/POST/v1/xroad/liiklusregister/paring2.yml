@@ -42,6 +42,7 @@ assignParams:
 
 callXtr:
   call: http.post
+  timeout: 35000
   args:
     url: "[#LJVIS_XTR]/liiklusregister/paring2"
     headers:

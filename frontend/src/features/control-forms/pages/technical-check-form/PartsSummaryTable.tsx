@@ -37,7 +37,7 @@ export function PartsSummaryTable({
         {parts.map((part) => (
           <tr key={part.classifierValueKey}>
             <td style={{ padding: '4px 8px' }}>
-              {part.code} — {part.name}
+              {part.code.replace(/^[A-Z]+_/, '')} — {part.name}
             </td>
             <td style={{ padding: '4px 8px' }}>
               <ChoiceGroup

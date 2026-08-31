@@ -30,6 +30,7 @@ interface CompoundFormViewCardProps {
   onDelete?: () => void;
   isSnapshot?: boolean;
   formType: string;
+  versionsRefreshKey?: number;
 }
 
 export function CompoundFormViewCard({
@@ -44,6 +45,7 @@ export function CompoundFormViewCard({
   citiesParishes,
   companyCitiesParishes,
   formType,
+  versionsRefreshKey,
 }: CompoundFormViewCardProps) {
   const { t } = useTranslation();
 
@@ -121,16 +123,12 @@ export function CompoundFormViewCard({
                     styles[isDesktop ? 'three-col-desktop' : 'three-col-mobile']
                   }
                 >
-                  <Select
+                  <TextField
                     id="controlCountryCode"
                     label={t('forms.foreign_violation.control_country_code')}
-                    options={countries}
-                    value={
-                      countries.find(
-                        (o) => o.value === form.controlCountryCode,
-                      ) ?? null
-                    }
-                    disabled={disabled}
+                    value={form.controlCountryCode}
+                    disabled
+                    onChange={() => undefined}
                   />
                   <Select
                     id="county"
@@ -181,6 +179,7 @@ export function CompoundFormViewCard({
                   <DateField
                     id="controlDate"
                     label={t('forms.compound.controlDate')}
+                    monthYearSelectType="grid"
                     selected={
                       form.controlDate ? new Date(form.controlDate) : undefined
                     }
@@ -258,6 +257,7 @@ export function CompoundFormViewCard({
                   <DateField
                     id="vehicleFirstRegistration"
                     label={t('forms.compound.vehicleFirstRegistration')}
+                    monthYearSelectType="grid"
                     selected={
                       form.vehicleFirstRegistration
                         ? new Date(form.vehicleFirstRegistration)
@@ -267,19 +267,16 @@ export function CompoundFormViewCard({
                     inputProps={{ disabled }}
                   />
                 </div>
-                <Select
+                <TextField
                   id="vehicleCategoryCode"
                   label={t('forms.compound.vehicleCategory')}
-                  options={vehicleCategories.map((c) => ({
-                    value: c.code,
-                    label: c.name,
-                  }))}
                   value={
                     vehicleCategories
                       .map((c) => ({ value: c.code, label: c.name }))
-                      .find((o) => o.value === form.vehicleCategoryCode) ?? null
+                      .find((o) => o.value === form.vehicleCategoryCode)?.label ?? ''
                   }
-                  disabled={disabled}
+                  disabled
+                  onChange={() => undefined}
                 />
                 <TextField
                   id="vehicleCategoryOther"
@@ -331,6 +328,11 @@ export function CompoundFormViewCard({
                 {trailers.map((trailer: Trailer, index: number) => (
                   <Card key={index} className="mb-1">
                     <Card.Content>
+                      <Heading element="h3" className="mb-1">
+                        {t('forms.compound.trailerNumber', {
+                          number: index + 1,
+                        })}
+                      </Heading>
                       <div
                         className={gridClass}
                         style={{ alignItems: 'start' }}
@@ -389,6 +391,7 @@ export function CompoundFormViewCard({
                           <DateField
                             id={`trailerFirstRegistration_${index}`}
                             label={t('forms.compound.trailerFirstRegistration')}
+                            monthYearSelectType="grid"
                             selected={
                               trailer.firstRegistration
                                 ? new Date(trailer.firstRegistration)
@@ -398,18 +401,13 @@ export function CompoundFormViewCard({
                             inputProps={{ disabled }}
                           />
                         </div>
-                        <Select
+                        <TextField
                           id={`trailerCategoryCode_${index}`}
                           label={t('forms.compound.trailerCategory')}
-                          options={trailerCategories.map((c) => ({
-                            value: c.code,
-                            label: c.name,
-                          }))}
                           value={
-                            trailerCategories
-                              .map((c) => ({ value: c.code, label: c.name }))
-                              .find((o) => o.value === trailer.categoryCode) ??
-                            null
+                            trailerCategories.find(
+                              (c) => c.code === trailer.categoryCode,
+                            )?.name ?? ''
                           }
                           disabled={disabled}
                         />
@@ -573,6 +571,7 @@ export function CompoundFormViewCard({
                     <DateField
                       id={`driverBirthDate_${index}`}
                       label={t('forms.compound.driverBirthDate')}
+                      monthYearSelectType="grid"
                       selected={
                         driver.birthDate
                           ? new Date(driver.birthDate)
@@ -642,7 +641,7 @@ export function CompoundFormViewCard({
           </Card>
 
           {form.id && (
-            <FormVersionsTable formId={form.id} formType={formType} />
+            <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />
           )}
         </div>
       </Card.Content>

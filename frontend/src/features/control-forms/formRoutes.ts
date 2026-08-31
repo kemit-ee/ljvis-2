@@ -86,6 +86,12 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     parentKey: 'compound_form',
     typeParam: 'transport-interruption',
   },
+  tram_driver_form: {
+    labelKey: 'forms.tram_driver_form',
+    route: '/tram-driver',
+    hasParent: false,
+    showOnDashboard: true,
+  },
   sp_dangerous_goods_form: {
     labelKey: 'forms.sp_dangerous_goods_form',
     route: '/sp-dangerous-goods',

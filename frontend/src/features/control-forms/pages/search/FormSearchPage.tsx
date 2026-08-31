@@ -50,8 +50,14 @@ export function FormSearchPage() {
   } = useFormSearch();
 
   const openRow = useCallback(
-    (row: FormSearchRow) =>
-      navigate(resolveFormRoute(row.formType, row.formKey)),
+    (row: FormSearchRow) => {
+      // TRAM rows (compound + driver) both open the TRAM card by its
+      // compound_form_key; every other type opens by its own form key.
+      const key = row.formType.startsWith('tram_')
+        ? (row.compoundFormKey ?? row.formKey)
+        : row.formKey;
+      navigate(resolveFormRoute(row.formType, key));
+    },
     [navigate],
   );
 

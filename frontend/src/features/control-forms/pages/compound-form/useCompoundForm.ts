@@ -9,7 +9,11 @@ import {
   confirmCompoundForm,
   saveCompoundForm,
   publishCompoundForm,
+  saveTramForm,
+  confirmTramForm,
+  publishTramForm,
 } from '../../api';
+import type { FormAuthority } from '../drive-rest-form/useDriveRestForm';
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
@@ -98,13 +102,26 @@ export function useCompoundForm(
   subFormsAllConfirmedOrPublished?: boolean,
   onResetToSaved?: () => void,
   onPublished?: () => void,
+  authority: FormAuthority = 'PPA',
 ) {
   const { t } = useTranslation();
   const { user: authUser, permissions } = useAuth();
+
+  // TRAM control card writes to its own guarded endpoints (authority='TRAM');
+  // the general-section fields and validation are identical to the PPA form.
+  const api =
+    authority === 'TRAM'
+      ? { save: saveTramForm, confirm: confirmTramForm, publish: publishTramForm }
+      : {
+          save: saveCompoundForm,
+          confirm: confirmCompoundForm,
+          publish: publishCompoundForm,
+        };
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
   const pendingPublish = useRef(false);
   const pendingForceSaved = useRef(false);
+  const pendingPreserveStatus = useRef(false);
   const subFormsAllConfirmedOrPublishedRef = useRef(subFormsAllConfirmedOrPublished);
   useEffect(() => {
     subFormsAllConfirmedOrPublishedRef.current = subFormsAllConfirmedOrPublished;
@@ -216,15 +233,14 @@ export function useCompoundForm(
         schema.required(t('forms.foreign_violation.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
-    companyRegCode: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
-    companyName: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
-    companyCountryCode: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
+    companyRegCode: Yup.string(),
+    companyName: Yup.string(),
+    companyCountryCode: Yup.string().when('companyName', {
+      is: (v: string) => !!v?.trim(),
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema,
+    }),
     inspectorFirstName: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
@@ -276,14 +292,6 @@ export function useCompoundForm(
                 req,
                 driver?.lastName,
                 `drivers[${index}].lastName`,
-              ),
-            );
-          if (!driver?.personalCodeForeign)
-            errors.push(
-              new Yup.ValidationError(
-                req,
-                driver?.personalCodeForeign,
-                `drivers[${index}].personalCodeForeign`,
               ),
             );
           if (!driver?.birthDate)
@@ -391,13 +399,15 @@ export function useCompoundForm(
         pendingPublish.current = false;
         const forceSaved = pendingForceSaved.current;
         pendingForceSaved.current = false;
+        const preserveStatus = pendingPreserveStatus.current;
+        pendingPreserveStatus.current = false;
         if (isPublishing && form?.id) {
-          await publishCompoundForm(form.id);
+          await api.publish(form.id);
           onPublished?.();
           return;
         }
-        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedOrPublishedRef.current ?? true);
-        const isRepublishedEdit = !isConfirming && !forceSaved && form?.status === 'published' && (subFormsAllConfirmedOrPublishedRef.current ?? true);
+        const isReconfirmedEdit = (!isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedOrPublishedRef.current ?? true)) || (preserveStatus && form?.status === 'confirmed');
+        const isRepublishedEdit = (!isConfirming && !forceSaved && form?.status === 'published' && (subFormsAllConfirmedOrPublishedRef.current ?? true)) || (preserveStatus && form?.status === 'published');
         const nextStatus = isConfirming
           ? 'confirmed'
           : isReconfirmedEdit
@@ -437,14 +447,14 @@ export function useCompoundForm(
         };
         if (values.id) {
           if (isConfirming || isReconfirmedEdit) {
-            await confirmCompoundForm(trimmedValues as unknown as CompoundForm);
+            await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else if (isPublishing || isRepublishedEdit) {
-            await publishCompoundForm(values.id);
+            await api.publish(values.id);
             onPublished?.();
           }
           else {
-            await saveCompoundForm(trimmedValues as unknown as CompoundForm);
+            await api.save(trimmedValues as unknown as CompoundForm);
             if (forceSaved && onResetToSaved) {
               onResetToSaved();
             } else {
@@ -452,7 +462,7 @@ export function useCompoundForm(
             }
           }
         } else {
-          const result = await saveCompoundForm(
+          const result = await api.save(
             trimmedValues as unknown as CompoundForm,
           );
           onSaved(result[0]?.id);
@@ -484,6 +494,11 @@ export function useCompoundForm(
 
   const triggerSaveAsSaved = () => {
     pendingForceSaved.current = true;
+    formik.submitForm();
+  };
+
+  const triggerSaveWithCurrentStatus = () => {
+    pendingPreserveStatus.current = true;
     formik.submitForm();
   };
 
@@ -640,6 +655,7 @@ export function useCompoundForm(
           .filter((p) => p.endsWith(WRITE_SUFFIX))
           .map((p) => p.replace(WRITE_SUFFIX, ''))
           .filter((key) => !!FORM_CONFIG[key] && FORM_CONFIG[key].hasParent)
+          .filter((key) => FORM_CONFIG[key].route !== '/trailer-technical')
           .map((key) => ({
             labelKey: FORM_CONFIG[key].labelKey,
             route: FORM_CONFIG[key].route,
@@ -680,6 +696,7 @@ export function useCompoundForm(
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,
+    triggerSaveWithCurrentStatus,
     availableForms,
   };
 }
