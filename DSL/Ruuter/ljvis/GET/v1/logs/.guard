@@ -8,7 +8,7 @@ authenticate:
 
 check:
   switch:
-    - condition: ${u.permissions != null && u.permissions.includes('audit.read')}
+    - condition: ${u.permissions != null && (u.permissions.includes('audit.read') || u.permissions.includes('audit.read.local'))}
       next: allow
   next: deny
 

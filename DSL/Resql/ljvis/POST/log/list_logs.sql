@@ -19,6 +19,9 @@ declaration:
       - field: sorting
         type: string
         description: "Sort column and direction (createdAt, eventType, eventCategory, actorName)"
+      - field: organisation_id
+        type: string
+        description: "When set, restrict results to audit events whose actor belonged to this organisation (audit.read.local scope). Empty = no restriction (audit.read, all organisations)."
   response:
     fields:
       - field: event_id
@@ -58,11 +61,17 @@ SELECT
     (COUNT(*) OVER ())::INTEGER AS total
 FROM audit.audit_event e
 WHERE
-    COALESCE(:search, '') = ''
-    OR e.event_type ILIKE '%' || COALESCE(:search, '') || '%'
-    OR e.event_category ILIKE '%' || COALESCE(:search, '') || '%'
-    OR e.description ILIKE '%' || COALESCE(:search, '') || '%'
-    OR e.actor_name ILIKE '%' || COALESCE(:search, '') || '%'
+    (
+        COALESCE(:search, '') = ''
+        OR e.event_type ILIKE '%' || COALESCE(:search, '') || '%'
+        OR e.event_category ILIKE '%' || COALESCE(:search, '') || '%'
+        OR e.description ILIKE '%' || COALESCE(:search, '') || '%'
+        OR e.actor_name ILIKE '%' || COALESCE(:search, '') || '%'
+    )
+    AND (
+        NULLIF(:organisation_id, '') IS NULL
+        OR e.organisation_id = NULLIF(:organisation_id, '')::BIGINT
+    )
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'createdAt desc') = 'createdAt desc' THEN e.created_at END DESC,
     CASE WHEN COALESCE(:sorting, 'createdAt desc') = 'createdAt asc'  THEN e.created_at END ASC,
