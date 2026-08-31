@@ -1006,7 +1006,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"trailerRegNr\": \"\", \"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_2\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_2\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"trailerRegNr\": \"123ABC\"}"
         }
       },
       "event": [
@@ -1053,7 +1053,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"trailerRegNr\": \"\", \"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[\\\"MSI203\\\"]\", \"notes\": \"\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[\\\"MSI203\\\"]\", \"notes\": \"\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"trailerRegNr\": \"123ABC\"}"
         }
       },
       "event": [
@@ -1100,7 +1100,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"trailerRegNr\": \"\", \"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
+          "raw": "{\"compoundFormKey\": {{created_tcf_compound_key}}, \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form\", \"files\": \"[]\", \"id\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"trailerRegNr\": \"123ABC\"}"
         }
       },
       "event": [
@@ -1197,7 +1197,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"trailerRegNr\": \"\", \"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[\\\"MSI203\\\"]\", \"notes\": \"\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[\\\"MSI203\\\"]\", \"notes\": \"\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"trailerRegNr\": \"123ABC\"}"
         }
       },
       "event": [
@@ -1244,7 +1244,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"trailerRegNr\": \"\", \"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form confirmed\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form confirmed\", \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"trailerRegNr\": \"123ABC\"}"
         }
       },
       "event": [
@@ -1292,7 +1292,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"trailerRegNr\": \"\", \"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"Should not save\", \"compoundFormKey\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"Should not save\", \"compoundFormKey\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"trailerRegNr\": \"123ABC\"}"
         }
       },
       "event": [
@@ -1339,7 +1339,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"trailerRegNr\": \"\", \"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form re-saved after confirm\", \"compoundFormKey\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null}"
+          "raw": "{\"id\": \"{{created_ttf_id}}\", \"partsSummary\": \"[{\\\"partCode\\\":\\\"CAA_5\\\",\\\"status\\\":\\\"checked\\\"}]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"violations\": \"[]\", \"notes\": \"CI trailer technical form re-saved after confirm\", \"compoundFormKey\": null, \"resultTransportInterruption\": null, \"eraYvMntRegnr\": null, \"eraYvMntVintin\": null, \"eraYvMntAxles\": null, \"eraYvMntPlaces\": null, \"eraYvMntRebuilt\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"trailerRegNr\": \"123ABC\"}"
         }
       },
       "event": [
