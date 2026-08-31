@@ -1334,18 +1334,17 @@
       "response": []
     },
     {
-      "name": "POST /v1/notifications/resend?logId= \u2014 admin \u2192 200",
+      "name": "POST /v1/notifications/resend?logId= \u2014 admin \u2192 200 (PK 2.0 mock)",
       "event": [
         {
           "listen": "test",
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('200 (endpoint reachable, notification.admin ok)', () => pm.response.to.have.status(200));",
-              "// NB: the UC-04 append-only round-trip (a new outbound_log row with originalLogId set)",
-              "// is NOT asserted here \u2014 resend.yml currently no-ops: send-postkast requires a `recipients`",
-              "// body field resend does not send, loadOriginalLog pages only 1 row, and it reads snake_case",
-              "// fields off a camelCase Resql response. Tracked separately; re-add the assertion once fixed."
+              "pm.test('200 (send-postkast returns mock success)', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('mock PK sending_operation_id returned', () => pm.expect(row.pkSendingOperationId || row.logId).to.not.be.empty);"
             ]
           }
         }
@@ -1389,7 +1388,7 @@
       "response": []
     },
     {
-      "name": "GET /v1/notifications/outbound-log/list \u2014 admin \u2192 original row never mutated (append-only)",
+      "name": "GET /v1/notifications/outbound-log/list \u2014 admin \u2192 resend appended a new row, original untouched",
       "event": [
         {
           "listen": "test",
@@ -1400,8 +1399,9 @@
               "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
               "var list = Array.isArray(body) ? body : [];",
               "var orig = pm.environment.get('outbound_log_id');",
-              "var r = list.find(x => String(x.id) === orig);",
-              "pm.test('original row still present and unchanged', () => { pm.expect(r).to.not.be.undefined; pm.expect(r.status).to.eql('sent'); });"
+              "var origRow = list.find(x => String(x.id) === orig);",
+              "pm.test('original row still present and unchanged (append-only)', () => { pm.expect(origRow).to.not.be.undefined; pm.expect(origRow.status).to.eql('sent'); });",
+              "pm.test('a resend row referencing the original exists', () => pm.expect(list.some(x => x.originalLogId && String(x.originalLogId) === orig)).to.be.true);"
             ]
           }
         }

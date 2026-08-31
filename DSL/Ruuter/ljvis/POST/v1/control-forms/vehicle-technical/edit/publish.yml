@@ -121,7 +121,7 @@ checkDrivingBan:
 createDrivingBanNotification:
   call: http.post
   args:
-    url: "[#LJVIS_RUUTER_INTERNAL]/ljvis/notification/create"
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
     headers:
       type: json
     body:
