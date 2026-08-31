@@ -9,9 +9,7 @@
 -- koodi (frontend useUserForm.ts structuralUnitOptions -> value: u.code).
 --
 -- Asendab test-seemne DSL/Liquibase/test/20260804130000-...-placeholder-seed.sql.
--- Aadress on kõigil prefektuuridel sama (PPA peadirektsioon, tooteomaniku otsus,
--- 2026-09) — prefektuuridel puudub avalik eraldi kontaktplokk; maakondlik
--- tööpiirkond on lisatud name-teksti.
+-- Prefektuuride aadressid ja maakondlik tööpiirkond on name-tekstis; üldtelefon 1247.
 -- Idempotentne: DO $$ IF EXISTS ... RETURN.
 
 DO $$
@@ -36,10 +34,10 @@ BEGIN
 
     FOR v_rec IN
         SELECT * FROM (VALUES
-            ('PPA_POHJA', 'Politsei- ja Piirivalveamet – Põhja prefektuur (Harju maakond), Pärnu mnt 139, 15060 Tallinn, tel 1247'),
-            ('PPA_IDA',   'Politsei- ja Piirivalveamet – Ida prefektuur (Lääne-Viru ja Ida-Viru maakond), Pärnu mnt 139, 15060 Tallinn, tel 1247'),
-            ('PPA_LOUNA', 'Politsei- ja Piirivalveamet – Lõuna prefektuur (Jõgeva, Põlva, Tartu, Valga, Viljandi ja Võru maakond), Pärnu mnt 139, 15060 Tallinn, tel 1247'),
-            ('PPA_LAANE', 'Politsei- ja Piirivalveamet – Lääne prefektuur (Hiiu, Järva, Lääne, Pärnu, Rapla ja Saare maakond), Pärnu mnt 139, 15060 Tallinn, tel 1247')
+            ('PPA_POHJA', 'Politsei- ja Piirivalveamet – Põhja prefektuur (Harju maakond), Pärnu mnt 139, 15028 Tallinn, tel 1247'),
+            ('PPA_IDA',   'Politsei- ja Piirivalveamet – Ida prefektuur (Lääne-Viru ja Ida-Viru maakond), Rahu 38, 41532 Jõhvi, tel 1247'),
+            ('PPA_LOUNA', 'Politsei- ja Piirivalveamet – Lõuna prefektuur (Jõgeva, Põlva, Tartu, Valga, Viljandi ja Võru maakond), Riia 132, 50096 Tartu, tel 1247'),
+            ('PPA_LAANE', 'Politsei- ja Piirivalveamet – Lääne prefektuur (Hiiu, Järva, Lääne, Pärnu, Rapla ja Saare maakond), Pikk 18, 80089 Pärnu, tel 1247')
         ) AS t(code, header_text)
     LOOP
         INSERT INTO classifier.classifier_value (
