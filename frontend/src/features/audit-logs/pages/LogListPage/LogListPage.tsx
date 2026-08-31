@@ -24,7 +24,8 @@ export function LogListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
-  const forbidden = !hasPermission('audit.read');
+  const forbidden =
+    !hasPermission('audit.read') && !hasPermission('audit.read.local');
 
   const {
     data,

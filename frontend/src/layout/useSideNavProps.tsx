@@ -125,7 +125,10 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
-    if (hasPermission(PERMISSIONS.AUDIT_READ)) {
+    if (
+      hasPermission(PERMISSIONS.AUDIT_READ) ||
+      hasPermission(PERMISSIONS.AUDIT_READ_LOCAL)
+    ) {
       adminSubItems.push({
         children: t('nav.logs'),
         to: '/logs',
