@@ -3,19 +3,18 @@ declaration:
   version: "1.0"
   description: >-
     Nightly full risk-score recalculation (LJVIS2-150/151/152): for every
-    distinct Estonian company that has ever had a published compound_form
-    (select_companies_for_recalc.sql), call
+    company that ever had a published compound_form
+    (select_companies_for_recalc.sql), calls
     [#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate with
-    calculation_trigger='ooine_ymberarvutus'. Unlike the etoimik/yvkehtivus
-    cron jobs, this one calls back into Ruuter.internal itself (not XTR) —
-    there's no external-service resilience gap, since recalculate.yml
-    always returns a clean HTTP response for a valid 8-digit reg code
-    (200 on success, 500 only if calculate_risk_score.sql itself errors).
-    risk.company_risk_score is insert-only history by design (see
-    docs/risk-score/formula.md §5) — every run appends a new row per
-    company, it never "resolves" a candidate out of the selection query
-    the way the other three cron jobs do. No audit.audit_event is written
-    for this job; the score history table is its own audit trail.
+    calculation_trigger='ooine_ymberarvutus'. risk.company_risk_score is
+    insert-only history (docs/risk-score/formula.md §5) — every run
+    appends a new row per company, unlike the other 3 cron jobs which
+    resolve a candidate out of the selection query.
+
+    Writes one audit.audit_event per run (companiesChecked/recalculated/
+    failures + failed reg codes) — the only trace of a run, since
+    CronManager history is disabled and ignoreFailures:true swallows
+    job-level errors.
 
     Called by CronManager nightly (DSL/CronManager/risk-score-recalc.yaml).
   namespace: cron
@@ -69,6 +68,43 @@ processCompanies:
             })()}
     collect: "${({ companyRegCode: company_reg_code, success: outcome.success })}"
     into: results
+  next: logAuditEvent
+
+# Written unconditionally. Direct call to the generic audit insert (not
+# the GET templates/audit/log-audit-event chain, which needs a session
+# cookie this cron-triggered Ruuter.internal endpoint doesn't have).
+logAuditEvent:
+  assign:
+    failed_reg_codes: "${results.filter(r => !r.success).map(r => r.companyRegCode)}"
+  next: writeAuditEvent
+
+writeAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ""
+      event_type: "risk_score.nightly_recalc"
+      event_category: "system_process"
+      actor_name: "system"
+      actor_personal_code: ""
+      description: >-
+        ${'Öine riskiskooride ümberarvutus: ' + companies.length + ' ettevõtet kontrollitud, ' +
+          results.filter(r => r.success).length + ' arvutatud, ' +
+          failed_reg_codes.length + ' ebaõnnestus'}
+      log_content: >-
+        ${JSON.stringify({
+          companiesChecked: companies.length,
+          recalculated: results.filter(r => r.success).length,
+          failures: failed_reg_codes.length,
+          failedCompanyRegCodes: failed_reg_codes
+        })}
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: auditRes
   next: returnSummary
 
 returnSummary:

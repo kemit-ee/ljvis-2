@@ -241,6 +241,8 @@ services:
     image: turnerrainer/cronmanager:alpha
     environment:
       - CRONMANAGER_CONFIG=/app/cronmanager.yaml
+      # Quartz-cron triggers (DSL/CronManager/*.yaml) run in this timezone.
+      - TZ=Europe/Tallinn
     volumes:
       - ./cronmanager.yaml:/app/cronmanager.yaml:ro
       - ./DSL/CronManager:/app/DSL/jobs:ro

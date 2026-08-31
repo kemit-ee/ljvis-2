@@ -3,9 +3,7 @@
 # + DSL/Resql/ljvis/POST/user/deactivate_expired_users.sql — this file only
 # schedules the call.
 #
-# Trigger is Quartz-cron (sec min hour day month day-of-week), evaluated in
-# the container's local time. Set TZ=Europe/Tallinn on the cronmanager
-# service if it needs to be exactly 02:00 Tallinn time.
+# Runs at 02:00 Tallinn time (TZ pinned in docker-compose.yml).
 deactivate_expired_users:
   trigger: "0 0 2 * * ?"
   type: http

@@ -4,8 +4,9 @@ declaration:
   description: >-
     Write the extraordinary inspection date found via the hourly
     yvkehtivus sync (LJVIS2-135/58/23) onto the latest
-    vehicle_technical_form snapshot, in place — same non-version-bumping
-    convention as update-xroad-fields.sql. Scoped to only this one column
+    vehicle_technical_form snapshot, in place — same X-tee-block exception
+    to the insert-only snapshot convention as update-xroad-fields.sql
+    (LJVIS2-72 §4: X-tee fields don't bump version /V). Scoped to only this one column
     so this job can never clobber enforcement_decision/proceeding_closure_basis,
     which come from a separate manual channel
     (edit/xroad/save-xroad-fields.yml) this cron job knows nothing about.
