@@ -55,16 +55,17 @@ import { createAdrValidationSchema } from '../adr-form/useAdrForm';
 import { saveDriveRestForm, saveTechnicalCheckForm, saveAdrForm, saveTransportInterruptionForm } from '../../api';
 import type { TransportInterruptionForm } from '../../types';
 
+type AnySubFormData = Partial<DriveRestForm> | Partial<TechnicalCheckForm> | Partial<AdrForm> | Partial<TransportInterruptionForm>;
+
 interface FormRef {
   handleSubmit?: (overrideCompoundFormKey?: number) => void;
-  getFormData?: () => Partial<DriveRestForm>;
-  setFormData?: (data: Partial<DriveRestForm>) => void;
+  getFormData?: () => AnySubFormData;
+  setFormData?: (data: AnySubFormData) => void;
   hasErrors?: () => boolean;
   validateForm?: () => void;
 }
 
 const DRIVE_REST_ROUTES = ['/sp-driver', '/sp-teammate'] as const;
-const TECHNICAL_CHECK_ROUTES = ['/vehicle-technical', '/trailer-technical'] as const;
 const ADR_ROUTES = ['/adr'] as const;
 const TRANSPORT_INTERRUPTION_ROUTES = ['/transport-interruption'] as const;
 
@@ -121,6 +122,7 @@ export function CompoundFormCreatePage() {
   );
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
+  const [trailerTabIndices, setTrailerTabIndices] = useState<Set<number>>(new Set());
 
   const removeTab = (tabId: string) => {
     setOpenTabs((prev) => prev.filter((t) => t !== tabId));
@@ -135,7 +137,40 @@ export function CompoundFormCreatePage() {
       next.delete(tabId);
       return next;
     });
+    if (tabId.startsWith('tab-trailer-technical-')) {
+      const idx = Number(tabId.replace('tab-trailer-technical-', ''));
+      setTrailerTabIndices((prev) => {
+        const next = new Set(prev);
+        next.delete(idx);
+        return next;
+      });
+    }
     setActiveTab('tab-1');
+  };
+
+  const addTrailerControlForm = (index: number, regNr: string) => {
+    const tabId = `tab-trailer-technical-${index}`;
+    if (!formRefs.current[tabId]) {
+      formRefs.current[tabId] = { current: null };
+    }
+    savedFormData.current[tabId] = {
+      ...savedFormData.current[tabId],
+      trailerRegNr: regNr,
+    } as Partial<TechnicalCheckForm>;
+    setTrailerTabIndices((prev) => new Set([...prev, index]));
+    if (!openTabs.includes(tabId)) {
+      setOpenTabs((prev) => [...prev, tabId]);
+      setTabErrors((prev) => ({ ...prev, [tabId]: false }));
+    }
+    handleTabChange(tabId);
+    window.scrollTo(0, 0);
+  };
+
+  const editTrailerControlForm = (index: number) => {
+    const tabId = `tab-trailer-technical-${index}`;
+    if (!openTabs.includes(tabId)) return;
+    handleTabChange(tabId);
+    window.scrollTo(0, 0);
   };
 
   const addTab = (route: string) => {
@@ -150,16 +185,6 @@ export function CompoundFormCreatePage() {
     handleTabChange(tabDef.tabId);
   };
 
-  const tabLabels: Record<string, string> = {
-    'tab-1': t('forms.compound_form'),
-    ...Object.values(ROUTE_TO_TAB).reduce(
-      (acc, { tabId, labelKey }) => ({ ...acc, [tabId]: t(labelKey) }),
-      {} as Record<string, string>,
-    ),
-  };
-
-  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
-
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -168,11 +193,11 @@ export function CompoundFormCreatePage() {
 
   const formRefs = useRef<Record<string, React.MutableRefObject<FormRef | null>>>(
     Object.values(ROUTE_TO_TAB).reduce((acc, { tabId }) => {
-      acc[tabId] = React.createRef<FormRef>();
+      acc[tabId] = { current: null };
       return acc;
-    }, {} as Record<string, React.RefObject<FormRef>>)
+    }, {} as Record<string, React.MutableRefObject<FormRef | null>>)
   );
-  const savedFormData = useRef<Record<string, Partial<DriveRestForm>>>({});
+  const savedFormData = useRef<Record<string, AnySubFormData>>({});
   // Refs mirror the state below so the async save handler always reads the
   // latest value instead of a stale value captured in its closure
   const compoundFormIdRef = useRef<number | null>(null);
@@ -217,8 +242,9 @@ export function CompoundFormCreatePage() {
       const isTransportInterruption = TRANSPORT_INTERRUPTION_ROUTES.some(
         (route) => ROUTE_TO_TAB[route].tabId === tabId,
       );
-      const isTechnicalCheck = !isAdr && !isTransportInterruption && TECHNICAL_CHECK_ROUTES.some(
-        (route) => ROUTE_TO_TAB[route].tabId === tabId,
+      const isTechnicalCheck = !isAdr && !isTransportInterruption && (
+        ROUTE_TO_TAB['/vehicle-technical'].tabId === tabId ||
+        tabId.startsWith('tab-trailer-technical-')
       );
       const schema = isAdr ? adrSchema : isTransportInterruption ? null : isTechnicalCheck ? technicalCheckSchema : driveRestSchema;
       const formRef = formRefs.current[tabId]?.current;
@@ -319,11 +345,37 @@ export function CompoundFormCreatePage() {
     availableForms,
   } = useCompoundForm(undefined, handleSaved);
 
+  const trailerTabDynamicLabels: Record<string, string> = {};
+  formik.values.trailers.forEach((tr: Trailer, idx: number) => {
+    trailerTabDynamicLabels[`tab-trailer-technical-${idx}`] = tr.regNr
+      ? `${t('forms.technical_check.trailerTitle')} (${tr.regNr})`
+      : t('forms.technical_check.trailerTitle');
+  });
+
+  const tabLabels: Record<string, string> = {
+    'tab-1': t('forms.compound_form'),
+    ...Object.values(ROUTE_TO_TAB)
+      .filter(({ tabId }) => tabId !== 'tab-trailer-technical')
+      .reduce(
+        (acc, { tabId, labelKey }) => ({ ...acc, [tabId]: t(labelKey) }),
+        {} as Record<string, string>,
+      ),
+    ...trailerTabDynamicLabels,
+  };
+
+  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
+
   // Update tab errors from refs (safe to access refs in useEffect)
   useEffect(() => {
     setTabErrors((prev) => {
       const newTabErrors: Record<string, boolean> = {};
-      Object.values(ROUTE_TO_TAB).forEach(({ tabId }) => {
+      const allTabIds = [
+        ...Object.values(ROUTE_TO_TAB)
+          .filter(({ tabId }) => tabId !== 'tab-trailer-technical')
+          .map(({ tabId }) => tabId),
+        ...openTabs.filter((id) => id.startsWith('tab-trailer-technical-')),
+      ];
+      allTabIds.forEach((tabId) => {
         if (openTabs.includes(tabId)) {
           // Only update the error state for tabs that have already been
           // validated; otherwise keep the previous value (false for new tabs)
@@ -342,6 +394,17 @@ export function CompoundFormCreatePage() {
       return newTabErrors;
     });
   }, [openTabs, formik.values, validatedTabs]);
+
+  // Sync trailer reg-nr changes into the corresponding trailer technical tab
+  useEffect(() => {
+    formik.values.trailers.forEach((trailer: Trailer, index: number) => {
+      const tabId = `tab-trailer-technical-${index}`;
+      const ref = formRefs.current[tabId]?.current;
+      if (ref?.setFormData && trailer.regNr) {
+        ref.setFormData({ trailerRegNr: trailer.regNr });
+      }
+    });
+  }, [formik.values.trailers]);
 
   // Trigger validation for compound form on mount and value changes
   useEffect(() => {
@@ -1315,9 +1378,39 @@ export function CompoundFormCreatePage() {
                                         display: 'flex',
                                         justifyContent: 'flex-end',
                                         alignItems: 'flex-end',
+                                        gap: '0.5rem',
                                       }}
                                       className={styles['full-span']}
                                     >
+                                      {trailerTabIndices.has(index) ? (
+                                        <Button
+                                          type="button"
+                                          visualType="secondary"
+                                          onClick={() =>
+                                            editTrailerControlForm(index)
+                                          }
+                                        >
+                                          {t(
+                                            'forms.compound.editTrailerControlForm',
+                                          )}
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          type="button"
+                                          visualType="secondary"
+                                          disabled={!trailer.regNr}
+                                          onClick={() =>
+                                            addTrailerControlForm(
+                                              index,
+                                              trailer.regNr,
+                                            )
+                                          }
+                                        >
+                                          {t(
+                                            'forms.compound.addTrailerControlForm',
+                                          )}
+                                        </Button>
+                                      )}
                                       <Button
                                         type="button"
                                         visualType="secondary"
@@ -2143,36 +2236,91 @@ export function CompoundFormCreatePage() {
             </Tabs.Content>
           ) : null;
         })}
-        {TECHNICAL_CHECK_ROUTES.map((route) => {
-          const { tabId, type: tabType } = ROUTE_TO_TAB[route];
-          return openTabs.includes(tabId) ? (
-            <Tabs.Content key={tabId} id={tabId} className="p-1">
-              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+        {(() => {
+          const vehicleTabId = ROUTE_TO_TAB['/vehicle-technical'].tabId;
+          return openTabs.includes(vehicleTabId) ? (
+            <Tabs.Content key={vehicleTabId} id={vehicleTabId} className="p-1">
+              <div
+                style={{
+                  display: activeTab === vehicleTabId ? 'block' : 'none',
+                }}
+              >
                 <TechnicalCheckFormCreatePage
-                  type={tabType as TechnicalCheckVariant}
+                  type="vehicle"
                   compoundFormKey={undefined}
-                  initialValidate={validatedTabs.has(tabId)}
+                  initialValidate={validatedTabs.has(vehicleTabId)}
                   onValuesChange={(values) => {
-                    savedFormData.current[tabId] =
+                    // eslint-disable-next-line react-hooks/immutability
+                    savedFormData.current[vehicleTabId] =
                       values as Partial<DriveRestForm>;
                   }}
                   ref={(ref) => {
-                    formRefs.current[tabId].current =
-                      ref as TechnicalCheckFormCreatePageRef;
+                    const vehicleRef = formRefs.current[vehicleTabId];
+                    vehicleRef.current = ref as TechnicalCheckFormCreatePageRef;
                   }}
                   onSaved={(id) => {
                     if (id) {
                       savedDriveRestFormsRef.current = new Set(
                         savedDriveRestFormsRef.current,
-                      ).add(tabId);
-                      savedSubFormIdsRef.current[tabId] = String(id);
+                      ).add(vehicleTabId);
+                      savedSubFormIdsRef.current[vehicleTabId] = String(id);
                     }
                   }}
+                  compoundTrailers={formik.values.trailers}
                 />
               </div>
             </Tabs.Content>
           ) : null;
-        })}
+        })()}
+        {openTabs
+          .filter((id) => id.startsWith('tab-trailer-technical-'))
+          .map((tabId) => {
+            const trailerIndex = Number(
+              tabId.replace('tab-trailer-technical-', ''),
+            );
+            const trailerRegNr = formik.values.trailers[trailerIndex]?.regNr;
+            return (
+              <Tabs.Content key={tabId} id={tabId} className="p-1">
+                <div
+                  style={{ display: activeTab === tabId ? 'block' : 'none' }}
+                >
+                  <TechnicalCheckFormCreatePage
+                    type="trailer"
+                    compoundFormKey={undefined}
+                    initialValidate={validatedTabs.has(tabId)}
+                    onValuesChange={(values) => {
+                      savedFormData.current[tabId] =
+                        values as Partial<DriveRestForm>;
+                    }}
+                    ref={(ref) => {
+                      if (!formRefs.current[tabId]) {
+                        formRefs.current[tabId] = React.createRef<FormRef>();
+                      }
+                      formRefs.current[tabId].current =
+                        ref as TechnicalCheckFormCreatePageRef;
+                    }}
+                    onSaved={(id) => {
+                      if (id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String(id);
+                      }
+                    }}
+                    compoundTrailers={formik.values.trailers}
+                    trailerIndex={trailerIndex}
+                    initialData={
+                      trailerRegNr
+                        ? ({
+                            trailerRegNr,
+                          } as Partial<TechnicalCheckForm> as TechnicalCheckForm)
+                        : undefined
+                    }
+                  />
+                </div>
+              </Tabs.Content>
+            );
+          })}
         {ADR_ROUTES.map((route) => {
           const { tabId } = ROUTE_TO_TAB[route];
           return openTabs.includes(tabId) ? (
@@ -2288,9 +2436,14 @@ export function CompoundFormCreatePage() {
                     check();
                   });
                 } else {
-                  const tabDef = Object.values(ROUTE_TO_TAB).find(
-                    (t) => t.tabId === tabId,
+                  const isDynamicTrailerTab = tabId.startsWith(
+                    'tab-trailer-technical-',
                   );
+                  const tabDef = isDynamicTrailerTab
+                    ? { tabId, type: 'trailer', labelKey: '' }
+                    : Object.values(ROUTE_TO_TAB).find(
+                        (t) => t.tabId === tabId,
+                      );
                   const isAdrTab = ADR_ROUTES.some(
                     (route) => ROUTE_TO_TAB[route].tabId === tabId,
                   );
@@ -2301,9 +2454,8 @@ export function CompoundFormCreatePage() {
                   const isTechnicalCheck =
                     !isAdrTab &&
                     !isTransportInterruptionTab &&
-                    TECHNICAL_CHECK_ROUTES.some(
-                      (route) => ROUTE_TO_TAB[route].tabId === tabId,
-                    );
+                    (ROUTE_TO_TAB['/vehicle-technical'].tabId === tabId ||
+                      isDynamicTrailerTab);
                   if (tabDef) {
                     if (isAdrTab) {
                       const raw = savedFormData.current[

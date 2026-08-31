@@ -30,6 +30,7 @@ interface CompoundFormViewCardProps {
   onDelete?: () => void;
   isSnapshot?: boolean;
   formType: string;
+  versionsRefreshKey?: number;
 }
 
 export function CompoundFormViewCard({
@@ -44,6 +45,7 @@ export function CompoundFormViewCard({
   citiesParishes,
   companyCitiesParishes,
   formType,
+  versionsRefreshKey,
 }: CompoundFormViewCardProps) {
   const { t } = useTranslation();
 
@@ -324,6 +326,11 @@ export function CompoundFormViewCard({
                 {trailers.map((trailer: Trailer, index: number) => (
                   <Card key={index} className="mb-1">
                     <Card.Content>
+                      <Heading element="h3" className="mb-1">
+                        {t('forms.compound.trailerNumber', {
+                          number: index + 1,
+                        })}
+                      </Heading>
                       <div
                         className={gridClass}
                         style={{ alignItems: 'start' }}
@@ -630,7 +637,7 @@ export function CompoundFormViewCard({
           </Card>
 
           {form.id && (
-            <FormVersionsTable formId={form.id} formType={formType} />
+            <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />
           )}
         </div>
       </Card.Content>
