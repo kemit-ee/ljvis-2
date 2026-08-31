@@ -5,6 +5,3 @@ ALTER TABLE xroad.xroad_integration_log
     DROP COLUMN IF EXISTS person_identifier,
     DROP COLUMN IF EXISTS source_type,
     DROP COLUMN IF EXISTS source_record_id;
-
-ALTER TABLE forms.trailer_technical_check
-    DROP COLUMN IF EXISTS trailer_reg_nr;
