@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Get audit log details by id"
+  description: "Get audit log details by id. audit.read sees any event; only audit.read.local restricts to events whose actor belonged to the caller's own organisation."
   namespace: logs
   allowlist:
     params:
@@ -9,9 +9,24 @@ declaration:
         type: string
         description: "Audit log id"
 
+getContext:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: checkAuditPermission
+
+checkAuditPermission:
+  switch:
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('audit.read') || auth_user.permissions.includes('audit.read.local'))}
+      next: extractRequestData
+  next: returnForbidden
+
 extractRequestData:
   assign:
     id: "${incoming.params.q}"
+    organisation_filter: "${(auth_user.permissions != null && auth_user.permissions.includes('audit.read')) ? '' : String(auth_user.organisationid ?? '')}"
   next: getLog
 
 getLog:
@@ -22,9 +37,15 @@ getLog:
       type: json
     body:
       id: ${id}
+      organisation_id: ${organisation_filter}
   result: res
   next: returnSuccess
 
 returnSuccess:
   return: ${res.response.body}
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "forbidden"
   next: end

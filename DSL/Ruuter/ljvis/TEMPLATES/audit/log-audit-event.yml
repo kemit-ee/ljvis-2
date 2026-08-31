@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Write one audit event to the database. Actor data is passed in by the caller (already sourced from JWT). Generates a ULID event_id before the INSERT. Extracts trace_id and span_id from the incoming traceparent header."
+  description: "Write one audit event to the database. Actor data is passed in by the caller (already sourced from JWT). Generates a ULID event_id before the INSERT. Extracts trace_id and span_id from the incoming traceparent header. Derives the actor's organisation_id from actor_personal_code (for the audit.read.local scope) — NULL for system actors."
   namespace: service
   allowlist:
     body:
@@ -24,6 +24,29 @@ generateEventId:
     traceparent: "${incoming.headers.traceparent || ''}"
     trace_id: "${(incoming.headers.traceparent || '').split('-')[1] || ''}"
     span_id: "${(incoming.headers.traceparent || '').split('-')[2] || ''}"
+    organisation_id: ""
+  next: resolveOrganisation
+
+resolveOrganisation:
+  switch:
+    - condition: ${(incoming.body.actor_personal_code || '') === ''}
+      next: logToResql
+  next: lookupOrganisation
+
+lookupOrganisation:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user_organisation_by_personal_code"
+    headers:
+      type: json
+    body:
+      personal_code: ${incoming.body.actor_personal_code}
+  result: orgRes
+  next: assignOrganisation
+
+assignOrganisation:
+  assign:
+    organisation_id: "${(Array.isArray(orgRes.response.body) && orgRes.response.body[0] && orgRes.response.body[0].organisation_id != null) ? String(orgRes.response.body[0].organisation_id) : ''}"
   next: logToResql
 
 logToResql:
@@ -40,6 +63,7 @@ logToResql:
       actor_personal_code: "${incoming.body.actor_personal_code || ''}"
       description: ${incoming.body.description}
       log_content: ${incoming.body.log_content}
+      organisation_id: ${organisation_id}
       created_by: "${incoming.body.actor_name || ''}"
       trace_id: ${trace_id}
       span_id: ${span_id}

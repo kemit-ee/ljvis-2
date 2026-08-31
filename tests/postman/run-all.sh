@@ -156,6 +156,10 @@ newman run "$COL/notifications.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/notifications.html"
 
+newman run "$COL/audit-log.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/audit-log.html"
+
 echo ""
 echo "All collections passed."
 echo "HTML reports:"
