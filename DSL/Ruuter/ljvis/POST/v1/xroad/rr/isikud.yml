@@ -11,9 +11,6 @@ declaration:
     Service identifier: ee-test/GOV/70008440/rr/dde/v1/isikud.
     Returns firstName/lastName/citizenship/dateOfBirth/personStatus, or null data
     if no match. See LJVIS2-54.
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
   allowlist:
     body:

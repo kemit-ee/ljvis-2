@@ -8,19 +8,9 @@ declaration:
     Atomaarne: ühe elemendi ebaõnnestumisel terve batch ebaõnnestub.
     Idempotentne: korduspäring sama kombinatsiooniga annab sama tulemuse.
     Vt docs/xtee/04-erakorraline-yv-confirm.md.
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
 
-# Samm 1: X-Road-Client päise kontroll
-validateXRoadClient:
-  switch:
-    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
-      next: returnMissingHeader
-  next: validateItems
-
-# Samm 2: Kinnita et confirmed.item[] on olemas ja ei ole tühi
+# Samm 1: Kinnita et confirmed.item[] on olemas ja ei ole tühi
 validateItems:
   switch:
     - condition: "${incoming.body.confirmed == null || incoming.body.confirmed.item == null || incoming.body.confirmed.item.length === 0}"
@@ -146,11 +136,6 @@ logFailure:
   next: returnServerError
 
 # Veavastused
-returnMissingHeader:
-  status: 400
-  return: '{"error": "MISSING_HEADER", "message": "X-Road-Client header is required"}'
-  next: end
-
 returnMissingItems:
   status: 400
   return: '{"error": "MISSING_PARAMETER", "message": "confirmed.item must be a non-empty array"}'

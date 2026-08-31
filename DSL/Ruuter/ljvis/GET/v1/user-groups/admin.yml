@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get a single user group by ID (admin scope — all organisations)"
-  method: get
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     params:

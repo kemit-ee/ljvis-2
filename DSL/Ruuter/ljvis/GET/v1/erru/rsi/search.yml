@@ -5,9 +5,6 @@ declaration:
     filters are OR-combined with each other and AND-combined with all other filters. Audited on every
     load because the list exposes handler names and vehicle registration numbers (personal-data footprint).
     Sits under the existing GET/v1/erru/rsi/.guard (rsi.read) — no new guard file needed."
-  method: get
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     params:

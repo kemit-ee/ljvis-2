@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Audit: CGR request list viewed (LJVIS2-140). Logged on EVERY list load, because the list exposes person-related data (transport manager and handler names) and the log must make it traceable who saw whose data. The description carries the applied filters (including the handler personal code filter), the number of rows shown and the page number. Actor is supplied by the caller, which has already resolved it via TIM userinfo."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

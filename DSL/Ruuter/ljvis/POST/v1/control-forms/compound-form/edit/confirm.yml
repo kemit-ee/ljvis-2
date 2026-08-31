@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Confirm compound form"
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:
@@ -254,24 +251,6 @@ confirmForm:
 extractResponseData:
   assign:
     compound_form_key: "${confirmRes.response.body[0].id || ''}"
-  next: triggerRiskRecalculate
-
-triggerRiskRecalculate:
-  switch:
-    - condition: "${!/^[0-9]{8}$/.test('' + (company_reg_code || ''))}"
-      next: returnSuccess
-  next: callRiskRecalculate
-
-callRiskRecalculate:
-  call: http.post
-  args:
-    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
-    headers:
-      type: json
-    body:
-      company_reg_code: ${company_reg_code}
-      calculation_trigger: "kontrollvorm"
-  result: recalc_result
   next: returnSuccess
 
 returnSuccess:

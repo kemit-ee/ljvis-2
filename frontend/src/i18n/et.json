@@ -428,6 +428,7 @@
       "validation": {
         "required": "Kohustuslik väli",
         "notesMaxLength": "Märkuste maht on piiratud 2000 tähemärgiga",
+        "checkError": "Salvestamiseks peab olema vähemalt üks sõiduki osa või sõlm kontrollitud",
         "api": {
           "required": "Kohustuslik väli",
           "max_length_2000": "Märkuste maht on piiratud 2000 tähemärgiga",
@@ -762,7 +763,7 @@
       "driver2": "Teise juhi / meeskonna liikme andmed",
       "driverPersonalCodeEe": "Eesti isikukood",
       "driverFirstName": "Eesnimi",
-      "driverLastName": "Perenimi",
+      "driverLastName": "Perekonnanimi",
       "driverCitizenshipCode": "Kodakondsus",
       "driverPersonalCodeForeign": "Välisriigi isikukood",
       "driverBirthDate": "Sünniaeg",
@@ -770,7 +771,7 @@
       "removeDriver": "Eemalda juht",
       "inspector": "Sõidukit kontrollinud ametiisiku andmed",
       "inspectorFirstName": "Eesnimi",
-      "inspectorLastName": "Perenimi",
+      "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuurüksus",
       "inspectorProfession": "Ametinimetus"
@@ -805,7 +806,7 @@
       "companyPostalCode": "Sihtnumber",
       "driverBasicInfo": "Autojuhi andmed",
       "driverFirstName": "Eesnimi",
-      "driverLastName": "Perenimi",
+      "driverLastName": "Perekonnanimi",
       "vehicleBasicInfo": "Sõiduki andmed",
       "vehicleRegNr": "Registreerimismärk",
       "vehicleMake": "Mark",
@@ -1005,7 +1006,7 @@
       "dataEntryDate": "Andmete sisestamise kuupäev",
       "inspectorBasicInfo": "Andmete sisestaja",
       "inspectorFirstName": "Eesnimi",
-      "inspectorLastName": "Perenimi",
+      "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus",

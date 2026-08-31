@@ -13,9 +13,6 @@ declaration:
     noted in the task plan §12/§2). Response omits riskBandErru (ERRU-only
     field) — see Ruuter.internal/.../risk-scores/current.yml for the full
     shape.
-  method: get
-  accepts: json
-  returns: json
   namespace: risk_score
   allowlist:
     params:

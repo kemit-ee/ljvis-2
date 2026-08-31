@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Single source of truth for CGR request field validation (LJVIS2-138) — shared by the create (POST), revise (PUT) and inbound-request paths so the ERRU rules are defined once. Mirrors the erru.cgr_request CHECK constraints (chk_cgr_search_choice, chk_cgr_cgr_to_format). Returns '{\"valid\":true}' when all checks pass, otherwise the standard VALIDATION_ERROR shape ready to forward to the client as-is.\n\nSame Ruuter caveat as validate-ctud-request.yml: every condition reads incoming.body directly (never a pre-assigned variable) and every emptiness test is truthiness-first, because ScriptingHelper.filterEmptyOptional discards an assign that evaluates to '', turning it into undefined."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     body:

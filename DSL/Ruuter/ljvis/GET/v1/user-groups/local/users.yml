@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "List members of a user group filtered by own organisation (local scope)"
-  method: get
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     params:

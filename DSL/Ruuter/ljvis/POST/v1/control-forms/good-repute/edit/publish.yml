@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Publish (avalikusta) a good repute form (hea maine vorm). Publishing re-saves current field values, then transitions status confirmed -> published. One-way: an already-published form cannot be published again."
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

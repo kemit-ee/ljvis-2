@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get transport-interruption sub-form by id (latest snapshot)"
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

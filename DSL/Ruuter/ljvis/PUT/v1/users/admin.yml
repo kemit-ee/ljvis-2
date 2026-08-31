@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Update an existing user"
-  method: put
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     body:

@@ -31,7 +31,7 @@ export function DefectsResultsTable({
 
   const resolvePartLabel = (partCode: string): string => {
     const part = parts.find((p) => p.code === partCode);
-    return part ? `${part.code} — ${part.name}` : partCode;
+    return part ? `${part.code.replace(/^[A-Z]+_/, '')} \u2014 ${part.name}` : partCode;
   };
 
   return (
