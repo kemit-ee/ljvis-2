@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261010100000 splitStatements:false
+-- changeset ljvis:20261010100000 ignore:true splitStatements:false
 --
 -- LJVIS2-XXX: Teavituste moodul — andmemudel.
 --

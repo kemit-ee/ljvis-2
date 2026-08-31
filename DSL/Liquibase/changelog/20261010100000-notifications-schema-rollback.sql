@@ -1,6 +1,6 @@
--- Rollback: 20261010100000-notifications-schema
 -- liquibase formatted sql
--- changeset ljvis:20261010100000-rollback splitStatements:false
+-- changeset ljvis:20261010100000 ignore:true splitStatements:false
+-- Rollback: 20261010100000-notifications-schema (kutsutakse ainult .xml <rollback> kaudu)
 
 DROP TABLE IF EXISTS notifications.outbound_log_recipient;
 DROP TABLE IF EXISTS notifications.outbound_log;

@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261010100001 splitStatements:false
+-- changeset ljvis:20261010100001 ignore:true splitStatements:false
 --
 -- LJVIS2-XXX: teavituste mooduli notification.admin õigus.
 -- UC-02 saadetud kirjade logi vaatamine ja UC-04 uuesti saatmine.
