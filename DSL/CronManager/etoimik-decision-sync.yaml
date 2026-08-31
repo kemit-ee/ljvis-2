@@ -1,9 +1,7 @@
 # Runs at 01:00 Tallinn time (TZ pinned in docker-compose.yml).
 etoimik_decision_sync:
   trigger: "0 0 1 * * ?"
-  type: http
-  method: POST
-  url: http://ruuter-internal:8080/ljvis/cron/etoimik-decision-sync
-  retryCount: 2
-  retryDelay: 60000
-  ignoreFailures: true
+  type: exec
+  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/etoimik-decision-sync" || true
+  allowedEnvs:
+    - RUUTER_INTERNAL
