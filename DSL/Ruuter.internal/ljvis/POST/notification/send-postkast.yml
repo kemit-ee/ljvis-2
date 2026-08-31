@@ -65,6 +65,10 @@ resolveTemplate:
           : message_type === 'labor_foreign_proposal'
             ? '[#PK_TEMPLATE_LABOR_FOREIGN_PROPOSAL]'
             : ''}
+  next: buildPayload
+
+buildPayload:
+  assign:
     payload_obj:
       templateId: "${pk_template_id}"
       originalTemplateId: "${pk_template_id}"
