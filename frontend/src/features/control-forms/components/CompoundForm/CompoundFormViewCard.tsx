@@ -121,16 +121,12 @@ export function CompoundFormViewCard({
                     styles[isDesktop ? 'three-col-desktop' : 'three-col-mobile']
                   }
                 >
-                  <Select
+                  <TextField
                     id="controlCountryCode"
                     label={t('forms.foreign_violation.control_country_code')}
-                    options={countries}
-                    value={
-                      countries.find(
-                        (o) => o.value === form.controlCountryCode,
-                      ) ?? null
-                    }
-                    disabled={disabled}
+                    value={form.controlCountryCode}
+                    disabled
+                    onChange={() => undefined}
                   />
                   <Select
                     id="county"
@@ -267,19 +263,16 @@ export function CompoundFormViewCard({
                     inputProps={{ disabled }}
                   />
                 </div>
-                <Select
+                <TextField
                   id="vehicleCategoryCode"
                   label={t('forms.compound.vehicleCategory')}
-                  options={vehicleCategories.map((c) => ({
-                    value: c.code,
-                    label: c.name,
-                  }))}
                   value={
                     vehicleCategories
                       .map((c) => ({ value: c.code, label: c.name }))
-                      .find((o) => o.value === form.vehicleCategoryCode) ?? null
+                      .find((o) => o.value === form.vehicleCategoryCode)?.label ?? ''
                   }
-                  disabled={disabled}
+                  disabled
+                  onChange={() => undefined}
                 />
                 <TextField
                   id="vehicleCategoryOther"
@@ -398,18 +391,13 @@ export function CompoundFormViewCard({
                             inputProps={{ disabled }}
                           />
                         </div>
-                        <Select
+                        <TextField
                           id={`trailerCategoryCode_${index}`}
                           label={t('forms.compound.trailerCategory')}
-                          options={trailerCategories.map((c) => ({
-                            value: c.code,
-                            label: c.name,
-                          }))}
                           value={
-                            trailerCategories
-                              .map((c) => ({ value: c.code, label: c.name }))
-                              .find((o) => o.value === trailer.categoryCode) ??
-                            null
+                            trailerCategories.find(
+                              (c) => c.code === trailer.categoryCode,
+                            )?.name ?? ''
                           }
                           disabled={disabled}
                         />
