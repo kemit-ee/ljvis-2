@@ -58,6 +58,7 @@ extractCurrentFormData:
     transport_classes: "${currentFormRes.response.body[0].transportClasses || '[]'}"
     cabotage_violations: "${currentFormRes.response.body[0].cabotageViolations || '[]'}"
     result_type: "${currentFormRes.response.body[0].resultType || 'ok'}"
+    additional_measure: "${currentFormRes.response.body[0].additionalMeasure || ''}"
     proceeding_type: "${currentFormRes.response.body[0].proceedingType || ''}"
     proceeding_reference_number: "${currentFormRes.response.body[0].proceedingReferenceNumber || ''}"
     document_checks: "${currentFormRes.response.body[0].documentChecks || '[]'}"
@@ -102,6 +103,7 @@ publishForm:
       transportClasses: ${transport_classes}
       cabotageViolations: ${cabotage_violations}
       resultType: ${result_type}
+      additionalMeasure: ${additional_measure}
       proceedingType: ${proceeding_type}
       proceedingReferenceNumber: ${proceeding_reference_number}
       documentChecks: ${document_checks}

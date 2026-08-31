@@ -32,6 +32,8 @@ declaration:
         type: string
       - field: resultType
         type: string
+      - field: additionalMeasure
+        type: string
       - field: proceedingType
         type: string
       - field: proceedingReferenceNumber
@@ -93,6 +95,7 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   transport_nature_exempt,
                                   transport_classes,
                                   result_type,
+                                  additional_measure,
                                   proceeding_type,
                                   proceeding_reference_number,
                                   document_checks,
@@ -128,6 +131,7 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         NULLIF(:transportNatureExempt::text, '')::BOOLEAN,
         COALESCE(NULLIF(:transportClasses, '')::jsonb, '[]'::jsonb),
         NULLIF(:resultType, ''),
+        NULLIF(:additionalMeasure, ''),
         COALESCE(:proceedingType, 'none'),
         NULLIF(:proceedingReferenceNumber, ''),
         COALESCE(NULLIF(:documentChecks, '')::jsonb, '[]'::jsonb),

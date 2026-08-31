@@ -34,6 +34,8 @@ declaration:
         type: string
       - field: resultType
         type: string
+      - field: additionalMeasure
+        type: string
       - field: proceedingType
         type: string
       - field: proceedingReferenceNumber
@@ -100,6 +102,7 @@ INSERT INTO forms.sp_driver_form (sp_driver_form_key,
                                   transport_classes,
                                   cabotage_violations,
                                   result_type,
+                                  additional_measure,
                                   proceeding_type,
                                   proceeding_reference_number,
                                   document_checks,
@@ -138,6 +141,7 @@ VALUES (nextval('forms.seq_sp_driver_form_key'),
         COALESCE(NULLIF(:transportClasses, '')::jsonb, '[]'::jsonb),
         COALESCE(NULLIF(:cabotageViolations, '')::jsonb, '[]'::jsonb),
         NULLIF(:resultType, ''),
+        NULLIF(:additionalMeasure, ''),
         COALESCE(:proceedingType, 'none'),
         NULLIF(:proceedingReferenceNumber, ''),
         COALESCE(NULLIF(:documentChecks, '')::jsonb, '[]'::jsonb),
