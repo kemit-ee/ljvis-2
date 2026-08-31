@@ -179,6 +179,7 @@ export function CompoundFormViewCard({
                   <DateField
                     id="controlDate"
                     label={t('forms.compound.controlDate')}
+                    monthYearSelectType="grid"
                     selected={
                       form.controlDate ? new Date(form.controlDate) : undefined
                     }
@@ -256,6 +257,7 @@ export function CompoundFormViewCard({
                   <DateField
                     id="vehicleFirstRegistration"
                     label={t('forms.compound.vehicleFirstRegistration')}
+                    monthYearSelectType="grid"
                     selected={
                       form.vehicleFirstRegistration
                         ? new Date(form.vehicleFirstRegistration)
@@ -389,6 +391,7 @@ export function CompoundFormViewCard({
                           <DateField
                             id={`trailerFirstRegistration_${index}`}
                             label={t('forms.compound.trailerFirstRegistration')}
+                            monthYearSelectType="grid"
                             selected={
                               trailer.firstRegistration
                                 ? new Date(trailer.firstRegistration)
@@ -568,6 +571,7 @@ export function CompoundFormViewCard({
                     <DateField
                       id={`driverBirthDate_${index}`}
                       label={t('forms.compound.driverBirthDate')}
+                      monthYearSelectType="grid"
                       selected={
                         driver.birthDate
                           ? new Date(driver.birthDate)

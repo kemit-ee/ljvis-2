@@ -42,7 +42,7 @@ type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
-import { toIsoDate } from '../../../../hooks/dateUtils';
+import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
 import styles from './CompoundFormPage.module.css';
 import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../technical-check-form/TechnicalCheckFormCreatePage';
@@ -742,6 +742,7 @@ export function CompoundFormCreatePage() {
                           <DateField
                             id="controlDate"
                             label={t('forms.compound.controlDate')}
+                            monthYearSelectType="grid"
                             disableFuture
                             selected={
                               formik.values.controlDate
@@ -929,6 +930,7 @@ export function CompoundFormCreatePage() {
                           <DateField
                             id="vehicleFirstRegistration"
                             label={t('forms.compound.vehicleFirstRegistration')}
+                            monthYearSelectType="grid"
                             selected={
                               formik.values.vehicleFirstRegistration
                                 ? new Date(
@@ -1272,6 +1274,7 @@ export function CompoundFormCreatePage() {
                                         label={t(
                                           'forms.compound.trailerFirstRegistration',
                                         )}
+                                        monthYearSelectType="grid"
                                         selected={
                                           trailer.firstRegistration
                                             ? new Date(
@@ -1815,7 +1818,6 @@ export function CompoundFormCreatePage() {
                             u[0] = { ...u[0], personalCodeForeign: v };
                             formik.setFieldValue('drivers', u);
                           }}
-                          required
                           {...((formik.touched.drivers as DriverTouched)?.[0]
                             ?.personalCodeForeign &&
                           (formik.errors.drivers as DriverErrors)?.[0]
@@ -1837,7 +1839,8 @@ export function CompoundFormCreatePage() {
                           input={{ maxLength: 11 }}
                           onChange={(v) => {
                             const u = [...formik.values.drivers];
-                            u[0] = { ...u[0], personalCodeEe: v };
+                            const computed = !u[0]?.birthDate ? birthDateFromEstonianCode(v) : null;
+                            u[0] = { ...u[0], personalCodeEe: v, ...(computed ? { birthDate: computed } : {}) };
                             formik.setFieldValue('drivers', u);
                           }}
                           {...((formik.errors.drivers as DriverErrors)?.[0]
@@ -1887,6 +1890,7 @@ export function CompoundFormCreatePage() {
                           <DateField
                             id="driverBirthDate"
                             label={t('forms.compound.driverBirthDate')}
+                            monthYearSelectType="grid"
                             selected={
                               formik.values.drivers[0]?.birthDate
                                 ? new Date(formik.values.drivers[0].birthDate)
@@ -1991,10 +1995,12 @@ export function CompoundFormCreatePage() {
                             input={{ maxLength: 11 }}
                             onChange={(v) => {
                               const u = [...formik.values.drivers];
+                              const computed = !u[1]?.birthDate ? birthDateFromEstonianCode(v) : null;
                               u[1] = {
                                 ...emptyDriver(),
                                 ...u[1],
                                 personalCodeEe: v,
+                                ...(computed ? { birthDate: computed } : {}),
                               };
                               formik.setFieldValue('drivers', u);
                             }}
@@ -2045,6 +2051,7 @@ export function CompoundFormCreatePage() {
                             <DateField
                               id="driver2BirthDate"
                               label={t('forms.compound.driverBirthDate')}
+                              monthYearSelectType="grid"
                               selected={
                                 formik.values.drivers[1]?.birthDate
                                   ? new Date(formik.values.drivers[1].birthDate)

@@ -477,6 +477,7 @@ export function TechnicalCheckFormFields({
             </Heading>
             <DateField
               id="extraordinaryInspectionDate"
+              monthYearSelectType="grid"
               label={t(
                 'forms.technical_check.xroad.extraordinaryInspectionDate',
               )}

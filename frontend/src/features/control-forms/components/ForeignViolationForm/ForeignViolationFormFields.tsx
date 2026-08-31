@@ -259,6 +259,7 @@ export function ForeignViolationFormFields({
               <DateField
                 id="inspectionDate"
                 label={t('forms.foreign_violation.inspectionDate')}
+                monthYearSelectType="grid"
                 disableFuture
                 selected={
                   values.inspectionDate
@@ -628,6 +629,7 @@ export function ForeignViolationFormFields({
               <DateField
                 id="vehicleFirstRegistration"
                 label={t('forms.foreign_violation.vehicleFirstRegistration')}
+                monthYearSelectType="grid"
                 selected={
                   values.vehicleFirstRegistration
                     ? new Date(values.vehicleFirstRegistration as string)
@@ -941,6 +943,7 @@ export function ForeignViolationFormFields({
               <DateField
                 id="dataEntryDate"
                 label={t('forms.foreign_violation.dataEntryDate')}
+                monthYearSelectType="grid"
                 selected={
                   values.dataEntryDate
                     ? new Date(values.dataEntryDate as string)
