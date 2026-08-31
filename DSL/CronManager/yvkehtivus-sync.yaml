@@ -6,9 +6,7 @@
 # jobs). Tallinn time (TZ pinned in docker-compose.yml).
 yvkehtivus_sync:
   trigger: "0 5 * * * ?"
-  type: http
-  method: POST
-  url: http://ruuter-internal:8080/ljvis/cron/yvkehtivus-sync
-  retryCount: 2
-  retryDelay: 60000
-  ignoreFailures: true
+  type: exec
+  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/yvkehtivus-sync" || true
+  allowedEnvs:
+    - RUUTER_INTERNAL
