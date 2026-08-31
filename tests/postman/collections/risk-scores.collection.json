@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Risk Scores",
     "_postman_id": "ljvis-risk-scores-v1",
-    "description": "Functional tests for the risk-score module (LJVIS2-150/151/152, EU 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation. Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001/02/03 = Punane/Nullpunkt/Valistatud). See docs/risk-score/formula.md and .ai/ljvis-tasks/LJVIS2-150/test-cases.md.",
+    "description": "Functional tests for the risk-score module (LJVIS2-150/151/152, EU 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation. Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001/02/03 = Punane/Nullpunkt/Valistatud) and 20260827100002-risk-score-kollane-fixture.sql (90000005 = Kollane/Amber, R=120). See docs/risk-score/formula.md and .ai/ljvis-tasks/LJVIS2-150/test-cases.md.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -208,6 +208,87 @@
               "pm.test('riskBandCode Hall', () => pm.expect(b.riskBandCode).to.eql('Hall'));",
               "pm.test('riskScore is null', () => pm.expect(b.riskScore).to.eql(null));",
               "pm.test('totalControls 0', () => pm.expect(b.totalControls).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Kollane company (90000005) -> 200, Kollane, R=120",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000005\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Kollane', () => pm.expect(b.riskBandCode).to.eql('Kollane'));",
+              "pm.test('riskScore 120', () => pm.expect(b.riskScore).to.eql('120.0000'));",
+              "pm.test('totalControls 1', () => pm.expect(b.totalControls).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Current] Kollane company (90000005) -> riskBandErru Amber",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/current",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "current"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Kollane', () => pm.expect(b.riskBandCode).to.eql('Kollane'));",
+              "pm.test('riskBandErru Amber (not Yellow)', () => pm.expect(b.riskBandErru).to.eql('Amber'));"
             ]
           }
         }
