@@ -88,6 +88,8 @@ assignParams:
       }))}
     rikkumised_json: "${JSON.stringify(incoming.body.rikkumised)}"
     start_time: "${new Date().getTime()}"
+    xroad_member_code: "${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}"
+    xroad_subsystem: "${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}"
   next: insertInspection
 
 # Samm 9: Salvesta Resql-i kaudu
@@ -140,6 +142,28 @@ logSuccess:
       source_type: "job_inspection"
       source_record_id: "${'' + kontrolli_id}"
   result: logResult
+  next: checkAjUsageLog
+
+# Logi AJ kasutusteave ainult kui juhi isikukood on esitatud (EE formaat)
+checkAjUsageLog:
+  switch:
+    - condition: "${juhi_isikukood == null || juhi_isikukood == ''}"
+      next: returnSuccess
+  next: logAjUsage
+
+logAjUsage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${juhi_isikukood}"
+      action: "Töökontrolli andmete sisestamine X-tee kaudu"
+      receiver_code: "${xroad_member_code}"
+      receiver_name: ""
+      receiver_system: "${xroad_subsystem}"
+  result: ajLogResult
   next: returnSuccess
 
 returnSuccess:
