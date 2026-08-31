@@ -20,7 +20,7 @@ import { COUNTRIES, OTHER, ROAD } from '../../../../constants/constants';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
-import { toIsoDate } from '../../../../hooks/dateUtils';
+import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
 import React from 'react';
 
 interface CompoundFormValues {
@@ -390,6 +390,7 @@ export function CompoundFormEditCard({
                     <DateField
                       id="controlDate"
                       label={t('forms.compound.controlDate')}
+                      monthYearSelectType="grid"
                       disableFuture
                       selected={
                         formik.values.controlDate
@@ -553,6 +554,7 @@ export function CompoundFormEditCard({
                     <DateField
                       id="vehicleFirstRegistration"
                       label={t('forms.compound.vehicleFirstRegistration')}
+                      monthYearSelectType="grid"
                       selected={
                         formik.values.vehicleFirstRegistration
                           ? new Date(formik.values.vehicleFirstRegistration)
@@ -866,6 +868,7 @@ export function CompoundFormEditCard({
                               label={t(
                                 'forms.compound.trailerFirstRegistration',
                               )}
+                              monthYearSelectType="grid"
                               selected={
                                 trailer.firstRegistration
                                   ? new Date(trailer.firstRegistration)
@@ -1371,7 +1374,6 @@ export function CompoundFormEditCard({
                         u[index] = { ...u[index], personalCodeForeign: v };
                         formik.setFieldValue('drivers', u);
                       }}
-                      required={index === 0}
                       {...((formik.errors.drivers as DriverErrors[])?.[index]
                         ?.personalCodeForeign
                         ? {
@@ -1391,7 +1393,8 @@ export function CompoundFormEditCard({
                       input={{ maxLength: 11 }}
                       onChange={(v) => {
                         const u = [...formik.values.drivers];
-                        u[index] = { ...u[index], personalCodeEe: v };
+                        const computed = !u[index]?.birthDate ? birthDateFromEstonianCode(v) : null;
+                        u[index] = { ...u[index], personalCodeEe: v, ...(computed ? { birthDate: computed } : {}) };
                         formik.setFieldValue('drivers', u);
                       }}
                       {...((formik.errors.drivers as DriverErrors[])?.[index]
@@ -1439,6 +1442,7 @@ export function CompoundFormEditCard({
                       <DateField
                         id={`driverBirthDate_${index}`}
                         label={t('forms.compound.driverBirthDate')}
+                        monthYearSelectType="grid"
                         selected={
                           formik.values.drivers[index]?.birthDate
                             ? new Date(formik.values.drivers[index].birthDate)

@@ -1,0 +1,14 @@
+# LJVIS2-135/58/23: hourly sync of extraordinary technical inspection
+# status. Logic lives in DSL/Ruuter.internal/ljvis/POST/cron/yvkehtivus-sync.yml
+# (candidate selection, X-Road query, in-place field write, audit).
+#
+# Runs at :05 every hour (offset from :00 to avoid contending with other
+# jobs). Tallinn time (TZ pinned in docker-compose.yml).
+yvkehtivus_sync:
+  trigger: "0 5 * * * ?"
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/yvkehtivus-sync
+  retryCount: 2
+  retryDelay: 60000
+  ignoreFailures: true

@@ -69,6 +69,7 @@ export function FormSearchFilters({
         <DateField
           id="search-date-from"
           label={t('search.filters.dateFrom')}
+          monthYearSelectType="grid"
           selected={draft.dateFrom ? new Date(draft.dateFrom) : undefined}
           onSelect={(v) => setField('dateFrom', toIsoDate(v))}
           placeholder={t('common.dateFieldPlaceholder')}
@@ -76,6 +77,7 @@ export function FormSearchFilters({
         <DateField
           id="search-date-to"
           label={t('search.filters.dateTo')}
+          monthYearSelectType="grid"
           selected={draft.dateTo ? new Date(draft.dateTo) : undefined}
           onSelect={(v) => setField('dateTo', toIsoDate(v))}
           placeholder={t('common.dateFieldPlaceholder')}

@@ -133,7 +133,7 @@ Migratsioon: `DSL/Liquibase/changelog/20260827100000-initial-risk-score.sql`.
 |---|---|---|---|---|
 | 1 | `[LJVIS_RESQL]/risk_score/calculate_risk_score` | POST (ResQL) | — | Arvutab R jooksvalt, EI salvesta. |
 | 2 | `[LJVIS_RESQL]/risk_score/save_risk_score` | POST (ResQL) | — | Lisab ühe ajaloolise kirje. |
-| 3 | `ruuter-internal:8089/risk-scores/recalculate` | POST | Docker-network-only | Arvutab + salvestab. Kutsub koondvormi avaldamine (fire-and-forget) ja cronmanager. |
+| 3 | `ruuter-internal:8089/risk-scores/recalculate` | POST | Docker-network-only | Arvutab + salvestab. Kutsub kontrollvormi kinnitamine (fire-and-forget) ja öine cron (`cron/risk-score-recalc-sync`). |
 | 4 | `ruuter-internal:8089/risk-scores/current` | POST | Docker-network-only | Tagastab viimase salvestatud skoori + `riskBandErru` (ERRU jaoks). CTUD ja kodanikuotspunkti allikas. |
 | 5 | `GET /v1/admin/risk-scores/list` | GET | `risk_report.list` | Pagineeritud, filtreeritud administraatori loend. |
 | 6 | `GET /v1/citizen/risk-scores/my-company?q=<regcode>` | GET | TARA sessioon + AR esindaja kontroll | Ettevõtte esindaja riskiskoori vaade, ilma `riskBandErru` väljata. |
@@ -149,16 +149,14 @@ Migratsioon: `DSL/Liquibase/changelog/20260827100000-initial-risk-score.sql`.
 `POST/v1/risk-scores/...`) — sama muster nagu `xroad/provide/*` ja
 `erru/*` failidel.
 
-## 7. Kontrollvormi avaldamine → automaatne ümberarvutus
+## 6.1 Öine täisümberarvutus (cronmanager)
+
+`DSL/CronManager/risk-score-recalc.yaml` (03:00) → `DSL/Ruuter.internal/ljvis/POST/cron/risk-score-recalc-sync.yml`: valib `DSL/Resql/ljvis/POST/risk_score/select_companies_for_recalc.sql` kaudu kõik Eesti ettevõtjad, kellel on kunagi olnud vähemalt üks `published` `compound_form`, ja kutsub igaühe kohta `recalculate`'i (`calculation_trigger: ooine_ymberarvutus`). `risk.company_risk_score` on insert-only ajalugu — iga öine käik lisab uue rea, mitte ei "lahenda" ettevõtja kandidaatide hulgast (erinevalt teistest cron-töödest, vt `.ai/future-plans/cronmanager-scheduled-jobs.md`).
+
+## 7. Kontrollvormi kinnitamine → automaatne ümberarvutus
 
 Koondvormi elutsükkel: `saved → confirmed → published`.
 `calculate_risk_score.sql` arvestab ainult `status='published'` kirjeid.
-
-`publish.yml` (`DSL/Ruuter/ljvis/POST/v1/control-forms/compound-form/edit/publish.yml`)
-kutsub pärast edukat avaldamist fire-and-forget viisil `risk-scores/recalculate`'i
-(`calculation_trigger: kontrollvorm`) — ükski selle kutse viga ei blokeeri
-vormi avaldamist. Ainult Eesti 8-kohalise registrikoodiga ettevõtjad
-käivitavad ümberarvutuse (regex `^[0-9]{8}$`); välismaised ettevõtjad jäetakse vahele.
 
 ## 8. ERRU CTUD integratsioon (LJVIS2-144, väljaspool skoopi)
 
@@ -172,14 +170,7 @@ Body: { "company_reg_code": "<8-kohaline kood>" }
 ja kaardistab vastuse `riskScore → riskRating`, `riskBandErru → riskBand`.
 Kui ettevõtjal skoori pole, tagastatakse `null`/`Grey` ("hindamata").
 
-## 9. Testimine
-
-Testfixture'id: `DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql`
-(3 fiktiivset ettevõtjat, kood `900000{01,02,03}`, katab Punane/Roheline
-(nullpunktiline)/Hall (välistatud) stsenaariumid — vt ka
-`.ai/ljvis-tasks/LJVIS2-150/test-cases.md`).
-
-## 10. Viited
+## 9. Viited
 
 - Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD, väljaspool skoopi), #168 (kodaniku töölaud — uued kodaniku endpointid)
 - Confluence: 11-1 Riskiskoori arvutamine, 11-2 Riskitasemete vaade, 10-3-3 CTUD ERRU integratsioon

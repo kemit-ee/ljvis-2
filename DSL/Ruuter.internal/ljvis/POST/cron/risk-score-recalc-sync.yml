@@ -1,0 +1,113 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Nightly full risk-score recalculation (LJVIS2-150/151/152): for every
+    company that ever had a published compound_form
+    (select_companies_for_recalc.sql), calls
+    [#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate with
+    calculation_trigger='ooine_ymberarvutus'. risk.company_risk_score is
+    insert-only history (docs/risk-score/formula.md §5) — every run
+    appends a new row per company, unlike the other 3 cron jobs which
+    resolve a candidate out of the selection query.
+
+    Writes one audit.audit_event per run (companiesChecked/recalculated/
+    failures + failed reg codes) — the only trace of a run, since
+    CronManager history is disabled and ignoreFailures:true swallows
+    job-level errors.
+
+    Called by CronManager nightly (DSL/CronManager/risk-score-recalc.yaml).
+  namespace: cron
+
+fetchCompanies:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/risk_score/select_companies_for_recalc"
+    headers:
+      type: json
+    body: {}
+  result: companiesRes
+  next: assignCompanies
+
+assignCompanies:
+  assign:
+    companies: "${companiesRes.response.body || []}"
+  next: processCompanies
+
+# Flat `do:` sequence only, same constraints as the other cron orchestrators
+# (see cron/yvkehtivus-sync.yml's comment): no `next:` branching inside
+# `do:`, every `${...}` assign always returns a defined object, no `//`
+# line comments inside any `>-` folded block scalar.
+processCompanies:
+  iterate:
+    over: "${companies}"
+    as: company
+    max_items: 5000
+    do:
+      - assign:
+          company_reg_code: "${company.companyRegCode || company.company_reg_code || ''}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+          headers:
+            type: json
+          body:
+            company_reg_code: ${company_reg_code}
+            calculation_trigger: "ooine_ymberarvutus"
+        result: recalcRes
+
+      - assign:
+          outcome: >-
+            ${(function(){
+              var httpOk = recalcRes.response.status >= 200 && recalcRes.response.status < 300;
+              if (!httpOk) {
+                return { success: false, riskBandCode: '' };
+              }
+              return { success: true, riskBandCode: (recalcRes.response.body && recalcRes.response.body.riskBandCode) || '' };
+            })()}
+    collect: "${({ companyRegCode: company_reg_code, success: outcome.success })}"
+    into: results
+  next: logAuditEvent
+
+# Written unconditionally. Direct call to the generic audit insert (not
+# the GET templates/audit/log-audit-event chain, which needs a session
+# cookie this cron-triggered Ruuter.internal endpoint doesn't have).
+logAuditEvent:
+  assign:
+    failed_reg_codes: "${results.filter(r => !r.success).map(r => r.companyRegCode)}"
+  next: writeAuditEvent
+
+writeAuditEvent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ""
+      event_type: "risk_score.nightly_recalc"
+      event_category: "system_process"
+      actor_name: "system"
+      actor_personal_code: ""
+      description: >-
+        ${'Öine riskiskooride ümberarvutus: ' + companies.length + ' ettevõtet kontrollitud, ' +
+          results.filter(r => r.success).length + ' arvutatud, ' +
+          failed_reg_codes.length + ' ebaõnnestus'}
+      log_content: >-
+        ${JSON.stringify({
+          companiesChecked: companies.length,
+          recalculated: results.filter(r => r.success).length,
+          failures: failed_reg_codes.length,
+          failedCompanyRegCodes: failed_reg_codes
+        })}
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: auditRes
+  next: returnSummary
+
+returnSummary:
+  status: 200
+  return: "${({ companiesChecked: companies.length, recalculated: results.filter(r => r.success).length, failures: results.filter(r => !r.success).length })}"
+  next: end

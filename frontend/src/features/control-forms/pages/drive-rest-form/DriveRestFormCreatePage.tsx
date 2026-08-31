@@ -1,4 +1,4 @@
-import { useDriveRestForm } from './useDriveRestForm';
+import { useDriveRestForm, type FormAuthority } from './useDriveRestForm';
 import { useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
 import type { DriveRestForm } from '../../types';
 import { DriveRestFormFields } from '../../components/DriveRestForm/DriveRestFormFields';
@@ -13,6 +13,7 @@ interface Props {
   onSaved?: (id?: string) => void;
   initialValidate?: boolean;
   onValuesChange?: (values: Partial<DriveRestForm>) => void;
+  authority?: FormAuthority;
 }
 
 interface DriveRestFormRef {
@@ -27,7 +28,7 @@ interface DriveRestFormRef {
 }
 
 export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
-  ({ type: type, initialData, compoundFormKey, onSaved, initialValidate, onValuesChange }, ref) => {
+  ({ type: type, initialData, compoundFormKey, onSaved, initialValidate, onValuesChange, authority = 'PPA' }, ref) => {
     const navigate = useNavigate();
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -85,7 +86,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       drivingViolations,
       massDimensions,
       triggerConfirm,
-    } = useDriveRestForm(initialData, handleSaved, type as 'driver' | 'teammate', compoundFormKey);
+    } = useDriveRestForm(initialData, handleSaved, type as 'driver' | 'teammate', compoundFormKey, undefined, authority);
 
     // Trigger validation on mount and value changes
     useEffect(() => {
@@ -125,6 +126,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
         <DriveRestFormFields
           type={type}
           formik={formik}
+          hideDriveRestExtras={authority === 'TRAM'}
           isDesktop={isDesktop}
           transportClassItems={transportClassItems}
           cargoCabotageViolations={cargoCabotageViolations}

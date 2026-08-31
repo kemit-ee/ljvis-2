@@ -5,6 +5,36 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-005 — Andmejälgija: ainult inbound X-tee päringud, eraldi append-only tabel
+
+**Otsustaja:** Sten Viljus  
+**Kuupäev:** 01.09.2026  
+**Seotud failid:** `DSL/Ruuter.internal/ljvis/GET/xroad/v2/`, `DSL/Resql/ljvis/POST/xroad/aj/`, `docs/andmejalgija-seadistamine.md`
+
+### Kontekst
+
+IKS § 19/§ 25 nõuab et isik saab küsida, kes tema andmeid on töödelnud. Tuli otsustada:
+1. Milliseid andmevooge logida AJ-sse?
+2. Kas kasutada olemasolevat `xroad_integration_log`-i või eraldi tabelit?
+3. Kas logida isikukood selgetekstiliselt?
+
+### Otsus
+
+- Logitatakse ainult **inbound** X-tee päringud — teenused kus väline osapool küsib või sisestab isikuandmeid LJVIS kaudu: `isiku-kontroll`, `isiku-ettevote-kontrollid`, `register-job-inspection-v3` (ainult kui `juhi_isikukood` esitati)
+- `xroad_integration_log` jääb **puutumata** — AJ kirjed lähevad ainult uude `xroad.aj_usage_log` tabelisse
+- `xroad.aj_usage_log` on **append-only** tabel (nagu `audit.audit_event`) — `UPDATE`/`DELETE` on keelatud
+- Isikukood (`user_code`) logitakse **selgetekstiliselt** — AJ `findUsage` endpoint otsib `userCode` järgi, hash ei oleks otsitav
+
+### Põhjendus
+
+- **Inbound** on see mis isikule "nähtav" — tema andmeid küsiti või sisestati välise süsteemi poolt
+- **Outbound** (RR, e-Toimik, ERRU saatmised) on meie enda protsesside initsiatiiv, mitte kolmanda osapoole teenus isiku suhtes
+- **Eraldi tabel:** puhtam skeem, ei sega olemasolevat integratsioonilogi
+- **Append-only:** garanteerib AJ nõuetele vastava auditeeritavuse — kirjeid ei saa tagantjärgi muuta ega kustutada
+- **Hash lükati tagasi:** AJ `findUsage` endpoint vajab otsimist `userCode` järgi selgetekstis; hash ei ole otsitav ilma et pärija esitaks sama isikukoodi — mis tähendaks, et otsing eesti.ee-st ei toimiks
+
+---
+
 ## ADR-002 — Rust Ruuter 0.9.0-rc.1 (turnerrainer/ruuter:rc)
 
 **Otsustaja:** Sten Viljus  
@@ -114,15 +144,21 @@ Dedikeeritud veerg `authority` on kõige puhtam lähenemine: SQL filtrid on inde
 
 ---
 
-### Otsus 2 — TRAM vorminumber: eraldiseisev seeria
+### Otsus 2 — TRAM vorminumber: koondvormil eraldi, alamvormil võib jagada
 
-**Valitud:** Uus sequence `forms.seq_tram_compound_form_key`, formaat `tram-AAAA-NNNNN/versioon`
+**Otsustaja:** Sten Viljus, 30.08.2026
+
+**Valitud:**
+- **Koondvorm (üldosa):** eraldiseisev seeria — uus sequence `forms.seq_tram_compound_form_key`, formaat `tram-AAAA-NNNNN/versioon`. PPA ja TRAM peavad koondvormil eristuma ka **nähtava numbri** järgi, mitte ainult `authority` veeru järgi.
+- **Autojuhi alamvorm:** **võib jagada** PPA `sp-` numbriseeriat (`forms.seq_sp_driver_form_key`, formaat `sp-AAAA-NNNNN/versioon`). Alamvormi number ei ole asutuse eristamise koht — seda teeb koondvorm.
+- Loogilised võtmed (`compound_form_key`, `sp_driver_form_key`) jäävad alati ühistesse jadadesse.
 
 **Alternatiivid kaalutud:**
-- *Jagab `koond-` seeriat* — lihtsam DB-s, aga TRAM-vorminumbrid oleksid hõredad (nt `tram-2026-00847`) kui PPA-vormi on palju; segadusttekitav kasutajale
+- *Kõik vormid jagavad `koond-` / `sp-` seeriat* — TRAM-koondvormi numbrid oleksid hõredad ja segadusttekitavad, kui PPA-vorme on palju.
+- *Kõik vormid eraldi seerias (ka alamvorm `tram-sp-...`)* — kaalutud ja tagasi lükatud: alamvormi tasemel ei anna eraldi numeratsioon lisaväärtust, kuna alamvorm on alati konkreetse (juba `tram-` numbriga) koondvormi all.
 
 **Põhjendus:**  
-TRAM kontrollkaardid on operatiivselt eraldiseisev tegevus. Eraldiseisev seeria (`tram-2026-00001`, `tram-2026-00002`, ...) on auditeerimise ja aruandluse seisukohalt puhtam — TRAM-spetsialist näeb oma koormust, PPA-spetsialist omaenda. Seeria ei sõltu teise asutuse tempot.
+TRAM kontrollkaardid on operatiivselt eraldiseisev tegevus ja koondvormi number on see, mida kasutaja ja aruandlus näevad — seal peab asutus olema üheselt loetav. Alamvormi number on tehniline viide koondvormi sees, seega numbriseeria jagamine PPA-ga on aktsepteeritav ja hoiab koodi lihtsamana.
 
 ---
 
@@ -134,4 +170,8 @@ TRAM kontrollkaardid on operatiivselt eraldiseisev tegevus. Eraldiseisev seeria 
 - *Jagab PPA SP-endpoint'i* — vähem koodi, aga guard peab lubama nii `tram_driver_form.write` kui `sp_driver_form.write`; seob kaks eraldiseisvat domeeni ühte endpointi; tuleviku lahknemine (nt TRAM-spetsiifilised väljad) on keerukas
 
 **Põhjendus:**  
-Täielik eraldatus endpoint'i tasemel tagab, et TRAM ja PPA õigused ei põimu. Resql SQL-failid on koopiad, kuid TRAM-i spetsiifilised piirangud (nt `authority = 'TRAM'` compound_form filtris) saab lisada ilma PPA loogikat puutumata. Duplikaat on piiratud (~200 rida SQL) ja õigustatud selge domeenipiiriga.
+Täielik eraldatus endpoint'i tasemel tagab, et TRAM ja PPA õigused ei põimu. Resql SQL-failid on koopiad, kuid TRAM-i spetsiifilised piirangud on lisatud ilma PPA loogikat puutumata. Duplikaat on piiratud (~200 rida SQL) ja õigustatud selge domeenipiiriga.
+
+**Horisontaalne juurdepääsukaitse (IDOR):** kuna `forms.sp_driver_form` tabelil ei ole `authority` veergu, kontrollivad kõik `tram-form/sp-driver/*` päringud (lugemine ja kirjutamine) alamvormi kuuluvust TRAM-koondvormi külge:
+`... AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')`.
+Nii ei saa TRAM-õigustega kasutaja PPA autojuhi alamvormi `sp_driver_form_key` kaudu lugeda ega muuta. Versiooniajaloo (`get-snapshots`) lekke vältimiseks on TRAM-il oma guarditud endpointid `GET .../tram-form/get-snapshots` ja `.../tram-form/sp-driver/read/get-snapshots` — üldist `control-forms/get-snapshots` endpointi TRAM ei kasuta.

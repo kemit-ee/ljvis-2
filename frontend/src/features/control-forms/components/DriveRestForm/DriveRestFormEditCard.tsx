@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { DriveRestForm } from '../../types';
 import { DriveRestFormCreatePage } from '../../pages/drive-rest-form/DriveRestFormCreatePage';
+import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
 
 interface DriveRestFormRef {
@@ -33,6 +34,7 @@ interface DriveRestFormEditCardProps {
   formType: string;
   onValuesChange?: (values: Partial<DriveRestForm>) => void;
   initialValidate?: boolean;
+  authority?: FormAuthority;
 }
 
 export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveRestFormEditCardProps>(function DriveRestFormEditCard({
@@ -44,6 +46,7 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
   formType,
   onValuesChange,
   initialValidate,
+  authority = 'PPA',
 }, ref) {
   const { t } = useTranslation();
   const formRef = useRef<DriveRestFormRef | null>(null);
@@ -63,6 +66,7 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
         </Heading>
         <DriveRestFormCreatePage
           type={scope}
+          authority={authority}
           initialData={form}
           compoundFormKey={compoundFormKey}
           onSaved={(id) => { setVersionsRefreshKey((k) => k + 1); onSaved(id); }}
