@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Export audit logs as CSV"
+  description: "Export audit logs as CSV. audit.read exports all organisations; only audit.read.local restricts to the caller's own organisation."
   namespace: logs
   allowlist:
     params:
@@ -12,10 +12,25 @@ declaration:
         type: string
         description: "Sorting"
 
+getContext:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: checkAuditPermission
+
+checkAuditPermission:
+  switch:
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('audit.read') || auth_user.permissions.includes('audit.read.local'))}
+      next: extractRequestData
+  next: returnForbidden
+
 extractRequestData:
   assign:
     search: "${incoming.params.search ?? ''}"
     sorting: "${incoming.params.sorting ?? 'createdAt desc'}"
+    organisation_filter: "${(auth_user.permissions != null && auth_user.permissions.includes('audit.read')) ? '' : String(auth_user.organisationid ?? '')}"
   next: getLogs
 
 getLogs:
@@ -27,6 +42,7 @@ getLogs:
     body:
       search: ${search}
       sorting: ${sorting}
+      organisation_id: ${organisation_filter}
   result: res
   next: mapResponse
 
@@ -43,4 +59,9 @@ mapResponse:
 
 returnSuccess:
   return: ${mapped.response.body}
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "forbidden"
   next: end

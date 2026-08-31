@@ -10,6 +10,9 @@ declaration:
       - field: id
         type: string
         description: "Audit event id"
+      - field: organisation_id
+        type: string
+        description: "When set, return the event only if its actor belonged to this organisation (audit.read.local scope). Empty = no restriction."
   response:
     fields:
       - field: event_id
@@ -48,4 +51,8 @@ SELECT
     e.trace_id,
     e.span_id
 FROM audit.audit_event e
-WHERE e.event_id = :id;
+WHERE e.event_id = :id
+  AND (
+      NULLIF(:organisation_id, '') IS NULL
+      OR e.organisation_id = NULLIF(:organisation_id, '')::BIGINT
+  );
