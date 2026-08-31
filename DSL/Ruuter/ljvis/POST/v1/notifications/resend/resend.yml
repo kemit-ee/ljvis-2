@@ -1,0 +1,88 @@
+declaration:
+  version: "1.0"
+  description: >-
+    UC-04: ebaõnnestunud Postkast 2.0 teavituse uuesti saatmine.
+    Kutsub Ruuter.internal send-postkast endpointi original_log_id viitega.
+    PK 2.0 retry kasutatakse: PUT /notification-management/v1/sending-operations/{id}
+    (kui pk_sending_operation_id on olemas — toodangurežiim).
+    APPEND-ONLY: uuesti saatmine loob uue outbound_log rea; algne kirje jääb muutmata.
+    Nõuab notification.admin õigust (kaitstud resend/.guard kaudu).
+  namespace: notification
+  allowlist:
+    params:
+      - field: logId
+        type: string
+    body:
+      - field: recipientEmail
+        type: string
+
+extractParams:
+  assign:
+    log_id: "${incoming.params.logId ?? ''}"
+    recipient_email: "${incoming.body.recipientEmail ?? ''}"
+    actor_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkLogId
+
+checkLogId:
+  switch:
+    - condition: ${log_id === ''}
+      next: returnBadRequest
+  next: loadOriginalLog
+
+loadOriginalLog:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/list_outbound_log"
+    headers:
+      type: json
+    body:
+      status: ""
+      message_type: ""
+      date_from: "2020-01-01T00:00:00Z"
+      page: 1
+      page_size: 1
+  result: logRes
+  next: checkLogFound
+
+checkLogFound:
+  assign:
+    original_log: "${logRes.response.body.find ? logRes.response.body.find(r => r.id === log_id) : null}"
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${original_log == null}
+      next: returnNotFound
+  next: callSendPostkast
+
+callSendPostkast:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/ljvis/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      message_type: ${original_log.message_type}
+      related_entity_type: ${original_log.related_entity_type ?? ''}
+      related_entity_id: ${original_log.related_entity_id ?? ''}
+      original_log_id: ${log_id}
+      pk_sending_operation_id: ${original_log.pk_sending_operation_id ?? ''}
+      recipient_email_override: ${recipient_email}
+      created_by: ${actor_code}
+  result: sendRes
+  next: returnResult
+
+returnResult:
+  return: ${sendRes.response.body}
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "logId is required"
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "outbound log entry not found"
+  next: end

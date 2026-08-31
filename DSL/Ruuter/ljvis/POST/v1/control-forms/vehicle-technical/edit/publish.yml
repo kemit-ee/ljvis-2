@@ -108,6 +108,31 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: checkDrivingBan
+
+# Kui resultTransportInterruption = true (sõidukeeld), loo teavitus rsi.read õigusega kasutajatele.
+# Fire-and-forget — teavituse loomise viga ei peata avalikustamise voogu.
+checkDrivingBan:
+  switch:
+    - condition: ${result_transport_interruption === true || result_transport_interruption === 'true'}
+      next: createDrivingBanNotification
+  next: returnSuccess
+
+createDrivingBanNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/ljvis/notification/create"
+    headers:
+      type: json
+    body:
+      type: "driving_ban"
+      required_permission: "rsi.read"
+      related_entity_type: "vehicle_technical"
+      related_entity_id: ${id}
+      title_et: "Sõidukeeld — tehnokaart avalikustatud"
+      body_et: "${'Koondvormi võti: ' + compound_form_key}"
+      created_by: ${actor_personal_code}
+  result: notifRes
   next: returnSuccess
 
 returnSuccess:

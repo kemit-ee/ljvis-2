@@ -134,6 +134,25 @@ checkStored:
   switch:
     - condition: ${responded_res.response.body == null || responded_res.response.body.length != 1}
       next: returnAlreadyResponded
+  next: createNcrResponseNotification
+
+# Loo teavitus NCR vastuse kohta ncr.respond õigusega kasutajatele.
+# Fire-and-forget — viga ei peata peamist voogu.
+createNcrResponseNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/ljvis/notification/create"
+    headers:
+      type: json
+    body:
+      type: "ncr_response"
+      required_permission: "ncr.respond"
+      related_entity_type: "ncr"
+      related_entity_id: ${business_case_id}
+      title_et: "NCR vastussõnumi teatis"
+      body_et: "${'Juhtum: ' + business_case_id + ' — tulemus: ' + response_status_code}"
+      created_by: "system"
+  result: notifRes
   next: buildAudit
 
 buildAudit:

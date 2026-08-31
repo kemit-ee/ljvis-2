@@ -1,0 +1,29 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Lugemata teavituste arv autenditud kasutaja jaoks.
+    Kasutatakse kelluke-badge'i arvu kuvamiseks päises ja nav-menüüs.
+    Kaitstud GET/v1/.guard (autentimine) kaudu.
+  namespace: notification
+
+fetchCount:
+  assign:
+    user_code: "${u.personalcode || ''}"
+    permissions: "${(u.permissions || []).join(',')}"
+  next: queryCount
+
+queryCount:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/get_unread_count"
+    headers:
+      type: json
+    body:
+      user_code: ${user_code}
+      permissions: ${permissions}
+  result: res
+  next: returnResult
+
+returnResult:
+  return: ${res.response.body[0] ?? {unread_count: 0}}
+  next: end

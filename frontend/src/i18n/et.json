@@ -283,7 +283,8 @@
     "search": "Otsing",
     "rsi": "RSI teated",
     "ncr": "NCR teated",
-    "riskLevels": "Riskitasemed"
+    "riskLevels": "Riskitasemed",
+    "notifications": "Teavitused"
   },
   "desktop": {
     "title": "Töölaud",
@@ -1756,6 +1757,34 @@
       "saved": "Salvestatud",
       "confirmed": "Kinnitatud",
       "published": "Avaldatud"
+    }
+  },
+  "notifications": {
+    "title": "Teavitused",
+    "tabInApp": "Teavitused",
+    "tabLog": "Saadetud kirjad",
+    "markAllRead": "Märgi kõik loetuks",
+    "unread": "Lugemata",
+    "read": "Märgi loetuks",
+    "empty": "Uusi teavitusi ei ole",
+    "log": {
+      "sendDate": "Saatmise kp",
+      "messageType": "Sõnumi liik",
+      "addressee": "Adressaat",
+      "status": "Staatus",
+      "sent": "Saadetud",
+      "sent_error": "Saatmine ebaõnnestus",
+      "resend": "Saada uuesti",
+      "report": "Saatmise raport"
+    },
+    "types": {
+      "ncr_violation": "NCR raske rikkumise teade",
+      "ncr_response": "NCR vastussõnumi teatis",
+      "driving_ban": "Sõidukeeld",
+      "weight_violation": "Kaalumise/mõõtmise rikkumine",
+      "carrier_violation": "Raske rikkumise teavitus veoettevõtjale",
+      "labor_kabotage": "Kabotaaži kontrolli teavitus",
+      "labor_foreign_proposal": "Välisriigi ettepaneku teavitus"
     }
   }
 }
