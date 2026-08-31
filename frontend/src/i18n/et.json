@@ -649,6 +649,7 @@
     "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
     "sp_teammate_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
     "tram_driver_form": "Transpordiameti kontrollkaart",
+    "tram_add_driver": "Lisa autojuht",
     "sp_form": {
       "transportClass": "Veoliik",
       "transportType": "Veoliik",
@@ -1744,7 +1745,9 @@
       "vehicleTechnical": "Tehnonõuetele vastavus (sõiduk)",
       "trailerTechnical": "Tehnonõuetele vastavus (haagis)",
       "adr": "Ohtlik veos (ADR)",
-      "kv": "Autoveo katkestamine"
+      "kv": "Autoveo katkestamine",
+      "tramCompound": "Transpordiameti kontrollkaart",
+      "tramDriver": "Transpordiameti kontrollkaart (autojuht)"
     },
     "status": {
       "saved": "Salvestatud",

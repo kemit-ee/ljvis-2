@@ -60,6 +60,18 @@ export const FORM_TYPE_META: Record<string, FormTypeMeta> = {
     route: (k) => `/control-forms/transport-interruption/${k}`,
     readPermission: 'transport_interruption_form.read',
   },
+  tram_compound: {
+    labelKey: 'search.formType.tramCompound',
+    route: (k) => `/control-forms/tram-driver/${k}`,
+    readPermission: 'tram_driver_form.read',
+  },
+  tram_driver: {
+    labelKey: 'search.formType.tramDriver',
+    // k is the compound_form_key (see FormSearchPage.openRow) — the TRAM page
+    // loads the card + its driver sub-form by the compound key.
+    route: (k) => `/control-forms/tram-driver/${k}`,
+    readPermission: 'tram_driver_form.read',
+  },
 };
 
 export const FORM_TYPE_ORDER: string[] = [
@@ -73,6 +85,8 @@ export const FORM_TYPE_ORDER: string[] = [
   'trailer_technical',
   'adr',
   'kv',
+  'tram_compound',
+  'tram_driver',
 ];
 
 /** Route for a result row; falls back to '#' for unknown types. */
