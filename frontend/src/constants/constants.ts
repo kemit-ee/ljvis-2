@@ -49,6 +49,7 @@ export const PERMISSIONS = {
   RSI_READ: 'rsi.read',
   NCR_LIST: 'ncr.list',
   RISK_REPORT_LIST: 'risk_report.list',
+  NOTIFICATION_ADMIN: 'notification.admin',
 } as const;
 
 export const FORM_READ_PERMISSIONS: string[] = [

@@ -1,0 +1,25 @@
+declaration:
+  version: "1.0"
+  description: >-
+    WebSocket keep-alive endpoint teavituste reaalajas uuenduste jaoks.
+    Frontend ühendab siia: ws://<host>/ljvis/notifications/connect
+
+    Ruuter registreerib iga ühenduse WsRegistry-sse "client:<hex>" nimeliselt.
+    Kui Ruuter.internal notification/create.yml loob uue teavituse,
+    saadab see ws_send broadcast_prefix: "client:" signaali kõigile
+    ühendatud frontendidele.
+
+    Iga sissetulev frame (nt kliendi heartbeat {"type":"ping"}) saab ACK vastuse.
+    Ühenduse hoidmine on piisav — frontendil ei ole vaja regulaarselt frameid saata.
+
+    Turvalisus: broadcast payload sisaldab ainult {type: "notification_update"} —
+    ei edastata kasutajaandmeid. Iga frontend teeb seejärel oma authenticated
+    HTTP GET /v1/notifications/unread-count päringu oma sessiooni alusel.
+  namespace: notification
+
+ack:
+  ws_send:
+    payload:
+      type: "ack"
+      connection_id: "${incoming.connection_id}"
+  next: end

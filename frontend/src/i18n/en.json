@@ -966,7 +966,8 @@
     "search": "Search",
     "rsi": "RSI messages",
     "ncr": "NCR messages",
-    "riskLevels": "Risk levels"
+    "riskLevels": "Risk levels",
+    "notifications": "Notifications"
   },
   "users": {
     "title": "Users",
@@ -1651,6 +1652,34 @@
         "directionIncoming": "Incoming",
         "handlerFilter": "Handler (isikukood)"
       }
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "tabInApp": "Notifications",
+    "tabLog": "Sent messages",
+    "markAllRead": "Mark all as read",
+    "unread": "Unread",
+    "read": "Mark as read",
+    "empty": "No new notifications",
+    "log": {
+      "sendDate": "Sent date",
+      "messageType": "Message type",
+      "addressee": "Addressee",
+      "status": "Status",
+      "sent": "Sent",
+      "sent_error": "Send failed",
+      "resend": "Resend",
+      "report": "Send report"
+    },
+    "types": {
+      "ncr_violation": "NCR serious infringement notice",
+      "ncr_response": "NCR response notice",
+      "driving_ban": "Driving ban",
+      "weight_violation": "Weight/measurement infringement",
+      "carrier_violation": "Serious infringement notification to carrier",
+      "labor_kabotage": "Cabotage inspection notification",
+      "labor_foreign_proposal": "Foreign country proposal notification"
     }
   }
 }
