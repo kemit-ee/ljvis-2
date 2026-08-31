@@ -1,0 +1,54 @@
+declaration:
+
+  version: "1.0"
+  description: "Delete foreign violation form"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: form_number
+        type: string
+      - field: old_status
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    form_number: "${incoming.body.form_number}"
+    old_status: "${incoming.body.old_status}"
+    status: "deleted"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: deleteForm
+
+deleteForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/delete"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      status: ${status}
+      created_by: ${created_by}
+  result: deleteRes
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/log-form-delete"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    old_status: ${old_status}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${deleteRes.response.body}
+  next: end

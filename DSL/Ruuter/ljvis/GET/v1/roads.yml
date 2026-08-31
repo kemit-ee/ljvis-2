@@ -1,0 +1,18 @@
+declaration:
+
+  version: "1.0"
+  description: "List all roads"
+  namespace: roads
+
+getRoads:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/roads/list_roads"
+    headers:
+      type: json
+    body: {}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

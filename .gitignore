@@ -12,6 +12,8 @@ data/
 node_modules/
 tim-db/
 
+.ssl/
+
 # Docker
 *.log
 
@@ -21,12 +23,19 @@ tim-db/
 .env.*.local
 .env.tara
 
+AGENTS.md
 .actrc
 
 .ai
+.devin
 
 # Task/test documentation (local only)
 TASK-*.md
 TEST-*.md
 
 tests/postman/reports/*
+jira_comments.sh
+confluence_test_report.sh
+
+# mdBook generated output
+docs/book/

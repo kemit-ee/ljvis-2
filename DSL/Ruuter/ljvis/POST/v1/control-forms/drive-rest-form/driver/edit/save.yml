@@ -1,0 +1,351 @@
+declaration:
+
+  version: "1.0"
+  description: "Create or update the drive rest form for driver — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: compoundFormKey
+        type: number
+      - field: subFormNumber
+        type: string
+      - field: status
+        type: string
+      - field: selectionStatus
+        type: string
+      - field: transportType
+        type: string
+      - field: transportEmptyRun
+        type: boolean
+      - field: transportNature
+        type: string
+      - field: transportNatureExempt
+        type: boolean
+      - field: transportClasses
+        type: string
+      - field: cabotageViolations
+        type: string
+      - field: resultType
+        type: string
+      - field: additionalMeasure
+        type: string
+      - field: proceedingType
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: documentChecks
+        type: string
+      - field: otherDocuments
+        type: string
+      - field: spApplicability
+        type: string
+      - field: tachographTypeCode
+        type: string
+      - field: tachographDataNotDownloaded
+        type: boolean
+      - field: checkedDaysCount
+        type: number
+      - field: workDaysCount
+        type: number
+      - field: otherActivityDaysCount
+        type: number
+      - field: violations5612006
+        type: string
+      - field: violations1652014
+        type: string
+      - field: violations200215
+        type: string
+      - field: violations5932008
+        type: string
+      - field: violations20201057
+        type: string
+      - field: massDimensionNonCompliant
+        type: boolean
+      - field: massDimensionMeasurements
+        type: string
+      - field: atpViolationFound
+        type: string
+      - field: atpViolationDescription
+        type: string
+      - field: erruPoints
+        type: string
+      - field: enforcementDecision
+        type: string
+      - field: proceedingClosureBasis
+        type: string
+      - field: notes
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    compound_form_key: "${incoming.body.compoundFormKey}"
+    sub_form_number: "${incoming.body.subFormNumber}"
+    selection_status: "${incoming.body.selectionStatus}"
+    transport_type: "${incoming.body.transportType}"
+    transport_empty_run: "${incoming.body.transportEmptyRun}"
+    transport_nature: "${incoming.body.transportNature}"
+    transport_nature_exempt: "${incoming.body.transportNatureExempt}"
+    transport_classes: "${incoming.body.transportClasses}"
+    cabotage_violations: "${incoming.body.cabotageViolations}"
+    result_type: "${incoming.body.resultType}"
+    additional_measure: "${incoming.body.additionalMeasure}"
+    proceeding_type: "${incoming.body.proceedingType}"
+    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber}"
+    document_checks: "${incoming.body.documentChecks}"
+    other_documents: "${incoming.body.otherDocuments}"
+    sp_applicability: "${incoming.body.spApplicability}"
+    tachograph_type_code: "${incoming.body.tachographTypeCode}"
+    tachograph_data_not_downloaded: "${incoming.body.tachographDataNotDownloaded}"
+    checked_days_count: "${incoming.body.checkedDaysCount}"
+    work_days_count: "${incoming.body.workDaysCount}"
+    other_activity_days_count: "${incoming.body.otherActivityDaysCount}"
+    violations_561_2006: "${incoming.body.violations5612006}"
+    violations_165_2014: "${incoming.body.violations1652014}"
+    violations_2002_15: "${incoming.body.violations200215}"
+    violations_593_2008: "${incoming.body.violations5932008}"
+    violations_2020_1057: "${incoming.body.violations20201057}"
+    mass_dimension_non_compliant: "${incoming.body.massDimensionNonCompliant}"
+    mass_dimension_measurements: "${incoming.body.massDimensionMeasurements}"
+    atp_violation_found: "${incoming.body.atpViolationFound}"
+    atp_violation_description: "${incoming.body.atpViolationDescription}"
+    erru_points: "${incoming.body.erruPoints}"
+    enforcement_decision: "${incoming.body.enforcementDecision}"
+    proceeding_closure_basis: "${incoming.body.proceedingClosureBasis}"
+    notes: "${incoming.body.notes}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkInsertOrUpdate
+
+checkInsertOrUpdate:
+  switch:
+    - condition: ${id == null || id === ''}
+      next: checkCompoundFormKeyForCreate
+  next: getCurrentFormForStatus
+
+checkCompoundFormKeyForCreate:
+  switch:
+    - condition: ${compound_form_key == null}
+      next: returnMissingCompoundFormKeyError
+  next: insertForm
+
+insertForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/insert"
+    headers:
+      type: json
+    body:
+      compoundFormKey: ${compound_form_key}
+      status: saved
+      selectionStatus: ${selection_status}
+      transportType: ${transport_type}
+      transportEmptyRun: ${transport_empty_run}
+      transportNature: ${transport_nature}
+      transportNatureExempt: ${transport_nature_exempt}
+      transportClasses: ${transport_classes}
+      cabotageViolations: ${cabotage_violations}
+      resultType: ${result_type}
+      additionalMeasure: ${additional_measure}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      documentChecks: ${document_checks}
+      otherDocuments: ${other_documents}
+      spApplicability: ${sp_applicability}
+      tachographTypeCode: ${tachograph_type_code}
+      tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      checkedDaysCount: ${checked_days_count}
+      workDaysCount: ${work_days_count}
+      otherActivityDaysCount: ${other_activity_days_count}
+      violations5612006: ${violations_561_2006}
+      violations1652014: ${violations_165_2014}
+      violations200215: ${violations_2002_15}
+      violations5932008: ${violations_593_2008}
+      violations20201057: ${violations_2020_1057}
+      massDimensionNonCompliant: ${mass_dimension_non_compliant}
+      massDimensionMeasurements: ${mass_dimension_measurements}
+      atpViolationFound: ${atp_violation_found}
+      atpViolationDescription: ${atp_violation_description}
+      erruPoints: ${erru_points}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: saveRes
+  next: extractInsertResponseData
+
+extractInsertResponseData:
+  assign:
+    sp_driver_form_key: "${saveRes.response.body[0].id || ''}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber || ''}"
+  next: getCompoundFormInsert
+
+getCompoundFormInsert:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${compound_form_key}
+  result: compoundFormRes
+  next: extractDriverCodesInsert
+
+extractDriverCodesInsert:
+  assign:
+    compound_drivers: "${JSON.parse(compoundFormRes.response.body[0].drivers)}"
+  next: extractDriverPersonalCodesInsert
+
+extractDriverPersonalCodesInsert:
+  assign:
+    driver1_personal_code_ee: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeEe || '') : ''}"
+    driver1_personal_code_foreign: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeForeign || '') : ''}"
+    driver2_personal_code_ee: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeEe || '') : ''}"
+    driver2_personal_code_foreign: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeForeign || '') : ''}"
+  next: logAuditEventInsert
+
+logAuditEventInsert:
+  template: "templates/audit/form/sp-driver-form/log-sp-driver-create-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    sp_driver_form_key: ${sp_driver_form_key}
+    compound_form_key: ${compound_form_key}
+    sub_form_number: ${sub_form_number}
+    result_type: ${result_type}
+    proceeding_type: ${proceeding_type}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: extractCurrentStatus
+
+extractCurrentStatus:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+    current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      compoundFormKey: ${current_compound_form_key}
+      subFormNumber: ${sub_form_number}
+      status: ${current_status}
+      selectionStatus: ${selection_status}
+      transportType: ${transport_type}
+      transportEmptyRun: ${transport_empty_run}
+      transportNature: ${transport_nature}
+      transportNatureExempt: ${transport_nature_exempt}
+      transportClasses: ${transport_classes}
+      cabotageViolations: ${cabotage_violations}
+      resultType: ${result_type}
+      additionalMeasure: ${additional_measure}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      documentChecks: ${document_checks}
+      otherDocuments: ${other_documents}
+      spApplicability: ${sp_applicability}
+      tachographTypeCode: ${tachograph_type_code}
+      tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      checkedDaysCount: ${checked_days_count}
+      workDaysCount: ${work_days_count}
+      otherActivityDaysCount: ${other_activity_days_count}
+      violations5612006: ${violations_561_2006}
+      violations1652014: ${violations_165_2014}
+      violations200215: ${violations_2002_15}
+      violations5932008: ${violations_593_2008}
+      violations20201057: ${violations_2020_1057}
+      massDimensionNonCompliant: ${mass_dimension_non_compliant}
+      massDimensionMeasurements: ${mass_dimension_measurements}
+      atpViolationFound: ${atp_violation_found}
+      atpViolationDescription: ${atp_violation_description}
+      erruPoints: ${erru_points}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: saveRes
+  next: extractUpdateResponseData
+
+extractUpdateResponseData:
+  assign:
+    sp_driver_form_key: "${saveRes.response.body[0].id || ''}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber || ''}"
+  next: getCompoundFormUpdate
+
+getCompoundFormUpdate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${current_compound_form_key}
+  result: compoundFormRes
+  next: extractDriverCodesUpdate
+
+extractDriverCodesUpdate:
+  assign:
+    compound_drivers: "${JSON.parse(compoundFormRes.response.body[0].drivers)}"
+  next: extractDriverPersonalCodesUpdate
+
+extractDriverPersonalCodesUpdate:
+  assign:
+    driver1_personal_code_ee: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeEe || '') : ''}"
+    driver1_personal_code_foreign: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeForeign || '') : ''}"
+    driver2_personal_code_ee: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeEe || '') : ''}"
+    driver2_personal_code_foreign: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeForeign || '') : ''}"
+  next: logAuditEventUpdate
+
+logAuditEventUpdate:
+  template: "templates/audit/form/sp-driver-form/log-sp-driver-create-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    sp_driver_form_key: ${sp_driver_form_key}
+    compound_form_key: ${current_compound_form_key}
+    sub_form_number: ${sub_form_number}
+    result_type: ${result_type}
+    proceeding_type: ${proceeding_type}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${saveRes.response.body}
+  next: end
+
+returnMissingCompoundFormKeyError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"compoundFormKey","code":"required"}'
+  next: end

@@ -1,4 +1,4 @@
-import { get, post, put, del } from '../../shared/api/client';
+import { get, post, put } from '../../shared/api/client';
 import type {
   PagedResponse,
   ListApiParams,
@@ -15,10 +15,10 @@ export const listUserGroups = (
   params?: ListApiParams,
 ) => {
   const { search, ...rest } = params ?? {};
-  return get<PagedResponse<UserGroup>>(
-    `/v1/user-groups/${scope}/search`,
-    { ...rest, ...(search !== undefined && { q: search }) } as Record<string, string>,
-  );
+  return get<PagedResponse<UserGroup>>(`/v1/user-groups/${scope}/search`, {
+    ...rest,
+    ...(search !== undefined && { q: search }),
+  } as Record<string, string>);
 };
 
 export const getUserGroup = (scope: 'admin' | 'local', id: string) =>
@@ -28,7 +28,9 @@ export const getUserGroupOrganisations = (
   scope: 'admin' | 'local',
   id: string,
 ) =>
-  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/organisations`, { q: id });
+  get<UserGroupOrganisation[]>(`/v1/user-groups/${scope}/organisations`, {
+    q: id,
+  });
 
 export const getUserGroupPermissions = (scope: 'admin' | 'local', id: string) =>
   get<UserGroupPermission[]>(`/v1/user-groups/${scope}/permissions`, { q: id });
@@ -43,16 +45,13 @@ export const getUserGroupUsers = (
     search?: string;
   },
 ) =>
-  get<UserGroupUser[]>(
-    `/v1/user-groups/${scope}/users`,
-    {
-      ...(params?.userGroupId !== undefined && { q: String(params.userGroupId) }),
-      ...(params?.page !== undefined && { page: params.page }),
-      ...(params?.pageSize !== undefined && { pageSize: params.pageSize }),
-      ...(params?.sorting !== undefined && { sorting: params.sorting }),
-      ...(params?.search !== undefined && { search: params.search }),
-    },
-  );
+  get<UserGroupUser[]>(`/v1/user-groups/${scope}/users`, {
+    ...(params?.userGroupId !== undefined && { q: String(params.userGroupId) }),
+    ...(params?.page !== undefined && { page: params.page }),
+    ...(params?.pageSize !== undefined && { pageSize: params.pageSize }),
+    ...(params?.sorting !== undefined && { sorting: params.sorting }),
+    ...(params?.search !== undefined && { search: params.search }),
+  });
 
 export const getUserGroupAvailableUsers = (params?: {
   userGroupId: string;
@@ -99,7 +98,7 @@ export const setUserGroupPermissions = (
   });
 
 export const deleteUserGroupUser = (id: string, userId: string) =>
-  del<{ id: string }[]>('/v1/user-groups/user', { q: id, userId });
+  post<{ id: string }[]>('/v1/user-groups/users/user', { q: id, userId });
 
 export const addUserToGroup = (id: string, userIds: string[]) =>
   put<string>('/v1/user-groups/users', { id, userIds });

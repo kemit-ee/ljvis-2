@@ -1,0 +1,201 @@
+declaration:
+
+  version: "1.0"
+  description: "Confirm (kinnita) a labour inspection form. Server-side rule: an act with any recorded violations cannot be confirmed here — publishing those requires the (out-of-scope) e-toimik integration. A violations-free act may be confirmed manually."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: inspectorName
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: inspectionType
+        type: string
+      - field: companyName
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: vehicleCount
+        type: string
+      - field: totalDriversCount
+        type: string
+      - field: controlsMatrix
+        type: string
+      - field: prescriptionComposed
+        type: string
+      - field: punishedPersonIdCode
+        type: string
+      - field: punishedPersonFirstName
+        type: string
+      - field: punishedPersonLastName
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+      - field: violations
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    status: "confirmed"
+    inspector_name: "${incoming.body.inspectorName || ''}"
+    inspection_date: "${incoming.body.inspectionDate || ''}"
+    inspection_type: "${incoming.body.inspectionType || ''}"
+    company_name: "${incoming.body.companyName || ''}"
+    company_reg_code: "${incoming.body.companyRegCode || ''}"
+    vehicle_count: "${incoming.body.vehicleCount || ''}"
+    total_drivers_count: "${incoming.body.totalDriversCount || ''}"
+    controls_matrix: "${incoming.body.controlsMatrix || '[]'}"
+    prescription_composed: "${incoming.body.prescriptionComposed || 'false'}"
+    punished_person_id_code: "${incoming.body.punishedPersonIdCode || ''}"
+    punished_person_first_name: "${incoming.body.punishedPersonFirstName || ''}"
+    punished_person_last_name: "${incoming.body.punishedPersonLastName || ''}"
+    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
+    violations: "${incoming.body.violations || '[]'}"
+    violations_count: "${(JSON.parse(incoming.body.violations || '[]')).length}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateForm
+
+validateForm:
+  template: "templates/form/labour-inspection/validate-labour-inspection-form"
+  requestType: GET
+  body:
+    inspectorName: ${inspector_name}
+    inspectionDate: ${inspection_date}
+    inspectionType: ${inspection_type}
+    companyName: ${company_name}
+    companyRegCode: ${company_reg_code}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+  next: checkViolationsEmpty
+
+checkViolationsEmpty:
+  switch:
+    - condition: ${violations_count > 0}
+      next: returnViolationsPresentError
+  next: getCurrentFormForStatus
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFormNotAlreadyConfirmed
+
+checkFormNotAlreadyConfirmed:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormNotAlreadyConfirmedSwitch
+
+checkFormNotAlreadyConfirmedSwitch:
+  switch:
+    - condition: ${current_status === 'confirmed'}
+      next: returnAlreadyConfirmedError
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "templates/form/labour-inspection/calculate-labour-inspection-changed-fields"
+  requestType: GET
+  body:
+    formId: ${id}
+    inspectorName: ${inspector_name}
+    inspectionDate: ${inspection_date}
+    inspectionType: ${inspection_type}
+    companyName: ${company_name}
+    companyRegCode: ${company_reg_code}
+    vehicleCount: ${vehicle_count}
+    totalDriversCount: ${total_drivers_count}
+    controlsMatrix: ${controls_matrix}
+    prescriptionComposed: ${prescription_composed}
+    punishedPersonIdCode: ${punished_person_id_code}
+    punishedPersonFirstName: ${punished_person_first_name}
+    punishedPersonLastName: ${punished_person_last_name}
+    proceedingReferenceNumber: ${proceeding_reference_number}
+    violations: ${violations}
+  result: changedFieldsResult
+  next: extractChangedFields
+
+extractChangedFields:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
+    changed_fields_result: ${parsed_result.changed_fields}
+  next: confirmForm
+
+confirmForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: ${status}
+      inspectorName: ${inspector_name}
+      inspectionDate: ${inspection_date}
+      inspectionType: ${inspection_type}
+      companyName: ${company_name}
+      companyRegCode: ${company_reg_code}
+      vehicleCount: ${vehicle_count}
+      totalDriversCount: ${total_drivers_count}
+      controlsMatrix: ${controls_matrix}
+      prescriptionComposed: ${prescription_composed}
+      punishedPersonIdCode: ${punished_person_id_code}
+      punishedPersonFirstName: ${punished_person_first_name}
+      punishedPersonLastName: ${punished_person_last_name}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      violations: ${violations}
+      created_by: ${created_by}
+  result: confirmRes
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-confirm"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    akti_voti: ${id}
+    form_number: ${confirmRes.response.body[0].formNumber}
+    version: ${confirmRes.response.body[0].version}
+    changed_fields: ${changed_fields_result}
+    isikukood: ${punished_person_id_code}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${confirmRes.response.body}
+  next: end
+
+returnViolationsPresentError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations","code":"violations_present_requires_e_toimik_publish"}'
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end
+
+returnAlreadyConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_confirmed"}'
+  next: end

@@ -1,0 +1,1440 @@
+{
+  "info": {
+    "name": "LJVIS \u2014 Notifications (teavituste moodul)",
+    "_postman_id": "ljvis-notifications-v1",
+    "description": "Functional tests for the notifications module: in-app notifications (GET /v1/notifications/list, unread-count, POST mark-read, mark-all-read), the Postkast 2.0 outbound send log (outbound-log/list, outbound-log/recipients) and UC-04 resend. Covers the permission boundary (in-app endpoints need auth only and are filtered by the caller's permissions[]; outbound-log/* and resend/* require notification.admin), idempotency (insert_notification ON CONFLICT DO NOTHING, mark-read / mark-all-read) and the append-only rule (resend appends a new outbound_log row and never mutates the original). Self-contained: authenticates, seeds notifications + an outbound_log row + recipient via Resql, and exercises the internal notification/create orchestrator. PK 2.0 has no CI mock \u2014 send-postkast returns a mock success (documented TODO in the DSL), so resend is exercised at the HTTP layer. Rust Resql returns camelCase field names; assertions match that.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login \u2014 Super Admin (has notification.admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Auth] Login \u2014 Officer (registered, no notification.admin / ncr.read)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Login 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.environment.set('cookie_officer', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_officer}}\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] Seed in-app notification A (ncr.read)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('returns id', () => pm.expect(row && row.id).to.not.be.empty);",
+              "pm.environment.set('notif_a_id', row.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/notification/insert_notification",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "notification",
+            "insert_notification"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"ncr_violation\", \"required_permission\": \"ncr.read\", \"related_entity_type\": \"ncr\", \"related_entity_id\": \"NOTIF-CI-A\", \"title_et\": \"CI teavitus A\", \"body_et\": \"keha A\", \"created_by\": \"newman\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] Seed in-app notification B (notification.admin)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/notification/insert_notification",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "notification",
+            "insert_notification"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"outbound_failed\", \"required_permission\": \"notification.admin\", \"related_entity_type\": \"outbound_log\", \"related_entity_id\": \"NOTIF-CI-B\", \"title_et\": \"CI teavitus B\", \"body_et\": \"keha B\", \"created_by\": \"newman\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] insert_notification idempotency \u2014 re-seed A returns no new row",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "pm.test('ON CONFLICT DO NOTHING \u2014 no row returned', () => pm.expect(Array.isArray(body) ? body.length : 0).to.eql(0));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/notification/insert_notification",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "notification",
+            "insert_notification"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"ncr_violation\", \"required_permission\": \"ncr.read\", \"related_entity_type\": \"ncr\", \"related_entity_id\": \"NOTIF-CI-A\", \"title_et\": \"CI teavitus A\", \"body_et\": \"keha A\", \"created_by\": \"newman\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[internal] POST notification/create \u2014 200 + id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('created with an id', () => pm.expect(row && row.id).to.not.be.empty);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/notification/create",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "notification",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"driving_ban\", \"required_permission\": \"ncr.read\", \"related_entity_type\": \"compound_form\", \"related_entity_id\": \"NOTIF-CI-C\", \"title_et\": \"CI teavitus C\", \"body_et\": \"keha C\", \"created_by\": \"newman\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[internal] POST notification/create \u2014 empty title_et \u2192 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 (required-field validation)', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/notification/create",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "notification",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"type\": \"driving_ban\", \"required_permission\": \"ncr.read\", \"related_entity_type\": \"cf\", \"related_entity_id\": \"X\", \"title_et\": \"\", \"body_et\": \"\", \"created_by\": \"newman\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/list \u2014 no cookie \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403 without auth', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "list"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/list \u2014 admin \u2192 200, sees ncr.read notification, unread",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : [];",
+              "pm.test('list is an array', () => pm.expect(Array.isArray(list)).to.be.true);",
+              "var a = list.find(n => String(n.id) === pm.environment.get('notif_a_id'));",
+              "pm.test('notification A present (ncr.read in admin permissions)', () => pm.expect(a).to.not.be.undefined);",
+              "pm.test('A is unread', () => pm.expect(a.isUnread).to.eql(true));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/list?page=1&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/list \u2014 officer \u2192 200, empty (no matching required_permission)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 (auth only)', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : [];",
+              "pm.test('nothing visible without a matching required_permission', () => pm.expect(list.length).to.eql(0));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "list"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/unread-count \u2014 no cookie \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/unread-count",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "unread-count"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/unread-count \u2014 admin \u2192 200, count >= 2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "var c = Number(row.unreadCount);",
+              "pm.test('unreadCount numeric', () => pm.expect(Number.isNaN(c)).to.be.false);",
+              "pm.test('>= 2 (A + C, both ncr.read)', () => pm.expect(c).to.be.at.least(2));",
+              "pm.environment.set('unread_before', String(c));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/unread-count",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "unread-count"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/mark-read \u2014 no cookie \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?id=00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "mark-read"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "00000000-0000-0000-0000-000000000000"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/mark-read \u2014 missing id \u2192 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "mark-read"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/mark-read?id=A \u2014 admin \u2192 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?id={{notif_a_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "mark-read"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{notif_a_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/mark-read?id=A again \u2014 idempotent 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 (ON CONFLICT DO NOTHING)', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?id={{notif_a_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "mark-read"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{notif_a_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/list \u2014 admin \u2192 A now read",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : [];",
+              "var a = list.find(n => String(n.id) === pm.environment.get('notif_a_id'));",
+              "pm.test('A present', () => pm.expect(a).to.not.be.undefined);",
+              "pm.test('A is read now', () => pm.expect(a.isUnread).to.eql(false));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/list?pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/unread-count \u2014 admin \u2192 decreased by 1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('count = before - 1', () => pm.expect(Number(row.unreadCount)).to.eql(Number(pm.environment.get('unread_before')) - 1));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/unread-count",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "unread-count"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/mark-all-read \u2014 admin \u2192 200, marks the rest",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('markedCount >= 1', () => pm.expect(Number(row.markedCount)).to.be.at.least(1));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-all-read",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "mark-all-read"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/unread-count \u2014 admin \u2192 0 after mark-all-read",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('unreadCount = 0', () => pm.expect(Number(row.unreadCount)).to.eql(0));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/unread-count",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "unread-count"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/mark-all-read \u2014 admin again \u2192 200, markedCount 0",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('nothing left to mark', () => pm.expect(Number(row.markedCount)).to.eql(0));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-all-read",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "mark-all-read"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] Seed outbound_log row (sent)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('returns id', () => pm.expect(row && row.id).to.not.be.empty);",
+              "pm.environment.set('outbound_log_id', row.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/notification/insert_outbound_log",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "notification",
+            "insert_outbound_log"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"message_type\": \"carrier_violation\", \"status\": \"sent\", \"related_entity_type\": \"ncr\", \"related_entity_id\": \"OUT-CI-1\", \"original_log_id\": \"\", \"pk_template_id\": \"tmpl-ci\", \"pk_sending_operation_id\": \"op-ci-1\", \"payload_json\": \"{}\", \"created_by\": \"newman\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] Seed outbound_log recipient",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/notification/insert_outbound_recipient",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "notification",
+            "insert_outbound_recipient"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"log_id\": \"{{outbound_log_id}}\", \"person_email\": \"ci@example.test\", \"person_name\": \"CI Saaja\", \"person_code\": \"12345678\", \"sending_report\": \"ok\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/list \u2014 officer (no notification.admin) \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403 without notification.admin', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "list"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/list \u2014 no cookie \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/list",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "list"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/list \u2014 admin \u2192 200, contains seeded row",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 (admin has notification.admin)', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : [];",
+              "var r = list.find(x => String(x.id) === pm.environment.get('outbound_log_id'));",
+              "pm.test('seeded outbound_log row present', () => pm.expect(r).to.not.be.undefined);",
+              "pm.test('status sent', () => pm.expect(r.status).to.eql('sent'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/list?pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/list?status=bogus \u2014 admin \u2192 200 empty",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : [];",
+              "pm.test('filter excludes everything', () => pm.expect(list.length).to.eql(0));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/list?status=does-not-exist",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "does-not-exist"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/recipients \u2014 missing logId \u2192 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/recipients",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "recipients"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/recipients \u2014 officer \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/recipients?logId={{outbound_log_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "recipients"
+          ],
+          "query": [
+            {
+              "key": "logId",
+              "value": "{{outbound_log_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/recipients?logId= \u2014 admin \u2192 200, seeded recipient",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : [];",
+              "pm.test('one recipient', () => pm.expect(list.length).to.be.at.least(1));",
+              "pm.test('personEmail matches seed', () => pm.expect(list[0].personEmail).to.eql('ci@example.test'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/recipients?logId={{outbound_log_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "recipients"
+          ],
+          "query": [
+            {
+              "key": "logId",
+              "value": "{{outbound_log_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/resend \u2014 officer (no notification.admin) \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403 without notification.admin', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/resend/resend?logId={{outbound_log_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "resend",
+            "resend"
+          ],
+          "query": [
+            {
+              "key": "logId",
+              "value": "{{outbound_log_id}}"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipientEmail\": \"ci@example.test\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/resend \u2014 missing logId \u2192 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/resend/resend",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "resend",
+            "resend"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipientEmail\": \"ci@example.test\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /v1/notifications/resend?logId= \u2014 admin \u2192 200 (PK 2.0 mock)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 (send-postkast returns mock success)', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('mock PK sending_operation_id returned', () => pm.expect(row.pkSendingOperationId || row.logId).to.not.be.empty);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/resend/resend?logId={{outbound_log_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "resend",
+            "resend"
+          ],
+          "query": [
+            {
+              "key": "logId",
+              "value": "{{outbound_log_id}}"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"recipientEmail\": \"ci@example.test\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/list \u2014 admin \u2192 resend appended a new row, original untouched",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : [];",
+              "var orig = pm.environment.get('outbound_log_id');",
+              "var origRow = list.find(x => String(x.id) === orig);",
+              "pm.test('original row still present and unchanged (append-only)', () => { pm.expect(origRow).to.not.be.undefined; pm.expect(origRow.status).to.eql('sent'); });",
+              "pm.test('a resend row referencing the original exists', () => pm.expect(list.some(x => x.originalLogId && String(x.originalLogId) === orig)).to.be.true);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/list?pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

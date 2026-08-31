@@ -1,0 +1,28 @@
+.choice-item-gap label {
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.proceeding-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.proceeding-width {
+    width: 30%;
+}
+
+.form-grid-desktop {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    width: 50%;
+}
+
+.form-grid-mobile {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    width: 100%;
+}

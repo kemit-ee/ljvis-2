@@ -1,0 +1,1154 @@
+{
+  "info": {
+    "name": "LJVIS — Labour Inspection Form",
+    "_postman_id": "ljvis-labour-inspection-v1",
+    "description": "Functional tests for /control-forms/labour-inspection endpoints (LJVIS2-75). Covers permission boundaries (labour_inspection_form.write/read, control_form.view_unpublished, control_form.delete), backend validation (required fields, max length, future date), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, locked-after-confirm, and the edit_locked-gated re-save of confirmed data), and delete. Self-contained: authenticates and creates its own test data.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — Officer (no edit_locked)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_officer}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_officer', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — no permission (labour_inspection_form.write) → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\": \"Test Inspector\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"Test Co\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without labour_inspection_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — missing inspectorName → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\": \"\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"Test Co\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is inspectorName', () => pm.expect(body.field).to.eql('inspectorName'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — future inspectionDate → 422 future_date_not_allowed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\": \"Test Inspector\", \"inspectionDate\": \"2099-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"Test Co\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is inspectionDate', () => pm.expect(body.field).to.eql('inspectionDate'));",
+              "pm.test('code is future_date_not_allowed', () => pm.expect(body.code).to.eql('future_date_not_allowed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — inspectorName over 200 chars → 422 max_length_exceeded",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\": \"{{long_string_201}}\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"Test Co\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is inspectorName', () => pm.expect(body.field).to.eql('inspectorName'));",
+              "pm.test('code is max_length_exceeded', () => pm.expect(body.code).to.eql('max_length_exceeded'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — companyRegCode over 20 chars → 422 max_length_exceeded",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\": \"Test Inspector\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"Test Co\", \"companyRegCode\": \"123456789012345678901\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is companyRegCode', () => pm.expect(body.field).to.eql('companyRegCode'));",
+              "pm.test('code is max_length_exceeded', () => pm.expect(body.code).to.eql('max_length_exceeded'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — create new act → 200, save id/formNumber",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\": \"CI Inspector\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"vehicleCount\": \"3\", \"totalDriversCount\": \"5\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('Response has id, formNumber, version=1', () => {",
+              "  pm.expect(row.id).to.not.be.undefined;",
+              "  pm.expect(row.formNumber).to.be.a('string').and.not.empty;",
+              "  pm.expect(Number(row.version)).to.eql(1);",
+              "});",
+              "pm.environment.set('created_lif_id', String(row.id));",
+              "pm.environment.set('created_lif_form_number', String(row.formNumber));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET control-forms/labour-inspection — no permission → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection?q={{created_lif_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_lif_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without read/view_unpublished permission', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET control-forms/labour-inspection — not found → 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection?q=999999999",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "999999999"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 404 for nonexistent id', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET control-forms/labour-inspection — happy path, verify fields",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection?q={{created_lif_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_lif_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is saved', () => pm.expect(body.status).to.eql('saved'));",
+              "pm.test('version is 1', () => pm.expect(Number(body.version)).to.eql(1));",
+              "pm.test('inspectorName matches', () => pm.expect(body.inspectorName).to.eql('CI Inspector'));",
+              "pm.test('formNumber matches created id', () => pm.expect(body.formNumber).to.eql(pm.environment.get('created_lif_form_number')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — re-save while saved → 200, version stays 1 (no-bump rule)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"CI Inspector Updated\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version stays 1 (saved-state resave rule)', () => pm.expect(Number(row.version)).to.eql(1));",
+              "pm.test('form_number unchanged', () => pm.expect(row.formNumber).to.eql(pm.environment.get('created_lif_form_number')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — re-save again while saved → 200, version still 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"CI Inspector Updated Again\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version still 1', () => pm.expect(Number(row.version)).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/confirm — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"CI Inspector Updated Again\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without labour_inspection_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/confirm — happy path → 200, status confirmed, version unchanged",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"CI Inspector Updated Again\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version unchanged by confirm', () => pm.expect(Number(row.version)).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET control-forms/labour-inspection — status is confirmed after confirm",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection?q={{created_lif_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_lif_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is confirmed', () => pm.expect(body.status).to.eql('confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/confirm — already confirmed → 422 already_confirmed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"CI Inspector Updated Again\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code is already_confirmed', () => pm.expect(body.code).to.eql('already_confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — officer (no edit_locked) editing confirmed act → 422 form_locked_after_confirm",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"Should Not Save\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code is form_locked_after_confirm', () => pm.expect(body.code).to.eql('form_locked_after_confirm'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — admin (edit_locked) editing confirmed act → 200, version bumps to 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id}}\", \"inspectorName\": \"Admin Edited Locked Data\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"cargo\", \"companyName\": \"CI Test Company\", \"companyRegCode\": \"12345678\", \"controlsMatrix\": \"[]\", \"violations\": \"[]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version bumps to 2 (edit_locked re-save of locked data)', () => pm.expect(Number(row.version)).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/save — create 2nd act with a violation → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\": \"CI Inspector 2\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"passenger\", \"companyName\": \"CI Test Company 2\", \"companyRegCode\": \"87654321\", \"controlsMatrix\": \"[]\", \"violations\": \"[{\\\"level1ValueKey\\\":1,\\\"level2ValueKey\\\":null,\\\"level3ValueKey\\\":null,\\\"quantity\\\":1}]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\", \"id\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.environment.set('created_lif_id_2', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/confirm — act with violations present → 422 violations_present_requires_e_toimik_publish",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id_2}}\", \"inspectorName\": \"CI Inspector 2\", \"inspectionDate\": \"2024-01-01\", \"inspectionType\": \"passenger\", \"companyName\": \"CI Test Company 2\", \"companyRegCode\": \"87654321\", \"controlsMatrix\": \"[]\", \"violations\": \"[{\\\"level1ValueKey\\\":1,\\\"level2ValueKey\\\":null,\\\"level3ValueKey\\\":null,\\\"quantity\\\":1}]\", \"prescriptionComposed\": \"false\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"punishedPersonIdCode\": \"\", \"punishedPersonFirstName\": \"\", \"punishedPersonLastName\": \"\", \"proceedingReferenceNumber\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is violations', () => pm.expect(body.field).to.eql('violations'));",
+              "pm.test('code is violations_present_requires_e_toimik_publish', () => pm.expect(body.code).to.eql('violations_present_requires_e_toimik_publish'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/delete — no permission (control_form.delete) → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id_2}}\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without control_form.delete', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST edit/delete — happy path → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_lif_id_2}}\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET control-forms/labour-inspection — deleted act still readable (audit retained)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection?q={{created_lif_id_2}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{created_lif_id_2}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

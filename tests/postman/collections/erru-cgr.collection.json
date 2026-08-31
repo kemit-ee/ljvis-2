@@ -1,0 +1,2938 @@
+{
+  "info": {
+    "name": "LJVIS — ERRU CGR",
+    "_postman_id": "ljvis-erru-cgr-v1",
+    "description": "Functional tests for the ERRU CGR module covering all stages: LJVIS2-66 (lifecycle), LJVIS2-138 (form), LJVIS2-139 (tegevused: send/resend/inbound/Heartbeat). Permission boundaries (cgr.read / cgr.create / cgr.send), 7A/7B XSD-choice validation, broadcast (ZZ) send returning 4 member-state entries, riigipohine uuestisaatmine updating only the targeted member-state entry, inbound CGR handler with UNFIT-register lookup and MTR fallback, Heartbeat no-storage guarantee, and idempotency replay.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin (cgr.read+create+send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — Org Admin (cgr.read+create, NO send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_org_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_cgr_nosend', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Draft with 7A (name) only → 200 initiated v1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Jaan\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-01-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.test('version is 1', () => pm.expect(body.version).to.eql(1));",
+              "pm.test('businessCaseId generated with CGR-EE prefix', () => pm.expect(body.businessCaseId).to.match(/^CGR-EE-\\d{4}-\\d{5}$/));",
+              "pm.environment.set('cgr_id_7a', body.id);",
+              "pm.environment.set('cgr_case_7a', body.businessCaseId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Verify 7A draft: uppercased fields, cgrTo persisted",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_id_7a}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_id_7a}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('tmFirstName is upper-cased', () => pm.expect(body.tmFirstName).to.eql('JAAN'));",
+              "pm.test('tmFamilyName is upper-cased', () => pm.expect(body.tmFamilyName).to.eql('TAMM'));",
+              "pm.test('cgrTo persisted as given', () => pm.expect(body.cgrTo).to.eql('DE'));",
+              "pm.test('cgrFrom is EE', () => pm.expect(body.cgrFrom).to.eql('EE'));",
+              "pm.test('direction is outgoing', () => pm.expect(body.direction).to.eql('outgoing'));",
+              "pm.test('memberStates empty before send', () => pm.expect(body.memberStates).to.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Draft with empty cgrTo → defaults to broadcast ZZ",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Broadcast\", \"tmFamilyName\": \"Case\", \"tmDateOfBirth\": \"1985-05-05\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.environment.set('cgr_id_broadcast', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Verify broadcast draft: cgrTo is ZZ",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_id_broadcast}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_id_broadcast}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('cgrTo defaulted to ZZ (all member states)', () => pm.expect(body.cgrTo).to.eql('ZZ'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Draft with 7B (certificate) only → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"FR\", \"originatingAuthority\": \"EE-ERAA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"\", \"tmFamilyName\": \"\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"EE-CPC-2011-4471\", \"certificateIssueDate\": \"2011-06-01\", \"certificateIssueCountry\": \"EE\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.environment.set('cgr_id_7b', body.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Neither 7A nor 7B filled → 422 search_choice_required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"\", \"tmFamilyName\": \"\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is search_choice_required', () => pm.expect(body.code).to.eql('search_choice_required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] 7A partial (missing date of birth) → 422 name_block_incomplete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Jaan\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is name_block_incomplete', () => pm.expect(body.code).to.eql('name_block_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] 7B partial (missing issue country) → 422 certificate_block_incomplete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"\", \"tmFamilyName\": \"\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"EE-CPC-2011-4471\", \"certificateIssueDate\": \"2011-06-01\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is certificate_block_incomplete', () => pm.expect(body.code).to.eql('certificate_block_incomplete'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Missing originatingAuthority → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"\", \"originatingAuthority\": \"\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Jaan\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-01-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is originatingAuthority', () => pm.expect(body.field).to.eql('originatingAuthority'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Validation] Invalid cgrTo length → 422 invalid_country_code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"DEU\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Jaan\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-01-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is invalid_country_code', () => pm.expect(body.code).to.eql('invalid_country_code'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Update 7A draft: change cgrTo and name → version 2",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/revise",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "revise"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_id_7a}}\", \"cgrTo\": \"SE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Control\", \"tmFirstName\": \"Jaan\", \"tmFamilyName\": \"Tamm-Uus\", \"tmDateOfBirth\": \"1980-01-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('version bumped to 2', () => pm.expect(body.version).to.eql(2));",
+              "pm.test('businessCaseId unchanged', () => pm.expect(body.businessCaseId).to.eql(pm.environment.get('cgr_case_7a')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Verify revision persisted: cgrTo=SE, family name updated",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_id_7a}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_id_7a}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('cgrTo updated to SE', () => pm.expect(body.cgrTo).to.eql('SE'));",
+              "pm.test('tmFamilyName updated', () => pm.expect(body.tmFamilyName).to.eql('TAMM-UUS'));",
+              "pm.test('requestPurpose updated to Control', () => pm.expect(body.requestPurpose).to.eql('Control'));",
+              "pm.test('version is 2', () => pm.expect(body.version).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Non-existent key → 422 not_editable, no row created",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/revise",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "revise"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"999999999\", \"cgrTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"X\", \"tmFamilyName\": \"Y\", \"tmDateOfBirth\": \"1980-01-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('code is not_editable', () => pm.expect(body.code).to.eql('not_editable'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Missing id → 422 required",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/revise",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "revise"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"cgrTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"X\", \"tmFamilyName\": \"Y\", \"tmDateOfBirth\": \"1980-01-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response;",
+              "pm.test('field is id', () => pm.expect(body.field).to.eql('id'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Create without cgr.create → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"No\", \"tmFamilyName\": \"Perm\", \"tmDateOfBirth\": \"1980-01-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));",
+              "var raw = pm.response.json();",
+              "pm.test('No businessCaseId returned', () => {",
+              "  var body = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "  var hasId = body && typeof body === 'object' && body.businessCaseId;",
+              "  pm.expect(hasId).to.not.be.ok;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Read without cgr.read → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_id_7a}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_id_7a}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Revise without cgr.create → 403, draft unchanged",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/revise",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "revise"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_id_7a}}\", \"cgrTo\": \"IT\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Should\", \"tmFamilyName\": \"NotApply\", \"tmDateOfBirth\": \"1980-01-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Draft still at version 2 (403 revise had no side effect)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_id_7a}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_id_7a}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('version still 2', () => pm.expect(body.version).to.eql(2));",
+              "pm.test('cgrTo still SE (unaffected by rejected revise)', () => pm.expect(body.cgrTo).to.eql('SE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Org Admin (cgr.create, no cgr.send) CAN create a draft",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_cgr_nosend}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"\", \"originatingAuthority\": \"EE-TRAM\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Org\", \"tmFamilyName\": \"Admin\", \"tmDateOfBirth\": \"1975-03-03\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status initiated', () => pm.expect(body.status).to.eql('initiated'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Send without cgr.send → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_cgr_nosend}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_id_broadcast}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Send forbidden for cgr_nosend user', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] Broadcast draft still initiated after 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_id_broadcast}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_id_broadcast}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status still initiated after 403 send', () => pm.expect(body.status).to.eql('initiated'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create broadcast 7A draft for ZZ send",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Jaan\", \"tmFamilyName\": \"Mueller\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.environment.set('cgr_send_id', String(body.id));",
+              "pm.environment.set('cgr_send_case', body.businessCaseId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Broadcast ZZ → 200 sent, 4 member-state entries",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_send_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('id echoed', () => pm.expect(String(body.id)).to.eql(pm.environment.get('cgr_send_id')));",
+              "pm.test('4 member-state entries', () => pm.expect(body.memberStates).to.have.lengthOf(4));",
+              "var de = body.memberStates.find(e => e.memberStateCode === 'DE');",
+              "pm.test('DE entry is Found', () => pm.expect(de.statusCode).to.eql('Found'));",
+              "pm.test('DE has transport manager details', () => pm.expect(de.transportManagerDetails).to.not.be.null);",
+              "pm.environment.set('cgr_send_workflow', body.workflowId);",
+              "var pl = body.memberStates.find(e => e.memberStateCode === 'PL');",
+              "pm.test('PL entry is NotAvailable', () => pm.expect(pl.statusCode).to.eql('NotAvailable'));",
+              "pm.test('PL has no TM details', () => pm.expect(pl.transportManagerDetails).to.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify broadcast: DB status=sent, memberStates persisted, NYSIIS keys set",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_send_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_send_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is sent (terminal)', () => pm.expect(body.status).to.eql('sent'));",
+              "var ms = Array.isArray(body.memberStates) ? body.memberStates : JSON.parse(body.memberStates);",
+              "pm.test('4 memberState entries persisted in DB (ZZ broadcast)', () => {",
+              "  pm.expect(ms).to.be.an('array').and.have.lengthOf(4);",
+              "  var codes = ms.map(e => e.memberStateCode);",
+              "  pm.expect(codes).to.include('DE');",
+              "  pm.expect(codes).to.include('PL');",
+              "});",
+              "pm.test('tmFirstNameSearchKey computed', () => pm.expect(body.tmFirstNameSearchKey).to.not.be.empty);",
+              "pm.test('tmFamilyNameSearchKey computed', () => pm.expect(body.tmFamilyNameSearchKey).to.not.be.empty);",
+              "pm.environment.set('cgr_send_workflow', body.workflowId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Re-send an already-sent request → 422 not_sendable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_send_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Cannot re-send from sent state', () => pm.response.to.have.status(422));",
+              "var body = pm.response.json();",
+              "pm.test('code not_sendable', () => pm.expect(body.code || (body.response && JSON.parse(body.response).code)).to.eql('not_sendable'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Resend] Resend to PL (NotAvailable) → 200, PL entry updated",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/resend",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "resend"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_send_id}}\", \"memberStateCode\": \"PL\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Resend returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status still sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('updatedMemberState is PL', () => pm.expect(body.updatedMemberState).to.eql('PL'));",
+              "pm.test('still 4 entries total', () => pm.expect(body.memberStates).to.have.lengthOf(4));",
+              "var de = body.memberStates.find(e => e.memberStateCode === 'DE');",
+              "pm.test('DE entry unchanged after resend', () => pm.expect(de.statusCode).to.eql('Found'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Resend] Verify: workflowId unchanged, new snapshot added",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_send_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_send_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('workflowId preserved after resend', () => pm.expect(body.workflowId).to.eql(pm.environment.get('cgr_send_workflow')));",
+              "pm.test('version incremented (new snapshot)', () => pm.expect(body.version).to.be.above(1));",
+              "pm.environment.set('cgr_send_version', String(body.version));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Resend] Missing memberStateCode → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/resend",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "resend"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_send_id}}\", \"memberStateCode\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 when memberStateCode missing', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Resend] AuthZ: without cgr.send → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_cgr_nosend}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/resend",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "resend"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_send_id}}\", \"memberStateCode\": \"DE\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Resend forbidden for nosend user', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Resend] Resend to FI (transport failure) → 502, request NOT moved to error",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/resend",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "resend"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_send_id}}\", \"memberStateCode\": \"FI\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Transport failure returns 502', () => pm.response.to.have.status(502));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Resend] Verify: still 'sent' after failed resend (not degraded to error)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_send_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_send_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is still sent, not error', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('no new snapshot appended on transport failure', () => pm.expect(String(body.version)).to.eql(pm.environment.get('cgr_send_version')));",
+              "var de = body.memberStates.find(e => e.memberStateCode === 'DE');",
+              "pm.test('other countries unaffected', () => pm.expect(de.statusCode).to.eql('Found'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Resend] Retry to FI is immediately possible (no not_resendable lock)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/resend",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "resend"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_send_id}}\", \"memberStateCode\": \"FI\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Retry is handled as a transport failure again (502), not blocked as not_resendable (422)', () => pm.response.to.have.status(502));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create single-country DE draft",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Hans\", \"tmFamilyName\": \"Mueller\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('cgr_id_de', pm.response.json().response.id);",
+              "pm.environment.set('cgr_case_de', pm.response.json().response.businessCaseId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] DE → 200 sent, 1 member-state entry (Found)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_id_de}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('1 member-state entry', () => pm.expect(body.memberStates).to.have.lengthOf(1));",
+              "pm.test('DE Found', () => pm.expect(body.memberStates[0].statusCode).to.eql('Found'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create FI draft (will trigger transport failure)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"FI\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Arto\", \"tmFamilyName\": \"Lahtinen\", \"tmDateOfBirth\": \"1982-07-20\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('cgr_id_fi', pm.response.json().response.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] FI → 502 send_failed, request transitions to error",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_id_fi}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Transport failure returns 502', () => pm.response.to.have.status(502));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify FI draft is in error state",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_id_fi}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_id_fi}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is error', () => pm.expect(body.status).to.eql('error'));",
+              "pm.test('error_message present', () => pm.expect(body.errorMessage).to.not.be.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Retry from error is allowed (LJVIS2-139)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{cgr_id_fi}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Retry handled (200 or 502, not 422)', () => pm.expect([200, 502]).to.include(pm.response.code));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Missing id → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 when id missing', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Nonexistent id → 404",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"9999999999\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('404 for nonexistent id', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Capture CGR row count before Heartbeat",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_send_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_send_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('cgr_version_before_hb', pm.response.json().response.version);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Heartbeat → NotFound, nothing stored",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"aabbccdd-0001-0001-0001-aabbccdd0001\", \"workflowId\": \"aabbccdd-0002-0002-0002-aabbccdd0002\", \"sentAt\": \"2026-07-23T09:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-CGR-HEARTBEAT-1\", \"originatingAuthority\": \"DE-BAG\", \"requestSource\": \"CA\", \"requestPurpose\": \"Heartbeat\", \"tmFirstName\": \"Hans\", \"tmFamilyName\": \"Mueller\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode NotFound for Heartbeat', () => pm.expect(body.statusCode).to.eql('NotFound'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Name-based: TAMM → Found+Fit (from MTR mock)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{cgr_inbound_tech_id}}\", \"workflowId\": \"aabbccdd-1002-1002-1002-aabbccdd1002\", \"sentAt\": \"2026-07-23T09:01:00Z\", \"from\": \"LV\", \"businessCaseId\": \"LV-CGR-NEWMAN-1\", \"originatingAuthority\": \"LV-ATD\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Mart\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-05-15\", \"tmPlaceOfBirth\": \"Tallinn\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('cgr_inbound_tech_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('memberStateCode EE', () => pm.expect(body.memberStateCode).to.eql('EE'));",
+              "pm.test('statusCode Found', () => pm.expect(body.statusCode).to.eql('Found'));",
+              "pm.test('TM details present', () => pm.expect(body.transportManagerDetails).to.not.be.null);",
+              "pm.test('fitnessStatus Fit', () => pm.expect(body.transportManagerDetails.certificateDetails.fitness.fitnessStatus).to.eql('Fit'));",
+              "pm.test('respondingAuthority EE-TRAM', () => pm.expect(body.transportManagerDetails.respondingAuthority).to.eql('EE-TRAM'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] REPLAY same technicalId → same answer, no duplicate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{cgr_inbound_tech_id}}\", \"workflowId\": \"aabbccdd-1002-1002-1002-aabbccdd1002\", \"sentAt\": \"2026-07-23T09:01:00Z\", \"from\": \"LV\", \"businessCaseId\": \"LV-CGR-NEWMAN-1\", \"originatingAuthority\": \"LV-ATD\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Mart\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-05-15\", \"tmPlaceOfBirth\": \"Tallinn\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('Replayed answer is EE/Found — idempotent with first delivery', () => {",
+              "  pm.expect(body).to.be.an('object');",
+              "  pm.expect(body.memberStateCode).to.eql('EE');",
+              "  pm.expect(body.statusCode).to.eql('Found');",
+              "  pm.expect(body.transportManagerDetails).to.not.be.null;",
+              "  pm.expect(body.transportManagerDetails.respondingAuthority).to.eql('EE-TRAM');",
+              "  pm.expect(body.transportManagerDetails.certificateDetails.fitness.fitnessStatus).to.eql('Fit');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Person not in EE register → NotFound",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"aabbccdd-2001-2001-2001-aabbccdd2001\", \"workflowId\": \"aabbccdd-2002-2002-2002-aabbccdd2002\", \"sentAt\": \"2026-07-23T09:02:00Z\", \"from\": \"FR\", \"businessCaseId\": \"FR-CGR-NEWMAN-2\", \"originatingAuthority\": \"FR-DREAL\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Pierre\", \"tmFamilyName\": \"Dupont\", \"tmDateOfBirth\": \"1983-11-22\", \"tmPlaceOfBirth\": \"Paris\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode NotFound', () => pm.expect(body.statusCode).to.eql('NotFound'));",
+              "pm.test('no TM details on NotFound', () => pm.expect(body.transportManagerDetails).to.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Certificate-based (EE-CPC-2020-00111) → Found+Fit",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"aabbccdd-3001-3001-3001-aabbccdd3001\", \"workflowId\": \"aabbccdd-3002-3002-3002-aabbccdd3002\", \"sentAt\": \"2026-07-23T09:03:00Z\", \"from\": \"SE\", \"businessCaseId\": \"SE-CGR-NEWMAN-3\", \"originatingAuthority\": \"SE-TF\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"\", \"tmFamilyName\": \"\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"EE-CPC-2020-00111\", \"certificateIssueDate\": \"2020-06-01\", \"certificateIssueCountry\": \"EE\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('statusCode Found', () => pm.expect(body.statusCode).to.eql('Found'));",
+              "pm.test('searchMethod CPC', () => pm.expect(body.transportManagerDetails.searchMethod).to.eql('CPC'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing technicalId → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"\", \"workflowId\": \"aabbccdd-9001-9001-9001-aabbccdd9001\", \"sentAt\": \"2026-07-23T09:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-CGR-ERR-1\", \"originatingAuthority\": \"DE-BAG\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Hans\", \"tmFamilyName\": \"Mueller\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 when technicalId missing', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing workflowId → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"aabbccdd-9002-9002-9002-aabbccdd9002\", \"workflowId\": \"\", \"sentAt\": \"2026-07-23T09:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-CGR-ERR-2\", \"originatingAuthority\": \"DE-BAG\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Hans\", \"tmFamilyName\": \"Mueller\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 when workflowId missing', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing from → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"aabbccdd-9003-9003-9003-aabbccdd9003\", \"workflowId\": \"aabbccdd-9004-9004-9004-aabbccdd9004\", \"sentAt\": \"2026-07-23T09:00:00Z\", \"from\": \"\", \"businessCaseId\": \"DE-CGR-ERR-3\", \"originatingAuthority\": \"DE-BAG\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Hans\", \"tmFamilyName\": \"Mueller\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 when from missing', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing businessCaseId → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"aabbccdd-9005-9005-9005-aabbccdd9005\", \"workflowId\": \"aabbccdd-9006-9006-9006-aabbccdd9006\", \"sentAt\": \"2026-07-23T09:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"\", \"originatingAuthority\": \"DE-BAG\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Hans\", \"tmFamilyName\": \"Mueller\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 when businessCaseId missing', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing originatingAuthority → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/cgr/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "cgr",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"aabbccdd-9007-9007-9007-aabbccdd9007\", \"workflowId\": \"aabbccdd-9008-9008-9008-aabbccdd9008\", \"sentAt\": \"2026-07-23T09:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-CGR-ERR-4\", \"originatingAuthority\": \"\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Hans\", \"tmFamilyName\": \"Mueller\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 when originatingAuthority missing', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Create isolated draft for filter tests",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/draft/create",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "draft",
+            "create"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cgrTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Listtest\", \"tmFamilyName\": \"Filterview\", \"tmDateOfBirth\": \"1990-06-01\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.environment.set('cgr_list_id', String(body.id));",
+              "pm.environment.set('cgr_list_case', body.businessCaseId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Returns {content,total}",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?page=1&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('has non-empty content array', () => {",
+              "  pm.expect(body.content).to.be.an('array');",
+              "  pm.expect(body.content.length).to.be.at.least(1, 'At least one CGR record must be in the list');",
+              "});",
+              "pm.test('total is a positive number consistent with content', () => {",
+              "  pm.expect(body.total).to.be.a('number').and.be.above(0);",
+              "  pm.expect(body.total).to.be.at.least(body.content.length, 'total must be >= content.length');",
+              "});",
+              "pm.test('one row per request (no snapshot duplicates)', () => {",
+              "  var ids = body.content.map(r => r.id);",
+              "  pm.expect(new Set(ids).size).to.eql(ids.length);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[AuthZ] List without cgr.read → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/search",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "search"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Filter tmFirstName+tmFamilyName AND-combined → matches isolated draft",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?tmFirstName=Listtest&tmFamilyName=Filterview&businessCaseId={{cgr_list_case}}&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "tmFirstName",
+              "value": "Listtest"
+            },
+            {
+              "key": "tmFamilyName",
+              "value": "Filterview"
+            },
+            {
+              "key": "businessCaseId",
+              "value": "{{cgr_list_case}}"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('exactly one match', () => pm.expect(body.content.length).to.eql(1));",
+              "pm.test('matches the isolated draft', () => pm.expect(body.content[0].businessCaseId).to.eql(pm.environment.get('cgr_list_case')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] tmFirstName matches but tmFamilyName mismatched → empty (AND, not OR)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?tmFirstName=Listtest&tmFamilyName=NoSuchFamily&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "tmFirstName",
+              "value": "Listtest"
+            },
+            {
+              "key": "tmFamilyName",
+              "value": "NoSuchFamily"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('no matches — AND semantics confirmed', () => pm.expect(body.content.length).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Broadcast request shows cgrTo=ZZ",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?businessCaseId={{cgr_send_case}}&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "{{cgr_send_case}}"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('exactly one match', () => pm.expect(body.content.length).to.eql(1));",
+              "pm.test('cgrTo is ZZ', () => pm.expect(body.content[0].cgrTo).to.eql('ZZ'));",
+              "pm.test('status is sent', () => pm.expect(body.content[0].status).to.eql('sent'));",
+              "pm.test('responseStatusCode is null for broadcast (breakdown only in detail view)', () => pm.expect(body.content[0].responseStatusCode).to.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Single-country sent request shows responseStatusCode",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?businessCaseId={{cgr_case_de}}&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "{{cgr_case_de}}"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('exactly one match', () => pm.expect(body.content.length).to.eql(1));",
+              "var row = body.content[0];",
+              "pm.test('cgrTo is DE (single country)', () => pm.expect(row.cgrTo).to.eql('DE'));",
+              "pm.test('responseStatusCode is Found', () => pm.expect(row.responseStatusCode).to.eql('Found'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Inbound requests excluded — list is outgoing-only",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?businessCaseId=LV-CGR-NEWMAN-1&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "LV-CGR-NEWMAN-1"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('inbound request not in outgoing-only list', () => pm.expect(body.content.length).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] Sorting by businessCaseId asc is honoured",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/search?sorting=business_case_id asc&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "sorting",
+              "value": "business_case_id asc"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('sorted ascending', () => {",
+              "  var ids = body.content.map(r => r.businessCaseId);",
+              "  var sorted = [...ids].sort();",
+              "  pm.expect(ids).to.eql(sorted); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

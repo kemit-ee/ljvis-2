@@ -1,0 +1,40 @@
+declaration:
+
+  version: "1.0"
+  description: "List of structure units filter by organisation ID"
+  namespace: structure-units
+  allowlist:
+    params:
+      - field: organisationId
+        type: string
+        description: "Filter by organisation ID"
+
+extractRequestData:
+  assign:
+    organisationId: ${incoming.params.organisationId}
+  next: getStructureUnits
+
+getStructureUnits:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/structure-units/list_structure_units"
+    headers:
+      type: json
+    body:
+      organisationId: ${organisationId}
+  result: res
+  next: checkResqlResult
+
+checkResqlResult:
+  switch:
+    - condition: ${res.response.status == null || res.response.status >= 400}
+      next: returnEmpty
+  next: returnSuccess
+
+returnEmpty:
+  return: []
+  next: end
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

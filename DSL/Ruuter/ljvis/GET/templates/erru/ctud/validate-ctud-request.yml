@@ -1,0 +1,114 @@
+declaration:
+  version: "1.0"
+  description: "Single source of truth for CTUD request field validation (LJVIS2-143) — shared by the create (POST), revise (PUT) and inbound-request paths so the ERRU rules are defined once. Mirrors the erru.ctud_request CHECK constraints (chk_ctud_min_two_search_criteria, chk_ctud_name_not_unknown, chk_ctud_vehicle_country_required) and the frontend Yup schema in useCtudForm.ts. Returns '{\"valid\":true}' when all checks pass, otherwise the standard VALIDATION_ERROR shape ready to forward to the client as-is.\n\nIMPORTANT — why every condition reads incoming.body directly instead of pre-assigned variables: Ruuter's ScriptingHelper.filterEmptyOptional discards an assigned variable whose evaluated value is an empty string, so `assign`ing an optional field yields *undefined* rather than ''. A later `x !== ''` test then passes for a genuinely empty field and `x.length` throws. Every value is therefore coerced at the point of use with ('' + (… || '')) and every emptiness test is truthiness-first, which is safe for both '' and undefined."
+  namespace: service
+  allowlist:
+    body:
+      - field: ctudTo
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+
+validate:
+  switch:
+    # ── Header and parties ──────────────────────────────────────────────
+    - condition: ${!(('' + (incoming.body.ctudTo || '')).trim())}
+      next: returnCtudToRequiredError
+    - condition: ${('' + (incoming.body.ctudTo || '')).trim().length !== 2}
+      next: returnCtudToInvalidError
+    - condition: ${!(('' + (incoming.body.originatingAuthority || '')).trim())}
+      next: returnOriginatingAuthorityRequiredError
+    - condition: ${('' + (incoming.body.originatingAuthority || '')).trim().length > 50}
+      next: returnOriginatingAuthorityMaxLengthError
+    - condition: ${!(('' + (incoming.body.requestSource || '')).trim())}
+      next: returnRequestSourceRequiredError
+    - condition: ${!(('' + (incoming.body.requestPurpose || '')).trim())}
+      next: returnRequestPurposeRequiredError
+    # ── Searched undertaking: at least two of the three criteria ────────
+    # double-quoted because the ternaries contain ": ", which would otherwise make
+    # YAML read this as a nested mapping (see DSL/ARCHITECTURE.md)
+    - condition: "${((('' + (incoming.body.transportUndertakingName || '')).trim() ? 1 : 0) + (('' + (incoming.body.communityLicenceNumber || '')).trim() ? 1 : 0) + (('' + (incoming.body.vehicleRegistrationNumber || '')).trim() ? 1 : 0)) < 2}"
+      next: returnMinTwoSearchCriteriaError
+    # ERRU forbids the literal placeholder "unknown" as an undertaking name
+    - condition: ${('' + (incoming.body.transportUndertakingName || '')).trim().toLowerCase() === 'unknown'}
+      next: returnUnknownNotAllowedError
+    - condition: ${('' + (incoming.body.transportUndertakingName || '')).trim().length > 150}
+      next: returnUndertakingNameMaxLengthError
+    - condition: ${('' + (incoming.body.communityLicenceNumber || '')).trim().length > 20}
+      next: returnLicenceNumberMaxLengthError
+    - condition: ${('' + (incoming.body.vehicleRegistrationNumber || '')).trim().length > 20}
+      next: returnVehicleNumberMaxLengthError
+    # Registration country becomes mandatory as soon as a registration number is given
+    - condition: ${!!(('' + (incoming.body.vehicleRegistrationNumber || '')).trim()) && !(('' + (incoming.body.vehicleRegistrationCountry || '')).trim())}
+      next: returnVehicleCountryRequiredError
+    - condition: ${!!(('' + (incoming.body.vehicleRegistrationCountry || '')).trim()) && ('' + (incoming.body.vehicleRegistrationCountry || '')).trim().length !== 2}
+      next: returnVehicleCountryInvalidError
+  next: returnValid
+
+returnValid:
+  return: '{"valid":true}'
+  next: end
+
+returnCtudToRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"ctudTo","code":"required"}'
+  next: end
+
+returnCtudToInvalidError:
+  return: '{"type":"VALIDATION_ERROR","field":"ctudTo","code":"invalid_country_code"}'
+  next: end
+
+returnOriginatingAuthorityRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"originatingAuthority","code":"required"}'
+  next: end
+
+returnOriginatingAuthorityMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"originatingAuthority","code":"max_length_exceeded"}'
+  next: end
+
+returnRequestSourceRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"requestSource","code":"required"}'
+  next: end
+
+returnRequestPurposeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"requestPurpose","code":"required"}'
+  next: end
+
+returnMinTwoSearchCriteriaError:
+  return: '{"type":"VALIDATION_ERROR","field":"transportUndertakingName","code":"min_two_search_criteria"}'
+  next: end
+
+returnUnknownNotAllowedError:
+  return: '{"type":"VALIDATION_ERROR","field":"transportUndertakingName","code":"unknown_not_allowed"}'
+  next: end
+
+returnUndertakingNameMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"transportUndertakingName","code":"max_length_exceeded"}'
+  next: end
+
+returnLicenceNumberMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"communityLicenceNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnVehicleNumberMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegistrationNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnVehicleCountryRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegistrationCountry","code":"required"}'
+  next: end
+
+returnVehicleCountryInvalidError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegistrationCountry","code":"invalid_country_code"}'
+  next: end

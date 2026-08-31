@@ -1,0 +1,132 @@
+declaration:
+
+  version: "1.0"
+  description: "Publish (avalikusta) the trailer technical-check sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: checkFormIsConfirmed
+
+checkFormIsConfirmed:
+  assign:
+    current_status: "${currentFormRes.response.body[0].status}"
+    compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
+  next: checkStatusSwitch
+
+checkStatusSwitch:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: returnAlreadyPublishedError
+    - condition: ${current_status !== 'confirmed'}
+      next: returnNotConfirmedError
+  next: extractCurrentFormData
+
+extractCurrentFormData:
+  assign:
+    parts_summary: "${currentFormRes.response.body[0].partsSummary || '[]'}"
+    parts_defects: "${currentFormRes.response.body[0].partsDefects || '[]'}"
+    result_type: "${currentFormRes.response.body[0].resultType || 'ok'}"
+    result_transport_interruption: "${currentFormRes.response.body[0].resultTransportInterruption || false}"
+    era_yv_mnt_regnr: "${currentFormRes.response.body[0].eraYvMntRegnr || false}"
+    era_yv_mnt_vintin: "${currentFormRes.response.body[0].eraYvMntVintin || false}"
+    era_yv_mnt_axles: "${currentFormRes.response.body[0].eraYvMntAxles || false}"
+    era_yv_mnt_places: "${currentFormRes.response.body[0].eraYvMntPlaces || false}"
+    era_yv_mnt_rebuilt: "${currentFormRes.response.body[0].eraYvMntRebuilt || false}"
+    proceeding_type: "${currentFormRes.response.body[0].proceedingType || ''}"
+    proceeding_reference_number: "${currentFormRes.response.body[0].proceedingReferenceNumber || ''}"
+    violations: "${currentFormRes.response.body[0].violations || '[]'}"
+    notes: "${currentFormRes.response.body[0].notes || ''}"
+    trailer_reg_nr: "${currentFormRes.response.body[0].trailerRegNr || ''}"
+  next: publishForm
+
+publishForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: published
+      partsSummary: ${parts_summary}
+      partsDefects: ${parts_defects}
+      resultType: ${result_type}
+      resultTransportInterruption: ${result_transport_interruption}
+      eraYvMntRegnr: ${era_yv_mnt_regnr}
+      eraYvMntVintin: ${era_yv_mnt_vintin}
+      eraYvMntAxles: ${era_yv_mnt_axles}
+      eraYvMntPlaces: ${era_yv_mnt_places}
+      eraYvMntRebuilt: ${era_yv_mnt_rebuilt}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      violations: ${violations}
+      notes: ${notes}
+      trailerRegNr: ${trailer_reg_nr}
+      created_by: ${created_by}
+  result: publishRes
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "Haagise tehnovorm avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${publishRes.response.body[0].subFormNumber}/${publishRes.response.body[0].version}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.trailer_technical.publish"
+    event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: ${description}
+    log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${publishRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnAlreadyPublishedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnNotConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"not_confirmed"}'
+  next: end

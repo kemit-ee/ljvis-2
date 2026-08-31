@@ -1,10 +1,7 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Check if a personal code is already in use"
-  method: post
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     body:
@@ -13,7 +10,7 @@ declaration:
         description: "Personal code to check"
       - field: id
         type: string
-        description: "Optional: UUID of the user being updated (excluded from check)"
+        description: "User id to check (optional)"
 
 extractRequestData:
   assign:

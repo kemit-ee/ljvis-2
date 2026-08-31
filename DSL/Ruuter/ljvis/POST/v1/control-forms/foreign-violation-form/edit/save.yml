@@ -1,0 +1,392 @@
+declaration:
+
+  version: "1.0"
+  description: "Create or update a foreign violation form — single unified save endpoint, branches internally on presence of id. Confirmed forms can only be re-saved by a user with control_form.edit_locked."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: formNumber
+        type: string
+      - field: reportingCountryCode
+        type: string
+      - field: reportingAuthority
+        type: string
+      - field: inspectionCountryCode
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: inspectionTime
+        type: string
+      - field: inspectionAddressLine1
+        type: string
+      - field: inspectionAddressLine2
+        type: string
+      - field: inspectionRegion
+        type: string
+      - field: inspectionCity
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: companyName
+        type: string
+      - field: companyCountryCode
+        type: string
+      - field: companyAddressLine1
+        type: string
+      - field: companyAddressLine2
+        type: string
+      - field: companyCity
+        type: string
+      - field: companyPostalCode
+        type: string
+      - field: driverFirstName
+        type: string
+      - field: driverLastName
+        type: string
+      - field: vehicleRegNr
+        type: string
+      - field: vehicleMake
+        type: string
+      - field: vehicleModel
+        type: string
+      - field: vehicleCountryCode
+        type: string
+      - field: vehicleVin
+        type: string
+      - field: vehicleFirstRegistration
+        type: string
+      - field: vehicleBodyType
+        type: string
+      - field: licenceCopyNumber
+        type: string
+      - field: violationDescription
+        type: string
+      - field: minorViolationsCount
+        type: string
+      - field: sanctionCode
+        type: string
+      - field: sanctionNotes
+        type: string
+      - field: recommendedMeasureCode
+        type: string
+      - field: recommendedMeasureNotes
+        type: string
+      - field: recommendedMeasureGeneralNotes
+        type: string
+      - field: violations
+        type: string
+      - field: dataEntryDate
+        type: string
+      - field: inspectorFirstName
+        type: string
+      - field: inspectorLastName
+        type: string
+      - field: inspectorOrganisationId
+        type: string
+      - field: inspectorUnit
+        type: string
+      - field: inspectorProfession
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    form_number: "${incoming.body.formNumber}"
+    reporting_country_code: "${incoming.body.reportingCountryCode}"
+    reporting_authority: "${incoming.body.reportingAuthority}"
+    inspection_country_code: "${incoming.body.inspectionCountryCode}"
+    inspection_date: "${incoming.body.inspectionDate}"
+    inspection_time: "${incoming.body.inspectionTime}"
+    inspection_address_line1: "${incoming.body.inspectionAddressLine1}"
+    inspection_address_line2: "${incoming.body.inspectionAddressLine2}"
+    inspection_region: "${incoming.body.inspectionRegion}"
+    inspection_city: "${incoming.body.inspectionCity}"
+    company_reg_code: "${incoming.body.companyRegCode}"
+    company_name: "${incoming.body.companyName}"
+    company_country_code: "${incoming.body.companyCountryCode}"
+    company_address_line1: "${incoming.body.companyAddressLine1}"
+    company_address_line2: "${incoming.body.companyAddressLine2}"
+    company_city: "${incoming.body.companyCity}"
+    company_postal_code: "${incoming.body.companyPostalCode}"
+    driver_first_name: "${incoming.body.driverFirstName}"
+    driver_last_name: "${incoming.body.driverLastName}"
+    vehicle_reg_nr: "${incoming.body.vehicleRegNr}"
+    vehicle_make: "${incoming.body.vehicleMake}"
+    vehicle_model: "${incoming.body.vehicleModel}"
+    vehicle_country_code: "${incoming.body.vehicleCountryCode}"
+    vehicle_vin: "${incoming.body.vehicleVin}"
+    vehicle_first_registration: "${incoming.body.vehicleFirstRegistration}"
+    vehicle_body_type: "${incoming.body.vehicleBodyType}"
+    licence_copy_number: "${incoming.body.licenceCopyNumber}"
+    violation_description: "${incoming.body.violationDescription}"
+    minor_violations_count: "${incoming.body.minorViolationsCount}"
+    sanction_code: "${incoming.body.sanctionCode}"
+    sanction_notes: "${incoming.body.sanctionNotes}"
+    recommended_measure_code: "${incoming.body.recommendedMeasureCode}"
+    recommended_measure_notes: "${incoming.body.recommendedMeasureNotes}"
+    recommended_measure_general_notes: "${incoming.body.recommendedMeasureGeneralNotes}"
+    violations: "${incoming.body.violations}"
+    data_entry_date: "${incoming.body.dataEntryDate}"
+    inspector_first_name: "${incoming.body.inspectorFirstName}"
+    inspector_last_name: "${incoming.body.inspectorLastName}"
+    inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
+    inspector_unit: "${incoming.body.inspectorUnit}"
+    inspector_profession: "${incoming.body.inspectorProfession}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIsCreate
+
+checkIsCreate:
+  switch:
+    - condition: ${id == null || id === ''}
+      next: insertForm
+  next: getCurrentFormForStatus
+
+insertForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/insert"
+    headers:
+      type: json
+    body:
+      status: saved
+      formNumber: ${form_number}
+      reportingCountryCode: ${reporting_country_code}
+      reportingAuthority: ${reporting_authority}
+      inspectionCountryCode: ${inspection_country_code}
+      inspectionDate: ${inspection_date}
+      inspectionTime: ${inspection_time}
+      inspectionAddressLine1: ${inspection_address_line1}
+      inspectionAddressLine2: ${inspection_address_line2}
+      inspectionRegion: ${inspection_region}
+      inspectionCity: ${inspection_city}
+      companyRegCode: ${company_reg_code}
+      companyName: ${company_name}
+      companyCountryCode: ${company_country_code}
+      companyAddressLine1: ${company_address_line1}
+      companyAddressLine2: ${company_address_line2}
+      companyCity: ${company_city}
+      companyPostalCode: ${company_postal_code}
+      driverFirstName: ${driver_first_name}
+      driverLastName: ${driver_last_name}
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ${vehicle_make}
+      vehicleModel: ${vehicle_model}
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ${vehicle_vin}
+      vehicleFirstRegistration: ${vehicle_first_registration}
+      vehicleBodyType: ${vehicle_body_type}
+      licenceCopyNumber: ${licence_copy_number}
+      violationDescription: ${violation_description}
+      minorViolationsCount: ${minor_violations_count}
+      sanctionCode: ${sanction_code}
+      sanctionNotes: ${sanction_notes}
+      recommendedMeasureCode: ${recommended_measure_code}
+      recommendedMeasureNotes: ${recommended_measure_notes}
+      recommendedMeasureGeneralNotes: ${recommended_measure_general_notes}
+      violations: ${violations}
+      dataEntryDate: ${data_entry_date}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      created_by: ${created_by}
+  result: saveRes
+  next: extractInsertResponseData
+
+extractInsertResponseData:
+  assign:
+    form_number: "${saveRes.response.body[0].formNumber || ''}"
+  next: logAuditEventCreate
+
+logAuditEventCreate:
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-create"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+getCurrentFormForStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: extractCurrentStatus
+
+extractCurrentStatus:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormNotLocked
+
+checkFormNotLocked:
+  switch:
+    - condition: ${current_status === 'confirmed' && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
+      next: returnFormLockedError
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "templates/form/foreign-violation/calculate-foreign-violation-changed-fields"
+  requestType: GET
+  body:
+    form_id: ${id}
+    reporting_country_code: ${reporting_country_code}
+    reporting_authority: ${reporting_authority}
+    inspection_country_code: ${inspection_country_code}
+    inspection_date: ${inspection_date}
+    inspection_time: ${inspection_time}
+    inspection_address_line1: ${inspection_address_line1}
+    inspection_address_line2: ${inspection_address_line2}
+    inspection_region: ${inspection_region}
+    inspection_city: ${inspection_city}
+    company_reg_code: ${company_reg_code}
+    company_name: ${company_name}
+    company_country_code: ${company_country_code}
+    company_address_line1: ${company_address_line1}
+    company_address_line2: ${company_address_line2}
+    company_city: ${company_city}
+    company_postal_code: ${company_postal_code}
+    driver_first_name: ${driver_first_name}
+    driver_last_name: ${driver_last_name}
+    vehicle_reg_nr: ${vehicle_reg_nr}
+    vehicle_make: ${vehicle_make}
+    vehicle_model: ${vehicle_model}
+    vehicle_country_code: ${vehicle_country_code}
+    vehicle_vin: ${vehicle_vin}
+    vehicle_first_registration: ${vehicle_first_registration}
+    vehicle_body_type: ${vehicle_body_type}
+    licence_copy_number: ${licence_copy_number}
+    violation_description: ${violation_description}
+    minor_violations_count: ${minor_violations_count}
+    sanction_code: ${sanction_code}
+    sanction_notes: ${sanction_notes}
+    recommended_measure_code: ${recommended_measure_code}
+    recommended_measure_notes: ${recommended_measure_notes}
+    recommended_measure_general_notes: ${recommended_measure_general_notes}
+    inspector_first_name: ${inspector_first_name}
+    inspector_last_name: ${inspector_last_name}
+    inspector_organisation_id: ${inspector_organisation_id}
+    inspector_unit: ${inspector_unit}
+    inspector_profession: ${inspector_profession}
+  result: changedFieldsResult
+  next: extractResult
+
+extractResult:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
+    changed_fields_result: ${parsed_result.changed_fields}
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      formNumber: ${form_number}
+      reportingCountryCode: ${reporting_country_code}
+      reportingAuthority: ${reporting_authority}
+      inspectionCountryCode: ${inspection_country_code}
+      inspectionDate: ${inspection_date}
+      inspectionTime: ${inspection_time}
+      inspectionAddressLine1: ${inspection_address_line1}
+      inspectionAddressLine2: ${inspection_address_line2}
+      inspectionRegion: ${inspection_region}
+      inspectionCity: ${inspection_city}
+      companyRegCode: ${company_reg_code}
+      companyName: ${company_name}
+      companyCountryCode: ${company_country_code}
+      companyAddressLine1: ${company_address_line1}
+      companyAddressLine2: ${company_address_line2}
+      companyCity: ${company_city}
+      companyPostalCode: ${company_postal_code}
+      driverFirstName: ${driver_first_name}
+      driverLastName: ${driver_last_name}
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ${vehicle_make}
+      vehicleModel: ${vehicle_model}
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ${vehicle_vin}
+      vehicleFirstRegistration: ${vehicle_first_registration}
+      vehicleBodyType: ${vehicle_body_type}
+      licenceCopyNumber: ${licence_copy_number}
+      violationDescription: ${violation_description}
+      minorViolationsCount: ${minor_violations_count}
+      sanctionCode: ${sanction_code}
+      sanctionNotes: ${sanction_notes}
+      recommendedMeasureCode: ${recommended_measure_code}
+      recommendedMeasureNotes: ${recommended_measure_notes}
+      recommendedMeasureGeneralNotes: ${recommended_measure_general_notes}
+      violations: ${violations}
+      dataEntryDate: ${data_entry_date}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      status: ${current_status}
+      created_by: ${created_by}
+  result: saveRes
+  next: extractUpdateResponseData
+
+extractUpdateResponseData:
+  assign:
+    form_number: "${saveRes.response.body[0].formNumber || ''}"
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: ${status === 'confirmed'}
+      next: logAuditEventLocked
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    changed_fields: ${changed_fields_result}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+logAuditEventLocked:
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-update-locked"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    changed_fields: ${changed_fields_result}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${saveRes.response.body}
+  next: end
+
+returnFormLockedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_confirm"}'
+  next: end

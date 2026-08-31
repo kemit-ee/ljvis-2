@@ -1,10 +1,14 @@
 declaration:
-  call: declare
-  version: 0.1
-  description: "Deactivate expired users - removes groups and sets status to inactive (called by cron)"
-  method: post
-  accepts: json
-  returns: json
+
+  version: "1.1"
+  description: >-
+    Nightly cron (LJVIS2-12 AC#4). Deactivates every user whose access_end
+    has passed — see deactivate_expired_users.sql for what "deactivate"
+    means (status='inactive' + user_groups cleared, both in one snapshot
+    row).
+    Writes one aggregate audit event when at least one user was
+    deactivated (no-op otherwise). Called by CronManager
+    (DSL/CronManager/deactivate-expired-users.yaml).
   namespace: users
 
 extractRequestData:
@@ -27,18 +31,30 @@ checkDeactivated:
   switch:
     - condition: "${res.response.body.length == 0}"
       next: returnSuccess
-  next: rebuildLatest
+  next: logAuditEvent
 
-rebuildLatest:
+# Direct call to the generic audit insert (not the GET templates/audit/
+# log-audit-event chain) — that chain lives on public Ruuter and expects a
+# session cookie, which this Ruuter.internal, cron-triggered endpoint never
+# has (same reasoning as cron/etoimik-decision-sync.yml).
+logAuditEvent:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/user/rebuild_user_account_latest"
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
       type: json
     body:
-      user_account_id: "${res.response.body.map(r => r.id).join(',')}"
-      created_by: ${created_by}
-  result: latestRes
+      event_id: ""
+      event_type: "user.deactivate"
+      event_category: "user_management"
+      actor_name: "system"
+      actor_personal_code: ""
+      description: "${'Öine protsess deaktiveeris ' + res.response.body.length + ' kasutaja(t) (ligipääsu lõpu kuupäev möödas)'}"
+      log_content: "${JSON.stringify({ deactivatedCount: res.response.body.length, deactivatedUserAccountKeys: res.response.body.map(r => r.id), deactivatedPersonalCodes: res.response.body.map(r => r.personalCode || r.personal_code) })}"
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: auditRes
   next: returnSuccess
 
 returnSuccess:

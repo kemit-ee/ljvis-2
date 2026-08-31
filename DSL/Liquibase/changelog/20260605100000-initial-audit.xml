@@ -4,9 +4,13 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
     <changeSet id="20260605100000" author="ljvis">
-        <sqlFile path="changelog/20260605100000-initial-audit.sql" />
+        <!-- validCheckSum:ANY — changeset sisu muutus (ALTER DATABASE → audit.config + hash_personal_code).
+             Lokaalsetel arendajatel, kus changeset on juba jooksnud, ei teki checksummi konflikti.
+             Uutel keskkondadel (sh RDS) jookseb muudetud versioon. -->
+        <validCheckSum>ANY</validCheckSum>
+        <sqlFile path="changelog/20260605100000-initial-audit.sql" splitStatements="false" />
         <rollback>
-            <sqlFile path="changelog/20260605100000-rollback.sql" />
+            <sqlFile path="changelog/20260605100000-rollback.sql" splitStatements="false" />
         </rollback>
     </changeSet>
 </databaseChangeLog>

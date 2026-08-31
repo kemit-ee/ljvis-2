@@ -1,10 +1,7 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Update a classifier value validity period"
-  method: put
-  accepts: json
-  returns: json
   namespace: classifiers
   allowlist:
     body:
@@ -22,8 +19,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -59,8 +56,8 @@ setClassifierCode:
   next: calculateChangedFields
 
 calculateChangedFields:
-  template: "[#LJVIS_PROJECT_LAYER]/classifier/calculate-validity-changed-fields"
-  requestType: templates
+  template: "templates/classifier/calculate-validity-changed-fields"
+  requestType: GET
   body:
     classifier_value_id: ${classifier_value_id}
     valid_from: ${valid_from}
@@ -86,13 +83,17 @@ updateClassifierValue:
 buildAuditEvent:
   assign:
     changed_fields: ${changedFieldsResult}
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), väärtus '${code}' (ID ${classifier_value_id}), muudetud väljad: ${changed_fields}"
     log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"changedFields\":${changed_fields},\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "classifier_value.update"
     event_category: "classifier_management"

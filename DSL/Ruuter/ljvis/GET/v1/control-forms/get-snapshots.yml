@@ -1,0 +1,34 @@
+declaration:
+
+  version: "1.0"
+  description: "Get version history snapshots for a control form"
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "Form ID"
+      - field: formType
+        type: string
+        description: "Form type"
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.id}"
+    formType: "${incoming.params.formType}"
+  next: getSnapshots
+
+getSnapshots:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/${formType}/get-snapshots"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

@@ -1,0 +1,25 @@
+declaration:
+
+  version: "1.0"
+  description: "List latest snapshots of all ADR sub-forms linked to a compound form key"
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: compoundFormKey
+        type: string
+        description: "Compound form key"
+
+fetchList:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/get-by-compound-form-key"
+    headers:
+      type: json
+    body:
+      compoundFormKey: ${incoming.params.compoundFormKey}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

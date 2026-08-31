@@ -1,10 +1,7 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Search/list user groups filtered by own organisation (local scope)"
-  method: get
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     params:
@@ -25,8 +22,8 @@ declaration:
         description: "Whether to log this as a user-initiated search"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -35,8 +32,8 @@ get_user_context:
 extractRequestData:
   assign:
     search: "${incoming.params.q ?? ''}"
-    page: "${incoming.params.page ?? 1}"
-    page_size: "${incoming.params.pageSize ?? 20}"
+    page: "${Number(incoming.params.page ?? 1)}"
+    page_size: "${Number(incoming.params.pageSize ?? 20)}"
     sorting: "${incoming.params.sorting ?? 'name asc'}"
     organisation_id: "${auth_user.organisationid}"
     actor_personal_code: "${auth_user.personalcode || ''}"
@@ -82,8 +79,8 @@ checkSearch:
   next: returnSuccess
 
 logSearchEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.list.search"
     event_category: "user_management"

@@ -1,0 +1,46 @@
+{
+    "snapshots": [
+        {{#each snapshots}}
+        {
+            "id": "{{this.id}}",
+            "version": {{this.version}},
+            "direction": "{{this.direction}}",
+            "status": "{{this.status}}",
+            "preForwardingStatus": {{#if this.preForwardingStatus}}"{{this.preForwardingStatus}}"{{else}}null{{/if}},
+            "businessCaseId": "{{this.businessCaseId}}",
+            "technicalId": {{#if this.technicalId}}"{{this.technicalId}}"{{else}}null{{/if}},
+            "workflowId": {{#if this.workflowId}}"{{this.workflowId}}"{{else}}null{{/if}},
+            "sentAt": {{#if this.sentAt}}"{{this.sentAt}}"{{else}}null{{/if}},
+            "ncrFrom": {{#if this.ncrFrom}}"{{this.ncrFrom}}"{{else}}null{{/if}},
+            "ncrTo": {{#if this.ncrTo}}"{{this.ncrTo}}"{{else}}null{{/if}},
+            "originatingAuthority": {{#if this.originatingAuthority}}"{{this.originatingAuthority}}"{{else}}null{{/if}},
+            "requestSource": {{#if this.requestSource}}"{{this.requestSource}}"{{else}}null{{/if}},
+            "requestPurpose": {{#if this.requestPurpose}}"{{this.requestPurpose}}"{{else}}null{{/if}},
+            "ackStatusCode": {{#if this.ackStatusCode}}"{{this.ackStatusCode}}"{{else}}null{{/if}},
+            "ackStatusMessage": {{#if this.ackStatusMessage}}"{{this.ackStatusMessage}}"{{else}}null{{/if}},
+            "ackReceivedAt": {{#if this.ackReceivedAt}}"{{this.ackReceivedAt}}"{{else}}null{{/if}},
+            "responseStatusCode": {{#if this.responseStatusCode}}"{{this.responseStatusCode}}"{{else}}null{{/if}},
+            "responseStatusMessage": {{#if this.responseStatusMessage}}"{{this.responseStatusMessage}}"{{else}}null{{/if}},
+            "transportUndertakingName": {{#if this.transportUndertakingName}}"{{this.transportUndertakingName}}"{{else}}null{{/if}},
+            "communityLicenceNumber": {{#if this.communityLicenceNumber}}"{{this.communityLicenceNumber}}"{{else}}null{{/if}},
+            "vehicleRegistrationNumber": {{#if this.vehicleRegistrationNumber}}"{{this.vehicleRegistrationNumber}}"{{else}}null{{/if}},
+            "vehicleRegistrationCountry": {{#if this.vehicleRegistrationCountry}}"{{this.vehicleRegistrationCountry}}"{{else}}null{{/if}},
+            "checkResult": {{#if this.checkResult}}"{{this.checkResult}}"{{else}}null{{/if}},
+            "checkDate": {{#if this.checkDate}}"{{this.checkDate}}"{{else}}null{{/if}},
+            "minorInfringement": {{#if this.minorInfringement}}{{{this.minorInfringement}}}{{else}}null{{/if}},
+            "seriousInfringements": {{#if this.seriousInfringements}}{{{this.seriousInfringements}}}{{else}}[]{{/if}},
+            "responsePenaltiesImposed": {{#if this.responsePenaltiesImposed}}{{{this.responsePenaltiesImposed}}}{{else}}null{{/if}},
+            "respondingAuthority": {{#if this.respondingAuthority}}"{{this.respondingAuthority}}"{{else}}null{{/if}},
+            "responseNumberOfVehicles": {{#if this.responseNumberOfVehicles}}{{this.responseNumberOfVehicles}}{{else}}null{{/if}},
+            "responseCommunityLicenceStatus": {{#if this.responseCommunityLicenceStatus}}"{{this.responseCommunityLicenceStatus}}"{{else}}null{{/if}},
+            "responseAddress": {{#if this.responseAddress}}{{{this.responseAddress}}}{{else}}null{{/if}},
+            "linkedForeignViolationFormKey": {{#if this.linkedForeignViolationFormKey}}{{this.linkedForeignViolationFormKey}}{{else}}null{{/if}},
+            "handlerPersonalCode": {{#if this.handlerPersonalCode}}"{{this.handlerPersonalCode}}"{{else}}null{{/if}},
+            "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}},
+            "errorMessage": {{#if this.errorMessage}}"{{this.errorMessage}}"{{else}}null{{/if}},
+            "createdAt": "{{this.createdAt}}",
+            "createdBy": "{{this.createdBy}}"
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ]
+}

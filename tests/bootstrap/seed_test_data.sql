@@ -46,7 +46,46 @@ INSERT INTO users.permission (code, description, created_by) VALUES
     ('classifier.list',                  'Klassifikaatorite nimekirja detailvaate vaatamine', 'bootstrap'),
     ('classifier.read',                  'Klassifikaatori detailvaate vaatamine', 'bootstrap'),
     ('classifier.edit',                  'Klassifikaatori nimetuse ja selgituse muutmine', 'bootstrap'),
-    ('classifier_value.edit',            'Klassifikaatorile uue väärtuse loomine ja väärtuse kehtivusperioodi muutmine', 'bootstrap')
+    ('classifier_value.edit',            'Klassifikaatorile uue väärtuse loomine ja väärtuse kehtivusperioodi muutmine', 'bootstrap'),
+    ('labour_inspection_form.write',     'Tööinspektsiooni kontrollakti loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('labour_inspection_form.read',      'Tööinspektsiooni kontrollakti andmete lugemine', 'bootstrap'),
+    ('control_form.view_unpublished',    'Avaldamata (salvestatud/kinnitatud) koondvormide vaatamine muu isiku poolt, kui vormi looja/kinnitaja', 'bootstrap'),
+    ('control_form.delete',              'Koondvormi kustutamine koos kõigi alamvormidega', 'bootstrap'),
+    ('ctud.read',                        'ERRU tegevusloa kontrolli (CTUD) päringu ja selle vastuse vaatamine', 'bootstrap'),
+    ('ctud.create',                      'ERRU tegevusloa kontrolli (CTUD) väljamineva päringu koostamine ja mustandi salvestamine', 'bootstrap'),
+    ('ctud.send',                        'ERRU tegevusloa kontrolli (CTUD) päringu saatmine ERRU-sse', 'bootstrap'),
+    ('cgr.read',                         'ERRU mainepäringu (CGR) päringu ja liikmesriikide koondvastuse vaatamine', 'bootstrap'),
+    ('cgr.create',                       'ERRU mainepäringu (CGR) väljamineva päringu koostamine ja mustandi salvestamine, sealhulgas olemasoleva päringu kopeerimine', 'bootstrap'),
+    ('cgr.send',                         'ERRU mainepäringu (CGR) päringu saatmine ERRU-sse, sealhulgas riigipõhine uuestisaatmine', 'bootstrap'),
+    ('rsi.read',                         'ERRU tehnokontrolli teate (RSI) ja selle vastuse vaatamine, sealhulgas teadete loend', 'bootstrap'),
+    ('rsi.create',                       'ERRU tehnokontrolli teate (RSI) väljamineva teate koostamine ja mustandi salvestamine, sealhulgas eeltäitmine kontrollkaardilt', 'bootstrap'),
+    ('rsi.send',                         'ERRU tehnokontrolli teate (RSI) saatmine ERRU-sse', 'bootstrap'),
+    ('ncr.read',                         'ERRU kontrollitulemuse teate (NCR) ja selle vastuse vaatamine, sealhulgas teadete loend', 'bootstrap'),
+    ('ncr.create',                       'ERRU kontrollitulemuse teate (NCR) väljamineva päringu koostamine ja mustandi salvestamine', 'bootstrap'),
+    ('ncr.respond',                      'ERRU kontrollitulemuse teatele (NCR) sissetuleva teate vastuse koostamine ja mustandi salvestamine', 'bootstrap'),
+    ('ncr.send',                         'ERRU kontrollitulemuse teate (NCR) päringu või vastuse saatmine ERRU-sse (sealhulgas vea korral uuesti saatmine)', 'bootstrap'),
+    ('ncr.list',                         'ERRU kontrollitulemuse teadete (NCR) loendi vaatamine ja filtreerimine', 'bootstrap'),
+    ('risk_report.list',                 'Veoettevõtjate riskitasemete loendi vaatamine ja filtreerimine (EL 2022/695)', 'bootstrap'),
+    ('control_form.edit_locked',         'Kinnitatud vormi X-tee andmevahetuskihi plokkide muutmine (administraator)', 'bootstrap'),
+    ('compound_form.write',              'Koondvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('vehicle_technical_form.write',     'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('vehicle_technical_form.read',      'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi andmete lugemine', 'bootstrap'),
+    ('trailer_technical_form.write',     'Haagise tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('trailer_technical_form.read',      'Haagise tehnonõuetele vastavuse kontrollvormi andmete lugemine', 'bootstrap'),
+    ('transport_interruption_form.write','Autoveo katkestamise kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('transport_interruption_form.read', 'Autoveo katkestamise kontrollvormi andmete lugemine', 'bootstrap'),
+    ('adr_form.write',                   'ADR (ohtlik veos) kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
+    ('adr_form.read',                    'ADR (ohtlik veos) kontrollvormi andmete lugemine', 'bootstrap'),
+    ('good_repute_form.write',           'Hea maine vormi loomine, täitmine, salvestamine ja failide üleslaadimine', 'bootstrap'),
+    ('good_repute_form.read',            'Hea maine vormi andmete lugemine ja failide allalaadimine', 'bootstrap'),
+    ('sp_driver_form.write',             'Autojuhi sõidu- ja puhkeaja alamvormi täitmine ja salvestamine', 'bootstrap'),
+    ('sp_driver_form.read',              'Autojuhi sõidu- ja puhkeaja alamvormi andmete lugemine', 'bootstrap'),
+    ('sp_teammate_form.write',           'Kaasautojuhi sõidu- ja puhkeaja alamvormi täitmine ja salvestamine', 'bootstrap'),
+    ('sp_teammate_form.read',            'Kaasautojuhi sõidu- ja puhkeaja alamvormi andmete lugemine', 'bootstrap'),
+    ('xtee.query.rahvastikuregister',    'Rahvastikuregistri päring isiku andmete leidmiseks isikukoodi alusel', 'bootstrap'),
+    ('tram_driver_form.write',           'Transpordiameti kontrollkaardi (autojuhi SP-vorm) täitmine ja salvestamine', 'bootstrap'),
+    ('tram_driver_form.read',            'Transpordiameti kontrollkaardi (autojuhi SP-vorm) andmete lugemine', 'bootstrap'),
+    ('notification.admin',               'Postkast 2.0 kaudu saadetud väliste teavituste logi vaatamine ja ebaõnnestunud teavituste uuesti saatmine (UC-02/UC-04)', 'bootstrap')
 ON CONFLICT (code) DO NOTHING;
 
 -- ============================================================
@@ -58,7 +97,7 @@ SELECT
     'Super Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation),
-    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit']::TEXT[],
+    ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','sp_driver_form.write','sp_driver_form.read','sp_teammate_form.write','sp_teammate_form.read','tram_driver_form.write','tram_driver_form.read','xtee.query.rahvastikuregister','ctud.read','ctud.create','ctud.send','cgr.read','cgr.create','cgr.send','rsi.read','rsi.create','rsi.send','ncr.read','ncr.create','ncr.respond','ncr.send','ncr.list','risk_report.list','notification.admin']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Super Admin Group');
 
@@ -68,9 +107,23 @@ SELECT
     'Local Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation WHERE code = 'JUM'),
-    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit']::TEXT[],
+    ARRAY['user_group.list.local','user_group.read.local','user_group.create','user_group.update','user_group.list_users.local','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.local','user.read.local','user.edit.local','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','ctud.read','ctud.create','cgr.read','cgr.create','rsi.read','rsi.create','ncr.read','ncr.create','ncr.respond','ncr.list']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Local Admin Group');
+
+-- Regular officer (kontrolliametnik): has write/read on the control-form sub-forms
+-- but NOT control_form.edit_locked — needed to manually distinguish officer vs.
+-- administrator behaviour (LJVIS2-72 UC-13, UC-30, UC-42; also used to verify that
+-- confirmed/published sub-forms cannot be re-saved without edit_locked).
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
+SELECT
+    nextval('users.seq_user_group_key'),
+    'Officer Group',
+    (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
+     FROM users.organisation WHERE code = 'PPA'),
+    ARRAY['classifier.read','control_form.view_unpublished','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','sp_driver_form.write','sp_driver_form.read','sp_teammate_form.write','sp_teammate_form.read','tram_driver_form.write','tram_driver_form.read','labour_inspection_form.write','labour_inspection_form.read','xtee.query.rahvastikuregister']::TEXT[],
+    'bootstrap'
+WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Officer Group');
 
 -- ============================================================
 -- Users  (v2: single snapshot INSERT per user)
@@ -94,6 +147,51 @@ FROM users.organisation o
 WHERE o.code = 'PPA'
   AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60001019906');
 
+-- Org Admin (60001017727 / pc_org_admin) — member of 'Local Admin Group'.
+-- Has ctud.read/create + cgr.read/create + rsi.read/create but NOT ctud.send/cgr.send/
+-- rsi.send — used across the ERRU Postman collections both for the negative "no send
+-- permission -> 403" case and, from the CGR collection onwards, for positive read/create
+-- assertions too.
+INSERT INTO users.user_account (
+    user_account_key, personal_code, first_name, last_name,
+    organisation_id, organisation_name, structural_unit, job_title,
+    email, phone, access_start, status, user_groups, created_by
+)
+SELECT
+    nextval('users.seq_user_account_key'),
+    '60001017727', 'Org', 'Admin',
+    o.id, o.name, 'JUM', 'Spetsialist',
+    'org.admin@ljvis.test', '55500003', '2024-01-01', 'active',
+    (SELECT ARRAY[ug.user_group_key]
+     FROM users.user_group ug WHERE ug.name = 'Local Admin Group'
+     ORDER BY ug.created_at DESC LIMIT 1),
+    'bootstrap'
+FROM users.organisation o
+WHERE o.code = 'JUM'
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60001017727');
+
+-- Regular officer (no control_form.edit_locked) — see 'Officer Group' above.
+-- NOTE: personal code is intentionally NOT '60001017869' (pc_user) — that
+-- identity is reused across every Postman collection as the "no permission"
+-- user (expects 403), so it must remain unassigned to any user_group.
+INSERT INTO users.user_account (
+    user_account_key, personal_code, first_name, last_name,
+    organisation_id, organisation_name, structural_unit, job_title,
+    email, phone, access_start, status, user_groups, created_by
+)
+SELECT
+    nextval('users.seq_user_account_key'),
+    '60002020202', 'Mari', 'Tamm',
+    o.id, o.name, 'LÕUNA PREFEKTUUR', 'Kontrolliametnik',
+    'mari.tamm@ljvis.test', '55500002', '2024-01-01', 'active',
+    (SELECT ARRAY[ug.user_group_key]
+     FROM users.user_group ug WHERE ug.name = 'Officer Group'
+     ORDER BY ug.created_at DESC LIMIT 1),
+    'bootstrap'
+FROM users.organisation o
+WHERE o.code = 'PPA'
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60002020202');
+
 -- ============================================================
 -- Classifiers  (v2: single snapshot INSERT per classifier)
 -- ============================================================
@@ -106,22 +204,42 @@ SELECT nextval('classifier.seq_classifier_key'), 'TEST', 'Test Classifier', 'boo
 WHERE NOT EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TEST');
 
 -- ============================================================
--- Classifier values — RTK (3 valid + 1 expired for isValid tests)
+-- Classifier values — RTK
+-- EE/LV/LT are already seeded by the Liquibase migration (initial-rtk-classifier).
+-- XX is a fictitious non-ISO code used only for isValid/expired testing in CI.
 -- ============================================================
 INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
 SELECT nextval('classifier.seq_classifier_value_key'),
        (SELECT classifier_key FROM classifier.classifier WHERE code = 'RTK' ORDER BY created_at DESC LIMIT 1),
        v.code, v.name, v.vf::DATE, v.vu::DATE, 'bootstrap'
 FROM (VALUES
-    ('EE', 'Eesti',             '2024-01-01'::DATE, NULL::DATE),
-    ('LV', 'Läti',              '2024-01-01'::DATE, NULL::DATE),
-    ('LT', 'Leedu',             '2024-01-01'::DATE, NULL::DATE),
-    ('FI', 'Soome (aegunud)',   '2019-01-01'::DATE, '2020-01-01'::DATE)
+    ('EE', 'Eesti',                        '2004-05-01'::DATE, NULL::DATE),
+    ('LV', 'Läti',                         '2004-05-01'::DATE, NULL::DATE),
+    ('LT', 'Leedu',                        '2004-05-01'::DATE, NULL::DATE),
+    ('XX', 'Kehtetu testtunnus (aegunud)', '2019-01-01'::DATE, '2020-01-01'::DATE)
 ) AS v(code, name, vf, vu)
 WHERE NOT EXISTS (
     SELECT 1 FROM classifier.classifier_value cv2
     JOIN classifier.classifier c2 ON c2.classifier_key = cv2.classifier_key
     WHERE c2.code = 'RTK' AND cv2.code = v.code
+);
+
+-- ============================================================
+-- Classifier values — COUNTRY (expired test entry)
+-- The 247 real ISO 3166-1 countries are seeded by Liquibase (initial-country-classifier).
+-- XY is a fictitious code used only for isValid/expired testing in CI.
+-- ============================================================
+INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, created_by)
+SELECT nextval('classifier.seq_classifier_value_key'),
+       (SELECT classifier_key FROM classifier.classifier WHERE code = 'COUNTRY' ORDER BY created_at DESC LIMIT 1),
+       v.code, v.name, v.vf::DATE, v.vu::DATE, 'bootstrap'
+FROM (VALUES
+    ('XY', 'Katsemaariik (aegunud)', '2019-01-01'::DATE, '2020-01-01'::DATE)
+) AS v(code, name, vf, vu)
+WHERE NOT EXISTS (
+    SELECT 1 FROM classifier.classifier_value cv2
+    JOIN classifier.classifier c2 ON c2.classifier_key = cv2.classifier_key
+    WHERE c2.code = 'COUNTRY' AND cv2.code = v.code
 );
 
 -- ============================================================

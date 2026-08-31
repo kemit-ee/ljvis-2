@@ -21,6 +21,12 @@ export function formatDateTime(value: string | null | undefined): string {
 
 export function toIsoDate(value: unknown): string {
   if (!value) return '';
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
   if (
     typeof value === 'object' &&
     value !== null &&
@@ -33,8 +39,32 @@ export function toIsoDate(value: unknown): string {
   return String(value);
 }
 
+const ESTONIAN_CODE_CENTURY: Record<string, string> = {
+  '1': '18', '2': '18',
+  '3': '19', '4': '19',
+  '5': '20', '6': '20',
+  '7': '21', '8': '21',
+};
+
+/** Extracts the ISO birth date (YYYY-MM-DD) from an 11-digit Estonian personal code.
+ *  Returns null if the code is not exactly 11 digits or the century digit is unrecognised. */
+export function birthDateFromEstonianCode(code: string): string | null {
+  if (!/^\d{11}$/.test(code)) return null;
+  const century = ESTONIAN_CODE_CENTURY[code[0]];
+  if (!century) return null;
+  const year  = century + code.slice(1, 3);
+  const month = code.slice(3, 5);
+  const day   = code.slice(5, 7);
+  return `${year}-${month}-${day}`;
+}
+
 export function toIsoTime(value: unknown): string {
   if (!value) return '';
+  if (value instanceof Date) {
+    const hours = String(value.getHours()).padStart(2, '0');
+    const minutes = String(value.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}:00`;
+  }
   if (
     typeof value === 'object' &&
     value !== null &&

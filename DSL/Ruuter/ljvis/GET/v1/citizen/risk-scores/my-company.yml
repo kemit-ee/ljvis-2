@@ -1,0 +1,145 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    LJVIS2-150: citizen-facing endpoint — a company representative (verified
+    via Ariregister "ettevottegaSeotudIsikud_v1") views their OWN company's
+    current risk score. Auth is TARA JWT via TIM directly (same
+    /jwt/userinfo call as templates/check-user-authority — reimplemented here
+    rather than reusing that template, since check-user-authority additionally
+    requires the personal code to exist in users.user_group, which citizens
+    are not; LJVIS2-137's full citizen session flow is not built yet, but this
+    endpoint works standalone against the existing TIM/TARA-mock login as
+    noted in the task plan §12/§2). Response omits riskBandErru (ERRU-only
+    field) — see Ruuter.internal/.../risk-scores/current.yml for the full
+    shape.
+  namespace: risk_score
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "8-digit Estonian company registry code."
+
+getCitizenContext:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: userinfo_res
+  next: checkCitizenAuth
+
+checkCitizenAuth:
+  switch:
+    - condition: "${userinfo_res.response.status < 200 || userinfo_res.response.status >= 300}"
+      next: returnUnauthenticated
+  next: extractPersonalCode
+
+extractPersonalCode:
+  assign:
+    personal_code: "${userinfo_res.response.body.userinfo?.claims?.personalCode ?? userinfo_res.response.body.userinfo?.subject ?? ''}"
+  next: checkPersonalCode
+
+checkPersonalCode:
+  switch:
+    - condition: "${!personal_code}"
+      next: returnUnauthenticated
+  next: extractCompanyRegCode
+
+extractCompanyRegCode:
+  assign:
+    company_reg_code: "${(incoming.params.q || '').trim()}"
+  next: validateRegCode
+
+validateRegCode:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test(company_reg_code)}"
+      next: returnInvalidRegCode
+  next: checkCompanyRepresentative
+
+# Calls XTR directly rather than going through the public
+# /v1/xroad/arireg/associated-persons Ruuter endpoint: that endpoint sits
+# behind POST/.guard (templates/check-user-authority — an OFFICER session),
+# which a citizen's TARA session can never satisfy. Duplicates just the XTR
+# call itself; DSL/xtr/ar/ettevottegaSeotudIsikud_v1.yml is the same template
+# associated-persons.yml uses.
+checkCompanyRepresentative:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/ettevottegaSeotudIsikud_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${company_reg_code}
+  result: ar_res
+  next: checkArAvailable
+
+checkArAvailable:
+  switch:
+    - condition: "${ar_res.response.status < 200 || ar_res.response.status >= 300}"
+      next: returnArUnavailable
+  next: extractAssociatedPersons
+
+# ettevottegaSeotudIsikud_v1 response shape — UNWRAPPED (no {headers,body}
+# envelope), matching exactly what associated-persons.yml returns and
+# frontend/src/features/xroad/api.ts's getAssociatedPersons()/
+# AssociatedPersonsRawResponse consumes: keha.seosed.item is a single object
+# OR an array depending on result count.
+extractAssociatedPersons:
+  assign:
+    seosed_item: "${ar_res.response.body?.ettevottegaSeotudIsikud_v1Response?.keha?.seosed?.item}"
+    associated_persons: "${seosed_item ? (Array.isArray(seosed_item) ? seosed_item : [seosed_item]) : []}"
+  next: verifyRepresentative
+
+verifyRepresentative:
+  switch:
+    - condition: "${!associated_persons.some(p => p.isikukood_registrikood === personal_code)}"
+      next: returnForbidden
+  next: getCurrentRiskScore
+
+getCurrentRiskScore:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/current"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+  result: score_res
+  next: returnSuccess
+
+returnSuccess:
+  status: 200
+  return: >-
+    ${({
+      riskScore: score_res.response.body.riskScore,
+      riskBandCode: score_res.response.body.riskBandCode,
+      totalControls: score_res.response.body.totalControls,
+      companyName: score_res.response.body.companyName,
+      windowStart: score_res.response.body.windowStart,
+      windowEnd: score_res.response.body.windowEnd
+    })}
+  next: end
+
+# Object-literal `${(...)}` form, NOT a quoted JSON string literal — see
+# Ruuter.internal/.../risk-scores/current.yml's returnNoRecord comment for
+# why (confirmed live via Newman: quoted-string form double-wraps the JSON).
+returnUnauthenticated:
+  status: 400
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid TARA session required'})}"
+  next: end
+
+returnInvalidRegCode:
+  status: 400
+  return: "${({error: 'INVALID_PARAMETER', message: 'q must be an 8-digit company registry code'})}"
+  next: end
+
+returnArUnavailable:
+  status: 503
+  return: "${({error: 'AR_UNAVAILABLE', message: 'Ariregister representative check unavailable'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'NOT_REPRESENTATIVE', message: 'Personal code is not a registered representative of this company'})}"
+  next: end

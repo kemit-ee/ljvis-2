@@ -1,0 +1,44 @@
+declaration:
+  version: "1.0"
+  description: "Audit: inbound CGR request received from another member state and answered (LJVIS2-139). Logged after the automatic response is stored. The description carries the business case identifier, the originating country, the fitness result (Fit/Unfit/NotFound), and the search method used (NYSIIS/CPC/Local). Heartbeat requests are NEVER logged (the caller skips this template for Heartbeat). No actor personal code because the inbound handler is fully automatic (no user is involved). The transport manager's name and birth date are personal data and must be logged per the data-processing agreement."
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: cgr_from
+        type: string
+      - field: fitness_result
+        type: string
+      - field: search_method
+        type: string
+      - field: tm_first_name
+        type: string
+      - field: tm_family_name
+        type: string
+      - field: tm_date_of_birth
+        type: string
+
+buildAudit:
+  assign:
+    description: "Sissetulev CGR päring teenindatud: päringu tunnus ${incoming.body.business_case_id || '-'}, saatja riik ${incoming.body.cgr_from || '-'}, tulemus ${incoming.body.fitness_result || '-'}, otsingumeetod ${incoming.body.search_method || '-'}, otsitud isik ${(incoming.body.tm_first_name || '-') + ' ' + (incoming.body.tm_family_name || '-')} sündinud ${incoming.body.tm_date_of_birth || '-'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['cgrFrom', incoming.body.cgr_from || null], ['fitnessResult', incoming.body.fitness_result || null], ['searchMethod', incoming.body.search_method || null], ['tmFirstName', incoming.body.tm_first_name || null], ['tmFamilyName', incoming.body.tm_family_name || null], ['tmDateOfBirth', incoming.body.tm_date_of_birth || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "cgr.inbound_request.serve"
+    event_category: "erru_message_exchange"
+    actor_name: "system"
+    actor_personal_code: ""
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

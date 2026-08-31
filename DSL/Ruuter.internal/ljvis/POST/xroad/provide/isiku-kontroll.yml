@@ -1,0 +1,131 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    X-tee pakutav teenus IsikuKontroll (v1): tagastab kõik LJVIS-i kontrollid ja
+    rikkumised ühe isikukoodi kohta. Andmeallikad: compound_form.drivers JSONB ja
+    labour_inspection_form.punished_person_id_code. Juurdepääs ainult X-tee
+    turvaserveri kaudu — ruuter-internal ei ole nginx-ist proxitud. Vt docs/xtee/01-isiku-kontroll.md.
+  namespace: xroad
+
+# Samm 1: Valideeri isikukood — kohustuslik ja peab vastama Eesti isikukoodi formaadile
+validateInput:
+  switch:
+    - condition: "${incoming.body.isikukood == null || incoming.body.isikukood == ''}"
+      next: returnMissingIsikukood
+    - condition: "${!(/^[1-6][0-9]{10}$/.test(incoming.body.isikukood.trim()))}"
+      next: returnInvalidIsikukood
+  next: assignParams
+
+# Samm 3: Kogu sisendparameetrid muutujatesse ja registreeri algusaeg logimiseks
+assignParams:
+  assign:
+    isikukood: "${incoming.body.isikukood.trim()}"
+    start_time: "${new Date().getTime()}"
+    xroad_client: "${incoming.headers['x-road-client']}"
+    xroad_member_code: "${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}"
+    xroad_subsystem: "${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}"
+  next: queryKontrollid
+
+# Samm 4: Päri kontrollide loend Resql-ist (isikukood on juba valideeritud)
+queryKontrollid:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/provide/isiku-kontroll"
+    headers:
+      type: json
+    body:
+      isikukood: ${isikukood}
+  result: kontrollResult
+  next: checkQueryStatus
+
+# Samm 5: Kontrolli Resql vastuse HTTP staatust
+checkQueryStatus:
+  switch:
+    - condition: "${kontrollResult.response.status < 200 || kontrollResult.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+# Samm 6a: Logi edukas päring — isikukood maskituna (****), mitte selge tekstina
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.isiku-kontroll"
+      request_xml: "isikukood=****"
+      response_xml: "${JSON.stringify({count: (kontrollResult.response.body || []).length})}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "xroad_client"
+      source_record_id: "${xroad_client}"
+  result: logResult
+  next: logAjUsage
+
+# Samm 6c: Logi AJ kasutusteave (andmejälgija) — eraldi append-only tabelisse
+logAjUsage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${isikukood}"
+      action: "LJVIS-i kontrollide küsimine X-tee kaudu"
+      receiver_code: "${xroad_member_code}"
+      receiver_name: ""
+      receiver_system: "${xroad_subsystem}"
+  result: ajLogResult
+  next: buildResponse
+
+# Samm 7: Ehita vastus X-tee formaadis {kontrollid: {item: [...]}}
+buildResponse:
+  assign:
+    result_body: "${JSON.stringify({kontrollid: {item: kontrollResult.response.body || []}})}"
+  next: returnSuccess
+
+# Edukas vastus — tühi loend on samuti edukas (HTTP 200)
+returnSuccess:
+  status: 200
+  return: ${result_body}
+  next: end
+
+# Samm 6b: Logi ebaõnnestunud päring — stack trace'i ega SQL-i ei edastata
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.isiku-kontroll"
+      request_xml: "isikukood=****"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Resql HTTP ' + kontrollResult.response.status}"
+      person_identifier: ""
+      source_type: "xroad_client"
+      source_record_id: "${xroad_client}"
+  result: logResult
+  next: returnServerError
+
+# Veavastused — ei sisalda sisemist infot (SQL, stack trace)
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end
+
+returnMissingIsikukood:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "isikukood is required"}'
+  next: end
+
+returnInvalidIsikukood:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "isikukood must be 11 digits starting with 1-6"}'
+  next: end

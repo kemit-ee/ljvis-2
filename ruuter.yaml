@@ -1,0 +1,31 @@
+config_path: /app/DSL
+port: 8080
+http_request_timeout: 15000
+
+cors:
+  allowed_origins:
+    - "http://localhost:8086"
+    - "http://localhost:3001"
+    - "http://localhost:3004"
+    - "http://localhost:8080"
+  allow_credentials: false
+
+incoming_requests:
+  allowed_method_types: [GET, POST, PUT, DELETE, OPTIONS]
+
+internal_requests:
+  disabled: false
+  block_private_networks: false
+  allowed_urls: []
+  allowed_ips: []
+
+http_codes_allow_list: [200, 201, 202, 400, 401, 403, 404, 409, 422, 500, 502]
+
+logging:
+  display_request_content: true
+  display_response_content: true
+  print_stack_trace: true
+  meaningful_errors: true
+
+dsl:
+  allow_dsl_reloading: false

@@ -1,3 +1,6 @@
+declaration:
+  override_ancestors: true
+
 guard_allow_all:
   return: "success"
   status: 200

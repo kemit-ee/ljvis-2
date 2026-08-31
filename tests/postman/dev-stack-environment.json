@@ -9,9 +9,10 @@
       "description": "Ruuter — DEV stack (docker-compose.yml default port)"
     },
     {
-      "key": "resql_users_url",
-      "value": "http://localhost:8087/users",
-      "enabled": true
+      "key": "resql_ljvis_url",
+      "value": "http://localhost:8090/ljvis",
+      "enabled": true,
+      "description": "Resql — DEV stack (docker-compose.yml resql-ljvis port 8090)"
     },
     {
       "key": "tim_url",
@@ -119,6 +120,144 @@
       "key": "created_local_user2_id",
       "value": "",
       "enabled": true
+    },
+    {
+      "key": "long_string_201",
+      "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "enabled": true,
+      "description": "201-char string — used to trigger max_length_exceeded (200-char limit) in Labour Inspection tests"
+    },
+    {
+      "key": "created_lif_id",
+      "value": "",
+      "enabled": true,
+      "description": "labour_inspection_form_key of the act created during Labour Inspection tests"
+    },
+    {
+      "key": "created_lif_form_number",
+      "value": "",
+      "enabled": true,
+      "description": "form_number of the act created during Labour Inspection tests"
+    },
+    {
+      "key": "created_lif_id_2",
+      "value": "",
+      "enabled": true,
+      "description": "labour_inspection_form_key of the 2nd act (with a violation) created during Labour Inspection tests"
+    },
+    {
+      "key": "internal_api_url",
+      "value": "http://localhost:8089",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "cookie_ctud_nosend",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_bci",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id_lv",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id_pl",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id_gr",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_id_fi",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_tech_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "ctud_inbound_total_before",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "created_tcf_compound_key",
+      "value": "",
+      "enabled": true,
+      "description": "compound_form_key created during Technical Check Forms tests setup"
+    },
+    {
+      "key": "created_vtf_id",
+      "value": "",
+      "enabled": true,
+      "description": "vehicle_technical_form_key created during Technical Check Forms tests"
+    },
+    {
+      "key": "created_vtf_sub_form_number",
+      "value": "",
+      "enabled": true,
+      "description": "sub_form_number of the vehicle technical form created during tests"
+    },
+    {
+      "key": "created_ttf_id",
+      "value": "",
+      "enabled": true,
+      "description": "trailer_technical_form_key created during Technical Check Forms tests"
+    },
+    {
+      "key": "long_string_2001",
+      "value": "",
+      "enabled": true,
+      "description": "2211-char string, built at runtime (pre-request script: long_string_201.repeat(11)) — used to trigger max_length_2000 in Technical Check Forms tests"
+    },
+    {
+      "key": "fs_company_name",
+      "value": "",
+      "enabled": true,
+      "description": "Unique company name for form-search test act"
+    },
+    {
+      "key": "fs_inspection_date",
+      "value": "",
+      "enabled": true,
+      "description": "Control/inspection date of the form-search test act"
+    },
+    {
+      "key": "fs_lif_id",
+      "value": "",
+      "enabled": true,
+      "description": "labour_inspection_form_key created by form-search tests"
+    },
+    {
+      "key": "fs_lif_form_number",
+      "value": "",
+      "enabled": true,
+      "description": "form_number created by form-search tests"
     }
   ],
   "_postman_variable_scope": "environment"

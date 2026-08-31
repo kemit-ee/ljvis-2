@@ -2,6 +2,40 @@ export const BREAKPOINTS = {
   DESKTOP: 992,
 } as const;
 
+export const FORM_TYPE = {
+  FOREIGN_VIOLATION: 'foreign-violation-form',
+  COMPOUND: 'compound-form',
+  LABOUR_INSPECTION: 'labour-inspection',
+  DRIVER: 'drive-rest-form/driver',
+  TEAMMATE: 'drive-rest-form/teammate',
+  GOOD_REPUTE: 'good-repute',
+  VEHICLE_TECHNICAL_CHECK: 'vehicle-technical',
+  TRAILER_TECHNICAL_CHECK: 'trailer-technical',
+  ADR: 'adr-form',
+  TRANSPORT_INTERRUPTION: 'transport-interruption',
+  TRAM_COMPOUND: 'tram-form',
+  TRAM_DRIVER: 'tram-form/sp-driver',
+} as const;
+
+export const ALL_FORM_TABS: {
+  tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | 'tab-adr' | 'tab-transport-interruption';
+  labelKey: string;
+}[] = [
+  { tabId: 'tab-driver', labelKey: 'forms.driver_drive_rest_form' },
+  { tabId: 'tab-teammate', labelKey: 'forms.teammate_drive_rest_form' },
+  { tabId: 'tab-vehicle-technical-check', labelKey: 'forms.technical_check.vehicleTitle' },
+  { tabId: 'tab-adr', labelKey: 'forms.adr.title' },
+  { tabId: 'tab-transport-interruption', labelKey: 'forms.transport_interruption.title' },
+];
+
+export const FORM_ROUTE: Record<string, string> = {
+  [FORM_TYPE.FOREIGN_VIOLATION]: 'foreign-violation',
+  [FORM_TYPE.COMPOUND]: 'compound',
+  [FORM_TYPE.LABOUR_INSPECTION]: 'labour-inspection',
+  [FORM_TYPE.DRIVER]: 'sp-driver',
+  [FORM_TYPE.TEAMMATE]: 'sp-teammate',
+};
+
 export const PERMISSIONS = {
   USER_LIST_ADMIN: 'user.list.admin',
   USER_LIST_LOCAL: 'user.list.local',
@@ -9,133 +43,457 @@ export const PERMISSIONS = {
   USER_GROUP_LIST_LOCAL: 'user_group.list.local',
   CLASSIFIER_LIST: 'classifier.list',
   AUDIT_READ: 'audit.read',
+  CTUD_READ: 'ctud.read',
+  CGR_READ: 'cgr.read',
+  RSI_READ: 'rsi.read',
+  NCR_LIST: 'ncr.list',
+  RISK_REPORT_LIST: 'risk_report.list',
+  NOTIFICATION_ADMIN: 'notification.admin',
 } as const;
+
+export const FORM_READ_PERMISSIONS: string[] = [
+  'control_form.view_unpublished',
+  'compound_form.read',
+  'foreign_violation_form.read',
+  'labour_inspection_form.read',
+  'good_repute_form.read',
+  'sp_driver_form.read',
+  'sp_teammate_form.read',
+  'vehicle_technical_form.read',
+  'trailer_technical_form.read',
+  'adr_form.read',
+  'transport_interruption_form.read',
+  'tram_driver_form.read',
+];
 
 export const DESKTOP = {
   DASHBOARD_MANUAL_ADD: 'DASHBOARD_MANUAL_ADD',
   DASHBOARD_EXCLUDED: 'DASHBOARD_EXCLUDED',
 } as const;
 
-export const STRUCTURE_UNIT_OPTIONS = [
-  { value: 'PPA_LOUNA', labelKey: 'structureUnits.prefSouth' },
-  { value: 'PPA_IDA', labelKey: 'structureUnits.prefEast' },
-  { value: 'PPA_LAANE', labelKey: 'structureUnits.prefWest' },
-  { value: 'PPA_POHJA', labelKey: 'structureUnits.prefNorth' },
-  { value: 'KLIM_HQ', labelKey: 'structureUnits.klimHq' },
-  { value: 'TRAM_HQ', labelKey: 'structureUnits.tramHq' },
-];
+export const OTHER = {
+  ROAD: 'muu_tee',
+  TRAILER_CATEGORY: 'OTHER_2012',
+  VEHICLE_CATEGORY: 'OTHER_2012',
+} as const;
+
+export const ROAD = {
+  NATIONAL: 'Riigimaantee',
+  LOCAL: 'Kohalik tee',
+  TAX_STATUS_NOT_APPLICABLE: 'Ei kohaldu',
+} as const;
 
 export const EU_VIOLATION_GROUPS = [
   {
     id: 'msi',
     labelKey: 'forms.foreign_violation.euViolationGroupMsi',
     items: [
-      { value: 'MSI101', labelKey: 'forms.foreign_violation.euViolationMsi101' },
-      { value: 'MSI102', labelKey: 'forms.foreign_violation.euViolationMsi102' },
-      { value: 'MSI103', labelKey: 'forms.foreign_violation.euViolationMsi103' },
-      { value: 'MSI104', labelKey: 'forms.foreign_violation.euViolationMsi104' },
-      { value: 'MSI201', labelKey: 'forms.foreign_violation.euViolationMsi201' },
-      { value: 'MSI202', labelKey: 'forms.foreign_violation.euViolationMsi202' },
-      { value: 'MSI203', labelKey: 'forms.foreign_violation.euViolationMsi203' },
-      { value: 'MSI204', labelKey: 'forms.foreign_violation.euViolationMsi204' },
-      { value: 'MSI205', labelKey: 'forms.foreign_violation.euViolationMsi205' },
-      { value: 'MSI301', labelKey: 'forms.foreign_violation.euViolationMsi301' },
-      { value: 'MSI302', labelKey: 'forms.foreign_violation.euViolationMsi302' },
-      { value: 'MSI401', labelKey: 'forms.foreign_violation.euViolationMsi401' },
-      { value: 'MSI402', labelKey: 'forms.foreign_violation.euViolationMsi402' },
-      { value: 'MSI403', labelKey: 'forms.foreign_violation.euViolationMsi403' },
-      { value: 'MSI501', labelKey: 'forms.foreign_violation.euViolationMsi501' },
-      { value: 'MSI503', labelKey: 'forms.foreign_violation.euViolationMsi503' },
-      { value: 'MSI504', labelKey: 'forms.foreign_violation.euViolationMsi504' },
-      { value: 'MSI601', labelKey: 'forms.foreign_violation.euViolationMsi601' },
-      { value: 'MSI602', labelKey: 'forms.foreign_violation.euViolationMsi602' },
-      { value: 'MSI603', labelKey: 'forms.foreign_violation.euViolationMsi603' },
-      { value: 'MSI701', labelKey: 'forms.foreign_violation.euViolationMsi701' },
-      { value: 'MSI702', labelKey: 'forms.foreign_violation.euViolationMsi702' },
+      {
+        value: 'MSI101',
+        labelKey: 'forms.foreign_violation.euViolationMsi101',
+      },
+      {
+        value: 'MSI102',
+        labelKey: 'forms.foreign_violation.euViolationMsi102',
+      },
+      {
+        value: 'MSI103',
+        labelKey: 'forms.foreign_violation.euViolationMsi103',
+      },
+      {
+        value: 'MSI104',
+        labelKey: 'forms.foreign_violation.euViolationMsi104',
+      },
+      {
+        value: 'MSI201',
+        labelKey: 'forms.foreign_violation.euViolationMsi201',
+      },
+      {
+        value: 'MSI202',
+        labelKey: 'forms.foreign_violation.euViolationMsi202',
+      },
+      {
+        value: 'MSI203',
+        labelKey: 'forms.foreign_violation.euViolationMsi203',
+      },
+      {
+        value: 'MSI204',
+        labelKey: 'forms.foreign_violation.euViolationMsi204',
+      },
+      {
+        value: 'MSI205',
+        labelKey: 'forms.foreign_violation.euViolationMsi205',
+      },
+      {
+        value: 'MSI301',
+        labelKey: 'forms.foreign_violation.euViolationMsi301',
+      },
+      {
+        value: 'MSI302',
+        labelKey: 'forms.foreign_violation.euViolationMsi302',
+      },
+      {
+        value: 'MSI401',
+        labelKey: 'forms.foreign_violation.euViolationMsi401',
+      },
+      {
+        value: 'MSI402',
+        labelKey: 'forms.foreign_violation.euViolationMsi402',
+      },
+      {
+        value: 'MSI403',
+        labelKey: 'forms.foreign_violation.euViolationMsi403',
+      },
+      {
+        value: 'MSI501',
+        labelKey: 'forms.foreign_violation.euViolationMsi501',
+      },
+      {
+        value: 'MSI503',
+        labelKey: 'forms.foreign_violation.euViolationMsi503',
+      },
+      {
+        value: 'MSI504',
+        labelKey: 'forms.foreign_violation.euViolationMsi504',
+      },
+      {
+        value: 'MSI601',
+        labelKey: 'forms.foreign_violation.euViolationMsi601',
+      },
+      {
+        value: 'MSI602',
+        labelKey: 'forms.foreign_violation.euViolationMsi602',
+      },
+      {
+        value: 'MSI603',
+        labelKey: 'forms.foreign_violation.euViolationMsi603',
+      },
+      {
+        value: 'MSI701',
+        labelKey: 'forms.foreign_violation.euViolationMsi701',
+      },
+      {
+        value: 'MSI702',
+        labelKey: 'forms.foreign_violation.euViolationMsi702',
+      },
     ],
   },
   {
     id: 'vsi',
     labelKey: 'forms.foreign_violation.euViolationGroupVsi',
     items: [
-      { value: 'VSI847', labelKey: 'forms.foreign_violation.euViolationVsi847' },
-      { value: 'VSI800', labelKey: 'forms.foreign_violation.euViolationVsi800' },
-      { value: 'VSI801', labelKey: 'forms.foreign_violation.euViolationVsi801' },
-      { value: 'VSI802', labelKey: 'forms.foreign_violation.euViolationVsi802' },
-      { value: 'VSI803', labelKey: 'forms.foreign_violation.euViolationVsi803' },
-      { value: 'VSI804', labelKey: 'forms.foreign_violation.euViolationVsi804' },
-      { value: 'VSI805', labelKey: 'forms.foreign_violation.euViolationVsi805' },
-      { value: 'VSI806', labelKey: 'forms.foreign_violation.euViolationVsi806' },
-      { value: 'VSI807', labelKey: 'forms.foreign_violation.euViolationVsi807' },
-      { value: 'VSI808', labelKey: 'forms.foreign_violation.euViolationVsi808' },
-      { value: 'VSI809', labelKey: 'forms.foreign_violation.euViolationVsi809' },
-      { value: 'VSI810', labelKey: 'forms.foreign_violation.euViolationVsi810' },
-      { value: 'VSI811', labelKey: 'forms.foreign_violation.euViolationVsi811' },
-      { value: 'VSI812', labelKey: 'forms.foreign_violation.euViolationVsi812' },
-      { value: 'VSI813', labelKey: 'forms.foreign_violation.euViolationVsi813' },
-      { value: 'VSI814', labelKey: 'forms.foreign_violation.euViolationVsi814' },
-      { value: 'VSI815', labelKey: 'forms.foreign_violation.euViolationVsi815' },
-      { value: 'VSI816', labelKey: 'forms.foreign_violation.euViolationVsi816' },
-      { value: 'VSI817', labelKey: 'forms.foreign_violation.euViolationVsi817' },
-      { value: 'VSI818', labelKey: 'forms.foreign_violation.euViolationVsi818' },
-      { value: 'VSI819', labelKey: 'forms.foreign_violation.euViolationVsi819' },
-      { value: 'VSI820', labelKey: 'forms.foreign_violation.euViolationVsi820' },
-      { value: 'VSI821', labelKey: 'forms.foreign_violation.euViolationVsi821' },
-      { value: 'VSI822', labelKey: 'forms.foreign_violation.euViolationVsi822' },
-      { value: 'VSI823', labelKey: 'forms.foreign_violation.euViolationVsi823' },
-      { value: 'VSI824', labelKey: 'forms.foreign_violation.euViolationVsi824' },
-      { value: 'VSI825', labelKey: 'forms.foreign_violation.euViolationVsi825' },
-      { value: 'VSI826', labelKey: 'forms.foreign_violation.euViolationVsi826' },
-      { value: 'VSI827', labelKey: 'forms.foreign_violation.euViolationVsi827' },
-      { value: 'VSI828', labelKey: 'forms.foreign_violation.euViolationVsi828' },
-      { value: 'VSI829', labelKey: 'forms.foreign_violation.euViolationVsi829' },
-      { value: 'VSI833', labelKey: 'forms.foreign_violation.euViolationVsi833' },
-      { value: 'VSI834', labelKey: 'forms.foreign_violation.euViolationVsi834' },
-      { value: 'VSI835', labelKey: 'forms.foreign_violation.euViolationVsi835' },
-      { value: 'VSI836', labelKey: 'forms.foreign_violation.euViolationVsi836' },
-      { value: 'VSI837', labelKey: 'forms.foreign_violation.euViolationVsi837' },
-      { value: 'VSI838', labelKey: 'forms.foreign_violation.euViolationVsi838' },
-      { value: 'VSI839', labelKey: 'forms.foreign_violation.euViolationVsi839' },
-      { value: 'VSI840', labelKey: 'forms.foreign_violation.euViolationVsi840' },
-      { value: 'VSI841', labelKey: 'forms.foreign_violation.euViolationVsi841' },
-      { value: 'VSI842', labelKey: 'forms.foreign_violation.euViolationVsi842' },
-      { value: 'VSI843', labelKey: 'forms.foreign_violation.euViolationVsi843' },
-      { value: 'VSI844', labelKey: 'forms.foreign_violation.euViolationVsi844' },
-      { value: 'VSI845', labelKey: 'forms.foreign_violation.euViolationVsi845' },
-      { value: 'VSI846', labelKey: 'forms.foreign_violation.euViolationVsi846' },
-      { value: 'VSI848', labelKey: 'forms.foreign_violation.euViolationVsi848' },
-      { value: 'VSI849', labelKey: 'forms.foreign_violation.euViolationVsi849' },
-      { value: 'VSI850', labelKey: 'forms.foreign_violation.euViolationVsi850' },
-      { value: 'VSI851', labelKey: 'forms.foreign_violation.euViolationVsi851' },
-      { value: 'VSI852', labelKey: 'forms.foreign_violation.euViolationVsi852' },
-      { value: 'VSI853', labelKey: 'forms.foreign_violation.euViolationVsi853' },
-      { value: 'VSI854', labelKey: 'forms.foreign_violation.euViolationVsi854' },
-      { value: 'VSI855', labelKey: 'forms.foreign_violation.euViolationVsi855' },
-      { value: 'VSI856', labelKey: 'forms.foreign_violation.euViolationVsi856' },
-      { value: 'VSI857', labelKey: 'forms.foreign_violation.euViolationVsi857' },
-      { value: 'VSI858', labelKey: 'forms.foreign_violation.euViolationVsi858' },
-      { value: 'VSI859', labelKey: 'forms.foreign_violation.euViolationVsi859' },
-      { value: 'VSI860', labelKey: 'forms.foreign_violation.euViolationVsi860' },
-      { value: 'VSI861', labelKey: 'forms.foreign_violation.euViolationVsi861' },
-      { value: 'VSI862', labelKey: 'forms.foreign_violation.euViolationVsi862' },
-      { value: 'VSI863', labelKey: 'forms.foreign_violation.euViolationVsi863' },
-      { value: 'VSI864', labelKey: 'forms.foreign_violation.euViolationVsi864' },
-      { value: 'VSI875', labelKey: 'forms.foreign_violation.euViolationVsi875' },
-      { value: 'VSI876', labelKey: 'forms.foreign_violation.euViolationVsi876' },
-      { value: 'VSI877', labelKey: 'forms.foreign_violation.euViolationVsi877' },
-      { value: 'VSI878', labelKey: 'forms.foreign_violation.euViolationVsi878' },
-      { value: 'VSI879', labelKey: 'forms.foreign_violation.euViolationVsi879' },
-      { value: 'VSI865', labelKey: 'forms.foreign_violation.euViolationVsi865' },
-      { value: 'VSI866', labelKey: 'forms.foreign_violation.euViolationVsi866' },
-      { value: 'VSI867', labelKey: 'forms.foreign_violation.euViolationVsi867' },
-      { value: 'VSI868', labelKey: 'forms.foreign_violation.euViolationVsi868' },
-      { value: 'VSI869', labelKey: 'forms.foreign_violation.euViolationVsi869' },
-      { value: 'VSI870', labelKey: 'forms.foreign_violation.euViolationVsi870' },
-      { value: 'VSI871', labelKey: 'forms.foreign_violation.euViolationVsi871' },
-      { value: 'VSI872', labelKey: 'forms.foreign_violation.euViolationVsi872' },
-      { value: 'VSI873', labelKey: 'forms.foreign_violation.euViolationVsi873' },
-      { value: 'VSI874', labelKey: 'forms.foreign_violation.euViolationVsi874' },
-      { value: 'VSI832', labelKey: 'forms.foreign_violation.euViolationVsi832' },
+      {
+        value: 'VSI847',
+        labelKey: 'forms.foreign_violation.euViolationVsi847',
+      },
+      {
+        value: 'VSI800',
+        labelKey: 'forms.foreign_violation.euViolationVsi800',
+      },
+      {
+        value: 'VSI801',
+        labelKey: 'forms.foreign_violation.euViolationVsi801',
+      },
+      {
+        value: 'VSI802',
+        labelKey: 'forms.foreign_violation.euViolationVsi802',
+      },
+      {
+        value: 'VSI803',
+        labelKey: 'forms.foreign_violation.euViolationVsi803',
+      },
+      {
+        value: 'VSI804',
+        labelKey: 'forms.foreign_violation.euViolationVsi804',
+      },
+      {
+        value: 'VSI805',
+        labelKey: 'forms.foreign_violation.euViolationVsi805',
+      },
+      {
+        value: 'VSI806',
+        labelKey: 'forms.foreign_violation.euViolationVsi806',
+      },
+      {
+        value: 'VSI807',
+        labelKey: 'forms.foreign_violation.euViolationVsi807',
+      },
+      {
+        value: 'VSI808',
+        labelKey: 'forms.foreign_violation.euViolationVsi808',
+      },
+      {
+        value: 'VSI809',
+        labelKey: 'forms.foreign_violation.euViolationVsi809',
+      },
+      {
+        value: 'VSI810',
+        labelKey: 'forms.foreign_violation.euViolationVsi810',
+      },
+      {
+        value: 'VSI811',
+        labelKey: 'forms.foreign_violation.euViolationVsi811',
+      },
+      {
+        value: 'VSI812',
+        labelKey: 'forms.foreign_violation.euViolationVsi812',
+      },
+      {
+        value: 'VSI813',
+        labelKey: 'forms.foreign_violation.euViolationVsi813',
+      },
+      {
+        value: 'VSI814',
+        labelKey: 'forms.foreign_violation.euViolationVsi814',
+      },
+      {
+        value: 'VSI815',
+        labelKey: 'forms.foreign_violation.euViolationVsi815',
+      },
+      {
+        value: 'VSI816',
+        labelKey: 'forms.foreign_violation.euViolationVsi816',
+      },
+      {
+        value: 'VSI817',
+        labelKey: 'forms.foreign_violation.euViolationVsi817',
+      },
+      {
+        value: 'VSI818',
+        labelKey: 'forms.foreign_violation.euViolationVsi818',
+      },
+      {
+        value: 'VSI819',
+        labelKey: 'forms.foreign_violation.euViolationVsi819',
+      },
+      {
+        value: 'VSI820',
+        labelKey: 'forms.foreign_violation.euViolationVsi820',
+      },
+      {
+        value: 'VSI821',
+        labelKey: 'forms.foreign_violation.euViolationVsi821',
+      },
+      {
+        value: 'VSI822',
+        labelKey: 'forms.foreign_violation.euViolationVsi822',
+      },
+      {
+        value: 'VSI823',
+        labelKey: 'forms.foreign_violation.euViolationVsi823',
+      },
+      {
+        value: 'VSI824',
+        labelKey: 'forms.foreign_violation.euViolationVsi824',
+      },
+      {
+        value: 'VSI825',
+        labelKey: 'forms.foreign_violation.euViolationVsi825',
+      },
+      {
+        value: 'VSI826',
+        labelKey: 'forms.foreign_violation.euViolationVsi826',
+      },
+      {
+        value: 'VSI827',
+        labelKey: 'forms.foreign_violation.euViolationVsi827',
+      },
+      {
+        value: 'VSI828',
+        labelKey: 'forms.foreign_violation.euViolationVsi828',
+      },
+      {
+        value: 'VSI829',
+        labelKey: 'forms.foreign_violation.euViolationVsi829',
+      },
+      {
+        value: 'VSI833',
+        labelKey: 'forms.foreign_violation.euViolationVsi833',
+      },
+      {
+        value: 'VSI834',
+        labelKey: 'forms.foreign_violation.euViolationVsi834',
+      },
+      {
+        value: 'VSI835',
+        labelKey: 'forms.foreign_violation.euViolationVsi835',
+      },
+      {
+        value: 'VSI836',
+        labelKey: 'forms.foreign_violation.euViolationVsi836',
+      },
+      {
+        value: 'VSI837',
+        labelKey: 'forms.foreign_violation.euViolationVsi837',
+      },
+      {
+        value: 'VSI838',
+        labelKey: 'forms.foreign_violation.euViolationVsi838',
+      },
+      {
+        value: 'VSI839',
+        labelKey: 'forms.foreign_violation.euViolationVsi839',
+      },
+      {
+        value: 'VSI840',
+        labelKey: 'forms.foreign_violation.euViolationVsi840',
+      },
+      {
+        value: 'VSI841',
+        labelKey: 'forms.foreign_violation.euViolationVsi841',
+      },
+      {
+        value: 'VSI842',
+        labelKey: 'forms.foreign_violation.euViolationVsi842',
+      },
+      {
+        value: 'VSI843',
+        labelKey: 'forms.foreign_violation.euViolationVsi843',
+      },
+      {
+        value: 'VSI844',
+        labelKey: 'forms.foreign_violation.euViolationVsi844',
+      },
+      {
+        value: 'VSI845',
+        labelKey: 'forms.foreign_violation.euViolationVsi845',
+      },
+      {
+        value: 'VSI846',
+        labelKey: 'forms.foreign_violation.euViolationVsi846',
+      },
+      {
+        value: 'VSI848',
+        labelKey: 'forms.foreign_violation.euViolationVsi848',
+      },
+      {
+        value: 'VSI849',
+        labelKey: 'forms.foreign_violation.euViolationVsi849',
+      },
+      {
+        value: 'VSI850',
+        labelKey: 'forms.foreign_violation.euViolationVsi850',
+      },
+      {
+        value: 'VSI851',
+        labelKey: 'forms.foreign_violation.euViolationVsi851',
+      },
+      {
+        value: 'VSI852',
+        labelKey: 'forms.foreign_violation.euViolationVsi852',
+      },
+      {
+        value: 'VSI853',
+        labelKey: 'forms.foreign_violation.euViolationVsi853',
+      },
+      {
+        value: 'VSI854',
+        labelKey: 'forms.foreign_violation.euViolationVsi854',
+      },
+      {
+        value: 'VSI855',
+        labelKey: 'forms.foreign_violation.euViolationVsi855',
+      },
+      {
+        value: 'VSI856',
+        labelKey: 'forms.foreign_violation.euViolationVsi856',
+      },
+      {
+        value: 'VSI857',
+        labelKey: 'forms.foreign_violation.euViolationVsi857',
+      },
+      {
+        value: 'VSI858',
+        labelKey: 'forms.foreign_violation.euViolationVsi858',
+      },
+      {
+        value: 'VSI859',
+        labelKey: 'forms.foreign_violation.euViolationVsi859',
+      },
+      {
+        value: 'VSI860',
+        labelKey: 'forms.foreign_violation.euViolationVsi860',
+      },
+      {
+        value: 'VSI861',
+        labelKey: 'forms.foreign_violation.euViolationVsi861',
+      },
+      {
+        value: 'VSI862',
+        labelKey: 'forms.foreign_violation.euViolationVsi862',
+      },
+      {
+        value: 'VSI863',
+        labelKey: 'forms.foreign_violation.euViolationVsi863',
+      },
+      {
+        value: 'VSI864',
+        labelKey: 'forms.foreign_violation.euViolationVsi864',
+      },
+      {
+        value: 'VSI875',
+        labelKey: 'forms.foreign_violation.euViolationVsi875',
+      },
+      {
+        value: 'VSI876',
+        labelKey: 'forms.foreign_violation.euViolationVsi876',
+      },
+      {
+        value: 'VSI877',
+        labelKey: 'forms.foreign_violation.euViolationVsi877',
+      },
+      {
+        value: 'VSI878',
+        labelKey: 'forms.foreign_violation.euViolationVsi878',
+      },
+      {
+        value: 'VSI879',
+        labelKey: 'forms.foreign_violation.euViolationVsi879',
+      },
+      {
+        value: 'VSI865',
+        labelKey: 'forms.foreign_violation.euViolationVsi865',
+      },
+      {
+        value: 'VSI866',
+        labelKey: 'forms.foreign_violation.euViolationVsi866',
+      },
+      {
+        value: 'VSI867',
+        labelKey: 'forms.foreign_violation.euViolationVsi867',
+      },
+      {
+        value: 'VSI868',
+        labelKey: 'forms.foreign_violation.euViolationVsi868',
+      },
+      {
+        value: 'VSI869',
+        labelKey: 'forms.foreign_violation.euViolationVsi869',
+      },
+      {
+        value: 'VSI870',
+        labelKey: 'forms.foreign_violation.euViolationVsi870',
+      },
+      {
+        value: 'VSI871',
+        labelKey: 'forms.foreign_violation.euViolationVsi871',
+      },
+      {
+        value: 'VSI872',
+        labelKey: 'forms.foreign_violation.euViolationVsi872',
+      },
+      {
+        value: 'VSI873',
+        labelKey: 'forms.foreign_violation.euViolationVsi873',
+      },
+      {
+        value: 'VSI874',
+        labelKey: 'forms.foreign_violation.euViolationVsi874',
+      },
+      {
+        value: 'VSI832',
+        labelKey: 'forms.foreign_violation.euViolationVsi832',
+      },
     ],
   },
   {
@@ -450,3 +808,10 @@ export const COUNTRIES = [
   { value: 'ZM', labelKey: 'countries.ZM' },
   { value: 'ZW', labelKey: 'countries.ZW' },
 ];
+
+export const FORM_STATUS_KEY: Record<string, string> = {
+  saved: 'forms.foreign_violation.statusSaved',
+  confirmed: 'forms.foreign_violation.statusConfirmed',
+  published: 'forms.foreign_violation.statusPublished',
+  deleted: 'forms.foreign_violation.statusDeleted',
+};

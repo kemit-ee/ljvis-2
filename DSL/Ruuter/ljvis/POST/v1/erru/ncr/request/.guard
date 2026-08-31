@@ -1,0 +1,31 @@
+# Outgoing NCR request draft management needs ncr.create, isolated from the sibling
+# POST/v1/erru/ncr/response/.guard (ncr.respond) — outgoing drafts and incoming-message
+# responses are composed by different roles, so they cannot share a guard even though
+# both live under erru/ncr/. override_ancestors also skips the unrelated
+# POST/v1/erru/.guard (ctud.create).
+declaration:
+  override_ancestors: true
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('ncr.create')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

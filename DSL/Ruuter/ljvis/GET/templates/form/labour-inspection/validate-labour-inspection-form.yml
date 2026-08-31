@@ -1,0 +1,88 @@
+declaration:
+
+  version: "1.0"
+  description: "Single source of truth for labour inspection form (Tööinspektsiooni kontrollakt) field validation — shared by save.yml (insert + update) and confirm.yml so the rules only need to be defined and kept in sync in one place. Mirrors the frontend Yup schema in useLabourInspectionForm.ts and the forms.labour_inspection_form table CHECK constraints. Returns '{\"valid\":true}' when all checks pass, otherwise the same VALIDATION_ERROR shape the callers previously returned directly, ready to be forwarded to the client as-is."
+  namespace: service
+  allowlist:
+    body:
+      - field: inspectorName
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: inspectionType
+        type: string
+      - field: companyName
+        type: string
+      - field: companyRegCode
+        type: string
+
+extractFields:
+  assign:
+    inspector_name: "${incoming.body.inspectorName}"
+    inspection_date: "${incoming.body.inspectionDate}"
+    inspection_type: "${incoming.body.inspectionType}"
+    company_name: "${incoming.body.companyName}"
+    company_reg_code: "${incoming.body.companyRegCode}"
+  next: validate
+
+validate:
+  switch:
+    - condition: ${!inspector_name || inspector_name.trim() === ''}
+      next: returnInspectorNameRequiredError
+    - condition: ${inspector_name.length > 200}
+      next: returnInspectorNameMaxLengthError
+    - condition: ${!inspection_date || inspection_date.trim() === ''}
+      next: returnInspectionDateRequiredError
+    - condition: ${new Date(inspection_date) > new Date()}
+      next: returnInspectionDateFutureError
+    - condition: ${!inspection_type || inspection_type.trim() === ''}
+      next: returnInspectionTypeRequiredError
+    - condition: ${!company_name || company_name.trim() === ''}
+      next: returnCompanyNameRequiredError
+    - condition: ${company_name.length > 300}
+      next: returnCompanyNameMaxLengthError
+    - condition: ${!company_reg_code || company_reg_code.trim() === ''}
+      next: returnCompanyRegCodeRequiredError
+    - condition: ${company_reg_code.length > 20}
+      next: returnCompanyRegCodeMaxLengthError
+  next: returnValid
+
+returnValid:
+  return: '{"valid":true}'
+  next: end
+
+returnInspectorNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorName","code":"required"}'
+  next: end
+
+returnInspectorNameMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorName","code":"max_length_exceeded"}'
+  next: end
+
+returnInspectionDateRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionDate","code":"required"}'
+  next: end
+
+returnInspectionDateFutureError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionDate","code":"future_date_not_allowed"}'
+  next: end
+
+returnInspectionTypeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionType","code":"required"}'
+  next: end
+
+returnCompanyNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"companyName","code":"required"}'
+  next: end
+
+returnCompanyNameMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"companyName","code":"max_length_exceeded"}'
+  next: end
+
+returnCompanyRegCodeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"companyRegCode","code":"required"}'
+  next: end
+
+returnCompanyRegCodeMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"companyRegCode","code":"max_length_exceeded"}'
+  next: end

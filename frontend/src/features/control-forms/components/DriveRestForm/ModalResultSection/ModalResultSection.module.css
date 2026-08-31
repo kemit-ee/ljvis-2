@@ -1,0 +1,77 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.dropdown {
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    min-width: 380px;
+    padding: 0.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.dropdownButton {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.4rem 0.5rem 0.4rem 2rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.noResults {
+    padding: 0.5rem;
+    color: #6b7280;
+}
+
+.groupHeader {
+    padding: 0.4rem 0.5rem;
+    cursor: default;
+}
+
+.emptyState {
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 1.5rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+.entriesContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cardContent {
+    padding: 1rem !important;
+}
+
+.entryRowDoc {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    align-items: center;
+    gap: 1rem;
+}
+
+.entryRow {
+    display: grid;
+    grid-template-columns: 0.5fr 3fr 1fr auto;
+    align-items: center;
+    gap: 1rem;
+}
+
+.entryRowMassDimension {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 0.5fr 1fr auto;
+    align-items: center;
+    gap: 0.5rem 1rem;
+}

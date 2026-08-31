@@ -1,0 +1,41 @@
+declaration:
+  version: "1.0"
+  description: "Computes the NYSIIS phonetic search key for a transport manager's family or first name, used when sending an outgoing CGR request with the 7A (name) search choice — tm_first_name_search_key / tm_family_name_search_key (LJVIS2-139). Delegates to the docker/nysiis sidecar, which wraps the official EC CommonServices jar (see docker/nysiis/README.md); the ERRU network requires every Member State to produce byte-identical NYSIIS keys for the same name, so this must never be reimplemented in Ruuter/JS. useFullName=true for the family name (computed over the whole string, may be multi-word), false for the first name (computed over just the first word) — per the EC's NYSIIS package spec section 4."
+  namespace: service
+  allowlist:
+    body:
+      - field: name
+        type: string
+      - field: useFullName
+        type: string
+
+callNysiisSidecar:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${(incoming.body.name || '').trim()}
+      useFullName: ${incoming.body.useFullName === 'true' || incoming.body.useFullName === true}
+  result: nysiisRes
+  next: checkNysiisResult
+
+checkNysiisResult:
+  switch:
+    - condition: ${nysiisRes.response.status !== 200}
+      next: returnNysiisUnavailableError
+  next: returnSearchKey
+
+returnSearchKey:
+  return: "${JSON.stringify({searchKey: nysiisRes.response.body.searchKey || ''})}"
+  next: end
+
+returnNysiisUnavailableError:
+  # The sidecar itself is production infra (always deployed, see docker-compose.yml /
+  # Helm), so a non-200 here means either a genuinely unsupported character range (422,
+  # per the EC transliteration package's Latin-extended/Greek/Cyrillic restriction — see
+  # docker/nysiis/README.md) or the sidecar being down. Either way the caller must not
+  # silently send an empty/wrong search key onto the wire.
+  return: '{"valid":false,"field":"name","code":"nysiis_unavailable","message":"NYSIIS otsinguvõtme arvutamine ebaõnnestus"}'
+  next: end

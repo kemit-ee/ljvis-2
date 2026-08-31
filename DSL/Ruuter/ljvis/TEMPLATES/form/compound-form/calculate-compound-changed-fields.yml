@@ -1,0 +1,685 @@
+declaration:
+
+  version: "1.0"
+  description: "Calculate changed fields for compound form including SQL lookup"
+  namespace: service
+  allowlist:
+    body:
+      - field: form_id
+        type: string
+      - field: control_date
+        type: string
+      - field: control_time
+        type: string
+      - field: control_country_code
+        type: string
+      - field: county
+        type: string
+      - field: city
+        type: string
+      - field: road
+        type: string
+      - field: road_other
+        type: string
+      - field: kilometer
+        type: string
+      - field: address
+        type: string
+      - field: road_type
+        type: string
+      - field: road_tax_status
+        type: string
+      - field: road_tax_notes
+        type: string
+      - field: vehicle_reg_nr
+        type: string
+      - field: vehicle_make
+        type: string
+      - field: vehicle_model
+        type: string
+      - field: vehicle_country_code
+        type: string
+      - field: vehicle_vin
+        type: string
+      - field: vehicle_first_registration
+        type: string
+      - field: vehicle_body_type
+        type: string
+      - field: vehicle_category_code
+        type: string
+      - field: vehicle_category_other
+        type: string
+      - field: vehicle_mileage
+        type: string
+      - field: trailers
+        type: string
+      - field: drivers
+        type: string
+      - field: company_reg_code
+        type: string
+      - field: company_name
+        type: string
+      - field: company_country_code
+        type: string
+      - field: company_county
+        type: string
+      - field: company_city
+        type: string
+      - field: company_address_line1
+        type: string
+      - field: company_postal_code
+        type: string
+      - field: company_owner_first_name
+        type: string
+      - field: company_owner_last_name
+        type: string
+      - field: company_activity_licence_copy_number
+        type: string
+      - field: inspector_first_name
+        type: string
+      - field: inspector_last_name
+        type: string
+      - field: inspector_organisation_id
+        type: string
+      - field: inspector_unit
+        type: string
+      - field: inspector_profession
+        type: string
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.form_id}
+  result: res
+  next: debugDrivers
+
+debugDrivers:
+  assign:
+    debug_old_drivers: "${res.response.body[0].drivers || 'NULL'}"
+    debug_new_drivers: "${incoming.body.drivers || 'NULL'}"
+    debug_old_trailers: "${res.response.body[0].trailers || 'NULL'}"
+    debug_new_trailers: "${incoming.body.trailers || 'NULL'}"
+  next: buildAuditData
+
+buildAuditData:
+  assign:
+    old_control_date: "${res.response.body[0].controlDate || ''}"
+    old_control_time: "${res.response.body[0].controlTime || ''}"
+    old_control_country_code: "${res.response.body[0].controlCountryCode || ''}"
+    old_county: "${res.response.body[0].county || ''}"
+    old_city: "${res.response.body[0].city || ''}"
+    old_road: "${res.response.body[0].road || ''}"
+    old_road_other: "${res.response.body[0].roadOther || ''}"
+    old_kilometer: "${res.response.body[0].kilometer || ''}"
+    old_address: "${res.response.body[0].address || ''}"
+    old_road_type: "${res.response.body[0].roadType || ''}"
+    old_road_tax_status: "${res.response.body[0].roadTaxStatus || ''}"
+    old_road_tax_notes: "${res.response.body[0].roadTaxNotes || ''}"
+    old_vehicle_reg_nr: "${res.response.body[0].vehicleRegNr || ''}"
+    old_vehicle_make: "${res.response.body[0].vehicleMake || ''}"
+    old_vehicle_model: "${res.response.body[0].vehicleModel || ''}"
+    old_vehicle_country_code: "${res.response.body[0].vehicleCountryCode || ''}"
+    old_vehicle_vin: "${res.response.body[0].vehicleVin || ''}"
+    old_vehicle_first_registration: "${res.response.body[0].vehicleFirstRegistration || ''}"
+    old_vehicle_body_type: "${res.response.body[0].vehicleBodyType || ''}"
+    old_vehicle_category_code: "${res.response.body[0].vehicleCategoryCode || ''}"
+    old_vehicle_category_other: "${res.response.body[0].vehicleCategoryOther || ''}"
+    old_vehicle_mileage: "${res.response.body[0].vehicleMileage || ''}"
+    old_trailers: ${JSON.stringify(JSON.parse(res.response.body[0].trailers || '[]'))}
+    old_drivers: ${JSON.stringify(JSON.parse(res.response.body[0].drivers || '[]'))}
+    old_company_reg_code: "${res.response.body[0].companyRegCode || ''}"
+    old_company_name: "${res.response.body[0].companyName || ''}"
+    old_company_country_code: "${res.response.body[0].companyCountryCode || ''}"
+    old_company_county: "${res.response.body[0].companyCounty || ''}"
+    old_company_city: "${res.response.body[0].companyCity || ''}"
+    old_company_address_line1: "${res.response.body[0].companyAddress || ''}"
+    old_company_postal_code: "${res.response.body[0].companyPostalCode || ''}"
+    old_company_owner_first_name: "${res.response.body[0].companyOwnerFirstName || ''}"
+    old_company_owner_last_name: "${res.response.body[0].companyOwnerLastName || ''}"
+    old_company_activity_licence_copy_number: "${res.response.body[0].companyActivityLicenceCopyNumber || ''}"
+    old_inspector_first_name: "${res.response.body[0].inspectorFirstName || ''}"
+    old_inspector_last_name: "${res.response.body[0].inspectorLastName || ''}"
+    old_inspector_organisation_id: "${res.response.body[0].inspectorOrganisationId || ''}"
+    old_inspector_unit: "${res.response.body[0].inspectorUnit || ''}"
+    old_inspector_profession: "${res.response.body[0].inspectorProfession || ''}"
+    new_control_date: ${incoming.body.control_date}
+    new_control_time: ${incoming.body.control_time}
+    new_control_country_code: ${incoming.body.control_country_code}
+    new_county: ${incoming.body.county}
+    new_city: ${incoming.body.city}
+    new_road: ${incoming.body.road}
+    new_road_other: ${incoming.body.road_other}
+    new_kilometer: ${incoming.body.kilometer}
+    new_address: ${incoming.body.address}
+    new_road_type: ${incoming.body.road_type}
+    new_road_tax_status: ${incoming.body.road_tax_status}
+    new_road_tax_notes: ${incoming.body.road_tax_notes}
+    new_vehicle_reg_nr: ${incoming.body.vehicle_reg_nr}
+    new_vehicle_make: ${incoming.body.vehicle_make}
+    new_vehicle_model: ${incoming.body.vehicle_model}
+    new_vehicle_country_code: ${incoming.body.vehicle_country_code}
+    new_vehicle_vin: ${incoming.body.vehicle_vin}
+    new_vehicle_first_registration: ${incoming.body.vehicle_first_registration}
+    new_vehicle_body_type: ${incoming.body.vehicle_body_type}
+    new_vehicle_category_code: ${incoming.body.vehicle_category_code}
+    new_vehicle_category_other: ${incoming.body.vehicle_category_other}
+    new_vehicle_mileage: ${incoming.body.vehicle_mileage}
+    new_trailers: ${incoming.body.trailers}
+    new_drivers: ${incoming.body.drivers}
+    new_company_reg_code: ${incoming.body.company_reg_code}
+    new_company_name: ${incoming.body.company_name}
+    new_company_country_code: ${incoming.body.company_country_code}
+    new_company_county: ${incoming.body.company_county}
+    new_company_city: ${incoming.body.company_city}
+    new_company_address_line1: ${incoming.body.company_address_line1}
+    new_company_postal_code: ${incoming.body.company_postal_code}
+    new_company_owner_first_name: ${incoming.body.company_owner_first_name}
+    new_company_owner_last_name: ${incoming.body.company_owner_last_name}
+    new_company_activity_licence_copy_number: ${incoming.body.company_activity_licence_copy_number}
+    new_inspector_first_name: ${incoming.body.inspector_first_name}
+    new_inspector_last_name: ${incoming.body.inspector_last_name}
+    new_inspector_organisation_id: ${incoming.body.inspector_organisation_id}
+    new_inspector_unit: ${incoming.body.inspector_unit}
+    new_inspector_profession: ${incoming.body.inspector_profession}
+  next: computeChangedFlags
+
+computeChangedFlags:
+  assign:
+    control_date_changed: ${new_control_date != old_control_date}
+    control_time_changed: ${new_control_time != old_control_time}
+    control_country_code_changed: ${new_control_country_code != old_control_country_code}
+    county_changed: ${new_county != old_county}
+    city_changed: ${new_city != old_city}
+    road_changed: ${new_road != old_road}
+    road_other_changed: ${new_road_other != old_road_other}
+    kilometer_changed: ${new_kilometer != old_kilometer}
+    address_changed: ${new_address != old_address}
+    road_type_changed: ${new_road_type != old_road_type}
+    road_tax_status_changed: ${new_road_tax_status != old_road_tax_status}
+    road_tax_notes_changed: ${new_road_tax_notes != old_road_tax_notes}
+    vehicle_reg_nr_changed: ${new_vehicle_reg_nr != old_vehicle_reg_nr}
+    vehicle_make_changed: ${new_vehicle_make != old_vehicle_make}
+    vehicle_model_changed: ${new_vehicle_model != old_vehicle_model}
+    vehicle_country_code_changed: ${new_vehicle_country_code != old_vehicle_country_code}
+    vehicle_vin_changed: ${new_vehicle_vin != old_vehicle_vin}
+    vehicle_first_registration_changed: ${new_vehicle_first_registration != old_vehicle_first_registration}
+    vehicle_body_type_changed: ${new_vehicle_body_type != old_vehicle_body_type}
+    vehicle_category_code_changed: ${new_vehicle_category_code != old_vehicle_category_code}
+    vehicle_category_other_changed: ${new_vehicle_category_other != old_vehicle_category_other}
+    vehicle_mileage_changed: ${new_vehicle_mileage != old_vehicle_mileage}
+    trailers_changed: ${new_trailers != old_trailers}
+    drivers_changed: ${new_drivers != old_drivers}
+    company_reg_code_changed: ${new_company_reg_code != old_company_reg_code}
+    company_name_changed: ${new_company_name != old_company_name}
+    company_country_code_changed: ${new_company_country_code != old_company_country_code}
+    company_county_changed: ${new_company_county != old_company_county}
+    company_city_changed: ${new_company_city != old_company_city}
+    company_address_line1_changed: ${new_company_address_line1 != old_company_address_line1}
+    company_postal_code_changed: ${new_company_postal_code != old_company_postal_code}
+    company_owner_first_name_changed: ${new_company_owner_first_name != old_company_owner_first_name}
+    company_owner_last_name_changed: ${new_company_owner_last_name != old_company_owner_last_name}
+    company_activity_licence_copy_number_changed: ${new_company_activity_licence_copy_number != old_company_activity_licence_copy_number}
+    inspector_first_name_changed: ${new_inspector_first_name != old_inspector_first_name}
+    inspector_last_name_changed: ${new_inspector_last_name != old_inspector_last_name}
+    inspector_organisation_id_changed: ${new_inspector_organisation_id != old_inspector_organisation_id}
+    inspector_unit_changed: ${new_inspector_unit != old_inspector_unit}
+    inspector_profession_changed: ${new_inspector_profession != old_inspector_profession}
+    changed_fields: "[]"
+  next: checkControlDate
+
+checkControlDate:
+  switch:
+    - condition: ${control_date_changed}
+      next: addControlDate
+  next: checkControlTime
+
+addControlDate:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"control_date\"]" : "[\"control_date\"]"}'
+  next: checkControlTime
+
+checkControlTime:
+  switch:
+    - condition: ${control_time_changed}
+      next: addControlTime
+  next: checkControlCountryCode
+
+addControlTime:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"control_time\"]" : "[\"control_time\"]"}'
+  next: checkControlCountryCode
+
+checkControlCountryCode:
+  switch:
+    - condition: ${control_country_code_changed}
+      next: addControlCountryCode
+  next: checkCounty
+
+addControlCountryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"control_country_code\"]" : "[\"control_country_code\"]"}'
+  next: checkCounty
+
+checkCounty:
+  switch:
+    - condition: ${county_changed}
+      next: addCounty
+  next: checkCity
+
+addCounty:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"county\"]" : "[\"county\"]"}'
+  next: checkCity
+
+checkCity:
+  switch:
+    - condition: ${city_changed}
+      next: addCity
+  next: checkRoad
+
+addCity:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"city\"]" : "[\"city\"]"}'
+  next: checkRoad
+
+checkRoad:
+  switch:
+    - condition: ${road_changed}
+      next: addRoad
+  next: checkRoadOther
+
+addRoad:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"road\"]" : "[\"road\"]"}'
+  next: checkRoadOther
+
+checkRoadOther:
+  switch:
+    - condition: ${road_other_changed}
+      next: addRoadOther
+  next: checkKilometer
+
+addRoadOther:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"road_other\"]" : "[\"road_other\"]"}'
+  next: checkKilometer
+
+checkKilometer:
+  switch:
+    - condition: ${kilometer_changed}
+      next: addKilometer
+  next: checkAddress
+
+addKilometer:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"kilometer\"]" : "[\"kilometer\"]"}'
+  next: checkAddress
+
+checkAddress:
+  switch:
+    - condition: ${address_changed}
+      next: addAddress
+  next: checkRoadType
+
+addAddress:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"address\"]" : "[\"address\"]"}'
+  next: checkRoadType
+
+checkRoadType:
+  switch:
+    - condition: ${road_type_changed}
+      next: addRoadType
+  next: checkRoadTaxStatus
+
+addRoadType:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"road_type\"]" : "[\"road_type\"]"}'
+  next: checkRoadTaxStatus
+
+checkRoadTaxStatus:
+  switch:
+    - condition: ${road_tax_status_changed}
+      next: addRoadTaxStatus
+  next: checkRoadTaxNotes
+
+addRoadTaxStatus:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"road_tax_status\"]" : "[\"road_tax_status\"]"}'
+  next: checkRoadTaxNotes
+
+checkRoadTaxNotes:
+  switch:
+    - condition: ${road_tax_notes_changed}
+      next: addRoadTaxNotes
+  next: checkVehicleRegNr
+
+addRoadTaxNotes:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"road_tax_notes\"]" : "[\"road_tax_notes\"]"}'
+  next: checkVehicleRegNr
+
+checkVehicleRegNr:
+  switch:
+    - condition: ${vehicle_reg_nr_changed}
+      next: addVehicleRegNr
+  next: checkVehicleMake
+
+addVehicleRegNr:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_reg_nr\"]" : "[\"vehicle_reg_nr\"]"}'
+  next: checkVehicleMake
+
+checkVehicleMake:
+  switch:
+    - condition: ${vehicle_make_changed}
+      next: addVehicleMake
+  next: checkVehicleModel
+
+addVehicleMake:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_make\"]" : "[\"vehicle_make\"]"}'
+  next: checkVehicleModel
+
+checkVehicleModel:
+  switch:
+    - condition: ${vehicle_model_changed}
+      next: addVehicleModel
+  next: checkVehicleCountryCode
+
+addVehicleModel:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_model\"]" : "[\"vehicle_model\"]"}'
+  next: checkVehicleCountryCode
+
+checkVehicleCountryCode:
+  switch:
+    - condition: ${vehicle_country_code_changed}
+      next: addVehicleCountryCode
+  next: checkVehicleVin
+
+addVehicleCountryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_country_code\"]" : "[\"vehicle_country_code\"]"}'
+  next: checkVehicleVin
+
+checkVehicleVin:
+  switch:
+    - condition: ${vehicle_vin_changed}
+      next: addVehicleVin
+  next: checkVehicleFirstRegistration
+
+addVehicleVin:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_vin\"]" : "[\"vehicle_vin\"]"}'
+  next: checkVehicleFirstRegistration
+
+checkVehicleFirstRegistration:
+  switch:
+    - condition: ${vehicle_first_registration_changed}
+      next: addVehicleFirstRegistration
+  next: checkVehicleBodyType
+
+addVehicleFirstRegistration:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_first_registration\"]" : "[\"vehicle_first_registration\"]"}'
+  next: checkVehicleBodyType
+
+checkVehicleBodyType:
+  switch:
+    - condition: ${vehicle_body_type_changed}
+      next: addVehicleBodyType
+  next: checkVehicleCategoryCode
+
+addVehicleBodyType:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_body_type\"]" : "[\"vehicle_body_type\"]"}'
+  next: checkVehicleCategoryCode
+
+checkVehicleCategoryCode:
+  switch:
+    - condition: ${vehicle_category_code_changed}
+      next: addVehicleCategoryCode
+  next: checkVehicleCategoryOther
+
+addVehicleCategoryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_category_code\"]" : "[\"vehicle_category_code\"]"}'
+  next: checkVehicleCategoryOther
+
+checkVehicleCategoryOther:
+  switch:
+    - condition: ${vehicle_category_other_changed}
+      next: addVehicleCategoryOther
+  next: checkVehicleMileage
+
+addVehicleCategoryOther:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_category_other\"]" : "[\"vehicle_category_other\"]"}'
+  next: checkVehicleMileage
+
+checkVehicleMileage:
+  switch:
+    - condition: ${vehicle_mileage_changed}
+      next: addVehicleMileage
+  next: checkTrailers
+
+addVehicleMileage:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"vehicle_mileage\"]" : "[\"vehicle_mileage\"]"}'
+  next: checkTrailers
+
+checkTrailers:
+  switch:
+    - condition: ${trailers_changed}
+      next: addTrailers
+  next: checkDrivers
+
+addTrailers:
+  template: "templates/form/compound-form/calculate-compound-trailer-changed-fields"
+  requestType: GET
+  body:
+    old_trailers: ${old_trailers}
+    new_trailers: ${new_trailers}
+    changed_fields: ${changed_fields}
+  result: trailerResult
+  next: extractTrailerResult
+
+extractTrailerResult:
+  assign:
+    changed_fields: ${JSON.stringify(JSON.parse(trailerResult).changed_fields)}
+  next: checkDrivers
+
+checkDrivers:
+  switch:
+    - condition: ${drivers_changed}
+      next: addDrivers
+  next: checkCompanyRegCode
+
+addDrivers:
+  template: "templates/form/compound-form/calculate-compound-driver-changed-fields"
+  requestType: GET
+  body:
+    old_drivers: ${old_drivers}
+    new_drivers: ${new_drivers}
+    changed_fields: ${changed_fields}
+  result: driverResult
+  next: extractDriverResult
+
+extractDriverResult:
+  assign:
+    changed_fields: ${JSON.stringify(JSON.parse(driverResult).changed_fields)}
+  next: checkCompanyRegCode
+
+checkCompanyRegCode:
+  switch:
+    - condition: ${company_reg_code_changed}
+      next: addCompanyRegCode
+  next: checkCompanyName
+
+addCompanyRegCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_reg_code\"]" : "[\"company_reg_code\"]"}'
+  next: checkCompanyName
+
+checkCompanyName:
+  switch:
+    - condition: ${company_name_changed}
+      next: addCompanyName
+  next: checkCompanyCountryCode
+
+addCompanyName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_name\"]" : "[\"company_name\"]"}'
+  next: checkCompanyCountryCode
+
+checkCompanyCountryCode:
+  switch:
+    - condition: ${company_country_code_changed}
+      next: addCompanyCountryCode
+  next: checkCompanyCounty
+
+addCompanyCountryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_country_code\"]" : "[\"company_country_code\"]"}'
+  next: checkCompanyCounty
+
+checkCompanyCounty:
+  switch:
+    - condition: ${company_county_changed}
+      next: addCompanyCounty
+  next: checkCompanyCity
+
+addCompanyCounty:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_county\"]" : "[\"company_county\"]"}'
+  next: checkCompanyCity
+
+checkCompanyCity:
+  switch:
+    - condition: ${company_city_changed}
+      next: addCompanyCity
+  next: checkCompanyAddressLine1
+
+addCompanyCity:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_city\"]" : "[\"company_city\"]"}'
+  next: checkCompanyAddressLine1
+
+checkCompanyAddressLine1:
+  switch:
+    - condition: ${company_address_line1_changed}
+      next: addCompanyAddressLine1
+  next: checkCompanyPostalCode
+
+addCompanyAddressLine1:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_address_line1\"]" : "[\"company_address_line1\"]"}'
+  next: checkCompanyPostalCode
+
+checkCompanyPostalCode:
+  switch:
+    - condition: ${company_postal_code_changed}
+      next: addCompanyPostalCode
+  next: checkCompanyOwnerFirstName
+
+addCompanyPostalCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_postal_code\"]" : "[\"company_postal_code\"]"}'
+  next: checkCompanyOwnerFirstName
+
+checkCompanyOwnerFirstName:
+  switch:
+    - condition: ${company_owner_first_name_changed}
+      next: addCompanyOwnerFirstName
+  next: checkCompanyOwnerLastName
+
+addCompanyOwnerFirstName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_owner_first_name\"]" : "[\"company_owner_first_name\"]"}'
+  next: checkCompanyOwnerLastName
+
+checkCompanyOwnerLastName:
+  switch:
+    - condition: ${company_owner_last_name_changed}
+      next: addCompanyOwnerLastName
+  next: checkCompanyActivityLicenceCopyNumber
+
+addCompanyOwnerLastName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_owner_last_name\"]" : "[\"company_owner_last_name\"]"}'
+  next: checkCompanyActivityLicenceCopyNumber
+
+checkCompanyActivityLicenceCopyNumber:
+  switch:
+    - condition: ${company_activity_licence_copy_number_changed}
+      next: addCompanyActivityLicenceCopyNumber
+  next: checkInspectorFirstName
+
+addCompanyActivityLicenceCopyNumber:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"company_activity_licence_copy_number\"]" : "[\"company_activity_licence_copy_number\"]"}'
+  next: checkInspectorFirstName
+
+checkInspectorFirstName:
+  switch:
+    - condition: ${inspector_first_name_changed}
+      next: addInspectorFirstName
+  next: checkInspectorLastName
+
+addInspectorFirstName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"inspector_first_name\"]" : "[\"inspector_first_name\"]"}'
+  next: checkInspectorLastName
+
+checkInspectorLastName:
+  switch:
+    - condition: ${inspector_last_name_changed}
+      next: addInspectorLastName
+  next: checkInspectorOrganisationId
+
+addInspectorLastName:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"inspector_last_name\"]" : "[\"inspector_last_name\"]"}'
+  next: checkInspectorOrganisationId
+
+checkInspectorOrganisationId:
+  switch:
+    - condition: ${inspector_organisation_id_changed}
+      next: addInspectorOrganisationId
+  next: checkInspectorUnit
+
+addInspectorOrganisationId:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"inspector_organisation_id\"]" : "[\"inspector_organisation_id\"]"}'
+  next: checkInspectorUnit
+
+checkInspectorUnit:
+  switch:
+    - condition: ${inspector_unit_changed}
+      next: addInspectorUnit
+  next: checkInspectorProfession
+
+addInspectorUnit:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"inspector_unit\"]" : "[\"inspector_unit\"]"}'
+  next: checkInspectorProfession
+
+checkInspectorProfession:
+  switch:
+    - condition: ${inspector_profession_changed}
+      next: addInspectorProfession
+  next: returnResult
+
+addInspectorProfession:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"inspector_profession\"]" : "[\"inspector_profession\"]"}'
+  next: returnResult
+
+returnResult:
+  return: "{\"changed_fields\":${changed_fields}}"
+  next: end

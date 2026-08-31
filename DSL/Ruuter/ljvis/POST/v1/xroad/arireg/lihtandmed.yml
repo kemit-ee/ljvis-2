@@ -1,0 +1,108 @@
+declaration:
+
+  version: "1.0"
+  description: "Search Ariregister company data (lihtandmed_v3) via XTR"
+  namespace: xroad
+  allowlist:
+    body:
+      - field: registryCode
+        type: string
+      - field: companyName
+        type: string
+      - field: maxResults
+        type: integer
+
+validate:
+  switch:
+    - condition: "${incoming.body.registryCode == null && incoming.body.companyName == null}"
+      next: returnMissingParam
+    - condition: "${incoming.body.maxResults != null && (incoming.body.maxResults < 1 || incoming.body.maxResults > 100)}"
+      next: returnInvalidParam
+  next: assignParams
+
+returnMissingParam:
+  status: 400
+  return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"At least one of registryCode or companyName is required\"}"
+  next: end
+
+returnInvalidParam:
+  status: 400
+  return: "{\"error\": \"INVALID_PARAMETER\", \"message\": \"maxResults must be between 1 and 100\"}"
+  next: end
+
+assignParams:
+  assign:
+    reg_code: "${incoming.body.registryCode || ''}"
+    company_name: "${incoming.body.companyName || ''}"
+    max_results: "${incoming.body.maxResults || 10}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/lihtandmed_v3"
+    headers:
+      type: json
+    body:
+      reg_code: ${reg_code}
+      company_name: ${company_name}
+      max_results: ${max_results}
+      username: "[#AR_USERNAME]"
+      password: "[#AR_PASSWORD]"
+  result: xtrResponse
+  next: checkXtrStatus
+
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.lihtandmed_v3.v1"
+      request_xml: "${'registryCode=' + reg_code + ';companyName=' + company_name}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
+  result: logResult
+  next: returnResponse
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.lihtandmed_v3.v1"
+      request_xml: "${'registryCode=' + reg_code + ';companyName=' + company_name}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
+  result: logResult
+  next: returnError
+
+returnResponse:
+  return: ${xtrResponse.response.body}
+  status: 200
+  next: end
+
+returnError:
+  return: "{\"error\": \"XTR_ERROR\", \"message\": \"Äriregistri päring ebaõnnestus\"}"
+  status: 502
+  next: end

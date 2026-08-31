@@ -1,0 +1,466 @@
+declaration:
+
+  version: "1.0"
+  description: "Create or update the compound form — single unified save endpoint, branches internally on presence of id. Status is always computed/controlled server-side and never trusts client input."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: formNumber
+        type: string
+      - field: status
+        type: string
+      - field: controlDate
+        type: string
+      - field: controlTime
+        type: string
+      - field: controlCountryCode
+        type: string
+      - field: county
+        type: string
+      - field: city
+        type: string
+      - field: road
+        type: string
+      - field: roadOther
+        type: string
+      - field: kilometer
+        type: string
+      - field: address
+        type: string
+      - field: road_type
+        type: string
+      - field: roadTaxStatus
+        type: string
+      - field: roadTaxNotes
+        type: string
+      - field: vehicleRegNr
+        type: string
+      - field: vehicleMake
+        type: string
+      - field: vehicleModel
+        type: string
+      - field: vehicleCountryCode
+        type: string
+      - field: vehicleVin
+        type: string
+      - field: vehicleFirstRegistration
+        type: string
+      - field: vehicleBodyType
+        type: string
+      - field: vehicleCategoryCode
+        type: string
+      - field: vehicleCategoryOther
+        type: string
+      - field: vehicleMileage
+        type: string
+      - field: trailers
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: companyName
+        type: string
+      - field: companyCountryCode
+        type: string
+      - field: companyCounty
+        type: string
+      - field: companyCity
+        type: string
+      - field: companyAddressLine1
+        type: string
+      - field: companyPostalCode
+        type: string
+      - field: companyOwnerFirstName
+        type: string
+      - field: companyOwnerLastName
+        type: string
+      - field: companyActivityLicenceCopyNumber
+        type: string
+      - field: drivers
+        type: string
+      - field: inspectorFirstName
+        type: string
+      - field: inspectorLastName
+        type: string
+      - field: inspectorOrganisationId
+        type: string
+      - field: inspectorUnit
+        type: string
+      - field: inspectorProfession
+        type: string
+      - field: driver1PersonalCodeEe
+        type: string
+      - field: driver1PersonalCodeForeign
+        type: string
+      - field: driver2PersonalCodeEe
+        type: string
+      - field: driver2PersonalCodeForeign
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    form_number: "${incoming.body.formNumber}"
+    control_date: "${incoming.body.controlDate}"
+    control_time: "${incoming.body.controlTime}"
+    control_country_code: "${incoming.body.controlCountryCode}"
+    county: "${incoming.body.county}"
+    city: "${incoming.body.city}"
+    road: "${incoming.body.road}"
+    road_other: "${incoming.body.roadOther}"
+    kilometer: "${incoming.body.kilometer}"
+    address: "${incoming.body.address}"
+    road_type: "${incoming.body.road_type}"
+    road_tax_status: "${incoming.body.roadTaxStatus}"
+    road_tax_notes: "${incoming.body.roadTaxNotes}"
+    vehicle_reg_nr: "${incoming.body.vehicleRegNr}"
+    vehicle_make: "${incoming.body.vehicleMake}"
+    vehicle_model: "${incoming.body.vehicleModel}"
+    vehicle_country_code: "${incoming.body.vehicleCountryCode}"
+    vehicle_vin: "${incoming.body.vehicleVin}"
+    vehicle_first_registration: "${incoming.body.vehicleFirstRegistration}"
+    vehicle_body_type: "${incoming.body.vehicleBodyType}"
+    vehicle_category_code: "${incoming.body.vehicleCategoryCode}"
+    vehicle_category_other: "${incoming.body.vehicleCategoryOther}"
+    vehicle_mileage: "${incoming.body.vehicleMileage}"
+    trailers: "${incoming.body.trailers}"
+    company_reg_code: "${incoming.body.companyRegCode}"
+    company_name: "${incoming.body.companyName}"
+    company_country_code: "${incoming.body.companyCountryCode}"
+    company_county: "${incoming.body.companyCounty}"
+    company_city: "${incoming.body.companyCity}"
+    company_address_line1: "${incoming.body.companyAddressLine1}"
+    company_postal_code: "${incoming.body.companyPostalCode}"
+    company_owner_first_name: "${incoming.body.companyOwnerFirstName}"
+    company_owner_last_name: "${incoming.body.companyOwnerLastName}"
+    company_activity_licence_copy_number: "${incoming.body.companyActivityLicenceCopyNumber}"
+    drivers: "${incoming.body.drivers}"
+    driver1_personal_code_ee: "${incoming.body.driver1PersonalCodeEe}"
+    driver1_personal_code_foreign: "${incoming.body.driver1PersonalCodeForeign}"
+    driver2_personal_code_ee: "${incoming.body.driver2PersonalCodeEe}"
+    driver2_personal_code_foreign: "${incoming.body.driver2PersonalCodeForeign}"
+    inspector_first_name: "${incoming.body.inspectorFirstName}"
+    inspector_last_name: "${incoming.body.inspectorLastName}"
+    inspector_organisation_id: "${incoming.body.inspectorOrganisationId}"
+    inspector_unit: "${incoming.body.inspectorUnit}"
+    inspector_profession: "${incoming.body.inspectorProfession}"
+    created_by: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+    actor_personal_code: "${u.personalcode || ''}"
+  next: checkInsertOrUpdate
+
+checkInsertOrUpdate:
+  switch:
+    - condition: ${id == null || id === ''}
+      next: check_driver1_personal_code_not_empty_insert
+  next: calculateChangedFields
+
+calculateChangedFields:
+  template: "templates/form/compound-form/calculate-compound-changed-fields"
+  requestType: GET
+  body:
+    form_id: ${id}
+    control_date: ${control_date}
+    control_time: ${control_time}
+    control_country_code: ${control_country_code}
+    county: ${county}
+    city: ${city}
+    road: ${road}
+    road_other: ${road_other}
+    kilometer: ${kilometer}
+    address: ${address}
+    road_type: ${road_type}
+    road_tax_status: ${road_tax_status}
+    road_tax_notes: ${road_tax_notes}
+    vehicle_reg_nr: ${vehicle_reg_nr}
+    vehicle_make: ${vehicle_make}
+    vehicle_model: ${vehicle_model}
+    vehicle_country_code: ${vehicle_country_code}
+    vehicle_vin: ${vehicle_vin}
+    vehicle_first_registration: ${vehicle_first_registration}
+    vehicle_body_type: ${vehicle_body_type}
+    vehicle_category_code: ${vehicle_category_code}
+    vehicle_category_other: ${vehicle_category_other}
+    vehicle_mileage: ${vehicle_mileage}
+    trailers: ${trailers}
+    drivers: ${drivers}
+    company_reg_code: ${company_reg_code}
+    company_name: ${company_name}
+    company_country_code: ${company_country_code}
+    company_county: ${company_county}
+    company_city: ${company_city}
+    company_address_line1: ${company_address_line1}
+    company_postal_code: ${company_postal_code}
+    company_owner_first_name: ${company_owner_first_name}
+    company_owner_last_name: ${company_owner_last_name}
+    company_activity_licence_copy_number: ${company_activity_licence_copy_number}
+    inspector_first_name: ${inspector_first_name}
+    inspector_last_name: ${inspector_last_name}
+    inspector_organisation_id: ${inspector_organisation_id}
+    inspector_unit: ${inspector_unit}
+    inspector_profession: ${inspector_profession}
+  result: changedFieldsResult
+  next: extractResult
+
+extractResult:
+  assign:
+    parsed_result: ${JSON.parse(changedFieldsResult)}
+  next: parseChangedFieldsResult
+
+parseChangedFieldsResult:
+  assign:
+    changed_fields_result: ${parsed_result.changed_fields}
+  next: check_driver1_personal_code_not_empty_update
+
+check_driver1_personal_code_not_empty_insert:
+  switch:
+    - condition: ${driver1_personal_code_ee == null || driver1_personal_code_ee == ''}
+      next: skip_pc1_validation_insert
+  next: validate_driver1_personal_code_format_insert
+
+skip_pc1_validation_insert:
+  assign:
+    pc1_result: valid
+  next: check_driver2_personal_code_not_empty_insert
+
+validate_driver1_personal_code_format_insert:
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
+  body:
+    personal_code: ${driver1_personal_code_ee}
+  result: pc1_result
+  next: check_driver2_personal_code_not_empty_insert
+
+check_driver2_personal_code_not_empty_insert:
+  switch:
+    - condition: ${driver2_personal_code_ee == null || driver2_personal_code_ee == ''}
+      next: skip_pc2_validation_insert
+  next: validate_driver2_personal_code_format_insert
+
+skip_pc2_validation_insert:
+  assign:
+    pc2_result: valid
+  next: check_pc_results_insert
+
+validate_driver2_personal_code_format_insert:
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
+  body:
+    personal_code: ${driver2_personal_code_ee}
+  result: pc2_result
+  next: check_pc_results_insert
+
+check_pc_results_insert:
+  switch:
+    - condition: ${pc1_result != 'valid'}
+      next: propagate_pc1_error
+    - condition: ${pc2_result != 'valid'}
+      next: propagate_pc2_error
+  next: insertForm
+
+insertForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/insert"
+    headers:
+      type: json
+    body:
+      status: saved
+      controlDate: ${control_date}
+      controlTime: ${control_time}
+      controlCountryCode: ${control_country_code}
+      county: ${county}
+      city: ${city}
+      road: ${road}
+      roadOther: ${road_other}
+      kilometer: ${kilometer}
+      address: ${address}
+      road_type: ${road_type}
+      roadTaxStatus: ${road_tax_status}
+      roadTaxNotes: ${road_tax_notes}
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ${vehicle_make}
+      vehicleModel: ${vehicle_model}
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ${vehicle_vin}
+      vehicleFirstRegistration: ${vehicle_first_registration}
+      vehicleBodyType: ${vehicle_body_type}
+      vehicleCategoryCode: ${vehicle_category_code}
+      vehicleCategoryOther: ${vehicle_category_other}
+      vehicleMileage: ${vehicle_mileage}
+      trailers: ${trailers}
+      companyRegCode: ${company_reg_code}
+      companyName: ${company_name}
+      companyCountryCode: ${company_country_code}
+      companyCounty: ${company_county}
+      companyCity: ${company_city}
+      companyAddressLine1: ${company_address_line1}
+      companyPostalCode: ${company_postal_code}
+      companyOwnerFirstName: ${company_owner_first_name}
+      companyOwnerLastName: ${company_owner_last_name}
+      companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
+      drivers: ${drivers}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      created_by: ${created_by}
+  result: saveRes
+  next: extractInsertResponseData
+
+extractInsertResponseData:
+  assign:
+    compound_form_key: "${saveRes.response.body[0].id || ''}"
+  next: logAuditEventInsert
+
+logAuditEventInsert:
+  template: "templates/audit/form/compound-form/log-compound-create-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    compound_form_key: ${compound_form_key}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+check_driver1_personal_code_not_empty_update:
+  switch:
+    - condition: ${driver1_personal_code_ee == null || driver1_personal_code_ee == ''}
+      next: skip_pc1_validation_update
+  next: validate_driver1_personal_code_format_update
+
+skip_pc1_validation_update:
+  assign:
+    pc1_result: valid
+  next: check_driver2_personal_code_not_empty_update
+
+validate_driver1_personal_code_format_update:
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
+  body:
+    personal_code: ${driver1_personal_code_ee}
+  result: pc1_result
+  next: check_driver2_personal_code_not_empty_update
+
+check_driver2_personal_code_not_empty_update:
+  switch:
+    - condition: ${driver2_personal_code_ee == null || driver2_personal_code_ee == ''}
+      next: skip_pc2_validation_update
+  next: validate_driver2_personal_code_format_update
+
+skip_pc2_validation_update:
+  assign:
+    pc2_result: valid
+  next: check_pc_results_update
+
+validate_driver2_personal_code_format_update:
+  template: "templates/validate/estonian-personal-code"
+  requestType: GET
+  body:
+    personal_code: ${driver2_personal_code_ee}
+  result: pc2_result
+  next: check_pc_results_update
+
+check_pc_results_update:
+  switch:
+    - condition: ${pc1_result != 'valid'}
+      next: propagate_pc1_error
+    - condition: ${pc2_result != 'valid'}
+      next: propagate_pc2_error
+  next: updateForm
+
+updateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      formNumber: ${form_number}
+      status: saved
+      controlDate: ${control_date}
+      controlTime: ${control_time}
+      controlCountryCode: ${control_country_code}
+      county: ${county}
+      city: ${city}
+      road: ${road}
+      roadOther: ${road_other}
+      kilometer: ${kilometer}
+      address: ${address}
+      road_type: ${road_type}
+      roadTaxStatus: ${road_tax_status}
+      roadTaxNotes: ${road_tax_notes}
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ${vehicle_make}
+      vehicleModel: ${vehicle_model}
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ${vehicle_vin}
+      vehicleFirstRegistration: ${vehicle_first_registration}
+      vehicleBodyType: ${vehicle_body_type}
+      vehicleCategoryCode: ${vehicle_category_code}
+      vehicleCategoryOther: ${vehicle_category_other}
+      vehicleMileage: ${vehicle_mileage}
+      trailers: ${trailers}
+      companyRegCode: ${company_reg_code}
+      companyName: ${company_name}
+      companyCountryCode: ${company_country_code}
+      companyCounty: ${company_county}
+      companyCity: ${company_city}
+      companyAddressLine1: ${company_address_line1}
+      companyPostalCode: ${company_postal_code}
+      companyOwnerFirstName: ${company_owner_first_name}
+      companyOwnerLastName: ${company_owner_last_name}
+      companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
+      drivers: ${drivers}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      created_by: ${created_by}
+  result: saveRes
+  next: extractUpdateResponseData
+
+extractUpdateResponseData:
+  assign:
+    compound_form_key: "${saveRes.response.body[0].id || ''}"
+  next: logAuditEventUpdate
+
+logAuditEventUpdate:
+  template: "templates/audit/form/compound-form/log-compound-create-update"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    compound_form_key: ${compound_form_key}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${saveRes.response.body}
+  next: end
+
+propagate_pc1_error:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"drivers[0].personalCodeEe","code":"invalid_personal_code"}'
+  next: end
+
+propagate_pc2_error:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"drivers[1].personalCodeEe","code":"invalid_personal_code"}'
+  next: end

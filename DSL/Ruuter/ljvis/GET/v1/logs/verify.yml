@@ -1,0 +1,35 @@
+declaration:
+
+  version: "1.0"
+  description: "Walk the audit-log hash chain and verify integrity. Returns ok=true when every row's prev_row_hash matches the preceding row's row_hash; ok=false with the first breach location otherwise."
+  namespace: logs
+  allowlist:
+    params:
+      - field: from
+        type: string
+        description: "Start event_id (inclusive). Omit to start from the genesis row."
+      - field: to
+        type: string
+        description: "End event_id (inclusive). Omit to walk to the current tail."
+
+extractRequestData:
+  assign:
+    from_event_id: "${incoming.params.from || ''}"
+    to_event_id: "${incoming.params.to || ''}"
+  next: verifyChain
+
+verifyChain:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/get_logs_verify"
+    headers:
+      type: json
+    body:
+      from_event_id: ${from_event_id}
+      to_event_id: ${to_event_id}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end

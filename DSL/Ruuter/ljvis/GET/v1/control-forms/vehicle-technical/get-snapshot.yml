@@ -1,0 +1,29 @@
+declaration:
+
+  version: "1.0"
+  description: "Get a single vehicle technical-check form snapshot by snapshot ID, for the read-only historical version view (LJVIS2-72)."
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "Snapshot ID"
+      - field: formKey
+        type: string
+        description: "Vehicle technical form key"
+
+getSnapshot:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get-snapshot"
+    headers:
+      type: json
+    body:
+      id: ${incoming.params.id}
+      form_key: ${incoming.params.formKey}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

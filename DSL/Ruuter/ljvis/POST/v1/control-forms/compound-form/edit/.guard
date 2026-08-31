@@ -1,0 +1,23 @@
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('compound_form.write')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

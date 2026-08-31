@@ -1,10 +1,7 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create a new user"
-  method: post
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     body:
@@ -22,16 +19,12 @@ declaration:
         type: string
       - field: email
         type: string
-      - field: phone
-        type: string
       - field: accessStart
-        type: string
-      - field: accessEnd
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -49,12 +42,12 @@ extractRequestData:
     phone: "${incoming.body.phone ?? ''}"
     access_start: "${incoming.body.accessStart}"
     access_end: "${incoming.body.accessEnd ?? ''}"
-    created_by: "${auth_user.personalcode}"
+    created_by: "${auth_user.personalcode || ''}"
   next: validateUser
 
 validateUser:
-  template: "[#LJVIS_PROJECT_LAYER]/user/validate-user-fields"
-  requestType: templates
+  template: "templates/user/validate-user-fields"
+  requestType: GET
   body:
     first_name: ${first_name}
     last_name: ${last_name}
@@ -113,15 +106,15 @@ createUser:
 
 buildAuditLog:
   assign:
-    actor_name: "${auth_user.firstname} ${auth_user.lastname}"
-    actor_personal_code: ${auth_user.personalcode}
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
     view_description: "Kasutaja loomine: ${first_name} ${last_name} (${personal_code})"
     view_log_content: "{\"targetPersonalCode\":\"${personal_code}\",\"targetName\":\"${first_name} ${last_name}\",\"organisationId\":${organisation_id}}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user.create"
     event_category: "user_management"

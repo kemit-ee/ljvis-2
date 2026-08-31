@@ -3,6 +3,8 @@ export interface FormConfig {
   route: string;
   hasParent: boolean;
   showOnDashboard: boolean;
+  parentKey?: string;
+  typeParam?: string;
 }
 
 export const FORM_CONFIG: Record<string, FormConfig> = {
@@ -12,21 +14,21 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     hasParent: false,
     showOnDashboard: true,
   },
-  ti_kontrollkaart_form: {
-    labelKey: 'forms.ti_kontrollkaart_form',
-    route: '/ti-kontrollkaart',
+  labour_inspection_form: {
+    labelKey: 'forms.labour_inspection_form',
+    route: '/labour-inspection',
     hasParent: false,
     showOnDashboard: true,
   },
-  reputation_noncompliance_form: {
-    labelKey: 'forms.reputation_noncompliance_form',
-    route: '/reputation-noncompliance',
+  good_repute_form: {
+    labelKey: 'forms.good_repute_form',
+    route: '/good-repute',
     hasParent: false,
     showOnDashboard: true,
   },
-  sp_compound_form: {
-    labelKey: 'forms.sp_compound_form',
-    route: '/sp-compound',
+  compound_form: {
+    labelKey: 'forms.compound_form',
+    route: '/compound',
     hasParent: false,
     showOnDashboard: true,
   },
@@ -41,23 +43,53 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     route: '/sp-driver',
     hasParent: true,
     showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'driver',
   },
   sp_teammate_form: {
     labelKey: 'forms.sp_teammate_form',
     route: '/sp-teammate',
     hasParent: true,
     showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'teammate',
   },
-  sp_vehicle_tech_form: {
-    labelKey: 'forms.sp_vehicle_tech_form',
-    route: '/sp-vehicle-tech',
+  vehicle_technical_form: {
+    labelKey: 'forms.technical_check.vehicleTitle',
+    route: '/vehicle-technical',
     hasParent: true,
     showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'vehicle-technical',
   },
-  sp_trailer_tech_form: {
-    labelKey: 'forms.sp_trailer_tech_form',
-    route: '/sp-trailer-tech',
+  trailer_technical_form: {
+    labelKey: 'forms.technical_check.trailerTitle',
+    route: '/trailer-technical',
     hasParent: true,
+    showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'trailer-technical',
+  },
+  adr_form: {
+    labelKey: 'forms.adr.title',
+    route: '/adr',
+    hasParent: true,
+    showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'adr',
+  },
+  transport_interruption_form: {
+    labelKey: 'forms.transport_interruption.title',
+    route: '/transport-interruption',
+    hasParent: true,
+    showOnDashboard: true,
+    parentKey: 'compound_form',
+    typeParam: 'transport-interruption',
+  },
+  tram_driver_form: {
+    labelKey: 'forms.tram_driver_form',
+    route: '/tram-driver',
+    hasParent: false,
     showOnDashboard: true,
   },
   sp_dangerous_goods_form: {

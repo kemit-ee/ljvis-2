@@ -1,0 +1,23 @@
+{
+    "content": [
+        {{#each requests}}
+        {
+            "id": "{{this.id}}",
+            "version": {{this.version}},
+            "direction": "{{this.direction}}",
+            "status": "{{this.status}}",
+            "businessCaseId": "{{this.businessCaseId}}",
+            "sentAt": {{#if this.sentAt}}"{{this.sentAt}}"{{else}}null{{/if}},
+            "ctudFrom": {{#if this.ctudFrom}}"{{this.ctudFrom}}"{{else}}null{{/if}},
+            "ctudTo": {{#if this.ctudTo}}"{{this.ctudTo}}"{{else}}null{{/if}},
+            "transportUndertakingName": {{#if this.transportUndertakingName}}"{{this.transportUndertakingName}}"{{else}}null{{/if}},
+            "communityLicenceNumber": {{#if this.communityLicenceNumber}}"{{this.communityLicenceNumber}}"{{else}}null{{/if}},
+            "vehicleRegistrationNumber": {{#if this.vehicleRegistrationNumber}}"{{this.vehicleRegistrationNumber}}"{{else}}null{{/if}},
+            "responseStatusCode": {{#if this.responseStatusCode}}"{{this.responseStatusCode}}"{{else}}null{{/if}},
+            "handlerPersonalCode": {{#if this.handlerPersonalCode}}"{{this.handlerPersonalCode}}"{{else}}null{{/if}},
+            "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with requests.[0]}}{{total}}{{else}}0{{/with}}
+}

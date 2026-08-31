@@ -2,13 +2,13 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
+  DateField,
   Heading,
   Select,
   TextField,
 } from '@tedi-design-system/react/tedi';
 import {
   CardContent,
-  DatePicker,
   Modal,
   ModalCloser,
   ModalProvider,
@@ -16,7 +16,7 @@ import {
 import type { FormikProps } from 'formik';
 import { PhoneField } from '../PhoneField/PhoneField';
 import styles from './UserBasicInfoEditCard.module.css';
-import dayjs from 'dayjs';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 
 interface UserEditFormValues {
   firstName: string;
@@ -196,44 +196,48 @@ export function UserBasicInfoEditCard({
                 : {})}
             />
             {isDesktop && <div />}
-            <DatePicker
+            <DateField
               id="accessStart"
               label={t('users.accessStart')}
-              value={
+              selected={
                 formik.values.accessStart
-                  ? dayjs(formik.values.accessStart)
-                  : null
+                  ? new Date(formik.values.accessStart)
+                  : undefined
               }
-              onChange={(v) => formik.setFieldValue('accessStart', v)}
-              placeholder={t('users.datePickerPlaceholder')}
+              onSelect={(v) => formik.setFieldValue('accessStart', toIsoDate(v))}
+              placeholder={t('common.dateFieldPlaceholder')}
               required
-              {...(formik.touched.accessStart && formik.errors.accessStart
-                ? {
-                    helper: {
-                      text: formik.errors.accessStart,
-                      type: 'error' as const,
-                    },
-                  }
-                : {})}
+              inputProps={
+                formik.touched.accessStart && formik.errors.accessStart
+                  ? {
+                      helper: {
+                        text: formik.errors.accessStart,
+                        type: 'error' as const,
+                      },
+                    }
+                  : undefined
+              }
             />
-            <DatePicker
+            <DateField
               id="accessEnd"
               label={t('users.accessEnd')}
-              value={
-                formik.values.accessStart
-                  ? dayjs(formik.values.accessEnd)
-                  : null
+              selected={
+                formik.values.accessEnd
+                  ? new Date(formik.values.accessEnd)
+                  : undefined
               }
-              onChange={(v) => formik.setFieldValue('accessEnd', v)}
-              placeholder={t('users.datePickerPlaceholder')}
-              {...(formik.touched.accessEnd && formik.errors.accessEnd
-                ? {
-                    helper: {
-                      text: formik.errors.accessEnd,
-                      type: 'error' as const,
-                    },
-                  }
-                : {})}
+              onSelect={(v) => formik.setFieldValue('accessEnd', toIsoDate(v))}
+              placeholder={t('common.dateFieldPlaceholder')}
+              inputProps={
+                formik.touched.accessEnd && formik.errors.accessEnd
+                  ? {
+                      helper: {
+                        text: formik.errors.accessEnd,
+                        type: 'error' as const,
+                      },
+                    }
+                  : undefined
+              }
             />
           </div>
           <div

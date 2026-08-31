@@ -1,0 +1,304 @@
+declaration:
+  version: "1.0"
+  description: "Send a CTUD request to one member state and store the synchronous response (LJVIS2-144). CTUD is a synchronous single-country exchange: the target country's answer arrives within the same call, so there is no acknowledgement state and no waiting view. The flow is initiated|error -> sent -> responded, each step appending exactly one snapshot via append-transition.sql, whose whitelist rejects any other starting state. Timeout and NotAvailable are outcomes of a SUCCESSFUL exchange (set by the ERRU Hub) and therefore lead to 'responded', not 'error' — only a transport failure or a schema-invalid message leads to 'error', from which the send may be retried. Every outbound call is logged to xroad.xroad_integration_log the same way the Ariregister integration does it. The ERRU endpoint is resolved from the ERRU_CTUD_ENDPOINT constant, which points at the in-repo mock hub in dev/CI and at XTR in production."
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${('' + (incoming.body.id || '')).trim()}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${!id}
+      next: returnIdRequired
+  next: getRequest
+
+getRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: current
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${current.response.body.length != 1}
+      next: returnNotFound
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    cur_status: "${current.response.body[0].status}"
+    cur_direction: "${current.response.body[0].direction}"
+    business_case_id: "${current.response.body[0].businessCaseId}"
+    ctud_to: "${current.response.body[0].ctudTo || ''}"
+    undertaking_name: "${current.response.body[0].transportUndertakingName || ''}"
+    licence_number: "${current.response.body[0].communityLicenceNumber || ''}"
+    vehicle_number: "${current.response.body[0].vehicleRegistrationNumber || ''}"
+    all_vehicles: "${current.response.body[0].requestAllVehicles ? 'true' : 'false'}"
+  next: checkSendable
+
+# Only an outgoing request that is a draft or a previously failed send may be sent.
+# append-transition.sql enforces this too; checking here yields a precise error code.
+checkSendable:
+  switch:
+    - condition: ${cur_direction !== 'outgoing'}
+      next: returnNotSendable
+    - condition: ${cur_status !== 'initiated' && cur_status !== 'error'}
+      next: returnNotSendable
+  next: markSent
+
+markSent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "sent"
+      technicalId: ""
+      workflowId: ""
+      respondingAuthority: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseContent: ""
+      errorMessage: ""
+      created_by: ${actor_personal_code}
+  result: sent_res
+  next: checkMarkSent
+
+checkMarkSent:
+  switch:
+    - condition: ${sent_res.response.body == null || sent_res.response.body.length != 1}
+      next: returnNotSendable
+  next: prepareOutbound
+
+prepareOutbound:
+  assign:
+    start_time: "${new Date().getTime()}"
+  next: callErru
+
+callErru:
+  call: http.post
+  args:
+    url: "[#ERRU_CTUD_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      ctudTo: ${ctud_to}
+      businessCaseId: ${business_case_id}
+      technicalId: ""
+      workflowId: ""
+      transportUndertakingName: ${undertaking_name}
+      communityLicenceNumber: ${licence_number}
+      vehicleRegistrationNumber: ${vehicle_number}
+      requestAllVehicles: ${all_vehicles}
+  result: erru_res
+  next: checkErruStatus
+
+checkErruStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+      next: logIntegrationFailure
+  next: logIntegrationSuccess
+
+logIntegrationSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/ctud/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' to=' + ctud_to}"
+      response_xml: "${JSON.stringify(erru_res.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "erru_ctud"
+      source_record_id: "${'' + business_case_id}"
+  result: log_ok
+  next: checkResponseEnvelope
+
+logIntegrationFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/ctud/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' to=' + ctud_to}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "ERRU transport failure or error response"
+      person_identifier: ""
+      source_type: "erru_ctud"
+      source_record_id: "${'' + business_case_id}"
+  result: log_fail
+  next: markError
+
+# Two response shapes must be tolerated. The dev/CI mock hub is itself a Ruuter DSL, so
+# its payload arrives wrapped in Ruuter's {"response": "<json string>"} envelope. Real XTR
+# returns the ERRU payload unenveloped. Branch on the envelope rather than assuming either.
+checkResponseEnvelope:
+  switch:
+    - condition: ${erru_res.response.body != null && erru_res.response.body.response != null}
+      next: extractErruResponseEnveloped
+  next: extractErruResponseDirect
+
+extractErruResponseEnveloped:
+  assign:
+    resp_status_code: "${JSON.parse(erru_res.response.body.response).statusCode || ''}"
+    resp_status_message: "${JSON.parse(erru_res.response.body.response).statusMessage || ''}"
+    resp_authority: "${JSON.parse(erru_res.response.body.response).respondingAuthority || ''}"
+    resp_content: "${erru_res.response.body.response}"
+  next: checkResponseStatusCode
+
+extractErruResponseDirect:
+  assign:
+    resp_status_code: "${erru_res.response.body.statusCode || ''}"
+    resp_status_message: "${erru_res.response.body.statusMessage || ''}"
+    resp_authority: "${erru_res.response.body.respondingAuthority || ''}"
+    resp_content: "${JSON.stringify(erru_res.response.body)}"
+  next: checkResponseStatusCode
+
+checkResponseStatusCode:
+  switch:
+    - condition: ${!resp_status_code}
+      next: markErrorMissingStatus
+  next: markResponded
+
+markResponded:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "responded"
+      technicalId: ""
+      workflowId: ""
+      respondingAuthority: ${resp_authority}
+      responseStatusCode: ${resp_status_code}
+      responseStatusMessage: ${resp_status_message}
+      responseContent: ${resp_content}
+      errorMessage: ""
+      created_by: "system"
+  result: responded_res
+  next: logAuditSend
+
+markError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "error"
+      technicalId: ""
+      workflowId: ""
+      respondingAuthority: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseContent: ""
+      errorMessage: "ERRU transport failure — the request may be sent again"
+      created_by: "system"
+  result: error_res
+  next: logAuditError
+
+markErrorMissingStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "error"
+      technicalId: ""
+      workflowId: ""
+      respondingAuthority: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseContent: ""
+      errorMessage: "ERRU response carried no statusCode — not ERRU 3.5 compliant"
+      created_by: "system"
+  result: error_res
+  next: logAuditError
+
+logAuditSend:
+  template: "templates/audit/erru/ctud/log-ctud-request-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    ctud_to: ${ctud_to}
+    result_status: "responded"
+    response_code: ${resp_status_code}
+    transport_undertaking_name: ${undertaking_name}
+    community_licence_number: ${licence_number}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnResponded
+
+logAuditError:
+  template: "templates/audit/erru/ctud/log-ctud-request-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    ctud_to: ${ctud_to}
+    result_status: "error"
+    response_code: ""
+    transport_undertaking_name: ${undertaking_name}
+    community_licence_number: ${licence_number}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSendFailed
+
+returnResponded:
+  return: ${responded_res.response.body[0]}
+  next: end
+
+returnSendFailed:
+  status: 502
+  return: '{"type":"ERRU_ERROR","code":"send_failed","message":"Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata."}'
+  next: end
+
+returnNotSendable:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"status","code":"not_sendable"}'
+  next: end
+
+returnIdRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"id","code":"required"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "ctud request not found"
+  next: end
+
+

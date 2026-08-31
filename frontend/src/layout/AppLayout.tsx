@@ -4,6 +4,7 @@ import { Layout } from '@tedi-design-system/react/community';
 import { useHeaderProps } from './useHeaderProps';
 import { useFooterProps } from './useFooterProps';
 import { useSideNavProps } from './useSideNavProps';
+import { EnvironmentRibbon } from '../components/EnvironmentRibbon/EnvironmentRibbon';
 import styles from './AppLayout.module.css';
 
 export function AppLayout() {
@@ -33,6 +34,7 @@ export function AppLayout() {
 
   return (
     <>
+      <EnvironmentRibbon />
       {!isDesktop && sideNav}
       {!isDesktop && isMobileOpen && (
         <div className={styles['overlay']} onClick={closeSideNav} />

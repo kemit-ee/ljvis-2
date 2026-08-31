@@ -1,0 +1,103 @@
+declaration:
+
+  version: "1.0"
+  description: "Get a single compound form by ID"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: q
+        type: string
+        description: "Compound form ID"
+      - field: subFormId
+        type: string
+        description: "Sub-form ID if called from sub-form page"
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q}"
+    sub_form_id: "${incoming.params.subFormId}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: extractFormData
+
+extractFormData:
+  assign:
+    form_number: "${res.response.body[0].formNumber}"
+    created_by: "${res.response.body[0].createdBy}"
+    drivers: ${JSON.parse(res.response.body[0].drivers)}
+  next: extractDriverCodes
+
+extractDriverCodes:
+  assign:
+    driver1_personal_code_ee: "${drivers[0] != null ? drivers[0].personalCodeEe || '' : ''}"
+    driver1_personal_code_foreign: "${drivers[0] != null ? drivers[0].personalCodeForeign || '' : ''}"
+    driver2_personal_code_ee: "${drivers[1] != null ? drivers[1].personalCodeEe || '' : ''}"
+    driver2_personal_code_foreign: "${drivers[1] != null ? drivers[1].personalCodeForeign || '' : ''}"
+  next: checkShouldLog
+
+checkShouldLog:
+  switch:
+    - condition: ${actor_personal_code != created_by}
+      next: logAuditEvent
+  next: mapResponse
+
+logAuditEvent:
+  template: "templates/audit/form/compound-form/log-compound-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_key: ${id}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_compound_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "form not found"
+  next: end

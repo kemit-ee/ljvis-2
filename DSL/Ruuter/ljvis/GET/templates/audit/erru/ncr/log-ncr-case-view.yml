@@ -1,0 +1,40 @@
+declaration:
+  version: "1.0"
+  description: "Audit: NCR case viewed (LJVIS2-63). Logged on EVERY case open because the case
+    shows transport undertaking and handler personal data. Description carries the case
+    identifier, the number of snapshots shown and the acting handler's personal code."
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: message_count
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "NCR juhtumi vaatamine: juhtum ${incoming.body.business_case_id || '-'}, kuvatud teated ${incoming.body.message_count || '0'}, menetleja isikukood ${incoming.body.actor_personal_code || '-'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['messageCount', incoming.body.message_count || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "ncr.case.view"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

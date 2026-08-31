@@ -1,0 +1,20 @@
+{
+    "content": [
+        {{#each cases}}
+        {
+            "id": "{{this.id}}",
+            "version": {{this.version}},
+            "direction": "{{this.direction}}",
+            "status": "{{this.status}}",
+            "businessCaseId": "{{this.businessCaseId}}",
+            "sentAt": {{#if this.sentAt}}"{{this.sentAt}}"{{else}}null{{/if}},
+            "ncrFrom": {{#if this.ncrFrom}}"{{this.ncrFrom}}"{{else}}null{{/if}},
+            "ncrTo": {{#if this.ncrTo}}"{{this.ncrTo}}"{{else}}null{{/if}},
+            "transportUndertakingName": {{#if this.transportUndertakingName}}"{{this.transportUndertakingName}}"{{else}}null{{/if}},
+            "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}},
+            "hasInfringement": {{this.hasInfringement}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with cases.[0]}}{{total}}{{else}}0{{/with}}
+}

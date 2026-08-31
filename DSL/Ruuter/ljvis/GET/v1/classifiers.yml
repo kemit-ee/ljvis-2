@@ -1,10 +1,7 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "List all classifiers"
-  method: get
-  accepts: json
-  returns: json
   namespace: classifiers
   allowlist:
     params:
@@ -22,8 +19,8 @@ declaration:
         description: "Sorting"
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -58,6 +55,10 @@ checkAuditCondition:
   assign:
     should_log_audit: "${search.length >= 3}"
     result_count: "${res.response.body && res.response.body[0] ? res.response.body[0].total : 0}"
+  next: setAuditContent
+
+setAuditContent:
+  assign:
     description: "Klassifikaatorite nimekiri, otsingutermin '${search}', tulemusi ${result_count}"
     log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count}}"
   next: conditionalAudit
@@ -69,8 +70,8 @@ conditionalAudit:
   next: mapResponse
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "classifier.list.search"
     event_category: "classifier_management"

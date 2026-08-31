@@ -1,0 +1,86 @@
+declaration:
+  version: "1.0"
+  description: "Get a single CTUD request (erru.ctud_request) by its logical key, returning the latest snapshot (LJVIS2-143). Read-only; serves all three form modes (outgoing draft, sent outgoing request with response, inbound request). Per the specification the view is audited on EVERY open — unlike the control forms there is no viewer-equals-creator exemption, because the view always exposes transport undertaking data."
+  namespace: erru
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "CTUD request logical key (ctud_request_key)"
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${id === ''}
+      next: returnNotFound
+  next: getRequest
+
+getRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: extractRequestFields
+
+extractRequestFields:
+  assign:
+    business_case_id: "${res.response.body[0].businessCaseId || ''}"
+    transport_undertaking_name: "${res.response.body[0].transportUndertakingName || ''}"
+    community_licence_number: "${res.response.body[0].communityLicenceNumber || ''}"
+    vehicle_registration_number: "${res.response.body[0].vehicleRegistrationNumber || ''}"
+    ctud_to: "${res.response.body[0].ctudTo || ''}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/ctud/log-ctud-query-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    transport_undertaking_name: ${transport_undertaking_name}
+    community_licence_number: ${community_licence_number}
+    vehicle_registration_number: ${vehicle_registration_number}
+    ctud_to: ${ctud_to}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_ctud_request"
+    headers:
+      type: json
+    body:
+      requests: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "ctud request not found"
+  next: end
+
+

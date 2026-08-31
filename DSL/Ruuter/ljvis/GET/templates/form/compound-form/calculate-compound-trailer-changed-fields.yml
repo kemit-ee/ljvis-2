@@ -1,0 +1,392 @@
+declaration:
+
+  version: "1.0"
+  description: "Calculate changed fields for trailers array - compares up to three trailers"
+  namespace: service
+  allowlist:
+    body:
+      - field: old_trailers
+        type: string
+      - field: new_trailers
+        type: string
+      - field: changed_fields
+        type: string
+
+parseInputs:
+  assign:
+    old_trailers: ${incoming.body.old_trailers}
+    new_trailers: ${incoming.body.new_trailers}
+    changed_fields: ${incoming.body.changed_fields}
+  next: parseTrailers
+
+parseTrailers:
+  assign:
+    old_trailer0_regNr: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].regNr || \"\" : \"\"}"
+    old_trailer0_make: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].make || \"\" : \"\"}"
+    old_trailer0_model: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].model || \"\" : \"\"}"
+    old_trailer0_vin: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].vin || \"\" : \"\"}"
+    old_trailer0_countryCode: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].countryCode || \"\" : \"\"}"
+    old_trailer0_bodyType: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].bodyType || \"\" : \"\"}"
+    old_trailer0_firstRegistration: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].firstRegistration || \"\" : \"\"}"
+    old_trailer0_categoryCode: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].categoryCode || \"\" : \"\"}"
+    old_trailer0_categoryOther: "${JSON.parse(old_trailers || \"[]\")[0] ? JSON.parse(old_trailers || \"[]\")[0].categoryOther || \"\" : \"\"}"
+    new_trailer0_regNr: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].regNr || \"\" : \"\"}"
+    new_trailer0_make: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].make || \"\" : \"\"}"
+    new_trailer0_model: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].model || \"\" : \"\"}"
+    new_trailer0_vin: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].vin || \"\" : \"\"}"
+    new_trailer0_countryCode: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].countryCode || \"\" : \"\"}"
+    new_trailer0_bodyType: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].bodyType || \"\" : \"\"}"
+    new_trailer0_firstRegistration: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].firstRegistration || \"\" : \"\"}"
+    new_trailer0_categoryCode: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].categoryCode || \"\" : \"\"}"
+    new_trailer0_categoryOther: "${JSON.parse(new_trailers || \"[]\")[0] ? JSON.parse(new_trailers || \"[]\")[0].categoryOther || \"\" : \"\"}"
+    old_trailer1_regNr: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].regNr || \"\" : \"\"}"
+    old_trailer1_make: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].make || \"\" : \"\"}"
+    old_trailer1_model: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].model || \"\" : \"\"}"
+    old_trailer1_vin: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].vin || \"\" : \"\"}"
+    old_trailer1_countryCode: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].countryCode || \"\" : \"\"}"
+    old_trailer1_bodyType: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].bodyType || \"\" : \"\"}"
+    old_trailer1_firstRegistration: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].firstRegistration || \"\" : \"\"}"
+    old_trailer1_categoryCode: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].categoryCode || \"\" : \"\"}"
+    old_trailer1_categoryOther: "${JSON.parse(old_trailers || \"[]\")[1] ? JSON.parse(old_trailers || \"[]\")[1].categoryOther || \"\" : \"\"}"
+    new_trailer1_regNr: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].regNr || \"\" : \"\"}"
+    new_trailer1_make: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].make || \"\" : \"\"}"
+    new_trailer1_model: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].model || \"\" : \"\"}"
+    new_trailer1_vin: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].vin || \"\" : \"\"}"
+    new_trailer1_countryCode: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].countryCode || \"\" : \"\"}"
+    new_trailer1_bodyType: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].bodyType || \"\" : \"\"}"
+    new_trailer1_firstRegistration: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].firstRegistration || \"\" : \"\"}"
+    new_trailer1_categoryCode: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].categoryCode || \"\" : \"\"}"
+    new_trailer1_categoryOther: "${JSON.parse(new_trailers || \"[]\")[1] ? JSON.parse(new_trailers || \"[]\")[1].categoryOther || \"\" : \"\"}"
+    old_trailer2_regNr: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].regNr || \"\" : \"\"}"
+    old_trailer2_make: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].make || \"\" : \"\"}"
+    old_trailer2_model: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].model || \"\" : \"\"}"
+    old_trailer2_vin: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].vin || \"\" : \"\"}"
+    old_trailer2_countryCode: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].countryCode || \"\" : \"\"}"
+    old_trailer2_bodyType: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].bodyType || \"\" : \"\"}"
+    old_trailer2_firstRegistration: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].firstRegistration || \"\" : \"\"}"
+    old_trailer2_categoryCode: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].categoryCode || \"\" : \"\"}"
+    old_trailer2_categoryOther: "${JSON.parse(old_trailers || \"[]\")[2] ? JSON.parse(old_trailers || \"[]\")[2].categoryOther || \"\" : \"\"}"
+    new_trailer2_regNr: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].regNr || \"\" : \"\"}"
+    new_trailer2_make: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].make || \"\" : \"\"}"
+    new_trailer2_model: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].model || \"\" : \"\"}"
+    new_trailer2_vin: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].vin || \"\" : \"\"}"
+    new_trailer2_countryCode: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].countryCode || \"\" : \"\"}"
+    new_trailer2_bodyType: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].bodyType || \"\" : \"\"}"
+    new_trailer2_firstRegistration: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].firstRegistration || \"\" : \"\"}"
+    new_trailer2_categoryCode: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].categoryCode || \"\" : \"\"}"
+    new_trailer2_categoryOther: "${JSON.parse(new_trailers || \"[]\")[2] ? JSON.parse(new_trailers || \"[]\")[2].categoryOther || \"\" : \"\"}"
+    old_trailers_length: "${JSON.parse(old_trailers || \"[]\").length}"
+    new_trailers_length: "${JSON.parse(new_trailers || \"[]\").length}"
+  next: checkTrailersLengthChanged
+
+checkTrailersLengthChanged:
+  switch:
+    - condition: ${old_trailers_length != new_trailers_length}
+      next: addTrailersLengthChanged
+  next: checkTrailer0RegNr
+
+addTrailersLengthChanged:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[].count\"]" : "[\"trailers[].count\"]"}'
+  next: checkTrailer0RegNr
+
+checkTrailer0RegNr:
+  switch:
+    - condition: ${old_trailer0_regNr != new_trailer0_regNr}
+      next: addTrailer0RegNr
+  next: checkTrailer0Make
+
+addTrailer0RegNr:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].regNr\"]" : "[\"trailers[0].regNr\"]"}'
+  next: checkTrailer0Make
+
+checkTrailer0Make:
+  switch:
+    - condition: ${old_trailer0_make != new_trailer0_make}
+      next: addTrailer0Make
+  next: checkTrailer0Model
+
+addTrailer0Make:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].make\"]" : "[\"trailers[0].make\"]"}'
+  next: checkTrailer0Model
+
+checkTrailer0Model:
+  switch:
+    - condition: ${old_trailer0_model != new_trailer0_model}
+      next: addTrailer0Model
+  next: checkTrailer0Vin
+
+addTrailer0Model:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].model\"]" : "[\"trailers[0].model\"]"}'
+  next: checkTrailer0Vin
+
+checkTrailer0Vin:
+  switch:
+    - condition: ${old_trailer0_vin != new_trailer0_vin}
+      next: addTrailer0Vin
+  next: checkTrailer0CountryCode
+
+addTrailer0Vin:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].vin\"]" : "[\"trailers[0].vin\"]"}'
+  next: checkTrailer0CountryCode
+
+checkTrailer0CountryCode:
+  switch:
+    - condition: ${old_trailer0_countryCode != new_trailer0_countryCode}
+      next: addTrailer0CountryCode
+  next: checkTrailer0BodyType
+
+addTrailer0CountryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].countryCode\"]" : "[\"trailers[0].countryCode\"]"}'
+  next: checkTrailer0BodyType
+
+checkTrailer0BodyType:
+  switch:
+    - condition: ${old_trailer0_bodyType != new_trailer0_bodyType}
+      next: addTrailer0BodyType
+  next: checkTrailer0FirstRegistration
+
+addTrailer0BodyType:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].bodyType\"]" : "[\"trailers[0].bodyType\"]"}'
+  next: checkTrailer0FirstRegistration
+
+checkTrailer0FirstRegistration:
+  switch:
+    - condition: ${old_trailer0_firstRegistration != new_trailer0_firstRegistration}
+      next: addTrailer0FirstRegistration
+  next: checkTrailer0CategoryCode
+
+addTrailer0FirstRegistration:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].firstRegistration\"]" : "[\"trailers[0].firstRegistration\"]"}'
+  next: checkTrailer0CategoryCode
+
+checkTrailer0CategoryCode:
+  switch:
+    - condition: ${old_trailer0_categoryCode != new_trailer0_categoryCode}
+      next: addTrailer0CategoryCode
+  next: checkTrailer0CategoryOther
+
+addTrailer0CategoryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].categoryCode\"]" : "[\"trailers[0].categoryCode\"]"}'
+  next: checkTrailer0CategoryOther
+
+checkTrailer0CategoryOther:
+  switch:
+    - condition: ${old_trailer0_categoryOther != new_trailer0_categoryOther}
+      next: addTrailer0CategoryOther
+  next: checkTrailer1RegNr
+
+addTrailer0CategoryOther:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[0].categoryOther\"]" : "[\"trailers[0].categoryOther\"]"}'
+  next: checkTrailer1RegNr
+
+checkTrailer1RegNr:
+  switch:
+    - condition: ${old_trailer1_regNr != new_trailer1_regNr}
+      next: addTrailer1RegNr
+  next: checkTrailer1Make
+
+addTrailer1RegNr:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].regNr\"]" : "[\"trailers[1].regNr\"]"}'
+  next: checkTrailer1Make
+
+checkTrailer1Make:
+  switch:
+    - condition: ${old_trailer1_make != new_trailer1_make}
+      next: addTrailer1Make
+  next: checkTrailer1Model
+
+addTrailer1Make:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].make\"]" : "[\"trailers[1].make\"]"}'
+  next: checkTrailer1Model
+
+checkTrailer1Model:
+  switch:
+    - condition: ${old_trailer1_model != new_trailer1_model}
+      next: addTrailer1Model
+  next: checkTrailer1Vin
+
+addTrailer1Model:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].model\"]" : "[\"trailers[1].model\"]"}'
+  next: checkTrailer1Vin
+
+checkTrailer1Vin:
+  switch:
+    - condition: ${old_trailer1_vin != new_trailer1_vin}
+      next: addTrailer1Vin
+  next: checkTrailer1CountryCode
+
+addTrailer1Vin:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].vin\"]" : "[\"trailers[1].vin\"]"}'
+  next: checkTrailer1CountryCode
+
+checkTrailer1CountryCode:
+  switch:
+    - condition: ${old_trailer1_countryCode != new_trailer1_countryCode}
+      next: addTrailer1CountryCode
+  next: checkTrailer1BodyType
+
+addTrailer1CountryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].countryCode\"]" : "[\"trailers[1].countryCode\"]"}'
+  next: checkTrailer1BodyType
+
+checkTrailer1BodyType:
+  switch:
+    - condition: ${old_trailer1_bodyType != new_trailer1_bodyType}
+      next: addTrailer1BodyType
+  next: checkTrailer1FirstRegistration
+
+addTrailer1BodyType:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].bodyType\"]" : "[\"trailers[1].bodyType\"]"}'
+  next: checkTrailer1FirstRegistration
+
+checkTrailer1FirstRegistration:
+  switch:
+    - condition: ${old_trailer1_firstRegistration != new_trailer1_firstRegistration}
+      next: addTrailer1FirstRegistration
+  next: checkTrailer1CategoryCode
+
+addTrailer1FirstRegistration:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].firstRegistration\"]" : "[\"trailers[1].firstRegistration\"]"}'
+  next: checkTrailer1CategoryCode
+
+checkTrailer1CategoryCode:
+  switch:
+    - condition: ${old_trailer1_categoryCode != new_trailer1_categoryCode}
+      next: addTrailer1CategoryCode
+  next: checkTrailer1CategoryOther
+
+addTrailer1CategoryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].categoryCode\"]" : "[\"trailers[1].categoryCode\"]"}'
+  next: checkTrailer1CategoryOther
+
+checkTrailer1CategoryOther:
+  switch:
+    - condition: ${old_trailer1_categoryOther != new_trailer1_categoryOther}
+      next: addTrailer1CategoryOther
+  next: checkTrailer2RegNr
+
+addTrailer1CategoryOther:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[1].categoryOther\"]" : "[\"trailers[1].categoryOther\"]"}'
+  next: checkTrailer2RegNr
+
+checkTrailer2RegNr:
+  switch:
+    - condition: ${old_trailer2_regNr != new_trailer2_regNr}
+      next: addTrailer2RegNr
+  next: checkTrailer2Make
+
+addTrailer2RegNr:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].regNr\"]" : "[\"trailers[2].regNr\"]"}'
+  next: checkTrailer2Make
+
+checkTrailer2Make:
+  switch:
+    - condition: ${old_trailer2_make != new_trailer2_make}
+      next: addTrailer2Make
+  next: checkTrailer2Model
+
+addTrailer2Make:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].make\"]" : "[\"trailers[2].make\"]"}'
+  next: checkTrailer2Model
+
+checkTrailer2Model:
+  switch:
+    - condition: ${old_trailer2_model != new_trailer2_model}
+      next: addTrailer2Model
+  next: checkTrailer2Vin
+
+addTrailer2Model:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].model\"]" : "[\"trailers[2].model\"]"}'
+  next: checkTrailer2Vin
+
+checkTrailer2Vin:
+  switch:
+    - condition: ${old_trailer2_vin != new_trailer2_vin}
+      next: addTrailer2Vin
+  next: checkTrailer2CountryCode
+
+addTrailer2Vin:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].vin\"]" : "[\"trailers[2].vin\"]"}'
+  next: checkTrailer2CountryCode
+
+checkTrailer2CountryCode:
+  switch:
+    - condition: ${old_trailer2_countryCode != new_trailer2_countryCode}
+      next: addTrailer2CountryCode
+  next: checkTrailer2BodyType
+
+addTrailer2CountryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].countryCode\"]" : "[\"trailers[2].countryCode\"]"}'
+  next: checkTrailer2BodyType
+
+checkTrailer2BodyType:
+  switch:
+    - condition: ${old_trailer2_bodyType != new_trailer2_bodyType}
+      next: addTrailer2BodyType
+  next: checkTrailer2FirstRegistration
+
+addTrailer2BodyType:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].bodyType\"]" : "[\"trailers[2].bodyType\"]"}'
+  next: checkTrailer2FirstRegistration
+
+checkTrailer2FirstRegistration:
+  switch:
+    - condition: ${old_trailer2_firstRegistration != new_trailer2_firstRegistration}
+      next: addTrailer2FirstRegistration
+  next: checkTrailer2CategoryCode
+
+addTrailer2FirstRegistration:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].firstRegistration\"]" : "[\"trailers[2].firstRegistration\"]"}'
+  next: checkTrailer2CategoryCode
+
+checkTrailer2CategoryCode:
+  switch:
+    - condition: ${old_trailer2_categoryCode != new_trailer2_categoryCode}
+      next: addTrailer2CategoryCode
+  next: checkTrailer2CategoryOther
+
+addTrailer2CategoryCode:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].categoryCode\"]" : "[\"trailers[2].categoryCode\"]"}'
+  next: checkTrailer2CategoryOther
+
+checkTrailer2CategoryOther:
+  switch:
+    - condition: ${old_trailer2_categoryOther != new_trailer2_categoryOther}
+      next: addTrailer2CategoryOther
+  next: returnResult
+
+addTrailer2CategoryOther:
+  assign:
+    changed_fields: '${changed_fields.length > 2 ? changed_fields.substring(0, changed_fields.length - 1) + ",\"trailers[2].categoryOther\"]" : "[\"trailers[2].categoryOther\"]"}'
+  next: returnResult
+
+returnResult:
+  return: "{\"changed_fields\":${changed_fields}}"
+  next: end

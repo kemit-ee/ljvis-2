@@ -1,0 +1,61 @@
+declaration:
+  version: "1.0"
+  description: "MOCK ERRU hub for RSI (RoadSideInspection / Tehnokontrolli teade) — dev and CI only (ERRU_RSI_ENDPOINT points at XTR in production). Unlike CGR (synchronous broadcast), RSI is a SINGLE-COUNTRY ASYNCHRONOUS exchange: the hub acknowledges receipt immediately and delivers the actual response (OK/NotFound) later via a separate inbound-response call correlated by workflowId. This mock therefore returns only an ACK — it does NOT include a vehicle status in the response. The real ERRU hub would later call our Ruuter.internal inbound-response endpoint; in tests that second call is made directly by Newman. Scenario selection is by rsiTo: FI → HTTP 502 (transport failure, request transitions to error); everything else → 200 accepted ACK. The distinction between OK and NotFound responses is exercised separately through the inbound-response mock call in Newman."
+  namespace: erru
+  allowlist:
+    body:
+      - field: rsiTo
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: vehicleCategory
+        type: string
+      - field: vehicleIdentificationNumber
+        type: string
+      - field: inspectionLocation
+        type: string
+      - field: inspectionDatetime
+        type: string
+      - field: inspectionAuthorityOrName
+        type: string
+      - field: inspectionPassed
+        type: string
+      - field: ptiRequested
+        type: string
+      - field: vehicleProhibitionOrRestriction
+        type: string
+      - field: checkedItems
+        type: string
+
+selectScenario:
+  switch:
+    - condition: ${('' + (incoming.body.rsiTo || '')).toUpperCase() === 'FI'}
+      next: returnTransportFailure
+  next: returnAccepted
+
+# RSI hub ACK: confirms that the inspection notification was received and will be
+# processed. The actual vehicle register response (OK/NotFound) arrives separately.
+returnAccepted:
+  return: '{"status":"accepted"}'
+  next: end
+
+# FI: simulate transport-layer failure (HTTP 502) so the 'error' branch in send.yml
+# can be exercised. The request transitions to error and a new one must be composed.
+returnTransportFailure:
+  status: 502
+  return: '{"error":"ERRU hub simulation: transport failure"}'
+  next: end

@@ -1,0 +1,91 @@
+declaration:
+
+  version: "1.0"
+  description: "Get persons associated with a company from Ariregister (ettevottegaSeotudIsikud_v1) via XTR"
+  namespace: xroad
+  allowlist:
+    body:
+      - field: registryCode
+        type: string
+
+validate:
+  switch:
+    - condition: "${incoming.body.registryCode == null || incoming.body.registryCode == ''}"
+      next: returnMissingParam
+  next: assignParams
+
+returnMissingParam:
+  status: 400
+  return: "{\"error\": \"MISSING_PARAMETER\", \"message\": \"registryCode is required\"}"
+  next: end
+
+assignParams:
+  assign:
+    reg_code: "${incoming.body.registryCode}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/ettevottegaSeotudIsikud_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${reg_code}
+  result: xtrResponse
+  next: checkXtrStatus
+
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.ettevottegaSeotudIsikud_v1.v1"
+      request_xml: "${'registryCode=' + reg_code}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
+  result: logResult
+  next: returnResponse
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.ettevottegaSeotudIsikud_v1.v1"
+      request_xml: "${'registryCode=' + reg_code}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
+  result: logResult
+  next: returnError
+
+returnResponse:
+  return: ${xtrResponse.response.body}
+  status: 200
+  next: end
+
+returnError:
+  return: "{\"error\": \"XTR_ERROR\", \"message\": \"Seotud isikute päring ebaõnnestus\"}"
+  status: 502
+  next: end

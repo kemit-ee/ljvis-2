@@ -1,0 +1,90 @@
+declaration:
+  version: "1.0"
+  description: "LJVIS2-9 cross-entity form search. Returns a paged, filtered list of forms the caller is allowed to see (row-level by read permission)."
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: page
+        type: string
+        description: "Page number (1-based)"
+      - field: pageSize
+        type: string
+        description: "Rows per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction, e.g. 'main_date desc'"
+      - field: dateFrom
+        type: string
+        description: "Control date lower bound (inclusive)"
+      - field: dateTo
+        type: string
+        description: "Control date upper bound (inclusive)"
+      - field: formType
+        type: string
+        description: "Filter by a single form type"
+      - field: vehicleRegNr
+        type: string
+        description: "Vehicle registration number"
+      - field: companyRegCode
+        type: string
+        description: "Company registry code"
+      - field: companyName
+        type: string
+        description: "Company name"
+      - field: driver
+        type: string
+        description: "Driver personal code or name"
+      - field: county
+        type: string
+        description: "Control location county / maakond"
+      - field: inspectorOrgId
+        type: string
+        description: "Performing authority organisation id"
+      - field: hasViolation
+        type: string
+        description: "'true' / 'false'"
+      - field: status
+        type: string
+        description: "Form lifecycle status"
+
+getAuthority:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: buildAllowedTypes
+
+buildAllowedTypes:
+  assign:
+    allowed_types: "${(u.permissions.includes('control_form.view_unpublished') ? 'compound,foreign_violation,labour_inspection,good_repute,sp_driver,sp_teammate,vehicle_technical,trailer_technical,adr,kv,' : ((u.permissions.includes('compound_form.read') ? 'compound,' : '') + (u.permissions.includes('foreign_violation_form.read') ? 'foreign_violation,' : '') + (u.permissions.includes('labour_inspection_form.read') ? 'labour_inspection,' : '') + (u.permissions.includes('good_repute_form.read') ? 'good_repute,' : '') + (u.permissions.includes('sp_driver_form.read') ? 'sp_driver,' : '') + (u.permissions.includes('sp_teammate_form.read') ? 'sp_teammate,' : '') + (u.permissions.includes('vehicle_technical_form.read') ? 'vehicle_technical,' : '') + (u.permissions.includes('trailer_technical_form.read') ? 'trailer_technical,' : '') + (u.permissions.includes('adr_form.read') ? 'adr,' : '') + (u.permissions.includes('transport_interruption_form.read') ? 'kv,' : ''))) + (u.permissions.includes('tram_driver_form.read') ? 'tram_compound,tram_driver' : '')}"
+  next: search
+
+search:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/search/search"
+    headers:
+      type: json
+    body:
+      allowed_types: "${allowed_types}"
+      page: "${incoming.params.page ?? '1'}"
+      page_size: "${incoming.params.pageSize ?? '20'}"
+      sorting: "${incoming.params.sorting ?? 'main_date desc'}"
+      date_from: "${incoming.params.dateFrom ?? ''}"
+      date_to: "${incoming.params.dateTo ?? ''}"
+      form_type: "${incoming.params.formType ?? ''}"
+      vehicle_reg_nr: "${incoming.params.vehicleRegNr ?? ''}"
+      company_reg_code: "${incoming.params.companyRegCode ?? ''}"
+      company_name: "${incoming.params.companyName ?? ''}"
+      driver: "${incoming.params.driver ?? ''}"
+      county: "${incoming.params.county ?? ''}"
+      inspector_org_id: "${incoming.params.inspectorOrgId ?? ''}"
+      has_violation: "${incoming.params.hasViolation ?? ''}"
+      status: "${incoming.params.status ?? ''}"
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

@@ -1,0 +1,41 @@
+:global(#form-versions-table) td:first-child,
+:global(#form-versions-table) th:first-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}
+
+:global(#form-versions-table) td:nth-child(2),
+:global(#form-versions-table) th:nth-child(2) {
+  width: 8% !important;
+  max-width: 8% !important;
+}
+
+:global(#form-versions-table) td:nth-child(3),
+:global(#form-versions-table) th:nth-child(3) {
+  width: 11% !important;
+  max-width: 11% !important;
+}
+
+:global(#form-versions-table) td:nth-child(4),
+:global(#form-versions-table) th:nth-child(4) {
+  width: 15% !important;
+  max-width: 15% !important;
+}
+
+:global(#form-versions-table) td:nth-child(5),
+:global(#form-versions-table) th:nth-child(5) {
+  width: 15% !important;
+  max-width: 15% !important;
+}
+
+:global(#form-versions-table) td:nth-last-child(2),
+:global(#form-versions-table) th:nth-last-child(2) {
+  width: 11% !important;
+  max-width: 11% !important;
+}
+
+:global(#form-versions-table) td:last-child,
+:global(#form-versions-table) th:last-child {
+  width: 7% !important;
+  max-width: 7% !important;
+}

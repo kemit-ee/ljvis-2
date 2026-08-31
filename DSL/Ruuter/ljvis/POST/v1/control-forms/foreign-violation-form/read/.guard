@@ -1,6 +1,6 @@
 authenticate:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: u
@@ -8,7 +8,7 @@ authenticate:
 
 check:
   switch:
-    - condition: ${u.permissions != null && u.permissions.includes('classifier.read')}
+    - condition: ${u.permissions != null && (u.permissions.includes('control_form.view_unpublished') || u.permissions.includes('foreign_violation_form.read'))}
       next: allow
   next: deny
 

@@ -1,0 +1,349 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Query e-Toimik for väärteomenetlus qualification data (menetlused,
+    toimingud, osalised, sanktsioonid, süüdistuspunktid, kvalifikatsiooni
+    paragrahvid) by case/reference number and person identification
+    (LJVIS2-56), via X-Road SOAP AnnaIsikuKvalifikatsioonid/v6 (per §28/§44/
+    §99 of the spec) routed through XTR (see xtr.yaml -> security_server and
+    DSL/xtr/etoimik/AnnaIsikuKvalifikatsioonid.yml). The subsystem code and
+    service version are read from [#ETOIMIK_SUBSYSTEM_CODE] /
+    [#ETOIMIK_SERVICE_VERSION] (constants.ini) — subsystem confirmed live to
+    be `etoimik-arendus` in ee-dev (NOT plain `etoimik`, which produces a
+    misleading unknown_member fault there), but this WILL differ per
+    environment; see constants.ini's comment and .ai/testing-guide.md before
+    deploying elsewhere. No dedicated permission is
+    required per LJVIS2-56 §3 ("Eraldi privileegi selle teenuse kasutamiseks
+    ei kehtestata... kasutaja peab olema autenditud") — session auth only.
+    Exactly one of caseNumber/referenceNumber and exactly one of
+    personalCode/(firstName+lastName+birthDate) must be supplied — validated
+    here BEFORE calling X-Road, since the provider's own XSD-violation SOAP
+    Fault message is generic and unhelpful (confirmed live). Every field
+    trimmed; firstName/lastName uppercased per spec. Response nesting
+    (proceedings -> actions -> participants -> sanctions ->
+    convictionPoints -> qualificationParagraphs) is preserved but every
+    Estonian field name is translated to English. Logs every call (success
+    and failure) to xroad.xroad_integration_log, recording person_identifier
+    in plaintext ONLY for the personalCode path (never for the
+    name+birthdate/foreigner path, per §7 Logimine).
+  namespace: xroad
+  allowlist:
+    body:
+      - field: caseNumber
+        type: string
+        description: "Väärteomenetluse asja number. Exactly one of caseNumber/referenceNumber required."
+      - field: referenceNumber
+        type: string
+        description: "Väärteomenetluse viitenumber. Exactly one of caseNumber/referenceNumber required."
+      - field: personalCode
+        type: string
+        description: "Eesti isikukood. Exactly one of personalCode/(firstName+lastName+birthDate) required."
+      - field: firstName
+        type: string
+      - field: lastName
+        type: string
+      - field: birthDate
+        type: string
+        description: "ISO date (yyyy-MM-dd). Required together with firstName+lastName for the foreigner identification path."
+      - field: sourceType
+        type: string
+        description: "Optional caller context for xroad_integration_log, e.g. 'compound_form'."
+      - field: sourceRecordId
+        type: string
+        description: "Optional caller context for xroad_integration_log, e.g. a compound_form_key."
+
+extractRequestData:
+  assign:
+    case_number: "${(incoming.body.caseNumber || '').trim()}"
+    reference_number: "${(incoming.body.referenceNumber || '').trim()}"
+    personal_code: "${(incoming.body.personalCode || '').trim()}"
+    first_name: "${(incoming.body.firstName || '').trim().toUpperCase()}"
+    last_name: "${(incoming.body.lastName || '').trim().toUpperCase()}"
+    birth_date: "${(incoming.body.birthDate || '').trim()}"
+    source_type: "${(incoming.body.sourceType || '').trim()}"
+    source_record_id: "${(incoming.body.sourceRecordId || '').trim()}"
+  next: checkCaseOrReference
+
+# LJVIS2-56 §Valideerimise reeglid: exactly one of caseNumber/referenceNumber.
+checkCaseOrReference:
+  switch:
+    - condition: "${!!case_number && !!reference_number}"
+      next: returnCaseAndReferenceBothSet
+    - condition: "${!case_number && !reference_number}"
+      next: returnCaseOrReferenceRequired
+  next: assignPersonGroups
+
+assignPersonGroups:
+  assign:
+    has_name_group_any: "${!!(first_name || last_name || birth_date)}"
+    has_name_group_complete: "${!!(first_name && last_name && birth_date)}"
+  next: checkPersonIdentification
+
+# Exactly one identification method: personalCode XOR (firstName+lastName+birthDate).
+# An incomplete name group (e.g. only firstName) is its own distinct error per spec.
+checkPersonIdentification:
+  switch:
+    - condition: "${!!personal_code && has_name_group_any}"
+      next: returnPersonIdBothMethods
+    - condition: "${!personal_code && !has_name_group_any}"
+      next: returnPersonIdRequired
+    - condition: "${has_name_group_any && !has_name_group_complete}"
+      next: returnPersonIdIncompleteNameGroup
+  next: get_user_context
+
+# Eraldi privileegi ei kehtestata (LJVIS2-56 §3) — only requires a valid session.
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: assignXtrParams
+
+assignXtrParams:
+  assign:
+    x_road_user_id: "${'EE' + (auth_user.personalcode || '')}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+    headers:
+      type: json
+    body:
+      case_number: ${case_number}
+      reference_number: ${reference_number}
+      personal_code: ${personal_code}
+      first_name: ${first_name}
+      last_name: ${last_name}
+      birth_date: ${birth_date}
+      userId: ${x_road_user_id}
+      # Per-environment override (LJVIS2-56) — ee-dev sandbox uses
+      # "etoimik-arendus", production/ee-test almost certainly use plain
+      # "etoimik" (confirmed live for ee-dev only, 2026-08-25; re-verify
+      # per environment via listClients/allowedMethods, see constants.ini).
+      subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
+      service_version: "[#ETOIMIK_SERVICE_VERSION]"
+  result: xtrResponse
+  next: checkXtrStatus
+
+# XTR maps every failure mode (Security Server unreachable, timeout, X-Road
+# fault, provider-side SOAP Fault incl. XSD-choice violations) to a non-2xx
+# status — a single range check covers all of them, same convention as
+# liiklusregister/paring2.yml.
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: extractSoapBody
+
+# XTR's REST response shape is {"headers": ..., "body": ...}; namespace
+# prefixes on response elements are preserved verbatim (e.g.
+# "et:AnnaIsikuKvalifikatsioonidResponse"), so look up the key by suffix
+# instead of hardcoding a prefix (same convention as paring2.yml).
+extractSoapBody:
+  assign:
+    soap_body: "${(xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {})}"
+  next: findResponseKey
+
+findResponseKey:
+  assign:
+    response_key: "${Object.keys(soap_body).find(k => k.endsWith('AnnaIsikuKvalifikatsioonidResponse'))}"
+  next: extractResponseNode
+
+extractResponseNode:
+  assign:
+    response_node: "${response_key ? soap_body[response_key] : {}}"
+  next: extractCaseNode
+
+# <response xsi:nil="true"/> (no matching case) does NOT arrive as null after
+# XML->JSON translation — XTR renders it as an object carrying the nil marker
+# attribute, {"@xsi:nil":"1"} (confirmed live, 2026-08-25: a real "not found"
+# response was `{"response":{"@xsi:nil":"1"}}`, NOT `{"response":null}`) — a
+# naive null-check would silently treat this as "found" and map garbage
+# undefined fields. This is a valid, non-error "not found" result (LJVIS2-56
+# §Tagastatavad andmed: "Tegemist ei ole veaga").
+extractCaseNode:
+  assign:
+    case_node: "${response_node.response || null}"
+  next: checkCaseFound
+
+checkCaseFound:
+  switch:
+    - condition: "${case_node == null || case_node['@xsi:nil'] === '1' || case_node['@xsi:nil'] === true}"
+      next: logSuccessNotFound
+  next: mapCaseData
+
+# Deeply-nested Estonian -> English translation (LJVIS2-56 §Tagastatavad
+# andmed / confirmed against the live WSDL, 2026-08-25). `item` arrays
+# collapse to a bare object when there's exactly one entry after XML->JSON
+# translation (same quirk as paring2.yml's `found_items`) — toArray() below
+# normalizes that. Kept as a single, EARLY assign step (few prior
+# variables accumulated) to avoid the large-expression silent-failure issue
+# documented in erru/rsi/request/build.yml.
+mapCaseData:
+  assign:
+    mapped_case: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function mapLegalBasis(s) {
+          return {
+            objectId: s.ObjektID, codexCode: s.SeadustikKL, typeCode: s.LiikKL,
+            paragraph: s.Paragrahv, paragraphPrim: s.ParagrahvPrimm,
+            subsection: s.Loige, subsectionPrim: s.LoigePrimm,
+            point: s.Punkt, pointPrim: s.PunktPrimm,
+            text: s.Tekst, shortText: s.TekstLyhendatult,
+            validFrom: s.AlgusKP, validTo: s.LoppKP,
+            chapterNumber: s.PeatykkNR, chapterNameCode: s.PeatykiNimetusKL,
+            sectionNumber: s.JaguNR, sectionNameCode: s.JaoNimetusKL,
+            divisionNumber: s.JaotisNR, divisionNameCode: s.JaotiseNimetusKL
+          };
+        }
+        function mapPerson(p) {
+          return { objectId: p.ObjektID, personalCode: p.Kood, lastName: p.Nimi, firstName: p.Eesnimi, foreignCodes: p.MuudeRiikideKoodid };
+        }
+        function mapConvictionPoint(cp) {
+          return {
+            objectId: cp.ObjektID, verdictCode: cp.LahendKL, verdictDate: cp.LahendiKP,
+            startDate: cp.AlgusKP, endDate: cp.LoppKP, closureDate: cp.SulgemiseKP,
+            reference: cp.SyydistusPunktCSV, clientSystemId: cp.KlientsysteemiID,
+            qualificationParagraphs: toArray(cp.KvalifikatsiooniParagrahvid && cp.KvalifikatsiooniParagrahvid.item).map(mapLegalBasis)
+          };
+        }
+        function mapSanction(s) {
+          return {
+            objectId: s.ObjektID, typeCode: s.TyypKL, subTypeCode: s.LiikKL, subSubTypeCode: s.AlaLiikKL,
+            convictionPoints: toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).map(mapConvictionPoint)
+          };
+        }
+        function mapParticipant(p) {
+          return {
+            person: mapPerson(p.Isik || {}),
+            sanctions: toArray(p.Sanktsioonid && p.Sanktsioonid.item).map(mapSanction)
+          };
+        }
+        function mapAction(a) {
+          return {
+            objectId: a.ObjektID, typeCode: a.LiikKL, subTypeCode: a.AlaLiikKL,
+            legalBasis: toArray(a.Alus && a.Alus.item).map(mapLegalBasis),
+            participants: toArray(a.Toiminguosalised && a.Toiminguosalised.item).map(mapParticipant)
+          };
+        }
+        function mapProceeding(m) {
+          return {
+            objectId: m.ObjektID, proceedingNumber: m.MenetluseNR,
+            actions: toArray(m.Toimingud && m.Toimingud.item).map(mapAction)
+          };
+        }
+        return {
+          objectId: case_node.ObjektID, typeCode: case_node.LiikKL, caseNumber: case_node.AsjaNR,
+          proceedings: toArray(case_node.Menetlused && case_node.Menetlused.item).map(mapProceeding)
+        };
+      })()}
+  next: logSuccessFound
+
+logSuccessFound:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
+      request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
+      response_xml: "${JSON.stringify(mapped_case)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: "${personal_code || ''}"
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logResult
+  next: returnFoundResult
+
+returnFoundResult:
+  status: 200
+  return: "${({data: mapped_case})}"
+  next: end
+
+logSuccessNotFound:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
+      request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
+      response_xml: "null"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: "${personal_code || ''}"
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logResult
+  next: returnNotFoundResult
+
+returnNotFoundResult:
+  status: 200
+  # JS-expression form (matches returnFoundResult / paring2.yml's
+  # returnResult), NOT a quoted JSON string literal — Ruuter serializes the
+  # latter as a nested STRING inside `response` (confirmed live, 2026-08-25:
+  # `'{"data": null}'` produced `{"response":"{\"data\": null}"}`, requiring
+  # callers to double-JSON-parse), whereas this form produces a proper
+  # nested object the frontend's `post<T>()` can consume directly.
+  return: "${({data: null})}"
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
+      request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: "${personal_code || ''}"
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logResult
+  next: returnXtrError
+
+returnXtrError:
+  status: 502
+  return: '{"error": "XTR_ERROR", "message": "e-Toimiku päring ebaõnnestus"}'
+  next: end
+
+returnCaseAndReferenceBothSet:
+  status: 400
+  return: '{"error": "CASE_OR_REFERENCE_AMBIGUOUS", "message": "Only one of caseNumber or referenceNumber may be provided"}'
+  next: end
+
+returnCaseOrReferenceRequired:
+  status: 400
+  return: '{"error": "CASE_OR_REFERENCE_REQUIRED", "message": "One of caseNumber or referenceNumber is required"}'
+  next: end
+
+returnPersonIdBothMethods:
+  status: 400
+  return: '{"error": "PERSON_ID_AMBIGUOUS", "message": "Only one of personalCode or firstName+lastName+birthDate may be provided"}'
+  next: end
+
+returnPersonIdRequired:
+  status: 400
+  return: '{"error": "PERSON_ID_REQUIRED", "message": "One of personalCode or firstName+lastName+birthDate is required"}'
+  next: end
+
+returnPersonIdIncompleteNameGroup:
+  status: 400
+  return: '{"error": "PERSON_ID_INCOMPLETE_NAME_GROUP", "message": "firstName, lastName and birthDate must all be provided together"}'
+  next: end

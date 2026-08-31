@@ -1,0 +1,27 @@
+# CronManager runtime config for ljvis-2 (turnerrainer/cronmanager:alpha).
+# Mounted read-only into the container at /app/cronmanager.yaml (see
+# docker-compose.yml). Job DSLs live in DSL/CronManager/, mounted at
+# dsl_path below. See .ai/future-plans/cronmanager-scheduled-jobs.md.
+
+port: 8080
+dsl_path: /app/DSL/jobs
+app_root_path: /app
+
+# Server-to-server only — no browser ever calls this API directly.
+allowed_origins: []
+
+# Base URLs exposed to exec-type cron jobs via allowedEnvs.
+# Job files reference these as ${VAR} — they are NOT automatically
+# injected; each job must opt in with allowedEnvs: [RUUTER_INTERNAL].
+shell_environment:
+  RUUTER_INTERNAL: http://ruuter-internal:8080
+
+limits:
+  max_request_bytes: 1048576        # 1 MiB
+  max_response_bytes: 16777216      # 16 MiB
+  request_timeout_secs: 30
+  shell_timeout_secs: 300
+
+# Job execution history disabled for now (no Postgres DSN configured) —
+# jobs still run, nothing is persisted. Revisit once /jobs history is
+# needed for ops visibility.

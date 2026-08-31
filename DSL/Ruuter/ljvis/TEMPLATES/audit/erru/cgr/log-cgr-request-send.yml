@@ -1,0 +1,46 @@
+declaration:
+  version: "1.0"
+  description: "Audit: CGR request sent or re-sent to ERRU (LJVIS2-139). Logged on every send/resend attempt, successful or not. The description carries the request identifier, the target country (ZZ for broadcast), the reached status (sent, resent, or error), the number of responding member states, and the searched transport manager's name (first + family), which makes it traceable whose good-repute data was requested. CGR involves personal data (transport manager name), so actor_personal_code is logged per the data-processing agreement."
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: cgr_to
+        type: string
+      - field: result_status
+        type: string
+      - field: member_state_count
+        type: string
+      - field: tm_first_name
+        type: string
+      - field: tm_family_name
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "CGR päringu saatmine: päringu tunnus ${incoming.body.business_case_id || '-'}, sihtriik ${incoming.body.cgr_to || '-'}, tulemus ${incoming.body.result_status || '-'}, vastuseid ${incoming.body.member_state_count || '0'}, otsitud veokorraldaja ${(incoming.body.tm_first_name || '-') + ' ' + (incoming.body.tm_family_name || '-')}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['cgrTo', incoming.body.cgr_to || null], ['resultStatus', incoming.body.result_status || null], ['memberStateCount', incoming.body.member_state_count || null], ['tmFirstName', incoming.body.tm_first_name || null], ['tmFamilyName', incoming.body.tm_family_name || null]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "cgr.request.send"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

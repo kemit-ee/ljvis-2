@@ -1,0 +1,126 @@
+declaration:
+
+  version: "1.0"
+  description: "Publish (avalikusta) a labour inspection form (Tööinspektsiooni kontrollakt). Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    status: "published"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFormIsConfirmed
+
+checkFormIsConfirmed:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormIsConfirmedSwitch
+
+checkFormIsConfirmedSwitch:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: returnAlreadyPublishedError
+    - condition: ${current_status !== 'confirmed'}
+      next: returnNotConfirmedError
+  next: extractCurrentFormData
+
+extractCurrentFormData:
+  assign:
+    inspector_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectorName) || ''}"
+    inspection_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionDate) || ''}"
+    inspection_type: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionType) || ''}"
+    company_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyName) || ''}"
+    company_reg_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].companyRegCode) || ''}"
+    vehicle_count: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleCount) || ''}"
+    total_drivers_count: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].totalDriversCount) || ''}"
+    controls_matrix: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].controlsMatrix) || '[]'}"
+    prescription_composed: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].prescriptionComposed) || 'false'}"
+    punished_person_id_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].punishedPersonIdCode) || ''}"
+    punished_person_first_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].punishedPersonFirstName) || ''}"
+    punished_person_last_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].punishedPersonLastName) || ''}"
+    proceeding_reference_number: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].proceedingReferenceNumber) || ''}"
+    violations: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].violations) || '[]'}"
+  next: publishForm
+
+publishForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: ${status}
+      inspectorName: ${inspector_name}
+      inspectionDate: ${inspection_date}
+      inspectionType: ${inspection_type}
+      companyName: ${company_name}
+      companyRegCode: ${company_reg_code}
+      vehicleCount: ${vehicle_count}
+      totalDriversCount: ${total_drivers_count}
+      controlsMatrix: ${controls_matrix}
+      prescriptionComposed: ${prescription_composed}
+      punishedPersonIdCode: ${punished_person_id_code}
+      punishedPersonFirstName: ${punished_person_first_name}
+      punishedPersonLastName: ${punished_person_last_name}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      violations: ${violations}
+      created_by: ${created_by}
+  result: publishRes
+  next: extractResponseData
+
+extractResponseData:
+  assign:
+    form_number: "${publishRes.response.body[0].formNumber || ''}"
+    version: "${publishRes.response.body[0].version || ''}"
+    old_status: ${current_status}
+    new_status: ${status}
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-publish"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    akti_voti: ${id}
+    form_number: ${form_number}
+    version: ${version}
+    isikukood: ${punished_person_id_code}
+    old_status: ${old_status}
+    new_status: ${new_status}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${publishRes.response.body}
+  next: end
+
+returnAlreadyPublishedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnNotConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"not_confirmed"}'
+  next: end

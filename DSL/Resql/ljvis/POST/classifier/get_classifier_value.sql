@@ -1,3 +1,15 @@
+/*
+declaration:
+  version: 0.1
+  description: "Get a single classifier value by classifier_value_id"
+  method: post
+  namespace: classifier
+  returns: json
+  allowlist:
+    body:
+      - field: classifier_value_id
+        type: number
+*/
 SELECT
     cv.classifier_key       AS classifier_id,
     cv.classifier_value_key AS classifier_value_id,

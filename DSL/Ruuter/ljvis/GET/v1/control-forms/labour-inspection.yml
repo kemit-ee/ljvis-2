@@ -1,0 +1,97 @@
+declaration:
+
+  version: "1.0"
+  description: "Get a single labour inspection form (labour_inspection_form) by ID"
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "Labour inspection form ID"
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: checkPermission
+
+checkPermission:
+  switch:
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('labour_inspection_form.read'))}
+      next: extractRequestData
+  next: returnForbidden
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: extractFormData
+
+extractFormData:
+  assign:
+    form_number: "${res.response.body[0].formNumber}"
+    created_by: "${res.response.body[0].createdBy}"
+    punished_person_id_code: "${res.response.body[0].punishedPersonIdCode || ''}"
+  next: checkShouldLog
+
+checkShouldLog:
+  switch:
+    - condition: ${actor_personal_code != created_by}
+      next: logAuditEvent
+  next: mapResponse
+
+logAuditEvent:
+  template: "templates/audit/form/labour-inspection/log-labour-inspection-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    akti_voti: ${id}
+    form_number: ${form_number}
+    isikukood: ${punished_person_id_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "form not found"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "forbidden"
+  next: end

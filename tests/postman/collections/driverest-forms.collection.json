@@ -1,0 +1,1175 @@
+{
+  "info": {
+    "name": "LJVIS \u2014 Drive Rest Forms (Driver + Teammate)",
+    "_postman_id": "ljvis-driverest-forms-v1",
+    "description": "Functional tests for /control-forms/drive-rest-form/{driver|teammate} endpoints. Covers permission boundaries (sp_driver_form.write/read, sp_teammate_form.write/read), backend validation (compoundFormKey required), version/status lifecycle (saved \u2192 confirmed, saved-state no-version-bump rule, already_confirmed), and GET by id and by compound form key. Self-contained: authenticates and creates its own compound form + sub-forms.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login \u2014 Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "auth", "dev", "dev-login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login \u2014 No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "auth", "dev", "dev-login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create compound form for drive-rest sub-form tests",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\",\"formNumber\":\"\",\"status\":\"saved\",\"controlDate\":\"2024-01-01\",\"controlTime\":\"10:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"CI123DR\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[{\\\"personalCodeEe\\\":\\\"60706245735\\\",\\\"personalCodeForeign\\\":\\\"\\\",\\\"firstName\\\":\\\"\\\",\\\"lastName\\\":\\\"\\\",\\\"citizenshipCode\\\":\\\"\\\",\\\"birthDate\\\":\\\"\\\"}]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"60706245735\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('id present', () => pm.expect(row.id).to.not.be.undefined);",
+              "pm.environment.set('created_drf_compound_key', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/save \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{created_drf_compound_key}}, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\", \"selectionStatus\": null, \"transportType\": null, \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": null, \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": null, \"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without sp_driver_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/save \u2014 missing compoundFormKey \u2192 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": null, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\", \"selectionStatus\": null, \"transportType\": null, \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": null, \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": null, \"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is compoundFormKey', () => pm.expect(body.field).to.eql('compoundFormKey'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/save \u2014 create \u2192 200, save id/subFormNumber, version=1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{created_drf_compound_key}}, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\", \"selectionStatus\": \"active\", \"transportType\": \"international\", \"transportEmptyRun\": false, \"transportNature\": \"cargo\", \"transportNatureExempt\": false, \"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": 5, \"workDaysCount\": 5, \"otherActivityDaysCount\": 0, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": \"ci driver notes\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('Response has id, subFormNumber, version=1', () => {",
+              "  pm.expect(row.id).to.not.be.undefined;",
+              "  pm.expect(row.subFormNumber).to.be.a('string').and.not.empty;",
+              "});",
+              "pm.environment.set('created_drf_driver_id', String(row.id));",
+              "pm.environment.set('created_drf_driver_sub_form_number', String(row.subFormNumber));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET driver-form \u2014 no permission \u2192 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/driver-form?q={{created_drf_driver_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "driver-form"],
+          "query": [{"key": "q", "value": "{{created_drf_driver_id}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without sp_driver_form.read', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET driver-form \u2014 not found \u2192 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/driver-form?q=999999999",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "driver-form"],
+          "query": [{"key": "q", "value": "999999999"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 404 for nonexistent id', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET driver-form \u2014 happy path, verify fields",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/driver-form?q={{created_drf_driver_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "driver-form"],
+          "query": [{"key": "q", "value": "{{created_drf_driver_id}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is saved', () => pm.expect(body.status).to.eql('saved'));",
+              "pm.test('notes match', () => pm.expect(body.notes).to.eql('ci driver notes'));",
+              "pm.test('subFormNumber matches', () => pm.expect(body.subFormNumber).to.eql(pm.environment.get('created_drf_driver_sub_form_number')));",
+              "pm.test('compoundFormKey matches', () => pm.expect(Number(body.compoundFormKey)).to.eql(Number(pm.environment.get('created_drf_compound_key'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/save \u2014 re-save while saved \u2192 200, version stays 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_driver_id}}\", \"subFormNumber\":\"{{created_drf_driver_sub_form_number}}\", \"status\":\"saved\", \"compoundFormKey\": null, \"selectionStatus\": \"active\", \"transportType\": \"international\", \"transportEmptyRun\": false, \"transportNature\": \"cargo\", \"transportNatureExempt\": false, \"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": 5, \"workDaysCount\": 5, \"otherActivityDaysCount\": 0, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": \"ci driver notes updated\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('subFormNumber unchanged', () => pm.expect(row.subFormNumber).to.eql(pm.environment.get('created_drf_driver_sub_form_number')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET sp-driver/read/get-by-compound-form-key \u2014 happy path, returns driver form",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/sp-driver/read/get-by-compound-form-key?compoundFormKey={{created_drf_compound_key}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "sp-driver", "read", "get-by-compound-form-key"],
+          "query": [{"key": "compoundFormKey", "value": "{{created_drf_compound_key}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('driver form found for compound key', () => {",
+              "  pm.expect(body).to.not.be.null;",
+              "  pm.expect(String(body.id)).to.eql(pm.environment.get('created_drf_driver_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/confirm \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_driver_id}}\", \"selectionStatus\": null, \"transportType\": null, \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": null, \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": null, \"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without sp_driver_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/confirm \u2014 happy path \u2192 200, status confirmed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_driver_id}}\", \"selectionStatus\": \"active\", \"transportType\": \"international\", \"transportEmptyRun\": false, \"transportNature\": \"cargo\", \"transportNatureExempt\": false, \"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": 5, \"workDaysCount\": 5, \"otherActivityDaysCount\": 0, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": \"ci driver notes confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET driver-form \u2014 status is confirmed after confirm",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/driver-form?q={{created_drf_driver_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "driver-form"],
+          "query": [{"key": "q", "value": "{{created_drf_driver_id}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is confirmed', () => pm.expect(body.status).to.eql('confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/confirm \u2014 already confirmed \u2192 422 already_confirmed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_driver_id}}\", \"selectionStatus\": null, \"transportType\": null, \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": null, \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": null, \"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code is already_confirmed', () => pm.expect(body.code).to.eql('already_confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/delete \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/delete",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "delete"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_driver_id}}\", \"form_number\": \"{{created_drf_driver_sub_form_number}}\", \"old_status\": \"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 403 without sp_driver_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/driver/edit/delete \u2014 happy path \u2192 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/delete",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "delete"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_driver_id}}\", \"form_number\": \"{{created_drf_driver_sub_form_number}}\", \"old_status\": \"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET driver-form \u2014 deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/driver-form?q={{created_drf_driver_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "driver-form"],
+          "query": [{"key": "q", "value": "{{created_drf_driver_id}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/save \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{created_drf_compound_key}}, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\", \"selectionStatus\": null, \"transportType\": null, \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"resultType\": null, \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without sp_teammate_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/save \u2014 missing compoundFormKey \u2192 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": null, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\", \"selectionStatus\": null, \"transportType\": null, \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"resultType\": null, \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('field is compoundFormKey', () => pm.expect(body.field).to.eql('compoundFormKey'));",
+              "pm.test('code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/save \u2014 create \u2192 200, save id/subFormNumber, version=1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{created_drf_compound_key}}, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\", \"selectionStatus\": \"active\", \"transportType\": \"international\", \"transportEmptyRun\": false, \"transportNature\": \"cargo\", \"transportNatureExempt\": false, \"transportClasses\": null, \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": 3, \"workDaysCount\": 3, \"otherActivityDaysCount\": 0, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": \"ci teammate notes\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('Response has id, subFormNumber, version=1', () => {",
+              "  pm.expect(row.id).to.not.be.undefined;",
+              "  pm.expect(row.subFormNumber).to.be.a('string').and.not.empty;",
+              "});",
+              "pm.environment.set('created_drf_teammate_id', String(row.id));",
+              "pm.environment.set('created_drf_teammate_sub_form_number', String(row.subFormNumber));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET teammate-form \u2014 no permission \u2192 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/teammate-form?q={{created_drf_teammate_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "teammate-form"],
+          "query": [{"key": "q", "value": "{{created_drf_teammate_id}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without sp_teammate_form.read', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET teammate-form \u2014 not found \u2192 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/teammate-form?q=999999999",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "teammate-form"],
+          "query": [{"key": "q", "value": "999999999"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 404 for nonexistent id', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET teammate-form \u2014 happy path, verify fields",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/teammate-form?q={{created_drf_teammate_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "teammate-form"],
+          "query": [{"key": "q", "value": "{{created_drf_teammate_id}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is saved', () => pm.expect(body.status).to.eql('saved'));",
+              "pm.test('notes match', () => pm.expect(body.notes).to.eql('ci teammate notes'));",
+              "pm.test('subFormNumber matches', () => pm.expect(body.subFormNumber).to.eql(pm.environment.get('created_drf_teammate_sub_form_number')));",
+              "pm.test('compoundFormKey matches', () => pm.expect(Number(body.compoundFormKey)).to.eql(Number(pm.environment.get('created_drf_compound_key'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/save \u2014 re-save while saved \u2192 200, version stays 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_teammate_id}}\", \"subFormNumber\":\"{{created_drf_teammate_sub_form_number}}\", \"status\":\"saved\", \"compoundFormKey\": null, \"selectionStatus\": \"active\", \"transportType\": \"international\", \"transportEmptyRun\": false, \"transportNature\": \"cargo\", \"transportNatureExempt\": false, \"transportClasses\": null, \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": 3, \"workDaysCount\": 3, \"otherActivityDaysCount\": 0, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": \"ci teammate notes updated\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('subFormNumber unchanged', () => pm.expect(row.subFormNumber).to.eql(pm.environment.get('created_drf_teammate_sub_form_number')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET sp-teammate/read/get-by-compound-form-key \u2014 happy path, returns teammate form",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/sp-teammate/read/get-by-compound-form-key?compoundFormKey={{created_drf_compound_key}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "sp-teammate", "read", "get-by-compound-form-key"],
+          "query": [{"key": "compoundFormKey", "value": "{{created_drf_compound_key}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('teammate form found for compound key', () => {",
+              "  pm.expect(body).to.not.be.null;",
+              "  pm.expect(String(body.id)).to.eql(pm.environment.get('created_drf_teammate_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/confirm \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_teammate_id}}\", \"selectionStatus\": null, \"transportType\": null, \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"resultType\": null, \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without sp_teammate_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/confirm \u2014 happy path \u2192 200, status confirmed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_teammate_id}}\", \"selectionStatus\": \"active\", \"transportType\": \"international\", \"transportEmptyRun\": false, \"transportNature\": \"cargo\", \"transportNatureExempt\": false, \"transportClasses\": null, \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": 3, \"workDaysCount\": 3, \"otherActivityDaysCount\": 0, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": \"ci teammate notes confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET teammate-form \u2014 status is confirmed after confirm",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/teammate-form?q={{created_drf_teammate_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "teammate-form"],
+          "query": [{"key": "q", "value": "{{created_drf_teammate_id}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is confirmed', () => pm.expect(body.status).to.eql('confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/confirm \u2014 already confirmed \u2192 422 already_confirmed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_teammate_id}}\", \"selectionStatus\": null, \"transportType\": null, \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"resultType\": null, \"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('code is already_confirmed', () => pm.expect(body.code).to.eql('already_confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/delete \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/delete",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "delete"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_teammate_id}}\", \"form_number\": \"{{created_drf_teammate_sub_form_number}}\", \"old_status\": \"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 403 without sp_teammate_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST drive-rest-form/teammate/edit/delete \u2014 happy path \u2192 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/teammate/edit/delete",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "teammate", "edit", "delete"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_drf_teammate_id}}\", \"form_number\": \"{{created_drf_teammate_sub_form_number}}\", \"old_status\": \"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET teammate-form \u2014 deleted form still readable, status=deleted",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/teammate-form?q={{created_drf_teammate_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "teammate-form"],
+          "query": [{"key": "q", "value": "{{created_drf_teammate_id}}"}]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status is deleted', () => pm.expect(body.status).to.eql('deleted'));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

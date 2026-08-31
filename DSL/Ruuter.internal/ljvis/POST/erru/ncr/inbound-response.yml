@@ -1,0 +1,206 @@
+declaration:
+  version: "1.0"
+  description: |
+    Receive the ASYNCHRONOUS substantive NCR response from the destination member state
+    for a previously-sent Estonian outgoing request (LJVIS2-64 §4.3). Correlated by
+    workflowId — the synchronous ack (sent->acknowledged) already happened during send.yml;
+    this endpoint carries the SUBSTANTIVE response (statusCode OK/NotFound + transport
+    undertaking + penalty outcomes) that arrives later and moves the message from
+    'acknowledged' to 'responded'.
+
+    Flow:
+      1. Validate required fields: workflowId, statusCode.
+      2. Look up the outgoing 'acknowledged' NCR message by workflowId
+         (get-by-workflow-id.sql).
+      3. If not found -> return error (unknown workflowId; LJVIS2-64 §Testimine:
+         'Korreleerimata workflowId-ga vastust ei salvestata').
+      4. If already 'responded' (duplicate response) -> acknowledge without re-applying
+         (LJVIS2-64 §4.3 'Korduva vastuse käsitlus').
+      5. Append a 'responded' snapshot via append-transition.sql (acknowledged->responded),
+         carrying the full response content (respondingAuthority, statusCode/Message,
+         transport undertaking snapshot, address, penaltiesImposed).
+      6. Write audit (ncr.inbound_response.receive) directly to Resql.
+
+    Idempotency: uq_ncr_outbound_response_workflow_id (partial unique index on workflow_id
+    WHERE direction='outgoing' AND status='responded', added in
+    20260820100000-erru-ncr-response-idempotency.sql) backs this up at the DB level even if
+    this endpoint is somehow called twice concurrently.
+
+    TODO(M2M): OAuth2 machine-token auth. Runs on ruuter-internal (port 8089, allowedIPs
+    127.0.0.1 only) following the CGR/CTUD/RSI inbound precedent.
+  namespace: erru
+  allowlist:
+    body:
+      - field: workflowId
+        type: string
+      - field: statusCode
+        type: string
+      - field: statusMessage
+        type: string
+      - field: respondingAuthority
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: numberOfVehicles
+        type: string
+      - field: communityLicenceStatus
+        type: string
+      - field: address
+        type: string
+      - field: penaltiesImposed
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnMissingWorkflowId
+    - condition: ${!(('' + (incoming.body.statusCode || '')).trim())}
+      next: returnMissingStatusCode
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    response_status_code: "${('' + (incoming.body.statusCode || '')).trim()}"
+    response_status_message: "${('' + (incoming.body.statusMessage || '')).trim()}"
+    responding_authority: "${('' + (incoming.body.respondingAuthority || '')).trim()}"
+    response_transport_undertaking_name: "${('' + (incoming.body.transportUndertakingName || '')).trim()}"
+    response_number_of_vehicles: "${('' + (incoming.body.numberOfVehicles || '')).trim()}"
+    response_community_licence_status: "${('' + (incoming.body.communityLicenceStatus || '')).trim()}"
+    response_address: "${('' + (incoming.body.address || '')).trim()}"
+    response_penalties_imposed: "${('' + (incoming.body.penaltiesImposed || '[]')).trim()}"
+  next: findByWorkflowId
+
+findByWorkflowId:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/get-by-workflow-id"
+    headers:
+      type: json
+    body:
+      workflow_id: ${workflow_id}
+  result: found_res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${found_res.response.body == null || found_res.response.body.length != 1}
+      next: returnUnknownWorkflowId
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    business_case_id: "${found_res.response.body[0].businessCaseId}"
+    cur_status: "${found_res.response.body[0].status}"
+  next: checkAlreadyResponded
+
+checkAlreadyResponded:
+  switch:
+    - condition: ${cur_status === 'responded'}
+      next: returnAlreadyResponded
+  next: promoteToResponded
+
+# acknowledged -> responded, carrying the full substantive response content
+# (respondingAuthority, statusCode/Message, optional transport-undertaking snapshot,
+# address, penaltiesImposed) via the generic transition query.
+promoteToResponded:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      newStatus: "responded"
+      technicalId: ""
+      workflowId: ${workflow_id}
+      sentAt: ""
+      ackStatusCode: ""
+      ackStatusMessage: ""
+      respondingAuthority: ${responding_authority}
+      transportUndertakingName: ${response_transport_undertaking_name}
+      responseStatusCode: ${response_status_code}
+      responseStatusMessage: ${response_status_message}
+      responseNumberOfVehicles: ${response_number_of_vehicles}
+      responseCommunityLicenceStatus: ${response_community_licence_status}
+      responseAddress: ${response_address}
+      responsePenaltiesImposed: ${response_penalties_imposed}
+      errorMessage: ""
+      created_by: "system"
+  result: responded_res
+  next: checkStored
+
+checkStored:
+  switch:
+    - condition: ${responded_res.response.body == null || responded_res.response.body.length != 1}
+      next: returnAlreadyResponded
+  next: createNcrResponseNotification
+
+# Loo teavitus NCR vastuse kohta ncr.respond õigusega kasutajatele.
+# Fire-and-forget — viga ei peata peamist voogu.
+createNcrResponseNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "ncr_response"
+      required_permission: "ncr.respond"
+      related_entity_type: "ncr"
+      related_entity_id: ${business_case_id}
+      title_et: "NCR vastussõnumi teatis"
+      body_et: "${'Juhtum: ' + business_case_id + ' — tulemus: ' + response_status_code}"
+      created_by: "system"
+  result: notifRes
+  next: buildAudit
+
+buildAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "NCR asünkroonse vastuse vastuvõtmine: juhtum ${business_case_id}, workflowId ${workflow_id}, tulemus ${response_status_code}"
+    audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, workflowId: workflow_id || null, responseStatusCode: response_status_code || null})}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "ncr.inbound_response.receive"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU NCR inbound response service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnOk
+
+returnOk:
+  return: "${JSON.stringify({status: 'responded', businessCaseId: business_case_id, workflowId: workflow_id, responseStatusCode: response_status_code})}"
+  next: end
+
+returnAlreadyResponded:
+  return: "${JSON.stringify({status: 'already_responded', businessCaseId: business_case_id || null, workflowId: workflow_id})}"
+  next: end
+
+returnUnknownWorkflowId:
+  status: 404
+  return: '{"statusCode":"NotFound","statusMessage":"No outgoing NCR message found for this workflowId"}'
+  next: end
+
+returnMissingWorkflowId:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"workflowId is required"}'
+  next: end
+
+returnMissingStatusCode:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"statusCode is required"}'
+  next: end

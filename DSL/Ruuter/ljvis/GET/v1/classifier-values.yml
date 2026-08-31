@@ -1,0 +1,18 @@
+declaration:
+
+  version: "1.0"
+  description: "List of all classifier values"
+  namespace: classifier-values
+
+getClassifierValues:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/list_classifier_value_data"
+    headers:
+      type: json
+    body: {}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

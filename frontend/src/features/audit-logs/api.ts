@@ -6,10 +6,7 @@ import type {
 import type { AuditLog } from '../audit-logs/types.ts';
 
 export const listLogs = (params?: ListApiParams) =>
-  get<PagedResponse<AuditLog>>(
-    '/v1/logs',
-    params as Record<string, string>,
-  );
+  get<PagedResponse<AuditLog>>('/v1/logs', params as Record<string, string>);
 
 export const exportLogs = (params?: ListApiParams) =>
   get<PagedResponse<AuditLog>>(
@@ -18,4 +15,4 @@ export const exportLogs = (params?: ListApiParams) =>
   );
 
 export const getLog = (id: string) =>
-  get<AuditLog[]>('/v1/logs/log', { id });
+  get<AuditLog[]>('/v1/logs/log', { q: id });

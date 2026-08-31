@@ -2,13 +2,13 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
+  DateField,
   Heading,
   TextField,
 } from '@tedi-design-system/react/tedi';
-import { DatePicker } from '@tedi-design-system/react/community';
 import type { FormikProps } from 'formik';
 import styles from './ClassifierValueInfoCard.module.css';
-import dayjs from 'dayjs';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 
 interface ClassifierValueFormValues {
   id: string;
@@ -94,44 +94,48 @@ export function ClassifierValueInfoCard({
                 styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
               }
             >
-              <DatePicker
+              <DateField
                 id="validFrom"
                 label={t('classifiers.validFrom')}
-                value={
+                selected={
                   formik.values.validFrom
-                    ? dayjs(formik.values.validFrom)
-                    : null
+                    ? new Date(formik.values.validFrom)
+                    : undefined
                 }
-                onChange={(v) => formik.setFieldValue('validFrom', v)}
-                placeholder={t('users.datePickerPlaceholder')}
+                onSelect={(v) => formik.setFieldValue('validFrom', toIsoDate(v))}
+                placeholder={t('common.dateFieldPlaceholder')}
                 required
-                {...(formik.touched.validFrom && formik.errors.validFrom
-                  ? {
-                      helper: {
-                        text: formik.errors.validFrom,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
+                inputProps={
+                  formik.touched.validFrom && formik.errors.validFrom
+                    ? {
+                        helper: {
+                          text: formik.errors.validFrom,
+                          type: 'error' as const,
+                        },
+                      }
+                    : undefined
+                }
               />
-              <DatePicker
+              <DateField
                 id="validUntil"
                 label={t('classifiers.validUntil')}
-                value={
+                selected={
                   formik.values.validUntil
-                    ? dayjs(formik.values.validUntil)
-                    : null
+                    ? new Date(formik.values.validUntil)
+                    : undefined
                 }
-                onChange={(v) => formik.setFieldValue('validUntil', v)}
-                placeholder={t('users.datePickerPlaceholder')}
-                {...(formik.touched.validUntil && formik.errors.validUntil
-                  ? {
-                      helper: {
-                        text: formik.errors.validUntil,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
+                onSelect={(v) => formik.setFieldValue('validUntil', toIsoDate(v))}
+                placeholder={t('common.dateFieldPlaceholder')}
+                inputProps={
+                  formik.touched.validUntil && formik.errors.validUntil
+                    ? {
+                        helper: {
+                          text: formik.errors.validUntil,
+                          type: 'error' as const,
+                        },
+                      }
+                    : undefined
+                }
               />
             </div>
           </div>

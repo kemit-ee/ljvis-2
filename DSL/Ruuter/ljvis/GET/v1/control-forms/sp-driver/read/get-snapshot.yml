@@ -1,0 +1,35 @@
+declaration:
+
+  version: "1.0"
+  description: "Get version history snapshot for a drive rest form (driver)"
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "Snapshot ID"
+      - field: formKey
+        type: string
+        description: "sp_driver_form_key"
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    form_key: "${incoming.body.formKey}"
+  next: getSnapshot
+
+getSnapshot:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get-snapshot"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      form_key: ${form_key}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end

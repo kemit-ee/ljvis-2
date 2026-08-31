@@ -1,0 +1,42 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Ühe Postkast 2.0 saatmiskirje saajate loend (UC-03).
+    Eraldi endpoint list.yml-st — saajaid ei JOIN-ita logi endaga.
+    Nõuab notification.admin õigust (kaitstud outbound-log/.guard kaudu).
+  namespace: notification
+  allowlist:
+    params:
+      - field: logId
+        type: string
+
+extractParams:
+  assign:
+    log_id: "${incoming.params.logId ?? ''}"
+  next: checkLogId
+
+checkLogId:
+  switch:
+    - condition: ${log_id === ''}
+      next: returnBadRequest
+  next: queryRecipients
+
+queryRecipients:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/get_outbound_recipients"
+    headers:
+      type: json
+    body:
+      log_id: ${log_id}
+  result: res
+  next: returnResult
+
+returnResult:
+  return: ${res.response.body}
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "logId is required"
+  next: end

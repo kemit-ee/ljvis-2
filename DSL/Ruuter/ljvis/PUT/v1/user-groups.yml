@@ -1,10 +1,7 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Update user group name"
-  method: put
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     body:
@@ -14,8 +11,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -66,8 +63,8 @@ buildAuditLog:
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "user_group.update"
     event_category: "user_group_management"

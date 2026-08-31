@@ -1,0 +1,86 @@
+declaration:
+
+  version: "1.0"
+  description: "Get a single foreign violation form by ID"
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "Foreign violation form ID"
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: extractFormData
+
+extractFormData:
+  assign:
+    form_number: "${res.response.body[0].formNumber}"
+    created_by: "${res.response.body[0].createdBy}"
+  next: checkShouldLog
+
+checkShouldLog:
+  switch:
+    - condition: ${actor_personal_code != created_by}
+      next: logAuditEvent
+  next: mapResponse
+
+logAuditEvent:
+  template: "templates/audit/form/foreign-violation/log-foreign-violation-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number: ${form_number}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_foreign_violation_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "form not found"
+  next: end

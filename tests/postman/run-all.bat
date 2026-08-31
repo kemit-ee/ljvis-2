@@ -33,6 +33,39 @@ call newman run "%COL%\user-groups.collection.json" -e "%ENV%" -r cli,htmlextra 
 echo Running collection: classifiers.collection.json
 call newman run "%COL%\classifiers.collection.json" -e "%ENV%" -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\classifiers.html"
 
+echo Running collection: driverest-forms.collection.json
+call newman run "%COL%\driverest-forms.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\driverest-forms.html"
+
+echo Running collection: labour-inspection.collection.json
+call newman run "%COL%\labour-inspection.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\labour-inspection.html"
+
+echo Running collection: erru-ctud.collection.json
+call newman run "%COL%\erru-ctud.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-ctud.html"
+
+echo Running collection: erru-cgr.collection.json
+call newman run "%COL%\erru-cgr.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-cgr.html"
+
+echo Running collection: erru-rsi.collection.json
+call newman run "%COL%\erru-rsi.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-rsi.html"
+
+echo Running collection: erru-ncr.collection.json
+call newman run "%COL%\erru-ncr.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-ncr.html"
+
+echo Running collection: technical-check-forms.collection.json
+call newman run "%COL%\technical-check-forms.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\technical-check-forms.html"
+
+echo Running collection: transport-interruption.collection.json
+call newman run "%COL%\transport-interruption.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\transport-interruption.html"
+
+echo Running collection: adr-form.collection.json
+call newman run "%COL%\adr-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\adr-form.html"
+
+echo Running collection: good-repute-form.collection.json
+call newman run "%COL%\good-repute-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\good-repute-form.html"
+
+echo Running collection: form-search.collection.json
+call newman run "%COL%\form-search.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\form-search.html"
+
 echo.
 echo All collections passed.
 echo HTML reports:

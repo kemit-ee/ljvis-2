@@ -1,0 +1,15 @@
+# DataMapper config for ljvis-2.
+#
+# The base image (turnerrainer/datamapper:alpha) ships its own
+# datamapper.yaml with port: 3000 explicitly set — the PORT env var
+# is only honoured when the loaded config does NOT already set
+# `port:`, so we need our own file here to run on the port ljvis-2's
+# constants.ini / compose files expect (3005).
+port: 3005
+
+# Templates are baked in under /app/DSL by this project's Dockerfile
+# (see docker/data-mapper/Dockerfile). Renderer resolves
+# "<project>/<view>" via two candidates:
+#   <dsl_path>/<project>/<view>.hbs
+#   <dsl_path>/<project>/hbs/<view>.hbs   <- matches ljvis-2's layout
+dsl_path: /app/DSL

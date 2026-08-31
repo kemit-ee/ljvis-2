@@ -1,0 +1,29 @@
+declaration:
+
+  version: "1.0"
+  description: "List of cities/parishes filtered by county"
+  namespace: ehak
+  allowlist:
+    body:
+      - field: parentId
+        type: number
+        description: "Filter by county ID"
+
+extractRequestData:
+  assign:
+    parentId: ${incoming.body.parentId}
+  next: getEhak
+
+getEhak:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/ehak/list_cities_parishes"
+    headers:
+      type: json
+    body:
+      parentId: ${parentId}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

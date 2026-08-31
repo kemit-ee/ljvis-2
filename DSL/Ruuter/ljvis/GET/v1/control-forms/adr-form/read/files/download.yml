@@ -1,0 +1,34 @@
+declaration:
+
+  version: "1.0"
+  description: "Get a presigned download URL for a adr form file attachment"
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "ID of the form_attachment record"
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: downloadFile
+
+downloadFile:
+  template: "templates/files/download"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: ${incoming.params.q}
+    form_type: "adr-form"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  result: downloadResult
+
+returnSuccess:
+  return: ${downloadResult}
+  status: 200

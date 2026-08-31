@@ -1,0 +1,143 @@
+declaration:
+  version: "1.0"
+  description: "Revise an existing outgoing CTUD request draft (LJVIS2-143). PUT is full update per docs/rest-api-design-guide.md section 1, with the id in the request body. Appends a new snapshot with version + 1; nothing is ever updated in place. Editability is enforced in append-draft-revision.sql, which yields zero rows unless the latest snapshot is status='initiated' AND direction='outgoing' — so a sent request and an inbound request are both rejected with 422 not_editable regardless of the caller's permissions."
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: ctudTo
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: requestAllVehicles
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${(incoming.body.id || '').trim()}"
+    ctud_to: "${(incoming.body.ctudTo || '').trim().toUpperCase()}"
+    originating_authority: "${(incoming.body.originatingAuthority || '').trim().toUpperCase()}"
+    request_source: "${(incoming.body.requestSource || '').trim()}"
+    request_purpose: "${(incoming.body.requestPurpose || '').trim()}"
+    transport_undertaking_name: "${(incoming.body.transportUndertakingName || '').trim().toUpperCase()}"
+    community_licence_number: "${(incoming.body.communityLicenceNumber || '').trim().toUpperCase()}"
+    vehicle_registration_number: "${(incoming.body.vehicleRegistrationNumber || '').trim().toUpperCase()}"
+    vehicle_registration_country: "${(incoming.body.vehicleRegistrationCountry || '').trim().toUpperCase()}"
+    request_all_vehicles: "${incoming.body.requestAllVehicles === 'true' || incoming.body.requestAllVehicles === true ? 'true' : 'false'}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${id === ''}
+      next: returnIdRequired
+  next: validateRequest
+
+validateRequest:
+  template: "templates/erru/ctud/validate-ctud-request"
+  requestType: GET
+  body:
+    ctudTo: ${ctud_to}
+    originatingAuthority: ${originating_authority}
+    requestSource: ${request_source}
+    requestPurpose: ${request_purpose}
+    transportUndertakingName: ${transport_undertaking_name}
+    communityLicenceNumber: ${community_licence_number}
+    vehicleRegistrationNumber: ${vehicle_registration_number}
+    vehicleRegistrationCountry: ${vehicle_registration_country}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+  next: reviseDraft
+
+reviseDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-draft-revision"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      ctudTo: ${ctud_to}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      transportUndertakingName: ${transport_undertaking_name}
+      communityLicenceNumber: ${community_licence_number}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      requestAllVehicles: ${request_all_vehicles}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkReviseResult
+
+# Zero rows means the SQL guard rejected the revision: the request is not an
+# editable outgoing draft (already sent, or inbound), or the key does not exist.
+checkReviseResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnNotEditable
+  next: extractReviseResult
+
+extractReviseResult:
+  assign:
+    business_case_id: "${res.response.body[0].businessCaseId}"
+    new_version: "${res.response.body[0].version}"
+    new_status: "${res.response.body[0].status}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/ctud/log-ctud-request-save"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    changed_fields: "päringu väljad"
+    status: ${new_status}
+    version: ${new_version}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end
+
+returnIdRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"id","code":"required"}'
+  next: end
+
+returnNotEditable:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"status","code":"not_editable"}'
+  next: end
+
+

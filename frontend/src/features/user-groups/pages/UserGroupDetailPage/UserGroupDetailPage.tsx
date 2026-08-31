@@ -418,149 +418,148 @@ export function UserGroupDetailPage() {
 
   return (
     <div>
-        {showNewUserAddedAlert && (
-          <div className="mb-1">
-            <Alert
-              icon="check_circle"
-              onClose={() => setShowNewUserAddedAlert(false)}
-              type="success"
-              size="small"
-            >
-              {t('userGroups.newUserAddedNote')}
-            </Alert>
-          </div>
-        )}
-        <Button
-          visualType="link"
-          onClick={() => navigate('/user-groups')}
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
-
-        <div className="page-header">
-          <Heading element="h1">{group.name}</Heading>
+      {showNewUserAddedAlert && (
+        <div className="mb-1">
+          <Alert
+            icon="check_circle"
+            onClose={() => setShowNewUserAddedAlert(false)}
+            type="success"
+            size="small"
+          >
+            {t('userGroups.newUserAddedNote')}
+          </Alert>
         </div>
+      )}
+      <Button
+        visualType="link"
+        onClick={() => navigate('/user-groups')}
+        iconLeft="arrow_back"
+      >
+        {t('common.back')}
+      </Button>
 
-        <Accordion defaultOpenItem={defaultOpenItems}>
-          {/* Block 1 – Name */}
-          <AccordionItem id="block-name">
-            <AccordionItemHeader
-              closeText={t('common.close')}
-              openText={t('common.look')}
-            >
-              <Heading modifiers="h3">{t('userGroups.data')}</Heading>
-            </AccordionItemHeader>
-            <AccordionItemContent>
-              <UserGroupNameEditor
-                editingName={editingName}
-                editName={editName}
-                setEditName={setEditName}
-                nameError={nameError}
-                currentName={group.name}
-                canEdit={canEditGroup}
-                onStartEdit={startEditName}
-                onSave={saveName}
-                onCancel={cancelEditName}
-              />
-            </AccordionItemContent>
-          </AccordionItem>
+      <div className="page-header">
+        <Heading element="h1">{group.name}</Heading>
+      </div>
 
-          {/* Block 2 – Organisations */}
-          <AccordionItem id="block-orgs">
-            <AccordionItemHeader
-              closeText={t('common.close')}
-              openText={t('common.look')}
-            >
-              <Heading modifiers="h3">
-                {t('userGroups.connectedOrganisations')}
-              </Heading>
-            </AccordionItemHeader>
-            <AccordionItemContent>
-              <UserGroupOrgsEditor
-                editingOrgs={editingOrgs}
-                allOrgs={allOrgs}
-                orgColumns={orgColumns}
-                organisationsError={organisationsError}
-                orgs={orgs}
-                canEdit={canEditGroup}
-                onStartEdit={startEditOrgs}
-                onSave={saveOrgs}
-                onCancel={cancelEditOrgs}
-              />
-            </AccordionItemContent>
-          </AccordionItem>
-
-          {/* Block 3 – Permissions */}
-          <AccordionItem id="block-perms">
-            <AccordionItemHeader
-              closeText={t('common.close')}
-              openText={t('common.look')}
-            >
-              <Heading modifiers="h3">
-                {t('userGroups.groupPermissions')}
-              </Heading>
-            </AccordionItemHeader>
-            <AccordionItemContent>
-              <UserGroupPermsEditor
-                editingPerms={editingPerms}
-                allPerms={allPerms}
-                permColumns={permColumns}
-                perms={perms}
-                canEdit={canEditGroup}
-                onStartEdit={startEditPerms}
-                onSave={savePerms}
-                onCancel={cancelEditPerms}
-              />
-            </AccordionItemContent>
-          </AccordionItem>
-        </Accordion>
-
-        <Card className="mt-05">
-          <Card.Content>
-            <div className="card-main">
-              <Heading modifiers="h3" color="secondary" className="mb-1">
-                {t('userGroups.users')}
-              </Heading>
-              {canAddUser && (
-                <Button onClick={() => navigate(`/user-groups/${id}/add-user`)}>
-                  {t('userGroups.addUser')}
-                </Button>
-              )}
-            </div>
-            <div className="grid-2col">
-              <div className="search-wrapper">
-                <Search
-                  id="user-groupusers-search"
-                  label={t('common.search')}
-                  hideLabel
-                  value={userSearchInput}
-                  onIconClick={() => handleUserSearch(userSearchInput)}
-                  onChange={setUserSearchInput}
-                  onSearch={handleUserSearch}
-                  onClear={clearUserSearch}
-                  placeholder={t('common.search')}
-                />
-              </div>
-            </div>
-            <Table
-              id="users-table"
-              data={users}
-              columns={userColumns}
-              isLoading={isLoading}
-              totalRows={totalRows}
-              pagination={pagination}
-              onPaginationChange={setPagination}
-              sorting={sorting}
-              onSortingChange={setSorting}
-              manualPagination
-              manualSorting
-              placeholder={{
-                children: t('common.tableIsEmpty'),
-              }}
+      <Accordion defaultOpenItem={defaultOpenItems}>
+        {/* Block 1 – Name */}
+        <AccordionItem id="block-name">
+          <AccordionItemHeader
+            closeText={t('common.close')}
+            openText={t('common.look')}
+          >
+            <Heading modifiers="h3">{t('userGroups.data')}</Heading>
+          </AccordionItemHeader>
+          <AccordionItemContent>
+            <UserGroupNameEditor
+              editingName={editingName}
+              editName={editName}
+              setEditName={setEditName}
+              nameError={nameError}
+              currentName={group.name}
+              canEdit={canEditGroup}
+              onStartEdit={startEditName}
+              onSave={saveName}
+              onCancel={cancelEditName}
             />
-          </Card.Content>
-        </Card>
+          </AccordionItemContent>
+        </AccordionItem>
+
+        {/* Block 2 – Organisations */}
+        <AccordionItem id="block-orgs">
+          <AccordionItemHeader
+            closeText={t('common.close')}
+            openText={t('common.look')}
+          >
+            <Heading modifiers="h3">
+              {t('userGroups.connectedOrganisations')}
+            </Heading>
+          </AccordionItemHeader>
+          <AccordionItemContent>
+            <UserGroupOrgsEditor
+              editingOrgs={editingOrgs}
+              allOrgs={allOrgs}
+              orgColumns={orgColumns}
+              organisationsError={organisationsError}
+              orgs={orgs}
+              canEdit={canEditGroup}
+              onStartEdit={startEditOrgs}
+              onSave={saveOrgs}
+              onCancel={cancelEditOrgs}
+            />
+          </AccordionItemContent>
+        </AccordionItem>
+
+        {/* Block 3 – Permissions */}
+        <AccordionItem id="block-perms">
+          <AccordionItemHeader
+            closeText={t('common.close')}
+            openText={t('common.look')}
+          >
+            <Heading modifiers="h3">{t('userGroups.groupPermissions')}</Heading>
+          </AccordionItemHeader>
+          <AccordionItemContent>
+            <UserGroupPermsEditor
+              editingPerms={editingPerms}
+              allPerms={allPerms}
+              permColumns={permColumns}
+              perms={perms}
+              canEdit={canEditGroup}
+              onStartEdit={startEditPerms}
+              onSave={savePerms}
+              onCancel={cancelEditPerms}
+            />
+          </AccordionItemContent>
+        </AccordionItem>
+      </Accordion>
+
+      <Card className="mt-05">
+        <Card.Content>
+          <div className="card-main">
+            <Heading modifiers="h3" color="secondary" className="mb-1">
+              {t('userGroups.users')}
+            </Heading>
+            {canAddUser && (
+              <Button onClick={() => navigate(`/user-groups/${id}/add-user`)}>
+                {t('userGroups.addUser')}
+              </Button>
+            )}
+          </div>
+          <div className="grid-2col">
+            <div className="search-wrapper">
+              <Search
+                id="user-groupusers-search"
+                label={t('common.search')}
+                hideLabel
+                value={userSearchInput}
+                onIconClick={() => handleUserSearch(userSearchInput)}
+                onChange={setUserSearchInput}
+                onSearch={handleUserSearch}
+                onClear={clearUserSearch}
+                placeholder={t('common.search')}
+              />
+            </div>
+          </div>
+          <Table
+            id="users-table"
+            className="ljvis-table"
+            data={users}
+            columns={userColumns}
+            isLoading={isLoading}
+            totalRows={totalRows}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            manualPagination
+            manualSorting
+            placeholder={{
+              children: t('common.tableIsEmpty'),
+            }}
+          />
+        </Card.Content>
+      </Card>
     </div>
   );
 }

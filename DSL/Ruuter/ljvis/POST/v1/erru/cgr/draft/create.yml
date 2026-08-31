@@ -1,0 +1,139 @@
+declaration:
+  version: "1.0"
+  description: "Create a new outgoing CGR request draft (LJVIS2-138). Validation is delegated to the shared TEMPLATES/erru/cgr/validate-cgr-request template so the create, revise and inbound paths cannot drift. status ('initiated'), direction ('outgoing'), cgr_from ('EE') and business_case_id are all assigned server-side in append-draft.sql and are never accepted from the client. NYSIIS search keys are NOT computed here — LJVIS2-139 §4.1 derives them 'ERRU sõnumi koostamise käigus' (during outgoing message composition), i.e. at send time (POST /v1/erru/cgr/send, a later stage), not at draft save time. 'Kopeeri päring' (LJVIS2-140) is a frontend-only affordance: the caller reads the source request via GET /v1/erru/cgr/get and re-POSTs its tm_*/certificate_* fields here as a normal create — there is no separate copy endpoint. Text fields are upper-cased per the application-wide rule.\n\nURL is nested under draft/ (not a bare '/v1/erru/cgr') because CGR needs its own permission-isolated directory tree — see POST/v1/erru/cgr/draft/.guard."
+  namespace: erru
+  allowlist:
+    body:
+      - field: cgrTo
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: tmFirstName
+        type: string
+      - field: tmFamilyName
+        type: string
+      - field: tmDateOfBirth
+        type: string
+      - field: tmPlaceOfBirth
+        type: string
+      - field: certificateNumber
+        type: string
+      - field: certificateIssueDate
+        type: string
+      - field: certificateIssueCountry
+        type: string
+
+extractRequestData:
+  assign:
+    cgr_to: "${(incoming.body.cgrTo || '').trim().toUpperCase()}"
+    originating_authority: "${(incoming.body.originatingAuthority || '').trim().toUpperCase()}"
+    request_source: "${(incoming.body.requestSource || '').trim()}"
+    request_purpose: "${(incoming.body.requestPurpose || '').trim()}"
+    tm_first_name: "${(incoming.body.tmFirstName || '').trim().toUpperCase()}"
+    tm_family_name: "${(incoming.body.tmFamilyName || '').trim().toUpperCase()}"
+    tm_date_of_birth: "${(incoming.body.tmDateOfBirth || '').trim()}"
+    tm_place_of_birth: "${(incoming.body.tmPlaceOfBirth || '').trim().toUpperCase()}"
+    certificate_number: "${(incoming.body.certificateNumber || '').trim().toUpperCase()}"
+    certificate_issue_date: "${(incoming.body.certificateIssueDate || '').trim()}"
+    certificate_issue_country: "${(incoming.body.certificateIssueCountry || '').trim().toUpperCase()}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateRequest
+
+validateRequest:
+  template: "templates/erru/cgr/validate-cgr-request"
+  requestType: GET
+  body:
+    cgrTo: ${cgr_to}
+    originatingAuthority: ${originating_authority}
+    requestSource: ${request_source}
+    requestPurpose: ${request_purpose}
+    tmFirstName: ${tm_first_name}
+    tmFamilyName: ${tm_family_name}
+    tmDateOfBirth: ${tm_date_of_birth}
+    tmPlaceOfBirth: ${tm_place_of_birth}
+    certificateNumber: ${certificate_number}
+    certificateIssueDate: ${certificate_issue_date}
+    certificateIssueCountry: ${certificate_issue_country}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+  next: insertDraft
+
+insertDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/append-draft"
+    headers:
+      type: json
+    body:
+      cgrTo: ${cgr_to}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      tmFirstNameSearchKey: ""
+      tmFamilyNameSearchKey: ""
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      created_by: ${actor_personal_code}
+  result: res
+  next: checkInsertResult
+
+checkInsertResult:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length != 1}
+      next: returnInsertFailed
+  next: extractInsertResult
+
+extractInsertResult:
+  assign:
+    new_id: "${res.response.body[0].id}"
+    business_case_id: "${res.response.body[0].businessCaseId}"
+    new_version: "${res.response.body[0].version}"
+    new_status: "${res.response.body[0].status}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/cgr/log-cgr-request-save"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    source_business_case_id: ""
+    changed_fields: "kõik (uus päring)"
+    status: ${new_status}
+    version: ${new_version}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end
+
+returnInsertFailed:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"tmFirstName","code":"draft_not_created"}'
+  next: end

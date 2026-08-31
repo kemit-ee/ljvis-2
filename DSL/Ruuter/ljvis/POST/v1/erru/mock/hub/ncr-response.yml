@@ -1,0 +1,47 @@
+declaration:
+  version: "1.0"
+  description: "MOCK ERRU hub for NCR (NotifyCheckResult) RESPONSE send — dev and CI only
+    (ERRU_NCR_RESPONSE_ENDPOINT points at XTR in production). Same synchronous ack shape as
+    ncr-request.yml. Scenario selection is by ncrTo (the ORIGINAL requesting member state,
+    since roles reverse when Estonia answers an incoming request): FI -> HTTP 502 (transport
+    failure); NO -> ack Timeout; IS -> ack NotAvailable; everything else -> ack OK."
+  namespace: erru
+  allowlist:
+    body:
+      - field: ncrTo
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: respondingAuthority
+        type: string
+      - field: responseStatusCode
+        type: string
+
+selectScenario:
+  switch:
+    - condition: ${('' + (incoming.body.ncrTo || '')).toUpperCase() === 'FI'}
+      next: returnTransportFailure
+    - condition: ${('' + (incoming.body.ncrTo || '')).toUpperCase() === 'NO'}
+      next: returnAckTimeout
+    - condition: ${('' + (incoming.body.ncrTo || '')).toUpperCase() === 'IS'}
+      next: returnAckNotAvailable
+  next: returnAckOk
+
+returnAckOk:
+  return: '{"acknowledgementType":"NCRR_Ack","statusCode":"OK","statusMessage":""}'
+  next: end
+
+returnAckTimeout:
+  return: '{"acknowledgementType":"NCRR_Ack","statusCode":"Timeout","statusMessage":"Originating member state did not respond in time"}'
+  next: end
+
+returnAckNotAvailable:
+  return: '{"acknowledgementType":"NCRR_Ack","statusCode":"NotAvailable","statusMessage":"Originating member state service unavailable"}'
+  next: end
+
+returnTransportFailure:
+  status: 502
+  return: '{"error":"ERRU hub simulation: transport failure"}'
+  next: end

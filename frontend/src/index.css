@@ -31,6 +31,10 @@ nav[aria-label='Main navigation'] {
   margin-bottom: 1rem;
 }
 
+.mb-05 {
+  margin-bottom: 0.5rem;
+}
+
 .mt-05 {
   margin-top: 0.5rem;
 }
@@ -74,7 +78,14 @@ nav[aria-label='Main navigation'] {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  margin-top: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.confirm-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .page-actions-buttons {
@@ -87,7 +98,6 @@ nav[aria-label='Main navigation'] {
 }
 
 .table-link {
-  color: primary;
   cursor: pointer;
   text-decoration: none;
 }
@@ -123,6 +133,10 @@ nav[aria-label='Main navigation'] {
   padding: 0;
 }
 
+.p-1 {
+  padding: 1rem;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -151,6 +165,68 @@ nav[aria-label='Main navigation'] {
   margin-top: 1rem;
 }
 
+.form-grid-desktop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 80%;
+}
+
+.form-grid-mobile {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+.select-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.select-wrapper {
+  flex: 1;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.table-row-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.table-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.table-row-6 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.date-row-desktop-50 {
+  display: flex;
+  align-items: flex-start;
+  width: 50%;
+  gap: 1rem;
+}
+
+.date-row-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .org-perm-list {
   list-style: none;
   padding: 0;
@@ -168,4 +244,63 @@ nav[aria-label='Main navigation'] {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.pos-relative {
+  position: relative;
+}
+
+.pos-rel-left {
+  position: relative;
+  left: 0.25rem;
+}
+
+.gap-1 {
+  gap: 1rem;
+}
+
+/* ─── Common table chrome (ljvis-table) ─── */
+
+.ljvis-table td,
+.ljvis-table th {
+  border-left: 1px solid #e5e7eb;
+}
+
+.ljvis-table td:first-child,
+.ljvis-table th:first-child {
+  border-left: none;
+}
+
+.ljvis-table td:last-child,
+.ljvis-table th:last-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}
+
+.ljvis-table tr:has(.additional-group-row-marker) {
+  border-top: none;
+}
+
+/* NCR list (LJVIS2-65): rows with at least one serious infringement are highlighted red. */
+.ncr-row-infringement td {
+  background-color: #fdecea;
+}
+
+/* ─── Shared list filter bar (ERRU CGR/RSI/NCR/CTUD list pages) ───
+   Kept global (not per-page module) so every list page's filter row lines up
+   with the same rhythm as the rest of the app's tables/cards. */
+.filter-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
 }

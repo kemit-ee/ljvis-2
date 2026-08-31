@@ -1,0 +1,38 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: labour inspection form (labour_inspection_form) create event. Thin adapter — delegates rendering/serialisation to audit/log-form-event."
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: akti_voti
+        type: string
+      - field: form_number
+        type: string
+      - field: version
+        type: string
+      - field: isikukood
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+delegate:
+  template: "templates/audit/log-form-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.labour_inspection.create"
+    event_category: "control_form_management"
+    akti_voti: ${incoming.body.akti_voti}
+    vormi_number: "${incoming.body.form_number}/${incoming.body.version || 1}"
+    isikukood: ${incoming.body.isikukood}
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+  result: res
+  next: end

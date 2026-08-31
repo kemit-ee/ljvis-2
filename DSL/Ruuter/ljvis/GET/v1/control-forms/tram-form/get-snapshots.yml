@@ -1,0 +1,30 @@
+declaration:
+
+  version: "1.0"
+  description: "Get version history snapshots for a TRAM control card (compound). Guarded by tram_driver_form.read via the tram-form/.guard — unlike the generic control-forms/get-snapshots endpoint, this does not leak TRAM history to non-TRAM users."
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: id
+        type: string
+        description: "compound_form_key"
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.id}"
+  next: getSnapshots
+
+getSnapshots:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-form/get-snapshots"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

@@ -1,0 +1,108 @@
+declaration:
+
+  version: "1.0"
+  description: "Get a single drive rest form (teammate) by key"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: q
+        type: string
+        description: "sp_teammate_form_key"
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: extractCompoundRequestData
+
+extractCompoundRequestData:
+  assign:
+    compound_id: "${res.response.body[0].compoundFormKey}"
+  next: getCompoundForm
+
+getCompoundForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${compound_id}
+  result: comres
+  next: extractFormData
+
+extractFormData:
+  assign:
+    sub_form_key: "${res.response.body[0].id}"
+    sub_form_number: "${res.response.body[0].subFormNumber}"
+    compound_form_key: "${res.response.body[0].compoundFormKey}"
+    created_by: "${res.response.body[0].createdBy}"
+    drivers: ${JSON.parse(comres.response.body[0].drivers)}
+  next: extractDriverCodes
+
+extractDriverCodes:
+  assign:
+    driver1_personal_code_ee: "${drivers[0].personalCodeEe || ''}"
+    driver1_personal_code_foreign: "${drivers[0].personalCodeForeign || ''}"
+    driver2_personal_code_ee: "${drivers[1] != null ? drivers[1].personalCodeEe || '' : ''}"
+    driver2_personal_code_foreign: "${drivers[1] != null ? drivers[1].personalCodeForeign || '' : ''}"
+  next: checkShouldLog
+
+checkShouldLog:
+  switch:
+    - condition: ${actor_personal_code != created_by}
+      next: logAuditEvent
+  next: returnSuccess
+
+logAuditEvent:
+  template: "templates/audit/form/sp-teammate-form/log-sp-teammate-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    sub_form_key: ${sub_form_key}
+    sub_form_number: ${sub_form_number}
+    compound_form_key: ${compound_form_key}
+    driver1PersonalCodeEe: ${driver1_personal_code_ee}
+    driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
+    driver2PersonalCodeEe: ${driver2_personal_code_ee}
+    driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "form not found"
+  next: end

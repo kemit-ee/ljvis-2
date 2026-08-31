@@ -1,0 +1,19 @@
+declaration:
+
+  version: "1.0"
+  description: "List active file attachments for a form. Expects: form_number"
+  namespace: templates
+
+getFilesFromDB:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachments"
+    headers:
+      type: json
+    body:
+      form_number: ${incoming.body.form_number}
+  result: dbResult
+
+returnSuccess:
+  return: ${dbResult.response.body}
+  status: 200

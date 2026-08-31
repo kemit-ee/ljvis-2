@@ -1,0 +1,35 @@
+declaration:
+
+  version: "1.0"
+  description: "Get a presigned download URL for a labour inspection form file attachment"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: downloadFile
+
+downloadFile:
+  template: "templates/files/download"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: ${incoming.body.id}
+    form_type: "labour-inspection-form"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  result: downloadResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${downloadResult}
+  status: 200
+  next: end

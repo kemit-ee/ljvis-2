@@ -1,0 +1,92 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    LJVIS2-152: paginated, filtered admin list of the latest risk score per
+    company. Auth + risk_report.list permission enforced by this directory's
+    .guard. Audited on every load since the list exposes undertaking names
+    and risk classifications (mirrors DSL/Ruuter/ljvis/GET/v1/erru/ctud/
+    search.yml's audit-on-load convention).
+  namespace: risk_score
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "Company name filter (substring, case-insensitive)."
+      - field: regCode
+        type: string
+      - field: riskBand
+        type: string
+        description: "One of Hall|Roheline|Kollane|Punane."
+      - field: sorting
+        type: string
+      - field: page
+        type: string
+      - field: pageSize
+        type: string
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    company_name: "${incoming.params.q || ''}"
+    reg_code: "${incoming.params.regCode || ''}"
+    risk_band: "${incoming.params.riskBand || ''}"
+    sorting: "${incoming.params.sorting || 'company_name asc'}"
+    page: "${incoming.params.page || '1'}"
+    page_size: "${incoming.params.pageSize || '20'}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
+  next: listRiskScores
+
+listRiskScores:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/risk_score/list_risk_scores"
+    headers:
+      type: json
+    body:
+      company_name: ${company_name}
+      company_reg_code: ${reg_code}
+      risk_band_code: ${risk_band}
+      sorting: ${sorting}
+      page: ${page}
+      page_size: ${page_size}
+  result: res
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "risk_score.list.view"
+    event_category: "risk_score"
+    description: "${'Riskitasemete loend vaadatud, filtrid: name=' + company_name + '; regCode=' + reg_code + '; riskBand=' + risk_band}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    log_content: "{}"
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_risk_scores_list"
+    headers:
+      type: json
+    body:
+      items: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

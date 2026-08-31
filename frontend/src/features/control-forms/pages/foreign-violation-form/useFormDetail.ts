@@ -42,5 +42,6 @@ export function useFormDetail(id: string | undefined) {
     loading,
     toDateValue,
     toTimeValue,
+    refetch: fetchData,
   };
 }

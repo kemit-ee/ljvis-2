@@ -1,0 +1,35 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: foreign violation form confirm event"
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: form_number
+        type: string
+      - field: old_status
+        type: string
+      - field: new_status
+        type: string
+
+buildAudit:
+  assign:
+    description: "Kinnitati välisriigi rikkumise vorm ${incoming.body.form_number}, olek: ${incoming.body.old_status} → ${incoming.body.new_status}"
+    log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"${incoming.body.new_status}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.foreign_violation.confirm"
+    event_category: "control_form_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

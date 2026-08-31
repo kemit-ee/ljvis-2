@@ -1,10 +1,7 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Create a new classifier value"
-  method: post
-  accepts: json
-  returns: json
   namespace: classifiers
   allowlist:
     body:
@@ -20,8 +17,8 @@ declaration:
         type: string
 
 get_user_context:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
+  template: "templates/check-user-authority"
+  requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   result: auth_user
@@ -73,15 +70,18 @@ insertClassifierValue:
 
 buildAuditData:
   assign:
-    classifier_code: ${classifier_code}
     classifier_value_id: "${insertRes.response.body[0].id}"
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
     description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}"
     log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
   next: logAuditEvent
 
 logAuditEvent:
-  template: "[#LJVIS_PROJECT_LAYER]/audit/log-audit-event"
-  requestType: templates
+  template: "templates/audit/log-audit-event"
+  requestType: GET
   body:
     event_type: "classifier_value.add"
     event_category: "classifier_management"

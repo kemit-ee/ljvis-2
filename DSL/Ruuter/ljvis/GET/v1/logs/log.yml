@@ -1,20 +1,17 @@
 declaration:
-  call: declare
-  version: 0.1
+
+  version: "1.0"
   description: "Get audit log details by id"
-  method: get
-  accepts: json
-  returns: json
   namespace: logs
   allowlist:
     params:
-      - field: id
+      - field: q
         type: string
         description: "Audit log id"
 
 extractRequestData:
   assign:
-    id: "${incoming.params.id}"
+    id: "${incoming.params.q}"
   next: getLog
 
 getLog:

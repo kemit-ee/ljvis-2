@@ -1,0 +1,18 @@
+declaration:
+
+  version: "1.0"
+  description: "List of all counties (fixed set)"
+  namespace: classifiers
+
+getCountries:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/ehak/list_counties"
+    headers:
+      type: json
+    body: {}
+  result: res
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

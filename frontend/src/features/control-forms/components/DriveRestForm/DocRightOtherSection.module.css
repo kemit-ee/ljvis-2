@@ -1,0 +1,37 @@
+.row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+.docName {
+    flex: 1;
+    min-width: 0;
+}
+
+.remarkRow {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0 0.75rem 1rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.remarkInput {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    outline: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}

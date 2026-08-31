@@ -1,0 +1,68 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: user group set-organisations event — conditionally fetches cascade-removed user personal codes"
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: user_group_id
+        type: string
+      - field: group_name
+        type: string
+      - field: added_org_ids_json
+        type: string
+      - field: removed_org_ids_json
+        type: string
+      - field: cascade_user_ids
+        type: string
+
+checkCascade:
+  switch:
+    - condition: "${incoming.body.cascade_user_ids != '' && incoming.body.cascade_user_ids != null}"
+      next: fetchCascadePersonalCodes
+  next: buildAuditNoCascade
+
+fetchCascadePersonalCodes:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_users_by_ids"
+    headers:
+      type: json
+    body:
+      user_ids: ${incoming.body.cascade_user_ids}
+  result: cascadePersonalCodesRes
+  next: buildAuditWithCascade
+
+buildAuditWithCascade:
+  assign:
+    cascade_removed_json: "${JSON.stringify((cascadePersonalCodesRes.response.body ?? []).map(u => u.personalCode))}"
+    cascade_removed_str: "${(cascadePersonalCodesRes.response.body ?? []).length > 0 ? ', kaskaad: ' + (cascadePersonalCodesRes.response.body ?? []).map(u => \"'\" + u.personalCode + \"'\").join(', ') : ''}"
+  next: buildAuditMessage
+
+buildAuditMessage:
+  assign:
+    description: "Kasutajagrupi ${incoming.body.group_name} muutmine: organisatsioonid${cascade_removed_str}"
+    log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":${incoming.body.added_org_ids_json},\"removedOrganisationIds\":${incoming.body.removed_org_ids_json},\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":${cascade_removed_json}}"
+  next: logAuditEvent
+
+buildAuditNoCascade:
+  assign:
+    description: "Kasutajagrupi ${incoming.body.group_name} muutmine: organisatsioonid"
+    log_content: "{\"targetGroupId\":${incoming.body.user_group_id},\"changedFields\":[],\"addedOrganisationIds\":${incoming.body.added_org_ids_json},\"removedOrganisationIds\":${incoming.body.removed_org_ids_json},\"addedPermissionCodes\":[],\"removedPermissionCodes\":[],\"addedUserPersonalCodes\":[],\"removedUserPersonalCodes\":[],\"cascadeRemovedPersonalCodes\":[]}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user_group.update"
+    event_category: "user_group_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

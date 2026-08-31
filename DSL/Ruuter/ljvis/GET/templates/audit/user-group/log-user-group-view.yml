@@ -1,0 +1,60 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: user group view event — fetches group users internally to build description"
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: group_id
+        type: string
+      - field: group_name
+        type: string
+      - field: scope
+        type: string
+      - field: organisation_id
+        type: string
+
+fetchGroupUsers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user_group/get_user_group_users"
+    headers:
+      type: json
+    body:
+      user_group_id: ${Number(incoming.body.group_id)}
+      user_organisation_id: 0
+      page: 1
+      page_size: 10000
+      search: ""
+      sorting: ""
+  result: usersRes
+  next: buildAudit
+
+buildAudit:
+  assign:
+    users_arr: ${JSON.parse(JSON.stringify(usersRes.response.body ?? []))}
+    displayed_personal_codes: ${JSON.stringify(users_arr.map(u => u.personalCode))}
+    personal_codes_str: "${users_arr.map(u => \"'\" + u.personalCode + \"'\").join(', ')}"
+    description: "${users_arr.length > 0 ? 'Kasutajagrupi ' + incoming.body.group_name + ' vaatamine, kasutajaid: ' + personal_codes_str : 'Kasutajagrupi ' + incoming.body.group_name + ' vaatamine'}"
+  next: buildAuditMessage
+
+buildAuditMessage:
+  assign:
+    log_content: "{\"targetGroupId\":${incoming.body.group_id},\"scope\":\"${incoming.body.scope}\",\"organisationId\":${incoming.body.organisation_id},\"displayedUserPersonalCodes\":${displayed_personal_codes}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "user_group.view"
+    event_category: "user_group_management"
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

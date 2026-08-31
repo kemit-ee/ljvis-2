@@ -1,0 +1,43 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: foreign violation form publish event"
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: form_number
+        type: string
+      - field: old_status
+        type: string
+      - field: new_status
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "Avalikustati välisriigi rikkumise vorm ${incoming.body.form_number}, olek: ${incoming.body.old_status} → ${incoming.body.new_status}"
+    log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"${incoming.body.new_status}\"}"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.foreign_violation.publish"
+    event_category: "control_form_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

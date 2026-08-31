@@ -1,0 +1,93 @@
+declaration:
+
+  version: "1.0"
+  description: "Generic control-form audit logger (currently used only by labour-inspection create/update/view). See .ai/coding_guidelines_and_lessons_learned.md § Ruuter DSL for why this file avoids literal '{'/'}' inside ${...} expressions and uses TIM /jwt/userinfo directly instead of check-user-authority."
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: event_type
+        type: string
+      - field: event_category
+        type: string
+      - field: akti_voti
+        type: string
+      - field: vormi_number
+        type: string
+      - field: isikukood
+        type: string
+      - field: muudetud_valjad
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+extractRequestData:
+  assign:
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+  next: selectDescription
+
+selectDescription:
+  switch:
+    - condition: ${incoming.body.event_type === 'control_form.labour_inspection.create'}
+      next: descCreate
+    - condition: ${incoming.body.event_type === 'control_form.labour_inspection.update'}
+      next: descUpdate
+    - condition: ${incoming.body.event_type === 'control_form.labour_inspection.view'}
+      next: descView
+  next: descDefault
+
+descCreate:
+  assign:
+    description: "TI kontrollakt loodud, akti võti=${incoming.body.akti_voti || '-'}, vormi number=${incoming.body.vormi_number || '-'}, karistatud isikukood=${incoming.body.isikukood || '-'}"
+  next: checkChangedFields
+
+descUpdate:
+  assign:
+    description: "TI kontrollakt muudetud, akti võti=${incoming.body.akti_voti || '-'}, vormi number=${incoming.body.vormi_number || '-'}, karistatud isikukood=${incoming.body.isikukood || '-'}, muudetud väljad=${incoming.body.muudetud_valjad || '-'}"
+  next: checkChangedFields
+
+descView:
+  assign:
+    description: "TI kontrollakt vaadatud, akti võti=${incoming.body.akti_voti || '-'}, vormi number=${incoming.body.vormi_number || '-'}, karistatud isikukood=${incoming.body.isikukood || '-'}"
+  next: checkChangedFields
+
+descDefault:
+  assign:
+    description: ""
+  next: checkChangedFields
+
+checkChangedFields:
+  switch:
+    - condition: ${incoming.body.muudetud_valjad != null && incoming.body.muudetud_valjad !== ''}
+      next: buildLogContentWithChanges
+  next: buildLogContentPlain
+
+buildLogContentPlain:
+  assign:
+    log_content: "${JSON.stringify(Object.fromEntries([['formKey', incoming.body.akti_voti || null], ['formNumber', incoming.body.vormi_number || null], ['punishedPersonIdCode', incoming.body.isikukood || null]]))}"
+  next: writeAudit
+
+buildLogContentWithChanges:
+  assign:
+    log_content: "${JSON.stringify(Object.fromEntries([['formKey', incoming.body.akti_voti || null], ['formNumber', incoming.body.vormi_number || null], ['punishedPersonIdCode', incoming.body.isikukood || null], ['changedFields', JSON.parse(incoming.body.muudetud_valjad)]]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: ${incoming.body.event_type}
+    event_category: ${incoming.body.event_category}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

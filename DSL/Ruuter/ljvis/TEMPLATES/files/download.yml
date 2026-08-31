@@ -1,0 +1,68 @@
+declaration:
+
+  version: "1.0"
+  description: "Get presigned download URL for a file attachment. Expects: id"
+  namespace: templates
+
+getAttachmentRecord:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachment_by_id"
+    headers:
+      type: json
+    body:
+      id: ${incoming.body.id}
+  result: dbResult
+  next: checkRecordExists
+
+checkRecordExists:
+  switch:
+    - condition: ${dbResult.response.body.length === 0}
+      next: returnNotFound
+  next: getPresignedUrl
+
+returnNotFound:
+  status: 404
+  return: '{"error": "File not found or has been deleted"}'
+  next: end
+
+getPresignedUrl:
+  call: http.get
+  args:
+    url: "[#S3_PROXY]/presign"
+    headers:
+      type: json
+    query:
+      key: ${dbResult.response.body[0].s3Key || dbResult.response.body[0].s3_key}
+  result: presignResult
+  next: checkPresignResult
+
+checkPresignResult:
+  switch:
+    - condition: ${presignResult.response.status >= 400}
+      next: returnPresignError
+  next: logAuditEvent
+
+returnPresignError:
+  status: ${presignResult.response.status}
+  return: ${presignResult.response.body}
+  next: end
+
+logAuditEvent:
+  template: "templates/audit/form/files/log-file-download"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: ${incoming.body.form_type}
+    form_number: ${dbResult.response.body[0].formNumber || dbResult.response.body[0].form_number}
+    file_id: ${incoming.body.id}
+    file_name: ${dbResult.response.body[0].fileName || dbResult.response.body[0].file_name}
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+  result: auditResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${presignResult.response.body}
+  status: 200

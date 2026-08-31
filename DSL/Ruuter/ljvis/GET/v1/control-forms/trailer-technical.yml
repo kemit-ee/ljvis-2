@@ -1,0 +1,77 @@
+declaration:
+
+  version: "1.0"
+  description: "Get trailer technical-check sub-form by id (latest snapshot). Logs a view event only when the viewing user differs from the sub-form's creator (LJVIS2-72 §7)."
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "Trailer technical sub-form ID"
+
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q}"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${incoming.params.q}
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length !== 1}
+      next: returnNotFound
+  next: checkViewerDiffersFromCreator
+
+checkViewerDiffersFromCreator:
+  switch:
+    - condition: ${res.response.body[0].createdBy != null && res.response.body[0].createdBy !== auth_user.personalcode}
+      next: logView
+  next: returnSuccess
+
+logView:
+  assign:
+    description: "Tehnovorm vaadatud, alamvormi võti=${res.response.body[0].id}, koondvormi võti=${res.response.body[0].compoundFormKey}, alamvormi number=${res.response.body[0].subFormNumber}/${res.response.body[0].version}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.trailer_technical.view"
+    event_category: "control_form"
+    description: ${description}
+    log_content: "{\"subFormKey\":${res.response.body[0].id}}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body[0]}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end

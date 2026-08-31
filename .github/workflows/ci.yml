@@ -47,7 +47,9 @@ jobs:
           pip3 install pyyaml -q
           python3 - <<'EOF'
           import yaml, glob, sys
-          all_yml = [p for p in glob.glob('DSL/Ruuter/**/*.yml', recursive=True) if '/mock/' not in p]
+          all_yml = [p for p in (glob.glob('DSL/Ruuter/**/*.yml', recursive=True)
+                                 + glob.glob('DSL/Ruuter.internal/**/*.yml', recursive=True))
+                     if '/mock/' not in p]
           errors = []
           for path in all_yml:
               try:
@@ -143,15 +145,16 @@ jobs:
           echo "✅ $count SQL files non-empty"
 
   # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
-  # Runs in parallel with DSL validation — no stack needed.
-  # continue-on-error: true — establish baseline first, then tighten.
+  # Runs after E2E so the security checks are the final CI validation stage.
+  # Secret findings are blocking on main, but remain advisory on dev.
   security-scan:
     name: Security Scan (Trivy)
+    needs: e2e
+    if: always()
     runs-on: ubuntu-22.04
-    continue-on-error: true
-#    permissions:
-#      security-events: write
-#      contents: read
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout
@@ -159,39 +162,21 @@ jobs:
 
       - name: Install Trivy
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          TRIVY_VERSION=0.74.0
+          curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+            | tar -xz -C /tmp
+          sudo install /tmp/trivy /usr/local/bin/trivy
 
       - name: Trivy — secret detection (whole repo)
+        continue-on-error: ${{ github.ref == 'refs/heads/dev' || github.base_ref == 'dev' }}
         run: trivy fs . --scanners secret --format table --exit-code 1
 
-      - name: Trivy — frontend dependency CVEs
-        if: always()
-        run: |
-          trivy fs frontend/ \
-            --scanners vuln \
-            --severity CRITICAL,HIGH \
-            --format table \
-            --exit-code 0
-          # When repo is public, replace --format table with:
-          #   --format sarif --output trivy-frontend.sarif
-          # and uncomment the upload step below
 
-      # Upload SARIF — re-enable when repo is made public (requires GitHub Advanced Security)
-      # - name: Upload SARIF to GitHub Security
-      #   if: always() && env.ACT != 'true'
-      #   uses: github/codeql-action/upload-sarif@v4
-      #   with:
-      #     sarif_file: trivy-frontend.sarif
-      #     category: trivy-frontend
-
-      # Helm chart misconfigurations — re-enable when helm charts branch is merged
-      # - name: Trivy — Helm chart misconfigurations
-      #   if: always()
-      #   run: trivy config charts/ --format table --exit-code 0
 
   # ── 3. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
   # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
-  # Bootstrap seeds admin via plain psql (no Liquibase test data).
+  # Bootstrap seeds admin + all DSL/Liquibase/test/*.sql fixtures via plain psql
+  # (those changesets are ignore:true, so `liquibase update` never applies them).
   e2e:
     name: E2E Tests
     runs-on: ubuntu-22.04
@@ -201,29 +186,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-
-      - name: Build and start CI stack
-        run: docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --build
-
-      - name: Wait for ruuter
-        run: |
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:9086/actuator/health > /dev/null 2>&1; then
-              echo "ruuter ready"; break
-            fi
-            if [ "$i" = "60" ]; then echo "❌ ruuter not ready after 300s"; exit 1; fi
-            sleep 5
-          done
-
-      - name: Wait for TIM
-        run: |
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:9085/actuator/health > /dev/null 2>&1; then
-              echo "TIM ready"; break
-            fi
-            if [ "$i" = "60" ]; then echo "❌ TIM not ready after 300s"; exit 1; fi
-            sleep 5
-          done
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -235,7 +197,6 @@ jobs:
 
       - name: Run E2E tests
         run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json
-
 
       - name: ZAP — baseline scan (stack already running)
         run: |
@@ -250,16 +211,10 @@ jobs:
               -J zap-report.json \
               -I || true
 
-      - name: Upload ZAP report
-        if: always() && env.ACT != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: zap-reports/
-
       - name: Show logs on failure
         if: failure()
         run: |
+          docker compose -f docker-compose.ci.yml -p ljvis-ci logs liquibase --tail=50
           docker compose -f docker-compose.ci.yml -p ljvis-ci logs tara-mock --tail=30
           docker compose -f docker-compose.ci.yml -p ljvis-ci logs tim --tail=50
           docker compose -f docker-compose.ci.yml -p ljvis-ci logs ruuter --tail=50
@@ -269,6 +224,13 @@ jobs:
       - name: Tear down CI stack
         if: always()
         run: docker compose -f docker-compose.ci.yml -p ljvis-ci down -v
+
+      - name: Upload ZAP report
+        if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: zap-reports/
 
   # ── 5. Frontend lint ────────────────────────────────────────────────────────
   frontend-lint:

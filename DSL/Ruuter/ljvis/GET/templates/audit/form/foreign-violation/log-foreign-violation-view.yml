@@ -1,0 +1,37 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: foreign violation form view event"
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: form_number
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "Vaadati välisriigi rikkumise vormi ${incoming.body.form_number}"
+    log_content: "{\"formNumber\":\"${incoming.body.form_number}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.foreign_violation.view"
+    event_category: "control_form_management"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

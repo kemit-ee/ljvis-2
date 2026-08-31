@@ -1,0 +1,75 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Loob uue in-app teavituse ja saadab WebSocket broadcast signaali kõigile
+    ühendatud frontendidele. Kutsutakse teistest DSL-idest (ncr/inbound-request.yml,
+    ncr/inbound-response.yml, vehicle-technical/publish.yml jne).
+    Idempotentne: sama type+entity_type+entity_id loob ainult ühe teavituse
+    (uq_notification_entity_type indeks + ON CONFLICT DO NOTHING).
+    APPEND-ONLY: INSERT only.
+    WebSocket push: broadcast_prefix "client:" saadab notification_update signaali
+    kõigile ühendatud frontend sessionidele; iga frontend teeb seejärel oma
+    authenticated GET /v1/notifications/unread-count päringu oma andmete jaoks.
+  namespace: notification
+  allowlist:
+    body:
+      - field: type
+        type: string
+      - field: required_permission
+        type: string
+      - field: related_entity_type
+        type: string
+      - field: related_entity_id
+        type: string
+      - field: title_et
+        type: string
+      - field: body_et
+        type: string
+      - field: created_by
+        type: string
+
+validateInput:
+  assign:
+    notif_type: "${incoming.body.type ?? ''}"
+    required_permission: "${incoming.body.required_permission ?? ''}"
+    title_et: "${incoming.body.title_et ?? ''}"
+  next: checkRequired
+
+checkRequired:
+  switch:
+    - condition: ${notif_type === '' || required_permission === '' || title_et === ''}
+      next: returnBadRequest
+  next: insertNotification
+
+insertNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/insert_notification"
+    headers:
+      type: json
+    body:
+      type: ${incoming.body.type}
+      required_permission: ${incoming.body.required_permission}
+      related_entity_type: ${incoming.body.related_entity_type ?? ''}
+      related_entity_id: ${incoming.body.related_entity_id ?? ''}
+      title_et: ${incoming.body.title_et}
+      body_et: ${incoming.body.body_et ?? ''}
+      created_by: ${incoming.body.created_by ?? 'system'}
+  result: insertRes
+  next: wsPush
+
+wsPush:
+  ws_send:
+    broadcast_prefix: "client:"
+    payload:
+      type: "notification_update"
+  next: returnResult
+
+returnResult:
+  return: "${insertRes.response.body[0] ?? {id: null}}"
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "type, required_permission ja title_et on kohustuslikud"
+  next: end

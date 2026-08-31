@@ -111,24 +111,47 @@ via API, with no shared state between collections.
 ```
 tests/postman/
 ├── collections/
+│   ├── adr-form.collection.json
 │   ├── classifiers.collection.json
+│   ├── driverest-forms.collection.json
+│   ├── erru-cgr.collection.json
+│   ├── erru-ctud.collection.json
+│   ├── erru-ncr.collection.json
+│   ├── erru-rsi.collection.json
+│   ├── form-search.collection.json
+│   ├── good-repute-form.collection.json
+│   ├── labour-inspection.collection.json
 │   ├── organisations.collection.json
 │   ├── permissions.collection.json
-│   ├── users.collection.json
-│   └── user-groups.collection.json
+│   ├── technical-check-forms.collection.json
+│   ├── transport-interruption.collection.json
+│   ├── user-groups.collection.json
+│   └── users.collection.json
 ├── ci-stack-environment.json
 ├── dev-stack-environment.json
-└── run-all.sh
+├── run-all.sh
+└── run-all.bat
 ```
 
 `run-all.sh` (Linux/Mac) or `run-all.bat` (Windows) run them in order. To add a new feature, create a new
-`<feature>.collection.json` in `collections/` and add it to `run-all.sh` (Linux/Mac) and `run-all.bat` (Windows).
+`<feature>.collection.json` in `collections/` and add it to both `run-all.sh` and `run-all.bat`.
 
 | Collection | What it covers |
 |---|---|
 | **classifiers** | List (search/pagination), get (403/success), get-values (403/success with status), edit/update (403/422/200), values/insert (403/200), values/update (403/200) |
+| **labour-inspection** | Create/edit/save (403, 422 required/future-date/max-length, 200 create+version=1), get (403/404/200), re-save (200, version increments), confirm (403, 200, already_confirmed 422, violations-present 422), edit-after-confirm (422 form_locked_after_confirm), delete (403/200, deleted still readable) |
+| **erru-ctud** | CTUD outgoing requests (LJVIS2-138): draft create (200+403+422 validations), get (200/403/404), revise (403/422/200), list with filters (direction, name OR licence), send (403; DE Found/LV NotFound/PL Timeout/GR NotAvailable/FI error outcomes), resend, retry from error; inbound serving (Found/NotFound, replay dedup, 400 validations for missing fields). Creates its own data. |
+| **erru-cgr** | CGR outgoing requests (LJVIS2-139, LJVIS2-140): draft create (7A name / 7B certificate / broadcast ZZ, 422 validations), revise (403/422/200), authZ (403 per role), send (broadcast ZZ→4 countries, single DE Found, FI error→retry), resend, inbound (name/certificate Found+Fit, replay dedup, 400 validations); list (filter AND-combined, broadcast ZZ display, outgoing-only, sorting). Creates its own isolated data. |
+| **erru-ncr** | NCR outgoing requests (LJVIS2-62/-63): draft create (200+403+422 infringement_incomplete validations), get (200/403/404), revise (version increments, businessCaseId format NCR-EE-YYYY-NNNNN), Pass clears minorInfringement+seriousInfringements, not_editable on bogus BCI; inbound fixture (seeded via SQL): received→viewed auto-transition on first open (idempotent), response/save (403 without ncr.respond), penalty_coverage_incomplete validation (missing/duplicate coverage), isImposed=false strips penaltyTypeImposed. Creates its own outgoing drafts; inbound case seeded by Liquibase. |
+| **erru-rsi** | RSI outgoing requests (LJVIS2-147): draft create (200 initiated v1, businessCaseId EE-RSI-YYYY-NNNNN), get (200/403), revise (version increments, businessCaseId unchanged, not_editable on bogus id), optional driver block (firstName/familyName/licenceNumber/licenceCountry uppercased), identificationDetails JSONB round-trip (transport_undertaking + owner sub-types), checkedItems JSONB array round-trip, UPPERCASE transforms, permission boundaries (rsi.read/rsi.create, Org Admin no-send). Creates its own isolated data. |
+| **technical-check-forms** | Vehicle/trailer technical check sub-forms (LJVIS2-72): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), trailer-only exclusion of vehicle codes (422 code_not_applicable_to_trailer), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump) |
+| **transport-interruption** | Transport interruption sub-form (LJVIS2-74): edit/save (403, 422 required, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments, all 4 legalBases codes), confirm (403, 200, already_confirmed 422), UPPERCASE transform of headerText/interruptionReason/personApplications/residenceAddressLine/terminationCondition |
+| **adr-form** | ADR (ohtlik veos) sub-form (LJVIS2-141): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump), re-save after confirm still allowed |
+| **driverest-forms** | Drive-rest driver + teammate sub-forms: edit/save (403 without sp_driver/teammate_form.write, 422 compoundFormKey required, 200 create+version=1), GET by id (403/404/200), GET get-by-compound-form-key, re-save while saved (version unchanged — no-bump rule), confirm (403, 200 status confirmed, already_confirmed 422), delete (403, 200, deleted form still readable with status=deleted). Self-contained: creates its own compound form + sub-forms. |
+| **good-repute-form** | Hea maine (good repute) independent form (LJVIS2-136): edit/save (403, 422 required/future-date/conditional unfit dates + date ordering, 200 create+version=1), UPPERCASE transform of personalCode/firstName/lastName/placeOfBirth/certificateNumber, read/get (403/404/200), re-save while saved (version unchanged — no-bump rule), confirm (403, 200 version unchanged, already_confirmed 422), edit-after-confirm (422 form_locked_after_confirm) |
+| **form-search** | Cross-entity form search (LJVIS2-9): 403 without any form read permission, unfiltered search (content+total), formType filter, companyName (ILIKE) filter, date-range inclusive/exclusive, pagination (pageSize=1), sorting, deleted-form hidden from results. Creates + deletes its own labour-inspection act. |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
-| **permissions** | `GET /permissions/list` — verify seeded permissions, check `user_group.update` present |
+| **permissions** | `GET /permissions/list` — verify seeded permissions (39), check `user_group.update`, vehicle/trailer/transport-interruption/adr/good-repute form permissions present |
 | **users** | List (admin/403), check-exists, insert (success/409/422/403), get, update, set-groups, get-groups |
 | **user-groups** | List (admin/403), get, get-organisations/permissions/users, insert (success/422/403), get-available-users, update-name, set-organisations, set-permissions, add-users, delete-user |
 
@@ -137,6 +160,17 @@ tests/postman/
 | Collection | Auth roles used | Setup queries |
 |---|---|---|
 | classifiers | Super Admin, No-perm (403 tests) | classifier ID |
+| labour-inspection | Super Admin, No-perm (403 tests) | none — creates its own acts |
+| erru-ctud | Super Admin (ctud.read+create+send), Org Admin (no send), No-perm (403 tests) | none — creates its own drafts |
+| erru-cgr | Super Admin (cgr.read+create+send), Org Admin (no send), No-perm (403 tests) | none — creates its own drafts |
+| erru-ncr | Super Admin (ncr.read+create+respond+send), No-perm (403 tests) | none — creates its own outgoing drafts; inbound case seeded by Liquibase fixture |
+| erru-rsi | Super Admin (rsi.read+create+send), Org Admin (rsi.read+create, no send), No-perm (403 tests) | none — creates its own drafts |
+| technical-check-forms | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-forms |
+| transport-interruption | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-form |
+| adr-form | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-form |
+| driverest-forms | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-forms |
+| good-repute-form | Super Admin, No-perm (403 tests) | none — creates its own independent forms |
+| form-search | Super Admin, No-perm (403 tests) | none — creates and deletes its own labour-inspection act |
 | organisations | Super Admin | — |
 | permissions | Super Admin | — |
 | users | Super Admin, No-perm (403 tests) | org ID, group ID |
@@ -166,7 +200,7 @@ Seed runs once after Liquibase migrations. It is idempotent (`WHERE NOT EXISTS`)
 
 | Group | Key permissions |
 |---|---|
-| Super Admin Group | `user.list.admin`, `user.read.admin`, `user.edit.admin`, `user_group.list.admin`, `user_group.update`, `organisation.list`, `permission.list`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit` |
+| Super Admin Group | `user.list.admin`, `user.read.admin`, `user.edit.admin`, `user_group.list.admin`, `user_group.update`, `organisation.list`, `permission.list`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit`, `labour_inspection_form.write`, `labour_inspection_form.read`, `control_form.view_unpublished`, `control_form.delete` |
 | Local Admin Group | `user.list.local`, `user.read.local`, `user.edit.local`, `user_group.list.local`, `user_group.update`, `classifier.list`, `classifier.read`, `classifier.edit`, `classifier_value.edit` |
 
 ### Classifiers

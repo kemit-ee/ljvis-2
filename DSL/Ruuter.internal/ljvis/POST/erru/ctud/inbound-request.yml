@@ -1,0 +1,248 @@
+declaration:
+  version: "1.0"
+  description: |
+    Serve an INBOUND CTUD request from another member state and answer it synchronously (LJVIS2-144).
+    Fully automatic: no user is involved, no ctud.* permission is required, and the served request
+    simply appears in the CTUD list afterwards. Flow: validate the ERRU envelope, store a 'received'
+    snapshot, look the undertaking up in Estonian data, then store an 'answered' snapshot carrying the
+    response and return that response in the same call.
+
+    TODO(M2M): the specification places this at POST /api/v1/internal/erru/ctud/inbound-request behind
+    an OAuth2 machine token. Ruuter has no client-credentials support today — this is a documented gap
+    (see TEMPLATES/audit/form/labour-inspection/log-labour-inspection-import.yml). Until that infra
+    exists the endpoint lives on the separate ruuter-internal instance (port 8089, allowedIPs
+    127.0.0.1), which is not exposed outside the Docker network, following the precedent set by
+    POST/users/deactivate-expired.yml. Moving it to the specified path is then a routing change only.
+
+    Idempotency: append-inbound.sql relies on the partial unique index uq_ctud_inbound_technical_id, so
+    a redelivered message inserts nothing. This handler detects the empty insert and replays the answer
+    it produced the first time instead of serving the request twice.
+
+    Validation is deliberately split. Envelope fields that only ERRU knows about (technicalId,
+    workflowId, from, businessCaseId, originatingAuthority, requestSource, requestPurpose) are checked
+    here. The undertaking-search rules (at least two of three criteria, and the forbidden literal name
+    "unknown") are NOT duplicated: they are enforced by the erru.ctud_request CHECK constraints
+    chk_ctud_min_two_search_criteria and chk_ctud_name_not_unknown, so there is a single source of
+    truth and no possibility of drift between the inbound and the user-facing path.
+  namespace: erru
+  allowlist:
+    body:
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: sentAt
+        type: string
+      - field: from
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: transportUndertakingName
+        type: string
+      - field: communityLicenceNumber
+        type: string
+      - field: vehicleRegistrationNumber
+        type: string
+      - field: vehicleRegistrationCountry
+        type: string
+      - field: requestAllVehicles
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.technicalId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.from || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.businessCaseId || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.originatingAuthority || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.requestSource || '')).trim())}
+      next: returnInvalidData
+    - condition: ${!(('' + (incoming.body.requestPurpose || '')).trim())}
+      next: returnInvalidData
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    technical_id: "${('' + (incoming.body.technicalId || '')).trim()}"
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    sent_at: "${('' + (incoming.body.sentAt || '')).trim()}"
+    ctud_from: "${('' + (incoming.body.from || '')).trim().toUpperCase()}"
+    business_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
+    request_source: "${('' + (incoming.body.requestSource || '')).trim()}"
+    request_purpose: "${('' + (incoming.body.requestPurpose || '')).trim()}"
+    undertaking_name: "${('' + (incoming.body.transportUndertakingName || '')).trim().toUpperCase()}"
+    licence_number: "${('' + (incoming.body.communityLicenceNumber || '')).trim().toUpperCase()}"
+    vehicle_number: "${('' + (incoming.body.vehicleRegistrationNumber || '')).trim().toUpperCase()}"
+    vehicle_country: "${('' + (incoming.body.vehicleRegistrationCountry || '')).trim().toUpperCase()}"
+    all_vehicles: "${('' + (incoming.body.requestAllVehicles || '')) === 'true' ? 'true' : 'false'}"
+  next: storeReceived
+
+storeReceived:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-inbound"
+    headers:
+      type: json
+    body:
+      technicalId: ${technical_id}
+      workflowId: ${workflow_id}
+      sentAt: ${sent_at}
+      ctudFrom: ${ctud_from}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      transportUndertakingName: ${undertaking_name}
+      communityLicenceNumber: ${licence_number}
+      vehicleRegistrationNumber: ${vehicle_number}
+      vehicleRegistrationCountry: ${vehicle_country}
+      requestAllVehicles: ${all_vehicles}
+      created_by: "system"
+  result: received_res
+  next: checkStored
+
+# Zero rows means either a redelivery (unique index skipped the insert) or a CHECK
+# constraint rejection (fewer than two search criteria, or the name "unknown").
+checkStored:
+  switch:
+    - condition: ${received_res.response.body == null || received_res.response.body.length != 1}
+      next: lookupExisting
+  next: extractStored
+
+extractStored:
+  assign:
+    request_key: "${received_res.response.body[0].id}"
+  next: lookupUndertaking
+
+lookupExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/get-by-technical-id"
+    headers:
+      type: json
+    body:
+      technical_id: ${technical_id}
+  result: existing_res
+  next: checkExisting
+
+checkExisting:
+  switch:
+    - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
+      next: returnInvalidData
+  next: returnReplayedAnswer
+
+lookupUndertaking:
+  call: http.post
+  args:
+    url: "[#ERRU_MTR_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      transportUndertakingName: ${undertaking_name}
+      communityLicenceNumber: ${licence_number}
+      vehicleRegistrationNumber: ${vehicle_number}
+      requestAllVehicles: ${all_vehicles}
+  result: mtr_res
+  next: checkMtrEnvelope
+
+# Same dual response shape as the outbound path: the dev/CI stub is a Ruuter DSL and
+# therefore enveloped, real XTR is not.
+checkMtrEnvelope:
+  switch:
+    - condition: ${mtr_res.response.body != null && mtr_res.response.body.response != null}
+      next: extractMtrEnveloped
+  next: extractMtrDirect
+
+extractMtrEnveloped:
+  assign:
+    resp_status_code: "${JSON.parse(mtr_res.response.body.response).statusCode || ''}"
+    resp_status_message: "${JSON.parse(mtr_res.response.body.response).statusMessage || ''}"
+    resp_authority: "${JSON.parse(mtr_res.response.body.response).respondingAuthority || ''}"
+    resp_content: "${mtr_res.response.body.response}"
+  next: storeAnswered
+
+extractMtrDirect:
+  assign:
+    resp_status_code: "${mtr_res.response.body.statusCode || ''}"
+    resp_status_message: "${mtr_res.response.body.statusMessage || ''}"
+    resp_authority: "${mtr_res.response.body.respondingAuthority || ''}"
+    resp_content: "${JSON.stringify(mtr_res.response.body)}"
+  next: storeAnswered
+
+storeAnswered:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${request_key}
+      newStatus: "answered"
+      technicalId: ""
+      workflowId: ""
+      respondingAuthority: ${resp_authority}
+      responseStatusCode: ${resp_status_code}
+      responseStatusMessage: ${resp_status_message}
+      responseContent: ${resp_content}
+      errorMessage: ""
+      created_by: "system"
+  result: answered_res
+  next: buildAudit
+
+# The audit event is written by calling Resql directly rather than through the
+# TEMPLATES/audit chain used everywhere else. ruuter-internal is a separate Ruuter
+# instance mounting only DSL/Ruuter.internal, so it cannot reach the main instance's
+# templates, and copying log-audit-event.yml here would duplicate the writer of a
+# hash-chained table — the one place drift would be most damaging. The event_id
+# generation below is therefore kept byte-identical to TEMPLATES/audit/log-audit-event.yml.
+buildAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "CTUD sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${ctud_from}, päringu allikas ${request_source}, päringu eesmärk ${request_purpose}, otsitav veoettevõtja ${undertaking_name}, tegevusloa number ${licence_number}, sõiduki number ${vehicle_number}, otsingu meetod CommunityLicence, tulemus ${resp_status_code}"
+    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['ctudFrom', ctud_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['transportUndertakingName', undertaking_name || null], ['communityLicenceNumber', licence_number || null], ['vehicleRegistrationNumber', vehicle_number || null], ['searchMethod', 'CommunityLicence'], ['resultStatus', resp_status_code || null]]))}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "ctud.inbound_request.serve"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU CTUD inbound service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnAnswer
+
+returnAnswer:
+  return: ${resp_content}
+  next: end
+
+returnReplayedAnswer:
+  return: ${existing_res.response.body[0].responseContent}
+  next: end
+
+returnInvalidData:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"Request does not satisfy the ERRU 3.5 CTUD requirements"}'
+  next: end

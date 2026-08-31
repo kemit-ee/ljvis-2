@@ -1,0 +1,45 @@
+declaration:
+
+  version: "1.0"
+  description: "Audit: good repute form publish event"
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: good_repute_form_key
+        type: number
+      - field: form_number
+        type: string
+      - field: personal_code
+        type: string
+      - field: old_status
+        type: string
+      - field: new_status
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "Avalikustati hea maine vorm ${incoming.body.form_number}, vormi võti: ${incoming.body.good_repute_form_key}, isikukood: ${incoming.body.personal_code}, olek: ${incoming.body.old_status} → ${incoming.body.new_status}"
+    log_content: "{\"goodReputeFormKey\":\"${incoming.body.good_repute_form_key}\",\"personalCode\":\"${incoming.body.personal_code}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"${incoming.body.new_status}\"}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.good_repute_form.publish"
+    event_category: "control_form"
+    actor_name: ${incoming.body.actor_name}
+    actor_personal_code: ${incoming.body.actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

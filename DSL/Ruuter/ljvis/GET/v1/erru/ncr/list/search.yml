@@ -1,0 +1,106 @@
+declaration:
+  version: "1.0"
+  description: "Paginated, filtered NCR case list — both incoming and outgoing (LJVIS2-65).
+    One row per CASE (ncr_message_key), latest snapshot. All filters are plain AND (no
+    OR-pair — NCR has only one text filter, businessCaseId, unlike RSI/CGR). hasInfringement
+    drives the red-row highlight on the frontend. Protected by the new ncr.list permission
+    (list/.guard), distinct from ncr.read which protects get.yml. Audited on every load
+    because the list exposes transport undertaking and handler names."
+  namespace: erru
+  allowlist:
+    params:
+      - field: businessCaseId
+        type: string
+      - field: sentFrom
+        type: string
+      - field: sentUntil
+        type: string
+      - field: ncrFrom
+        type: string
+      - field: ncrTo
+        type: string
+      - field: status
+        type: string
+      - field: direction
+        type: string
+      - field: handlerPersonalCode
+        type: string
+      - field: sorting
+        type: string
+      - field: pageSize
+        type: string
+      - field: page
+        type: string
+
+extractRequestData:
+  assign:
+    business_case_id: "${incoming.params.businessCaseId || ''}"
+    sent_from: "${incoming.params.sentFrom || ''}"
+    sent_until: "${incoming.params.sentUntil || ''}"
+    ncr_from: "${incoming.params.ncrFrom || ''}"
+    ncr_to: "${incoming.params.ncrTo || ''}"
+    status: "${incoming.params.status || ''}"
+    direction: "${incoming.params.direction || ''}"
+    handler_personal_code: "${incoming.params.handlerPersonalCode || ''}"
+    sorting: "${incoming.params.sorting || 'sent_at desc'}"
+    page: "${incoming.params.page || '1'}"
+    page_size: "${incoming.params.pageSize || '20'}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: searchCases
+
+searchCases:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/search"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      sentFrom: ${sent_from}
+      sentUntil: ${sent_until}
+      ncrFrom: ${ncr_from}
+      ncrTo: ${ncr_to}
+      status: ${status}
+      direction: ${direction}
+      handlerPersonalCode: ${handler_personal_code}
+      sorting: ${sorting}
+      page: ${page}
+      page_size: ${page_size}
+  result: res
+  next: buildFilterSummary
+
+buildFilterSummary:
+  assign:
+    result_count: "${res.response.body.length}"
+    filter_summary: "${'businessCaseId=' + business_case_id + '; sentFrom=' + sent_from + '; sentUntil=' + sent_until + '; ncrFrom=' + ncr_from + '; ncrTo=' + ncr_to + '; status=' + status + '; direction=' + direction + '; handler=' + handler_personal_code}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/ncr/log-ncr-list-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    filters: ${filter_summary}
+    result_count: ${result_count}
+    page: ${page}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_ncr_list"
+    headers:
+      type: json
+    body:
+      cases: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
