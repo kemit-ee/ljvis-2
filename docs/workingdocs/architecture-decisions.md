@@ -114,15 +114,21 @@ Dedikeeritud veerg `authority` on kõige puhtam lähenemine: SQL filtrid on inde
 
 ---
 
-### Otsus 2 — TRAM vorminumber: eraldiseisev seeria
+### Otsus 2 — TRAM vorminumber: koondvormil eraldi, alamvormil võib jagada
 
-**Valitud:** Uus sequence `forms.seq_tram_compound_form_key`, formaat `tram-AAAA-NNNNN/versioon`
+**Otsustaja:** Sten Viljus, 30.08.2026
+
+**Valitud:**
+- **Koondvorm (üldosa):** eraldiseisev seeria — uus sequence `forms.seq_tram_compound_form_key`, formaat `tram-AAAA-NNNNN/versioon`. PPA ja TRAM peavad koondvormil eristuma ka **nähtava numbri** järgi, mitte ainult `authority` veeru järgi.
+- **Autojuhi alamvorm:** **võib jagada** PPA `sp-` numbriseeriat (`forms.seq_sp_driver_form_key`, formaat `sp-AAAA-NNNNN/versioon`). Alamvormi number ei ole asutuse eristamise koht — seda teeb koondvorm.
+- Loogilised võtmed (`compound_form_key`, `sp_driver_form_key`) jäävad alati ühistesse jadadesse.
 
 **Alternatiivid kaalutud:**
-- *Jagab `koond-` seeriat* — lihtsam DB-s, aga TRAM-vorminumbrid oleksid hõredad (nt `tram-2026-00847`) kui PPA-vormi on palju; segadusttekitav kasutajale
+- *Kõik vormid jagavad `koond-` / `sp-` seeriat* — TRAM-koondvormi numbrid oleksid hõredad ja segadusttekitavad, kui PPA-vorme on palju.
+- *Kõik vormid eraldi seerias (ka alamvorm `tram-sp-...`)* — kaalutud ja tagasi lükatud: alamvormi tasemel ei anna eraldi numeratsioon lisaväärtust, kuna alamvorm on alati konkreetse (juba `tram-` numbriga) koondvormi all.
 
 **Põhjendus:**  
-TRAM kontrollkaardid on operatiivselt eraldiseisev tegevus. Eraldiseisev seeria (`tram-2026-00001`, `tram-2026-00002`, ...) on auditeerimise ja aruandluse seisukohalt puhtam — TRAM-spetsialist näeb oma koormust, PPA-spetsialist omaenda. Seeria ei sõltu teise asutuse tempot.
+TRAM kontrollkaardid on operatiivselt eraldiseisev tegevus ja koondvormi number on see, mida kasutaja ja aruandlus näevad — seal peab asutus olema üheselt loetav. Alamvormi number on tehniline viide koondvormi sees, seega numbriseeria jagamine PPA-ga on aktsepteeritav ja hoiab koodi lihtsamana.
 
 ---
 
@@ -134,4 +140,8 @@ TRAM kontrollkaardid on operatiivselt eraldiseisev tegevus. Eraldiseisev seeria 
 - *Jagab PPA SP-endpoint'i* — vähem koodi, aga guard peab lubama nii `tram_driver_form.write` kui `sp_driver_form.write`; seob kaks eraldiseisvat domeeni ühte endpointi; tuleviku lahknemine (nt TRAM-spetsiifilised väljad) on keerukas
 
 **Põhjendus:**  
-Täielik eraldatus endpoint'i tasemel tagab, et TRAM ja PPA õigused ei põimu. Resql SQL-failid on koopiad, kuid TRAM-i spetsiifilised piirangud (nt `authority = 'TRAM'` compound_form filtris) saab lisada ilma PPA loogikat puutumata. Duplikaat on piiratud (~200 rida SQL) ja õigustatud selge domeenipiiriga.
+Täielik eraldatus endpoint'i tasemel tagab, et TRAM ja PPA õigused ei põimu. Resql SQL-failid on koopiad, kuid TRAM-i spetsiifilised piirangud on lisatud ilma PPA loogikat puutumata. Duplikaat on piiratud (~200 rida SQL) ja õigustatud selge domeenipiiriga.
+
+**Horisontaalne juurdepääsukaitse (IDOR):** kuna `forms.sp_driver_form` tabelil ei ole `authority` veergu, kontrollivad kõik `tram-form/sp-driver/*` päringud (lugemine ja kirjutamine) alamvormi kuuluvust TRAM-koondvormi külge:
+`... AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')`.
+Nii ei saa TRAM-õigustega kasutaja PPA autojuhi alamvormi `sp_driver_form_key` kaudu lugeda ega muuta. Versiooniajaloo (`get-snapshots`) lekke vältimiseks on TRAM-il oma guarditud endpointid `GET .../tram-form/get-snapshots` ja `.../tram-form/sp-driver/read/get-snapshots` — üldist `control-forms/get-snapshots` endpointi TRAM ei kasuta.

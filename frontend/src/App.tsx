@@ -44,6 +44,7 @@ import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage
 import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-repute-form/GoodReputeFormCreatePage';
 import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
 import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
+import { TRAMDriverFormPage } from './features/control-forms/pages/tram-driver-form/TRAMDriverFormPage';
 import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
@@ -124,6 +125,18 @@ function AppRoutes() {
           <Route
             path="/control-forms/sp-driver/:id/:snapshotId"
             element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
+            path="/control-forms/tram-driver/new"
+            element={<TRAMDriverFormPage />}
+          />
+          <Route
+            path="/control-forms/tram-driver/:id"
+            element={<TRAMDriverFormPage />}
+          />
+          <Route
+            path="/control-forms/tram-driver/:id/:snapshotId"
+            element={<TRAMDriverFormPage />}
           />
           <Route
             path="/control-forms/sp-teammate/:id"

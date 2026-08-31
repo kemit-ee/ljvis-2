@@ -1,0 +1,169 @@
+declaration:
+
+  version: "1.0"
+  description: "Publish (avalikusta) the drive/rest driver sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-form/sp-driver/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: checkFormIsConfirmed
+
+checkFormIsConfirmed:
+  assign:
+    current_status: "${currentFormRes.response.body[0].status}"
+    compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
+    sub_form_number: "${currentFormRes.response.body[0].subFormNumber}"
+  next: checkStatusSwitch
+
+checkStatusSwitch:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: returnAlreadyPublishedError
+    - condition: ${current_status !== 'confirmed'}
+      next: returnNotConfirmedError
+  next: extractCurrentFormData
+
+extractCurrentFormData:
+  assign:
+    selection_status: "${currentFormRes.response.body[0].selectionStatus || ''}"
+    transport_type: "${currentFormRes.response.body[0].transportType || ''}"
+    transport_empty_run: "${currentFormRes.response.body[0].transportEmptyRun || false}"
+    transport_nature: "${currentFormRes.response.body[0].transportNature || ''}"
+    transport_nature_exempt: "${currentFormRes.response.body[0].transportNatureExempt || false}"
+    transport_classes: "${currentFormRes.response.body[0].transportClasses || '[]'}"
+    cabotage_violations: "${currentFormRes.response.body[0].cabotageViolations || '[]'}"
+    result_type: "${currentFormRes.response.body[0].resultType || 'ok'}"
+    proceeding_type: "${currentFormRes.response.body[0].proceedingType || ''}"
+    proceeding_reference_number: "${currentFormRes.response.body[0].proceedingReferenceNumber || ''}"
+    document_checks: "${currentFormRes.response.body[0].documentChecks || '[]'}"
+    other_documents: "${currentFormRes.response.body[0].otherDocuments || ''}"
+    sp_applicability: "${currentFormRes.response.body[0].spApplicability || ''}"
+    tachograph_type_code: "${currentFormRes.response.body[0].tachographTypeCode || ''}"
+    tachograph_data_not_downloaded: "${currentFormRes.response.body[0].tachographDataNotDownloaded || false}"
+    checked_days_count: "${currentFormRes.response.body[0].checkedDaysCount || 0}"
+    work_days_count: "${currentFormRes.response.body[0].workDaysCount || 0}"
+    other_activity_days_count: "${currentFormRes.response.body[0].otherActivityDaysCount || 0}"
+    violations_561_2006: "${currentFormRes.response.body[0].violations5612006 || '[]'}"
+    violations_165_2014: "${currentFormRes.response.body[0].violations1652014 || '[]'}"
+    violations_2002_15: "${currentFormRes.response.body[0].violations200215 || '[]'}"
+    violations_593_2008: "${currentFormRes.response.body[0].violations5932008 || '[]'}"
+    violations_2020_1057: "${currentFormRes.response.body[0].violations20201057 || '[]'}"
+    mass_dimension_non_compliant: "${currentFormRes.response.body[0].massDimensionNonCompliant || false}"
+    mass_dimension_measurements: "${currentFormRes.response.body[0].massDimensionMeasurements || ''}"
+    atp_violation_found: "${currentFormRes.response.body[0].atpViolationFound || ''}"
+    atp_violation_description: "${currentFormRes.response.body[0].atpViolationDescription || ''}"
+    erru_points: "${currentFormRes.response.body[0].erruPoints || ''}"
+    enforcement_decision: "${currentFormRes.response.body[0].enforcementDecision || ''}"
+    proceeding_closure_basis: "${currentFormRes.response.body[0].proceedingClosureBasis || ''}"
+    notes: "${currentFormRes.response.body[0].notes || ''}"
+  next: publishForm
+
+publishForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-form/sp-driver/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      compoundFormKey: ${compound_form_key}
+      subFormNumber: ${sub_form_number}
+      status: published
+      selectionStatus: ${selection_status}
+      transportType: ${transport_type}
+      transportEmptyRun: ${transport_empty_run}
+      transportNature: ${transport_nature}
+      transportNatureExempt: ${transport_nature_exempt}
+      transportClasses: ${transport_classes}
+      cabotageViolations: ${cabotage_violations}
+      resultType: ${result_type}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      documentChecks: ${document_checks}
+      otherDocuments: ${other_documents}
+      spApplicability: ${sp_applicability}
+      tachographTypeCode: ${tachograph_type_code}
+      tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      checkedDaysCount: ${checked_days_count}
+      workDaysCount: ${work_days_count}
+      otherActivityDaysCount: ${other_activity_days_count}
+      violations5612006: ${violations_561_2006}
+      violations1652014: ${violations_165_2014}
+      violations200215: ${violations_2002_15}
+      violations5932008: ${violations_593_2008}
+      violations20201057: ${violations_2020_1057}
+      massDimensionNonCompliant: ${mass_dimension_non_compliant}
+      massDimensionMeasurements: ${mass_dimension_measurements}
+      atpViolationFound: ${atp_violation_found}
+      atpViolationDescription: ${atp_violation_description}
+      erruPoints: ${erru_points}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: publishRes
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "Sõidu- ja puhkeaja alamvorm (juht) avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${publishRes.response.body[0].subFormNumber}/${publishRes.response.body[0].version}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.sp_driver_form.publish"
+    event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: ${description}
+    log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${publishRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnAlreadyPublishedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnNotConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"not_confirmed"}'
+  next: end

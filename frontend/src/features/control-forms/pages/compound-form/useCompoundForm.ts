@@ -9,7 +9,11 @@ import {
   confirmCompoundForm,
   saveCompoundForm,
   publishCompoundForm,
+  saveTramForm,
+  confirmTramForm,
+  publishTramForm,
 } from '../../api';
+import type { FormAuthority } from '../drive-rest-form/useDriveRestForm';
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
@@ -98,9 +102,21 @@ export function useCompoundForm(
   subFormsAllConfirmedOrPublished?: boolean,
   onResetToSaved?: () => void,
   onPublished?: () => void,
+  authority: FormAuthority = 'PPA',
 ) {
   const { t } = useTranslation();
   const { user: authUser, permissions } = useAuth();
+
+  // TRAM control card writes to its own guarded endpoints (authority='TRAM');
+  // the general-section fields and validation are identical to the PPA form.
+  const api =
+    authority === 'TRAM'
+      ? { save: saveTramForm, confirm: confirmTramForm, publish: publishTramForm }
+      : {
+          save: saveCompoundForm,
+          confirm: confirmCompoundForm,
+          publish: publishCompoundForm,
+        };
   const isEdit = !!form;
   const pendingConfirm = useRef(false);
   const pendingPublish = useRef(false);
@@ -386,7 +402,7 @@ export function useCompoundForm(
         const preserveStatus = pendingPreserveStatus.current;
         pendingPreserveStatus.current = false;
         if (isPublishing && form?.id) {
-          await publishCompoundForm(form.id);
+          await api.publish(form.id);
           onPublished?.();
           return;
         }
@@ -431,14 +447,14 @@ export function useCompoundForm(
         };
         if (values.id) {
           if (isConfirming || isReconfirmedEdit) {
-            await confirmCompoundForm(trimmedValues as unknown as CompoundForm);
+            await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else if (isPublishing || isRepublishedEdit) {
-            await publishCompoundForm(values.id);
+            await api.publish(values.id);
             onPublished?.();
           }
           else {
-            await saveCompoundForm(trimmedValues as unknown as CompoundForm);
+            await api.save(trimmedValues as unknown as CompoundForm);
             if (forceSaved && onResetToSaved) {
               onResetToSaved();
             } else {
@@ -446,7 +462,7 @@ export function useCompoundForm(
             }
           }
         } else {
-          const result = await saveCompoundForm(
+          const result = await api.save(
             trimmedValues as unknown as CompoundForm,
           );
           onSaved(result[0]?.id);
