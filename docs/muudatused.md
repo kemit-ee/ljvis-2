@@ -4,7 +4,7 @@
 
 ---
 
-## 2026-09 — Autojuhi sõidu- ja puhkeaja kontrollvormi täiendused
+## 2026-08 — Autojuhi sõidu- ja puhkeaja kontrollvormi täiendused
 
 Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
 
