@@ -1,0 +1,8 @@
+# Runs at 01:30 Tallinn time (TZ pinned in docker-compose.yml) — after the
+# labour-inspection e-toimik sync (01:00) to avoid XTR contention.
+etoimik_sp_driver_decision_sync:
+  trigger: "0 30 1 * * ?"
+  type: exec
+  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/etoimik-sp-driver-decision-sync" || true
+  allowedEnvs:
+    - RUUTER_INTERNAL

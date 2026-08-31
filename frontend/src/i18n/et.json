@@ -283,7 +283,8 @@
     "search": "Otsing",
     "rsi": "RSI teated",
     "ncr": "NCR teated",
-    "riskLevels": "Riskitasemed"
+    "riskLevels": "Riskitasemed",
+    "notifications": "Teavitused"
   },
   "desktop": {
     "title": "Töölaud",
@@ -668,7 +669,7 @@
       "classPassengerRegular": "Sõitjate liinivedu",
       "classPassengerOccasional": "Sõitjate juhuvedu",
       "classPassengerSpecial": "Sõitjate eriotstarbeline vedu (õpilased, töölised jne)",
-      "classAtpPerishable": "ATP kokkuleppe kohane kiirestriknevate toiduainete vedu",
+      "classAtpPerishable": "ATP kokkuleppe kohane kiirestiriknevate toiduainete vedu",
       "controlResult": "Kontrolli tulemus",
       "controlResultLabel": "Kontrolli tulemus",
       "controlResultKorras": "Korras",
@@ -677,12 +678,15 @@
       "controlResultJuhtimiselt": "Juhtimiselt kõrvaldamine",
       "controlResultArest": "Arest",
       "controlResultAutovedu": "Autovedu on katkestatud",
-      "controlResultAlustati": "Alustati väärteomentlust",
+      "controlResultAlustati": "Alustati väärteomenetlust",
+      "additionalMeasure": "Lisameede",
+      "additionalMeasureNone": "Lisameedet ei rakendatud",
       "proceedingType": "Menetluse liik",
       "proceedingTypeLyhi": "Lühimenetlus",
       "proceedingTypeKiir": "Kiirmenetlus",
       "proceedingTypeYld": "Üldmenetlus",
       "proceedingReferenceNumberPlaceholder": "Viitenumber",
+      "proceedingCaseNumberPlaceholder": "Väärteoasja number",
       "sp_applicability": "Rakendamine",
       "tachograph_type_code": "Sõidumeeriku liik",
       "applicabilityApplied": "Rakendatakse",
@@ -1753,6 +1757,34 @@
       "saved": "Salvestatud",
       "confirmed": "Kinnitatud",
       "published": "Avaldatud"
+    }
+  },
+  "notifications": {
+    "title": "Teavitused",
+    "tabInApp": "Teavitused",
+    "tabLog": "Saadetud kirjad",
+    "markAllRead": "Märgi kõik loetuks",
+    "unread": "Lugemata",
+    "read": "Märgi loetuks",
+    "empty": "Uusi teavitusi ei ole",
+    "log": {
+      "sendDate": "Saatmise kp",
+      "messageType": "Sõnumi liik",
+      "addressee": "Adressaat",
+      "status": "Staatus",
+      "sent": "Saadetud",
+      "sent_error": "Saatmine ebaõnnestus",
+      "resend": "Saada uuesti",
+      "report": "Saatmise raport"
+    },
+    "types": {
+      "ncr_violation": "NCR raske rikkumise teade",
+      "ncr_response": "NCR vastussõnumi teatis",
+      "driving_ban": "Sõidukeeld",
+      "weight_violation": "Kaalumise/mõõtmise rikkumine",
+      "carrier_violation": "Raske rikkumise teavitus veoettevõtjale",
+      "labor_kabotage": "Kabotaaži kontrolli teavitus",
+      "labor_foreign_proposal": "Välisriigi ettepaneku teavitus"
     }
   }
 }

@@ -1,0 +1,36 @@
+# POST /v1/notifications/* — autentimine nõutav.
+# Spetsiifilised õigused (notification.admin) on resend.yml-i kaustas eraldi .guard-is.
+# override_ancestors: true — ülimuslik POST/.guard suhtes (see tagastab authority_result,
+# mitte u-objekti; notification DSL-id vajavad u. muutujat personalcode/permissions jaoks).
+declaration:
+  override_ancestors: true
+
+check_for_cookie:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: guard_fail
+  next: authenticate
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u !== "false" && u.personalcode != null}
+      next: guard_success
+  next: guard_fail
+
+guard_success:
+  return: "success"
+  status: 200
+  next: end
+
+guard_fail:
+  return: "unauthorized"
+  status: 403
+  next: end

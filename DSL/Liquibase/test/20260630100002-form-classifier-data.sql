@@ -757,8 +757,8 @@ DO $$
                                ('TEGEVUSLUBA_01',         'Tasuline sõitjatevedu ilma ühenduse kehtiva tegevusloata',                                                        'TEGEVUSLUBA'),
                                ('TEGEVUSLUBA_02',         'Tasuline veosevedu ilma ühenduse kehtiva tegevusloata',                                                            'TEGEVUSLUBA'),
                                -- Ühenduse tegevusloa ärakiri
-                               ('TEGEVUSLOA_ARAKIRI_01',  'Autojuht ei esita ühenduse tegevusloa kehtivat kinnitatud ärakirja või kehtivat tõestatud koopiat (sõitjatevedu)', 'TEGEVUSLOA_ARAKIRI'),
-                               ('TEGEVUSLOA_ARAKIRI_02',  'Autojuht ei esita ühenduse tegevusloa kehtivat kinnitatud ärakirja või kehtivat tõestatud koopiat (veosevedu)',    'TEGEVUSLOA_ARAKIRI'),
+                               ('TEGEVUSLOA_ARAKIRI_01',  'Autojuht ei esita ühenduse tegevusloa kehtivat tõestatud koopiat (sõitjatevedu)', 'TEGEVUSLOA_ARAKIRI'),
+                               ('TEGEVUSLOA_ARAKIRI_02',  'Autojuht ei esita ühenduse tegevusloa kehtivat kinnitatud ärakirja (veosevedu)',  'TEGEVUSLOA_ARAKIRI'),
                                ('TEGEVUSLOA_ARAKIRI_03',  'Ühenduse tegevusloa kinnitatud ärakiri või tõestatud koopia on üle antud mitteõigustatud isikule',                 'TEGEVUSLOA_ARAKIRI'),
                                -- Välisriigi vedaja veoluba
                                ('VEOLUBA_01',             'Mootorsõidukijuhi ei esita välislepingust tulenevat nõuetekohast veoluba',                                        'VEOLUBA'),
@@ -1209,7 +1209,7 @@ DO $$
             SELECT * FROM (VALUES
                                ('MOOTORSOIDUKI_LEPING',            'Mootorsõiduki kasutusleping (kui andmed ei ole kantud MTR-i)'),
                                ('SOIDUKIJUHI_TOO_LEPING',          'Mootorsõidukijuhi töö- või võlaõiguslik leping (riigisisesel veoseveol kontroll TÖR-st)'),
-                               ('VEOSE_DOKUMENDID',                'Veose saatedokument'),
+                               ('VEOSE_DOKUMENDID',                'Veodokument'),
                                ('SUUREMOOTMELISE_VEOSE_ERILUBA',   'Raske- või suurveose eriluba'),
                                ('LIINIVEO_SOIDUPLAAN',             'Liiniveo sõiduplaan'),
                                ('OMAKULUL_VEOSEVEO_VASTAVUS',      'Oma kulul veoseveol nõuetele vastavuse tõendavad dokumendid'),

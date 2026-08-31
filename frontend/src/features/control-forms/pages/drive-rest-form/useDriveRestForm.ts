@@ -34,7 +34,8 @@ export function createDriveRestValidationSchema(
       t('forms.sp_form.validation.required'),
     ),
     proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => !!proceedingType,
+      // Üldmenetlusel (YLD) on väli "Väärteoasja number" ja see ei ole kohustuslik.
+      is: (proceedingType: string) => !!proceedingType && proceedingType !== 'YLD',
       then: (schema) =>
         schema.required(t('forms.sp_form.validation.required')),
       otherwise: (schema) => schema.optional(),
@@ -212,6 +213,7 @@ export function useDriveRestForm(
           ? JSON.parse(form.cabotageViolations)
           : []) as CabotageViolation[],
       resultType: form?.resultType ?? '',
+      additionalMeasure: form?.additionalMeasure ?? '',
       proceedingType: form?.proceedingType ?? '',
       proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
       documentChecks: (Array.isArray(form?.documentChecks)
