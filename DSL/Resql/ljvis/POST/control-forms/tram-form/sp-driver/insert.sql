@@ -87,6 +87,16 @@ declaration:
       - field: subFormNumber
         type: string
 */
+-- IDOR-kaitse: alamvormi saab lisada ainult TRAM-koondvormi külge
+-- (forms.sp_driver_form-il pole authority veergu). Vt ADR-001 otsus 3.
+WITH new_key AS (
+  SELECT nextval('forms.seq_sp_driver_form_key') AS k
+  WHERE EXISTS (
+    SELECT 1 FROM forms.compound_form cf
+    WHERE cf.compound_form_key = :compoundFormKey::BIGINT
+      AND cf.authority = 'TRAM'
+  )
+)
 INSERT INTO forms.sp_driver_form (sp_driver_form_key,
                                   compound_form_key,
                                   sub_form_number,
@@ -124,10 +134,10 @@ INSERT INTO forms.sp_driver_form (sp_driver_form_key,
                                   proceeding_closure_basis,
                                   notes,
                                   created_by)
-VALUES (nextval('forms.seq_sp_driver_form_key'),
+SELECT nk.k,
         :compoundFormKey::BIGINT,
         'sp-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' ||
-        LPAD(currval('forms.seq_sp_driver_form_key')::text, 5, '0') || '/1',
+        LPAD(nk.k::text, 5, '0') || '/1',
         1,
         :status,
         NULLIF(:selectionStatus, ''),
@@ -161,4 +171,6 @@ VALUES (nextval('forms.seq_sp_driver_form_key'),
         NULLIF(:enforcementDecision, ''),
         NULLIF(:proceedingClosureBasis, ''),
         NULLIF(:notes, ''),
-        :created_by) RETURNING sp_driver_form_key AS id, sub_form_number;
+        :created_by
+FROM new_key nk
+RETURNING sp_driver_form_key AS id, sub_form_number;
