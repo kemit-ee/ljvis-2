@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get a presigned download URL for a transport-interruption sub-form file attachment"
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

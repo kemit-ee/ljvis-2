@@ -217,15 +217,14 @@ export function useCompoundForm(
         schema.required(t('forms.foreign_violation.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
-    companyRegCode: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
-    companyName: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
-    companyCountryCode: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
+    companyRegCode: Yup.string(),
+    companyName: Yup.string(),
+    companyCountryCode: Yup.string().when('companyName', {
+      is: (v: string) => !!v?.trim(),
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema,
+    }),
     inspectorFirstName: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),

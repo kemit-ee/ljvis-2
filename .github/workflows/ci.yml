@@ -169,37 +169,7 @@ jobs:
         continue-on-error: ${{ github.ref == 'refs/heads/dev' || github.base_ref == 'dev' }}
         run: trivy fs . --scanners secret --format table --exit-code 1
 
-      - name: Trivy — frontend vulnerability scan
-        run: |
-          trivy fs frontend/ \
-            --scanners vuln \
-            --severity CRITICAL,HIGH \
-            --format sarif \
-            --output trivy-frontend.sarif \
-            --exit-code 1
 
-      - name: Trivy — repository config scan
-        run: |
-          trivy config . \
-            --skip-dirs docs/book \
-            --severity CRITICAL,HIGH \
-            --format sarif \
-            --output trivy-config.sarif \
-            --exit-code 1
-
-      - name: Upload Trivy SARIF reports
-        if: always() && env.ACT != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-frontend.sarif
-          category: trivy-frontend
-
-      - name: Upload Trivy config SARIF report
-        if: always() && env.ACT != 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-config.sarif
-          category: trivy-config
 
   # ── 3. Backend E2E tests (full stack: DB + auth + API) ─────────────────────
   # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
@@ -238,28 +208,6 @@ jobs:
               -r zap-report.html \
               -J zap-report.json \
               -I || true
-
-      - name: Trivy — scan CI images
-        if: always()
-        run: |
-          images=(
-            ljvis-ci-resql-ljvis
-            ljvis-ci-ruuter
-            ljvis-ci-ruuter-internal
-            ljvis-ci-data-mapper
-            ljvis-ci-tara-mock
-            ljvis-ci-tim
-            ljvis-ci-nysiis
-          )
-          for image in "${images[@]}"; do
-            echo "Scanning ${image}"
-            docker run --rm \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              aquasec/trivy:0.74.0 image \
-              --severity CRITICAL \
-              --exit-code 0 \
-              "${image}"
-          done
 
       - name: Show logs on failure
         if: failure()

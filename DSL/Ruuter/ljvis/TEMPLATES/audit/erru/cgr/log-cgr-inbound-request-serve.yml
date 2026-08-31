@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Audit: inbound CGR request received from another member state and answered (LJVIS2-139). Logged after the automatic response is stored. The description carries the business case identifier, the originating country, the fitness result (Fit/Unfit/NotFound), and the search method used (NYSIIS/CPC/Local). Heartbeat requests are NEVER logged (the caller skips this template for Heartbeat). No actor personal code because the inbound handler is fully automatic (no user is involved). The transport manager's name and birth date are personal data and must be logged per the data-processing agreement."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

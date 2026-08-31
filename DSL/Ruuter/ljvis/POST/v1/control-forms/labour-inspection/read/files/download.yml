@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get a presigned download URL for a labour inspection form file attachment"
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

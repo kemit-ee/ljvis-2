@@ -1005,9 +1005,9 @@ ruuter:
 |---|---|---|
 | `application.yml` (Spring) | `ruuter.yaml` | Täiesti erinev formaat |
 | `application.properties` | `ruuter.yaml` | Sama |
-| `docker-compose.yml` (image) | `docker-compose.yml` | Ruuter: `turnerrainer/ruuter:rc`; Resql: `turnerrainer/resql:alpha` |
+| `docker-compose.yml` (image) | `docker-compose.yml` | Ruuter: `turnerrainer/ruuter:rc`; Resql: `askendest/resql:0.1.0-alpha.5` (vt allpool) |
 | `DSL/Ruuter/**/*.yml` — `declaration:` | `DSL/Ruuter/**/*.yml` | Eemalda `method`, `accepts`, `returns: json` |
-| `DSL/Resql/**/*.sql` — vana `declaration:` | `DSL/Resql/**/*.sql` | Teisenda uuele `params:`/`returns:` formaadile (vt Samm 7) |
+| `DSL/Resql/**/*.sql` — vana `declaration:` | `DSL/Resql/**/*.sql` | **EI muutu** — `askendest/resql:0.1.0-alpha.5` kasutab vana formaati (vt allpool) |
 
 ### Uued failid
 
@@ -1121,7 +1121,123 @@ error_upstream:
 
 ---
 
+## Resql versiooni valik: miks jääme `askendest/resql:0.1.0-alpha.5` juurde
+
+> **Otsus (2026-08-26):** `turnerrainer/resql:alpha` testimisel ilmnesid mitmeid kriitilisi ühilduvusprobleme. Kuni need on resolveeritud (kas Resql bugfixide või DSL/SQL massmigratsiooniga), jätkame `askendest/resql:0.1.0-alpha.5`-ga.
+
+### Probleem 1 — DSL formaadimuutus (166 SQL faili)
+
+`turnerrainer/resql:alpha` kasutab täiesti erinevat SQL metaandmete formaati:
+
+**Vana formaat** (`askendest/resql:0.1.0-alpha.5`):
+```sql
+/*
+declaration:
+  version: 0.1
+  method: post
+  namespace: user
+  returns: json
+  allowlist:
+    body:
+      - field: id
+        type: string
+  response:
+    fields:
+      - field: id
+        type: string
+*/
+SELECT ...
+```
+
+**Uus formaat** (`turnerrainer/resql:alpha`):
+```sql
+/*
+description: "Kirjeldus"
+namespace: user
+params:
+  id:
+    type: string
+    required: false
+returns:
+  - name: id
+    type: string
+    nullable: true
+*/
+SELECT ...
+```
+
+Kõik 166 SQL faili tuleks konverteerida. See on mehaaniline aga mahukas töö ja kaasneb riskiga.
+
+### Probleem 2 — Karm tüübi validatsioon (breaking change)
+
+`turnerrainer/resql:alpha` valideerib rangelt et päringu keha väärtuse tüüp vastab SQL faili `params` deklaratsioonile:
+
+- `type: number` deklareerimisel + string väärtus → `InvalidParameterTypeException: Parameter 'X' has the wrong type: expected number, got string`
+- `type: string` deklareerimisel + number väärtus → `InvalidParameterTypeException: Parameter 'X' has the wrong type: expected string, got number`
+
+**Mõju LJVIS-le:**
+
+| Olukord | Vana käitumine | Uus käitumine |
+|---|---|---|
+| Ruuter saadab `organisation_id: 14` (number), SQL deklareerib `type: string` | Toimib | `expected string, got number` viga |
+| Ruuter saadab `organisation_id: ""` (tühi string), SQL deklareerib `type: number` | Toimib | `expected number, got string` viga |
+| Ruuter saadab `organisation_id: null`, SQL deklareerib `type: number` | Toimib | Toimib (`required: false` korral) |
+
+See tähendab, et ainuüksi tüüpide ühildamiseks tuleks muuta:
+- ~30 Ruuter DSL faili (lisada `Number()` konversioonid)
+- ~15 SQL faili (tüüpide muutmiseks)
+
+### Probleem 3 — SQL parameetrite `:param::TYPE` cast ei tööta
+
+`turnerrainer/resql:alpha` seab parameetri JDBC tüübi ainult YAML `type:` välja põhjal. SQL-tasandi cast (`:param::BIGINT`, `:param::TEXT`) ei mõjuta parameetri JDBC tüüpi — see **ignoreeritakse**.
+
+**Näide:**
+```sql
+-- SQL failis: id deklareeritud type: string
+WHERE user_account_key = :id::BIGINT
+-- Resql alpha saadab $1 kui TEXT-tüüpi parameetri
+-- PostgreSQL viga: operator does not exist: bigint = text
+```
+
+Ka veeru-poolne cast ei aita — Resql alpha tundub valideerivat tüübid skeemi metaandmete põhjal enne SQL täitmist:
+```sql
+WHERE user_account_key::TEXT = :id  -- ka see annab: bigint = text
+```
+
+**Lahendus nõuaks:** kas `type: number` deklareerimine JA `Number()` konversioon kõigis Ruuteri kutsujates, või SQL ümberkirjutamine ilma parameetri-castideta.
+
+### Probleem 4 — `::TEXT` cast parameetril põhjustab null baidi vea
+
+Kui SQL-is on `COALESCE(:param::TEXT, '')` ja parameeter on deklareeritud `type: number`, saadab Resql alpha PostgreSQL-ile null baidi (0x00):
+
+```
+SQL execution failed: error returned from database: invalid byte sequence for encoding "UTF8": 0x00
+```
+
+See muster on LJVISes laialt kasutusel "valikuline filter" mustrina (nt `organisation_id`, `search`). Kõik sellised mustrid tuleks ümber kirjutada, nt:
+```sql
+-- Vana (ei tööta turnerrainer:alpha-ga):
+COALESCE(:organisation_id::TEXT, '') = ''
+-- Uus (töötab):
+:organisation_id IS NULL
+```
+
+### Kokkuvõte
+
+| # | Probleem | Mõjutatud failid | Hinnanguline töö |
+|---|---|---|---|
+| 1 | DSL formaadimuutus | 166 SQL faili | 2–4 tundi (automaatse skriptiga) |
+| 2 | Karm tüübi validatsioon | ~30 Ruuter + ~15 SQL | 4–8 tundi (käsitsi) |
+| 3 | `::TYPE` cast parameetril ei tööta | ~25 SQL faili | 2–4 tundi |
+| 4 | `::TEXT` cast → null bait | ~10 SQL faili | 1–2 tundi |
+
+**Soovitus:** Migratsiooni tasub teha siis, kui `turnerrainer/resql:alpha` saab stabiilsemaks (dokumentatsioon, changelog, bugfixid). Praegu hoiame `askendest/resql:0.1.0-alpha.5`.
+
+---
+
 ## Piirangud ja teadaolevad erinevused
+
+### Rust Ruuter
 
 | Teema | Olukord |
 |---|---|
@@ -1132,3 +1248,13 @@ error_upstream:
 | **WebSocket** | `DSL/<project>/WS/<path>.yml` → endpoint `ws://host/<project>/<path>`. OpenAPI-s ei kuvata (AsyncAPI's töö). |
 | **Idempotency-Key** | Raamistik ei käsitle enam — DSL peab ise implementeerima `state.set` + body hash mustriga. |
 | **Path parameetrid** | Toetatud: üks DSL fail saab vastata `/things`, `/things/{id}`, `/things/{id}/{sub}` (task 018). |
+
+### askendest/resql:0.1.0-alpha.5 SQL-piirangud
+
+| Teema | Olukord | Lahendus |
+|---|---|---|
+| **Kõik deklareeritud parameetrid kohustuslikud** | Iga `allowlist.body` väli peab olema päringu kehas — puuduv parameeter annab `No value supplied for the SQL parameter 'X'`. `required: false` ei mõjuta käitumist. | Ruuter DSL peab alati kõik parameetrid saatma; valikuliste puhul kasuta `null` või tühja stringi (`""`) |
+| **Numbriliste ID-de cast parameeter-poolel** | `:id::BIGINT` — cast peab olema parameetri küljel, mitte veeru küljel (`ua.user_account_key::TEXT = :id` **ei tööta**). | Kasuta alati `:id::BIGINT` (parameeter cast), mitte veeru poole `::TEXT` cast'i |
+| **Valikulised string-filtrid** | `NULL` parameetrit ei saa otseselt `IS NULL`-iga kontrollida SQL-is (Resql alpha 5 sidub null'i tühja stringina `''`). | Kasuta `COALESCE(:param::TEXT, '') = ''` mustrit: `WHERE (COALESCE(:organisation_id::TEXT, '') = '' OR veerg::TEXT = :organisation_id::TEXT)` |
+| **Valikulised number-filtrid (org ID võtmete puhul)** | BIGINT veerge ei saa tekstiliselt `COALESCE::TEXT` mustriga filtreerida ilma cast'ita mõlemal pool. | Kasuta `l.organisation_id::TEXT = :organisation_id::TEXT` koos `COALESCE(:organisation_id::TEXT, '') = ''` eeltingimusega |
+| **Restart SQL muutuste järel** | Resql **ei laadi SQL faile hot-reload'iga** — konteineri restart on vajalik pärast iga SQL muutust. | `docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --force-recreate resql-ljvis` |

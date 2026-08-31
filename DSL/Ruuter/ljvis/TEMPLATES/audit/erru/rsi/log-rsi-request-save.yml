@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Audit: RSI message draft saved (LJVIS2-147). Logged on every draft save — initial create (incl. pre-fill from a technical-check card, LJVIS2-148 §4.1) and revision. The description carries the request identifier, the vehicle registration number, changed fields and the resulting status."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

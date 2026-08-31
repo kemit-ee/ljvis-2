@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get a single drive rest form (teammate) by key"
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:

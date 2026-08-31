@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get a presigned download URL for a good repute form file attachment (LJVIS2-136)"
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

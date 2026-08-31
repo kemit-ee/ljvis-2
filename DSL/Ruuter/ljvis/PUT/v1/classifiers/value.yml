@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Update a classifier value validity period"
-  method: put
-  accepts: json
-  returns: json
   namespace: classifiers
   allowlist:
     body:

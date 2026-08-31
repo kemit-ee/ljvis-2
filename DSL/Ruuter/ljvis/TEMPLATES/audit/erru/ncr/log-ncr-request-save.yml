@@ -3,9 +3,6 @@ declaration:
   description: "Audit: outgoing NCR request draft saved (LJVIS2-63). Logged on every draft save
     — initial create and revision. Description carries the case identifier, changed fields and
     the resulting status."
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

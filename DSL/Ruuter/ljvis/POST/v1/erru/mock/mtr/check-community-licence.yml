@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "MOCK Estonian transport-undertaking lookup — dev and CI only. Stands in for the X-tee MTR checkCommunityLicence service that the inbound CTUD handler must call to answer another member state (see the LJVIS2-142 comment by Eda Rembel). Production points ERRU_MTR_ENDPOINT at the real service via XTR. Match rule is deterministic so tests can rely on it: an undertaking is found when the community licence number is EE-CL-2020-11111 or the name contains EESTI; everything else is not found. riskBand is always Grey — Estonia returns a neutral risk band until the risk-assessment module (EPIC 16) is delivered, exactly as the specification requires."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

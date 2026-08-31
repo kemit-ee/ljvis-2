@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Create a new outgoing CGR request draft (LJVIS2-138). Validation is delegated to the shared TEMPLATES/erru/cgr/validate-cgr-request template so the create, revise and inbound paths cannot drift. status ('initiated'), direction ('outgoing'), cgr_from ('EE') and business_case_id are all assigned server-side in append-draft.sql and are never accepted from the client. NYSIIS search keys are NOT computed here — LJVIS2-139 §4.1 derives them 'ERRU sõnumi koostamise käigus' (during outgoing message composition), i.e. at send time (POST /v1/erru/cgr/send, a later stage), not at draft save time. 'Kopeeri päring' (LJVIS2-140) is a frontend-only affordance: the caller reads the source request via GET /v1/erru/cgr/get and re-POSTs its tm_*/certificate_* fields here as a normal create — there is no separate copy endpoint. Text fields are upper-cased per the application-wide rule.\n\nURL is nested under draft/ (not a bare '/v1/erru/cgr') because CGR needs its own permission-isolated directory tree — see POST/v1/erru/cgr/draft/.guard."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

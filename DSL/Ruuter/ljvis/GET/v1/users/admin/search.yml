@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Search/list users (admin scope — all organisations)"
-  method: get
-  accepts: json
-  returns: json
   namespace: users
   allowlist:
     params:

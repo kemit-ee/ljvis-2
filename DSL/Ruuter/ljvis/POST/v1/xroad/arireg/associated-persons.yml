@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get persons associated with a company from Ariregister (ettevottegaSeotudIsikud_v1) via XTR"
-  method: post
-  accepts: json
-  returns: json
   namespace: xroad
   allowlist:
     body:

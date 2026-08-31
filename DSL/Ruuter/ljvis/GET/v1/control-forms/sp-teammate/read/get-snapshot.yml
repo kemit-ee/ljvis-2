@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get version history snapshot for a drive rest form (teammate)"
-  method: get
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     params:

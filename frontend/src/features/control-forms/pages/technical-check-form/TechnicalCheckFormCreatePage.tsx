@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useEffect, useRef, useState } from 'react';
 import type { TechnicalCheckVariant, TechnicalCheckForm, Trailer } from '../../types';
 import { useTechnicalCheckForm } from './useTechnicalCheckForm';
 import { TechnicalCheckFormFields } from './TechnicalCheckFormFields';
@@ -28,6 +28,8 @@ export interface TechnicalCheckFormCreatePageRef {
 
 export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreatePageRef, Props>(
   ({ type, initialData, compoundFormKey, onSaved, onValuesChange, initialValidate, compoundTrailers, trailerIndex }, ref) => {
+    const [validationTriggered, setValidationTriggered] = useState(false);
+    const [checkErrorDismissed, setCheckErrorDismissed] = useState(false);
     const {
       formik,
       parts,
@@ -40,6 +42,8 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
       toggleViolation,
       triggerConfirm,
       compoundFormKeyOverride,
+      formError,
+      setFormError,
     } = useTechnicalCheckForm(type, initialData, (id) => onSaved?.(id), compoundFormKey);
 
     useImperativeHandle(ref, () => ({
@@ -47,6 +51,8 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
         if (overrideCompoundFormKey !== undefined) {
           compoundFormKeyOverride.current = overrideCompoundFormKey;
         }
+        setValidationTriggered(true);
+        setCheckErrorDismissed(false);
         formik.handleSubmit();
       },
       getFormData: () => formik.values,
@@ -59,6 +65,8 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
       isDirty: () => formik.dirty,
       confirm: () => { void triggerConfirm(); },
       validateForm: () => {
+        setValidationTriggered(true);
+        setCheckErrorDismissed(false);
         void formik.validateForm().then(() => {
           const touched: Record<string, boolean> = {};
           Object.keys(formik.values).forEach((key) => {
@@ -125,6 +133,9 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
           isDesktop={isDesktop}
           compoundTrailers={compoundTrailers}
           trailerIndex={trailerIndex}
+          checkError={formError}
+          validationTriggered={validationTriggered && !checkErrorDismissed}
+          onCheckErrorClose={() => { setFormError(null); setCheckErrorDismissed(true); }}
         />
       </form>
     );

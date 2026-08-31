@@ -14,9 +14,6 @@ declaration:
     no Yellow value; confirmed against that classifier seed). No auth
     required: machine-to-machine only, port 8089 is not exposed outside the
     Docker network.
-  method: post
-  accepts: json
-  returns: json
   namespace: risk_score
   allowlist:
     body:

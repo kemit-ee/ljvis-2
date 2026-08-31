@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Get organisations linked to a user group"
-  method: get
-  accepts: json
-  returns: json
   namespace: user-groups
   allowlist:
     params:

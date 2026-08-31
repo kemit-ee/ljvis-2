@@ -1,9 +1,6 @@
 declaration:
   version: "1.0"
   description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be in the 'sent' terminal state. Only the entry for the specified memberStateCode is updated in the member_states JSONB; all other countries' responses and the workflow_id are preserved unchanged. A new snapshot is appended (sent → sent transition). ERRU v2.4 member states appear as NotAvailable in the mock and must be stored as-is. The ERRU_CGR_ENDPOINT constant is used, identical to send.yml. On a transport failure (or a response missing memberStates) the request is NOT transitioned to 'error' — the already-sent broadcast and other countries' answers remain valid, so the status stays 'sent' and a retry of the resend is immediately possible; only an audit entry is logged and 502 is returned."
-  method: post
-  accepts: json
-  returns: json
   namespace: erru
   allowlist:
     body:

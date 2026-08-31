@@ -8,6 +8,7 @@ import {
   TextField,
   Text,
   DateField,
+  Alert,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { ClassifierEntry } from '../../../classifiers/types';
@@ -52,6 +53,9 @@ interface TechnicalCheckFormFieldsProps {
   compoundTrailers?: Trailer[];
   /** Index of this trailer's tab within compoundTrailers — drives the live reg-nr display. */
   trailerIndex?: number;
+  checkError?: string | null;
+  onCheckErrorClose?: () => void;
+  validationTriggered?: boolean;
 }
 
 const RESULT_OPTIONS = [
@@ -81,6 +85,9 @@ export function TechnicalCheckFormFields({
   isDesktop,
   compoundTrailers,
   trailerIndex,
+  checkError,
+  onCheckErrorClose,
+  validationTriggered,
 }: TechnicalCheckFormFieldsProps) {
   const { t } = useTranslation();
   const [modalPartCode, setModalPartCode] = useState<string | null>(null);
@@ -148,6 +155,16 @@ export function TechnicalCheckFormFields({
         </Card>
       )}
 
+      {(checkError || (validationTriggered && formik.errors.partsSummary)) && (
+        <Alert
+          type="danger"
+          size="small"
+          className="mb-1"
+          onClose={onCheckErrorClose}
+        >
+          {t('forms.technical_check.validation.checkError')}
+        </Alert>
+      )}
       <Card className="mb-1">
         <Card.Content>
           <Heading element="h3" className="mb-1">
@@ -174,7 +191,7 @@ export function TechnicalCheckFormFields({
         open={modalPartCode !== null}
         onClose={() => setModalPartCode(null)}
         partCode={modalPartCode}
-        partName={modalPart ? `${modalPart.code} — ${modalPart.name}` : ''}
+        partName={modalPart ? `${modalPart.code.replace(/^[A-Z]+_/, '')} \u2014 ${modalPart.name}` : ''}
         defects={modalDefects}
         existingDefects={(values.partsDefects ?? []).filter(
           (d) => d.partCode === modalPartCode,

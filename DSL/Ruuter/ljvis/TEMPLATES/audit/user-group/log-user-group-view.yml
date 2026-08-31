@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Audit: user group view event — fetches group users internally to build description"
-  method: post
-  accepts: json
-  returns: json
   namespace: service
   allowlist:
     headers:

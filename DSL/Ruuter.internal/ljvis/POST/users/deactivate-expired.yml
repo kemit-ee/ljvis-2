@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Deactivate expired users - removes groups and sets status to inactive (called by cron)"
-  method: post
-  accepts: json
-  returns: json
   namespace: users
 
 extractRequestData:

@@ -2,9 +2,6 @@ declaration:
 
   version: "1.0"
   description: "Create or update the transport-interruption sub-form (autoveo katkestamise kontrollvorm, LJVIS2-74) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
-  method: post
-  accepts: json
-  returns: json
   namespace: control-forms
   allowlist:
     body:
