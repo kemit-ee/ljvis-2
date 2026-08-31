@@ -197,6 +197,7 @@ export interface DriveRestForm {
   transportClasses?: TransportClass[];
   cabotageViolations?: CabotageViolation[];
   resultType?: string;
+  additionalMeasure?: string;
   proceedingType?: string;
   proceedingReferenceNumber?: string;
   documentChecks?: DocumentCheck[];
