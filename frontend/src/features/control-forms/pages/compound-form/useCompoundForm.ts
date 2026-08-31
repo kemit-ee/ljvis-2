@@ -278,14 +278,6 @@ export function useCompoundForm(
                 `drivers[${index}].lastName`,
               ),
             );
-          if (!driver?.personalCodeForeign)
-            errors.push(
-              new Yup.ValidationError(
-                req,
-                driver?.personalCodeForeign,
-                `drivers[${index}].personalCodeForeign`,
-              ),
-            );
           if (!driver?.birthDate)
             errors.push(
               new Yup.ValidationError(

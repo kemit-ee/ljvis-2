@@ -172,6 +172,7 @@ export function LabourInspectionFormFields({
               <DateField
                 id="inspectionDate"
                 label={t('forms.labour_inspection.inspectionDate')}
+                monthYearSelectType="grid"
                 disableFuture
                 required
                 selected={
