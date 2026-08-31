@@ -46,5 +46,7 @@ VALUES (
     :body_et,
     COALESCE(NULLIF(:created_by, ''), 'system')
 )
-ON CONFLICT ON CONSTRAINT uq_notification_entity_type DO NOTHING
+ON CONFLICT (type, related_entity_type, related_entity_id)
+    WHERE related_entity_id IS NOT NULL
+    DO NOTHING
 RETURNING id;
