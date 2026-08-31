@@ -71,7 +71,7 @@ callSendPostkast:
   next: returnResult
 
 returnResult:
-  return: ${sendRes.response.body}
+  return: ${sendRes.response.body.response ?? sendRes.response.body}
   next: end
 
 returnBadRequest:
