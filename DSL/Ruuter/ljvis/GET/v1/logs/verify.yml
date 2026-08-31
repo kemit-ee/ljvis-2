@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Walk the audit-log hash chain and verify integrity. Returns ok=true when every row's prev_row_hash matches the preceding row's row_hash; ok=false with the first breach location otherwise."
+  description: "Walk the audit-log hash chain and verify integrity. Returns ok=true when every row's prev_row_hash matches the preceding row's row_hash; ok=false with the first breach location otherwise. Requires audit.verify — the chain is global, so this is not available under the organisation-scoped audit.read.local permission (logs/.guard, shared with list/detail/export, also lets audit.read.local through)."
   namespace: logs
   allowlist:
     params:
@@ -11,6 +11,20 @@ declaration:
       - field: to
         type: string
         description: "End event_id (inclusive). Omit to walk to the current tail."
+
+getContext:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: checkVerifyPermission
+
+checkVerifyPermission:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('audit.verify')}
+      next: extractRequestData
+  next: returnForbidden
 
 extractRequestData:
   assign:
@@ -32,4 +46,9 @@ verifyChain:
 
 returnSuccess:
   return: ${res.response.body[0]}
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "forbidden"
   next: end

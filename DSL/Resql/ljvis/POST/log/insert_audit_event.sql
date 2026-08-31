@@ -28,6 +28,9 @@ declaration:
       - field: log_content
         type: string
         description: "JSON object with additional event data"
+      - field: organisation_id
+        type: string
+        description: "Actor's organisation id at write time (derived from actor_personal_code). Empty for system processes."
       - field: created_by
         type: string
         description: "Identifier of the user or process that wrote the record"
@@ -50,6 +53,7 @@ INSERT INTO audit.audit_event (
     actor_personal_code_hash,
     description,
     log_content,
+    organisation_id,
     created_by,
     trace_id,
     span_id
@@ -61,6 +65,7 @@ INSERT INTO audit.audit_event (
     audit.hash_personal_code(:actor_personal_code),
     :description,
     :log_content::json,
+    NULLIF(:organisation_id, '')::BIGINT,
     :created_by,
     NULLIF(:trace_id, ''),
     NULLIF(:span_id, '')

@@ -43,6 +43,7 @@ export const PERMISSIONS = {
   USER_GROUP_LIST_LOCAL: 'user_group.list.local',
   CLASSIFIER_LIST: 'classifier.list',
   AUDIT_READ: 'audit.read',
+  AUDIT_READ_LOCAL: 'audit.read.local',
   CTUD_READ: 'ctud.read',
   CGR_READ: 'cgr.read',
   RSI_READ: 'rsi.read',

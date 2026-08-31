@@ -1,0 +1,803 @@
+{
+  "info": {
+    "name": "LJVIS \u2014 Audit Log (auditilogi + asutuse-skoop)",
+    "_postman_id": "ljvis-audit-log-v1",
+    "description": "Functional tests for the audit log endpoints (GET /v1/logs, /v1/logs/log, /v1/logs/export, /v1/logs/verify). Covers the permission boundary and the organisation scope: audit.read sees every organisation's events; audit.read.local sees only events whose actor belonged to the caller's own organisation; audit.verify (chain integrity check) is global and Super-Admin only. Self-contained: seeds audit events with known organisation_id values via Resql insert_audit_event and asserts each role sees exactly its allowed slice.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login \u2014 Super Admin (audit.read)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var t = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + t);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Auth] Login \u2014 Org Admin (audit.read.local, org JUM)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var t = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.environment.set('cookie_local', 'customJwtCookie=' + t);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_org_admin}}\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Auth] Login \u2014 Officer (no audit permission)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var t = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.environment.set('cookie_officer', 'customJwtCookie=' + t);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_officer}}\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] Resolve JUM + PPA organisation ids",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var orgs = Array.isArray(body) ? body : [];",
+              "var jum = orgs.find(o => o.code === 'JUM'); var ppa = orgs.find(o => o.code === 'PPA');",
+              "pm.test('JUM + PPA present', () => { pm.expect(jum).to.not.be.undefined; pm.expect(ppa).to.not.be.undefined; });",
+              "pm.environment.set('org_jum_id', String(jum.id));",
+              "pm.environment.set('org_ppa_id', String(ppa.id));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/organisation/list_organisations",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "organisation",
+            "list_organisations"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] Seed audit event in JUM org",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.environment.set('audit_jum_id', row.eventId || row.event_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/log/insert_audit_event",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "log",
+            "insert_audit_event"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"event_id\": \"\", \"event_type\": \"test.audit.ci\", \"event_category\": \"system_process\", \"actor_name\": \"CI Audit Seeder\", \"actor_personal_code\": \"\", \"description\": \"AUDITCI marker JUM\", \"log_content\": \"{}\", \"organisation_id\": \"{{org_jum_id}}\", \"created_by\": \"newman\", \"trace_id\": \"\", \"span_id\": \"\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] Seed audit event in PPA org",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.environment.set('audit_ppa_id', row.eventId || row.event_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/log/insert_audit_event",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "log",
+            "insert_audit_event"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"event_id\": \"\", \"event_type\": \"test.audit.ci\", \"event_category\": \"system_process\", \"actor_name\": \"CI Audit Seeder\", \"actor_personal_code\": \"\", \"description\": \"AUDITCI marker PPA\", \"log_content\": \"{}\", \"organisation_id\": \"{{org_ppa_id}}\", \"created_by\": \"newman\", \"trace_id\": \"\", \"span_id\": \"\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "[Setup] Seed audit event with no organisation (system)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.environment.set('audit_sys_id', row.eventId || row.event_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/log/insert_audit_event",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "log",
+            "insert_audit_event"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"event_id\": \"\", \"event_type\": \"test.audit.ci\", \"event_category\": \"system_process\", \"actor_name\": \"CI Audit Seeder\", \"actor_personal_code\": \"\", \"description\": \"AUDITCI marker SYS\", \"log_content\": \"{}\", \"organisation_id\": \"\", \"created_by\": \"newman\", \"trace_id\": \"\", \"span_id\": \"\"}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs \u2014 no cookie \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs \u2014 officer (no audit perm) \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403 without audit.read / audit.read.local', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs?search=AUDITCI \u2014 Super Admin \u2192 200, sees all 3 (JUM + PPA + system)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : (body.items || body.content || body.logs || []);",
+              "var ids = list.map(r => String(r.eventId || r.event_id || r.id));",
+              "pm.test('sees JUM event', () => pm.expect(ids).to.include(pm.environment.get('audit_jum_id')));",
+              "pm.test('sees PPA event', () => pm.expect(ids).to.include(pm.environment.get('audit_ppa_id')));",
+              "pm.test('sees system event', () => pm.expect(ids).to.include(pm.environment.get('audit_sys_id')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs?search=AUDITCI&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "AUDITCI"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs?search=AUDITCI \u2014 Org Admin (audit.read.local) \u2192 200, sees ONLY own-org (JUM)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : (body.items || body.content || body.logs || []);",
+              "var ids = list.map(r => String(r.eventId || r.event_id || r.id));",
+              "pm.test('sees own-org (JUM) event', () => pm.expect(ids).to.include(pm.environment.get('audit_jum_id')));",
+              "pm.test('does NOT see PPA event', () => pm.expect(ids).to.not.include(pm.environment.get('audit_ppa_id')));",
+              "pm.test('does NOT see system (no-org) event', () => pm.expect(ids).to.not.include(pm.environment.get('audit_sys_id')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_local}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs?search=AUDITCI&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "AUDITCI"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs/log?q=<JUM event> \u2014 Org Admin \u2192 200, own-org event visible",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('event returned', () => pm.expect(row && (row.eventId || row.event_id)).to.not.be.empty);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_local}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs/log?q={{audit_jum_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs",
+            "log"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{audit_jum_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs/log?q=<PPA event> \u2014 Org Admin \u2192 empty (other org, out of scope)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var arr = Array.isArray(body) ? body : (body ? [body] : []);",
+              "pm.test('other-org event not returned', () => pm.expect(arr.filter(r => r && (r.eventId || r.event_id)).length).to.eql(0));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_local}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs/log?q={{audit_ppa_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs",
+            "log"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{audit_ppa_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs/log?q=<PPA event> \u2014 Super Admin \u2192 200, any-org event visible",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('event returned', () => pm.expect(row && (row.eventId || row.event_id)).to.not.be.empty);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs/log?q={{audit_ppa_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs",
+            "log"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{audit_ppa_id}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs/verify \u2014 officer \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs/verify",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs",
+            "verify"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs/verify \u2014 Org Admin (audit.read.local only, no audit.verify) \u2192 403",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('403 \u2014 verify requires audit.verify (Super Admin only)', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_local}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs/verify",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs",
+            "verify"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs/verify \u2014 Super Admin \u2192 200",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs/verify",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs",
+            "verify"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs/export?search=AUDITCI \u2014 Org Admin \u2192 200, CSV scoped to own org",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var txt = pm.response.text();",
+              "pm.test('CSV contains own-org marker', () => pm.expect(txt).to.include('AUDITCI marker JUM'));",
+              "pm.test('CSV excludes other-org marker', () => pm.expect(txt).to.not.include('AUDITCI marker PPA'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_local}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs/export?search=AUDITCI",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs",
+            "export"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "AUDITCI"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /v1/logs/export?search=AUDITCI \u2014 Super Admin \u2192 200, CSV has all orgs",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var txt = pm.response.text();",
+              "pm.test('CSV contains JUM marker', () => pm.expect(txt).to.include('AUDITCI marker JUM'));",
+              "pm.test('CSV contains PPA marker', () => pm.expect(txt).to.include('AUDITCI marker PPA'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/logs/export?search=AUDITCI",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "logs",
+            "export"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "AUDITCI"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

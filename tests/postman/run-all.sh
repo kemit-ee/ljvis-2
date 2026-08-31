@@ -151,6 +151,10 @@ newman run "$COL/cron-jobs.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/cron-jobs.html"
 
+newman run "$COL/audit-log.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/audit-log.html"
+
 echo ""
 echo "All collections passed."
 echo "HTML reports:"
