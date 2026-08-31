@@ -15,8 +15,9 @@
 6. [API loogika](#6-api-loogika)
 7. [Autentimine ja autoriseerimine](#7-autentimine-ja-autoriseerimine)
 8. [Audit-logimine](#8-audit-logimine)
-9. [Andmemudel](#9-andmemudel)
-10. [Viited](#10-viited)
+9. [X-tee integratsioon ja andmejälgija](#9-x-tee-integratsioon-ja-andmejälgija)
+10. [Andmemudel](#10-andmemudel)
+11. [Viited](#11-viited)
 
 ---
 
@@ -135,26 +136,32 @@ Jagatud alamvoogud (ei ole HTTP endpointid):
 
 Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
 
-### 4.3 RESQL
+### 4.3 Ruuter Internal (X-tee gateway)
+
+- **Asukoht:** `DSL/Ruuter.internal/ljvis/`
+- **Roll:** Sisemiste ja X-tee kaudu saabuvaute päringute käsitlemine — **ei ole nginx-ist proxitud**, ligipääsetav ainult X-tee turvaserveri ja konteinerivõrgu kaudu
+- **Teenused:** X-tee inbound päringud (isiku andmed, töökontrollid), andmejälgija REST API (DUMonitor v2), cron-päringud
+
+### 4.4 RESQL
 
 - **Asukoht:** `DSL/Resql/ljvis/`
 - **Roll:** SQL failid muudetakse automaatselt REST endpointideks
 - **Kutsumisviis:** Ruuter kutsub HTTP POST-iga `[#LJVIS_RESQL]/ressurss/päringunimi`
 - **Andmebaas:** PostgreSQL, JDBC ühendus
 
-### 4.4 DMapper
+### 4.5 DMapper
 
 - **Asukoht:** `DSL/DMapper/`
 - **Roll:** Andmete transformatsioon Handlebars mallide kaudu
 - **Kasutus:** Ruuter kutsub DMapper-it, kui vastuse kuju vajab ümberkujundamist
 
-### 4.5 TIM
+### 4.6 TIM
 
 - **Roll:** Autentimine ja sessioonihaldus
 - **Protokoll:** OIDC (dev-s TARA Mock, prod-s päris TARA)
 - **Suhtlus Ruuteriga:** Ruuter valideerib igal päringul JWT küpsise TIM-i vastu (`check-user-authority` mall)
 
-### 4.6 Liquibase
+### 4.7 Liquibase
 
 - **Asukoht:** `DSL/Liquibase/`
 - **Roll:** Andmebaasi skeemi versioonihaldus ja migratsioonid
@@ -216,6 +223,28 @@ sequenceDiagram
     RS-->>R: JSON vastus
     R-->>FE: JSON vastus
     FE-->>B: UI uuendus
+```
+
+### 5.5 X-tee inbound päring (andmejälgija logi)
+
+```
+X-tee turvaserver (eesti.ee / teise asutuse infosüsteem)
+  → ruuter-internal:8089/ljvis/xroad/provide/isiku-kontroll (POST)
+  → Ruuter: valideeri isikukood
+  → RESQL: päri kontrollid (PostgreSQL)
+  → RESQL: lisa xroad.xroad_integration_log kirje
+  → RESQL: lisa xroad.aj_usage_log kirje (andmejälgija)
+  → vastus X-tee turvaserverile
+```
+
+### 5.6 Andmejälgija findUsage (eesti.ee pärib isiku kasutusteabe)
+
+```
+eesti.ee → X-tee turvaserver (LJVIS, findUsage teenus)
+  → ruuter-internal:8089/ljvis/xroad/v2/findUsage (GET)
+  → Ruuter: valideeri X-Road-UserId == userCode
+  → RESQL: SELECT xroad.aj_usage_log WHERE user_code = :userCode
+  → vastus eesti.ee-le (DUMonitor OpenAPI v2 formaat)
 ```
 
 ---
@@ -357,7 +386,46 @@ Lähemalt: [`docs/audit-logging.md`](audit-logging.md)
 
 ---
 
-## 9. Andmemudel
+## 9. X-tee integratsioon ja andmejälgija
+
+### 9.1 X-tee arhitektuur
+
+LJVIS kasutab X-teed kahes suunas:
+
+| Suund | Kirjeldus | Näited |
+|-------|-----------|--------|
+| **Outbound** (tarbija) | LJVIS küsib andmeid teistest registritest | Rahvastikuregister, e-Toimik, Äriregister, Liiklusregister |
+| **Inbound** (pakkuja) | Teised asutused küsivad andmeid LJVIS-ist | isiku-kontroll, isiku-ettevote-kontrollid, register-job-inspection-v3 |
+
+Kõik X-tee päringud käivad läbi Ruuter Internal konteinerist. Ruuter Internal ei ole nginx-ist avalikult eksponeeritud — ainult X-tee turvaserver pääseb ligi.
+
+### 9.2 Andmejälgija (DUMonitor)
+
+Andmejälgija on RIA koordineeritud infrastruktuur (IKS § 19, § 25), mis võimaldab isikul eesti.ee portaalis näha, kes tema andmeid LJVIS-is on töödelnud.
+
+**Viide:** [RIA Andmejälgija GitHub](https://github.com/e-gov/AJ/) · [DUMonitor OpenAPI v2.1.0](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/dumonitor-openapi.yaml)
+
+LJVIS implementeerib DUMonitor OpenAPI v2.1.0 kolme endpointiga:
+
+| Endpoint | URL | Kirjeldus |
+|----------|-----|-----------|
+| `heartbeat` | `GET /ljvis/xroad/v2/heartbeat` | Elutuukse |
+| `usagePeriod` | `GET /ljvis/xroad/v2/usagePeriod` | Ajavahemik mille kohta on kasutusteave |
+| `findUsage` | `GET /ljvis/xroad/v2/findUsage` | Isiku kasutusteabe kirjed (paginated) |
+
+**Mis sündmused logitakse AJ-sse:**
+
+| Sündmus | Tingimus |
+|---------|----------|
+| `isiku-kontroll` X-tee päring | Iga edukas päring |
+| `isiku-ettevote-kontrollid` X-tee päring | Iga edukas päring |
+| `register-job-inspection-v3` X-tee sisestus | Ainult kui `juhi_isikukood` esitati |
+
+**Arhitektuuriotsus (ADR-005):** `xroad_integration_log` jääb puutumata — AJ kirjed lähevad eraldi append-only tabelisse `xroad.aj_usage_log`. Vt [`docs/andmejalgija-seadistamine.md`](../andmejalgija-seadistamine.md).
+
+---
+
+## 10. Andmemudel
 
 Põhilised tabelid:
 
@@ -375,11 +443,18 @@ Põhilised tabelid:
 | `classifier_value` | Klassifikaatori väärtus (kehtivusperioodiga) |
 | `audit_event` | Audit-logi sündmused |
 
+**X-tee skeema (`xroad`):**
+
+| Tabel | Kirjeldus |
+|-------|-----------|
+| `xroad.xroad_integration_log` | Kõigi X-tee päringute integratsioonilogi (outbound + inbound) |
+| `xroad.aj_usage_log` | Andmejälgija kasutusteabe logi — **append-only** (IKS § 19, § 25) |
+
 Lähemalt: [`docs/data_model.md`](data_model.md)
 
 ---
 
-## 10. Viited
+## 11. Viited
 
 | Dokument | Sisu |
 |----------|------|
@@ -395,3 +470,5 @@ Lähemalt: [`docs/data_model.md`](data_model.md)
 | [`docs/logging-spec.md`](logging-spec.md) | Logimise vorming ja reeglid |
 | [`docs/db_errorhandling_rules.md`](db_errorhandling_rules.md) | Andmebaasivigade käsitlus |
 | [`docs/use-cases-ljvis.md`](use-cases-ljvis.md) | Kasutuslood (EPIC 02, EPIC 04) |
+| [`docs/andmejalgija-seadistamine.md`](../andmejalgija-seadistamine.md) | Andmejälgija X-tee turvaserveri seadistusjuhend |
+| [RIA Andmejälgija GitHub](https://github.com/e-gov/AJ/) | AJ spetsifikatsioon, rakendusjuhend, OpenAPI (väline) |

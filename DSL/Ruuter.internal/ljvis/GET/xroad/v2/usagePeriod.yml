@@ -1,0 +1,39 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    AJ usagePeriod — tagastab ajavahemiku mille kohta on kasutusteave saadaval
+    (DUMonitor OpenAPI v2 /v2/usagePeriod). periodStart on MIN(logtime) tabelis.
+    Tühi tabel tagastab {"periodStart": null}.
+  namespace: xroad-aj
+
+queryPeriod:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/usage_period"
+    headers:
+      type: json
+    body: {}
+  result: periodResult
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: "${periodResult.response.status < 200 || periodResult.response.status >= 300}"
+      next: returnServerError
+  next: buildResponse
+
+buildResponse:
+  assign:
+    period_start: "${(periodResult.response.body && periodResult.response.body[0]) ? periodResult.response.body[0].period_start : null}"
+  next: returnOk
+
+returnOk:
+  status: 200
+  return: "${JSON.stringify({periodStart: period_start})}"
+  next: end
+
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end
