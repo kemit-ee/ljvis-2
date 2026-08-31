@@ -68,8 +68,8 @@ extractFormData:
 
 extractDriverCodes:
   assign:
-    driver1_personal_code_ee: "${drivers[0].personalCodeEe || ''}"
-    driver1_personal_code_foreign: "${drivers[0].personalCodeForeign || ''}"
+    driver1_personal_code_ee: "${drivers[0] != null ? drivers[0].personalCodeEe || '' : ''}"
+    driver1_personal_code_foreign: "${drivers[0] != null ? drivers[0].personalCodeForeign || '' : ''}"
     driver2_personal_code_ee: "${drivers[1] != null ? drivers[1].personalCodeEe || '' : ''}"
     driver2_personal_code_foreign: "${drivers[1] != null ? drivers[1].personalCodeForeign || '' : ''}"
   next: checkShouldLog
