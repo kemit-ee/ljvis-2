@@ -532,7 +532,7 @@ export function CompoundFormCreatePage() {
                               formik.setFieldValue('road', '');
                               formik.setFieldValue('road_other', '');
                               formik.setFieldValue('kilometer', '');
-                              formik.setFieldValue('road_type', ROAD.NATIONAL);
+                              formik.setFieldValue('road_type', ROAD.LOCAL);
                             }
                           }}
                           {...(formik.touched.address && formik.errors.address
@@ -547,14 +547,21 @@ export function CompoundFormCreatePage() {
                         <Select
                           id="road"
                           label={t('forms.compound.road')}
-                          options={(roads ?? []).map((r) => ({
-                            value: r.code,
-                            label: r.name,
-                          }))}
+                          options={[
+                            { value: '', label: '\u00a0' },
+                            ...roads.map((r) => ({
+                              value: r.code,
+                              label: r.name,
+                            })),
+                          ]}
                           value={
-                            (roads ?? [])
-                              .map((r) => ({ value: r.code, label: r.name }))
-                              .find((o) => o.value === formik.values.road) ??
+                            [
+                              { value: '', label: '\u00a0' },
+                              ...roads.map((r) => ({
+                                value: r.code,
+                                label: r.name,
+                              })),
+                            ].find((o) => o.value === formik.values.road) ??
                             null
                           }
                           onChange={(val) => {
@@ -563,15 +570,14 @@ export function CompoundFormCreatePage() {
                                 ? (val as { value: string }).value
                                 : '';
                             formik.setFieldValue('road', roadValue);
-                            if (roadValue === OTHER.ROAD) {
-                              formik.setFieldValue('road_type', ROAD.LOCAL);
+                            if (!roadValue) {
+                              formik.setFieldValue('kilometer', '');
+                              formik.setFieldValue('roadOther', '');
                             } else if (roadValue) {
                               formik.setFieldValue('road_type', ROAD.NATIONAL);
-                            } else {
-                              formik.setFieldValue('road_type', ROAD.NATIONAL);
-                            }
-                            if (roadValue) {
-                              formik.setFieldValue('address', '');
+                              if (roadValue !== OTHER.ROAD) {
+                                formik.setFieldValue('address', '');
+                              }
                             }
                           }}
                           {...(formik.touched.road && formik.errors.road
@@ -630,42 +636,14 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <Select
+                          <TextField
                             id="controlCountryCode"
                             label={t(
                               'forms.foreign_violation.control_country_code',
                             )}
-                            options={countries}
-                            value={
-                              countries.find(
-                                (o) =>
-                                  o.value === formik.values.controlCountryCode,
-                              ) ?? null
-                            }
-                            onChange={(val) => {
-                              const newCode =
-                                val && !Array.isArray(val)
-                                  ? (val as { value: string }).value
-                                  : '';
-                              formik.setFieldValue(
-                                'controlCountryCode',
-                                newCode,
-                              );
-                              if (newCode !== 'EE') {
-                                formik.setFieldValue('county', '');
-                                formik.setFieldValue('city', '');
-                              }
-                            }}
-                            required
-                            {...(formik.touched.controlCountryCode &&
-                            formik.errors.controlCountryCode
-                              ? {
-                                  helper: {
-                                    text: formik.errors.controlCountryCode,
-                                    type: 'error' as const,
-                                  },
-                                }
-                              : {})}
+                            value={t('countries.EE')}
+                            disabled
+                            onChange={() => undefined}
                           />
                           <Select
                             id="county"
@@ -967,29 +945,21 @@ export function CompoundFormCreatePage() {
                             placeholder={t('common.dateFieldPlaceholder')}
                           />
                         </div>
-                        <Select
+                        <ChoiceGroup
                           id="vehicleCategoryCode"
+                          name="vehicleCategoryCode"
                           label={t('forms.compound.vehicleCategory')}
-                          options={(vehicleCategories ?? []).map((c) => ({
+                          inputType="radio"
+                          direction="row"
+                          value={formik.values.vehicleCategoryCode}
+                          onChange={(val) =>
+                            formik.setFieldValue('vehicleCategoryCode', val)
+                          }
+                          items={vehicleCategories.map((c) => ({
+                            id: `vehicleCat-${c.code}`,
                             value: c.code,
                             label: c.name,
                           }))}
-                          value={
-                            (vehicleCategories ?? [])
-                              .map((c) => ({ value: c.code, label: c.name }))
-                              .find(
-                                (o) =>
-                                  o.value === formik.values.vehicleCategoryCode,
-                              ) ?? null
-                          }
-                          onChange={(val) =>
-                            formik.setFieldValue(
-                              'vehicleCategoryCode',
-                              val && !Array.isArray(val)
-                                ? (val as { value: string }).value
-                                : '',
-                            )
-                          }
                           required
                           {...(formik.touched.vehicleCategoryCode &&
                           formik.errors.vehicleCategoryCode
@@ -1009,7 +979,10 @@ export function CompoundFormCreatePage() {
                             value={formik.values.vehicleCategoryOther}
                             input={{ maxLength: 100 }}
                             onChange={(v) =>
-                              formik.setFieldValue('vehicleCategoryOther', v)
+                              formik.setFieldValue(
+                                'vehicleCategoryOther',
+                                v.toUpperCase(),
+                              )
                             }
                             required
                             {...(formik.touched.vehicleCategoryOther &&
@@ -1319,39 +1292,28 @@ export function CompoundFormCreatePage() {
                                         )}
                                       />
                                     </div>
-                                    <Select
+                                    <ChoiceGroup
                                       id={`trailerCategoryCode_${index}`}
+                                      name={`trailerCategoryCode_${index}`}
                                       label={t(
                                         'forms.compound.trailerCategory',
                                       )}
-                                      options={(trailerCategories ?? []).map(
-                                        (c) => ({
-                                          value: c.code,
-                                          label: c.name,
-                                        }),
-                                      )}
-                                      value={
-                                        (trailerCategories ?? [])
-                                          .map((c) => ({
-                                            value: c.code,
-                                            label: c.name,
-                                          }))
-                                          .find(
-                                            (o) =>
-                                              o.value === trailer.categoryCode,
-                                          ) ?? null
-                                      }
+                                      inputType="radio"
+                                      direction="row"
+                                      value={trailer.categoryCode}
                                       onChange={(val) => {
                                         const u = [...formik.values.trailers];
                                         u[index] = {
                                           ...u[index],
-                                          categoryCode:
-                                            val && !Array.isArray(val)
-                                              ? (val as { value: string }).value
-                                              : '',
+                                          categoryCode: val as string,
                                         };
                                         formik.setFieldValue('trailers', u);
                                       }}
+                                      items={trailerCategories.map((c) => ({
+                                        id: `trailerCat-${index}-${c.code}`,
+                                        value: c.code,
+                                        label: c.name,
+                                      }))}
                                       required
                                       {...((
                                         formik.touched
@@ -1384,7 +1346,7 @@ export function CompoundFormCreatePage() {
                                           const u = [...formik.values.trailers];
                                           u[index] = {
                                             ...u[index],
-                                            categoryOther: v,
+                                            categoryOther: v.toUpperCase(),
                                           };
                                           formik.setFieldValue('trailers', u);
                                         }}
@@ -1534,7 +1496,6 @@ export function CompoundFormCreatePage() {
                               onChange={(v) =>
                                 formik.setFieldValue('companyRegCode', v)
                               }
-                              required
                               {...(formik.touched.companyRegCode &&
                               formik.errors.companyRegCode
                                 ? {
@@ -1553,7 +1514,6 @@ export function CompoundFormCreatePage() {
                               onChange={(v) =>
                                 formik.setFieldValue('companyName', v)
                               }
-                              required
                               {...(formik.touched.companyName &&
                               formik.errors.companyName
                                 ? {
@@ -1597,7 +1557,7 @@ export function CompoundFormCreatePage() {
                                     : '',
                                 )
                               }
-                              required
+                              required={!!formik.values.companyName}
                               {...(formik.touched.companyCountryCode &&
                               formik.errors.companyCountryCode
                                 ? {

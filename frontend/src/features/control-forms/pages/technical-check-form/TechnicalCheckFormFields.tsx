@@ -128,17 +128,6 @@ export function TechnicalCheckFormFields({
 
   return (
     <div>
-      {(checkError || (validationTriggered && formik.errors.partsSummary)) && (
-        <Alert
-          type="danger"
-          size="small"
-          className="mb-1"
-          onClose={onCheckErrorClose}
-        >
-          {t('forms.technical_check.validation.checkError')}
-        </Alert>
-      )}
-
       {variant === 'trailer' && (
         <Card className="mb-1">
           <Card.Content>
@@ -166,6 +155,16 @@ export function TechnicalCheckFormFields({
         </Card>
       )}
 
+      {(checkError || (validationTriggered && formik.errors.partsSummary)) && (
+        <Alert
+          type="danger"
+          size="small"
+          className="mb-1"
+          onClose={onCheckErrorClose}
+        >
+          {t('forms.technical_check.validation.checkError')}
+        </Alert>
+      )}
       <Card className="mb-1">
         <Card.Content>
           <Heading element="h3" className="mb-1">
