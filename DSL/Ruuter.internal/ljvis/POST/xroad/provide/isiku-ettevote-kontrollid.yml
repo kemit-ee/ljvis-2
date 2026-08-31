@@ -22,6 +22,8 @@ assignParams:
   assign:
     isikukood: "${incoming.body.isikukood.trim()}"
     start_time: "${new Date().getTime()}"
+    xroad_member_code: "${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}"
+    xroad_subsystem: "${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}"
   next: queryKontrollid
 
 # Samm 4: Päri kõik ettevõtete kontrollid Resql-ist
@@ -61,6 +63,22 @@ logSuccess:
       source_type: "xroad_client"
       source_record_id: "${incoming.headers['x-road-client']}"
   result: logResult
+  next: logAjUsage
+
+# Samm 6c: Logi AJ kasutusteave (andmejälgija) — eraldi append-only tabelisse
+logAjUsage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${isikukood}"
+      action: "LJVIS-i ettevõtete kontrollide küsimine X-tee kaudu"
+      receiver_code: "${xroad_member_code}"
+      receiver_name: ""
+      receiver_system: "${xroad_subsystem}"
+  result: ajLogResult
   next: buildResponse
 
 # Samm 7: Ehita vastus — tühi array on samuti edukas (HTTP 200)

@@ -1,0 +1,12 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    AJ heartbeat — elutuukse endpoint (DUMonitor OpenAPI v2 /v2/heartbeat).
+    Tagastab alati {"status": "OK"} kui teenus töötab.
+  namespace: xroad-aj
+
+returnOk:
+  status: 200
+  return: '{"status": "OK", "message": "API is ready"}'
+  next: end
