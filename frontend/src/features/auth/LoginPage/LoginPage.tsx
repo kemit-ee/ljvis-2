@@ -57,11 +57,11 @@ export function LoginPage() {
       />
       <div className={styles['content-wrapper']}>
         <Heading element="h1">
-          {t('auth.title', 'Liiklusjärelvalve infosüsteem"')}
+          {t('auth.title')}
         </Heading>
         <div className={`login-description ${styles['description']}`}>
           <Text color="secondary">
-            {t('auth.descriptionHeader', 'Liiklusjärelvalve infosüsteemi päis')}{' '}
+            {t('auth.descriptionHeader')}{' '}
             {!showFullDescription && (
               <a
                 href="#"
@@ -71,7 +71,7 @@ export function LoginPage() {
                 }}
                 className={styles['show-more-link']}
               >
-                {t('auth.showMore', 'Kuva rohkem')}
+                {t('auth.showMore')}
               </a>
             )}
           </Text>
@@ -92,7 +92,7 @@ export function LoginPage() {
                   }}
                   className={styles['show-more-link']}
                 >
-                  {t('auth.showLess', 'Kuva vähem')}
+                  {t('auth.showLess')}
                 </a>
               </Text>
             </>
@@ -124,7 +124,7 @@ export function LoginPage() {
                   className={styles['card-content-header']}
                 >
                   <Heading element="h3">
-                    {t('auth.citizen', 'Kodanikule')}
+                    {t('auth.citizen')}
                   </Heading>
                   <Button
                     id="Default"
@@ -132,7 +132,7 @@ export function LoginPage() {
                     onClick={() => startLogin('citizen')}
                     className={styles['login-button']}
                   >
-                    {t('auth.login', 'Sisene süsteemi')}
+                    {t('auth.login')}
                   </Button>
                 </Card.Content>
                 <Card.Content>
@@ -141,7 +141,7 @@ export function LoginPage() {
                     color="tertiary"
                     className="margin-05"
                   >
-                    {t('auth.citizenInfo', 'Kodaniku info')}
+                    {t('auth.citizenInfo')}
                   </Text>
                 </Card.Content>
               </Card>
@@ -157,7 +157,7 @@ export function LoginPage() {
                   className={styles['card-content-header-no-grow']}
                 >
                   <Heading element="h3">
-                    {t('auth.official', 'Ametnikule')}
+                    {t('auth.official')}
                   </Heading>
                   <Button
                     id="Default"
@@ -165,7 +165,7 @@ export function LoginPage() {
                     onClick={() => startLogin('officer')}
                     className={styles['login-button']}
                   >
-                    {t('auth.login', 'Sisene süsteemi')}
+                    {t('auth.login')}
                   </Button>
                 </Card.Content>
                 <Card.Content>
@@ -174,7 +174,7 @@ export function LoginPage() {
                     color="tertiary"
                     className="margin-05"
                   >
-                    {t('auth.officialInfo', 'Ametniku info')}
+                    {t('auth.officialInfo')}
                   </Text>
                 </Card.Content>
               </Card>

@@ -5,8 +5,12 @@ declaration:
     Citizen-facing read-only single good_repute_form (hea maine vorm) detail.
     Guarded by GET/v1/citizen/.guard (templates/citizen-authority).
     citizen-self scope ONLY — ownership requires row.personalCode == the
-    session's own personalCode. Company scope is not supported and always
-    returns 403: forms.good_repute_form has NO company_reg_code column at
+    session's own personalCode, independent of activeRole — the dashboard's
+    "Minu protokollid" section must be clickable regardless of which role
+    happens to be active (same pattern as forms/search.yml's
+    scope=self and citizen/forms/compound.yml/labour-inspection.yml). Company
+    scope is not supported and always returns 403: forms.good_repute_form
+    has NO company_reg_code column at
     all (it records the transport manager personally, not the undertaking —
     see DSL/Liquibase/.../initial-good-repute-form.sql), so there is no data
     to authorize a company representative against. Citizen-visible status is
@@ -48,7 +52,6 @@ checkSession:
 extractClaims:
   assign:
     personal_code: "${authority.personalCode}"
-    active_role: "${authority.activeRole}"
   next: getForm
 
 getForm:
@@ -77,7 +80,7 @@ checkOwnershipSwitch:
   switch:
     - condition: "${row.status !== 'confirmed'}"
       next: returnNotFound
-    - condition: "${active_role === 'citizen-self' && !!row.personalCode && row.personalCode === personal_code}"
+    - condition: "${!!row.personalCode && row.personalCode === personal_code}"
       next: returnSuccess
   next: returnForbidden
 

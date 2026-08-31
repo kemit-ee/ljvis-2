@@ -173,11 +173,11 @@ export function DocCheckModal({
         <Modal.Footer>
           <Modal.Closer>
             <Button type="button" visualType="secondary">
-              {t('common.cancel', 'Tühista')}
+              {t('common.cancel')}
             </Button>
           </Modal.Closer>
           <Button type="button" onClick={handleConfirm}>
-            {t('common.select', 'Vali')}
+            {t('common.select')}
           </Button>
         </Modal.Footer>
       </Modal.Content>

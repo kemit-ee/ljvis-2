@@ -161,7 +161,7 @@ applySwitch:
         authenticatedAs: ${personal_code}
         activeRole: ${requested_role}
         activeRegistryCode: "${requested_role === 'company' ? requested_registry_code : null}"
-        representedCompanies: ${cached_companies}
+        representedCompanies: "${cached_companies && cached_companies.length > 0 ? cached_companies : null}"
       expirationInMinutes: 480
       JWTName: "customJwtCookie"
   result: jwt_result

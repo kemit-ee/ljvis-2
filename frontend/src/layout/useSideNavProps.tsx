@@ -37,15 +37,11 @@ export function useSideNavProps(): UseSideNavPropsResult {
   const navItems = React.useMemo(() => {
     const items: Parameters<typeof SideNav>[0]['navItems'] = [];
 
-    // Citizen sessions (citizen-self / company) have no permissions and get
-    // a single "Minu ettevõte" entry instead of the whole officer menu.
+    // Citizen sessions (citizen-self / company) have no
+    // permissions and get no side menu at all — the dashboard
+    // (CitizenDashboardPage) is the only citizen page, reached directly at
+    // "/"; there's nothing to navigate to.
     if (isCitizen) {
-      items.push({
-        children: t('nav.myCompany', 'Minu ettevõte'),
-        icon: 'apartment',
-        to: '/minu-ettevotte',
-        isActive: pathname.startsWith('/minu-ettevotte') || pathname === '/',
-      });
       return items;
     }
 
@@ -194,6 +190,19 @@ export function useSideNavProps(): UseSideNavPropsResult {
   const adminIsActive = navItems
     .flatMap((item) => item.subItems ?? [])
     .some((sub) => sub.isActive);
+
+  // No items means no side menu at all for a citizen session — not
+  // even an empty SideNav shell — so the main content area gets the full
+  // width instead of leaving a chrome-only column/toggle button.
+  if (isCitizen) {
+    return {
+      sideNav: null,
+      toggleButton: null,
+      isMobileOpen: false,
+      isDesktop,
+      closeSideNav: () => {},
+    };
+  }
 
   return {
     sideNav: (

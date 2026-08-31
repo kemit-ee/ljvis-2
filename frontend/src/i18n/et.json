@@ -17,9 +17,9 @@
     "official": "Ametnikule",
     "citizenInfo": "Liiklusjärelevalve infosüsteemi logides on füüsilisel ja juriidilisel isikul võimalik saada temaga seotud andmeid liiklusjärelevalve infosüsteemist. Juriidilise isikuga seotud andmete liiklusjärelevalve infosüsteemis on juurdepääsuõigus ettevõtte juhatuse liikmel, kelle seotust asjaomase ettevõttega kontrollitakse äriregistrist.",
     "officialInfo": "Liiklusjärelevalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest.",
-    "roleLabel": "Esindan",
+    "roleLabel": "Vaade",
     "roleOfficer": "Ametnik",
-    "roleCitizenSelf": "Füüsiline isik"
+    "roleCitizen": "Kodanik"
   },
   "countries": {
     "AD": "Andorra",
@@ -316,6 +316,28 @@
       "noDrivers": "Juhte ei ole lisatud",
       "driverName": "Nimi",
       "driverPersonalCode": "Isikukood"
+    },
+    "dashboard": {
+      "companiesTitle": "Minu ettevõtted",
+      "protocolsTitle": "Minu protokollid",
+      "protocolsSubtitle": "Vormid, kus olete osaline (juht, karistatud isik või usaldusväärsuse kontrolli subjekt).",
+      "company": {
+        "riskWindow": "Riskitase hinnatud ajavahemikus {{start}}–{{end}}",
+        "totalControls": "Kontrollide arv: {{count}}",
+        "hideControls": "Peida kontrollid",
+        "viewControls": "Vaata kontrolle"
+      },
+      "controls": {
+        "formNumber": "Vormi number",
+        "mainDate": "Kuupäev",
+        "vehicleRegNr": "Sõiduki reg-nr",
+        "msi": "MSI",
+        "vsi": "VSI",
+        "si": "SI",
+        "mi": "MI",
+        "weightedPoints": "Kaalutud punktid",
+        "view": "Vaata"
+      }
     }
   },
   "desktop": {

@@ -4,15 +4,20 @@ declaration:
   description: >-
     Citizen-facing read-only single foreign_violation_form detail. Guarded by
     GET/v1/citizen/.guard (templates/citizen-authority). Company scope ONLY —
-    ownership requires row.companyRegCode == activeRegistryCode.
-    citizen-self is not supported for this type and always returns 403: the
-    driver on a foreign_violation_form is stored as driver_first_name/
-    driver_last_name only (see get.sql) with NO personal code column at all,
-    so there is no reliable identifier to match against the session's own
-    personalCode (matching by name alone would be unsafe — name collisions).
-    Citizen-visible status is 'published' only. Reuses the officer resql
-    (control-forms/foreign-violation-form/get.sql) and DMapper template
-    (map_foreign_violation_form).
+    ownership requires row.companyRegCode to be one of the session's
+    represented companies (templates/citizen-company-representative —
+    cached claim first, live Äriregister esindus_v2 fallback), independent
+    of activeRole/activeRegistryCode — the dashboard shows every represented
+    company's forms at once, so a click-through must succeed regardless of
+    which role happens to be active (same pattern as forms/search.yml's
+    scope param and citizen/forms/compound.yml). citizen-self is not supported for this type
+    and always returns 403: the driver on a foreign_violation_form is stored
+    as driver_first_name/driver_last_name only (see get.sql) with NO
+    personal code column at all, so there is no reliable identifier to match
+    against the session's own personalCode (matching by name alone would be
+    unsafe — name collisions). Citizen-visible status is 'published' only.
+    Reuses the officer resql (control-forms/foreign-violation-form/get.sql)
+    and DMapper template (map_foreign_violation_form).
 
     GDPR: no masking applied — driver_first_name/driver_last_name are the
     ONLY driver fields on this form (no personal code to mask), same
@@ -46,8 +51,7 @@ checkSession:
 extractClaims:
   assign:
     personal_code: "${authority.personalCode}"
-    active_role: "${authority.activeRole}"
-    active_registry_code: "${authority.activeRegistryCode ?? ''}"
+    represented_companies: "${authority.representedCompanies ?? []}"
   next: getForm
 
 getForm:
@@ -76,7 +80,24 @@ checkOwnershipSwitch:
   switch:
     - condition: "${row.status !== 'published'}"
       next: returnNotFound
-    - condition: "${active_role === 'company' && row.companyRegCode === active_registry_code}"
+  next: checkCompanyRepresentative
+
+# templates/citizen-company-representative — same check as forms/search.yml's
+# scope=company branch and citizen/forms/compound.yml, independent of
+# activeRole/activeRegistryCode (see the description block above for why).
+checkCompanyRepresentative:
+  template: "templates/citizen-company-representative"
+  requestType: GET
+  body:
+    personal_code: ${personal_code}
+    registry_code: ${row.companyRegCode}
+    cached_companies: ${represented_companies}
+  result: representative_check
+  next: checkRepresentativeResult
+
+checkRepresentativeResult:
+  switch:
+    - condition: "${representative_check.isRepresentative === true}"
       next: mapResponse
   next: returnForbidden
 
@@ -104,7 +125,7 @@ logAuditEvent:
     event_type: "citizen.control_form.foreign_violation.view"
     event_category: "control_form"
     description: "Esindaja vaatas välisriigi rikkumise vormi ${row.formNumber}"
-    log_content: "${JSON.stringify({formKey: row.id, companyRegCode: active_registry_code})}"
+    log_content: "${JSON.stringify({formKey: row.id, companyRegCode: row.companyRegCode})}"
     actor_name: ${personal_code}
     actor_personal_code: ${personal_code}
   result: audit_result

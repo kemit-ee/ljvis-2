@@ -330,7 +330,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
               }
             }}
           >
-            {t('common.add', '+ Lisa')} {type !== 'massDimension'}
+            {t('common.add')} {type !== 'massDimension'}
           </Button>
           {dropdownOpen &&
             createPortal(
@@ -348,7 +348,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
                     id="doc-right-check-search"
                     value={search}
                     onChange={setSearch}
-                    placeholder={t('common.search', 'Otsi')}
+                    placeholder={t('common.search')}
                   />
                 </div>
                 {Object.entries(groupedLevel1).map(([description, items]) => (
@@ -427,7 +427,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
 
       {entries.length === 0 ? (
         <div className={styles.emptyState}>
-          <Text>{t('forms.dirve_rest.empty', 'Sisu puudub')}</Text>
+          <Text>{t('forms.dirve_rest.empty')}</Text>
         </div>
       ) : (
         <div className={styles.entriesContainer}>
@@ -502,7 +502,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
                             size="small"
                             onClick={() => handleRemoveEntry(entry.idx)}
                           >
-                            {t('common.remove', 'Eemalda')}
+                            {t('common.remove')}
                           </Button>
                         </div>
                         )}

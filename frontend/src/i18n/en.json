@@ -17,9 +17,9 @@
     "official": "For the officail",
     "citizenInfo": "COMING",
     "officialInfo": "COMING",
-    "roleLabel": "Representing",
+    "roleLabel": "View",
     "roleOfficer": "Officer",
-    "roleCitizenSelf": "Private person"
+    "roleCitizen": "Citizen"
   },
   "countries": {
     "AD": "Andorra",
@@ -991,6 +991,28 @@
       "noDrivers": "No drivers added",
       "driverName": "Name",
       "driverPersonalCode": "Personal code"
+    },
+    "dashboard": {
+      "companiesTitle": "My companies",
+      "protocolsTitle": "My protocols",
+      "protocolsSubtitle": "Forms where you are a party (driver, sanctioned person, or subject of a good-repute check).",
+      "company": {
+        "riskWindow": "Risk level assessed for the period {{start}}–{{end}}",
+        "totalControls": "Number of controls: {{count}}",
+        "hideControls": "Hide controls",
+        "viewControls": "View controls"
+      },
+      "controls": {
+        "formNumber": "Form number",
+        "mainDate": "Date",
+        "vehicleRegNr": "Vehicle reg. no",
+        "msi": "MSI",
+        "vsi": "VSI",
+        "si": "SI",
+        "mi": "MI",
+        "weightedPoints": "Weighted points",
+        "view": "View"
+      }
     }
   },
   "users": {

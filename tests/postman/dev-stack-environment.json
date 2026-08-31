@@ -257,6 +257,17 @@
       "value": "",
       "enabled": true,
       "description": "form_number created by form-search tests"
+    },
+    {
+      "key": "pc_citizen",
+      "value": "60001017869",
+      "enabled": true,
+      "description": "Citizen test personal code (reuses pc_user — citizen paths don't require a users.user_account row)"
+    },
+    {
+      "key": "cookie_citizen",
+      "value": "",
+      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment"

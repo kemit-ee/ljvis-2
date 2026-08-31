@@ -46,6 +46,7 @@ import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-f
 import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
 import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
 import { CompanyFormsListPage } from './features/citizen/pages/CompanyFormsListPage/CompanyFormsListPage';
+import { CitizenDashboardPage } from './features/citizen/pages/CitizenDashboardPage/CitizenDashboardPage';
 import { CitizenLabourInspectionDetailPage } from './features/citizen/pages/CitizenLabourInspectionDetailPage/CitizenLabourInspectionDetailPage';
 import { CitizenCompoundDetailPage } from './features/citizen/pages/CitizenCompoundDetailPage/CitizenCompoundDetailPage';
 import { CitizenForeignViolationDetailPage } from './features/citizen/pages/CitizenForeignViolationDetailPage/CitizenForeignViolationDetailPage';
@@ -70,10 +71,9 @@ function AppRoutes() {
   }
 
   // Citizen sessions (citizen-self / company) have no permissions and get
-  // their own read-only "Minu ettevõte" landing instead of the officer
-  // desktop — officer routes below are still guarded server-side too
-  // (POST/.guard's check-user-authority), this is UX-only, not the security
-  // boundary.
+  // their own read-only dashboard instead of the officer desktop — officer
+  // routes below are still guarded server-side too (POST/.guard's
+  // check-user-authority), this is UX-only, not the security boundary.
   const isCitizen = user.activeRole !== 'officer';
 
   return (
@@ -82,7 +82,10 @@ function AppRoutes() {
         <Route element={<AppLayout />}>
           {isCitizen ? (
             <>
-              <Route path="/" element={<CompanyFormsListPage />} />
+              <Route path="/" element={<CitizenDashboardPage />} />
+              {/* Legacy single-company/activeRole-scoped view — kept as a
+                  deep link for existing bookmarks; the landing page is now
+                  CitizenDashboardPage. */}
               <Route
                 path="/minu-ettevotte"
                 element={<CompanyFormsListPage />}

@@ -68,23 +68,23 @@ export function CitizenCompoundDetailPage() {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h3">
-            {t('citizen.compoundDetail.controlSection', 'Kontrolli andmed')}
+            {t('citizen.compoundDetail.controlSection')}
           </Heading>
           <div className={styles.grid}>
             <Field
-              label={t('citizen.compoundDetail.controlDate', 'Kuupäev')}
+              label={t('citizen.compoundDetail.controlDate')}
               value={form.controlDate}
             />
             <Field
-              label={t('citizen.compoundDetail.county', 'Maakond')}
+              label={t('citizen.compoundDetail.county')}
               value={form.county}
             />
             <Field
-              label={t('citizen.compoundDetail.address', 'Aadress')}
+              label={t('citizen.compoundDetail.address')}
               value={form.address}
             />
             <Field
-              label={t('citizen.compoundDetail.vehicleRegNr', 'Sõiduki reg-nr')}
+              label={t('citizen.compoundDetail.vehicleRegNr')}
               value={form.vehicleRegNr}
             />
           </div>
@@ -94,11 +94,11 @@ export function CitizenCompoundDetailPage() {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h3">
-            {t('citizen.compoundDetail.companySection', 'Ettevõtte andmed')}
+            {t('citizen.compoundDetail.companySection')}
           </Heading>
           <div className={styles.grid}>
             <Field
-              label={t('citizen.compoundDetail.companyName', 'Ettevõtte nimi')}
+              label={t('citizen.compoundDetail.companyName')}
               value={form.companyName}
             />
             <Field
@@ -115,17 +115,17 @@ export function CitizenCompoundDetailPage() {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h3">
-            {t('citizen.compoundDetail.driversSection', 'Juhid')}
+            {t('citizen.compoundDetail.driversSection')}
           </Heading>
           {(form.drivers ?? []).length === 0 && (
             <Text color="secondary">
-              {t('citizen.compoundDetail.noDrivers', 'Juhte ei ole lisatud')}
+              {t('citizen.compoundDetail.noDrivers')}
             </Text>
           )}
           {(form.drivers ?? []).map((driver, index) => (
             <div key={index} className={styles.grid}>
               <Field
-                label={t('citizen.compoundDetail.driverName', 'Nimi')}
+                label={t('citizen.compoundDetail.driverName')}
                 value={`${driver.firstName || ''} ${driver.lastName || ''}`.trim()}
               />
               <Field

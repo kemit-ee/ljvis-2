@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Risk Scores",
     "_postman_id": "ljvis-risk-scores-v1",
-    "description": "Functional tests for the risk-score module (LJVIS2-150/151/152, EU 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation. Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001/02/03 = Punane/Nullpunkt/Valistatud). See docs/risk-score/formula.md and .ai/ljvis-tasks/LJVIS2-150/test-cases.md.",
+    "description": "Functional tests for the risk-score module (EU regulation 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation, and the per-control MSI/VSI/SI/MI breakdown endpoint (includes the 'no SP sub-form at all -> fully excluded' rule). Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001-90000005 = Punane/Nullpunkt/Valistatud/Nimemuutus/Kontrollimata). See docs/risk-score/formula.md for the scoring rules.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -327,6 +327,323 @@
               "var raw = pm.response.json();",
               "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('error INVALID_PARAMETER', () => pm.expect(b.error).to.eql('INVALID_PARAMETER'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Kontrollimata (90000005, no SP form at all) -> 200, Hall, r=0 (matches Controls Breakdown's isFullyExcluded=true)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000005\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Hall (fully excluded, r=0)', () => pm.expect(b.riskBandCode).to.eql('Hall'));",
+              "pm.test('totalControls 0', () => pm.expect(b.totalControls).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Controls Breakdown] Punane (90000001) -> 2 controls, not excluded, correct weighted_points",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/controls",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "controls"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000001\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var controls = pm.response.json().response.controls;",
+              "pm.test('returns exactly 2 controls', () => pm.expect(controls).to.have.lengthOf(2));",
+              "pm.test('no control is fully excluded', () => {",
+              "  controls.forEach(c => pm.expect(c.isFullyExcluded).to.be.false);",
+              "});",
+              "// controls.length where !isFullyExcluded must equal totalControls from recalculate (=2)",
+              "var nonExcluded = controls.filter(c => !c.isFullyExcluded);",
+              "pm.test('non-excluded count == totalControls from recalculate (2)', () => pm.expect(nonExcluded.length).to.eql(2));",
+              "// Control 1 (95000101): 1 MSI + 1 SI => weighted 90+10=100",
+              "var c1 = controls.find(c => c.formNumber === 'RISK-FIXTURE-1A');",
+              "pm.test('control #1 found', () => pm.expect(c1).to.not.be.undefined);",
+              "pm.test('control #1: msi=1 si=1', () => {",
+              "  pm.expect(Number(c1.msi)).to.eql(1);",
+              "  pm.expect(Number(c1.si)).to.eql(1);",
+              "  pm.expect(Number(c1.vsi)).to.eql(0);",
+              "  pm.expect(Number(c1.mi)).to.eql(0);",
+              "});",
+              "pm.test('control #1: weightedPoints=100', () => pm.expect(Number(c1.weightedPoints)).to.eql(100));",
+              "// Control 2 (95000102): 4 MSI => 4*90=360",
+              "var c2 = controls.find(c => c.formNumber === 'RISK-FIXTURE-1B');",
+              "pm.test('control #2 found', () => pm.expect(c2).to.not.be.undefined);",
+              "pm.test('control #2: msi=4 weighted=360', () => {",
+              "  pm.expect(Number(c2.msi)).to.eql(4);",
+              "  pm.expect(Number(c2.weightedPoints)).to.eql(360);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Controls Breakdown] Valistatud (90000003) -> 1 control, isFullyExcluded=true, total_controls=0",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/controls",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "controls"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000003\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var controls = pm.response.json().response.controls;",
+              "pm.test('returns exactly 1 control (LEFT JOIN shows all, even excluded)', () => pm.expect(controls).to.have.lengthOf(1));",
+              "pm.test('the control is fully excluded (EI_KONTROLLITUD+KORRAS)', () => pm.expect(controls[0].isFullyExcluded).to.be.true);",
+              "// non-excluded count = 0, matching recalculate totalControls=0 (Hall)",
+              "var nonExcluded = controls.filter(c => !c.isFullyExcluded);",
+              "pm.test('non-excluded count == totalControls from recalculate (0)', () => pm.expect(nonExcluded.length).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Controls Breakdown] Nullpunkt (90000002) -> 1 control, zero_point (not excluded), total_controls=1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/controls",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "controls"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000002\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var controls = pm.response.json().response.controls;",
+              "pm.test('returns exactly 1 control', () => pm.expect(controls).to.have.lengthOf(1));",
+              "pm.test('control is NOT fully excluded (zero_point category)', () => pm.expect(controls[0].isFullyExcluded).to.be.false);",
+              "pm.test('all violation counts = 0 (no violations = zero_point)', () => {",
+              "  pm.expect(Number(controls[0].msi)).to.eql(0);",
+              "  pm.expect(Number(controls[0].vsi)).to.eql(0);",
+              "  pm.expect(Number(controls[0].si)).to.eql(0);",
+              "  pm.expect(Number(controls[0].mi)).to.eql(0);",
+              "  pm.expect(Number(controls[0].weightedPoints)).to.eql(0);",
+              "});",
+              "// non-excluded count=1, matching recalculate totalControls=1 (Roheline)",
+              "var nonExcluded = controls.filter(c => !c.isFullyExcluded);",
+              "pm.test('non-excluded count == totalControls from recalculate (1)', () => pm.expect(nonExcluded.length).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Controls Breakdown] Unknown company (99999999) -> 200, empty controls list",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/controls",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "controls"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"99999999\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('empty controls list', () => pm.expect(pm.response.json().response.controls).to.eql([]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Controls Breakdown] Invalid reg code (3 digits) -> 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/controls",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "controls"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"123\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400 bad request', () => pm.response.to.have.status(400));",
+              "pm.test('INVALID_PARAMETER error', () => pm.expect(pm.response.json().response.error).to.eql('INVALID_PARAMETER'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Controls Breakdown] Kontrollimata (90000005, no SP form at all) -> 1 control, isFullyExcluded=true",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/controls",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "controls"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var controls = pm.response.json().response.controls;",
+              "pm.test('returns exactly 1 control (LEFT JOIN shows it even with zero SP forms)', () => pm.expect(controls).to.have.lengthOf(1));",
+              "pm.test('isFullyExcluded=true — no SP sub-form at all is \"Täielik välistamine\" per formula.md §3, NOT zero-point', () => pm.expect(controls[0].isFullyExcluded).to.be.true);",
+              "pm.test('all severity counts are 0', () => {",
+              "  pm.expect(Number(controls[0].msi)).to.eql(0);",
+              "  pm.expect(Number(controls[0].vsi)).to.eql(0);",
+              "  pm.expect(Number(controls[0].si)).to.eql(0);",
+              "  pm.expect(Number(controls[0].mi)).to.eql(0);",
+              "});"
             ]
           }
         }

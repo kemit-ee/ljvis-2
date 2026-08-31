@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { HeaderProps } from '@tedi-design-system/react/community';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -10,7 +10,6 @@ import {
 } from '@tedi-design-system/react/community';
 import { Row, StretchContent, Button } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../features/auth/useAuth';
-import type { RepresentedCompany } from '../features/auth/types';
 import type { TediLocale } from '../AppProviders';
 import { BREAKPOINTS } from '../constants/constants';
 import './useHeaderProps.css';
@@ -20,73 +19,45 @@ const LANGUAGES: { code: TediLocale; label: string }[] = [
   { code: 'en', label: 'EN' },
 ];
 
-/** "Esindan" role switcher content, shared between the desktop and mobile HeaderRole. */
+/**
+ * Officer <-> Kodanik view switcher, shared between the desktop and mobile
+ * HeaderRole. The citizen dashboard shows every represented
+ * company's data at once (independent of activeRole — see
+ * CitizenDashboardPage/forms/search.yml's scope param), so there's no more
+ * "which company am I representing right now" choice to make here — only
+ * whether to view LJVIS as an officer or as a citizen. Only rendered at all
+ * when the session has an officer account (see useHeaderProps below); a
+ * pure citizen has exactly one destination and needs no switcher.
+ */
 function RepresentationMenu({ onToggle }: { onToggle: (open: boolean) => void }) {
   const { t } = useTranslation();
-  const { user, fetchRepresentationCompanies, switchRepresentation } =
-    useAuth();
-  const [companies, setCompanies] = useState<RepresentedCompany[]>(
-    user?.representedCompanies ?? [],
-  );
+  const { user, switchRepresentation } = useAuth();
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchRepresentationCompanies().then((result) => {
-      if (!cancelled) setCompanies(result);
-    });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleSelect = async (
-    role: 'officer' | 'citizen-self' | 'company',
-    registryCode?: string,
-  ) => {
-    await switchRepresentation(role, registryCode);
+  const handleSelect = async (role: 'officer' | 'citizen-self') => {
+    await switchRepresentation(role);
     onToggle(false);
   };
 
   return (
     <div className="header-role-menu">
-      {user?.officerAvailable && (
-        <Button
-          visualType="link"
-          className={
-            user?.activeRole === 'officer' ? 'header-role-menu-item-active' : ''
-          }
-          onClick={() => handleSelect('officer')}
-        >
-          {t('auth.roleOfficer', 'Ametnik')}
-        </Button>
-      )}
       <Button
         visualType="link"
         className={
-          user?.activeRole === 'citizen-self'
-            ? 'header-role-menu-item-active'
-            : ''
+          user?.activeRole === 'officer' ? 'header-role-menu-item-active' : ''
+        }
+        onClick={() => handleSelect('officer')}
+      >
+        {t('auth.roleOfficer')}
+      </Button>
+      <Button
+        visualType="link"
+        className={
+          user?.activeRole !== 'officer' ? 'header-role-menu-item-active' : ''
         }
         onClick={() => handleSelect('citizen-self')}
       >
-        {t('auth.roleCitizenSelf', 'Füüsiline isik')}
+        {t('auth.roleCitizen')}
       </Button>
-      {companies.map((company) => (
-        <Button
-          key={company.registryCode}
-          visualType="link"
-          className={
-            user?.activeRole === 'company' &&
-            user?.activeRegistryCode === company.registryCode
-              ? 'header-role-menu-item-active'
-              : ''
-          }
-          onClick={() => handleSelect('company', company.registryCode)}
-        >
-          {company.companyName}
-        </Button>
-      ))}
     </div>
   );
 }
@@ -97,21 +68,17 @@ export function useHeaderProps(): HeaderProps<'a'> {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language?.slice(0, 2);
 
-  const activeCompanyName =
-    user?.activeRole === 'company'
-      ? user.representedCompanies.find(
-          (c) => c.registryCode === user.activeRegistryCode,
-        )?.companyName
-      : undefined;
   const fullName = `${user?.firstname || ''} ${user?.lastname || ''}`.trim();
-  // citizen-self has no organisation to name, so show the person's own
-  // name + personal code instead — otherwise this would just be blank/the
-  // raw isikukood for a citizen with no officer account.
+  // Officer view just shows the officer's name. Every other case (citizen
+  // dashboard — activeRole is only ever 'officer' or 'citizen-self' now,
+  // there's no more per-company "Esindan" choice) shows the person's own
+  // name + personal code — otherwise this would just be blank/the raw
+  // isikukood for a citizen with no officer account.
   const selfDisplayName =
-    user?.activeRole === 'citizen-self' && fullName && user?.personalcode
+    user?.activeRole !== 'officer' && fullName && user?.personalcode
       ? `${fullName} (${user.personalcode})`
       : fullName;
-  const displayName = activeCompanyName || selfDisplayName || user?.personalcode || '';
+  const displayName = selfDisplayName || user?.personalcode || '';
 
   return {
     logo: {
@@ -137,8 +104,10 @@ export function useHeaderProps(): HeaderProps<'a'> {
           </StretchContent>
         </HeaderContent>
         {isDesktop && user && (
-          <HeaderRole primaryInfo={displayName} label={t('auth.roleLabel', 'Esindan')}>
-            {({ onToggle }) => <RepresentationMenu onToggle={onToggle} />}
+          <HeaderRole primaryInfo={displayName} label={t('auth.roleLabel')}>
+            {user.officerAvailable
+              ? ({ onToggle }) => <RepresentationMenu onToggle={onToggle} />
+              : undefined}
           </HeaderRole>
         )}
         <HeaderSettings onActionClick={logout} iconName="account_circle">
@@ -150,11 +119,13 @@ export function useHeaderProps(): HeaderProps<'a'> {
                       <HeaderRole
                         primaryInfo={displayName}
                         renderModal={true}
-                        label={t('auth.roleLabel', 'Esindan')}
+                        label={t('auth.roleLabel')}
                       >
-                        {({ onToggle }) => (
-                          <RepresentationMenu onToggle={onToggle} />
-                        )}
+                        {user.officerAvailable
+                          ? ({ onToggle }) => (
+                              <RepresentationMenu onToggle={onToggle} />
+                            )
+                          : undefined}
                       </HeaderRole>
                     </div>
                   )}
