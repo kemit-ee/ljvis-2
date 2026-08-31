@@ -1,0 +1,103 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    AJ findUsage — kasutusteabe küsimine isikukoodi järgi (DUMonitor OpenAPI v2
+    /v2/findUsage). Tagastab kõik xroad.aj_usage_log kirjed antud isiku kohta
+    koos pagination-i ja ajavahemiku filtritega.
+    Turvalisus: X-Road-UserId header peab vastama userCode query parameetrile
+    (AJ protokoll §6.1.3) — kaitseb volitamata andmepäringute vastu.
+  namespace: xroad-aj
+
+# Samm 1: Valideeri kohustuslik X-Road-UserId header
+validateXRoadUserId:
+  switch:
+    - condition: "${incoming.headers['x-road-userid'] == null || incoming.headers['x-road-userid'] == ''}"
+      next: returnMissingUserId
+  next: validateUserCode
+
+# Samm 2: Valideeri kohustuslik userCode query parameeter
+validateUserCode:
+  switch:
+    - condition: "${incoming.query.userCode == null || incoming.query.userCode == ''}"
+      next: returnMissingUserCode
+  next: validateUserCodeMatch
+
+# Samm 3: X-Road-UserId peab vastama userCode-le (AJ protokoll §6.1.3)
+validateUserCodeMatch:
+  switch:
+    - condition: "${incoming.headers['x-road-userid'] !== incoming.query.userCode}"
+      next: returnForbidden
+  next: assignParams
+
+# Samm 4: Kogu parameetrid — offset ja limit on valikulised (vaikimisi 0 ja 1000)
+assignParams:
+  assign:
+    user_code: "${incoming.query.userCode}"
+    period_start: "${incoming.query.periodStart || ''}"
+    period_end: "${incoming.query.periodEnd || ''}"
+    offset_val: "${incoming.query.offset != null ? parseInt(incoming.query.offset) : 0}"
+    limit_val: "${incoming.query.limit != null ? Math.min(parseInt(incoming.query.limit), 1000) : 1000}"
+  next: queryUsages
+
+# Samm 5: Päri andmed Resql-ist
+queryUsages:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/find_usage"
+    headers:
+      type: json
+    body:
+      user_code: ${user_code}
+      period_start: ${period_start}
+      period_end: ${period_end}
+      offset: ${offset_val}
+      limit: ${limit_val}
+  result: usageResult
+  next: checkQueryStatus
+
+checkQueryStatus:
+  switch:
+    - condition: "${usageResult.response.status < 200 || usageResult.response.status >= 300}"
+      next: returnServerError
+  next: buildResponse
+
+# Samm 6: Ehita AJ protokolli vastus — totalUsages + usages massiiv
+buildResponse:
+  assign:
+    rows: "${usageResult.response.body || []}"
+    total_usages: "${rows.length > 0 ? rows[0].total_usages : 0}"
+    usages: >-
+      ${rows.map(function(r) { return {
+        logtime: r.logtime,
+        action: r.action,
+        receiverCode: r.receiver_code,
+        receiverName: r.receiver_name || null,
+        receiverSystem: r.receiver_system || null
+      }; })}
+  next: returnOk
+
+returnOk:
+  status: 200
+  return: "${JSON.stringify({totalUsages: total_usages, usages: usages})}"
+  next: end
+
+returnMissingUserId:
+  status: 400
+  return: '{"error": "MISSING_HEADER", "message": "X-Road-UserId header is required"}'
+  next: end
+
+returnMissingUserCode:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "userCode query parameter is required"}'
+  next: end
+
+returnForbidden:
+  status: 400
+  return: '{"error": "FORBIDDEN", "message": "X-Road-UserId must match userCode"}'
+  next: end
+
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end

@@ -5,6 +5,36 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-005 — Andmejälgija: ainult inbound X-tee päringud, eraldi append-only tabel
+
+**Otsustaja:** Sten Viljus  
+**Kuupäev:** 01.09.2026  
+**Seotud failid:** `DSL/Ruuter.internal/ljvis/GET/xroad/v2/`, `DSL/Resql/ljvis/POST/xroad/aj/`, `docs/andmejalgija-seadistamine.md`
+
+### Kontekst
+
+IKS § 19/§ 25 nõuab et isik saab küsida, kes tema andmeid on töödelnud. Tuli otsustada:
+1. Milliseid andmevooge logida AJ-sse?
+2. Kas kasutada olemasolevat `xroad_integration_log`-i või eraldi tabelit?
+3. Kas logida isikukood selgetekstiliselt?
+
+### Otsus
+
+- Logitatakse ainult **inbound** X-tee päringud — teenused kus väline osapool küsib või sisestab isikuandmeid LJVIS kaudu: `isiku-kontroll`, `isiku-ettevote-kontrollid`, `register-job-inspection-v3` (ainult kui `juhi_isikukood` esitati)
+- `xroad_integration_log` jääb **puutumata** — AJ kirjed lähevad ainult uude `xroad.aj_usage_log` tabelisse
+- `xroad.aj_usage_log` on **append-only** tabel (nagu `audit.audit_event`) — `UPDATE`/`DELETE` on keelatud
+- Isikukood (`user_code`) logitakse **selgetekstiliselt** — AJ `findUsage` endpoint otsib `userCode` järgi, hash ei oleks otsitav
+
+### Põhjendus
+
+- **Inbound** on see mis isikule "nähtav" — tema andmeid küsiti või sisestati välise süsteemi poolt
+- **Outbound** (RR, e-Toimik, ERRU saatmised) on meie enda protsesside initsiatiiv, mitte kolmanda osapoole teenus isiku suhtes
+- **Eraldi tabel:** puhtam skeem, ei sega olemasolevat integratsioonilogi
+- **Append-only:** garanteerib AJ nõuetele vastava auditeeritavuse — kirjeid ei saa tagantjärgi muuta ega kustutada
+- **Hash lükati tagasi:** AJ `findUsage` endpoint vajab otsimist `userCode` järgi selgetekstis; hash ei ole otsitav ilma et pärija esitaks sama isikukoodi — mis tähendaks, et otsing eesti.ee-st ei toimiks
+
+---
+
 ## ADR-002 — Rust Ruuter 0.9.0-rc.1 (turnerrainer/ruuter:rc)
 
 **Otsustaja:** Sten Viljus  
