@@ -121,6 +121,7 @@ export function useCompoundForm(
   const pendingConfirm = useRef(false);
   const pendingPublish = useRef(false);
   const pendingForceSaved = useRef(false);
+  const pendingPreserveStatus = useRef(false);
   const subFormsAllConfirmedOrPublishedRef = useRef(subFormsAllConfirmedOrPublished);
   useEffect(() => {
     subFormsAllConfirmedOrPublishedRef.current = subFormsAllConfirmedOrPublished;
@@ -232,15 +233,14 @@ export function useCompoundForm(
         schema.required(t('forms.foreign_violation.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
-    companyRegCode: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
-    companyName: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
-    companyCountryCode: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
+    companyRegCode: Yup.string(),
+    companyName: Yup.string(),
+    companyCountryCode: Yup.string().when('companyName', {
+      is: (v: string) => !!v?.trim(),
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema,
+    }),
     inspectorFirstName: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
@@ -407,13 +407,15 @@ export function useCompoundForm(
         pendingPublish.current = false;
         const forceSaved = pendingForceSaved.current;
         pendingForceSaved.current = false;
+        const preserveStatus = pendingPreserveStatus.current;
+        pendingPreserveStatus.current = false;
         if (isPublishing && form?.id) {
           await api.publish(form.id);
           onPublished?.();
           return;
         }
-        const isReconfirmedEdit = !isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedOrPublishedRef.current ?? true);
-        const isRepublishedEdit = !isConfirming && !forceSaved && form?.status === 'published' && (subFormsAllConfirmedOrPublishedRef.current ?? true);
+        const isReconfirmedEdit = (!isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedOrPublishedRef.current ?? true)) || (preserveStatus && form?.status === 'confirmed');
+        const isRepublishedEdit = (!isConfirming && !forceSaved && form?.status === 'published' && (subFormsAllConfirmedOrPublishedRef.current ?? true)) || (preserveStatus && form?.status === 'published');
         const nextStatus = isConfirming
           ? 'confirmed'
           : isReconfirmedEdit
@@ -500,6 +502,11 @@ export function useCompoundForm(
 
   const triggerSaveAsSaved = () => {
     pendingForceSaved.current = true;
+    formik.submitForm();
+  };
+
+  const triggerSaveWithCurrentStatus = () => {
+    pendingPreserveStatus.current = true;
     formik.submitForm();
   };
 
@@ -656,6 +663,7 @@ export function useCompoundForm(
           .filter((p) => p.endsWith(WRITE_SUFFIX))
           .map((p) => p.replace(WRITE_SUFFIX, ''))
           .filter((key) => !!FORM_CONFIG[key] && FORM_CONFIG[key].hasParent)
+          .filter((key) => FORM_CONFIG[key].route !== '/trailer-technical')
           .map((key) => ({
             labelKey: FORM_CONFIG[key].labelKey,
             route: FORM_CONFIG[key].route,
@@ -696,6 +704,7 @@ export function useCompoundForm(
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,
+    triggerSaveWithCurrentStatus,
     availableForms,
   };
 }

@@ -40,6 +40,8 @@ declaration:
         type: string
       - field: created_by
         type: string
+      - field: trailerRegNr
+        type: string
   response:
     fields:
       - field: id
@@ -69,6 +71,7 @@ WITH ins AS (
     proceeding_reference_number,
     violations,
     notes,
+    trailer_reg_nr,
     created_by
   )
   VALUES (
@@ -90,6 +93,7 @@ WITH ins AS (
     NULLIF(:proceedingReferenceNumber, ''),
     COALESCE(NULLIF(:violations, '')::jsonb, '[]'::jsonb),
     NULLIF(:notes, ''),
+    NULLIF(:trailerRegNr, ''),
     :created_by
   )
   RETURNING trailer_technical_form_key, sub_form_number, version

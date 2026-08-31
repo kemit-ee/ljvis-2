@@ -55,16 +55,17 @@ import { createAdrValidationSchema } from '../adr-form/useAdrForm';
 import { saveDriveRestForm, saveTechnicalCheckForm, saveAdrForm, saveTransportInterruptionForm } from '../../api';
 import type { TransportInterruptionForm } from '../../types';
 
+type AnySubFormData = Partial<DriveRestForm> | Partial<TechnicalCheckForm> | Partial<AdrForm> | Partial<TransportInterruptionForm>;
+
 interface FormRef {
   handleSubmit?: (overrideCompoundFormKey?: number) => void;
-  getFormData?: () => Partial<DriveRestForm>;
-  setFormData?: (data: Partial<DriveRestForm>) => void;
+  getFormData?: () => AnySubFormData;
+  setFormData?: (data: AnySubFormData) => void;
   hasErrors?: () => boolean;
   validateForm?: () => void;
 }
 
 const DRIVE_REST_ROUTES = ['/sp-driver', '/sp-teammate'] as const;
-const TECHNICAL_CHECK_ROUTES = ['/vehicle-technical', '/trailer-technical'] as const;
 const ADR_ROUTES = ['/adr'] as const;
 const TRANSPORT_INTERRUPTION_ROUTES = ['/transport-interruption'] as const;
 
@@ -121,6 +122,7 @@ export function CompoundFormCreatePage() {
   );
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
+  const [trailerTabIndices, setTrailerTabIndices] = useState<Set<number>>(new Set());
 
   const removeTab = (tabId: string) => {
     setOpenTabs((prev) => prev.filter((t) => t !== tabId));
@@ -135,7 +137,40 @@ export function CompoundFormCreatePage() {
       next.delete(tabId);
       return next;
     });
+    if (tabId.startsWith('tab-trailer-technical-')) {
+      const idx = Number(tabId.replace('tab-trailer-technical-', ''));
+      setTrailerTabIndices((prev) => {
+        const next = new Set(prev);
+        next.delete(idx);
+        return next;
+      });
+    }
     setActiveTab('tab-1');
+  };
+
+  const addTrailerControlForm = (index: number, regNr: string) => {
+    const tabId = `tab-trailer-technical-${index}`;
+    if (!formRefs.current[tabId]) {
+      formRefs.current[tabId] = { current: null };
+    }
+    savedFormData.current[tabId] = {
+      ...savedFormData.current[tabId],
+      trailerRegNr: regNr,
+    } as Partial<TechnicalCheckForm>;
+    setTrailerTabIndices((prev) => new Set([...prev, index]));
+    if (!openTabs.includes(tabId)) {
+      setOpenTabs((prev) => [...prev, tabId]);
+      setTabErrors((prev) => ({ ...prev, [tabId]: false }));
+    }
+    handleTabChange(tabId);
+    window.scrollTo(0, 0);
+  };
+
+  const editTrailerControlForm = (index: number) => {
+    const tabId = `tab-trailer-technical-${index}`;
+    if (!openTabs.includes(tabId)) return;
+    handleTabChange(tabId);
+    window.scrollTo(0, 0);
   };
 
   const addTab = (route: string) => {
@@ -150,16 +185,6 @@ export function CompoundFormCreatePage() {
     handleTabChange(tabDef.tabId);
   };
 
-  const tabLabels: Record<string, string> = {
-    'tab-1': t('forms.compound_form'),
-    ...Object.values(ROUTE_TO_TAB).reduce(
-      (acc, { tabId, labelKey }) => ({ ...acc, [tabId]: t(labelKey) }),
-      {} as Record<string, string>,
-    ),
-  };
-
-  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
-
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -168,11 +193,11 @@ export function CompoundFormCreatePage() {
 
   const formRefs = useRef<Record<string, React.MutableRefObject<FormRef | null>>>(
     Object.values(ROUTE_TO_TAB).reduce((acc, { tabId }) => {
-      acc[tabId] = React.createRef<FormRef>();
+      acc[tabId] = { current: null };
       return acc;
-    }, {} as Record<string, React.RefObject<FormRef>>)
+    }, {} as Record<string, React.MutableRefObject<FormRef | null>>)
   );
-  const savedFormData = useRef<Record<string, Partial<DriveRestForm>>>({});
+  const savedFormData = useRef<Record<string, AnySubFormData>>({});
   // Refs mirror the state below so the async save handler always reads the
   // latest value instead of a stale value captured in its closure
   const compoundFormIdRef = useRef<number | null>(null);
@@ -217,8 +242,9 @@ export function CompoundFormCreatePage() {
       const isTransportInterruption = TRANSPORT_INTERRUPTION_ROUTES.some(
         (route) => ROUTE_TO_TAB[route].tabId === tabId,
       );
-      const isTechnicalCheck = !isAdr && !isTransportInterruption && TECHNICAL_CHECK_ROUTES.some(
-        (route) => ROUTE_TO_TAB[route].tabId === tabId,
+      const isTechnicalCheck = !isAdr && !isTransportInterruption && (
+        ROUTE_TO_TAB['/vehicle-technical'].tabId === tabId ||
+        tabId.startsWith('tab-trailer-technical-')
       );
       const schema = isAdr ? adrSchema : isTransportInterruption ? null : isTechnicalCheck ? technicalCheckSchema : driveRestSchema;
       const formRef = formRefs.current[tabId]?.current;
@@ -319,11 +345,37 @@ export function CompoundFormCreatePage() {
     availableForms,
   } = useCompoundForm(undefined, handleSaved);
 
+  const trailerTabDynamicLabels: Record<string, string> = {};
+  formik.values.trailers.forEach((tr: Trailer, idx: number) => {
+    trailerTabDynamicLabels[`tab-trailer-technical-${idx}`] = tr.regNr
+      ? `${t('forms.technical_check.trailerTitle')} (${tr.regNr})`
+      : t('forms.technical_check.trailerTitle');
+  });
+
+  const tabLabels: Record<string, string> = {
+    'tab-1': t('forms.compound_form'),
+    ...Object.values(ROUTE_TO_TAB)
+      .filter(({ tabId }) => tabId !== 'tab-trailer-technical')
+      .reduce(
+        (acc, { tabId, labelKey }) => ({ ...acc, [tabId]: t(labelKey) }),
+        {} as Record<string, string>,
+      ),
+    ...trailerTabDynamicLabels,
+  };
+
+  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
+
   // Update tab errors from refs (safe to access refs in useEffect)
   useEffect(() => {
     setTabErrors((prev) => {
       const newTabErrors: Record<string, boolean> = {};
-      Object.values(ROUTE_TO_TAB).forEach(({ tabId }) => {
+      const allTabIds = [
+        ...Object.values(ROUTE_TO_TAB)
+          .filter(({ tabId }) => tabId !== 'tab-trailer-technical')
+          .map(({ tabId }) => tabId),
+        ...openTabs.filter((id) => id.startsWith('tab-trailer-technical-')),
+      ];
+      allTabIds.forEach((tabId) => {
         if (openTabs.includes(tabId)) {
           // Only update the error state for tabs that have already been
           // validated; otherwise keep the previous value (false for new tabs)
@@ -342,6 +394,17 @@ export function CompoundFormCreatePage() {
       return newTabErrors;
     });
   }, [openTabs, formik.values, validatedTabs]);
+
+  // Sync trailer reg-nr changes into the corresponding trailer technical tab
+  useEffect(() => {
+    formik.values.trailers.forEach((trailer: Trailer, index: number) => {
+      const tabId = `tab-trailer-technical-${index}`;
+      const ref = formRefs.current[tabId]?.current;
+      if (ref?.setFormData && trailer.regNr) {
+        ref.setFormData({ trailerRegNr: trailer.regNr });
+      }
+    });
+  }, [formik.values.trailers]);
 
   // Trigger validation for compound form on mount and value changes
   useEffect(() => {
@@ -386,9 +449,11 @@ export function CompoundFormCreatePage() {
     styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'];
 
   return (
-    <div style={{
-      maxWidth: containerWidth,
-    }}>
+    <div
+      style={{
+        maxWidth: containerWidth,
+      }}
+    >
       <div className="card-main">
         <Heading element="h1">{headingLabel}</Heading>
         {!isDesktop && addFormDropdown}
@@ -467,7 +532,7 @@ export function CompoundFormCreatePage() {
                               formik.setFieldValue('road', '');
                               formik.setFieldValue('road_other', '');
                               formik.setFieldValue('kilometer', '');
-                              formik.setFieldValue('road_type', ROAD.NATIONAL);
+                              formik.setFieldValue('road_type', ROAD.LOCAL);
                             }
                           }}
                           {...(formik.touched.address && formik.errors.address
@@ -482,14 +547,21 @@ export function CompoundFormCreatePage() {
                         <Select
                           id="road"
                           label={t('forms.compound.road')}
-                          options={(roads ?? []).map((r) => ({
-                            value: r.code,
-                            label: r.name,
-                          }))}
+                          options={[
+                            { value: '', label: '\u00a0' },
+                            ...roads.map((r) => ({
+                              value: r.code,
+                              label: r.name,
+                            })),
+                          ]}
                           value={
-                            (roads ?? [])
-                              .map((r) => ({ value: r.code, label: r.name }))
-                              .find((o) => o.value === formik.values.road) ??
+                            [
+                              { value: '', label: '\u00a0' },
+                              ...roads.map((r) => ({
+                                value: r.code,
+                                label: r.name,
+                              })),
+                            ].find((o) => o.value === formik.values.road) ??
                             null
                           }
                           onChange={(val) => {
@@ -498,15 +570,14 @@ export function CompoundFormCreatePage() {
                                 ? (val as { value: string }).value
                                 : '';
                             formik.setFieldValue('road', roadValue);
-                            if (roadValue === OTHER.ROAD) {
-                              formik.setFieldValue('road_type', ROAD.LOCAL);
+                            if (!roadValue) {
+                              formik.setFieldValue('kilometer', '');
+                              formik.setFieldValue('roadOther', '');
                             } else if (roadValue) {
                               formik.setFieldValue('road_type', ROAD.NATIONAL);
-                            } else {
-                              formik.setFieldValue('road_type', ROAD.NATIONAL);
-                            }
-                            if (roadValue) {
-                              formik.setFieldValue('address', '');
+                              if (roadValue !== OTHER.ROAD) {
+                                formik.setFieldValue('address', '');
+                              }
                             }
                           }}
                           {...(formik.touched.road && formik.errors.road
@@ -565,42 +636,14 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <Select
+                          <TextField
                             id="controlCountryCode"
                             label={t(
                               'forms.foreign_violation.control_country_code',
                             )}
-                            options={countries}
-                            value={
-                              countries.find(
-                                (o) =>
-                                  o.value === formik.values.controlCountryCode,
-                              ) ?? null
-                            }
-                            onChange={(val) => {
-                              const newCode =
-                                val && !Array.isArray(val)
-                                  ? (val as { value: string }).value
-                                  : '';
-                              formik.setFieldValue(
-                                'controlCountryCode',
-                                newCode,
-                              );
-                              if (newCode !== 'EE') {
-                                formik.setFieldValue('county', '');
-                                formik.setFieldValue('city', '');
-                              }
-                            }}
-                            required
-                            {...(formik.touched.controlCountryCode &&
-                            formik.errors.controlCountryCode
-                              ? {
-                                  helper: {
-                                    text: formik.errors.controlCountryCode,
-                                    type: 'error' as const,
-                                  },
-                                }
-                              : {})}
+                            value={t('countries.EE')}
+                            disabled
+                            onChange={() => undefined}
                           />
                           <Select
                             id="county"
@@ -902,29 +945,21 @@ export function CompoundFormCreatePage() {
                             placeholder={t('common.dateFieldPlaceholder')}
                           />
                         </div>
-                        <Select
+                        <ChoiceGroup
                           id="vehicleCategoryCode"
+                          name="vehicleCategoryCode"
                           label={t('forms.compound.vehicleCategory')}
-                          options={(vehicleCategories ?? []).map((c) => ({
+                          inputType="radio"
+                          direction="row"
+                          value={formik.values.vehicleCategoryCode}
+                          onChange={(val) =>
+                            formik.setFieldValue('vehicleCategoryCode', val)
+                          }
+                          items={vehicleCategories.map((c) => ({
+                            id: `vehicleCat-${c.code}`,
                             value: c.code,
                             label: c.name,
                           }))}
-                          value={
-                            (vehicleCategories ?? [])
-                              .map((c) => ({ value: c.code, label: c.name }))
-                              .find(
-                                (o) =>
-                                  o.value === formik.values.vehicleCategoryCode,
-                              ) ?? null
-                          }
-                          onChange={(val) =>
-                            formik.setFieldValue(
-                              'vehicleCategoryCode',
-                              val && !Array.isArray(val)
-                                ? (val as { value: string }).value
-                                : '',
-                            )
-                          }
                           required
                           {...(formik.touched.vehicleCategoryCode &&
                           formik.errors.vehicleCategoryCode
@@ -944,7 +979,10 @@ export function CompoundFormCreatePage() {
                             value={formik.values.vehicleCategoryOther}
                             input={{ maxLength: 100 }}
                             onChange={(v) =>
-                              formik.setFieldValue('vehicleCategoryOther', v)
+                              formik.setFieldValue(
+                                'vehicleCategoryOther',
+                                v.toUpperCase(),
+                              )
                             }
                             required
                             {...(formik.touched.vehicleCategoryOther &&
@@ -1254,39 +1292,28 @@ export function CompoundFormCreatePage() {
                                         )}
                                       />
                                     </div>
-                                    <Select
+                                    <ChoiceGroup
                                       id={`trailerCategoryCode_${index}`}
+                                      name={`trailerCategoryCode_${index}`}
                                       label={t(
                                         'forms.compound.trailerCategory',
                                       )}
-                                      options={(trailerCategories ?? []).map(
-                                        (c) => ({
-                                          value: c.code,
-                                          label: c.name,
-                                        }),
-                                      )}
-                                      value={
-                                        (trailerCategories ?? [])
-                                          .map((c) => ({
-                                            value: c.code,
-                                            label: c.name,
-                                          }))
-                                          .find(
-                                            (o) =>
-                                              o.value === trailer.categoryCode,
-                                          ) ?? null
-                                      }
+                                      inputType="radio"
+                                      direction="row"
+                                      value={trailer.categoryCode}
                                       onChange={(val) => {
                                         const u = [...formik.values.trailers];
                                         u[index] = {
                                           ...u[index],
-                                          categoryCode:
-                                            val && !Array.isArray(val)
-                                              ? (val as { value: string }).value
-                                              : '',
+                                          categoryCode: val as string,
                                         };
                                         formik.setFieldValue('trailers', u);
                                       }}
+                                      items={trailerCategories.map((c) => ({
+                                        id: `trailerCat-${index}-${c.code}`,
+                                        value: c.code,
+                                        label: c.name,
+                                      }))}
                                       required
                                       {...((
                                         formik.touched
@@ -1319,7 +1346,7 @@ export function CompoundFormCreatePage() {
                                           const u = [...formik.values.trailers];
                                           u[index] = {
                                             ...u[index],
-                                            categoryOther: v,
+                                            categoryOther: v.toUpperCase(),
                                           };
                                           formik.setFieldValue('trailers', u);
                                         }}
@@ -1351,9 +1378,39 @@ export function CompoundFormCreatePage() {
                                         display: 'flex',
                                         justifyContent: 'flex-end',
                                         alignItems: 'flex-end',
+                                        gap: '0.5rem',
                                       }}
                                       className={styles['full-span']}
                                     >
+                                      {trailerTabIndices.has(index) ? (
+                                        <Button
+                                          type="button"
+                                          visualType="secondary"
+                                          onClick={() =>
+                                            editTrailerControlForm(index)
+                                          }
+                                        >
+                                          {t(
+                                            'forms.compound.editTrailerControlForm',
+                                          )}
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          type="button"
+                                          visualType="secondary"
+                                          disabled={!trailer.regNr}
+                                          onClick={() =>
+                                            addTrailerControlForm(
+                                              index,
+                                              trailer.regNr,
+                                            )
+                                          }
+                                        >
+                                          {t(
+                                            'forms.compound.addTrailerControlForm',
+                                          )}
+                                        </Button>
+                                      )}
                                       <Button
                                         type="button"
                                         visualType="secondary"
@@ -1439,7 +1496,6 @@ export function CompoundFormCreatePage() {
                               onChange={(v) =>
                                 formik.setFieldValue('companyRegCode', v)
                               }
-                              required
                               {...(formik.touched.companyRegCode &&
                               formik.errors.companyRegCode
                                 ? {
@@ -1458,7 +1514,6 @@ export function CompoundFormCreatePage() {
                               onChange={(v) =>
                                 formik.setFieldValue('companyName', v)
                               }
-                              required
                               {...(formik.touched.companyName &&
                               formik.errors.companyName
                                 ? {
@@ -1502,7 +1557,7 @@ export function CompoundFormCreatePage() {
                                     : '',
                                 )
                               }
-                              required
+                              required={!!formik.values.companyName}
                               {...(formik.touched.companyCountryCode &&
                               formik.errors.companyCountryCode
                                 ? {
@@ -2181,36 +2236,91 @@ export function CompoundFormCreatePage() {
             </Tabs.Content>
           ) : null;
         })}
-        {TECHNICAL_CHECK_ROUTES.map((route) => {
-          const { tabId, type: tabType } = ROUTE_TO_TAB[route];
-          return openTabs.includes(tabId) ? (
-            <Tabs.Content key={tabId} id={tabId} className="p-1">
-              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
+        {(() => {
+          const vehicleTabId = ROUTE_TO_TAB['/vehicle-technical'].tabId;
+          return openTabs.includes(vehicleTabId) ? (
+            <Tabs.Content key={vehicleTabId} id={vehicleTabId} className="p-1">
+              <div
+                style={{
+                  display: activeTab === vehicleTabId ? 'block' : 'none',
+                }}
+              >
                 <TechnicalCheckFormCreatePage
-                  type={tabType as TechnicalCheckVariant}
+                  type="vehicle"
                   compoundFormKey={undefined}
-                  initialValidate={validatedTabs.has(tabId)}
+                  initialValidate={validatedTabs.has(vehicleTabId)}
                   onValuesChange={(values) => {
-                    savedFormData.current[tabId] =
+                    // eslint-disable-next-line react-hooks/immutability
+                    savedFormData.current[vehicleTabId] =
                       values as Partial<DriveRestForm>;
                   }}
                   ref={(ref) => {
-                    formRefs.current[tabId].current =
-                      ref as TechnicalCheckFormCreatePageRef;
+                    const vehicleRef = formRefs.current[vehicleTabId];
+                    vehicleRef.current = ref as TechnicalCheckFormCreatePageRef;
                   }}
                   onSaved={(id) => {
                     if (id) {
                       savedDriveRestFormsRef.current = new Set(
                         savedDriveRestFormsRef.current,
-                      ).add(tabId);
-                      savedSubFormIdsRef.current[tabId] = String(id);
+                      ).add(vehicleTabId);
+                      savedSubFormIdsRef.current[vehicleTabId] = String(id);
                     }
                   }}
+                  compoundTrailers={formik.values.trailers}
                 />
               </div>
             </Tabs.Content>
           ) : null;
-        })}
+        })()}
+        {openTabs
+          .filter((id) => id.startsWith('tab-trailer-technical-'))
+          .map((tabId) => {
+            const trailerIndex = Number(
+              tabId.replace('tab-trailer-technical-', ''),
+            );
+            const trailerRegNr = formik.values.trailers[trailerIndex]?.regNr;
+            return (
+              <Tabs.Content key={tabId} id={tabId} className="p-1">
+                <div
+                  style={{ display: activeTab === tabId ? 'block' : 'none' }}
+                >
+                  <TechnicalCheckFormCreatePage
+                    type="trailer"
+                    compoundFormKey={undefined}
+                    initialValidate={validatedTabs.has(tabId)}
+                    onValuesChange={(values) => {
+                      savedFormData.current[tabId] =
+                        values as Partial<DriveRestForm>;
+                    }}
+                    ref={(ref) => {
+                      if (!formRefs.current[tabId]) {
+                        formRefs.current[tabId] = React.createRef<FormRef>();
+                      }
+                      formRefs.current[tabId].current =
+                        ref as TechnicalCheckFormCreatePageRef;
+                    }}
+                    onSaved={(id) => {
+                      if (id) {
+                        savedDriveRestFormsRef.current = new Set(
+                          savedDriveRestFormsRef.current,
+                        ).add(tabId);
+                        savedSubFormIdsRef.current[tabId] = String(id);
+                      }
+                    }}
+                    compoundTrailers={formik.values.trailers}
+                    trailerIndex={trailerIndex}
+                    initialData={
+                      trailerRegNr
+                        ? ({
+                            trailerRegNr,
+                          } as Partial<TechnicalCheckForm> as TechnicalCheckForm)
+                        : undefined
+                    }
+                  />
+                </div>
+              </Tabs.Content>
+            );
+          })}
         {ADR_ROUTES.map((route) => {
           const { tabId } = ROUTE_TO_TAB[route];
           return openTabs.includes(tabId) ? (
@@ -2220,10 +2330,12 @@ export function CompoundFormCreatePage() {
                   compoundFormKey={undefined}
                   initialValidate={validatedTabs.has(tabId)}
                   onValuesChange={(values) => {
-                    savedFormData.current[tabId] = values as Partial<DriveRestForm>;
+                    savedFormData.current[tabId] =
+                      values as Partial<DriveRestForm>;
                   }}
                   ref={(ref) => {
-                    formRefs.current[tabId].current = ref as AdrFormCreatePageRef;
+                    formRefs.current[tabId].current =
+                      ref as AdrFormCreatePageRef;
                   }}
                   onSaved={(id) => {
                     if (id) {
@@ -2247,10 +2359,12 @@ export function CompoundFormCreatePage() {
                   compoundFormKey={undefined}
                   initialValidate={validatedTabs.has(tabId)}
                   onValuesChange={(values) => {
-                    savedFormData.current[tabId] = values as Partial<DriveRestForm>;
+                    savedFormData.current[tabId] =
+                      values as Partial<DriveRestForm>;
                   }}
                   ref={(ref) => {
-                    formRefs.current[tabId].current = ref as TransportInterruptionFormCreatePageRef;
+                    formRefs.current[tabId].current =
+                      ref as TransportInterruptionFormCreatePageRef;
                   }}
                   onSaved={(id) => {
                     if (id) {
@@ -2322,45 +2436,73 @@ export function CompoundFormCreatePage() {
                     check();
                   });
                 } else {
-                  const tabDef = Object.values(ROUTE_TO_TAB).find(
-                    (t) => t.tabId === tabId,
+                  const isDynamicTrailerTab = tabId.startsWith(
+                    'tab-trailer-technical-',
                   );
+                  const tabDef = isDynamicTrailerTab
+                    ? { tabId, type: 'trailer', labelKey: '' }
+                    : Object.values(ROUTE_TO_TAB).find(
+                        (t) => t.tabId === tabId,
+                      );
                   const isAdrTab = ADR_ROUTES.some(
                     (route) => ROUTE_TO_TAB[route].tabId === tabId,
                   );
-                  const isTransportInterruptionTab = TRANSPORT_INTERRUPTION_ROUTES.some(
-                    (route) => ROUTE_TO_TAB[route].tabId === tabId,
-                  );
-                  const isTechnicalCheck = !isAdrTab && !isTransportInterruptionTab && TECHNICAL_CHECK_ROUTES.some(
-                    (route) => ROUTE_TO_TAB[route].tabId === tabId,
-                  );
+                  const isTransportInterruptionTab =
+                    TRANSPORT_INTERRUPTION_ROUTES.some(
+                      (route) => ROUTE_TO_TAB[route].tabId === tabId,
+                    );
+                  const isTechnicalCheck =
+                    !isAdrTab &&
+                    !isTransportInterruptionTab &&
+                    (ROUTE_TO_TAB['/vehicle-technical'].tabId === tabId ||
+                      isDynamicTrailerTab);
                   if (tabDef) {
                     if (isAdrTab) {
-                      const raw = savedFormData.current[tabId] as Partial<AdrForm>;
+                      const raw = savedFormData.current[
+                        tabId
+                      ] as Partial<AdrForm>;
                       const isBlank = (obj: Record<string, unknown>) =>
                         Object.values(obj).every((v) => v == null || v === '');
                       const values = {
                         ...raw,
                         compoundFormKey: id,
                         driverAssistant:
-                          raw.driverAssistant && !isBlank(raw.driverAssistant as Record<string, unknown>)
+                          raw.driverAssistant &&
+                          !isBlank(
+                            raw.driverAssistant as Record<string, unknown>,
+                          )
                             ? JSON.stringify(raw.driverAssistant)
                             : '',
                         lastLoadAddress:
-                          raw.lastLoadAddress && !isBlank(raw.lastLoadAddress as Record<string, unknown>)
+                          raw.lastLoadAddress &&
+                          !isBlank(
+                            raw.lastLoadAddress as Record<string, unknown>,
+                          )
                             ? JSON.stringify(raw.lastLoadAddress)
                             : '',
                         nextLoadAddress:
-                          raw.nextLoadAddress && !isBlank(raw.nextLoadAddress as Record<string, unknown>)
+                          raw.nextLoadAddress &&
+                          !isBlank(
+                            raw.nextLoadAddress as Record<string, unknown>,
+                          )
                             ? JSON.stringify(raw.nextLoadAddress)
                             : '',
-                        dangerousGoods: JSON.stringify(raw.dangerousGoods ?? []),
-                        infringements: JSON.stringify(
-                          (raw.infringements ?? []).filter((e) => !!(e as { checkStatus?: string }).checkStatus),
+                        dangerousGoods: JSON.stringify(
+                          raw.dangerousGoods ?? [],
                         ),
-                        correctiveMeasures: JSON.stringify(raw.correctiveMeasures ?? []),
+                        infringements: JSON.stringify(
+                          (raw.infringements ?? []).filter(
+                            (e) =>
+                              !!(e as { checkStatus?: string }).checkStatus,
+                          ),
+                        ),
+                        correctiveMeasures: JSON.stringify(
+                          raw.correctiveMeasures ?? [],
+                        ),
                       };
-                      const result = await saveAdrForm(values as unknown as AdrForm);
+                      const result = await saveAdrForm(
+                        values as unknown as AdrForm,
+                      );
                       if ((result[0] as { id?: string })?.id) {
                         savedDriveRestFormsRef.current = new Set(
                           savedDriveRestFormsRef.current,
@@ -2394,13 +2536,16 @@ export function CompoundFormCreatePage() {
                         );
                       }
                     } else if (isTransportInterruptionTab) {
-                      const raw = savedFormData.current[tabId] as Partial<TransportInterruptionForm>;
+                      const raw = savedFormData.current[
+                        tabId
+                      ] as Partial<TransportInterruptionForm>;
                       const payload = {
                         ...raw,
                         compoundFormKey: id,
                         legalBases: JSON.stringify(raw.legalBases ?? []),
                       } as unknown as TransportInterruptionForm;
-                      const result = await saveTransportInterruptionForm(payload);
+                      const result =
+                        await saveTransportInterruptionForm(payload);
                       if ((result[0] as { id?: string })?.id) {
                         savedDriveRestFormsRef.current = new Set(
                           savedDriveRestFormsRef.current,

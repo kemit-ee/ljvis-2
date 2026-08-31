@@ -6,6 +6,8 @@ import type { TechnicalCheckForm } from '../../types';
 import { useTechnicalCheckForm } from '../../pages/technical-check-form/useTechnicalCheckForm';
 import { TechnicalCheckFormFields } from '../../pages/technical-check-form/TechnicalCheckFormFields';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
+import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 interface TechnicalCheckFormViewCardProps {
   scope: 'vehicle' | 'trailer';
@@ -41,6 +43,8 @@ export function TechnicalCheckFormViewCard({
     form.compoundFormKey ? Number(form.compoundFormKey) : undefined,
   );
 
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+
   return (
     <Card className="mb-1">
       <Card.Content>
@@ -67,6 +71,7 @@ export function TechnicalCheckFormViewCard({
           canEditXroadFields={false}
           isEditLocked={false}
           xroadBlockVisible={false}
+          isDesktop={isDesktop}
         />
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
         <div className="confirm-button">

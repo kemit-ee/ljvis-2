@@ -323,6 +323,7 @@ export interface TechnicalCheckForm {
   extraordinaryInspectionDate?: string;
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
+  trailerRegNr?: string;
   createdBy?: string;
 }
 
