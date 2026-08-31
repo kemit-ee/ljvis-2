@@ -150,7 +150,7 @@ SELECT
         NULLIF(:proceedingReferenceNumber, ''),
         COALESCE(NULLIF(:documentChecks, '')::jsonb, '[]'::jsonb),
         COALESCE(NULLIF(:otherDocuments, '')::jsonb, '[]'::jsonb),
-        NULLIF(:spApplicability, ''),
+        'not_checked', -- 2. faas: sektsioon peidetud, alati not_checked
         NULLIF(:tachographTypeCode, ''),
         COALESCE(:tachographDataNotDownloaded::BOOLEAN, FALSE),
         NULLIF(:checkedDaysCount, '')::INTEGER,
@@ -161,9 +161,9 @@ SELECT
         COALESCE(NULLIF(:violations200215, '')::jsonb, '[]'::jsonb),
         COALESCE(NULLIF(:violations5932008, '')::jsonb, '[]'::jsonb),
         COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
-        COALESCE(:massDimensionNonCompliant::BOOLEAN, FALSE),
+        FALSE, -- 2. faas: sektsioon peidetud
         COALESCE(NULLIF(:massDimensionMeasurements, '') ::jsonb, '[]' ::jsonb),
-        CASE WHEN :atpViolationFound = 'true' THEN TRUE ELSE FALSE END,
+        FALSE, -- 2. faas: ATP sektsioon peidetud
         NULLIF(:atpViolationDescription, ''),
         COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb),
         NULLIF(:enforcementDecision, ''),

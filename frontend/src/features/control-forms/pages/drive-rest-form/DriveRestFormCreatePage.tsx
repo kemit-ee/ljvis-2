@@ -126,6 +126,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
         <DriveRestFormFields
           type={type}
           formik={formik}
+          hideDriveRestExtras={authority === 'TRAM'}
           isDesktop={isDesktop}
           transportClassItems={transportClassItems}
           cargoCabotageViolations={cargoCabotageViolations}
