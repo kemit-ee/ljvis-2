@@ -8,7 +8,7 @@ declaration:
     belongs to that session: company scope requires row.companyRegCode to be
     one of the session's represented companies
     (templates/citizen-company-representative — cached claim first, live
-    Äriregister esindus_v2 fallback), citizen-self scope requires
+    Äriregister esindus_v1 fallback), citizen-self scope requires
     row.punishedPersonIdCode == the session's own personalCode. BOTH checks
     are independent of activeRole/activeRegistryCode — the dashboard shows
     every represented company's forms AND the citizen's own forms at the

@@ -3,7 +3,7 @@ declaration:
   version: "1.0"
   description: >-
     Lazily resolve the companies the current TARA session's personal code may
-    represent (Äriregister esindus_v2), for the header representation dropdown.
+    represent (Äriregister esindus_v1), for the header representation dropdown.
     Calls XTR directly rather than going through POST/v1/xroad/arireg/esindus:
     that endpoint sits behind POST/.guard (officer session via
     templates/check-user-authority), which a citizen's TARA session can never
@@ -71,15 +71,13 @@ return_cached:
 callXtr:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
       type: json
     body:
       reg_code: ""
       personal_code: ${personal_code}
       personal_code_country: "EST"
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
   result: xtrResponse
   next: checkXtrStatus
 
@@ -111,7 +109,7 @@ mapCompanies:
           return v;
         }
         var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
-        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
         var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
         var keha = responseNode.keha || {};
         var items = toArray(keha.ettevotjad && keha.ettevotjad.item);

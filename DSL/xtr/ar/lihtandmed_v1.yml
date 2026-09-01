@@ -1,0 +1,53 @@
+params:
+  - reg_code
+  - company_name
+  - max_results
+
+method: POST
+
+# No `service:` — routed through the configured Security Server (xtr.yaml ->
+# security_server), same as liiklusregister/*.yml and etoimik/*.yml. Replaces
+# lihtandmed_v3.yml's direct HTTPS bypass to ariregxmlv6.rik.ee: our subsystem
+# (GOV/70001231/ljvis2) now has X-Road ACL on arireg's v1 methods, confirmed
+# live via the allowedMethods meta-service (see .ai/ljvis-tasks/xtee-task.md).
+# ariregister_kasutajanimi/ariregister_parool are optional (minOccurs="0") in
+# the v1 XSD too, and are omitted here: authorisation is via X-Road ACL, not
+# an Ariregister-level login, so no username/password is needed anymore.
+# IMPORTANT — v1's paringliht_v5_paring request type is NOT byte-identical to
+# v3's: the result-count field is named "evarv" here (v3 calls it "maksRida"),
+# and the field ORDER in the qualified (elementFormDefault="qualified") XSD
+# sequence is evnimi, then ariregistri_kood, then evarv, then keel — confirmed
+# against the real xroad6_lihtandmed_v1.xsd from www2.rik.ee. All fields are
+# minOccurs="0", so each is only emitted when the caller actually supplied it
+# (omitting an unset optional element is safer than sending an empty string
+# into ariregistri_kood, which is typed xsd:integer).
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:prod="http://arireg.x-road.eu/producer/">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70000310</id:memberCode>
+  <id:subsystemCode>arireg</id:subsystemCode>
+  <id:serviceCode>lihtandmed_v1</id:serviceCode>
+  <id:serviceVersion>v1</id:serviceVersion>
+  </xroad:service>
+  </soapenv:Header>
+  <soapenv:Body>
+  <prod:lihtandmed_v1>
+  <prod:keha>
+  {{#if company_name}}<prod:evnimi>{{company_name}}</prod:evnimi>{{/if}}
+  {{#if reg_code}}<prod:ariregistri_kood>{{reg_code}}</prod:ariregistri_kood>{{/if}}
+  {{#if max_results}}<prod:evarv>{{max_results}}</prod:evarv>{{/if}}
+  <prod:keel>est</prod:keel>
+  </prod:keha>
+  </prod:lihtandmed_v1>
+  </soapenv:Body>
+  </soapenv:Envelope>
