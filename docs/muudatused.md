@@ -4,6 +4,51 @@
 
 ---
 
+## 2026-09 — Rooma I ja autojuhi lähetamise rikkumised sõidu- ja puhkeaja vormil
+
+- **Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollkaardi rikkumiste
+  aknas** on taas valitavad **Rooma I lepingu rikkumine** (määrus 593/2008) ja
+  **autojuhi lähetamisnõuete rikkumised** (direktiiv 2020/1057), samuti konduktori
+  vanuse ja piiriületusriikide tähiste rikkumised. Need olid vormilt kadunud,
+  kuna klassifikaatoris oli mitmel raskusastme kirjel sama sisemine kood ja
+  rakendus kuvas neist ainult esimese.
+
+---
+
+## 2026-09 — Välisrikkumiste ja ADR rikkumiste klassifikaatorid 2016/403 järgi
+
+- **Välisriigi rikkumise vormi ja tehnokontrolli vormide rikkumiste loendis**
+  (`EU_INFRINGEMENT`) viidi 52 rikkumise raskusaste (MSI/VSI/SI) kooskõlla
+  komisjoni määruse (EL) 2016/403 I lisaga. Suurem osa muudatustest tõstab
+  sõidumeeriku (165/2014), kiiruspiiriku (92/6), juhtide koolituse (2003/59) ja
+  lähetuse (2020/1057) rikkumisi kõrgemale astmele; osa ohtlike kaupade (2008/68)
+  ja loomaveo (1/2005) ridu langeb "tõsiseks" (SI).
+- **Ohtliku veose (ADR) kontrollvormil** täidetakse rikkumiste loend nüüd
+  klassifikaatorist `DANGEROUS_GOODS_INFRINGEMENTS_NEW` (varem oli loend tühi,
+  kuna klassifikaatorit ei olnud baasi kirjutatud). 24 rikkumist kolmes rühmas
+  (2016/403 I lisa jaotis 9, direktiiv 2008/68/EÜ).
+- Täielik kaardistus: `docs/andmehaldus/rikkumiste-klassifikaatorid-2016-403.md`.
+
+---
+
+## 2026-09 — Sõidu- ja puhkeaja rikkumiste raskusastmed 2016/403 järgi
+
+- **Sõidu- ja puhkeaja nõuete rikkumiste aknas** viidi 39 rikkumise raskusaste
+  (MI/SI/VSI/MSI) kooskõlla komisjoni määruse (EL) 2016/403 I lisaga
+  (konsolideeritud redaktsioon 23.05.2022, sisaldab määruse 2022/694 muudatusi).
+  Peamiselt puudutab see sõidumeeriku (määrus 165/2014) rikkumisi, mis on I lisas
+  „kõige raskem rikkumine" (MSI), kuid olid varem märgitud „väga tõsiseks" (VSI) —
+  näiteks kontrollimata töökojas kasutamine, sõidumeeriku mittekorrektne töö,
+  salvestuslehtede väärkasutus, kontrollist keeldumine. Samuti täpsustati
+  autojuhi lähetamise (direktiiv 2020/1057) ja Rooma I (määrus 593/2008)
+  rikkumiste raskusastmed, mis olid varem kõik „kerge" (MI). Muudatus mõjutab
+  uute rikkumiste salvestamist; varem salvestatud kontrollvormide andmed jäävad
+  muutmata.
+- Täielik loend (rikkumine, õigusakt, artikkel, vana ja uus raskusaste) on
+  dokumendis `docs/andmehaldus/soidu-puhkeaeg-rikkumiste-klassifikaatorid.md`.
+
+---
+
 ## 2026-09 — Compound vormi kuupäeva ja kellaaja käsitsi trükkimine
 
 - **Compound vormi üldosas** saab nüüd kontrolli kuupäeva ja kontrolli aja
