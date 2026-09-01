@@ -9,10 +9,10 @@ import {
   Card,
   Text,
   Checkbox,
-  DateField,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { formatDate } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../shared/MaskedDateField';
 import type { ControlsMatrixRow, ViolationEntry } from '../../types';
 import type { ClassifierEntry } from '../../../classifiers/types';
 import { ControlsMatrixTable } from './ControlsMatrixTable';
@@ -172,7 +172,7 @@ export function LabourInspectionFormFields({
                     }
                   : {})}
               />
-              <DateField
+              <MaskedDateField
                 id="inspectionDate"
                 label={t('forms.labour_inspection.inspectionDate')}
                 monthYearSelectType="grid"

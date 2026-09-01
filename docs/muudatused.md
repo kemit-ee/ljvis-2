@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-09 — Liitvorm: välisriigi ettevõtte asukoht, läbisõidumõõdik, sünniaja sisestus
+
+- **Liitvormil (koondvorm)** saab välisriigi veoettevõtte puhul nüüd
+  **maakonna ja linna/valla käsitsi sisestada**. Kui ettevõtte asukohariik ei ole
+  Eesti, asenduvad Eesti klassifikaatori rippmenüüd vabateksti väljadega —
+  välismaist aadressi ei ole võimalik Eesti klassifikaatorist valida. Riigi
+  vahetamisel need väljad tühjenevad.
+- **Läbisõidumõõdiku näidu väli** lubab nüüd kuni 9-kohalise arvu (varem 8).
+- **Sõidukijuhi ja meeskonnaliikme sünniaja** ning teiste käsitsi täidetavate
+  kuupäevaväljade (sõiduki/haagise esmane registreerimine jm) sisestamisel
+  lisatakse trükkides automaatselt punktid kujul `pp.kk.aaaa`, nii et käsitsi
+  sisestus ei anna enam „Vigane kuupäev" viga. Sama muudatus rakendus ka
+  välisrikkumise, tööinspektsiooni, hea maine, tehnoülevaatuse ja ADR
+  kontrollvormidel.
+
+---
+
 ## 2026-09 — Rooma I ja autojuhi lähetamise rikkumised sõidu- ja puhkeaja vormil
 
 - **Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollkaardi rikkumiste

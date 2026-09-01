@@ -454,34 +454,54 @@ export function CompoundFormViewCard({
                   }
                   disabled={disabled}
                 />
-                <Select
-                  id="companyCounty"
-                  label={t('forms.compound.companyCounty')}
-                  options={counties.map((c) => ({
-                    value: String(c.id),
-                    label: c.name,
-                  }))}
-                  value={
-                    counties
-                      .map((c) => ({ value: String(c.id), label: c.name }))
-                      .find((o) => o.value === form.companyCounty) ?? null
-                  }
-                  disabled={disabled}
-                />
-                <Select
-                  id="companyCity"
-                  label={t('forms.compound.companyCity')}
-                  options={companyCitiesParishes.map((c) => ({
-                    value: String(c.id),
-                    label: c.name,
-                  }))}
-                  value={
-                    companyCitiesParishes
-                      .map((c) => ({ value: String(c.id), label: c.name }))
-                      .find((o) => o.value === form.companyCity) ?? null
-                  }
-                  disabled={disabled}
-                />
+                {form.companyCountryCode &&
+                form.companyCountryCode !== 'EE' ? (
+                  <TextField
+                    id="companyCounty"
+                    label={t('forms.compound.companyCounty')}
+                    value={form.companyCounty ?? ''}
+                    disabled={disabled}
+                  />
+                ) : (
+                  <Select
+                    id="companyCounty"
+                    label={t('forms.compound.companyCounty')}
+                    options={counties.map((c) => ({
+                      value: String(c.id),
+                      label: c.name,
+                    }))}
+                    value={
+                      counties
+                        .map((c) => ({ value: String(c.id), label: c.name }))
+                        .find((o) => o.value === form.companyCounty) ?? null
+                    }
+                    disabled={disabled}
+                  />
+                )}
+                {form.companyCountryCode &&
+                form.companyCountryCode !== 'EE' ? (
+                  <TextField
+                    id="companyCity"
+                    label={t('forms.compound.companyCity')}
+                    value={form.companyCity ?? ''}
+                    disabled={disabled}
+                  />
+                ) : (
+                  <Select
+                    id="companyCity"
+                    label={t('forms.compound.companyCity')}
+                    options={companyCitiesParishes.map((c) => ({
+                      value: String(c.id),
+                      label: c.name,
+                    }))}
+                    value={
+                      companyCitiesParishes
+                        .map((c) => ({ value: String(c.id), label: c.name }))
+                        .find((o) => o.value === form.companyCity) ?? null
+                    }
+                    disabled={disabled}
+                  />
+                )}
                 <TextField
                   id="companyAddressLine1"
                   label={t('forms.compound.companyAddressLine1')}

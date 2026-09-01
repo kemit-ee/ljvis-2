@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
-  DateField,
   Heading,
   TextField,
   Text,
@@ -184,6 +183,12 @@ export function CompoundFormEditCard({
 
   const gridClass =
     styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'];
+
+  // Välisriigi ettevõtte puhul ei kohaldu Eesti EHAK-klassifikaator —
+  // maakond/linn-vald sisestatakse vabatekstina.
+  const isCompanyForeign =
+    !!formik.values.companyCountryCode &&
+    formik.values.companyCountryCode !== 'EE';
 
   return (
     <Card className="mb-1">
@@ -553,7 +558,7 @@ export function CompoundFormEditCard({
                       ]
                     }
                   >
-                    <DateField
+                    <MaskedDateField
                       id="vehicleFirstRegistration"
                       label={t('forms.compound.vehicleFirstRegistration')}
                       monthYearSelectType="grid"
@@ -637,7 +642,7 @@ export function CompoundFormEditCard({
                         String(parsedValue),
                       );
                     }}
-                    input={{ maxLength: 8 }}
+                    input={{ maxLength: 9 }}
                   />
                 </div>
               </Card.Content>
@@ -865,7 +870,7 @@ export function CompoundFormEditCard({
                               ]
                             }
                           >
-                            <DateField
+                            <MaskedDateField
                               id={`trailerFirstRegistration_${index}`}
                               label={t(
                                 'forms.compound.trailerFirstRegistration',
@@ -1123,10 +1128,12 @@ export function CompoundFormEditCard({
                               ? (val as { value: string }).value
                               : '';
                           formik.setFieldValue('companyCountryCode', newCode);
-                          if (newCode !== 'EE') {
-                            formik.setFieldValue('companyCounty', '');
-                            formik.setFieldValue('companyCity', '');
-                          }
+                          // Riigi vahetusel tühjenda maakond/linn — EE puhul on
+                          // seal klassifikaatori ID, välisriigi puhul vabatekst,
+                          // need ei tohi seguneda.
+                          formik.setFieldValue('companyCounty', '');
+                          formik.setFieldValue('companyCity', '');
+                          handleCompanyCountyChange(undefined);
                         }}
                         required={!!formik.values.companyName}
                         {...(formik.touched.companyCountryCode &&
@@ -1140,61 +1147,87 @@ export function CompoundFormEditCard({
                             }
                           : {})}
                       />
-                      <Select
-                        id="companyCounty"
-                        label={t('forms.compound.companyCounty')}
-                        options={counties.map((c) => ({
-                          value: String(c.id),
-                          label: c.name,
-                        }))}
-                        value={
-                          counties
-                            .map((c) => ({
-                              value: String(c.id),
-                              label: c.name,
-                            }))
-                            .find(
-                              (o) => o.value === formik.values.companyCounty,
-                            ) ?? null
-                        }
-                        onChange={(val) => {
-                          const v =
-                            val && !Array.isArray(val)
-                              ? (val as { value: string }).value
-                              : '';
-                          formik.setFieldValue('companyCounty', v);
-                          formik.setFieldValue('companyCity', '');
-                          handleCompanyCountyChange(v ? Number(v) : undefined);
-                        }}
-                        disabled={formik.values.companyCountryCode !== 'EE'}
-                      />
-                      <Select
-                        id="companyCity"
-                        label={t('forms.compound.companyCity')}
-                        options={companyCitiesParishes.map((c) => ({
-                          value: String(c.id),
-                          label: c.name,
-                        }))}
-                        value={
-                          companyCitiesParishes
-                            .map((c) => ({
-                              value: String(c.id),
-                              label: c.name,
-                            }))
-                            .find(
-                              (o) => o.value === formik.values.companyCity,
-                            ) ?? null
-                        }
-                        onChange={(val) =>
-                          formik.setFieldValue(
-                            'companyCity',
-                            val && !Array.isArray(val)
-                              ? (val as { value: string }).value
-                              : '',
-                          )
-                        }
-                        disabled={!formik.values.companyCounty}
-                      />
+                      {isCompanyForeign ? (
+                        <TextField
+                          id="companyCounty"
+                          label={t('forms.compound.companyCounty')}
+                          value={formik.values.companyCounty}
+                          input={{ maxLength: 100 }}
+                          onChange={(v) =>
+                            formik.setFieldValue('companyCounty', v)
+                          }
+                        />
+                      ) : (
+                        <Select
+                          id="companyCounty"
+                          label={t('forms.compound.companyCounty')}
+                          options={counties.map((c) => ({
+                            value: String(c.id),
+                            label: c.name,
+                          }))}
+                          value={
+                            counties
+                              .map((c) => ({
+                                value: String(c.id),
+                                label: c.name,
+                              }))
+                              .find(
+                                (o) => o.value === formik.values.companyCounty,
+                              ) ?? null
+                          }
+                          onChange={(val) => {
+                            const v =
+                              val && !Array.isArray(val)
+                                ? (val as { value: string }).value
+                                : '';
+                            formik.setFieldValue('companyCounty', v);
+                            formik.setFieldValue('companyCity', '');
+                            handleCompanyCountyChange(
+                              v ? Number(v) : undefined,
+                            );
+                          }}
+                          disabled={formik.values.companyCountryCode !== 'EE'}
+                        />
+                      )}
+                      {isCompanyForeign ? (
+                        <TextField
+                          id="companyCity"
+                          label={t('forms.compound.companyCity')}
+                          value={formik.values.companyCity}
+                          input={{ maxLength: 50 }}
+                          onChange={(v) =>
+                            formik.setFieldValue('companyCity', v)
+                          }
+                        />
+                      ) : (
+                        <Select
+                          id="companyCity"
+                          label={t('forms.compound.companyCity')}
+                          options={companyCitiesParishes.map((c) => ({
+                            value: String(c.id),
+                            label: c.name,
+                          }))}
+                          value={
+                            companyCitiesParishes
+                              .map((c) => ({
+                                value: String(c.id),
+                                label: c.name,
+                              }))
+                              .find(
+                                (o) => o.value === formik.values.companyCity,
+                              ) ?? null
+                          }
+                          onChange={(val) =>
+                            formik.setFieldValue(
+                              'companyCity',
+                              val && !Array.isArray(val)
+                                ? (val as { value: string }).value
+                                : '',
+                            )
+                          }
+                          disabled={!formik.values.companyCounty}
+                        />
+                      )}
                       <TextField
                         id="companyAddressLine1"
                         label={t('forms.compound.companyAddressLine1')}
@@ -1441,7 +1474,7 @@ export function CompoundFormEditCard({
                         ]
                       }
                     >
-                      <DateField
+                      <MaskedDateField
                         id={`driverBirthDate_${index}`}
                         label={t('forms.compound.driverBirthDate')}
                         monthYearSelectType="grid"
