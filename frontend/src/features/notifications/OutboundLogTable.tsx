@@ -34,14 +34,22 @@ function OutboundReportModal({ logId, onClose }: OutboundReportModalProps) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('notifications.log.addressee')}</th>
-              <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('notifications.log.status')}</th>
+              <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('notifications.log.name')}</th>
+              <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('notifications.log.email')}</th>
+              <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('notifications.log.sendingResult')}</th>
             </tr>
           </thead>
           <tbody>
             {recipients.map((r) => (
               <tr key={r.id}>
-                <td style={{ padding: '4px 8px' }}>{r.person_email ?? r.person_name ?? r.person_code ?? '-'}</td>
+                <td style={{ padding: '4px 8px' }}>
+                  {r.person_name
+                    ? r.person_code
+                      ? `${r.person_name} (${r.person_code})`
+                      : r.person_name
+                    : (r.person_code ?? '-')}
+                </td>
+                <td style={{ padding: '4px 8px' }}>{r.person_email ?? '-'}</td>
                 <td style={{ padding: '4px 8px' }}>
                   <StatusBadge color={r.sending_report === 'ok' ? 'success' : 'danger'}>
                     {r.sending_report === 'ok' ? t('notifications.log.sent') : r.sending_report}
@@ -151,6 +159,7 @@ export function OutboundLogTable(): React.ReactElement {
           <tr>
             <th style={{ textAlign: 'left', padding: '8px' }}>{t('notifications.log.sendDate')}</th>
             <th style={{ textAlign: 'left', padding: '8px' }}>{t('notifications.log.messageType')}</th>
+            <th style={{ textAlign: 'left', padding: '8px' }}>{t('notifications.log.addressee')}</th>
             <th style={{ textAlign: 'left', padding: '8px' }}>{t('notifications.log.status')}</th>
             <th style={{ padding: '8px' }} />
           </tr>
@@ -158,7 +167,7 @@ export function OutboundLogTable(): React.ReactElement {
         <tbody>
           {entries.length === 0 ? (
             <tr>
-              <td colSpan={4} style={{ padding: '16px', textAlign: 'center' }}>
+              <td colSpan={5} style={{ padding: '16px', textAlign: 'center' }}>
                 <Text>{t('notifications.empty')}</Text>
               </td>
             </tr>
@@ -169,6 +178,13 @@ export function OutboundLogTable(): React.ReactElement {
               </td>
               <td style={{ padding: '8px' }}>
                 {t(`notifications.types.${entry.message_type}`, { defaultValue: entry.message_type })}
+              </td>
+              <td style={{ padding: '8px' }}>
+                {entry.first_recipient_name
+                  ? entry.first_recipient_code
+                    ? `${entry.first_recipient_name} (${entry.first_recipient_code})`
+                    : entry.first_recipient_name
+                  : (entry.first_recipient_email ?? '-')}
               </td>
               <td style={{ padding: '8px' }}>
                 <StatusBadge color={entry.status === 'sent' ? 'success' : 'danger'}>

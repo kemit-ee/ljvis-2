@@ -98,7 +98,10 @@ export function useTechnicalCheckForm(
   const defectsByPartKey = useMemo(() => {
     const map = new Map<number, ClassifierEntry[]>();
     parts.forEach((part) => {
-      map.set(part.classifierValueKey, getChildren('TECHNICAL_CHECK', part.classifierValueKey));
+      const children = [...getChildren('TECHNICAL_CHECK', part.classifierValueKey)].sort((a, b) =>
+        a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' }),
+      );
+      map.set(part.classifierValueKey, children);
     });
     return map;
   }, [parts, getChildren]);
