@@ -318,6 +318,17 @@ export function useTechnicalCheckForm(
       formik.setFieldValue('eraYvMntPlaces', false);
       formik.setFieldValue('eraYvMntRebuilt', false);
     }
+    if (resultType === 'ok') {
+      formik.setFieldValue('violations', []);
+      formik.setFieldValue('proceedingType', '');
+      formik.setFieldValue('proceedingReferenceNumber', '');
+    }
+    if (resultType === 'driving_ban') {
+      const currentViolations = formik.values.violations ?? [];
+      if (!currentViolations.includes(DRIVING_BAN_VIOLATION_CODE)) {
+        formik.setFieldValue('violations', [...currentViolations, DRIVING_BAN_VIOLATION_CODE]);
+      }
+    }
   };
 
   const isDrivingBanTriggerActive = resultLevel(computeAutoResult(formik.values.partsDefects ?? [])) >= 2;
