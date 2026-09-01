@@ -1,13 +1,14 @@
 # POST /v1/ws-broadcast/* — SISEMINE (ruuter-internal → ruuter).
 # Ei kasuta kasutaja-sessiooni: kutsuja on teine Ruuter-protsess, mitte brauser.
-# Autoriseerimine jagatud saladusega (x-viljus-has-a-secret == [#INTERNAL_API_KEY]).
+# Autoriseerimine jagatud saladusega
+# (x-viljus-knows-a-secret == [#INTERNAL_COMMUNICATION_KEY]).
 # override_ancestors: true — ülimuslik POST/.guard cookie-nõude suhtes.
 declaration:
   override_ancestors: true
 
 check:
   switch:
-    - condition: ${incoming.headers != null && incoming.headers['x-viljus-has-a-secret'] === '[#INTERNAL_API_KEY]'}
+    - condition: ${incoming.headers != null && incoming.headers['x-viljus-knows-a-secret'] === '[#INTERNAL_COMMUNICATION_KEY]'}
       next: allow
   next: deny
 

@@ -68,7 +68,7 @@ wsPush:
     url: "[#LJVIS_RUUTER]/v1/ws-broadcast/send"
     headers:
       type: json
-      x-viljus-has-a-secret: "[#INTERNAL_API_KEY]"
+      x-viljus-knows-a-secret: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       type: "notification_update"
   result: wsPushRes
