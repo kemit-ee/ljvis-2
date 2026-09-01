@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261016100000 splitStatements:false
+-- changeset ljvis:20261016100000 ignore:true splitStatements:false
 --
 -- DRIVING_VIOLATION: lisab puuduvad level-3 (raskusastme) read 16 rikkumisliigile,
 -- millel 20260828277000 seemnes ei tekkinud ühtegi alamkirjet. Ilma level-3

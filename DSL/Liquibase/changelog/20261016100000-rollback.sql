@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261016100000-rollback splitStatements:false
+-- changeset ljvis:20261016100000-rollback ignore:true splitStatements:false
 --
 -- Rollback 20261016100000: eemaldab lisatud level-3 read.
 
