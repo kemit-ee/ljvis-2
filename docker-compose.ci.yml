@@ -95,6 +95,7 @@ services:
         psql -h database -U ljvis -d ljvis_db -f /seed.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260818100001-erru-ncr-inbound-fixture-seed.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260818100002-erru-ncr-sp-form-fixture-seed.sql
+        psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20261021100001-erru-ncr-autodispatch-fixture-seed.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100000-risk-score-permission-seed.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100001-risk-score-test-fixtures.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100002-risk-score-kollane-fixture.sql
