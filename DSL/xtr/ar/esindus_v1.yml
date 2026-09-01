@@ -1,0 +1,48 @@
+params:
+  - reg_code
+  - personal_code
+  - personal_code_country
+
+method: POST
+
+# No `service:` — routed through the configured Security Server, same as
+# lihtandmed_v1.yml. Replaces esindus_v2.yml's direct HTTPS bypass to
+# ariregxmlv6.rik.ee: our subsystem (GOV/70001231/ljvis2) has X-Road ACL on
+# esindus_v1, confirmed live via allowedMethods (see .ai/ljvis-tasks/xtee-task.md).
+# username/password are dropped — authorisation is via X-Road ACL now.
+# Field order/names confirmed against the real xroad6_esindus_v1.xsd
+# (www2.rik.ee): ariregistri_kood, fyysilise_isiku_kood,
+# fyysilise_isiku_koodi_riik, keel — same order/names esindus_v2 already used,
+# so no mapping changes are needed on the Ruuter side beyond dropping
+# username/password. esindus_v1 lacks esindusoiguse_grupid (representation
+# groups) present in v2's response — not read by the frontend today.
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:prod="http://arireg.x-road.eu/producer/">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70000310</id:memberCode>
+  <id:subsystemCode>arireg</id:subsystemCode>
+  <id:serviceCode>esindus_v1</id:serviceCode>
+  <id:serviceVersion>v1</id:serviceVersion>
+  </xroad:service>
+  </soapenv:Header>
+  <soapenv:Body>
+  <prod:esindus_v1>
+  <prod:keha>
+  {{#if reg_code}}<prod:ariregistri_kood>{{reg_code}}</prod:ariregistri_kood>{{/if}}
+  {{#if personal_code}}<prod:fyysilise_isiku_kood>{{personal_code}}</prod:fyysilise_isiku_kood>{{/if}}
+  {{#if personal_code_country}}<prod:fyysilise_isiku_koodi_riik>{{personal_code_country}}</prod:fyysilise_isiku_koodi_riik>{{/if}}
+  <prod:keel>est</prod:keel>
+  </prod:keha>
+  </prod:esindus_v1>
+  </soapenv:Body>
+  </soapenv:Envelope>

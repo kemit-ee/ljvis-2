@@ -6,7 +6,7 @@ declaration:
     GET/v1/citizen/.guard (templates/citizen-authority). Company scope ONLY —
     ownership requires row.companyRegCode to be one of the session's
     represented companies (templates/citizen-company-representative —
-    cached claim first, live Äriregister esindus_v2 fallback), independent
+    cached claim first, live Äriregister esindus_v1 fallback), independent
     of activeRole/activeRegistryCode — the dashboard shows every represented
     company's forms at once, so a click-through must succeed regardless of
     which role happens to be active (same pattern as forms/search.yml's

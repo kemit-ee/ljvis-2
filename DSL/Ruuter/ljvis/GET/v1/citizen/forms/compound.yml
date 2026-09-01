@@ -6,7 +6,7 @@ declaration:
     by GET/v1/citizen/.guard (templates/citizen-authority). Ownership: company
     scope requires row.companyRegCode to be one of the session's represented
     companies (templates/citizen-company-representative — session claim
-    cached first, live Äriregister esindus_v2 fallback), independent of
+    cached first, live Äriregister esindus_v1 fallback), independent of
     activeRole/activeRegistryCode; citizen-self scope requires the session's
     own personalCode to match one of the drivers[] entries (personalCodeEe or
     personalCodeForeign), independent of activeRole too. The dashboard shows

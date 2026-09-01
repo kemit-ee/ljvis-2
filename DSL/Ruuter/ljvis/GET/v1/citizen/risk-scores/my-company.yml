@@ -10,10 +10,10 @@ declaration:
     are not). Representative check prefers the citizen session's claims
     (activeRole/activeRegistryCode/representedCompanies — set by
     representation/switch and representation/companies, backed by
-    Äriregister esindus_v2, LJVIS2-134) — free, no X-Road call. Only when the
+    Äriregister esindus_v1, LJVIS2-134) — free, no X-Road call. Only when the
     session predates those claims (e.g. a token minted before this feature
     was deployed, or dev/test tokens minted directly)
-    does it fall back to a live esindus_v2 call — the SAME service/
+    does it fall back to a live esindus_v1 call — the SAME service/
     definition of "representative" as representation/switch and /companies
     (right of representation), not the broader "ettevottegaSeotudIsikud_v1"
     (associated persons — e.g. shareholders) this endpoint originally used,
@@ -62,7 +62,7 @@ validateRegCode:
       next: returnInvalidRegCode
   next: checkSessionClaims
 
-# Fast path: session already proved (via esindus_v2, at switch/companies time)
+# Fast path: session already proved (via esindus_v1, at switch/companies time)
 # that this personal code may represent company_reg_code — skip the live AR
 # call entirely.
 checkSessionClaims:
@@ -74,24 +74,22 @@ checkSessionClaims:
   next: checkCompanyRepresentative
 
 # Same service and "representative" definition as representation/switch's
-# refreshCompaniesForCheck (esindus_v2 — right of representation), not the
+# refreshCompaniesForCheck (esindus_v1 — right of representation), not the
 # broader ettevottegaSeotudIsikud_v1 this step used to call. Calls XTR
 # directly rather than going through a Ruuter endpoint since every existing
-# esindus_v2 Ruuter endpoint (representation/companies, /switch) sits behind
+# esindus_v1 Ruuter endpoint (representation/companies, /switch) sits behind
 # an authenticated-citizen-session guard already satisfied here, but calling
 # XTR directly avoids an extra internal HTTP hop.
 checkCompanyRepresentative:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
       type: json
     body:
       reg_code: ""
       personal_code: ${personal_code}
       personal_code_country: "EST"
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
   result: ar_res
   next: checkArAvailable
 
@@ -102,7 +100,7 @@ checkArAvailable:
   next: extractRepresentedCompanies
 
 # Same namespace-stripping approach as representation/companies.yml and
-# representation/switch.yml's esindus_v2 parsing.
+# representation/switch.yml's esindus_v1 parsing.
 extractRepresentedCompanies:
   assign:
     represented_companies_live: >-
@@ -122,7 +120,7 @@ extractRepresentedCompanies:
           return v;
         }
         var soapBody = (ar_res.response.body && ar_res.response.body.body) ? ar_res.response.body.body : (ar_res.response.body || {});
-        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
         var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
         var keha = responseNode.keha || {};
         var items = toArray(keha.ettevotjad && keha.ettevotjad.item);

@@ -15,7 +15,7 @@ declaration:
       - scope=company requires `registry_code` and verifies it the same way
         GET/v1/citizen/risk-scores/my-company.yml does: first against the
         session's cached representedCompanies claim (free), falling back to
-        a live Äriregister esindus_v2 call when that claim predates the
+        a live Äriregister esindus_v1 call when that claim predates the
         session or is stale — NOT against activeRegistryCode, since the
         dashboard must list a represented company's forms without first
         switching the active role to it.
@@ -91,7 +91,7 @@ checkScope:
   next: returnNoActiveCompany
 
 # Same "representative" check as GET/v1/citizen/risk-scores/my-company.yml:
-# session claims first (free), live esindus_v2 fallback only when stale.
+# session claims first (free), live esindus_v1 fallback only when stale.
 checkExplicitCompanyRepresentative:
   switch:
     - condition: "${active_role === 'company' && active_registry_code === requested_registry_code}"
@@ -103,15 +103,13 @@ checkExplicitCompanyRepresentative:
 checkCompanyRepresentativeLive:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
       type: json
     body:
       reg_code: ""
       personal_code: ${session_personal_code}
       personal_code_country: "EST"
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
   result: ar_res
   next: checkArAvailable
 
@@ -140,7 +138,7 @@ extractRepresentedCompaniesLive:
           return v;
         }
         var soapBody = (ar_res.response.body && ar_res.response.body.body) ? ar_res.response.body.body : (ar_res.response.body || {});
-        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
         var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
         var keha = responseNode.keha || {};
         var items = toArray(keha.ettevotjad && keha.ettevotjad.item);

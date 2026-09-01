@@ -94,15 +94,13 @@ checkCompanyEligible:
 refreshCompaniesForCheck:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
       type: json
     body:
       reg_code: ""
       personal_code: ${personal_code}
       personal_code_country: "EST"
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
   result: xtrResponse
   next: checkXtrStatus
 
@@ -131,7 +129,7 @@ mapAndCheckCompanies:
           return v;
         }
         var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
-        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
         var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
         var keha = responseNode.keha || {};
         var items = toArray(keha.ettevotjad && keha.ettevotjad.item);
