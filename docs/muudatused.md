@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-09 — Sõidu- ja puhkeaja rikkumiste raskusastmed
+
+- **Sõidu- ja puhkeaja nõuete rikkumiste aknas** saab nüüd valida ka need
+  16 rikkumisliiki, millel varem „Vali" rippmenüü ei avanenud (nt „Keeldutakse
+  kontrollist", „Konduktori vanuse alampiiri ei järgita", andmete esitamise
+  rikkumised) — klassifikaatorisse lisati puuduvad raskusastme (MSI/VSI/SI/MI)
+  kirjed.
+
+---
+
 ## 2026-09 — Sõiduki tehnokontrolli vormi puudustvaliku modal
 
 - **„Ei vasta nõuetele" puuduste valiku aknas** kuvatakse puudused nüüd
