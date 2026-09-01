@@ -1,0 +1,189 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing read-only single labour_inspection_form detail. Guarded by
+    GET/v1/citizen/.guard (templates/citizen-authority) — any valid citizen
+    session can call this, but the row is only returned when it actually
+    belongs to that session: company scope requires row.companyRegCode to be
+    one of the session's represented companies
+    (templates/citizen-company-representative — cached claim first, live
+    Äriregister esindus_v2 fallback), citizen-self scope requires
+    row.punishedPersonIdCode == the session's own personalCode. BOTH checks
+    are independent of activeRole/activeRegistryCode — the dashboard shows
+    every represented company's forms AND the citizen's own forms at the
+    same time, so a click-through must succeed regardless
+    of which role happens to be active (same pattern as forms/search.yml's
+    scope param and citizen/forms/compound.yml). Citizen-visible status is
+    'published' only (same threshold as citizen/forms/search.sql). Reuses
+    the officer resql (control-forms/labour-inspection/get.sql) and DMapper
+    template (map_labour_inspection_form) so the response shape matches
+    frontend/src/features/control-forms/types.ts's LabourInspectionForm
+    exactly — the same type the officer detail page already renders
+    read-only via LabourInspectionFormFields.
+
+    GDPR: punishedPersonIdCode belongs to a third party (the sanctioned
+    individual, e.g. an employee) relative to anyone other than that person
+    themselves — partially masked (last 2 digits only) before returning
+    UNLESS the viewer IS the punished person (name kept as-is either way,
+    already visible in the officer search view for the same reason).
+    Decoupled from activeRole, same reasoning as the ownership check above.
+    Conservative default pending product/legal review.
+  namespace: citizen
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    params:
+      - field: q
+        type: string
+        description: "Labour inspection form ID"
+
+getSessionClaims:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkSession
+
+checkSession:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractClaims
+
+extractClaims:
+  assign:
+    personal_code: "${authority.personalCode}"
+    represented_companies: "${authority.representedCompanies ?? []}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
+    headers:
+      type: json
+    body:
+      id: "${incoming.params.q}"
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: "${res.response.body.length != 1}"
+      next: returnNotFound
+  next: checkVisibleAndOwned
+
+checkVisibleAndOwned:
+  assign:
+    row: "${res.response.body[0]}"
+    is_punished_person: "${false}"
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: "${row.status !== 'published'}"
+      next: returnNotFound
+  next: checkPunishedPerson
+
+checkPunishedPerson:
+  assign:
+    is_punished_person: "${!!row.punishedPersonIdCode && row.punishedPersonIdCode === personal_code}"
+  next: checkOwnership
+
+checkOwnership:
+  switch:
+    - condition: "${is_punished_person}"
+      next: mapResponse
+  next: checkCompanyRepresentative
+
+# templates/citizen-company-representative — same check as forms/search.yml's
+# scope=company branch and citizen/forms/compound.yml, independent of
+# activeRole/activeRegistryCode (see the description block above for why).
+checkCompanyRepresentative:
+  template: "templates/citizen-company-representative"
+  requestType: GET
+  body:
+    personal_code: ${personal_code}
+    registry_code: ${row.companyRegCode}
+    cached_companies: ${represented_companies}
+  result: representative_check
+  next: checkRepresentativeResult
+
+checkRepresentativeResult:
+  switch:
+    - condition: "${representative_check.isRepresentative === true}"
+      next: mapResponse
+  next: returnForbidden
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: applyGdprMasking
+
+applyGdprMasking:
+  assign:
+    masked_form: >-
+      ${(function(){
+        var f = mapped.response.body;
+        if (is_punished_person || !f.punishedPersonIdCode) return f;
+        var code = String(f.punishedPersonIdCode);
+        var masked = code.length > 2 ? ('*'.repeat(code.length - 2) + code.slice(-2)) : code;
+        return Object.assign({}, f, { punishedPersonIdCode: masked });
+      })()}
+  next: checkShouldLog
+
+# Audit third-party PII access: viewing this form as anyone other than the
+# punished person themselves means the punished person's data is a third
+# party's, relative to the viewer — decoupled from activeRole, same
+# reasoning as checkOwnership above. The punished person's own access to
+# their own record isn't logged (same convention officer detail endpoints
+# use — skipping the audit call when actor_personal_code === created_by).
+checkShouldLog:
+  switch:
+    - condition: "${!is_punished_person}"
+      next: logAuditEvent
+  next: returnSuccess
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "citizen.control_form.labour_inspection.view"
+    event_category: "control_form"
+    description: "Esindaja vaatas töökontrolli vormi ${row.formNumber}"
+    log_content: "${JSON.stringify({formKey: row.id, companyRegCode: row.companyRegCode})}"
+    actor_name: ${personal_code}
+    actor_personal_code: ${personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${masked_form}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "${({error: 'NOT_FOUND', message: 'Form not found'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'FORBIDDEN', message: 'This form does not belong to your active representation'})}"
+  next: end
+
+returnUnauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

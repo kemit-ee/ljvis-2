@@ -1,0 +1,194 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Switch the active representation for the current session: officer,
+    citizen-self (füüsiline isik), or a specific company (by registryCode).
+    Server-side validates that 'officer' is only chosen when the personal code
+    has an active users.user_account, and that 'company' is only chosen when
+    registryCode is in the caller's (cached or freshly-fetched) AR
+    representedCompanies list — a forged registryCode is rejected with 403,
+    per LJVIS2-137. Re-mints the JWT cookie with the new activeRole/
+    activeRegistryCode so subsequent requests are cheap (no repeat AR/DB call).
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    body:
+      - field: role
+        type: string
+        description: "One of: officer | citizen-self | company"
+      - field: registryCode
+        type: string
+        description: "Required when role=company — 8-digit Estonian company registry code"
+
+check_input:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: return_unauthenticated
+    - condition: "${!['officer', 'citizen-self', 'company'].includes(incoming.body?.role)}"
+      next: return_invalid_role
+    - condition: "${incoming.body.role === 'company' && !(incoming.body.registryCode || '').trim()}"
+      next: return_invalid_role
+  next: get_userinfo
+
+get_userinfo:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: check_userinfo
+
+check_userinfo:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: return_unauthenticated
+  next: extract_claims
+
+extract_claims:
+  assign:
+    personal_code: "${authority.personalCode}"
+    cached_companies: "${authority.representedCompanies}"
+    requested_role: ${incoming.body.role}
+    requested_registry_code: "${(incoming.body.registryCode || '').trim()}"
+  next: check_personal_code
+
+check_personal_code:
+  switch:
+    - condition: "${!personal_code}"
+      next: return_unauthenticated
+    - condition: "${requested_role === 'officer'}"
+      next: checkOfficerEligible
+    - condition: "${requested_role === 'company'}"
+      next: checkCompanyEligible
+  next: applySwitch
+
+checkOfficerEligible:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
+    headers:
+      type: json
+    body:
+      personal_code: ${personal_code}
+  result: officer_res
+  next: checkOfficerFound
+
+checkOfficerFound:
+  switch:
+    - condition: "${Array.isArray(officer_res.response.body) && officer_res.response.body.length > 0}"
+      next: applySwitch
+  next: return_forbidden
+
+# If the company list isn't cached yet (dropdown was never opened / session is
+# fresh), refresh it here rather than trusting a stale/absent claim.
+checkCompanyEligible:
+  switch:
+    - condition: "${cached_companies.some(c => c.registryCode === requested_registry_code)}"
+      next: applySwitch
+  next: refreshCompaniesForCheck
+
+refreshCompaniesForCheck:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    headers:
+      type: json
+    body:
+      reg_code: ""
+      personal_code: ${personal_code}
+      personal_code_country: "EST"
+      username: "[#AR_USERNAME]"
+      password: "[#AR_PASSWORD]"
+  result: xtrResponse
+  next: checkXtrStatus
+
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: return_forbidden
+  next: mapAndCheckCompanies
+
+mapAndCheckCompanies:
+  assign:
+    cached_companies: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function stripNs(v) {
+          if (Array.isArray(v)) return v.map(stripNs);
+          if (v && typeof v === 'object') {
+            var out = {};
+            Object.keys(v).forEach(function(k) {
+              if (k.charAt(0) === '@') return;
+              var shortKey = k.indexOf(':') >= 0 ? k.substring(k.indexOf(':') + 1) : k;
+              out[shortKey] = stripNs(v[k]);
+            });
+            return out;
+          }
+          return v;
+        }
+        var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
+        var keha = responseNode.keha || {};
+        var items = toArray(keha.ettevotjad && keha.ettevotjad.item);
+        return items.map(function(c) {
+          return { registryCode: c.ariregistri_kood != null ? String(c.ariregistri_kood) : '', companyName: c.arinimi || '' };
+        });
+      })()}
+  next: checkCompanyEligibleAfterRefresh
+
+checkCompanyEligibleAfterRefresh:
+  switch:
+    - condition: "${cached_companies.some(c => c.registryCode === requested_registry_code)}"
+      next: applySwitch
+  next: return_forbidden
+
+applySwitch:
+  call: http.post
+  args:
+    url: "[#LJVIS_TIM]/jwt/custom/generate"
+    headers:
+      type: json
+      X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
+    body:
+      content:
+        sub: ${personal_code}
+        personalCode: ${personal_code}
+        authenticatedAs: ${personal_code}
+        activeRole: ${requested_role}
+        activeRegistryCode: "${requested_role === 'company' ? requested_registry_code : null}"
+        representedCompanies: "${cached_companies && cached_companies.length > 0 ? cached_companies : null}"
+      expirationInMinutes: 480
+      JWTName: "customJwtCookie"
+  result: jwt_result
+  next: return_switched
+
+return_switched:
+  status: 200
+  headers:
+    Set-Cookie: "customJwtCookie=${jwt_result.response.body.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=28800"
+  return: >-
+    ${({
+      activeRole: requested_role,
+      activeRegistryCode: requested_role === 'company' ? requested_registry_code : null
+    })}
+  next: end
+
+return_forbidden:
+  status: 403
+  return: "${({error: 'NOT_ELIGIBLE', message: 'Requested role/company is not available for this session'})}"
+  next: end
+
+return_invalid_role:
+  status: 400
+  return: "${({error: 'INVALID_PARAMETER', message: \"role must be one of officer|citizen-self|company; registryCode required when role=company\"})}"
+  next: end
+
+return_unauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

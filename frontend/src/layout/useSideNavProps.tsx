@@ -23,11 +23,12 @@ interface UseSideNavPropsResult {
 export function useSideNavProps(): UseSideNavPropsResult {
   const { pathname } = useLocation();
   const { t } = useTranslation();
-  const { hasPermission, hasAnyPermission } = useAuth();
+  const { hasPermission, hasAnyPermission, user } = useAuth();
   const { unreadCount } = useNotificationCount();
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+  const isCitizen = user?.activeRole !== 'officer';
 
   React.useEffect(() => {
     if (isMobileOpen) {
@@ -37,6 +38,14 @@ export function useSideNavProps(): UseSideNavPropsResult {
 
   const navItems = React.useMemo(() => {
     const items: Parameters<typeof SideNav>[0]['navItems'] = [];
+
+    // Citizen sessions (citizen-self / company) have no
+    // permissions and get no side menu at all — the dashboard
+    // (CitizenDashboardPage) is the only citizen page, reached directly at
+    // "/"; there's nothing to navigate to.
+    if (isCitizen) {
+      return items;
+    }
 
     const adminSubItems = [];
 
@@ -166,16 +175,18 @@ export function useSideNavProps(): UseSideNavPropsResult {
 
     const adminIsActive = adminSubItems.some((item) => item.isActive);
 
-    items.push({
-      children: t('nav.administration'),
-      icon: 'account_circle',
-      isActive: adminIsActive,
-      isDefaultOpen: adminIsActive,
-      subItems: adminSubItems,
-    });
+    if (adminSubItems.length > 0) {
+      items.push({
+        children: t('nav.administration'),
+        icon: 'account_circle',
+        isActive: adminIsActive,
+        isDefaultOpen: adminIsActive,
+        subItems: adminSubItems,
+      });
+    }
 
     return items;
-  }, [pathname, t, hasPermission, hasAnyPermission, unreadCount]);
+  }, [pathname, t, hasPermission, hasAnyPermission, isCitizen, unreadCount]);
 
   const getWrapperClassName = () => {
     const classes = [styles.wrapper];
@@ -202,6 +213,19 @@ export function useSideNavProps(): UseSideNavPropsResult {
   const adminIsActive = navItems
     .flatMap((item) => item.subItems ?? [])
     .some((sub) => sub.isActive);
+
+  // No items means no side menu at all for a citizen session — not
+  // even an empty SideNav shell — so the main content area gets the full
+  // width instead of leaving a chrome-only column/toggle button.
+  if (isCitizen) {
+    return {
+      sideNav: null,
+      toggleButton: null,
+      isMobileOpen: false,
+      isDesktop,
+      closeSideNav: () => {},
+    };
+  }
 
   return {
     sideNav: (

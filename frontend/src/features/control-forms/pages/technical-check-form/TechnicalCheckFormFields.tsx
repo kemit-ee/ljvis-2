@@ -418,7 +418,7 @@ export function TechnicalCheckFormFields({
                   <ChoiceGroup
                     id={`violations-${category}`}
                     name={`violations-${category}`}
-                    label={category}
+                    label={t(`citizen.compoundDetail.severity.${category}`, category)}
                     inputType="checkbox"
                     value={(values.violations ?? []).filter((c) =>
                       items.some((i) => i.code === c),

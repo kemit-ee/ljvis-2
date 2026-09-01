@@ -1,0 +1,29 @@
+params:
+  - reg_code
+  - personal_code
+  - personal_code_country
+  - username
+  - password
+
+service: https://ariregxmlv6.rik.ee/
+method: POST
+
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:iden="http://x-road.eu/xsd/identifiers"
+                    xmlns:prod="http://arireg.x-road.eu/producer/"
+                    xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
+  <soapenv:Body>
+  <prod:esindus_v2>
+  <prod:keha>
+  <prod:ariregister_kasutajanimi>{{username}}</prod:ariregister_kasutajanimi>
+  <prod:ariregister_parool>{{password}}</prod:ariregister_parool>
+  <prod:ariregistri_kood>{{reg_code}}</prod:ariregistri_kood>
+  <prod:fyysilise_isiku_kood>{{personal_code}}</prod:fyysilise_isiku_kood>
+  <prod:fyysilise_isiku_koodi_riik>{{personal_code_country}}</prod:fyysilise_isiku_koodi_riik>
+  <prod:keel>est</prod:keel>
+  </prod:keha>
+  </prod:esindus_v2>
+  </soapenv:Body>
+  </soapenv:Envelope>

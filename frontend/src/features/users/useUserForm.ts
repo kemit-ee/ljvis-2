@@ -52,7 +52,7 @@ export function useUserForm(
   }, [enabled]);
 
   useEffect(() => {
-    if (!enabled || !authUser) return;
+    if (!enabled || !authUser?.id) return;
     getUserGroups(userScope, authUser.id)
       .then((groups) => {
         if (groups.some((g) => g.name === SUPER_ADMIN_GROUP)) return;

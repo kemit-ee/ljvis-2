@@ -172,7 +172,7 @@ export function DrivingViolationModal({
 
   const getDropdownLabel = (l2Code: string) => {
     const selected = dropdowns[l2Code]?.selected ?? [];
-    if (selected.length === 0) return t('common.select', 'Vali');
+    if (selected.length === 0) return t('common.select');
     const l2 = myLevel2.find((item) => item.code === l2Code);
     return selected
       .map((code) => {
@@ -336,7 +336,7 @@ export function DrivingViolationModal({
                                       onClick={() => clearDropdown(l2.code)}
                                       className={styles['clear-button']}
                                     >
-                                      {t('common.remove', 'Eemalda')}
+                                      {t('common.remove')}
                                     </button>
                                   </div>
                                 </div>
@@ -355,11 +355,11 @@ export function DrivingViolationModal({
         <Modal.Footer>
           <Modal.Closer>
             <Button type="button" visualType="secondary">
-              {t('common.cancel', 'Tühista')}
+              {t('common.cancel')}
             </Button>
           </Modal.Closer>
           <Button type="button" onClick={handleConfirm}>
-            {t('common.select', 'Vali')}
+            {t('common.select')}
           </Button>
         </Modal.Footer>
       </Modal.Content>

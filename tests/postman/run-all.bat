@@ -66,6 +66,12 @@ call newman run "%COL%\good-repute-form.collection.json" -e "%ENV%" --delay-requ
 echo Running collection: form-search.collection.json
 call newman run "%COL%\form-search.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\form-search.html"
 
+echo Running collection: risk-scores.collection.json
+call newman run "%COL%\risk-scores.collection.json" -e "%ENV%" -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\risk-scores.html"
+
+echo Running collection: citizen-representation.collection.json
+call newman run "%COL%\citizen-representation.collection.json" -e "%ENV%" -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\citizen-representation.html"
+
 echo.
 echo All collections passed.
 echo HTML reports:

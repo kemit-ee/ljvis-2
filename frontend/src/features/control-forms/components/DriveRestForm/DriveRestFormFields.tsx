@@ -850,7 +850,7 @@ export function DriveRestFormFields({
                       id="checkedDaysCount"
                       label=""
                       value={formik.values.checkedDaysCount?.toString() || ''}
-                      placeholder={t('Nr')}
+                      placeholder={t('common.numberPlaceholder', 'Nr')}
                       onChange={(v) => {
                         const numericValue = v.replace(/\D/g, '');
                         const parsedValue = parseInt(numericValue, 10) || 0;
@@ -868,7 +868,7 @@ export function DriveRestFormFields({
                       id="workDaysCount"
                       label=""
                       value={formik.values.workDaysCount?.toString() || ''}
-                      placeholder={t('Nr')}
+                      placeholder={t('common.numberPlaceholder', 'Nr')}
                       onChange={(v) => {
                         const numericValue = v.replace(/\D/g, '');
                         const parsedValue = parseInt(numericValue, 10) || 0;
@@ -888,7 +888,7 @@ export function DriveRestFormFields({
                       value={
                         formik.values.otherActivityDaysCount?.toString() || ''
                       }
-                      placeholder={t('Nr')}
+                      placeholder={t('common.numberPlaceholder', 'Nr')}
                       onChange={(v) => {
                         const numericValue = v.replace(/\D/g, '');
                         const parsedValue = parseInt(numericValue, 10) || 0;

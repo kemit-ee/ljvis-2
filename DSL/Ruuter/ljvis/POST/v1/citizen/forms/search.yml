@@ -1,0 +1,267 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing read-only form listing (control-forms + foreign_violation +
+    labour_inspection + good_repute, via the cross-entity forms.form_search view).
+    Guarded by POST/v1/citizen/.guard (templates/citizen-authority).
+    The two-section dashboard needs both scopes fetchable at once,
+    independent of the session's activeRole (a
+    protocol can legitimately show up in both "Minu ettevõtted" and "Minu
+    protokollid" at the same time). So the request body may pass an explicit
+    `scope` ('self' | 'company'):
+      - scope=self always uses the session's own personalCode — no further
+        check needed, it's the caller's own data.
+      - scope=company requires `registry_code` and verifies it the same way
+        GET/v1/citizen/risk-scores/my-company.yml does: first against the
+        session's cached representedCompanies claim (free), falling back to
+        a live Äriregister esindus_v2 call when that claim predates the
+        session or is stale — NOT against activeRegistryCode, since the
+        dashboard must list a represented company's forms without first
+        switching the active role to it.
+    When `scope` is omitted (legacy callers, e.g. detail-page prefetches),
+    falls back to the original activeRole-based behaviour: 'company' lists
+    the active company's forms (activeRegistryCode), 'citizen-self' lists
+    the session's own forms. 'officer' is rejected either way (this endpoint
+    is citizen-only; officers use control-forms/search).
+  namespace: citizen
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    body:
+      - field: scope
+        type: string
+        description: "Optional explicit scope: 'self' | 'company'. Omit for legacy activeRole-based behaviour."
+      - field: registry_code
+        type: string
+        description: "Required when scope=company — 8-digit Estonian company registry code."
+      - field: page
+        type: number
+        description: "Page number (1-based)"
+      - field: page_size
+        type: number
+        description: "Rows per page"
+      - field: sorting
+        type: string
+        description: "Sort column and direction, e.g. 'main_date desc'"
+      - field: form_type
+        type: string
+        description: "Filter by a single form type"
+
+getSessionClaims:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkSession
+
+checkSession:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractActiveCompany
+
+extractActiveCompany:
+  assign:
+    active_role: "${authority.activeRole}"
+    active_registry_code: "${authority.activeRegistryCode ?? ''}"
+    session_personal_code: "${authority.personalCode}"
+    represented_companies: "${authority.representedCompanies ?? []}"
+    requested_scope: "${(incoming.body.scope || '').trim()}"
+    requested_registry_code: "${(incoming.body.registry_code || '').trim()}"
+  next: checkScope
+
+checkScope:
+  switch:
+    - condition: "${requested_scope === 'self'}"
+      next: callResqlSelf
+    - condition: "${requested_scope === 'company' && !/^[0-9]{8}$/.test(requested_registry_code)}"
+      next: returnInvalidRegCode
+    - condition: "${requested_scope === 'company'}"
+      next: checkExplicitCompanyRepresentative
+    - condition: "${active_role === 'company' && !active_registry_code}"
+      next: returnNoActiveCompany
+    - condition: "${active_role === 'company'}"
+      next: callResqlCompany
+    - condition: "${active_role === 'citizen-self' && !!session_personal_code}"
+      next: callResqlSelf
+  next: returnNoActiveCompany
+
+# Same "representative" check as GET/v1/citizen/risk-scores/my-company.yml:
+# session claims first (free), live esindus_v2 fallback only when stale.
+checkExplicitCompanyRepresentative:
+  switch:
+    - condition: "${active_role === 'company' && active_registry_code === requested_registry_code}"
+      next: callResqlExplicitCompany
+    - condition: "${represented_companies.some(c => c.registryCode === requested_registry_code)}"
+      next: callResqlExplicitCompany
+  next: checkCompanyRepresentativeLive
+
+checkCompanyRepresentativeLive:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    headers:
+      type: json
+    body:
+      reg_code: ""
+      personal_code: ${session_personal_code}
+      personal_code_country: "EST"
+      username: "[#AR_USERNAME]"
+      password: "[#AR_PASSWORD]"
+  result: ar_res
+  next: checkArAvailable
+
+checkArAvailable:
+  switch:
+    - condition: "${ar_res.response.status < 200 || ar_res.response.status >= 300}"
+      next: returnArUnavailable
+  next: extractRepresentedCompaniesLive
+
+extractRepresentedCompaniesLive:
+  assign:
+    represented_companies_live: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function stripNs(v) {
+          if (Array.isArray(v)) return v.map(stripNs);
+          if (v && typeof v === 'object') {
+            var out = {};
+            Object.keys(v).forEach(function(k) {
+              if (k.charAt(0) === '@') return;
+              var shortKey = k.indexOf(':') >= 0 ? k.substring(k.indexOf(':') + 1) : k;
+              out[shortKey] = stripNs(v[k]);
+            });
+            return out;
+          }
+          return v;
+        }
+        var soapBody = (ar_res.response.body && ar_res.response.body.body) ? ar_res.response.body.body : (ar_res.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
+        var keha = responseNode.keha || {};
+        var items = toArray(keha.ettevotjad && keha.ettevotjad.item);
+        return items.map(function(c) { return c.ariregistri_kood != null ? String(c.ariregistri_kood) : ''; });
+      })()}
+  next: verifyRepresentativeLive
+
+verifyRepresentativeLive:
+  switch:
+    - condition: "${!represented_companies_live.includes(requested_registry_code)}"
+      next: returnForbidden
+  next: callResqlExplicitCompany
+
+callResqlExplicitCompany:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/citizen/forms/search"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${requested_registry_code}
+      personal_code: ""
+      page: "${incoming.body.page || 1}"
+      page_size: "${incoming.body.page_size || 20}"
+      sorting: "${incoming.body.sorting || 'main_date desc'}"
+      form_type: "${incoming.body.form_type || ''}"
+  result: search_res
+  next: logExplicitCompanyListAudit
+
+logExplicitCompanyListAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "citizen.control_form.list.view"
+    event_category: "control_form"
+    description: "Esindaja vaatas ettevõtte ${requested_registry_code} vormide loetelu"
+    log_content: "${JSON.stringify({companyRegCode: requested_registry_code, page: incoming.body.page || 1, formType: incoming.body.form_type || null})}"
+    actor_name: ${session_personal_code}
+    actor_personal_code: ${session_personal_code}
+  result: audit_result
+  next: returnResults
+
+callResqlCompany:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/citizen/forms/search"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${active_registry_code}
+      personal_code: ""
+      page: "${incoming.body.page || 1}"
+      page_size: "${incoming.body.page_size || 20}"
+      sorting: "${incoming.body.sorting || 'main_date desc'}"
+      form_type: "${incoming.body.form_type || ''}"
+  result: search_res
+  next: logCompanyListAudit
+
+# Audit third-party PII access: listing a company's forms reveals which
+# drivers/individuals were involved in each. citizen-self listing is the
+# viewer's own forms, so it isn't logged (same convention as the detail
+# endpoints — see e.g. citizen/forms/compound.yml's checkShouldLog).
+logCompanyListAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "citizen.control_form.list.view"
+    event_category: "control_form"
+    description: "Esindaja vaatas ettevõtte ${active_registry_code} vormide loetelu"
+    log_content: "${JSON.stringify({companyRegCode: active_registry_code, page: incoming.body.page || 1, formType: incoming.body.form_type || null})}"
+    actor_name: ${session_personal_code}
+    actor_personal_code: ${session_personal_code}
+  result: audit_result
+  next: returnResults
+
+callResqlSelf:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/citizen/forms/search"
+    headers:
+      type: json
+    body:
+      company_reg_code: ""
+      personal_code: ${session_personal_code}
+      page: "${incoming.body.page || 1}"
+      page_size: "${incoming.body.page_size || 20}"
+      sorting: "${incoming.body.sorting || 'main_date desc'}"
+      form_type: "${incoming.body.form_type || ''}"
+  result: search_res
+  next: returnResults
+
+returnResults:
+  status: 200
+  return: "${search_res.response.body}"
+  next: end
+
+returnNoActiveCompany:
+  status: 400
+  return: "${({error: 'NO_ACTIVE_COMPANY', message: 'Select a company representation before listing its forms'})}"
+  next: end
+
+returnUnauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end
+
+returnInvalidRegCode:
+  status: 400
+  return: "${({error: 'INVALID_PARAMETER', message: 'registry_code must be an 8-digit company registry code when scope=company'})}"
+  next: end
+
+returnArUnavailable:
+  status: 503
+  return: "${({error: 'AR_UNAVAILABLE', message: 'Ariregister representative check unavailable'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'NOT_REPRESENTATIVE', message: 'Personal code is not a registered representative of this company'})}"
+  next: end
