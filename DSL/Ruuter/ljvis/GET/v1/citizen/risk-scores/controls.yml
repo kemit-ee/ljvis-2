@@ -8,8 +8,8 @@ declaration:
     convention as GET/v1/citizen/risk-scores/my-company.yml — session claims
     (activeRole/activeRegistryCode/representedCompanies, from
     representation/switch or representation/companies, backed by Äriregister
-    esindus_v2) checked first (free, no X-Road call), falling back to a live
-    esindus_v2 call only when the session predates those claims.
+    esindus_v1) checked first (free, no X-Road call), falling back to a live
+    esindus_v1 call only when the session predates those claims.
   namespace: risk_score
   allowlist:
     params:
@@ -61,15 +61,13 @@ checkSessionClaims:
 checkCompanyRepresentative:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
       type: json
     body:
       reg_code: ""
       personal_code: ${personal_code}
       personal_code_country: "EST"
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
   result: ar_res
   next: checkArAvailable
 
@@ -98,7 +96,7 @@ extractRepresentedCompanies:
           return v;
         }
         var soapBody = (ar_res.response.body && ar_res.response.body.body) ? ar_res.response.body.body : (ar_res.response.body || {});
-        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
         var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
         var keha = responseNode.keha || {};
         var items = toArray(keha.ettevotjad && keha.ettevotjad.item);

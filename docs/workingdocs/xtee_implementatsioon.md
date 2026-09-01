@@ -251,12 +251,14 @@ WSDL allikas: `https://x-tee.ee/catalogue-data/ee-test/ee-test/GOV/70000310/arir
 
 Kasutusel olevad teenused:
 
-| DSL fail | `serviceCode` | `serviceVersion` |
-|----------|---------------|-----------------|
-| `ar/lihtandmed_v3.yml` | `lihtandmed` | `v3` |
-| `ar/detailandmed_v4.yml` | `detailandmed` | `v4` |
-| `ar/ettevottegaSeotudIsikud_v1.yml` | `ettevottegaSeotudIsikud` | `v1` |
-| `ar/esindus_v2.yml` | `esindus` | `v2` |
+| DSL fail | `serviceCode` | `serviceVersion` | Transport |
+|----------|---------------|-----------------|-----------|
+| `ar/lihtandmed_v1.yml` | `lihtandmed` | `v1` | reaalne turvaserver (`security_server`), meie subsüsteemil (`GOV/70001231/ljvis2`) on ACL — ei vaja enam kasutajanime/parooli |
+| `ar/esindus_v1.yml` | `esindus` | `v1` | reaalne turvaserver, samuti ACL-iga kaetud |
+| `ar/detailandmed_v1.yml` | `detailandmed` | `v1` | reaalne turvaserver, samuti ACL-iga kaetud |
+| `ar/ettevottegaSeotudIsikud_v1.yml` | `ettevottegaSeotudIsikud` | `v1` | otse HTTPS bypass `ariregxmlv6.rik.ee`-le (ACL puudub — ei ole `allowedMethods` vastuses) |
+
+> **Ajaloomärge:** kuni 2026-08-31 kasutasid `lihtandmed`/`esindus`/`detailandmed` `v3`/`v2`/`v4` versioone otse HTTPS bypass'iga (`service: https://ariregxmlv6.rik.ee/`) koos `AR_USERNAME`/`AR_PASSWORD` autentimisega, kuna X-Road ACL-i arireg'ile ei olnud. Elava `allowedMethods` kontrolliga (vt `.ai/ljvis-tasks/xtee-task.md`) selgus, et meie subsüsteemil on nüüd ACL arireg'i **v1**-meetoditele — migreeriti reaalse turvaserveri kaudu tehtavale kutsele, bypass ja kasutajanimi/parool eemaldatud. `ettevottegaSeotudIsikud_v1` jääb bypass'ile, kuna ACL sellele puudub.
 
 ---
 
