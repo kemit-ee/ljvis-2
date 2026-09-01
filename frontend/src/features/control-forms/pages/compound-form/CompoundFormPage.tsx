@@ -811,7 +811,7 @@ export function CompoundFormPage() {
       {!isDesktop && addFormDropdown}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
           <Tabs.Trigger id="tab-compound">
             <span style={{ position: 'relative' }}>
               {t('forms.compound.generalPart')}

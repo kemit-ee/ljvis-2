@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-09 — Liitvorm: kõik andmevormi vahekaardid on alati avatavad
+
+- **Liitvormile mitme andmevormi lisamisel** ei jää viimasena lisatud vormide
+  nimetused enam ekraanilt välja. Kui vahekaardid ei mahu ühele reale, koondab
+  rakendus ekraanile mittemahtuvad vahekaardid **„Veel" rippmenüüsse**, kust
+  need alati avada saab. Varem pidi mittemahtuvate vahekaartideni horisontaalselt
+  kerima ja viimased jäid kättesaamatuks.
+
+---
+
 ## 2026-09 — Liitvorm: välisriigi ettevõtte asukoht, läbisõidumõõdik, sünniaja sisestus
 
 - **Liitvormil (koondvorm)** saab välisriigi veoettevõtte puhul nüüd
