@@ -230,6 +230,7 @@ export function AdrFormFields({
               <DateField
                 id={`${idPrefix}driverAssistantBirthDate`}
                 label={t('forms.adr.driverAssistant.birthDate')}
+                monthYearSelectType="grid"
                 disableFuture
                 selected={
                   values.driverAssistant?.birthDate
@@ -328,6 +329,7 @@ export function AdrFormFields({
               <DateField
                 id={`${idPrefix}lastLoadDate`}
                 label={t('forms.adr.lastLoad.date')}
+                monthYearSelectType="grid"
                 selected={
                   values.lastLoadDate
                     ? new Date(values.lastLoadDate)
@@ -736,6 +738,7 @@ export function AdrFormFields({
                   <DateField
                     id={`${idPrefix}sealOpenedDate`}
                     label={t('forms.adr.result.sealOpenedDate')}
+                    monthYearSelectType="grid"
                     className="mt-1"
                     selected={
                       values.sealOpenedDate
@@ -762,6 +765,7 @@ export function AdrFormFields({
                   <DateField
                     id={`${idPrefix}sealInstalledDate`}
                     label={t('forms.adr.result.sealInstalledDate')}
+                    monthYearSelectType="grid"
                     selected={
                       values.sealInstalledDate
                         ? new Date(values.sealInstalledDate)

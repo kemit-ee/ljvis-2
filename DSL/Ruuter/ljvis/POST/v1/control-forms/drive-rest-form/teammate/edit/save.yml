@@ -27,6 +27,8 @@ declaration:
         type: string
       - field: resultType
         type: string
+      - field: additionalMeasure
+        type: string
       - field: proceedingType
         type: string
       - field: proceedingReferenceNumber
@@ -82,6 +84,7 @@ extractRequestData:
     transport_nature_exempt: "${incoming.body.transportNatureExempt}"
     transport_classes: "${incoming.body.transportClasses}"
     result_type: "${incoming.body.resultType}"
+    additional_measure: "${incoming.body.additionalMeasure}"
     proceeding_type: "${incoming.body.proceedingType}"
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber}"
     document_checks: "${incoming.body.documentChecks}"
@@ -137,6 +140,7 @@ insertForm:
       transportNatureExempt: ${transport_nature_exempt}
       transportClasses: ${transport_classes}
       resultType: ${result_type}
+      additionalMeasure: ${additional_measure}
       proceedingType: ${proceeding_type}
       proceedingReferenceNumber: ${proceeding_reference_number}
       documentChecks: ${document_checks}
@@ -247,6 +251,7 @@ updateForm:
       transportNatureExempt: ${transport_nature_exempt}
       transportClasses: ${transport_classes}
       resultType: ${result_type}
+      additionalMeasure: ${additional_measure}
       proceedingType: ${proceeding_type}
       proceedingReferenceNumber: ${proceeding_reference_number}
       documentChecks: ${document_checks}

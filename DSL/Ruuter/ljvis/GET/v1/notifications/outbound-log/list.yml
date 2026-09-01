@@ -1,0 +1,48 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Postkast 2.0 kaudu saadetud kirjade logi (UC-02).
+    Filtrid: status, messageType, dateFrom.
+    Leheküljed: page + pageSize.
+    Nõuab notification.admin õigust (kaitstud outbound-log/.guard kaudu).
+  namespace: notification
+  allowlist:
+    params:
+      - field: status
+        type: string
+      - field: messageType
+        type: string
+      - field: dateFrom
+        type: string
+      - field: page
+        type: number
+      - field: pageSize
+        type: number
+
+extractParams:
+  assign:
+    status: "${incoming.params.status ?? ''}"
+    message_type: "${incoming.params.messageType ?? ''}"
+    date_from: "${incoming.params.dateFrom ?? ''}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+  next: queryLog
+
+queryLog:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/list_outbound_log"
+    headers:
+      type: json
+    body:
+      status: ${status}
+      message_type: ${message_type}
+      date_from: ${date_from}
+      page: ${page}
+      page_size: ${page_size}
+  result: res
+  next: returnResult
+
+returnResult:
+  return: ${res.response.body}
+  next: end

@@ -1,0 +1,85 @@
+declaration:
+  version: "1.0"
+  description: >-
+    UC-04: ebaõnnestunud Postkast 2.0 teavituse uuesti saatmine.
+    Kutsub Ruuter.internal send-postkast endpointi original_log_id viitega.
+    PK 2.0 retry kasutatakse: PUT /notification-management/v1/sending-operations/{id}
+    (kui pk_sending_operation_id on olemas — toodangurežiim).
+    APPEND-ONLY: uuesti saatmine loob uue outbound_log rea; algne kirje jääb muutmata.
+    Nõuab notification.admin õigust (kaitstud resend/.guard kaudu).
+  namespace: notification
+  allowlist:
+    params:
+      - field: logId
+        type: string
+    body:
+      - field: recipientEmail
+        type: string
+
+extractParams:
+  assign:
+    log_id: "${incoming.params.logId ?? ''}"
+    recipient_email: "${incoming.body.recipientEmail ?? ''}"
+    actor_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkLogId
+
+checkLogId:
+  switch:
+    - condition: ${log_id === ''}
+      next: returnBadRequest
+  next: loadOriginalLog
+
+loadOriginalLog:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/get_outbound_log"
+    headers:
+      type: json
+    body:
+      id: ${log_id}
+  result: logRes
+  next: checkLogFound
+
+checkLogFound:
+  assign:
+    original_log: "${(Array.isArray(logRes.response.body) && logRes.response.body[0]) ? logRes.response.body[0] : null}"
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${original_log == null}
+      next: returnNotFound
+  next: callSendPostkast
+
+callSendPostkast:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      message_type: ${original_log.messageType}
+      related_entity_type: ${original_log.relatedEntityType ?? ''}
+      related_entity_id: ${original_log.relatedEntityId ?? ''}
+      original_log_id: ${log_id}
+      pk_sending_operation_id: ${original_log.pkSendingOperationId ?? ''}
+      recipient_email_override: ${recipient_email}
+      recipients: []
+      created_by: ${actor_code}
+  result: sendRes
+  next: returnResult
+
+returnResult:
+  return: ${sendRes.response.body.response ?? sendRes.response.body}
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "logId is required"
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "outbound log entry not found"
+  next: end

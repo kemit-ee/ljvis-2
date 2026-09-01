@@ -13,6 +13,7 @@ node_modules/
 tim-db/
 
 .ssl/
+ssl/
 
 # Docker
 *.log

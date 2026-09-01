@@ -1,0 +1,153 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Nightly batch (LJVIS2-56 §34/§51, LJVIS2-75 §53): for every confirmed
+    labour_inspection_form with a väärteomenetlus reference number +
+    punished person and no enforcement_decision yet, ask e-toimik
+    (AnnaIsikuKvalifikatsioonid) whether a decision has entered into force.
+    Called by CronManager at 01:00 Europe/Tallinn
+    (DSL/CronManager/etoimik-decision-sync.yaml).
+  namespace: cron
+
+fetchCandidates:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/select_etoimik_candidates"
+    headers:
+      type: json
+    body: {}
+  result: candidatesRes
+  next: assignCandidates
+
+assignCandidates:
+  assign:
+    candidates: "${candidatesRes.response.body || []}"
+  next: processCandidates
+
+# `iterate`'s `do:` runs as a flat sequence — `next:` inside it is ignored,
+# and `return` would abort the whole batch, not just this candidate. So
+# every branch (XTR failure / not found / found) is folded into the single
+# `decision` assign below, and the write calls after it always fire;
+# apply_etoimik_decision.sql itself no-ops when found=false.
+processCandidates:
+  iterate:
+    over: "${candidates}"
+    as: candidate
+    max_items: 1000
+    do:
+      - assign:
+          candidate_key: "${String(candidate.id)}"
+          reference_number: "${candidate.proceedingReferenceNumber || candidate.proceeding_reference_number || ''}"
+          punished_person_id_code: "${candidate.punishedPersonIdCode || candidate.punished_person_id_code || ''}"
+          case_start: "${new Date().getTime()}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body:
+            reference_number: ${reference_number}
+            personal_code: ${punished_person_id_code}
+            # System caller id for the X-Road audit trail — no user session exists here.
+            userId: "LJVIS-CRON"
+            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
+            service_version: "[#ETOIMIK_SERVICE_VERSION]"
+        result: xtrResponse
+
+      - assign:
+          decision: >-
+            ${(function(){
+              function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+              var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
+              if (!httpOk) {
+                return { success: false, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
+              }
+              var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+              var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
+              var responseNode = responseKey ? soapBody[responseKey] : {};
+              var caseNode = responseNode.response || null;
+              if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
+                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+              }
+              var decisions = [];
+              var bases = [];
+              toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
+                toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
+                  toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
+                    var person = p.Isik || {};
+                    if (String(person.Kood || '') !== punished_person_id_code) { return; }
+                    toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
+                      toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
+                        if (!cp.SulgemiseKP) { return; }
+                        decisions.push((cp.LahendKL || '') + (cp.LahendiKP ? (' (' + cp.LahendiKP + ')') : ''));
+                        bases.push(cp.SyydistusPunktCSV || cp.LahendKL || '');
+                      });
+                    });
+                  });
+                });
+              });
+              if (decisions.length === 0) {
+                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+              }
+              return { success: true, found: true, enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+            })()}
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          headers:
+            type: json
+          body:
+            service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron"
+            request_xml: "${'referenceNumber=' + reference_number}"
+            response_xml: "${decision.rawResponse}"
+            duration_ms: "${new Date().getTime() - case_start}"
+            success: ${decision.success}
+            error_message: "${decision.errorMessage}"
+            person_identifier: ${punished_person_id_code}
+            source_type: "labour_inspection_form"
+            source_record_id: ${candidate_key}
+        result: logRes
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/labour-inspection/apply_etoimik_decision"
+          headers:
+            type: json
+          body:
+            key: ${candidate_key}
+            found: "${decision.found ? 'true' : 'false'}"
+            enforcementDecision: "${decision.enforcementDecision}"
+            proceedingClosureBasis: "${decision.proceedingClosureBasis}"
+            created_by: "e-toimik"
+        result: applyRes
+
+      # apply_etoimik_decision.sql returns 0 rows unless found=true (and its
+      # own status='confirmed' guard passes), so published_now tells us
+      # whether a publish actually happened — needed because the audit
+      # write below always fires (same no-branching constraint as above).
+      - assign:
+          published_now: "${!!(applyRes.response.body && applyRes.response.body[0])}"
+          published_form_number: "${(applyRes.response.body && applyRes.response.body[0] && (applyRes.response.body[0].formNumber || applyRes.response.body[0].form_number)) || ''}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/labour-inspection/log_etoimik_publish_audit"
+          headers:
+            type: json
+          body:
+            found: "${published_now ? 'true' : 'false'}"
+            key: ${candidate_key}
+            form_number: ${published_form_number}
+            punished_person_id_code: ${punished_person_id_code}
+        result: auditRes
+    collect: "${({ id: candidate.id, found: decision.found, published: published_now, success: decision.success })}"
+    into: results
+  next: returnSummary
+
+returnSummary:
+  status: 200
+  return: "${({ candidatesChecked: candidates.length, decisionsApplied: results.filter(r => r.found).length, published: results.filter(r => r.published).length, failures: results.filter(r => !r.success).length })}"
+  next: end

@@ -12,6 +12,7 @@ import { Row, StretchContent, Button } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../features/auth/useAuth';
 import type { TediLocale } from '../AppProviders';
 import { BREAKPOINTS } from '../constants/constants';
+import { NotificationBellButton } from '../features/notifications/NotificationBellButton';
 import './useHeaderProps.css';
 
 const LANGUAGES: { code: TediLocale; label: string }[] = [
@@ -115,6 +116,7 @@ export function useHeaderProps(): HeaderProps<'a'> {
         <HeaderContent>
           <StretchContent direction="horizontal">
             <Row alignItems="center" justifyContent="end" gap={3}>
+              <NotificationBellButton />
               <HeaderLanguage
                 languages={LANGUAGES.map(({ code, label }) => ({
                   label,

@@ -410,9 +410,12 @@
       "vehicleTitle": "Vehicle technical roadworthiness check form",
       "trailerTitle": "Trailer technical roadworthiness check form",
       "addNew": "Add new technical check form",
+      "trailerDetection": "Trailer detection",
+      "trailerRegNr": "Trailer registration number",
       "validation": {
         "required": "Required field",
         "notesMaxLength": "Notes are limited to 2000 characters",
+        "checkError": "To save, at least one vehicle part or assembly must be checked",
         "api": {
           "required": "Required field",
           "max_length_2000": "Notes are limited to 2000 characters",
@@ -658,6 +661,9 @@
       "roadTaxNotes": "Notes",
       "trailer": "Trailer",
       "addTrailer": "Add trailer",
+      "trailerNumber": "Trailer #{{number}}",
+      "addTrailerControlForm": "Add trailer control form",
+      "editTrailerControlForm": "Edit trailer control form",
       "removeTrailer": "Remove trailer",
       "trailerRegNr": "Registration mark",
       "trailerCountry": "Country code",
@@ -709,6 +715,8 @@
     "teammate_drive_rest_form": "Team member driving and rest time inspection form",
     "sp_driver_form": "Driver driving and rest time inspection form",
     "sp_teammate_form": "Team member driving and rest time inspection form",
+    "tram_driver_form": "Transport Administration inspection card",
+    "tram_add_driver": "Add driver",
     "sp_vehicle_tech_form": "Motor vehicle technical compliance inspection form",
     "sp_trailer_tech_form": "Trailer technical compliance inspection form",
     "sp_dangerous_goods_form": "Dangerous goods transport inspection form",
@@ -1138,6 +1146,7 @@
         "view": "View"
       }
     }
+    "notifications": "Notifications"
   },
   "users": {
     "title": "Users",
@@ -1354,7 +1363,9 @@
     "download": "Download",
     "space": " ",
     "clear": "Clear filters",
-    "formHasErrors": "The form contains errors. Please check the fields marked in red."
+    "formHasErrors": "The form contains errors. Please check the fields marked in red.",
+    "deleteTrailerSubConfirmTitle": "Remove trailer and delete sub-form",
+    "deleteTrailerSubConfirm": "Are you sure you want to remove the trailer and delete the sub-form?"
   },
   "xroad": {
     "companyPicker": {
@@ -1389,7 +1400,7 @@
     "bandHall": "Not assessed",
     "bandRoheline": "Green",
     "bandKollane": "Amber",
-    "bandPunane": "Red" 
+    "bandPunane": "Red"
   },
   "etoimik": {
     "title": "e-Toimik qualification check",
@@ -1832,6 +1843,35 @@
       "saved": "Saved",
       "confirmed": "Confirmed",
       "published": "Published"
+  "notifications": {
+    "title": "Notifications",
+    "tabInApp": "Notifications",
+    "tabLog": "Sent messages",
+    "markAllRead": "Mark all as read",
+    "unread": "Unread",
+    "read": "Mark as read",
+    "empty": "No new notifications",
+    "log": {
+      "sendDate": "Sent date",
+      "messageType": "Message type",
+      "addressee": "Addressee",
+      "name": "Name",
+      "email": "Email",
+      "sendingResult": "Send result",
+      "status": "Status",
+      "sent": "Sent",
+      "sent_error": "Send failed",
+      "resend": "Resend",
+      "report": "Send report"
+    },
+    "types": {
+      "ncr_violation": "NCR serious infringement notice",
+      "ncr_response": "NCR response notice",
+      "driving_ban": "Driving ban",
+      "weight_violation": "Weight/measurement infringement",
+      "carrier_violation": "Serious infringement notification to carrier",
+      "labor_kabotage": "Cabotage inspection notification",
+      "labor_foreign_proposal": "Foreign country proposal notification"
     }
   }
 }

@@ -23,6 +23,8 @@ declaration:
         type: string
       - field: resultType
         type: string
+      - field: additionalMeasure
+        type: string
       - field: proceedingType
         type: string
       - field: proceedingReferenceNumber
@@ -81,6 +83,7 @@ extractRequestData:
     transport_classes: "${incoming.body.transportClasses}"
     cabotage_violations: "${incoming.body.cabotageViolations}"
     result_type: "${incoming.body.resultType}"
+    additional_measure: "${incoming.body.additionalMeasure}"
     proceeding_type: "${incoming.body.proceedingType}"
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber}"
     document_checks: "${incoming.body.documentChecks}"
@@ -160,6 +163,7 @@ confirmForm:
       transportClasses: ${transport_classes}
       cabotageViolations: ${cabotage_violations}
       resultType: ${result_type}
+      additionalMeasure: ${additional_measure}
       proceedingType: ${proceeding_type}
       proceedingReferenceNumber: ${proceeding_reference_number}
       documentChecks: ${document_checks}

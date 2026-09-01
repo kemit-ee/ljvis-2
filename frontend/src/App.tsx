@@ -18,6 +18,7 @@ import { ClassifierValueEditPage } from './features/classifiers/pages/Classifier
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
 import { RiskScoresListPage } from './features/risk-scores/pages/RiskScoresListPage/RiskScoresListPage';
 import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDetailPage';
+import { NotificationsPage } from './features/notifications/NotificationsPage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
 import { AuthCallback } from './features/auth/AuthCallback';
 import { ForeignViolationFormCreatePage } from './features/control-forms/pages/foreign-violation-form/ForeignViolationFormCreatePage';
@@ -44,6 +45,7 @@ import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage
 import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-repute-form/GoodReputeFormCreatePage';
 import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
 import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
+import { TRAMDriverFormPage } from './features/control-forms/pages/tram-driver-form/TRAMDriverFormPage';
 import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
 import { CompanyFormsListPage } from './features/citizen/pages/CompanyFormsListPage/CompanyFormsListPage';
 import { CitizenDashboardPage } from './features/citizen/pages/CitizenDashboardPage/CitizenDashboardPage';
@@ -134,6 +136,7 @@ function AppRoutes() {
           />
           <Route path="/logs" element={<LogListPage />} />
           <Route path="/admin/risk-scores" element={<RiskScoresListPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/logs/:id" element={<LogDetailPage />} />
           <Route
             path="/control-forms/foreign-violation/new"
@@ -166,6 +169,18 @@ function AppRoutes() {
           <Route
             path="/control-forms/sp-driver/:id/:snapshotId"
             element={<DriveRestFormPage entryType="driver" />}
+          />
+          <Route
+            path="/control-forms/tram-driver/new"
+            element={<TRAMDriverFormPage />}
+          />
+          <Route
+            path="/control-forms/tram-driver/:id"
+            element={<TRAMDriverFormPage />}
+          />
+          <Route
+            path="/control-forms/tram-driver/:id/:snapshotId"
+            element={<TRAMDriverFormPage />}
           />
           <Route
             path="/control-forms/sp-teammate/:id"

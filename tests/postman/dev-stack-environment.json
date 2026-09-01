@@ -9,9 +9,10 @@
       "description": "Ruuter — DEV stack (docker-compose.yml default port)"
     },
     {
-      "key": "resql_users_url",
-      "value": "http://localhost:8087/users",
-      "enabled": true
+      "key": "resql_ljvis_url",
+      "value": "http://localhost:8090/ljvis",
+      "enabled": true,
+      "description": "Resql — DEV stack (docker-compose.yml resql-ljvis port 8090)"
     },
     {
       "key": "tim_url",

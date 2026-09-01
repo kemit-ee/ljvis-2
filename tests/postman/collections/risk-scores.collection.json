@@ -214,6 +214,87 @@
       ]
     },
     {
+      "name": "[Recalculate] Kollane company (90000005) -> 200, Kollane, R=120",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000005\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Kollane', () => pm.expect(b.riskBandCode).to.eql('Kollane'));",
+              "pm.test('riskScore 120', () => pm.expect(b.riskScore).to.eql('120.0000'));",
+              "pm.test('totalControls 1', () => pm.expect(b.totalControls).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Current] Kollane company (90000005) -> riskBandErru Amber",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/current",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "current"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000005\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Kollane', () => pm.expect(b.riskBandCode).to.eql('Kollane'));",
+              "pm.test('riskBandErru Amber (not Yellow)', () => pm.expect(b.riskBandErru).to.eql('Amber'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "[Recalculate] Company with 2 compound_forms, different names -> latest name wins",
       "request": {
         "method": "POST",

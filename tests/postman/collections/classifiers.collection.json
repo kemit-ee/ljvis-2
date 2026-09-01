@@ -101,7 +101,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=50",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=100",
           "host": [
             "{{api_url}}"
           ],
@@ -117,7 +117,7 @@
             },
             {
               "key": "pageSize",
-              "value": "50"
+              "value": "100"
             }
           ]
         }
@@ -174,7 +174,7 @@
             },
             {
               "key": "pageSize",
-              "value": "50"
+              "value": "100"
             }
           ]
         }
@@ -250,7 +250,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=60",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=100",
           "host": [
             "{{api_url}}"
           ],
@@ -266,7 +266,7 @@
             },
             {
               "key": "pageSize",
-              "value": "60"
+              "value": "100"
             }
           ]
         }
@@ -283,7 +283,7 @@
               "  pm.expect(Array.isArray(data.content)).to.be.true;",
               "  pm.expect(data.total).to.be.a('number');",
               "});",
-              "pm.test('Total equals 55 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(55));",
+              "pm.test('Total equals 56 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(56));",
               "pm.test('Each item has id, code, name, description', () => {",
               "  data.content.forEach(c => {",
               "    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
@@ -416,7 +416,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=60",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=100",
           "host": [
             "{{api_url}}"
           ],
@@ -436,7 +436,7 @@
             },
             {
               "key": "pageSize",
-              "value": "60"
+              "value": "100"
             }
           ]
         }
@@ -512,7 +512,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=55",
+      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=56",
       "request": {
         "method": "GET",
         "header": [
@@ -552,7 +552,7 @@
               "var body = pm.response.json();",
               "var data = (body && body.response) ? body.response : body;",
               "pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-              "pm.test('Total is still 55', () => pm.expect(data.total).to.eql(55));"
+              "pm.test('Total is still 56', () => pm.expect(data.total).to.eql(56));"
             ]
           }
         }

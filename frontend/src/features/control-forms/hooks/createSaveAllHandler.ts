@@ -14,6 +14,7 @@ interface CreateSaveAllHandlerOptions {
   setTabErrors: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   setValidatedTabs: React.Dispatch<React.SetStateAction<Set<string>>>;
   onCompoundSave?: () => void;
+  onCompoundValidate?: () => Promise<boolean>;
   compoundEditActive?: boolean;
 }
 
@@ -25,6 +26,7 @@ export function createSaveAllHandler(options: CreateSaveAllHandlerOptions) {
       setTabErrors,
       setValidatedTabs,
       onCompoundSave,
+      onCompoundValidate,
       compoundEditActive,
     } = options;
 
@@ -55,6 +57,11 @@ export function createSaveAllHandler(options: CreateSaveAllHandlerOptions) {
 
     const anySubFormHasErrors = Object.values(newTabErrors).some(Boolean);
     if (anySubFormHasErrors) return;
+
+    if (compoundEditActive && onCompoundValidate) {
+      const compoundValid = await onCompoundValidate();
+      if (!compoundValid) return;
+    }
 
     if (compoundEditActive && onCompoundSave) onCompoundSave();
 

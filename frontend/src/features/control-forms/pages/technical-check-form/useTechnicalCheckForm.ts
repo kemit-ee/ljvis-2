@@ -50,6 +50,17 @@ export function createTechnicalCheckValidationSchema(
       otherwise: (schema) => schema.optional(),
     }),
     notes: Yup.string().max(2000, t('forms.technical_check.validation.notesMaxLength')),
+    partsSummary: Yup.array().test(
+      'at-least-one-checked',
+      t('forms.technical_check.validation.checkError'),
+      function (value) {
+        const resultType: string = (this.parent as { resultType?: string }).resultType ?? 'ok';
+        if (resultType !== 'ok') return true;
+        return (value ?? []).some(
+          (p: { status: string }) => p.status === 'checked' || p.status === 'non_compliant',
+        );
+      },
+    ),
   });
 }
 
@@ -73,7 +84,12 @@ export function useTechnicalCheckForm(
   const parts: ClassifierEntry[] = useMemo(() => {
     const level1 = allParts
       .filter((p) => p.parentKey === null)
-      .sort((a, b) => a.code.localeCompare(b.code));
+      .sort((a, b) => {
+        const numA = parseInt(a.code.replace(/^\D+/, ''), 10);
+        const numB = parseInt(b.code.replace(/^\D+/, ''), 10);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.code.localeCompare(b.code);
+      });
     return variant === 'trailer'
       ? level1.filter((p) => !TRAILER_EXCLUDED_PARTS.includes(p.code))
       : level1;
@@ -82,7 +98,10 @@ export function useTechnicalCheckForm(
   const defectsByPartKey = useMemo(() => {
     const map = new Map<number, ClassifierEntry[]>();
     parts.forEach((part) => {
-      map.set(part.classifierValueKey, getChildren('TECHNICAL_CHECK', part.classifierValueKey));
+      const children = [...getChildren('TECHNICAL_CHECK', part.classifierValueKey)].sort((a, b) =>
+        a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' }),
+      );
+      map.set(part.classifierValueKey, children);
     });
     return map;
   }, [parts, getChildren]);
@@ -134,6 +153,7 @@ export function useTechnicalCheckForm(
       extraordinaryInspectionDate: form?.extraordinaryInspectionDate ?? '',
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
+      trailerRegNr: form?.trailerRegNr ?? '',
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -335,6 +355,7 @@ export function useTechnicalCheckForm(
     triggerConfirm,
     triggerPublish,
     formError,
+    setFormError,
     compoundFormKeyOverride,
   };
 }

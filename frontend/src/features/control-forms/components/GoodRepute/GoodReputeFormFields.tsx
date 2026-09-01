@@ -161,6 +161,7 @@ export function GoodReputeFormFields({
               <DateField
                 id="dateOfBirth"
                 label={t('forms.good_repute.driver.dateOfBirth')}
+                monthYearSelectType="grid"
                 selected={dateValue(values.dateOfBirth)}
                 onSelect={(v) =>
                   setFieldValue('dateOfBirth', toIsoDate(v as Date | undefined))
@@ -227,6 +228,7 @@ export function GoodReputeFormFields({
               <DateField
                 id="certificateIssueDate"
                 label={t('forms.good_repute.certificate.issueDate')}
+                monthYearSelectType="grid"
                 selected={dateValue(values.certificateIssueDate)}
                 onSelect={(v) =>
                   setFieldValue(
@@ -334,6 +336,7 @@ export function GoodReputeFormFields({
                   <DateField
                     id="unfitFromDate"
                     label={t('forms.good_repute.fitness.unfitFromDate')}
+                    monthYearSelectType="grid"
                     selected={dateValue(values.unfitFromDate)}
                     onSelect={(v) =>
                       setFieldValue(
@@ -365,6 +368,7 @@ export function GoodReputeFormFields({
                   <DateField
                     id="unfitUntilDate"
                     label={t('forms.good_repute.fitness.unfitUntilDate')}
+                    monthYearSelectType="grid"
                     selected={dateValue(values.unfitUntilDate)}
                     onSelect={(v) =>
                       setFieldValue(

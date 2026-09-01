@@ -197,6 +197,7 @@ export interface DriveRestForm {
   transportClasses?: TransportClass[];
   cabotageViolations?: CabotageViolation[];
   resultType?: string;
+  additionalMeasure?: string;
   proceedingType?: string;
   proceedingReferenceNumber?: string;
   documentChecks?: DocumentCheck[];
@@ -323,6 +324,7 @@ export interface TechnicalCheckForm {
   extraordinaryInspectionDate?: string;
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
+  trailerRegNr?: string;
   createdBy?: string;
 }
 

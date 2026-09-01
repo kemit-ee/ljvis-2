@@ -1,0 +1,52 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Märgib kõik autenditud kasutaja lugemata teavitused loetuks.
+    APPEND-ONLY: itereerib üle lugemata ID-de ja teeb iga kohta
+    eraldi INSERT ON CONFLICT DO NOTHING (idempotentne).
+    Kaitstud POST/.guard (autentimine) kaudu.
+  namespace: notification
+
+extractContext:
+  assign:
+    user_code: "${u.personalcode || ''}"
+    permissions: "${(u.permissions || []).join(',')}"
+  next: fetchUnreadIds
+
+fetchUnreadIds:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/list_unread_notification_ids"
+    headers:
+      type: json
+    body:
+      user_code: ${user_code}
+      permissions: ${permissions}
+  result: unreadRes
+  next: checkAnyUnread
+
+checkAnyUnread:
+  assign:
+    unread_ids: "${unreadRes.response.body}"
+  next: markAllRead
+
+markAllRead:
+  iterate:
+    over: "${unread_ids}"
+    as: notif
+    max_items: 500
+    do:
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/notification/mark_notification_read"
+          headers:
+            type: json
+          body:
+            notification_id: ${notif.id}
+            user_code: ${user_code}
+  next: returnResult
+
+returnResult:
+  return:
+    markedCount: "${unread_ids.length}"
+  next: end

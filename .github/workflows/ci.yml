@@ -47,7 +47,9 @@ jobs:
           pip3 install pyyaml -q
           python3 - <<'EOF'
           import yaml, glob, sys
-          all_yml = [p for p in glob.glob('DSL/Ruuter/**/*.yml', recursive=True) if '/mock/' not in p]
+          all_yml = [p for p in (glob.glob('DSL/Ruuter/**/*.yml', recursive=True)
+                                 + glob.glob('DSL/Ruuter.internal/**/*.yml', recursive=True))
+                     if '/mock/' not in p]
           errors = []
           for path in all_yml:
               try:
