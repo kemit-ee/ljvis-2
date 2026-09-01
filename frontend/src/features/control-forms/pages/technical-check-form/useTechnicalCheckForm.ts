@@ -98,7 +98,10 @@ export function useTechnicalCheckForm(
   const defectsByPartKey = useMemo(() => {
     const map = new Map<number, ClassifierEntry[]>();
     parts.forEach((part) => {
-      map.set(part.classifierValueKey, getChildren('TECHNICAL_CHECK', part.classifierValueKey));
+      const children = [...getChildren('TECHNICAL_CHECK', part.classifierValueKey)].sort((a, b) =>
+        a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' }),
+      );
+      map.set(part.classifierValueKey, children);
     });
     return map;
   }, [parts, getChildren]);
@@ -314,6 +317,17 @@ export function useTechnicalCheckForm(
       formik.setFieldValue('eraYvMntAxles', false);
       formik.setFieldValue('eraYvMntPlaces', false);
       formik.setFieldValue('eraYvMntRebuilt', false);
+    }
+    if (resultType === 'ok') {
+      formik.setFieldValue('violations', []);
+      formik.setFieldValue('proceedingType', '');
+      formik.setFieldValue('proceedingReferenceNumber', '');
+    }
+    if (resultType === 'driving_ban') {
+      const currentViolations = formik.values.violations ?? [];
+      if (!currentViolations.includes(DRIVING_BAN_VIOLATION_CODE)) {
+        formik.setFieldValue('violations', [...currentViolations, DRIVING_BAN_VIOLATION_CODE]);
+      }
     }
   };
 

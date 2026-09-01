@@ -67,7 +67,7 @@ services:
       - RUST_LOG=ruuter_on_rust::steps::http=debug,info
     volumes:
       - ./DSL/Ruuter/ljvis:/app/DSL/ljvis:ro
-      - ./constants.ini:/app/constants.ini:ro
+      - ${CONSTANTS_FILE:-./constants.ini}:/app/constants.ini:ro
       - ./ruuter.yaml:/app/ruuter.yaml:ro
     ports:
       - 8086:8080
@@ -101,7 +101,7 @@ services:
       - RUST_LOG=ruuter_on_rust::steps::http=debug,info
     volumes:
       - ./DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro
-      - ./constants.ini:/app/constants.ini:ro
+      - ${CONSTANTS_FILE:-./constants.ini}:/app/constants.ini:ro
       - ./ruuter-internal.yaml:/app/ruuter.yaml:ro
     ports:
       - 8089:8080

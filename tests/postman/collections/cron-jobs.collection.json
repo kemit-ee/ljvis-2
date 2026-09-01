@@ -769,6 +769,197 @@
         "const rows = pm.response.json().response || pm.response.json();",
         "pm.test('Audit event written with an event_id', () => { pm.expect(rows.length).to.eql(1); pm.expect(rows[0].eventId || rows[0].event_id).to.exist; });"
       ]}}]
+      },
+      {
+      "name": "[NCR autodispatch] select-autodispatch-candidates — published KORRAS foreign-vehicle sub-form is a candidate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/erru/ncr/select-autodispatch-candidates",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "erru",
+            "ncr",
+            "select-autodispatch-candidates"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const rows = pm.response.json().response || pm.response.json();",
+              "const m = rows.find(r => String(r.id) === '900011' && (r.spFormType||r.sp_form_type) === 'driver');",
+              "pm.test('Fixture sub-form 900011 appears as a candidate', () => pm.expect(m).to.exist);",
+              "pm.test('ncrTo resolved from vehicle country (DE)', () => pm.expect((m.ncrTo||m.ncr_to)).to.eql('DE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] POST cron/erru-ncr-autodispatch — nightly run dispatches the NCR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/cron/erru-ncr-autodispatch",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "cron",
+            "erru-ncr-autodispatch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const s = pm.response.json().response || pm.response.json();",
+              "pm.test('At least one NCR acknowledged', () => pm.expect(s.acknowledged).to.be.at.least(1));",
+              "pm.test('No build failures', () => pm.expect(s.buildFailed || 0).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] select-autodispatch-candidates — dispatched sub-form no longer a candidate (idempotent)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/erru/ncr/select-autodispatch-candidates",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "erru",
+            "ncr",
+            "select-autodispatch-candidates"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const rows = pm.response.json().response || pm.response.json();",
+              "const m = rows.find(r => String(r.id) === '900011' && (r.spFormType||r.sp_form_type) === 'driver');",
+              "pm.test('Fixture sub-form dropped out after dispatch', () => pm.expect(m).to.not.exist);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] Re-run cron — fixture sub-form is not re-dispatched",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/cron/erru-ncr-autodispatch",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "cron",
+            "erru-ncr-autodispatch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const s = pm.response.json().response || pm.response.json();",
+              "pm.test('Nothing acknowledged on the second run', () => pm.expect(s.acknowledged).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] ruuter-internal still alive after the runs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/health",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('ruuter-internal healthy', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,140 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing read-only list of a compound_form's (koondvorm) published
+    sub-forms (sp_driver, sp_teammate, vehicle_technical, trailer_technical,
+    adr, kv). Companion to GET/v1/citizen/forms/compound.yml, which only
+    returns the koondvorm's own general/company/drivers fields — the citizen
+    detail page had no way to know whether a koondvorm even HAD sub-forms,
+    let alone see their content. Guarded by GET/v1/citizen/.guard
+    (templates/citizen-authority). Ownership check is byte-for-byte the same
+    as compound.yml (self-driver OR company-representative on the PARENT
+    koondvorm — a citizen who can see the koondvorm can see its sub-forms;
+    there's no separate per-sub-form ownership since sub-forms have no
+    company/driver fields of their own, they inherit the parent's). Only
+    'published' sub-forms are returned even when the parent koondvorm is
+    itself published (an unpublished sub-form snapshot mid-confirmation is
+    not citizen-visible, same principle as citizen/forms/search.sql).
+  namespace: citizen
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    params:
+      - field: q
+        type: string
+        description: "Compound form ID"
+
+getSessionClaims:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkSession
+
+checkSession:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractClaims
+
+extractClaims:
+  assign:
+    personal_code: "${authority.personalCode}"
+    represented_companies: "${authority.representedCompanies ?? []}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: "${incoming.params.q}"
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: "${res.response.body.length != 1}"
+      next: returnNotFound
+  next: extractRow
+
+extractRow:
+  assign:
+    row: "${res.response.body[0]}"
+  next: parseDrivers
+
+# Same split-step reasoning as compound.yml — see its comment.
+parseDrivers:
+  assign:
+    drivers_parsed: "${(function(){ try { return JSON.parse(row.drivers || '[]'); } catch (e) { return []; } })()}"
+    is_self_driver: "${false}"
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: "${row.status !== 'published'}"
+      next: returnNotFound
+  next: checkSelfDriver
+
+checkSelfDriver:
+  assign:
+    is_self_driver: "${drivers_parsed.some(d => (d.personalCodeEe && d.personalCodeEe === personal_code) || (d.personalCodeForeign && d.personalCodeForeign === personal_code))}"
+  next: checkOwnership
+
+checkOwnership:
+  switch:
+    - condition: "${is_self_driver}"
+      next: getSubForms
+  next: checkCompanyRepresentative
+
+checkCompanyRepresentative:
+  template: "templates/citizen-company-representative"
+  requestType: GET
+  body:
+    personal_code: ${personal_code}
+    registry_code: ${row.companyRegCode}
+    cached_companies: ${represented_companies}
+  result: representative_check
+  next: checkRepresentativeResult
+
+checkRepresentativeResult:
+  switch:
+    - condition: "${representative_check.isRepresentative === true}"
+      next: getSubForms
+  next: returnForbidden
+
+getSubForms:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/citizen/forms/compound-subforms"
+    headers:
+      type: json
+    body:
+      compound_form_key: "${row.id}"
+  result: subFormsRes
+  next: returnSuccess
+
+returnSuccess:
+  return: ${subFormsRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "${({error: 'NOT_FOUND', message: 'Form not found'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'FORBIDDEN', message: 'This form does not belong to your active representation'})}"
+  next: end
+
+returnUnauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

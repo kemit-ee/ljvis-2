@@ -2,17 +2,26 @@ declaration:
 
   version: "1.0"
   description: >-
-    LJVIS2-150: citizen-facing endpoint — a company representative (verified
-    via Ariregister "ettevottegaSeotudIsikud_v1") views their OWN company's
-    current risk score. Auth is TARA JWT via TIM directly (same
+    LJVIS2-150: citizen-facing endpoint — a company representative views their
+    OWN company's current risk score. Auth is TARA JWT via TIM directly (same
     /jwt/userinfo call as templates/check-user-authority — reimplemented here
     rather than reusing that template, since check-user-authority additionally
     requires the personal code to exist in users.user_group, which citizens
-    are not; LJVIS2-137's full citizen session flow is not built yet, but this
-    endpoint works standalone against the existing TIM/TARA-mock login as
-    noted in the task plan §12/§2). Response omits riskBandErru (ERRU-only
-    field) — see Ruuter.internal/.../risk-scores/current.yml for the full
-    shape.
+    are not). Representative check prefers the citizen session's claims
+    (activeRole/activeRegistryCode/representedCompanies — set by
+    representation/switch and representation/companies, backed by
+    Äriregister esindus_v1, LJVIS2-134) — free, no X-Road call. Only when the
+    session predates those claims (e.g. a token minted before this feature
+    was deployed, or dev/test tokens minted directly)
+    does it fall back to a live esindus_v1 call — the SAME service/
+    definition of "representative" as representation/switch and /companies
+    (right of representation), not the broader "ettevottegaSeotudIsikud_v1"
+    (associated persons — e.g. shareholders) this endpoint originally used,
+    which could let someone pass this check while failing switch. Preserves
+    the exact original external contract (?q=, same error codes) so nothing
+    calling this endpoint today breaks. Response omits riskBandErru
+    (ERRU-only field) — see
+    Ruuter.internal/.../risk-scores/current.yml for the full shape.
   namespace: risk_score
   allowlist:
     params:
@@ -21,29 +30,25 @@ declaration:
         description: "8-digit Estonian company registry code."
 
 getCitizenContext:
-  call: http.get
-  args:
-    url: "[#LJVIS_TIM]/jwt/userinfo"
-    headers:
-      cookie: ${incoming.headers.cookie}
-  result: userinfo_res
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
   next: checkCitizenAuth
 
 checkCitizenAuth:
   switch:
-    - condition: "${userinfo_res.response.status < 200 || userinfo_res.response.status >= 300}"
+    - condition: "${authority === 'false'}"
       next: returnUnauthenticated
   next: extractPersonalCode
 
 extractPersonalCode:
   assign:
-    personal_code: "${userinfo_res.response.body.userinfo?.claims?.personalCode ?? userinfo_res.response.body.userinfo?.subject ?? ''}"
-  next: checkPersonalCode
-
-checkPersonalCode:
-  switch:
-    - condition: "${!personal_code}"
-      next: returnUnauthenticated
+    personal_code: "${authority.personalCode}"
+    active_role: "${authority.activeRole}"
+    active_registry_code: "${authority.activeRegistryCode ?? ''}"
+    represented_companies: "${authority.representedCompanies ?? []}"
   next: extractCompanyRegCode
 
 extractCompanyRegCode:
@@ -55,22 +60,36 @@ validateRegCode:
   switch:
     - condition: "${!/^[0-9]{8}$/.test(company_reg_code)}"
       next: returnInvalidRegCode
+  next: checkSessionClaims
+
+# Fast path: session already proved (via esindus_v1, at switch/companies time)
+# that this personal code may represent company_reg_code — skip the live AR
+# call entirely.
+checkSessionClaims:
+  switch:
+    - condition: "${active_role === 'company' && active_registry_code === company_reg_code}"
+      next: getCurrentRiskScore
+    - condition: "${represented_companies.some(c => c.registryCode === company_reg_code)}"
+      next: getCurrentRiskScore
   next: checkCompanyRepresentative
 
-# Calls XTR directly rather than going through the public
-# /v1/xroad/arireg/associated-persons Ruuter endpoint: that endpoint sits
-# behind POST/.guard (templates/check-user-authority — an OFFICER session),
-# which a citizen's TARA session can never satisfy. Duplicates just the XTR
-# call itself; DSL/xtr/ar/ettevottegaSeotudIsikud_v1.yml is the same template
-# associated-persons.yml uses.
+# Same service and "representative" definition as representation/switch's
+# refreshCompaniesForCheck (esindus_v1 — right of representation), not the
+# broader ettevottegaSeotudIsikud_v1 this step used to call. Calls XTR
+# directly rather than going through a Ruuter endpoint since every existing
+# esindus_v1 Ruuter endpoint (representation/companies, /switch) sits behind
+# an authenticated-citizen-session guard already satisfied here, but calling
+# XTR directly avoids an extra internal HTTP hop.
 checkCompanyRepresentative:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/ettevottegaSeotudIsikud_v1"
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
       type: json
     body:
-      reg_code: ${company_reg_code}
+      reg_code: ""
+      personal_code: ${personal_code}
+      personal_code_country: "EST"
   result: ar_res
   next: checkArAvailable
 
@@ -78,22 +97,40 @@ checkArAvailable:
   switch:
     - condition: "${ar_res.response.status < 200 || ar_res.response.status >= 300}"
       next: returnArUnavailable
-  next: extractAssociatedPersons
+  next: extractRepresentedCompanies
 
-# ettevottegaSeotudIsikud_v1 response shape — UNWRAPPED (no {headers,body}
-# envelope), matching exactly what associated-persons.yml returns and
-# frontend/src/features/xroad/api.ts's getAssociatedPersons()/
-# AssociatedPersonsRawResponse consumes: keha.seosed.item is a single object
-# OR an array depending on result count.
-extractAssociatedPersons:
+# Same namespace-stripping approach as representation/companies.yml and
+# representation/switch.yml's esindus_v1 parsing.
+extractRepresentedCompanies:
   assign:
-    seosed_item: "${ar_res.response.body?.ettevottegaSeotudIsikud_v1Response?.keha?.seosed?.item}"
-    associated_persons: "${seosed_item ? (Array.isArray(seosed_item) ? seosed_item : [seosed_item]) : []}"
+    represented_companies_live: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function stripNs(v) {
+          if (Array.isArray(v)) return v.map(stripNs);
+          if (v && typeof v === 'object') {
+            var out = {};
+            Object.keys(v).forEach(function(k) {
+              if (k.charAt(0) === '@') return;
+              var shortKey = k.indexOf(':') >= 0 ? k.substring(k.indexOf(':') + 1) : k;
+              out[shortKey] = stripNs(v[k]);
+            });
+            return out;
+          }
+          return v;
+        }
+        var soapBody = (ar_res.response.body && ar_res.response.body.body) ? ar_res.response.body.body : (ar_res.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
+        var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
+        var keha = responseNode.keha || {};
+        var items = toArray(keha.ettevotjad && keha.ettevotjad.item);
+        return items.map(function(c) { return c.ariregistri_kood != null ? String(c.ariregistri_kood) : ''; });
+      })()}
   next: verifyRepresentative
 
 verifyRepresentative:
   switch:
-    - condition: "${!associated_persons.some(p => p.isikukood_registrikood === personal_code)}"
+    - condition: "${!represented_companies_live.includes(company_reg_code)}"
       next: returnForbidden
   next: getCurrentRiskScore
 
@@ -108,22 +145,24 @@ getCurrentRiskScore:
   result: score_res
   next: returnSuccess
 
+# score_res.response.body is the raw JSON body of a Ruuter.internal HTTP
+# response, which is itself {"response": {...}} — the actual payload is at
+# .response.body.response.*, not .response.body.* directly.
 returnSuccess:
   status: 200
   return: >-
     ${({
-      riskScore: score_res.response.body.riskScore,
-      riskBandCode: score_res.response.body.riskBandCode,
-      totalControls: score_res.response.body.totalControls,
-      companyName: score_res.response.body.companyName,
-      windowStart: score_res.response.body.windowStart,
-      windowEnd: score_res.response.body.windowEnd
+      riskScore: score_res.response.body.response.riskScore,
+      riskBandCode: score_res.response.body.response.riskBandCode,
+      totalControls: score_res.response.body.response.totalControls,
+      companyName: score_res.response.body.response.companyName,
+      windowStart: score_res.response.body.response.windowStart,
+      windowEnd: score_res.response.body.response.windowEnd
     })}
   next: end
 
-# Object-literal `${(...)}` form, NOT a quoted JSON string literal — see
-# Ruuter.internal/.../risk-scores/current.yml's returnNoRecord comment for
-# why (confirmed live via Newman: quoted-string form double-wraps the JSON).
+# Object-literal `${(...)}` form, not a quoted string — Ruuter double-wraps
+# the JSON when the return value is a plain string literal.
 returnUnauthenticated:
   status: 400
   return: "${({error: 'UNAUTHENTICATED', message: 'Valid TARA session required'})}"

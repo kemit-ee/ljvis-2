@@ -54,9 +54,13 @@ export function ControlsMatrixTable({
   const { t } = useTranslation();
   const [selectedTransportClass, setSelectedTransportClass] = useState<string | null>(null);
 
-  const labelFor = (key: number) =>
-    transportTypes.find((tt) => tt.classifierValueKey === key)?.name ??
-    String(key);
+  const labelFor = (key: number | null | undefined) => {
+    if (key == null) return '—';
+    return (
+      transportTypes.find((tt) => tt.classifierValueKey === key)?.name ??
+      String(key)
+    );
+  };
 
   const availableToAdd = transportTypes.filter(
     (tt) =>

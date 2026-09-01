@@ -164,13 +164,13 @@ export function DocRightOtherSection({
   const RESULT_OPTIONS: { value: ResultValue; label: string }[] = [
     {
       value: 'EI_KONTROLLITUD',
-      label: t('forms.otherDocs.notChecked', 'Ei kontrollitud'),
+      label: t('forms.otherDocs.notChecked'),
     },
     {
       value: 'NOUETEKOHANE',
-      label: t('forms.otherDocs.compliant', 'Nõuetekohane'),
+      label: t('forms.otherDocs.compliant'),
     },
-    { value: 'PUUDUB', label: t('forms.otherDocs.missing', 'Puudub') },
+    { value: 'PUUDUB', label: t('forms.otherDocs.missing') },
   ];
 
   return (
@@ -211,7 +211,7 @@ export function DocRightOtherSection({
                     onClick={() => toggleRemark(id)}
                     size="small"
                   >
-                    {t('forms.otherDocs.addRemark', 'Lisa märkus')}
+                    {t('forms.otherDocs.addRemark')}
                   </Button>
                 </div>
                 )}
@@ -222,7 +222,7 @@ export function DocRightOtherSection({
                 <TextField
                   id={`remark-${id}`}
                   label=""
-                  placeholder={t('forms.otherDocs.remarkPlaceholder', 'Märkus')}
+                  placeholder={t('forms.otherDocs.remarkPlaceholder')}
                   value={row.notes}
                   onChange={(val) => setRemark(id, val as string)}
                   disabled={readOnly}
@@ -236,7 +236,7 @@ export function DocRightOtherSection({
                   size="small"
                   onClick={() => clearRemark(id)}
                 >
-                  {t('common.remove', 'Eemalda')}
+                  {t('common.remove')}
                 </Button>
                 )}
               </div>

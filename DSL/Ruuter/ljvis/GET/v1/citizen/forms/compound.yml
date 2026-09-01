@@ -1,0 +1,224 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing read-only single compound_form (koondvorm) detail. Guarded
+    by GET/v1/citizen/.guard (templates/citizen-authority). Ownership: company
+    scope requires row.companyRegCode to be one of the session's represented
+    companies (templates/citizen-company-representative — session claim
+    cached first, live Äriregister esindus_v1 fallback), independent of
+    activeRole/activeRegistryCode; citizen-self scope requires the session's
+    own personalCode to match one of the drivers[] entries (personalCodeEe or
+    personalCodeForeign), independent of activeRole too. The dashboard shows
+    every represented company's forms AND the citizen's own forms at the
+    same time — a representative-and-driver must be able to click into a
+    form from EITHER section regardless of which role happens to be active
+    (activeRole is no longer the source of truth for "can I see this", only
+    for which company the header dropdown is showing — see forms/search.yml's
+    scope param and risk-scores/my-company.yml for the same pattern).
+    Citizen-visible status is 'published' only. Reuses the
+    officer resql (control-forms/compound-form/get.sql) and DMapper template
+    (map_compound_form).
+
+    GDPR: drivers[] can contain MULTIPLE people (koondvorm covers a whole
+    inspection, several drivers). Whoever is looking at it, every driver who
+    isn't the viewer themselves is a third party — so masking is per-driver,
+    not per-request: every driver EXCEPT the one matching the session's own
+    personalCode (by personalCodeEe/personalCodeForeign) is masked — a driver
+    viewing their own koondvorm must not see a co-driver's full isikukood/
+    birthDate, regardless of activeRole. personalCodeEe/personalCodeForeign/
+    birthDate masked, names kept (same reasoning as
+    citizen/forms/labour-inspection.yml). Conservative default pending
+    product/legal review.
+  namespace: citizen
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    params:
+      - field: q
+        type: string
+        description: "Compound form ID"
+
+getSessionClaims:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkSession
+
+checkSession:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractClaims
+
+extractClaims:
+  assign:
+    personal_code: "${authority.personalCode}"
+    represented_companies: "${authority.representedCompanies ?? []}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: "${incoming.params.q}"
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: "${res.response.body.length != 1}"
+      next: returnNotFound
+  next: extractRow
+
+extractRow:
+  assign:
+    row: "${res.response.body[0]}"
+  next: parseDrivers
+
+# Separate step from extractRow: within a single `assign:` block every key's
+# expression is evaluated against the state as it was BEFORE that block
+# ran, not sequentially — so a same-step `drivers_parsed` referencing `row`
+# would see the *previous* (undefined) row, not the one just assigned above,
+# and silently parse as []. Confirmed live: this made checkOwnership's
+# citizen-self branch always fail. Splitting into its own step so `row` from
+# extractRow is already committed when this one runs.
+parseDrivers:
+  assign:
+    drivers_parsed: "${(function(){ try { return JSON.parse(row.drivers || '[]'); } catch (e) { return []; } })()}"
+    is_self_driver: "${false}"
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: "${row.status !== 'published'}"
+      next: returnNotFound
+  next: checkSelfDriver
+
+checkSelfDriver:
+  assign:
+    is_self_driver: "${drivers_parsed.some(d => (d.personalCodeEe && d.personalCodeEe === personal_code) || (d.personalCodeForeign && d.personalCodeForeign === personal_code))}"
+  next: checkOwnership
+
+checkOwnership:
+  switch:
+    - condition: "${is_self_driver}"
+      next: mapResponse
+  next: checkCompanyRepresentative
+
+# templates/citizen-company-representative — the SAME "is this personal code
+# a representative of row.companyRegCode" check as forms/search.yml's
+# scope=company branch and risk-scores/my-company.yml, independent of
+# activeRole/activeRegistryCode (see the description block above for why).
+checkCompanyRepresentative:
+  template: "templates/citizen-company-representative"
+  requestType: GET
+  body:
+    personal_code: ${personal_code}
+    registry_code: ${row.companyRegCode}
+    cached_companies: ${represented_companies}
+  result: representative_check
+  next: checkRepresentativeResult
+
+checkRepresentativeResult:
+  switch:
+    - condition: "${representative_check.isRepresentative === true}"
+      next: mapResponse
+  next: returnForbidden
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_compound_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: applyGdprMasking
+
+applyGdprMasking:
+  assign:
+    masked_form: >-
+      ${(function(){
+        var f = mapped.response.body;
+        if (!Array.isArray(f.drivers)) return f;
+        // Ruuter panics on undefined during JSON serialization — `?? null`
+        // normalizes absent fields to null.
+        function maskCode(code) {
+          if (!code) return code ?? null;
+          var s = String(code);
+          return s.length > 2 ? ('*'.repeat(s.length - 2) + s.slice(-2)) : s;
+        }
+        function isViewer(d) {
+          return !!personal_code && (
+            (d.personalCodeEe && d.personalCodeEe === personal_code) ||
+            (d.personalCodeForeign && d.personalCodeForeign === personal_code)
+          );
+        }
+        var maskedDrivers = f.drivers.map(function(d) {
+          if (isViewer(d)) return d;
+          return Object.assign({}, d, {
+            personalCodeEe: maskCode(d.personalCodeEe),
+            personalCodeForeign: maskCode(d.personalCodeForeign),
+            birthDate: d.birthDate ? '****-**-**' : (d.birthDate ?? null)
+          });
+        });
+        return Object.assign({}, f, { drivers: maskedDrivers });
+      })()}
+  next: checkShouldLog
+
+# Audit third-party PII access: viewing a koondvorm where the session's own
+# personalCode is NOT one of the drivers means every driver shown is a third
+# party (a company representative, or — theoretically — activeRole=officer
+# reaching this citizen endpoint directly) — decoupled from activeRole, same
+# reasoning as checkOwnership above. is_self_driver's own record isn't
+# logged, same convention as officer detail endpoints skipping the audit
+# call when actor_personal_code === created_by (see e.g. GET/v1/
+# control-forms/labour-inspection.yml's checkShouldLog).
+checkShouldLog:
+  switch:
+    - condition: "${!is_self_driver}"
+      next: logAuditEvent
+  next: returnSuccess
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "citizen.control_form.compound.view"
+    event_category: "control_form"
+    description: "Esindaja vaatas koondvormi ${row.formNumber}"
+    log_content: "${JSON.stringify({formKey: row.id, companyRegCode: row.companyRegCode})}"
+    actor_name: ${personal_code}
+    actor_personal_code: ${personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${masked_form}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "${({error: 'NOT_FOUND', message: 'Form not found'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'FORBIDDEN', message: 'This form does not belong to your active representation'})}"
+  next: end
+
+returnUnauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end

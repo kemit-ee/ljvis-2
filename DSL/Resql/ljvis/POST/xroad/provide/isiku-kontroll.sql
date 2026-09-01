@@ -38,7 +38,8 @@ declaration:
         type: string
 */
 
--- 1. Koondvormid kus isik on juht (drivers JSONB sisaldab personal_code_ee)
+-- 1. Koondvormid kus isik on juht (drivers JSONB sisaldab personalCodeEe;
+--    väljanimed on camelCase, tegelik drivers-veeru kuju, mitte snake_case)
 -- DISTINCT ON tagab, et iga vormi kohta on ainult viimane versioon (snapshot)
 WITH latest_compound AS (
   SELECT DISTINCT ON (compound_form_key)
@@ -62,8 +63,8 @@ compound_hits AS (
     -- Sõiduki tehnoülevaatuse tulemus — LATERAL JOIN viimase snapshoti järgi
     vtf.result_type                     AS rikkumise_liik,
     'KOONDVORM'                         AS kontrolli_nimetus,
-    driver->>'first_name'               AS juhi_nimi,
-    driver->>'last_name'                AS juhi_perekonnanimi,
+    driver->>'firstName'                AS juhi_nimi,
+    driver->>'lastName'                 AS juhi_perekonnanimi,
     NULL::TEXT                          AS rikkumised,
     NULL::TEXT                          AS rikkumised_lopetatud
   FROM latest_compound lc,
@@ -77,7 +78,7 @@ compound_hits AS (
     ORDER BY created_at DESC
     LIMIT 1
   ) vtf ON true
-  WHERE driver->>'personal_code_ee' = :isikukood   -- isikukoodi järgi filtreerimine
+  WHERE driver->>'personalCodeEe' = :isikukood   -- isikukoodi järgi filtreerimine
 ),
 
 -- 2. Tööinspektsiooni aktid kus isik on karistatu

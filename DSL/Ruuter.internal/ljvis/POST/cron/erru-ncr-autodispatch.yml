@@ -1,0 +1,249 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Öine partii (LJVIS2-64): iga AVALIKUSTATUD autojuhi / meeskonnaliikme
+    sõidu- ja puhkeaja alamvormi kohta, mille kontrolli tulemus on KORRAS
+    (result_type='ok') ja mille sõiduk on välisriigi oma, ehitab ja saadab
+    automaatselt NCR (NotifyCheckResult) teate sõiduki registreerimisriiki.
+
+    Iga kandidaadi kohta: eeltäida NCR mustand (erru/ncr/build — sama loogika
+    mis käsitsi „Lisa NCR vorm", ncrTo = compound_form.vehicle_country_code,
+    originatingAuthority = [#ERRU_NCR_ORIGINATING_AUTHORITY]), loe valmis kirje
+    (erru/ncr/get), saada ERRU hub'i ([#ERRU_NCR_ENDPOINT], sünkroonne ack) ja
+    salvesta üleminekud (initiated → sent → acknowledged, või → error).
+    Iga katse — õnnestunud või mitte — kirjutab ühe rea
+    erru.ncr_autodispatch_log tabelisse; see hoiab partii idempotentsena
+    (select-autodispatch-candidates.sql välistab juba logitud alamvormid).
+    Negatiivse ack'i / transpordivea korral jääb NCR olekusse error ja ametnik
+    saadab selle käsitsi uuesti (send.yml) — cron ei proovi uuesti.
+
+    Kutsub CronManager 02:00 Europe/Tallinn
+    (DSL/CronManager/erru-ncr-autodispatch.yaml). Sama „lame iterate-jada"
+    muster nagu cron/etoimik-sp-driver-decision-sync.yml — do: sees ei ole
+    next:/return, kõik harud on koondatud arvutatud assign'idesse ja
+    kirjutuskutsed käivituvad alati (no-op halva sisendiga).
+  namespace: cron
+
+fetchCandidates:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/select-autodispatch-candidates"
+    headers:
+      type: json
+    body: {}
+  result: candidatesRes
+  next: assignCandidates
+
+assignCandidates:
+  assign:
+    candidates: "${candidatesRes.response.body || []}"
+  next: processCandidates
+
+processCandidates:
+  iterate:
+    over: "${candidates}"
+    as: candidate
+    max_items: 1000
+    do:
+      - assign:
+          sp_form_key: "${String(candidate.id)}"
+          sp_form_type: "${candidate.spFormType || candidate.sp_form_type || ''}"
+          ncr_to: "${((candidate.ncrTo || candidate.ncr_to || '') + '').toUpperCase()}"
+          case_start: "${new Date().getTime()}"
+
+      # 1) Eeltäida NCR mustand (initiated). build.sql tuletab kõik väljad
+      #    SP alamvormist + compound_form'ist; ncrTo anname siit.
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/erru/ncr/build"
+          headers:
+            type: json
+          body:
+            spFormKey: ${sp_form_key}
+            spFormType: ${sp_form_type}
+            originatingAuthority: "[#ERRU_NCR_ORIGINATING_AUTHORITY]"
+            requestSource: "RSI"
+            requestPurpose: "Control"
+            ncrTo: ${ncr_to}
+            handlerPersonalCode: ""
+            handlerName: "Automaatne (CronManager)"
+            created_by: "erru-cron"
+        result: buildRes
+
+      - assign:
+          build_ok: "${!!(buildRes.response && buildRes.response.body && buildRes.response.body.length === 1)}"
+          business_case_id: "${(buildRes.response && buildRes.response.body && buildRes.response.body[0] && (buildRes.response.body[0].businessCaseId || buildRes.response.body[0].business_case_id)) || ''}"
+
+      # 2) Loe valmis kirje (hub-päringu keha, nagu send.yml).
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/erru/ncr/get"
+          headers:
+            type: json
+          body:
+            businessCaseId: ${business_case_id}
+        result: caseRes
+
+      - assign:
+          current: "${(caseRes.response && caseRes.response.body && caseRes.response.body.length) ? caseRes.response.body[caseRes.response.body.length - 1] : {}}"
+
+      # 3) Saada ERRU hub'i (sünkroonne ack). Kui build ebaõnnestus, on
+      #    business_case_id tühi — hub-kutse tehakse ikka, aga tulemust
+      #    ei arvestata (vt outcome allpool).
+      - call: http.post
+        args:
+          url: "[#ERRU_NCR_ENDPOINT]"
+          headers:
+            type: json
+          body:
+            ncrTo: ${ncr_to}
+            businessCaseId: ${business_case_id}
+            originatingAuthority: "[#ERRU_NCR_ORIGINATING_AUTHORITY]"
+            transportUndertakingName: "${current.transportUndertakingName || current.transport_undertaking_name || ''}"
+            communityLicenceNumber: "${current.communityLicenceNumber || current.community_licence_number || ''}"
+            vehicleRegistrationNumber: "${current.vehicleRegistrationNumber || current.vehicle_registration_number || ''}"
+            vehicleRegistrationCountry: "${current.vehicleRegistrationCountry || current.vehicle_registration_country || ''}"
+            checkResult: "${current.checkResult || current.check_result || ''}"
+        result: erruRes
+
+      # 4) Arvuta tulemus (mirror send.yml ack-käsitlus).
+      - assign:
+          result: >-
+            ${(function(){
+              if (!build_ok) {
+                return { outcome: 'build_failed', ackStatusCode: '', errorMessage: 'erru/ncr/build tagastas 0 rida — SP alamvorm või compound_form kadus vahepeal', raw: JSON.stringify(buildRes.response && buildRes.response.body) };
+              }
+              var httpOk = erruRes.response != null && erruRes.response.status != null && erruRes.response.status < 400;
+              if (!httpOk) {
+                return { outcome: 'error', ackStatusCode: 'transport_failure', errorMessage: 'ERRU NCR transpordiviga saatmisel (HTTP ' + (erruRes.response && erruRes.response.status) + ')', raw: JSON.stringify(erruRes.response && erruRes.response.body) };
+              }
+              var ackBody = (erruRes.response.body != null && erruRes.response.body.response != null) ? JSON.parse(erruRes.response.body.response) : erruRes.response.body;
+              var code = (ackBody && ackBody.statusCode) || 'NotAvailable';
+              var msg = (ackBody && ackBody.statusMessage) || '';
+              if (code === 'OK') {
+                return { outcome: 'acknowledged', ackStatusCode: code, ackStatusMessage: msg, errorMessage: '', raw: JSON.stringify(ackBody) };
+              }
+              return { outcome: 'error', ackStatusCode: code, ackStatusMessage: msg, errorMessage: 'ERRU NCR negatiivne vastuvõtukinnitus: ' + code, raw: JSON.stringify(ackBody) };
+            })()}
+
+      # 5) Salvesta 'sent' üleminek (no-op kui business_case_id tühi või
+      #    olek ei ole initiated/error).
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+          headers:
+            type: json
+          body:
+            businessCaseId: ${business_case_id}
+            newStatus: "sent"
+            technicalId: ""
+            workflowId: ""
+            sentAt: ""
+            ackStatusCode: ""
+            ackStatusMessage: ""
+            respondingAuthority: ""
+            transportUndertakingName: ""
+            responseStatusCode: ""
+            responseStatusMessage: ""
+            responseNumberOfVehicles: ""
+            responseCommunityLicenceStatus: ""
+            responseAddress: ""
+            responsePenaltiesImposed: ""
+            errorMessage: ""
+            created_by: "erru-cron"
+        result: sentRes
+
+      # 6a) Positiivne ack → 'acknowledged'.
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+          headers:
+            type: json
+          body:
+            businessCaseId: "${result.outcome === 'acknowledged' ? business_case_id : ''}"
+            newStatus: "acknowledged"
+            technicalId: ""
+            workflowId: ""
+            sentAt: ""
+            ackStatusCode: "${result.ackStatusCode || ''}"
+            ackStatusMessage: "${result.ackStatusMessage || ''}"
+            respondingAuthority: ""
+            transportUndertakingName: ""
+            responseStatusCode: ""
+            responseStatusMessage: ""
+            responseNumberOfVehicles: ""
+            responseCommunityLicenceStatus: ""
+            responseAddress: ""
+            responsePenaltiesImposed: ""
+            errorMessage: ""
+            created_by: "erru-cron"
+        result: ackRes
+
+      # 6b) Negatiivne ack / transpordiviga → 'error'.
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+          headers:
+            type: json
+          body:
+            businessCaseId: "${result.outcome === 'error' ? business_case_id : ''}"
+            newStatus: "error"
+            technicalId: ""
+            workflowId: ""
+            sentAt: ""
+            ackStatusCode: ""
+            ackStatusMessage: ""
+            respondingAuthority: ""
+            transportUndertakingName: ""
+            responseStatusCode: ""
+            responseStatusMessage: ""
+            responseNumberOfVehicles: ""
+            responseCommunityLicenceStatus: ""
+            responseAddress: ""
+            responsePenaltiesImposed: ""
+            errorMessage: "${result.errorMessage || 'ERRU NCR viga'}"
+            created_by: "erru-cron"
+        result: errRes
+
+      # 7) Dispatch-logi rida (idempotentsuse võti).
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/erru/ncr/log-autodispatch"
+          headers:
+            type: json
+          body:
+            spFormKey: ${sp_form_key}
+            spFormType: ${sp_form_type}
+            businessCaseId: ${business_case_id}
+            ncrTo: ${ncr_to}
+            outcome: ${result.outcome}
+            errorMessage: "${result.errorMessage || ''}"
+            created_by: "erru-cron"
+        result: logRes
+
+      # 8) X-Road integratsioonilogi (nagu teised cronid).
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          headers:
+            type: json
+          body:
+            service_code: "erru.ncr.autodispatch.v1.cron"
+            request_xml: "${'spFormKey=' + sp_form_key + ';spFormType=' + sp_form_type + ';ncrTo=' + ncr_to + ';businessCaseId=' + business_case_id}"
+            response_xml: "${result.raw || ''}"
+            duration_ms: "${new Date().getTime() - case_start}"
+            success: ${result.outcome === 'acknowledged'}
+            error_message: "${result.errorMessage || ''}"
+            person_identifier: ""
+            source_type: "${sp_form_type === 'teammate' ? 'sp_teammate_form' : 'sp_driver_form'}"
+            source_record_id: ${sp_form_key}
+        result: xroadLogRes
+    collect: "${({ id: candidate.id, type: sp_form_type, outcome: result.outcome, businessCaseId: business_case_id })}"
+    into: results
+  next: returnSummary
+
+returnSummary:
+  status: 200
+  return: "${({ candidatesChecked: candidates.length, acknowledged: results.filter(r => r.outcome === 'acknowledged').length, errors: results.filter(r => r.outcome === 'error').length, buildFailed: results.filter(r => r.outcome === 'build_failed').length })}"
+  next: end

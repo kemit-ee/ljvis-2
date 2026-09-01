@@ -1,0 +1,112 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Citizen-facing read-only single good_repute_form (hea maine vorm) detail.
+    Guarded by GET/v1/citizen/.guard (templates/citizen-authority).
+    citizen-self scope ONLY — ownership requires row.personalCode == the
+    session's own personalCode, independent of activeRole — the dashboard's
+    "Minu protokollid" section must be clickable regardless of which role
+    happens to be active (same pattern as forms/search.yml's
+    scope=self and citizen/forms/compound.yml/labour-inspection.yml). Company
+    scope is not supported and always returns 403: forms.good_repute_form
+    has NO company_reg_code column at
+    all (it records the transport manager personally, not the undertaking —
+    see DSL/Liquibase/.../initial-good-repute-form.sql), so there is no data
+    to authorize a company representative against. Citizen-visible status is
+    'published' only — matches every other form type and citizen/forms/
+    search.sql's WHERE clause. A prior version of this endpoint also
+    accepted 'confirmed' (chk_grf_status was widened by
+    20260825100000-add-published-status-to-check-constraints.sql to allow
+    reaching 'published' via edit/publish.yml, and it was assumed a citizen
+    should see the record the moment an officer confirms it); that
+    'confirmed'-visible exception was never actually signed off by product
+    (flagged as an open item in code-review-citizen-company-view.md) and
+    contradicts the general control-form lifecycle spec (LJVIS2-136 §"Olek:
+    Avalikustatud" — only the published state is documented as visible to
+    all read-permission holders), so it has been reverted. Reuses
+    the officer resql (control-forms/good-repute/get.sql); no
+    DMapper template exists for this type (see GET/v1/control-forms/
+    good-repute.yml, which also returns the raw resql row unmapped).
+
+    GDPR: no masking — this is exclusively the citizen's own record in
+    citizen-self scope (company scope isn't reachable at all), so there's no
+    third party whose data would need masking here.
+  namespace: citizen
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    params:
+      - field: q
+        type: string
+        description: "Good repute form key"
+
+getSessionClaims:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkSession
+
+checkSession:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractClaims
+
+extractClaims:
+  assign:
+    personal_code: "${authority.personalCode}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
+    headers:
+      type: json
+    body:
+      id: "${incoming.params.q}"
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: "${res.response.body == null || res.response.body.length !== 1}"
+      next: returnNotFound
+  next: checkOwnership
+
+checkOwnership:
+  assign:
+    row: "${res.response.body[0]}"
+  next: checkOwnershipSwitch
+
+checkOwnershipSwitch:
+  switch:
+    - condition: "${row.status !== 'published'}"
+      next: returnNotFound
+    - condition: "${!!row.personalCode && row.personalCode === personal_code}"
+      next: returnSuccess
+  next: returnForbidden
+
+returnSuccess:
+  return: ${row}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "${({error: 'NOT_FOUND', message: 'Form not found'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'FORBIDDEN', message: 'This form does not belong to your active representation'})}"
+  next: end
+
+returnUnauthenticated:
+  status: 401
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid session required'})}"
+  next: end
