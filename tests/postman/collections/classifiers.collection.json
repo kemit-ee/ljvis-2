@@ -101,7 +101,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=50",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=100",
           "host": [
             "{{api_url}}"
           ],
@@ -117,7 +117,7 @@
             },
             {
               "key": "pageSize",
-              "value": "50"
+              "value": "100"
             }
           ]
         }
@@ -174,7 +174,7 @@
             },
             {
               "key": "pageSize",
-              "value": "50"
+              "value": "100"
             }
           ]
         }
@@ -250,7 +250,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=60",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?page=1&pageSize=100",
           "host": [
             "{{api_url}}"
           ],
@@ -266,7 +266,7 @@
             },
             {
               "key": "pageSize",
-              "value": "60"
+              "value": "100"
             }
           ]
         }
@@ -416,7 +416,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=60",
+          "raw": "{{api_url}}/ljvis/v1/classifiers?sorting=code+asc&page=1&pageSize=100",
           "host": [
             "{{api_url}}"
           ],
@@ -436,7 +436,7 @@
             },
             {
               "key": "pageSize",
-              "value": "60"
+              "value": "100"
             }
           ]
         }
