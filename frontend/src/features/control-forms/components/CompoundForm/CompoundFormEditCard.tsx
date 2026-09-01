@@ -17,6 +17,7 @@ import {
 import type { FormikProps } from 'formik';
 import type { Trailer, Driver } from '../../types';
 import { COUNTRIES, OTHER, ROAD } from '../../../../constants/constants';
+import { vehicleCategoryColWidth } from './vehicleCategoryLayout';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
@@ -574,7 +575,6 @@ export function CompoundFormEditCard({
                     name="vehicleCategoryCode"
                     label={t('forms.compound.vehicleCategory')}
                     inputType="radio"
-                    direction="row"
                     value={formik.values.vehicleCategoryCode}
                     onChange={(val) =>
                       formik.setFieldValue('vehicleCategoryCode', val)
@@ -583,6 +583,7 @@ export function CompoundFormEditCard({
                       id: `vehicleCat-${c.code}`,
                       value: c.code,
                       label: c.name,
+                      colProps: { width: vehicleCategoryColWidth(c.code) },
                     }))}
                     required
                     {...(formik.touched.vehicleCategoryCode &&

@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-09 — Mootorsõiduki kategooria valiku paigutus
+
+- **Ühendveo (ja seotud) vormil** on „Mootorsõiduki kategooria" raadionupud
+  nüüd loetavamalt reastatud: N2 ja N3 esimesel real, M2 ja M3 teisel real,
+  T-kategooriad (T1b–T4.3b) kolmandal real ning „Muu" neljandal real.
+
+---
+
 ## 2026-09 — Sõidu- ja puhkeaja rikkumiste raskusastmed
 
 - **Sõidu- ja puhkeaja nõuete rikkumiste aknas** saab nüüd valida ka need
