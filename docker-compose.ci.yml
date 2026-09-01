@@ -141,6 +141,27 @@ services:
     ports:
       - "9005:3005"
 
+  # XTR mock — CI ONLY. The real xtr container (docker-compose.yml) needs an
+  # X-tee security server; here nothing would answer on http://xtr:8080 and the
+  # citizen representation DSLs' esindus_v1 call would abort Ruuter with a 500.
+  # constants.ini is deliberately NOT changed — dev/prod are unaffected.
+  # The compose service name `xtr` is the DNS alias LJVIS_XTR already points at.
+  xtr:
+    build:
+      context: .
+      dockerfile: docker/xtr-mock/Dockerfile
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - ljvis-ci
+    cpus: "0.25"
+    mem_limit: "128M"
+
   ruuter:
     build:
       context: .
@@ -150,6 +171,8 @@ services:
       resql-ljvis:
         condition: service_healthy
       nysiis:
+        condition: service_healthy
+      xtr:
         condition: service_healthy
     environment:
       - RUST_LOG=ruuter_on_rust::steps::http=debug,info
@@ -177,6 +200,7 @@ services:
     restart: unless-stopped
     depends_on:
       - bootstrap
+      - xtr
     environment:
       - RUST_LOG=ruuter_on_rust::steps::http=debug,info
     volumes:
