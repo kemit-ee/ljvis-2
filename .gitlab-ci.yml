@@ -1,21 +1,209 @@
-# You can override the included template(s) by including variable overrides
-# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
-# Secret Detection customization: https://docs.gitlab.com/user/application_security/secret_detection/pipeline/configure
-# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
-# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
-# Note that environment variables can be set in several places
-# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+# LJVIS2 code/build repo. One release view: verify -> build -> package -> dev.
+#
+# Nine images are built, eight wrapper charts are packaged, and all eight workload
+# entries move atomically in one Git release-manifest commit. Liquibase has no independent
+# entry: resql-ljvis renders it as a PreSync hook using the same release version.
+#
+# Only dev exists. Adding test also requires its infra/config values; a release manifest
+# alone is not a deployable environment.
+#
+# Required CI/CD variables: HARBOR_URL, HARBOR_USERNAME, HARBOR_PASSWORD,
+# SERVICECODE=ljvis2, SONAR_HOST_URL, SONAR_TOKEN, GITOPS_TOKEN and nonlive Argo CD
+# read-only status credentials.
+
 stages:
   - test
-  - secret-detection
+  - build
+  - package
+  - deploy-dev
 
 variables:
-  SECRET_DETECTION_ENABLED: 'true'
+  VERSION_BASE: "0.1.0"
+  CHART_REPOSITORY: harbor.kemitaws.ee/ljvis2/charts
+  NONLIVE_CLUSTER: kubernetes-nonlive
+  SECRET_DETECTION_ENABLED: "true"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
+    - when: never
 
 include:
+  - component: gitlab.kemitaws.ee/platform/ci-components/release-version@6.0.0
+    inputs: { base: $VERSION_BASE, arch: arm64 }
+
+  # Sonar runs on amd64 because the pinned scanner image has no arm64 variant.
+  - component: gitlab.kemitaws.ee/platform/ci-components/sonar-scan@6.0.0
+    inputs:
+      name: frontend
+      sources: frontend
+      quality_gate: false
+      extra_args: "-Dsonar.exclusions=**/node_modules/**,**/dist/**"
+  - component: gitlab.kemitaws.ee/platform/ci-components/sonar-scan@6.0.0
+    inputs:
+      name: backend
+      sources: DSL
+      quality_gate: false
+      extra_args: "-Dsonar.exclusions=**/draft/**,**/test/**"
   - template: Security/Secret-Detection.gitlab-ci.yml
 
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: ruuter, image_path: ruuter/images, dockerfile: docker/ruuter/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: ruuter-internal, image_path: ruuter-internal/images, dockerfile: docker/ruuter-internal/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: xtr, image_path: xtr/images, dockerfile: docker/xtr/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: frontend, image_path: frontend/images, dockerfile: frontend/Dockerfile, context: frontend, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: s3-proxy, image_path: s3-proxy/images, dockerfile: docker/s3-proxy/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: liquibase, image_path: liquibase/images, dockerfile: docker/liquibase/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: resql-ljvis, image_path: resql-ljvis/images, dockerfile: docker/resql-ljvis/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: data-mapper, image_path: data-mapper/images, dockerfile: docker/data-mapper/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform/ci-components/image-build@6.0.0
+    inputs: { name: tim, image_path: tim/images, dockerfile: docker/tim/Dockerfile.release, version: $RELEASE_VERSION, arch: arm64 }
+
+  - component: gitlab.kemitaws.ee/platform/ci-components/release-pin@6.0.0
+    inputs:
+      environment: dev
+      repository: gitlab.kemitaws.ee/services/ljvis2/devops.git
+      stage: deploy-dev
+      version: $RELEASE_VERSION
+      argocd_context: $NONLIVE_CLUSTER
+      release_file: environments/dev/release.yaml
+      components: >-
+        resql-ljvis
+        data-mapper
+        xtr
+        ruuter
+        ruuter-internal
+        s3-proxy
+        frontend
+        tim
+      artifacts: >-
+        $CHART_REPOSITORY/resql-ljvis
+        $CHART_REPOSITORY/data-mapper
+        $CHART_REPOSITORY/xtr
+        $CHART_REPOSITORY/ruuter
+        $CHART_REPOSITORY/ruuter-internal
+        $CHART_REPOSITORY/s3-proxy
+        $CHART_REPOSITORY/frontend
+        $CHART_REPOSITORY/tim
+      applications: >-
+        resql-ljvis-dev
+        data-mapper-dev
+        xtr-dev
+        ruuter-dev
+        ruuter-internal-dev
+        s3-proxy-dev
+        frontend-dev
+        tim-dev
+
+# ---------------------------------------------------------------------------- test
+
 secret_detection:
-  stage: secret-detection
-  tags:
-    - arm64
+  stage: test
+  tags: ["arm64"]
+
+# Sonar cannot parse the Bürokratt DSL; validate graph and SQL references explicitly.
+"validate:dsl":
+  stage: test
+  image: harbor.kemitaws.ee/base-images/devops-aio:1.0.0
+  tags: ["arm64"]
+  interruptible: true
+  script:
+    - set -euo pipefail
+    - pip3 install --quiet pyyaml
+    - python3 scripts/validate-dsl.py
+
+.frontend:
+  stage: test
+  image: harbor.kemitaws.ee/dockerhub/library/node:22-alpine
+  tags: ["arm64"]
+  interruptible: true
+  # Temporary onboarding state: these checks report failures but do not gate release yet.
+  allow_failure: true
+  cache:
+    key:
+      files: [frontend/package-lock.json]
+    paths: [frontend/node_modules/]
+  before_script:
+    - cd frontend
+    - npm ci --prefer-offline --no-audit
+
+"frontend:lint":
+  extends: .frontend
+  script:
+    - npm audit --audit-level=high || true
+    - npm run lint
+
+"frontend:test":
+  extends: .frontend
+  script:
+    - npm run test -- --run --reporter=verbose
+
+# Protected-ref image build already runs npm build; MR pipelines check it separately.
+"frontend:build":
+  extends: .frontend
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
+      when: never
+    - when: on_success
+  script:
+    - npm run build
+
+# ----------------------------------------------------------- build, package, deploy
+
+.protected-refs:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
+
+"build:ruuter":          { extends: .protected-refs }
+"build:ruuter-internal": { extends: .protected-refs }
+"build:xtr":             { extends: .protected-refs }
+"build:frontend":        { extends: .protected-refs }
+"build:s3-proxy":        { extends: .protected-refs }
+"build:liquibase":       { extends: .protected-refs }
+"build:resql-ljvis":     { extends: .protected-refs }
+"build:data-mapper":     { extends: .protected-refs }
+"build:tim":             { extends: .protected-refs }
+
+# strategy: depend keeps the source release red when any of eight package jobs fails.
+package:charts:
+  extends: .protected-refs
+  stage: package
+  trigger:
+    project: services/ljvis2/devops
+    branch: main
+    strategy: depend
+  needs:
+    - "release:version"
+    - "build:ruuter"
+    - "build:ruuter-internal"
+    - "build:xtr"
+    - "build:frontend"
+    - "build:s3-proxy"
+    - "build:liquibase"
+    - "build:resql-ljvis"
+    - "build:data-mapper"
+    - "build:tim"
+  variables:
+    # Forward the resolved dotenv value under a different name across the trigger.
+    IMAGE_VERSION: $RELEASE_VERSION
+
+"release:pin:dev":
+  # release/* produces immutable artifacts for manual promotion; it must not overwrite
+  # the main-owned dev environment.
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  environment:
+    name: dev
+    url: https://ljvis2dev.kemitaws.ee
