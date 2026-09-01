@@ -1,0 +1,442 @@
+{
+  "info": {
+    "name": "LJVIS — Citizen Representation & Dashboard",
+    "_postman_id": "ljvis-citizen-representation-v1",
+    "description": "Functional tests for the citizen dashboard's decoupled-from-activeRole model: POST/auth/representation/switch.yml's `registryCode` allowlist field regression (Rust Ruuter's `contains_key` check rejects a request missing a declared body field even when it's only semantically required for role=company — see AuthCallback.tsx's switchRepresentation('citizen-self') call, which must NOT omit registryCode), POST/v1/citizen/forms/search.yml's scope=self/scope=company branches, and GET/v1/citizen/risk-scores/controls.yml's representative-check authorization (a citizen must not be able to read another company's risk breakdown by passing an arbitrary ?q=).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Risk Scores Controls] no cookie -> 400 UNAUTHENTICATED (must run before any login sets a cookie in Newman's jar)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/citizen/risk-scores/controls?q=16125011",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "citizen",
+            "risk-scores",
+            "controls"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "16125011"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));",
+              "var b = pm.response.json().response;",
+              "pm.test('error UNAUTHENTICATED', () => pm.expect(b.error).to.eql('UNAUTHENTICATED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — Citizen",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_citizen}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_citizen', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Switch] role=citizen-self WITHOUT registryCode key -> 500 Field missing (documents the Ruuter allowlist gotcha — always send the key; use switchRepresentation() in frontend/src/features/auth/api.ts, never a raw fetch)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_citizen}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/representation/switch",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "representation",
+            "switch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"role\": \"citizen-self\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('500 — Rust Ruuter rejects a request missing ANY declared allowlist body field, even one only semantically required for a different role value', () => pm.response.to.have.status(500));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Switch] role=citizen-self with explicit empty registryCode -> 200 (this is the correct call shape — see switchRepresentation())",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_citizen}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/representation/switch",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "representation",
+            "switch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"role\": \"citizen-self\", \"registryCode\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('activeRole is citizen-self', () => pm.expect(b.activeRole).to.eql('citizen-self'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Switch] role=company WITHOUT registryCode key -> 400 INVALID_PARAMETER (registryCode IS required for this role)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_citizen}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/representation/switch",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "representation",
+            "switch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"role\": \"company\", \"registryCode\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));",
+              "var b = pm.response.json().response;",
+              "pm.test('error INVALID_PARAMETER', () => pm.expect(b.error).to.eql('INVALID_PARAMETER'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Forms Search] scope=self -> 200, array response (own data only, independent of activeRole)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_citizen}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/citizen/forms/search",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "citizen",
+            "forms",
+            "search"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scope\": \"self\", \"registry_code\": \"\", \"page\": 1, \"page_size\": 20, \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('response is an array', () => pm.expect(b).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Forms Search] scope=company, unrepresented registry_code -> 403 NOT_REPRESENTATIVE",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_citizen}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/citizen/forms/search",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "citizen",
+            "forms",
+            "search"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scope\": \"company\", \"registry_code\": \"99999999\", \"page\": 1, \"page_size\": 20, \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));",
+              "var b = pm.response.json().response;",
+              "pm.test('error NOT_REPRESENTATIVE', () => pm.expect(b.error).to.eql('NOT_REPRESENTATIVE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Forms Search] scope=company, invalid registry_code format -> 400 INVALID_PARAMETER",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_citizen}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/citizen/forms/search",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "citizen",
+            "forms",
+            "search"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"scope\": \"company\", \"registry_code\": \"abc\", \"page\": 1, \"page_size\": 20, \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));",
+              "var b = pm.response.json().response;",
+              "pm.test('error INVALID_PARAMETER', () => pm.expect(b.error).to.eql('INVALID_PARAMETER'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Risk Scores Controls] unrepresented company -> 403 NOT_REPRESENTATIVE (cannot read another company's breakdown via ?q=)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_citizen}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/citizen/risk-scores/controls?q=99999999",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "citizen",
+            "risk-scores",
+            "controls"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "99999999"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403', () => pm.response.to.have.status(403));",
+              "var b = pm.response.json().response;",
+              "pm.test('error NOT_REPRESENTATIVE', () => pm.expect(b.error).to.eql('NOT_REPRESENTATIVE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Risk Scores Controls] invalid q format -> 400 INVALID_PARAMETER",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_citizen}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/citizen/risk-scores/controls?q=abc",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "citizen",
+            "risk-scores",
+            "controls"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "abc"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('400', () => pm.response.to.have.status(400));",
+              "var b = pm.response.json().response;",
+              "pm.test('error INVALID_PARAMETER', () => pm.expect(b.error).to.eql('INVALID_PARAMETER'));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}

@@ -1,7 +1,12 @@
 declaration:
 
   version: "1.0"
-  description: "Search Ariregister company data (lihtandmed_v3) via XTR"
+  description: >-
+    Search Ariregister company data (lihtandmed_v1) via XTR, routed through
+    the real X-Road Security Server — our subsystem (GOV/70001231/ljvis2) has
+    ACL on arireg's v1 methods (confirmed live via allowedMethods, see
+    .ai/ljvis-tasks/xtee-task.md). No Ariregister username/password needed
+    anymore (was lihtandmed_v3 via a direct HTTPS bypass to ariregxmlv6.rik.ee).
   namespace: xroad
   allowlist:
     body:
@@ -41,15 +46,13 @@ assignParams:
 callXtr:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/lihtandmed_v3"
+    url: "[#LJVIS_XTR]/ar/lihtandmed_v1"
     headers:
       type: json
     body:
       reg_code: ${reg_code}
       company_name: ${company_name}
       max_results: ${max_results}
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
   result: xtrResponse
   next: checkXtrStatus
 
@@ -66,7 +69,7 @@ logSuccess:
     headers:
       type: json
     body:
-      service_code: "arireg.lihtandmed_v3.v1"
+      service_code: "arireg.lihtandmed_v1.v1"
       request_xml: "${'registryCode=' + reg_code + ';companyName=' + company_name}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
@@ -76,6 +79,37 @@ logSuccess:
       source_type: ""
       source_record_id: ""
   result: logResult
+  next: mapResponse
+
+# Routing through the real Security Server (vs. the old ariregxmlv6.rik.ee
+# HTTPS bypass) means XTR now returns the full X-Road SOAP envelope split
+# into {headers, body}, with every response element namespace-prefixed
+# (e.g. "ns1:lihtandmed_v1Response") — confirmed via a live smoke test
+# against ee-dev/GOV/70000310/arireg. Strip the wrapper/prefixes the same
+# way esindus.yml/paring2.yml already do, so the frontend's existing
+# `raw.lihtandmed_v1Response.keha.*` access keeps working unchanged.
+mapResponse:
+  assign:
+    mapped_result: >-
+      ${(function(){
+        function stripNs(v) {
+          if (Array.isArray(v)) return v.map(stripNs);
+          if (v && typeof v === 'object') {
+            var out = {};
+            Object.keys(v).forEach(function(k) {
+              if (k.charAt(0) === '@') return;
+              var shortKey = k.indexOf(':') >= 0 ? k.substring(k.indexOf(':') + 1) : k;
+              out[shortKey] = stripNs(v[k]);
+            });
+            return out;
+          }
+          return v !== undefined ? v : null;
+        }
+        var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('lihtandmed_v1Response'); });
+        var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {keha: {leitud_ettevotjate_arv: '0'}};
+        return {lihtandmed_v1Response: responseNode};
+      })()}
   next: returnResponse
 
 logFailure:
@@ -85,7 +119,7 @@ logFailure:
     headers:
       type: json
     body:
-      service_code: "arireg.lihtandmed_v3.v1"
+      service_code: "arireg.lihtandmed_v1.v1"
       request_xml: "${'registryCode=' + reg_code + ';companyName=' + company_name}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
@@ -98,7 +132,7 @@ logFailure:
   next: returnError
 
 returnResponse:
-  return: ${xtrResponse.response.body}
+  return: ${mapped_result}
   status: 200
   next: end
 

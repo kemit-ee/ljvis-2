@@ -1,0 +1,100 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Search Ariregister detailed company data (detailandmed_v1) via XTR,
+    routed through the real X-Road Security Server — our subsystem
+    (GOV/70001231/ljvis2) has ACL on arireg's v1 methods (confirmed live via
+    allowedMethods, see .ai/ljvis-tasks/xtee-task.md). New endpoint — the
+    previous detailandmed_v2 XTR DSL existed but was never wired up to any
+    Ruuter endpoint. First iteration: requests only general (yandmed) and
+    person (iandmed) data, no commercial-pledge/petition/decree data
+    (kandmed/dandmed/maarused); returns the raw XTR SOAP-to-JSON response
+    unmapped, matching lihtandmed.yml's style — no frontend consumer yet.
+  namespace: xroad
+  allowlist:
+    body:
+      - field: registryCode
+        type: string
+
+validate:
+  switch:
+    - condition: "${!(incoming.body.registryCode || '').trim()}"
+      next: returnMissingParam
+  next: assignParams
+
+returnMissingParam:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "registryCode is required"}'
+  next: end
+
+assignParams:
+  assign:
+    reg_code: "${(incoming.body.registryCode || '').trim()}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/detailandmed_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${reg_code}
+  result: xtrResponse
+  next: checkXtrStatus
+
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'registryCode=' + reg_code}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
+  result: logResult
+  next: returnResponse
+
+returnResponse:
+  return: ${xtrResponse.response.body}
+  status: 200
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'registryCode=' + reg_code}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ""
+      source_type: ""
+      source_record_id: ""
+  result: logResult
+  next: returnError
+
+returnError:
+  return: "{\"error\": \"XTR_ERROR\", \"message\": \"Äriregistri detailandmete päring ebaõnnestus\"}"
+  status: 502
+  next: end

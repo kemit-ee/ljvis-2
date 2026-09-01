@@ -1,0 +1,45 @@
+{
+  "_info": {
+    "type": "carrier_violation",
+    "description": "Raske rikkumise teavitus veoettevõtjale. Saaja e-post tuleb äriregistrist (associated-persons). Saadetakse pärast raske rikkumise kinnitamist kontrollaktil.",
+    "pk_env_var": "PK_TEMPLATE_CARRIER_VIOLATION",
+    "recipient": "Veoettevõtja e-post (äriregistrist, LJVIS-2 arireg/associated-persons X-tee)",
+    "trigger_dsl": "TBD — lisatakse pärast PK 2.0 credentials saamist",
+    "ref_pk_doku": "https://github.com/e-gov/PK-Doku/blob/main/11-Haldusliidese-REST-API-d/README.md"
+  },
+  "_step1_create_template": {
+    "_comment": "POST {PK_URL}/template/v1/templates — tagastab {id}. Pane ID Kubernetes-e PK_TEMPLATE_CARRIER_VIOLATION.",
+    "name": "ljvis2-carrier-violation",
+    "description": "LJVIS-2: Raske rikkumise teavitus veoettevõtjale (ERRU/NCR/RSI alusel)",
+    "enabled": true
+  },
+  "_step2_add_message": {
+    "_comment": "POST {PK_URL}/template/v1/template-messages — asenda templateId sammust 1. Muutujad {{}} asendatakse automaatselt saatmisel.",
+    "templateId": "ASENDA_SAMM1_ID_GA",
+    "channel": "EMAIL",
+    "language": "et",
+    "subject": "Raske rikkumine tuvastatud — teade veoettevõtjale ({{controlFormId}})",
+    "content": "<p>Lugupeetud {{carrierName}} ({{carrierCode}}),</p><p>Liiklusjärelevalve infosüsteemi (LJVIS-2) kaudu on tuvastatud Teie veoettevõttega seotud raske rikkumine, millest teavitatakse ERRU (European Registers of Road Transport Undertakings) süsteemi kaudu.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrolliakti võti</th><td>{{controlFormId}}</td></tr><tr><th>Rikkumise kuupäev</th><td>{{violationDate}}</td></tr><tr><th>Inspektori nimi</th><td>{{inspectorName}}</td></tr><tr><th>Sõiduki registreerimisnumber</th><td>{{vehicleRegNr}}</td></tr></table><p>Võimalike vaidluste korral pöörduge kontrolli teostanud asutuse poole.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
+    "contentType": "text/html"
+  },
+  "_step3_sending_payload_example": {
+    "_comment": "POST {PK_URL}/notification-management/v1/notifications — see on see, mida send-postkast.yml saadab pärast PK 2.0 aktiveerimist.",
+    "templateId": "{{PK_TEMPLATE_CARRIER_VIOLATION}}",
+    "originalTemplateId": "{{PK_TEMPLATE_CARRIER_VIOLATION}}",
+    "receivers": [
+      {
+        "code": "{{carrierCode}}",
+        "email": "{{carrierEmail}}",
+        "name": "{{carrierName}}"
+      }
+    ],
+    "inputData": {
+      "carrierName": "{{carrierName}}",
+      "carrierCode": "{{carrierCode}}",
+      "controlFormId": "{{relatedEntityId}}",
+      "violationDate": "{{violationDate}}",
+      "inspectorName": "{{createdBy}}",
+      "vehicleRegNr": "{{vehicleRegNr}}"
+    }
+  }
+}

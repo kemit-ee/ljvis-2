@@ -1,0 +1,46 @@
+{
+  "_info": {
+    "type": "labor_kabotage",
+    "description": "Kabotaaži kontrolli teavitus Tööinspektsioonile. Saaja on fikseeritud (TI_EMAIL). Saadetakse pärast kabotaaži kontrolliakti avalikustamist.",
+    "pk_env_var": "PK_TEMPLATE_LABOR_KABOTAGE",
+    "recipient": "Tööinspektsioon (fikseeritud e-post — keskkonna muutuja TI_EMAIL)",
+    "trigger_dsl": "TBD — lisatakse pärast PK 2.0 credentials saamist",
+    "ref_pk_doku": "https://github.com/e-gov/PK-Doku/blob/main/11-Haldusliidese-REST-API-d/README.md"
+  },
+  "_step1_create_template": {
+    "_comment": "POST {PK_URL}/template/v1/templates — tagastab {id}. Pane ID Kubernetes-e PK_TEMPLATE_LABOR_KABOTAGE.",
+    "name": "ljvis2-labor-kabotage",
+    "description": "LJVIS-2: Kabotaaži kontrolli teavitus Tööinspektsioonile",
+    "enabled": true
+  },
+  "_step2_add_message": {
+    "_comment": "POST {PK_URL}/template/v1/template-messages — asenda templateId sammust 1.",
+    "templateId": "ASENDA_SAMM1_ID_GA",
+    "channel": "EMAIL",
+    "language": "et",
+    "subject": "LJVIS-2: Kabotaaži kontrolli teavitus ({{controlFormId}})",
+    "content": "<p>Tere,</p><p>Liiklusjärelevalve infosüsteemis (LJVIS-2) on avalikustatud kabotaaži kontrolliakt, mis sisaldab Tööinspektsioonile edastamiseks kohustuslikku teavet.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrolliakti võti</th><td>{{controlFormId}}</td></tr><tr><th>Kontrolli kuupäev</th><td>{{controlDate}}</td></tr><tr><th>Veoettevõtja</th><td>{{carrierName}} ({{carrierCode}})</td></tr><tr><th>Sõiduki reg.nr.</th><td>{{vehicleRegNr}}</td></tr><tr><th>Juhi nimi</th><td>{{driverName}}</td></tr><tr><th>Kabotaažirikkumiste arv</th><td>{{cabotageViolationCount}}</td></tr><tr><th>Kontrolliv ametnik</th><td>{{inspectorName}}</td></tr></table><p>Täpsemad andmed on kättesaadavad LJVIS-2 kasutajaliideses kontrolliakti võtme järgi.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
+    "contentType": "text/html"
+  },
+  "_step3_sending_payload_example": {
+    "_comment": "POST {PK_URL}/notification-management/v1/notifications — saaja on fikseeritud TI e-post.",
+    "templateId": "{{PK_TEMPLATE_LABOR_KABOTAGE}}",
+    "originalTemplateId": "{{PK_TEMPLATE_LABOR_KABOTAGE}}",
+    "receivers": [
+      {
+        "email": "{{TI_EMAIL}}",
+        "name": "Tööinspektsioon"
+      }
+    ],
+    "inputData": {
+      "controlFormId": "{{relatedEntityId}}",
+      "controlDate": "{{controlDate}}",
+      "carrierName": "{{carrierName}}",
+      "carrierCode": "{{carrierCode}}",
+      "vehicleRegNr": "{{vehicleRegNr}}",
+      "driverName": "{{driverName}}",
+      "cabotageViolationCount": "{{cabotageViolationCount}}",
+      "inspectorName": "{{inspectorName}}"
+    }
+  }
+}

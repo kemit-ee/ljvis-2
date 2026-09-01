@@ -281,6 +281,13 @@ nav[aria-label='Main navigation'] {
   border-top: none;
 }
 
+.ljvis-header-with-tooltip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: help;
+}
+
 /* NCR list (LJVIS2-65): rows with at least one serious infringement are highlighted red. */
 .ncr-row-infringement td {
   background-color: #fdecea;

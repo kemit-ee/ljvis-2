@@ -27,6 +27,7 @@ import {
   StatusIndicator,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm, emptyTrailer } from './useCompoundForm';
+import { vehicleCategoryColWidth } from '../../components/CompoundForm/vehicleCategoryLayout';
 import type {
   Trailer,
   DriveRestForm,
@@ -952,7 +953,6 @@ export function CompoundFormCreatePage() {
                           name="vehicleCategoryCode"
                           label={t('forms.compound.vehicleCategory')}
                           inputType="radio"
-                          direction="row"
                           value={formik.values.vehicleCategoryCode}
                           onChange={(val) =>
                             formik.setFieldValue('vehicleCategoryCode', val)
@@ -961,6 +961,7 @@ export function CompoundFormCreatePage() {
                             id: `vehicleCat-${c.code}`,
                             value: c.code,
                             label: c.name,
+                            colProps: { width: vehicleCategoryColWidth(c.code) },
                           }))}
                           required
                           {...(formik.touched.vehicleCategoryCode &&

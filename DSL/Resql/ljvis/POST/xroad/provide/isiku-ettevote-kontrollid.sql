@@ -43,11 +43,13 @@ declaration:
 -- CTE 1: leia kõik ettevõtete registrikoodid, millega isik on seotud
 -- Allikad: koondvorm (juht) + tööinspektsiooniakt (karistatu)
 WITH person_companies AS (
-  -- Koondvormidest: isik on juht (drivers JSONB massiiv sisaldab isikukoodi)
+  -- Koondvormidest: isik on juht (drivers JSONB massiiv sisaldab isikukoodi).
+  -- Väljanimed on camelCase, mitte snake_case — see on drivers-veeru tegelik
+  -- kuju (vt CompoundFormEditCard.tsx / CompoundFormCreatePage.tsx).
   SELECT DISTINCT cf.company_reg_code
   FROM forms.compound_form cf,
        jsonb_array_elements(cf.drivers) AS driver
-  WHERE driver->>'personal_code_ee' = :isikukood
+  WHERE driver->>'personalCodeEe' = :isikukood
     AND cf.company_reg_code IS NOT NULL
     AND cf.company_reg_code <> ''
     AND cf.status <> 'deleted'   -- kustutatud vormid välja

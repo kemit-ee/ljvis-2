@@ -47,6 +47,12 @@ import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-f
 import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
 import { TRAMDriverFormPage } from './features/control-forms/pages/tram-driver-form/TRAMDriverFormPage';
 import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
+import { CompanyFormsListPage } from './features/citizen/pages/CompanyFormsListPage/CompanyFormsListPage';
+import { CitizenDashboardPage } from './features/citizen/pages/CitizenDashboardPage/CitizenDashboardPage';
+import { CitizenLabourInspectionDetailPage } from './features/citizen/pages/CitizenLabourInspectionDetailPage/CitizenLabourInspectionDetailPage';
+import { CitizenCompoundDetailPage } from './features/citizen/pages/CitizenCompoundDetailPage/CitizenCompoundDetailPage';
+import { CitizenForeignViolationDetailPage } from './features/citizen/pages/CitizenForeignViolationDetailPage/CitizenForeignViolationDetailPage';
+import { CitizenGoodReputeDetailPage } from './features/citizen/pages/CitizenGoodReputeDetailPage/CitizenGoodReputeDetailPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
 
@@ -66,11 +72,47 @@ function AppRoutes() {
     return <LoginPage />;
   }
 
+  // Citizen sessions (citizen-self / company) have no permissions and get
+  // their own read-only dashboard instead of the officer desktop — officer
+  // routes below are still guarded server-side too (POST/.guard's
+  // check-user-authority), this is UX-only, not the security boundary.
+  const isCitizen = user.activeRole !== 'officer';
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Routes>
         <Route element={<AppLayout />}>
-          <Route path="/" element={<DesktopPage />} />
+          {isCitizen ? (
+            <>
+              <Route path="/" element={<CitizenDashboardPage />} />
+              {/* Legacy single-company/activeRole-scoped view — kept as a
+                  deep link for existing bookmarks; the landing page is now
+                  CitizenDashboardPage. */}
+              <Route
+                path="/my-companies"
+                element={<CompanyFormsListPage />}
+              />
+              <Route
+                path="/my-companies/labour-inspection/:id"
+                element={<CitizenLabourInspectionDetailPage />}
+              />
+              <Route
+                path="/my-companies/compound/:id"
+                element={<CitizenCompoundDetailPage />}
+              />
+              <Route
+                path="/my-companies/foreign-violation/:id"
+                element={<CitizenForeignViolationDetailPage />}
+              />
+              <Route
+                path="/my-companies/good-repute/:id"
+                element={<CitizenGoodReputeDetailPage />}
+              />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          ) : (
+            <>
+              <Route path="/" element={<DesktopPage />} />
           <Route path="/search" element={<FormSearchPage />} />
           <Route path="/users" element={<UserListPage />} />
           <Route path="/users/new" element={<UserCreatePage />} />
@@ -233,7 +275,9 @@ function AppRoutes() {
             path="/control-forms/good-repute/:id/:snapshotId"
             element={<GoodReputeFormPage />}
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          )}
         </Route>
       </Routes>
     </Suspense>

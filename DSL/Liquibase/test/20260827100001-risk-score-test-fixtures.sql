@@ -21,6 +21,13 @@
 --   compound_form_key CTE instead of "most recent row overall"; the newer
 --   row ("Riskiskoori Test AS Uus Nimi", 10 days ago) must win over the
 --   older one ("Riskiskoori Test AS Vana Nimi", 90 days ago).
+-- 90000005 "Riskiskoori Test AS Kontrollimata" — ONE published compound_form
+--   with NO sp_driver_form/sp_teammate_form at all (e.g. a control case
+--   created but never assigned a driver check). Per docs/risk-score/
+--   formula.md §3 ("Täielik välistamine... Samuti kui koondvormil pole
+--   ühtegi SP-alamvormi üldse") this must be fully excluded: r=0 (Hall) from
+--   calculate_risk_score.sql, AND isFullyExcluded=true from
+--   company_controls_breakdown.sql — the two must agree on this case.
 --
 DO $$
 DECLARE
@@ -30,6 +37,7 @@ DECLARE
   cf_key_3  BIGINT := 95000301; -- Valistatud co
   cf_key_4a BIGINT := 95000401; -- Nimemuutus co, older compound_form (older name)
   cf_key_4b BIGINT := 95000402; -- Nimemuutus co, newer compound_form (newer name)
+  cf_key_5  BIGINT := 95000601; -- Kontrollimata co — no SP sub-form at all
 BEGIN
   -- ===== Company 1: "Punane" (two published controls) =====
   INSERT INTO forms.compound_form (
@@ -140,4 +148,18 @@ BEGIN
    CURRENT_DATE - INTERVAL '10 days', '09:00:00', 'EE',
    'Test', 'Inspector', 'PPA', 'Liiklusjarelevalve', 'Inspektor',
    '[]'::jsonb, '90000004', 'Riskiskoori Test AS Uus Nimi', '[]'::jsonb, now() - INTERVAL '10 days', 'system');
+
+  -- ===== Company 5: "Kontrollimata" (published, but NO SP sub-form at all) =====
+  INSERT INTO forms.compound_form (
+    id, compound_form_key, form_number, control_year, template_version, status,
+    control_date, control_time, control_country_code,
+    inspector_first_name, inspector_last_name, inspector_organisation_id, inspector_unit, inspector_profession,
+    trailers, company_reg_code, company_name, drivers, created_at, created_by
+  ) VALUES (
+    nextval('forms.compound_form_id_seq'), cf_key_5, 'RISK-FIXTURE-5', 2026, 1, 'published',
+    CURRENT_DATE - INTERVAL '5 days', '13:00:00', 'EE',
+    'Test', 'Inspector', 'PPA', 'Liiklusjarelevalve', 'Inspektor',
+    '[]'::jsonb, '90000005', 'Riskiskoori Test AS Kontrollimata', '[]'::jsonb, now() - INTERVAL '5 days', 'system'
+  );
+  -- Deliberately no forms.sp_driver_form / forms.sp_teammate_form row for cf_key_5.
 END $$;

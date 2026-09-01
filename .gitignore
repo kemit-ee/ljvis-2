@@ -13,6 +13,7 @@ node_modules/
 tim-db/
 
 .ssl/
+ssl/
 
 # Docker
 *.log
@@ -22,6 +23,11 @@ tim-db/
 .env.local
 .env.*.local
 .env.tara
+
+# Local secrets override for constants.ini (real AR_USERNAME/AR_PASSWORD etc.);
+# never commit real credentials into the tracked constants.ini. See CONSTANTS_FILE
+# in .env.example.
+constants.local.ini
 
 AGENTS.md
 .actrc
@@ -36,6 +42,8 @@ TEST-*.md
 tests/postman/reports/*
 jira_comments.sh
 confluence_test_report.sh
+
+DSL/Ruuter/ljvis/POST/auth/dev/dev-login.yml
 
 # mdBook generated output
 docs/book/

@@ -1,0 +1,86 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for one
+    company, over the same rolling 2-year-ending-now window as
+    recalculate.yml (so the breakdown stays comparable to the persisted
+    aggregate risk score shown alongside it). Consumed by the citizen
+    risk-scores/controls endpoint (DSL/Ruuter/ljvis/GET/v1/citizen/
+    risk-scores/controls.yml). No auth required: machine-to-machine only,
+    port 8089 is not exposed outside the Docker network (same trust model as
+    every other Ruuter.internal endpoint in this project).
+  namespace: risk_score
+  allowlist:
+    body:
+      - field: company_reg_code
+        type: string
+
+extractRequestData:
+  assign:
+    company_reg_code: "${(incoming.body.company_reg_code || '').trim()}"
+    window_end: "${new Date().toISOString().slice(0, 10)}"
+    window_start: "${new Date(new Date().setFullYear(new Date().getFullYear() - 2)).toISOString().slice(0, 10)}"
+  next: validateRegCode
+
+validateRegCode:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test(company_reg_code)}"
+      next: returnInvalidRegCode
+  next: getControlsBreakdown
+
+getControlsBreakdown:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/risk_score/company_controls_breakdown"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      window_start: ${window_start}
+      window_end: ${window_end}
+  result: res
+  next: checkResult
+
+checkResult:
+  switch:
+    - condition: "${res.response.status < 200 || res.response.status >= 300}"
+      next: returnCalculationError
+  next: mapControls
+
+mapControls:
+  assign:
+    controls: >-
+      ${(res.response.body || []).map(function(row) {
+        return {
+          compoundFormKey: row.compoundFormKey,
+          formNumber: row.formNumber,
+          mainDate: row.mainDate,
+          vehicleRegNr: row.vehicleRegNr,
+          isFullyExcluded: row.isFullyExcluded,
+          msi: row.nMsi,
+          vsi: row.nVsi,
+          si: row.nSi,
+          mi: row.nMi,
+          weightedPoints: row.weightedPoints
+        };
+      })}
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: "${({controls: controls})}"
+  next: end
+
+# Object-literal `${(...)}` form, NOT a quoted JSON string literal — see
+# risk-scores/current.yml's returnNoRecord comment for why (confirmed live
+# via Newman).
+returnInvalidRegCode:
+  status: 400
+  return: "${({error: 'INVALID_PARAMETER', message: 'company_reg_code must be 8 digits'})}"
+  next: end
+
+returnCalculationError:
+  status: 500
+  return: "${({error: 'CALCULATION_ERROR', message: 'Controls breakdown calculation failed'})}"
+  next: end

@@ -197,7 +197,7 @@ export function useForeignViolationForm(
       } catch (e) {
         if (
           !applyValidationError(e, setFieldError, (code) =>
-            t(`foreign_violation.validation.api.${code}`),
+            t(`forms.foreign_violation.validation.api.${code}`),
           )
         ) {
           console.error('Save failed', e);

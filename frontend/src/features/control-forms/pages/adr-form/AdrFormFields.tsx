@@ -169,7 +169,7 @@ export function AdrFormFields({
                     onSearch?.(values.driverAssistant?.personalCodeEe)
                   }
                 >
-                  {t('common.search', 'Otsi')}
+                  {t('common.search')}
                 </Button>
               )}
             </div>

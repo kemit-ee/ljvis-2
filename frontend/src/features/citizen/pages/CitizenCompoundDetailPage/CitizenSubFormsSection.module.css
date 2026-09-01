@@ -1,0 +1,10 @@
+.sub-form-card {
+  border-left: 3px solid #e5e7eb;
+  padding-left: 1rem;
+}
+
+.violation-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

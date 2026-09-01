@@ -4,6 +4,49 @@
 
 ---
 
+## 2026-09 — Automaatne NCR teade korras sõidu- ja puhkeaja kontrollist
+
+- **Kui autojuhi või meeskonnaliikme sõidu- ja puhkeaja kontrollkaart
+  avalikustatakse tulemusega „Korras" ja sõiduk on välisriigi oma**, saadab
+  süsteem öösel automaatselt NCR (kontrollitulemuse) teate sõiduki
+  registreerimisriiki — ametnik ei pea seda enam käsitsi „Lisa NCR vorm"
+  kaudu tegema.
+- Teade saadetakse ainult siis, kui vedajal on tegevusloa koopia number
+  (ERRU nõue). Negatiivse vastuvõtukinnituse või sidevea korral jääb NCR
+  olekusse „Viga" ja ametnik saab selle käsitsi uuesti saata.
+- Iga kontrolli kohta saadetakse teade ühe korra.
+
+---
+
+## 2026-09 — Äriregistri päringud üle X-tee turvaserveri
+
+- **Äriregistri päringud** (ettevõtte lihtandmed, esindusõigused, detailandmed)
+  käivad nüüd läbi reaalse X-tee turvaserveri, mitte enam otseühenduse kaudu
+  `ariregxmlv6.rik.ee`-le. Eraldi Äriregistri kasutajanime/parooli (`AR_USERNAME`
+  / `AR_PASSWORD`) ei ole enam vaja — juurdepääs käib X-tee ACL-i alusel.
+- Kasutajale nähtavat käitumist see ei muuda; ettevõtte esindusõiguste kontroll
+  ja ettevõtteotsing toimivad samamoodi.
+
+---
+
+## 2026-09 — Mootorsõiduki kategooria valiku paigutus
+
+- **Ühendveo (ja seotud) vormil** on „Mootorsõiduki kategooria" raadionupud
+  nüüd loetavamalt reastatud: N2 ja N3 esimesel real, M2 ja M3 teisel real,
+  T-kategooriad (T1b–T4.3b) kolmandal real ning „Muu" neljandal real.
+
+---
+
+## 2026-09 — Sõidu- ja puhkeaja rikkumiste raskusastmed
+
+- **Sõidu- ja puhkeaja nõuete rikkumiste aknas** saab nüüd valida ka need
+  16 rikkumisliiki, millel varem „Vali" rippmenüü ei avanenud (nt „Keeldutakse
+  kontrollist", „Konduktori vanuse alampiiri ei järgita", andmete esitamise
+  rikkumised) — klassifikaatorisse lisati puuduvad raskusastme (MSI/VSI/SI/MI)
+  kirjed.
+
+---
+
 ## 2026-09 — Sõiduki tehnokontrolli vormi puudustvaliku modal
 
 - **„Ei vasta nõuetele" puuduste valiku aknas** kuvatakse puudused nüüd
@@ -11,7 +54,7 @@
 
 ---
 
-## 2026-09 — Autojuhi sõidu- ja puhkeaja kontrollvormi täiendused
+## 2026-08 — Autojuhi sõidu- ja puhkeaja kontrollvormi täiendused
 
 Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
 
@@ -35,6 +78,20 @@ Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
   ning see ei ole kohustuslik.
 - **Uued väljad „Jõustunud otsus" ja „Menetluse lõpetamise alus"** — täidetakse
   automaatselt e-toimiku päringuga, kuvatakse kontrollkaardil loetavalt.
+
+---
+
+## 2026-08 — Sõidu- ja puhkeaja kontrollvormi mallid
+
+- Ülalkirjeldatud autojuhi ja meeskonnaliikme sõidu- ja puhkeaja alamvormi
+  täiendused rakenduvad **kõigile vormidele**, ka varem loodutele — eraldi
+  vormimalli versiooni ei tõstetud, olemasolevad vormid saavad avamisel uue
+  kuju.
+- Kontrolli tulemuse uus „Lisameede" väli lisati tagasiulatuvalt igale vormile
+  ja täideti iga vormi uusima seisu põhjal; varasemad seisud jäid muutmata.
+- Klassifikaatorite tekstiparandused („tõestatud koopia" / „kinnitatud
+  ärakiri", „Veose saatedokument" → „Veodokument") kehtivad kohe kõigil
+  vormidel, sh Tööinspektsiooni aktil.
 
 ---
 

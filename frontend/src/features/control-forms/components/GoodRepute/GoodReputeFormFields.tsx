@@ -111,7 +111,7 @@ export function GoodReputeFormFields({
                   disabled={searchLoading}
                   onClick={onSearchPerson}
                 >
-                  {t('common.search', 'Otsi')}
+                  {t('common.search')}
                 </Button>
               )}
             </div>

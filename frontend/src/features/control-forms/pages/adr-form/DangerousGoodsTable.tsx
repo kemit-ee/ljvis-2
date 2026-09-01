@@ -90,7 +90,7 @@ export function DangerousGoodsTable({
                 icon="delete"
                 onClick={() => onRemove(index)}
               >
-                {t('common.remove', 'Eemalda')}
+                {t('common.remove')}
               </Button>
             )}
           </Card.Content>

@@ -191,7 +191,7 @@ export function MassDimensionModal({
 
   const getDropdownLabel = (l2Code: string) => {
     const selected = dropdowns[l2Code]?.selected ?? [];
-    if (selected.length === 0) return t('common.select', 'Vali');
+    if (selected.length === 0) return t('common.select');
     const l1 = level1Items.find((item) => item.code === l2Code);
     return selected
       .map((code) => {
@@ -380,7 +380,7 @@ export function MassDimensionModal({
                                               }
                                               className={styles['clear-button']}
                                             >
-                                              {t('common.remove', 'Eemalda')}
+                                              {t('common.remove')}
                                             </button>
                                           </div>
                                         </div>
@@ -460,7 +460,7 @@ export function MassDimensionModal({
                                         maxRows={10}
                                         minRows={2}
                                         maxHeight="100px"
-                                        placeholder={t('common.note', 'Märkus')}
+                                        placeholder={t('common.note')}
                                         value={state.note || ''}
                                         onChange={(value) =>
                                           setDropdowns((prev) => ({
@@ -490,11 +490,11 @@ export function MassDimensionModal({
         <Modal.Footer>
           <Modal.Closer>
             <Button type="button" visualType="secondary">
-              {t('common.cancel', 'Tühista')}
+              {t('common.cancel')}
             </Button>
           </Modal.Closer>
           <Button type="button" onClick={handleConfirm}>
-            {t('common.select', 'Vali')}
+            {t('common.select')}
           </Button>
         </Modal.Footer>
       </Modal.Content>

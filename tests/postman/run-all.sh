@@ -147,6 +147,9 @@ newman run "$COL/risk-scores.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/risk-scores.html"
 
+newman run "$COL/citizen-representation.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/citizen-representation.html"
 newman run "$COL/cron-jobs.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/cron-jobs.html"

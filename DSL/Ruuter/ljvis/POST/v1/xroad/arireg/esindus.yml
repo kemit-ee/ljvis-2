@@ -1,0 +1,173 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Äriregistri esindusõiguste päring (esindus_v1) XTR kaudu, tegeliku X-tee
+    turvaserveri läbi — meie subsüsteemil (GOV/70001231/ljvis2) on ACL arireg
+    v1-meetoditele (kinnitatud allowedMethods'iga, vt .ai/ljvis-tasks/xtee-task.md).
+    Äriregistri kasutajanime/parooli ei ole enam vaja (varem esindus_v2 otse
+    HTTPS bypass'iga ariregxmlv6.rik.ee-le). Otsing kas registryCode (ettevõtte
+    kõik esindajad) või personalCode (isiku kõik esindatavad ettevõtted) järgi
+    — vähemalt üks on kohustuslik. Autentimine POST/.guard kaudu (kehtiv
+    sessioon nõutud). esindus_v1 vastuses puudub esindusoiguse_grupid
+    (representationGroups) — frontend seda välja praegu ei loe.
+  namespace: xroad
+  allowlist:
+    body:
+      - field: personalCode
+        type: string
+        description: "Isikukood. At least one of personalCode/registryCode is required."
+      - field: registryCode
+        type: string
+        description: "Ettevõtte registrikood. At least one of personalCode/registryCode is required."
+      - field: personalCodeCountry
+        type: string
+        description: "ISO 3166-1 alpha-3 country of personalCode. Defaults to EST."
+
+validate:
+  switch:
+    - condition: "${!(incoming.body.personalCode || '').trim() && !(incoming.body.registryCode || '').trim()}"
+      next: returnMissingParam
+  next: assignParams
+
+returnMissingParam:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "At least one of personalCode or registryCode is required"}'
+  next: end
+
+assignParams:
+  assign:
+    personal_code: "${(incoming.body.personalCode || '').trim()}"
+    reg_code: "${(incoming.body.registryCode || '').trim()}"
+    personal_code_country: "${(incoming.body.personalCodeCountry || '').trim() || 'EST'}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${reg_code}
+      personal_code: ${personal_code}
+      personal_code_country: ${personal_code_country}
+  result: xtrResponse
+  next: checkXtrStatus
+
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.esindus_v1.v1"
+      request_xml: "${'personalCode=' + personal_code + ';registryCode=' + reg_code}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ${personal_code}
+      source_type: "user_account"
+      source_record_id: ""
+  result: logResult
+  next: mapResponse
+
+mapResponse:
+  assign:
+    mapped_result: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function stripNs(v) {
+          if (Array.isArray(v)) return v.map(stripNs);
+          if (v && typeof v === 'object') {
+            var out = {};
+            Object.keys(v).forEach(function(k) {
+              if (k.charAt(0) === '@') return;
+              var shortKey = k.indexOf(':') >= 0 ? k.substring(k.indexOf(':') + 1) : k;
+              out[shortKey] = stripNs(v[k]);
+            });
+            return out;
+          }
+          return v !== undefined ? v : null;
+        }
+        function mapRepresentative(p) {
+          return {
+            firstName: p.fyysilise_isiku_eesnimi || '',
+            lastName: p.fyysilise_isiku_perenimi || '',
+            personalCode: p.fyysilise_isiku_kood != null ? String(p.fyysilise_isiku_kood) : '',
+            personalCodeCountryCode: p.isikukood_riik || '',
+            personalCodeCountryName: p.isikukoodi_riik_tekstina || '',
+            birthDate: p.fyysilise_isiku_synniaeg || '',
+            roleCode: p.fyysilise_isiku_roll || '',
+            role: p.fyysilise_isiku_roll_tekstina || '',
+            soleRepresentation: p.ainuesindusoigus_olemas === 'JAH'
+          };
+        }
+        function mapSpecialCondition(e) {
+          return { condition: (e && e.item) || '' };
+        }
+        function mapGroup(g) {
+          return {
+            groupNumber: g.grupi_nr != null ? g.grupi_nr : null,
+            members: toArray(g.item).map(mapRepresentative)
+          };
+        }
+        function mapCompany(c) {
+          return {
+            registryCode: c.ariregistri_kood != null ? String(c.ariregistri_kood) : '',
+            companyName: c.arinimi || '',
+            statusCode: c.staatus || '',
+            status: c.staatus_tekstina || '',
+            legalFormCode: c.oiguslik_vorm || '',
+            legalForm: c.oiguslik_vorm_tekstina || '',
+            representatives: toArray(c.isikud && c.isikud.item).map(mapRepresentative),
+            specialConditions: toArray(c.esindusoiguse_eritingimused && c.esindusoiguse_eritingimused.item).map(mapSpecialCondition),
+            representationGroups: toArray(c.esindusoiguse_grupid && c.esindusoiguse_grupid.grupp).map(mapGroup)
+          };
+        }
+        var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
+        var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
+        var keha = responseNode.keha || {};
+        var companies = toArray(keha.ettevotjad && keha.ettevotjad.item).map(mapCompany);
+        return { totalFound: companies.length, data: companies };
+      })()}
+  next: returnResponse
+
+returnResponse:
+  status: 200
+  return: "${mapped_result}"
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.esindus_v1.v1"
+      request_xml: "${'personalCode=' + personal_code + ';registryCode=' + reg_code}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ${personal_code}
+      source_type: "user_account"
+      source_record_id: ""
+  result: logResult
+  next: returnError
+
+returnError:
+  status: 502
+  return: '{"error": "XTR_ERROR", "message": "Äriregistri esindusõiguste päring ebaõnnestus"}'
+  next: end

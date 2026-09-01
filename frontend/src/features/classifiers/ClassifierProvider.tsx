@@ -44,10 +44,12 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
   const [values, setValues] = useState<ClassifierEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isCitizen = user?.activeRole !== 'officer';
+
   const fetchValues = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await listClassifierValues();
+      const data = await listClassifierValues(isCitizen);
       setValues(data.map(fromClassifierValueData));
     } catch (e) {
       console.error('Failed to load classifier values', e);
@@ -55,7 +57,7 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isCitizen]);
 
   useEffect(() => {
     if (user) {

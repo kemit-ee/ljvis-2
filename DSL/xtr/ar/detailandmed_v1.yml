@@ -1,0 +1,52 @@
+params:
+  - reg_code
+
+method: POST
+
+# No `service:` — routed through the configured Security Server, same as
+# lihtandmed_v1.yml/esindus_v1.yml. Replaces detailandmed_v2.yml, which was
+# never wired up to a Ruuter endpoint (dead code) and used the same
+# ariregxmlv6.rik.ee HTTPS bypass. Our subsystem (GOV/70001231/ljvis2) has
+# X-Road ACL on detailandmed_v1, confirmed live via allowedMethods.
+# Field order/types confirmed against the real xroad6_detailandmed_v1.xsd
+# (www2.rik.ee, detailandmed_v5_Query complexType): after the optional
+# identity filters (arinimi/ariregistri_kood/etc.), yandmed/iandmed/kandmed/
+# dandmed/maarused are REQUIRED xsd:boolean fields (minOccurs defaults to 1)
+# — unlike the old detailandmed_v2.yml, which sent them as 1/0 integers, they
+# must be literal true/false here. Requesting only general + person data
+# (yandmed/iandmed=true; kandmed/dandmed/maarused=false) to keep the response
+# small — extend if a future caller needs commercial-pledge/petition/decree
+# data.
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:prod="http://arireg.x-road.eu/producer/">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70000310</id:memberCode>
+  <id:subsystemCode>arireg</id:subsystemCode>
+  <id:serviceCode>detailandmed_v1</id:serviceCode>
+  <id:serviceVersion>v1</id:serviceVersion>
+  </xroad:service>
+  </soapenv:Header>
+  <soapenv:Body>
+  <prod:detailandmed_v1>
+  <prod:keha>
+  <prod:ariregistri_kood>{{reg_code}}</prod:ariregistri_kood>
+  <prod:yandmed>true</prod:yandmed>
+  <prod:iandmed>true</prod:iandmed>
+  <prod:kandmed>false</prod:kandmed>
+  <prod:dandmed>false</prod:dandmed>
+  <prod:maarused>false</prod:maarused>
+  <prod:keel>est</prod:keel>
+  </prod:keha>
+  </prod:detailandmed_v1>
+  </soapenv:Body>
+  </soapenv:Envelope>

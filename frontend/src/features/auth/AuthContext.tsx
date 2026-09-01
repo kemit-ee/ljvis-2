@@ -6,8 +6,13 @@ import {
   useCallback,
 } from 'react';
 import type { ReactNode } from 'react';
-import type { AuthUser } from './types';
-import { getUserInfo, logout as apiLogout } from './api';
+import type { AuthUser, RepresentationRole, RepresentedCompany } from './types';
+import {
+  getUserInfo,
+  getRepresentationCompanies,
+  switchRepresentation as apiSwitchRepresentation,
+  logout as apiLogout,
+} from './api';
 import { setUnauthorizedHandler } from '../../shared/api/client';
 
 interface AuthContextValue {
@@ -18,6 +23,11 @@ interface AuthContextValue {
   hasAnyPermission: (codes: string[]) => boolean;
   refetchUser: () => Promise<void>;
   logout: () => Promise<void>;
+  fetchRepresentationCompanies: () => Promise<RepresentedCompany[]>;
+  switchRepresentation: (
+    role: RepresentationRole,
+    registryCode?: string,
+  ) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -28,6 +38,8 @@ const AuthContext = createContext<AuthContextValue>({
   hasAnyPermission: () => false,
   refetchUser: async () => {},
   logout: async () => {},
+  fetchRepresentationCompanies: async () => [],
+  switchRepresentation: async () => false,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -86,6 +98,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(undefined);
   }, []);
 
+  // Lazily fetches (and caches server-side, in the JWT) the companies the
+  // current session's personal code may represent — called when the header
+  // representation dropdown opens, not on every login.
+  const fetchRepresentationCompanies = useCallback(async () => {
+    return getRepresentationCompanies();
+  }, []);
+
+  const switchRepresentation = useCallback(
+    async (role: RepresentationRole, registryCode?: string) => {
+      const ok = await apiSwitchRepresentation(role, registryCode);
+      if (ok) {
+        await fetchUser();
+      }
+      return ok;
+    },
+    [fetchUser],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -96,6 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         hasAnyPermission,
         refetchUser: fetchUser,
         logout: logoutUser,
+        fetchRepresentationCompanies,
+        switchRepresentation,
       }}
     >
       {children}
