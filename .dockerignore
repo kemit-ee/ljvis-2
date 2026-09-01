@@ -6,3 +6,8 @@
 # restores the mock endpoints for those environments only (bind mounts are unaffected
 # by .dockerignore).
 DSL/Ruuter/ljvis/POST/v1/erru/mock
+
+# DEV/CI-only XTR mock (unauthenticated by design, see
+# DSL/Ruuter/ljvis/POST/v1/xtr/mock/.guard) — same reasoning as the ERRU mock
+# above. LJVIS_XTR points at the real XTR in production.
+DSL/Ruuter/ljvis/POST/v1/xtr/mock
