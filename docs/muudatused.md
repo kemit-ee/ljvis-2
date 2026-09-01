@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-09 — Sõiduki tehnokontrolli vormi puudustvaliku modal
+
+- **„Ei vasta nõuetele" puuduste valiku aknas** kuvatakse puudused nüüd
+  koodi järgi õiges järjekorras (varem tagurpidi).
+
+---
+
 ## 2026-09 — Autojuhi sõidu- ja puhkeaja kontrollvormi täiendused
 
 Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
