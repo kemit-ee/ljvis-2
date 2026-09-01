@@ -58,11 +58,21 @@ insertNotification:
   result: insertRes
   next: wsPush
 
+# WsRegistry on protsessisisene — kliendid ühenduvad `ruuter` containerisse, mitte
+# siia (`ruuter-internal`). Seega delegeerime broadcast'i `ruuter`-i sisemisele
+# endpoint'ile. Best-effort: push'i viga EI tohi 500-tada teavituse loomist
+# (insertNotification on juba jooksnud) → error: returnResult.
 wsPush:
-  ws_send:
-    broadcast_prefix: "client:"
-    payload:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER]/v1/ws-broadcast/send"
+    headers:
+      type: json
+      x-viljus-has-a-secret: "[#INTERNAL_API_KEY]"
+    body:
       type: "notification_update"
+  result: wsPushRes
+  error: returnResult
   next: returnResult
 
 returnResult:
