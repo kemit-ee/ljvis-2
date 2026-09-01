@@ -2,7 +2,7 @@
 #
 # Nine images are built, eight wrapper charts are packaged, and all eight workload
 # entries move atomically in one Git release-manifest commit. Liquibase has no independent
-# entry: resql-ljvis renders it as a PreSync hook using the same release version.
+# entry: resql-ljvis renders a release-identified wave -1 Job using the same release version.
 #
 # Only dev exists. Adding test also requires its infra/config values; a release manifest
 # alone is not a deployable environment.
