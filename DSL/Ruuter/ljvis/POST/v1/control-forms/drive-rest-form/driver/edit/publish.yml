@@ -149,6 +149,31 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: checkWeightViolation
+
+# Kui mass_dimension_non_compliant = true, loo weight_violation teavitus rsi.read õigusega kasutajatele.
+# Fire-and-forget — teavituse loomise viga ei peata avalikustamise voogu.
+checkWeightViolation:
+  switch:
+    - condition: ${mass_dimension_non_compliant === true || mass_dimension_non_compliant === 'true'}
+      next: createWeightViolationNotification
+  next: returnSuccess
+
+createWeightViolationNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "weight_violation"
+      required_permission: "rsi.read"
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${id}
+      title_et: "Kaalumise/mõõtmise rikkumine — SP-kaart (sõidu- ja puhkeaeg) avalikustatud"
+      body_et: "${'Koondvormi võti: ' + compound_form_key}"
+      created_by: ${actor_personal_code}
+  result: notifRes
   next: returnSuccess
 
 returnSuccess:
