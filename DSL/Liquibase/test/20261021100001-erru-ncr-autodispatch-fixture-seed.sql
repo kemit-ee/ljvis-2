@@ -26,13 +26,14 @@ BEGIN
         control_date, control_time, control_country_code,
         inspector_first_name, inspector_last_name, inspector_organisation_id, inspector_unit, inspector_profession,
         vehicle_reg_nr, vehicle_country_code, vehicle_category_code,
-        company_name, company_activity_licence_copy_number, created_by
+        company_reg_code, company_name, company_activity_licence_copy_number, created_by
     ) VALUES (
         v_cf, 'NCR-AUTODISPATCH-FIXTURE', 2026, 1, 'published',
         CURRENT_DATE - 2, '09:00', 'EE',
         'Test', 'Inspector', 'PPA', 'Liiklusjarelevalve', 'Inspektor',
         'DE-NCR-01', 'DE', 'N2',
-        'Auslandtransport GmbH', 'DE-CL-99887', 'system'
+        -- non-8-digit reg code: stays out of risk-score recalc (which filters ~ '^[0-9]{8}$')
+        'DE-REG-01', 'Auslandtransport GmbH', 'DE-CL-99887', 'system'
     );
 
     INSERT INTO forms.sp_driver_form (
