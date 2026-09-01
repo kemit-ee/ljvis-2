@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-09 — Compound vormi kuupäeva ja kellaaja käsitsi trükkimine
+
+- **Compound vormi üldosas** saab nüüd kontrolli kuupäeva ja kontrolli aja
+  käsitsi trükkida ainult numbritena — punktid kuupäevas (`31.03.2026`) ja
+  koolon kellaajas (`12:00`) lisatakse automaatselt trükkimise ajal. Varem tuli
+  eraldajad ise sisestada ja vale vormingu korral kuvati „Vigane kuupäev".
+- Kuupäeva võib sisestada ka lühemalt: pärast väljalt lahkumist täidetakse
+  puuduv aasta ise — `1209` → `12.09.<jooksev aasta>`, `031225` → `03.12.2025`.
+
+---
+
 ## 2026-09 — Automaatne NCR teade korras sõidu- ja puhkeaja kontrollist
 
 - **Kui autojuhi või meeskonnaliikme sõidu- ja puhkeaja kontrollkaart

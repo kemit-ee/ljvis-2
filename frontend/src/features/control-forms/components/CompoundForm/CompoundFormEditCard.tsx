@@ -10,7 +10,6 @@ import {
   Alert,
   ChoiceGroup,
   TextArea,
-  TimeField,
   Tooltip,
   InfoButton,
 } from '@tedi-design-system/react/tedi';
@@ -22,6 +21,8 @@ import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
 import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../shared/MaskedDateField';
+import { MaskedTimeField } from '../shared/MaskedTimeField';
 import React from 'react';
 
 interface CompoundFormValues {
@@ -388,7 +389,7 @@ export function CompoundFormEditCard({
                       styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
                     }
                   >
-                    <DateField
+                    <MaskedDateField
                       id="controlDate"
                       label={t('forms.compound.controlDate')}
                       monthYearSelectType="grid"
@@ -414,7 +415,7 @@ export function CompoundFormEditCard({
                           : undefined
                       }
                     />
-                    <TimeField
+                    <MaskedTimeField
                       id="controlTime"
                       label={t('forms.compound.controlTime')}
                       value={
