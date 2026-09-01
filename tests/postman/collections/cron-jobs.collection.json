@@ -623,6 +623,276 @@
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('ruuter-internal /health still responds 200', () => pm.response.to.have.status(200));"
       ]}}]
+    },
+    {
+      "name": "[NCR autodispatch Setup] Insert published compound_form — foreign (DE) vehicle",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/control-forms/compound-form/insert",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "control-forms",
+            "compound-form",
+            "insert"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"status\": \"published\", \"controlDate\": \"2026-08-15\", \"controlTime\": \"09:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"DE-NCR-01\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"DE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"N3\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"Auslandtransport GmbH\", \"companyCountryCode\": \"DE\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"DE-CL-99887\", \"drivers\": \"[]\", \"inspectorFirstName\": \"Newman\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"{{cron_org_id}}\", \"inspectorUnit\": \"Unit\", \"inspectorProfession\": \"Tester\", \"created_by\": \"newman\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const rows = pm.response.json().response || pm.response.json();",
+              "pm.environment.set('ncr_cf_id', String(rows[0].id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch Setup] Insert published sp_driver_form — result KORRAS",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/insert",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "insert"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": \"{{ncr_cf_id}}\", \"subFormNumber\": \"\", \"templateVersion\": \"1\", \"status\": \"published\", \"selectionStatus\": \"active\", \"transportType\": \"\", \"transportEmptyRun\": \"false\", \"transportNature\": \"\", \"transportNatureExempt\": \"\", \"transportClasses\": \"[]\", \"cabotageViolations\": \"[]\", \"resultType\": \"ok\", \"additionalMeasure\": \"\", \"proceedingType\": \"none\", \"proceedingReferenceNumber\": \"\", \"documentChecks\": \"[]\", \"otherDocuments\": \"[]\", \"spApplicability\": \"\", \"tachographTypeCode\": \"\", \"tachographDataNotDownloaded\": \"false\", \"checkedDaysCount\": \"\", \"workDaysCount\": \"\", \"otherActivityDaysCount\": \"\", \"violations5612006\": \"[]\", \"violations1652014\": \"[]\", \"violations200215\": \"[]\", \"violations5932008\": \"[]\", \"violations20201057\": \"[]\", \"massDimensionNonCompliant\": \"false\", \"massDimensionMeasurements\": \"[]\", \"atpViolationFound\": \"false\", \"atpViolationDescription\": \"\", \"erruPoints\": \"[]\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"notes\": \"\", \"created_by\": \"newman\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const rows = pm.response.json().response || pm.response.json();",
+              "pm.environment.set('ncr_sp_id', String(rows[0].id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] select-autodispatch-candidates — seeded form is a candidate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/erru/ncr/select-autodispatch-candidates",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "erru",
+            "ncr",
+            "select-autodispatch-candidates"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const rows = pm.response.json().response || pm.response.json();",
+              "const m = rows.find(r => String(r.id) === pm.environment.get('ncr_sp_id') && (r.spFormType||r.sp_form_type) === 'driver');",
+              "pm.test('Seeded published KORRAS sub-form appears', () => pm.expect(m).to.exist);",
+              "pm.test('ncrTo resolved from vehicle country (DE)', () => pm.expect((m.ncrTo||m.ncr_to)).to.eql('DE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] POST cron/erru-ncr-autodispatch — nightly run",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/cron/erru-ncr-autodispatch",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "cron",
+            "erru-ncr-autodispatch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const s = pm.response.json();",
+              "pm.test('At least one NCR acknowledged', () => pm.expect(s.acknowledged).to.be.at.least(1));",
+              "pm.test('No build failures', () => pm.expect(s.buildFailed || 0).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] select-autodispatch-candidates — resolved sub-form no longer a candidate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/erru/ncr/select-autodispatch-candidates",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "erru",
+            "ncr",
+            "select-autodispatch-candidates"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const rows = pm.response.json().response || pm.response.json();",
+              "const m = rows.find(r => String(r.id) === pm.environment.get('ncr_sp_id') && (r.spFormType||r.sp_form_type) === 'driver');",
+              "pm.test('Dispatched sub-form dropped out (idempotent)', () => pm.expect(m).to.not.exist);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] Re-run cron — nothing left to dispatch",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/cron/erru-ncr-autodispatch",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "cron",
+            "erru-ncr-autodispatch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const s = pm.response.json();",
+              "pm.test('Our sub-form is not re-dispatched', () => pm.expect(s.acknowledged).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[NCR autodispatch] ruuter-internal still alive after the run",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/health",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('ruuter-internal healthy', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

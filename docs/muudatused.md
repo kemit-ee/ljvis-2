@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-09 — Automaatne NCR teade korras sõidu- ja puhkeaja kontrollist
+
+- **Kui autojuhi või meeskonnaliikme sõidu- ja puhkeaja kontrollkaart
+  avalikustatakse tulemusega „Korras" ja sõiduk on välisriigi oma**, saadab
+  süsteem öösel automaatselt NCR (kontrollitulemuse) teate sõiduki
+  registreerimisriiki — ametnik ei pea seda enam käsitsi „Lisa NCR vorm"
+  kaudu tegema.
+- Teade saadetakse ainult siis, kui vedajal on tegevusloa koopia number
+  (ERRU nõue). Negatiivse vastuvõtukinnituse või sidevea korral jääb NCR
+  olekusse „Viga" ja ametnik saab selle käsitsi uuesti saata.
+- Iga kontrolli kohta saadetakse teade ühe korra.
+
+---
+
 ## 2026-09 — Sõidu- ja puhkeaja rikkumiste raskusastmed
 
 - **Sõidu- ja puhkeaja nõuete rikkumiste aknas** saab nüüd valida ka need
