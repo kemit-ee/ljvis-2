@@ -1338,7 +1338,7 @@
     "forbidden": "You do not have access to this page",
     "noResults": "Request returned no results",
     "dateFieldPlaceholder": "DD.MM.YYYY",
-    "timeFieldPlaceholder": "HH.MM",
+    "timeFieldPlaceholder": "HH:MM",
     "numberPlaceholder": "No.",
     "select": "Select",
     "errors": {

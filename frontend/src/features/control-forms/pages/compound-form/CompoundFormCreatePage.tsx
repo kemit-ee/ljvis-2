@@ -23,7 +23,6 @@ import {
   Tabs,
   Dropdown,
   DateField,
-  TimeField,
   StatusIndicator,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm, emptyTrailer } from './useCompoundForm';
@@ -44,6 +43,8 @@ import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
 import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../../components/shared/MaskedDateField';
+import { MaskedTimeField } from '../../components/shared/MaskedTimeField';
 import styles from './CompoundFormPage.module.css';
 import { DriveRestFormCreatePage } from '../drive-rest-form/DriveRestFormCreatePage';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../technical-check-form/TechnicalCheckFormCreatePage';
@@ -740,7 +741,7 @@ export function CompoundFormCreatePage() {
                             ]
                           }
                         >
-                          <DateField
+                          <MaskedDateField
                             id="controlDate"
                             label={t('forms.compound.controlDate')}
                             monthYearSelectType="grid"
@@ -767,7 +768,7 @@ export function CompoundFormCreatePage() {
                                 : undefined
                             }
                           />
-                          <TimeField
+                          <MaskedTimeField
                             id="controlTime"
                             label={t('forms.compound.controlTime')}
                             value={
