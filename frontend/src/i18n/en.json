@@ -984,6 +984,8 @@
       "controlResultArest": "Arrest",
       "controlResultAutovedu": "Road transport interrupted",
       "controlResultAlustati": "Misdemeanor proceedings initiated",
+      "additionalMeasure": "Additional measure",
+      "additionalMeasureNone": "No additional measure applied",
       "proceedingType": "Type of proceedings",
       "proceedingTypeLyhi": "Summary proceedings",
       "proceedingTypeKiir": "Expedited proceedings",
@@ -997,6 +999,9 @@
       "atpViolationFound": "ATP violation found",
       "atpViolationDescription": "ATP violation description",
       "atpDescriptionPlaceholder": "Enter description...",
+      "enforcedDecision": "Enforced decision",
+      "proceedingTerminationBasis": "Basis for closing proceedings",
+      "xteeDataTitle": "Data queried via the data exchange layer (X-tee)",
       "validation": {
         "required": "Required field",
         "workDaysCountMax": "Number of work days must not exceed the number of checked days"
@@ -1055,7 +1060,8 @@
     "rsi": "RSI messages",
     "ncr": "NCR messages",
     "riskLevels": "Risk levels",
-    "myCompany": "My company"
+    "myCompany": "My company",
+    "notifications": "Notifications"
   },
   "citizen": {
     "formsList": {
@@ -1145,7 +1151,7 @@
         "weightedPointsTooltip": "Risk points for the control, calculated from infringement severity (most serious infringements score highest, minor ones lowest).",
         "view": "View"
       }
-    }
+    },
     "notifications": "Notifications"
   },
   "users": {
@@ -1843,6 +1849,8 @@
       "saved": "Saved",
       "confirmed": "Confirmed",
       "published": "Published"
+    }
+  },
   "notifications": {
     "title": "Notifications",
     "tabInApp": "Notifications",
