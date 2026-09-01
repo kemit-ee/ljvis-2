@@ -69,11 +69,30 @@ resolveTemplate:
 
 buildPayload:
   assign:
+    # PK 2.0 notification-management payload (POST /notification-management/v1/notifications).
+    # receivers[] esitatakse saajate nimekiri — täidetakse insertRecipients-is DB-sse
+    # ja edastatakse PK 2.0-le callPkApi sammus.
+    # inputData sisaldab malli {{muutuja}} asendusi; täpsed muutujad vaata docs/pk2-templates/.
+    pk_receivers: >-
+      ${effective_recipients_for_payload !== undefined
+        ? effective_recipients_for_payload
+        : recipients_input.map(function(r) {
+            return {
+              code: r.person_code || '',
+              email: r.person_email || '',
+              name: r.person_name || ''
+            };
+          })}
     payload_obj:
       templateId: "${pk_template_id}"
       originalTemplateId: "${pk_template_id}"
       relatedEntityType: "${related_entity_type}"
       relatedEntityId: "${related_entity_id}"
+      receivers: "${pk_receivers}"
+      inputData:
+        controlFormId: "${related_entity_id}"
+        relatedEntityType: "${related_entity_type}"
+        inspectorName: "${created_by}"
   next: insertLog
 
 insertLog:
@@ -98,12 +117,24 @@ insertLog:
 assignLogId:
   assign:
     new_log_id: "${logRes.response.body[0]?.id ?? ''}"
+    # effective_recipients — saajate nimekiri DB-sse (insert_outbound_recipient) ja PK 2.0-le.
+    # Prioriteet: 1) recipient_email_override (UC-04 uuesti saatmine), 2) recipients[], 3) stub.
     effective_recipients: >-
       ${recipient_email_override !== ''
-        ? [{person_email: recipient_email_override}]
+        ? [{person_email: recipient_email_override, person_name: '', person_code: ''}]
         : recipients_input.length > 0
           ? recipients_input
-          : [{person_email: 'mock@example.com', person_name: 'Mock Recipient'}]}
+          : [{person_email: 'stub@placeholder.invalid', person_name: 'Stub', person_code: ''}]}
+    # pk_receivers — PK 2.0 receivers[] formaat (code, email, name)
+    pk_receivers: >-
+      ${(recipient_email_override !== ''
+        ? [{person_email: recipient_email_override, person_name: '', person_code: ''}]
+        : recipients_input.length > 0
+          ? recipients_input
+          : []
+        ).map(function(r) {
+          return { code: r.person_code || '', email: r.person_email || '', name: r.person_name || '' };
+        })}
   next: insertRecipients
 
 insertRecipients:
@@ -126,14 +157,62 @@ insertRecipients:
   next: callPkApi
 
 callPkApi:
-  # TODO(PK2.0): Aktiveeri kui PK_URL ja PK_TOKEN on Kubernetes-es seadistatud.
-  # Praegu: stub — logib kavatsuse ja tagastab mock-vastuse.
-  # UC-04 retry: kui existing_pk_op_id on olemas, kasuta:
-  #   PUT [#PK_URL]/notification-management/v1/sending-operations/{existing_pk_op_id}
-  # Esmakordne saatmine:
-  #   POST [#PK_URL]/notification-management/v1/notifications
+  # TODO(PK2.0): Eemалda kommentaar MÕLEMALT SAMBALT allpool kui PK_URL + PK_TOKEN on
+  # Kubernetes-es seadistatud (LJVIS2-157). Eemalda stub-assign (viimane blokk).
+  #
+  # Malli seadistuse juhend: docs/pk2-templates/README.md
+  # Malli failid (PK 2.0 haldusliidesesse pasteerimine): docs/pk2-templates/*.json
+  #
+  # UC-04 retry (existing_pk_op_id olemas → PUT, mitte POST):
+  # switch:
+  #   - condition: ${existing_pk_op_id !== ''}
+  #     next: callPkRetry
+  # next: callPkSend
+  #
+  # callPkSend:
+  #   call: http.post
+  #   args:
+  #     url: "[#PK_URL]/notification-management/v1/notifications"
+  #     headers:
+  #       type: json
+  #       Authorization: "Bearer [#PK_TOKEN]"
+  #     body: ${payload_obj}
+  #   result: pkRes
+  #   next: parsePkResult
+  #
+  # callPkRetry:
+  #   call: http.put
+  #   args:
+  #     url: "[#PK_URL]/notification-management/v1/sending-operations/${existing_pk_op_id}"
+  #     headers:
+  #       type: json
+  #       Authorization: "Bearer [#PK_TOKEN]"
+  #     body: ${payload_obj}
+  #   result: pkRes
+  #   next: parsePkResult
+  #
+  # parsePkResult:
+  #   assign:
+  #     pk_sending_operation_id: "${pkRes.response.body?.id ?? pkRes.response.body?.sendingOperationId ?? 'unknown'}"
+  #     pk_status: "${pkRes.response.status >= 200 && pkRes.response.status < 300 ? 'sent' : 'sent_error'}"
+  #   next: updateLogStatus
+  #
+  # updateLogStatus:
+  #   call: http.post
+  #   args:
+  #     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
+  #     headers:
+  #       type: json
+  #     body:
+  #       id: ${new_log_id}
+  #       status: ${pk_status}
+  #       pk_sending_operation_id: ${pk_sending_operation_id}
+  #   result: updateRes
+  #   next: returnResult
+
+  # STUB — eemалda kui PK_URL + PK_TOKEN seadistatud (asenda blokk eeltoodud kommentaariga)
   assign:
-    pk_sending_operation_id: "mock-op-id"
+    pk_sending_operation_id: "stub-op-id"
     pk_status: "sent"
   next: returnResult
 
