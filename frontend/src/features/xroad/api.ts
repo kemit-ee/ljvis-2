@@ -21,7 +21,7 @@ interface LihtandmedCompanyRaw {
 }
 
 interface LihtandmedRawResponse {
-  lihtandmed_v3Response: {
+  lihtandmed_v1Response: {
     keha: {
       leitud_ettevotjate_arv: string;
       ettevotjad?: {
@@ -88,7 +88,7 @@ export const searchCompanyByRegCode = async (
     companyName: null,
     maxResults: null,
   });
-  const keha = raw?.lihtandmed_v3Response?.keha;
+  const keha = raw?.lihtandmed_v1Response?.keha;
   const leitud = parseInt(keha?.leitud_ettevotjate_arv ?? '0', 10);
   if (leitud === 0 || !keha?.ettevotjad?.item) return [];
   const items = Array.isArray(keha.ettevotjad.item)
@@ -106,7 +106,7 @@ export const searchCompanyByName = async (
     companyName,
     maxResults,
   });
-  const keha = raw?.lihtandmed_v3Response?.keha;
+  const keha = raw?.lihtandmed_v1Response?.keha;
   const leitud = parseInt(keha?.leitud_ettevotjate_arv ?? '0', 10);
   if (leitud === 0 || !keha?.ettevotjad?.item) return [];
   const items = Array.isArray(keha.ettevotjad.item)

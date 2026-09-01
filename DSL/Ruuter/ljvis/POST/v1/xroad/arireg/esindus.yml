@@ -2,10 +2,15 @@ declaration:
 
   version: "1.0"
   description: >-
-    Äriregistri esindusõiguste päring (esindus_v2) XTR kaudu.
-    Otsing kas registryCode (ettevõtte kõik esindajad) või personalCode
-    (isiku kõik esindatavad ettevõtted) järgi — vähemalt üks on kohustuslik.
-    Autentimine POST/.guard kaudu (kehtiv sessioon nõutud).
+    Äriregistri esindusõiguste päring (esindus_v1) XTR kaudu, tegeliku X-tee
+    turvaserveri läbi — meie subsüsteemil (GOV/70001231/ljvis2) on ACL arireg
+    v1-meetoditele (kinnitatud allowedMethods'iga, vt .ai/ljvis-tasks/xtee-task.md).
+    Äriregistri kasutajanime/parooli ei ole enam vaja (varem esindus_v2 otse
+    HTTPS bypass'iga ariregxmlv6.rik.ee-le). Otsing kas registryCode (ettevõtte
+    kõik esindajad) või personalCode (isiku kõik esindatavad ettevõtted) järgi
+    — vähemalt üks on kohustuslik. Autentimine POST/.guard kaudu (kehtiv
+    sessioon nõutud). esindus_v1 vastuses puudub esindusoiguse_grupid
+    (representationGroups) — frontend seda välja praegu ei loe.
   namespace: xroad
   allowlist:
     body:
@@ -41,15 +46,13 @@ assignParams:
 callXtr:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
       type: json
     body:
       reg_code: ${reg_code}
       personal_code: ${personal_code}
       personal_code_country: ${personal_code_country}
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
   result: xtrResponse
   next: checkXtrStatus
 
@@ -66,7 +69,7 @@ logSuccess:
     headers:
       type: json
     body:
-      service_code: "arireg.esindus_v2.v1"
+      service_code: "arireg.esindus_v1.v1"
       request_xml: "${'personalCode=' + personal_code + ';registryCode=' + reg_code}"
       response_xml: "${JSON.stringify(xtrResponse.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"
@@ -94,7 +97,7 @@ mapResponse:
             });
             return out;
           }
-          return v;
+          return v !== undefined ? v : null;
         }
         function mapRepresentative(p) {
           return {
@@ -114,7 +117,7 @@ mapResponse:
         }
         function mapGroup(g) {
           return {
-            groupNumber: g.grupi_nr,
+            groupNumber: g.grupi_nr != null ? g.grupi_nr : null,
             members: toArray(g.item).map(mapRepresentative)
           };
         }
@@ -132,7 +135,7 @@ mapResponse:
           };
         }
         var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
-        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
         var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
         var keha = responseNode.keha || {};
         var companies = toArray(keha.ettevotjad && keha.ettevotjad.item).map(mapCompany);
@@ -152,7 +155,7 @@ logFailure:
     headers:
       type: json
     body:
-      service_code: "arireg.esindus_v2.v1"
+      service_code: "arireg.esindus_v1.v1"
       request_xml: "${'personalCode=' + personal_code + ';registryCode=' + reg_code}"
       response_xml: "${JSON.stringify(xtrResponse.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"

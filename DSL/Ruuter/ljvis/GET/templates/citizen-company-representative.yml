@@ -11,10 +11,10 @@ declaration:
     GET/v1/citizen/risk-scores/controls.yml and POST/v1/citizen/forms/
     search.yml's scope=company branch — factored out here so citizen/forms/
     compound.yml, labour-inspection.yml and foreign-violation.yml can reuse
-    it too instead of re-implementing the esindus_v2 SOAP parsing a 4th/5th/
+    it too instead of re-implementing the esindus_v1 SOAP parsing a 4th/5th/
     6th time. Cached representedCompanies (from the JWT, refreshed by
     representation/companies or representation/switch) is checked first —
-    free, no X-Road call — falling back to a live Äriregister esindus_v2
+    free, no X-Road call — falling back to a live Äriregister esindus_v1
     call only when that claim doesn't cover registry_code yet (stale/absent
     claim), never trusting the caller's own claim of representation.
   namespace: service
@@ -38,15 +38,13 @@ checkCachedCompanies:
 checkCompanyRepresentativeLive:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/esindus_v2"
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
       type: json
     body:
       reg_code: ""
       personal_code: ${incoming.body.personal_code}
       personal_code_country: "EST"
-      username: "[#AR_USERNAME]"
-      password: "[#AR_PASSWORD]"
   result: ar_res
   next: checkArAvailable
 
@@ -75,7 +73,7 @@ verifyRepresentativeLive:
           return v;
         }
         var soapBody = (ar_res.response.body && ar_res.response.body.body) ? ar_res.response.body.body : (ar_res.response.body || {});
-        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v2Response'); });
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
         var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
         var keha = responseNode.keha || {};
         var items = toArray(keha.ettevotjad && keha.ettevotjad.item);

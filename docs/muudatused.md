@@ -18,6 +18,17 @@
 
 ---
 
+## 2026-09 — Äriregistri päringud üle X-tee turvaserveri
+
+- **Äriregistri päringud** (ettevõtte lihtandmed, esindusõigused, detailandmed)
+  käivad nüüd läbi reaalse X-tee turvaserveri, mitte enam otseühenduse kaudu
+  `ariregxmlv6.rik.ee`-le. Eraldi Äriregistri kasutajanime/parooli (`AR_USERNAME`
+  / `AR_PASSWORD`) ei ole enam vaja — juurdepääs käib X-tee ACL-i alusel.
+- Kasutajale nähtavat käitumist see ei muuda; ettevõtte esindusõiguste kontroll
+  ja ettevõtteotsing toimivad samamoodi.
+
+---
+
 ## 2026-09 — Mootorsõiduki kategooria valiku paigutus
 
 - **Ühendveo (ja seotud) vormil** on „Mootorsõiduki kategooria" raadionupud
