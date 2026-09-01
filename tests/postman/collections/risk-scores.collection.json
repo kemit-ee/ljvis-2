@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Risk Scores",
     "_postman_id": "ljvis-risk-scores-v1",
-    "description": "Functional tests for the risk-score module (EU regulation 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation, and the per-control MSI/VSI/SI/MI breakdown endpoint (includes the 'no SP sub-form at all -> fully excluded' rule). Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001-90000005 = Punane/Nullpunkt/Valistatud/Nimemuutus/Kontrollimata). See docs/risk-score/formula.md for the scoring rules.",
+    "description": "Functional tests for the risk-score module (EU regulation 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation, and the per-control MSI/VSI/SI/MI breakdown endpoint (includes the 'no SP sub-form at all -> fully excluded' rule). Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001-90000006 = Punane/Nullpunkt/Valistatud/Nimemuutus/Kontrollimata/Kollane). See docs/risk-score/formula.md for the scoring rules.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -214,7 +214,7 @@
       ]
     },
     {
-      "name": "[Recalculate] Kollane company (90000005) -> 200, Kollane, R=120",
+      "name": "[Recalculate] Kollane company (90000006) -> 200, Kollane, R=120",
       "request": {
         "method": "POST",
         "header": [
@@ -236,7 +236,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"company_reg_code\": \"90000005\", \"calculation_trigger\": \"admin\"}"
+          "raw": "{\"company_reg_code\": \"90000006\", \"calculation_trigger\": \"admin\"}"
         }
       },
       "event": [
@@ -255,7 +255,7 @@
       ]
     },
     {
-      "name": "[Current] Kollane company (90000005) -> riskBandErru Amber",
+      "name": "[Current] Kollane company (90000006) -> riskBandErru Amber",
       "request": {
         "method": "POST",
         "header": [
@@ -277,7 +277,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"company_reg_code\": \"90000005\"}"
+          "raw": "{\"company_reg_code\": \"90000006\"}"
         }
       },
       "event": [
