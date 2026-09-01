@@ -86,17 +86,28 @@ function SubFormCard({ subForm }: { subForm: CitizenSubForm }) {
           </Text>
           <div className={`mt-025 ${styles['violation-tags']}`}>
             {subForm.violations.map((violation, index) => {
-              const severityCode = violation.severityCode;
+              // sp_driver/vehicle/trailer use `severityCode` (MSI/VSI/SI/MI);
+              // adr uses `riskCategory` (officer free-text, often MSI/VSI/SI/MI).
+              const severityCode = violation.severityCode ?? violation.riskCategory ?? null;
               const severityLabel = severityCode
                 ? t(
                     `citizen.compoundDetail.severity.${severityCode}`,
-                    severityCode,
+                    severityCode, // fallback = raw code, never "undefined"
                   )
                 : null;
+              // Reference text: EU regulation (sp_driver) or ADR provision
+              const ref =
+                violation.regulation
+                  ? ` (${violation.regulation})`
+                  : violation.adrProvision
+                  ? ` (${violation.adrProvision})`
+                  : '';
+              // Nothing meaningful to show → skip rendering entirely
+              if (!severityLabel && !ref) return null;
               return (
                 <Tag key={index} color="danger">
                   {severityLabel}
-                  {violation.regulation ? ` (${violation.regulation})` : ''}
+                  {ref}
                 </Tag>
               );
             })}

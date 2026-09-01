@@ -142,22 +142,30 @@ export function CitizenCompoundDetailPage() {
               {t('citizen.compoundDetail.noDrivers')}
             </Text>
           )}
-          {(form.drivers ?? []).map((driver, index) => (
-            <div key={index} className="mt-05">
-              <Field label={t('citizen.compoundDetail.driverName')}>
-                {`${driver.firstName || ''} ${driver.lastName || ''}`.trim() ||
-                  '—'}
-              </Field>
-              <Field
-                label={t(
-                  'citizen.compoundDetail.driverPersonalCode',
-                  'Isikukood',
+          {(form.drivers ?? []).map((driver, index) => {
+            const multipleDrivers = (form.drivers ?? []).length > 1;
+            return (
+              <div key={index} className="mt-05">
+                {multipleDrivers && (
+                  <Text modifiers="bold" className="mb-025">
+                    {t('citizen.compoundDetail.driverLabel', { number: index + 1 })}
+                  </Text>
                 )}
-              >
-                {driver.personalCodeEe || driver.personalCodeForeign || '—'}
-              </Field>
-            </div>
-          ))}
+                <Field label={t('citizen.compoundDetail.driverName')}>
+                  {`${driver.firstName || ''} ${driver.lastName || ''}`.trim() ||
+                    '—'}
+                </Field>
+                <Field
+                  label={t(
+                    'citizen.compoundDetail.driverPersonalCode',
+                    'Isikukood',
+                  )}
+                >
+                  {driver.personalCodeEe || driver.personalCodeForeign || '—'}
+                </Field>
+              </div>
+            );
+          })}
         </Card.Content>
       </Card>
 

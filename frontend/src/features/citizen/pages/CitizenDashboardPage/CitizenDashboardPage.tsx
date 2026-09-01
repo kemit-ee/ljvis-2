@@ -49,13 +49,15 @@ export function CitizenDashboardPage() {
             <Heading element="h1">
               {t('citizen.dashboard.companiesTitle')}
             </Heading>
-            {representedCompanies.map((company) => (
-              <CompanyCard
-                key={company.registryCode}
-                registryCode={company.registryCode}
-                companyName={company.companyName}
-              />
-            ))}
+            <div className="mt-1">
+              {representedCompanies.map((company) => (
+                <CompanyCard
+                  key={company.registryCode}
+                  registryCode={company.registryCode}
+                  companyName={company.companyName}
+                />
+              ))}
+            </div>
           </Card.Content>
         </Card>
       )}

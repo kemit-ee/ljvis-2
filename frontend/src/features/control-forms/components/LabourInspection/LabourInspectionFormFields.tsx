@@ -109,9 +109,12 @@ export function LabourInspectionFormFields({
     );
   }, [violationClassifiers]);
 
-  const violationsGrouped = formik.values.violations.reduce<
+  const violationsGrouped = (formik.values.violations ?? []).reduce<
     Record<number, Array<{ entry: ViolationEntry; idx: number }>>
   >((acc, v, idx) => {
+    // Skip violations that have no classifier reference (e.g. legacy/X-Road
+    // data) — grouping by undefined produces a literal "undefined" heading.
+    if (v.level1ValueKey == null) return acc;
     if (!acc[v.level1ValueKey]) acc[v.level1ValueKey] = [];
     acc[v.level1ValueKey].push({ entry: v, idx });
     return acc;
@@ -434,9 +437,11 @@ export function LabourInspectionFormFields({
               const l1 = violationClassifiers.find(
                 (c) => c.classifierValueKey === Number(l1KeyStr),
               );
+              // Fallback: show numeric key (e.g. "42") instead of the literal
+              // "undefined" string that JS produces for invalid object keys.
               const heading = l1
                 ? `${l1.description ? l1.description + ' — ' : ''}${l1.name}`
-                : l1KeyStr;
+                : isNaN(Number(l1KeyStr)) ? '—' : l1KeyStr;
               return (
                 <div key={l1KeyStr} className="mb-1">
                   <Heading element="h4" className="mb-0">

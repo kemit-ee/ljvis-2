@@ -314,6 +314,7 @@
       "companyRegCode": "Registrikood",
       "driversSection": "Juhid",
       "noDrivers": "Juhte ei ole lisatud",
+      "driverLabel": "Juht {{number}}",
       "driverName": "Nimi",
       "driverPersonalCode": "Isikukood",
       "subFormsSection": "Kontrolli üksikasjad",
@@ -343,10 +344,10 @@
       "violationsTitle": "Tuvastatud rikkumised",
       "noViolations": "Rikkumisi ei tuvastatud.",
       "severity": {
-        "MSI": "Huligaansõit (MSI)",
+        "MSI": "Eriti tõsine rikkumine (MSI)",
         "VSI": "Väga tõsine rikkumine (VSI)",
         "SI": "Tõsine rikkumine (SI)",
-        "MI": "Vähemtõsine rikkumine (MI)"
+        "MI": "Vähetõsine rikkumine (MI)"
       },
       "notes": "Märkus"
     },
@@ -1107,6 +1108,7 @@
       "validation": {
         "required": "Kohustuslik väli",
         "minorViolationsCount": "Lubatud kuni kolmekohaline number",
+        "max_length": "Väli võib olla kuni {{max}} tähemärki",
         "api": {
           "required": "Kohustuslik väli",
           "invalid_personal_code": "Vigane isikukood"
@@ -1124,12 +1126,27 @@
       "otherActivityDaysCount": "nendest päevade arv juhi muu tegevuse kui sõiduki juhtimise kohta"
     },
     "massDimension": {
+      "blockTitle": "Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta",
       "sectionTitle": "Andmed sõiduki massi ja mõõtmete kohta",
       "modalTitle": "Andmed sõiduki massi ja mõõtmete kohta",
       "violationType": "Rikkumise liik",
       "range": "Vahemik",
       "violationCode": "Rikkumise kood",
       "note": "Märkus"
+    },
+    "docRightCheck": {
+      "blockTitle": "Dokumendi või õiguse kontroll",
+      "otherDocuments": "Muud dokumendid"
+    },
+    "otherDocs": {
+      "notChecked": "Ei kontrollitud",
+      "compliant": "Nõuetekohane",
+      "missing": "Puudub",
+      "addRemark": "Lisa märkus",
+      "remarkPlaceholder": "Sisestage märkus..."
+    },
+    "restCheck": {
+      "blockTitle": "Sõidu- ja puhkeaja nõuete täitmine"
     }
   },
   "structureUnits": {
@@ -1329,6 +1346,8 @@
     "noResults": "Päring ei tagastanud ühtegi tulemust",
     "dateFieldPlaceholder": "PP.KK.AAAA",
     "timeFieldPlaceholder": "HH.MM",
+    "numberPlaceholder": "Nr",
+    "select": "Vali",
     "errors": {
       "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
       "networkError": "Ühenduse viga. Kontrollige võrguühendust.",

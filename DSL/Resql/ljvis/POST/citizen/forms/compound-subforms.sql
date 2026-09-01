@@ -135,14 +135,18 @@ FROM ltt tt
 WHERE tt.status = 'published'
 
 UNION ALL
--- ── adr: "infringements" is its violations-equivalent column ──
+-- ── adr: filter infringements to only "checked" entries (actual violations
+--    found). "not_possible" / "not_applicable" entries are inspector workflow
+--    state, not violations — showing them to the citizen would be confusing.
 SELECT
     'adr'::text,
     ad.adr_form_key,
     ad.sub_form_number,
     ad.status,
     ad.result_type,
-    ad.infringements::text,
+    (SELECT COALESCE(jsonb_agg(elem), '[]'::jsonb)::text
+     FROM jsonb_array_elements(COALESCE(ad.infringements, '[]'::jsonb)) AS elem
+     WHERE (elem->>'checkStatus') = 'checked'),
     ad.notes
 FROM ladr ad
 WHERE ad.status = 'published'

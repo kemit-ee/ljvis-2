@@ -427,7 +427,7 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
 
       {entries.length === 0 ? (
         <div className={styles.emptyState}>
-          <Text>{t('forms.dirve_rest.empty')}</Text>
+          <Text>{t('forms.drive_rest.empty')}</Text>
         </div>
       ) : (
         <div className={styles.entriesContainer}>
