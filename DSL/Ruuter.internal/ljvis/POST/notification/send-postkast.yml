@@ -70,19 +70,20 @@ resolveTemplate:
 buildPayload:
   assign:
     # PK 2.0 notification-management payload (POST /notification-management/v1/notifications).
-    # receivers[] esitatakse saajate nimekiri — täidetakse insertRecipients-is DB-sse
-    # ja edastatakse PK 2.0-le callPkApi sammus.
+    # receivers[] esitatakse saajate nimekiri — sama prioriteet nagu assignLogId
+    # effective_recipients-il: 1) recipient_email_override (UC-04), 2) recipients[].
     # inputData sisaldab malli {{muutuja}} asendusi; täpsed muutujad vaata docs/pk2-templates/.
     pk_receivers: >-
-      ${effective_recipients_for_payload !== undefined
-        ? effective_recipients_for_payload
-        : recipients_input.map(function(r) {
-            return {
-              code: r.person_code || '',
-              email: r.person_email || '',
-              name: r.person_name || ''
-            };
-          })}
+      ${(recipient_email_override !== ''
+        ? [{person_code: '', person_email: recipient_email_override, person_name: ''}]
+        : recipients_input
+        ).map(function(r) {
+          return {
+            code: r.person_code || '',
+            email: r.person_email || '',
+            name: r.person_name || ''
+          };
+        })}
     payload_obj:
       templateId: "${pk_template_id}"
       originalTemplateId: "${pk_template_id}"
