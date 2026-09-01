@@ -34,6 +34,7 @@ esine I lisas — see pärineb direktiivi 2006/22/EÜ III lisa läviväärtustes
 | `20260901100000-sp-driving-violation-annex-severity-alignment.sql` | `DRIVING_VIOLATION` | 39 tase-3 raskusastet I lisaga kooskõlla (jaotised 1, 2, 3, 13, 14). Vt eraldi dokk `soidu-puhkeaeg-rikkumiste-klassifikaatorid.md`. |
 | `20260901110000-eu-infringement-annex-severity-alignment.sql` | `EU_INFRINGEMENT` | 52 raskusastet I lisaga kooskõlla (allpool). |
 | `20260901120000-dangerous-goods-infringements-classifier.sql` | `DANGEROUS_GOODS_INFRINGEMENTS_NEW` | uus klassifikaator ADR-vormile (jaotis 9, 24 rida). |
+| `20260901130000-sp-driving-violation-unique-l3-codes.sql` | `DRIVING_VIOLATION` | 24 korduva `MI`-koodiga tase-3 rida ümber nimetatud kujule `<parent>_MI` — muidu `getByCode()` deduplib need ära ja Rooma I + lähetamise rikkumised kaovad vormilt. |
 
 Kõigis migratsioonides jäetakse tase-2/3 `code` väärtused muutmata, et juba
 salvestatud kontrollvormide `violation_code` väljad ei orvuks. Muudetakse ainult

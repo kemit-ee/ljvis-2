@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-09 — Rooma I ja autojuhi lähetamise rikkumised sõidu- ja puhkeaja vormil
+
+- **Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollkaardi rikkumiste
+  aknas** on taas valitavad **Rooma I lepingu rikkumine** (määrus 593/2008) ja
+  **autojuhi lähetamisnõuete rikkumised** (direktiiv 2020/1057), samuti konduktori
+  vanuse ja piiriületusriikide tähiste rikkumised. Need olid vormilt kadunud,
+  kuna klassifikaatoris oli mitmel raskusastme kirjel sama sisemine kood ja
+  rakendus kuvas neist ainult esimese.
+
+---
+
 ## 2026-09 — Välisrikkumiste ja ADR rikkumiste klassifikaatorid 2016/403 järgi
 
 - **Välisriigi rikkumise vormi ja tehnokontrolli vormide rikkumiste loendis**
