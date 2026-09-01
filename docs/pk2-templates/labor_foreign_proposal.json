@@ -1,0 +1,44 @@
+{
+  "_info": {
+    "type": "labor_foreign_proposal",
+    "description": "Välisriigi ettepaneku teavitus Tööinspektsioonile. Saaja on fikseeritud (TI_EMAIL). Saadetakse kui välisriigist saabub ettepanek Eesti tööinspektsioonile.",
+    "pk_env_var": "PK_TEMPLATE_LABOR_FOREIGN_PROPOSAL",
+    "recipient": "Tööinspektsioon (fikseeritud e-post — keskkonna muutuja TI_EMAIL)",
+    "trigger_dsl": "TBD — lisatakse pärast PK 2.0 credentials saamist",
+    "ref_pk_doku": "https://github.com/e-gov/PK-Doku/blob/main/11-Haldusliidese-REST-API-d/README.md"
+  },
+  "_step1_create_template": {
+    "_comment": "POST {PK_URL}/template/v1/templates — tagastab {id}. Pane ID Kubernetes-e PK_TEMPLATE_LABOR_FOREIGN_PROPOSAL.",
+    "name": "ljvis2-labor-foreign-proposal",
+    "description": "LJVIS-2: Välisriigi ettepaneku teavitus Tööinspektsioonile",
+    "enabled": true
+  },
+  "_step2_add_message": {
+    "_comment": "POST {PK_URL}/template/v1/template-messages — asenda templateId sammust 1.",
+    "templateId": "ASENDA_SAMM1_ID_GA",
+    "channel": "EMAIL",
+    "language": "et",
+    "subject": "LJVIS-2: Välisriigi ettepanek saabunud ({{fromCountry}} — {{controlFormId}})",
+    "content": "<p>Tere,</p><p>Liiklusjärelevalve infosüsteemi (LJVIS-2) kaudu on saabunud välisriigi ettepanek, mille menetlemine kuulub Tööinspektsiooni pädevusse.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Ettepaneku viide</th><td>{{controlFormId}}</td></tr><tr><th>Saatev riik</th><td>{{fromCountry}}</td></tr><tr><th>Ettepaneku kuupäev</th><td>{{proposalDate}}</td></tr><tr><th>Ettepaneku tüüp</th><td>{{proposalType}}</td></tr><tr><th>Puudutatud ettevõtja</th><td>{{carrierName}} ({{carrierCode}})</td></tr></table><p>Palun menetlege ettepanek vastavalt siseriiklikele protseduuridele.<br/>Täpsemad andmed on kättesaadavad LJVIS-2 kasutajaliideses.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
+    "contentType": "text/html"
+  },
+  "_step3_sending_payload_example": {
+    "_comment": "POST {PK_URL}/notification-management/v1/notifications — saaja on fikseeritud TI e-post.",
+    "templateId": "{{PK_TEMPLATE_LABOR_FOREIGN_PROPOSAL}}",
+    "originalTemplateId": "{{PK_TEMPLATE_LABOR_FOREIGN_PROPOSAL}}",
+    "receivers": [
+      {
+        "email": "{{TI_EMAIL}}",
+        "name": "Tööinspektsioon"
+      }
+    ],
+    "inputData": {
+      "controlFormId": "{{relatedEntityId}}",
+      "fromCountry": "{{fromCountry}}",
+      "proposalDate": "{{proposalDate}}",
+      "proposalType": "{{proposalType}}",
+      "carrierName": "{{carrierName}}",
+      "carrierCode": "{{carrierCode}}"
+    }
+  }
+}
