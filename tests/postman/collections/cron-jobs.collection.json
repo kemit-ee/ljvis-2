@@ -625,6 +625,152 @@
       ]}}]
     },
     {
+      "name": "[sp-driver e-toimik Setup] Insert compound_form with a driver personal code",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/compound-form/insert", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "compound-form", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"status\": \"confirmed\", \"controlDate\": \"2026-08-01\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"SPD123\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"12345678\", \"companyName\": \"Newman OU\", \"companyCountryCode\": \"EE\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[{\\\"driver_role\\\": \\\"primary\\\", \\\"personal_code_ee\\\": \\\"60001019906\\\", \\\"first_name\\\": \\\"Test\\\", \\\"last_name\\\": \\\"Juht\\\"}]\", \"inspectorFirstName\": \"Newman\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"{{cron_org_id}}\", \"inspectorUnit\": \"Unit\", \"inspectorProfession\": \"Tester\", \"created_by\": \"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "pm.environment.set('cron_spd_cf_id', String(rows[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik Setup] Insert confirmed sp_driver_form (candidate)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/insert", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "insert"]},
+        "body": {"mode": "raw", "raw": "{\"spDriverFormKey\": null, \"compoundFormKey\": \"{{cron_spd_cf_id}}\", \"subFormNumber\": \"\", \"templateVersion\": null, \"status\": \"confirmed\", \"selectionStatus\": \"active\", \"transportType\": \"Veosevedu\", \"transportEmptyRun\": false, \"transportNature\": \"\", \"transportNatureExempt\": null, \"transportClasses\": \"\", \"cabotageViolations\": \"\", \"resultType\": \"ALUSTATI\", \"additionalMeasure\": \"\", \"proceedingType\": \"YLD\", \"proceedingReferenceNumber\": \"1-20/26/SPD-CRON\", \"documentChecks\": \"\", \"otherDocuments\": \"\", \"spApplicability\": \"\", \"tachographTypeCode\": \"\", \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": \"\", \"violations1652014\": \"\", \"violations200215\": \"\", \"violations5932008\": \"\", \"violations20201057\": \"\", \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": \"\", \"atpViolationFound\": \"false\", \"atpViolationDescription\": \"\", \"erruPoints\": \"\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"notes\": \"\", \"created_by\": \"newman\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "pm.environment.set('cron_spd_id', String(rows[0].id));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik] select_etoimik_candidates — new sub-form is a candidate",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/select_etoimik_candidates", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "select_etoimik_candidates"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "const match = rows.find(r => String(r.id) === pm.environment.get('cron_spd_id'));",
+        "pm.test('Seeded sub-form appears as a candidate', () => pm.expect(match).to.exist);",
+        "pm.test('Candidate carries the driver personal code from compound_form drivers[0]', () => pm.expect(match.driverPersonalCode).to.eql('60001019906'));",
+        "pm.test('Candidate carries the proceeding reference number', () => pm.expect(match.proceedingReferenceNumber).to.eql('1-20/26/SPD-CRON'));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik] update-xroad-fields found=false — no-op (0 rows)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/update-xroad-fields", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "update-xroad-fields"]},
+        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"false\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"created_by\": \"e-toimik\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "pm.test('found=false writes nothing', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik] update-xroad-fields found=true — writes decision in place",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/update-xroad-fields", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "update-xroad-fields"]},
+        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"true\", \"enforcementDecision\": \"Rahatrahv 120 eurot (2026-08-15)\", \"proceedingClosureBasis\": \"VTMS \u00a7 29\", \"created_by\": \"e-toimik\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "pm.test('Wrote exactly one row (in-place update on the latest confirmed snapshot)', () => pm.expect(rows.length).to.eql(1));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik] select_etoimik_candidates — resolved sub-form no longer a candidate (regression)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/select_etoimik_candidates", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "select_etoimik_candidates"]},
+        "body": {"mode": "raw", "raw": "{}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "const ids = rows.map(r => String(r.id));",
+        "pm.test('Regression: sub-form with enforcement_decision set drops out of the candidate list', () => pm.expect(ids).to.not.include(pm.environment.get('cron_spd_id')));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik] update-xroad-fields again, same key — guarded no-op (enforcement_decision already set)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/update-xroad-fields", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "update-xroad-fields"]},
+        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"true\", \"enforcementDecision\": \"Should not overwrite\", \"proceedingClosureBasis\": \"Should not overwrite\", \"created_by\": \"e-toimik\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "pm.test('enforcement_decision IS NULL guard holds — no second write', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik] Verify final state via get.sql (decision persisted, status unchanged)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/get", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "get"]},
+        "body": {"mode": "raw", "raw": "{\"id\": \"{{cron_spd_id}}\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "pm.test('status still confirmed — the cron never publishes or bumps the version', () => pm.expect(rows[0].status).to.eql('confirmed'));",
+        "pm.test('enforcement_decision persisted', () => pm.expect(rows[0].enforcementDecision).to.eql('Rahatrahv 120 eurot (2026-08-15)'));",
+        "pm.test('proceeding_closure_basis persisted (first value, not the no-op attempt)', () => pm.expect(rows[0].proceedingClosureBasis).to.eql('VTMS § 29'));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik] log_etoimik_sp_driver_audit found=false — no audit row",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/log_etoimik_sp_driver_audit", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "log_etoimik_sp_driver_audit"]},
+        "body": {"mode": "raw", "raw": "{\"found\": \"false\", \"key\": \"{{cron_spd_id}}\", \"sub_form_number\": \"\", \"driver_personal_code\": \"60001019906\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "pm.test('No audit event written', () => pm.expect(rows.length).to.eql(0));"
+      ]}}]
+    },
+    {
+      "name": "[sp-driver e-toimik] log_etoimik_sp_driver_audit found=true — audit event written",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/log_etoimik_sp_driver_audit", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "log_etoimik_sp_driver_audit"]},
+        "body": {"mode": "raw", "raw": "{\"found\": \"true\", \"key\": \"{{cron_spd_id}}\", \"sub_form_number\": \"\", \"driver_personal_code\": \"60001019906\"}"}
+      },
+      "event": [{"listen": "test", "script": {"exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const rows = pm.response.json().response || pm.response.json();",
+        "pm.test('Audit event written with an event_id', () => { pm.expect(rows.length).to.eql(1); pm.expect(rows[0].eventId || rows[0].event_id).to.exist; });"
+      ]}}]
+      },
+      {
       "name": "[NCR autodispatch] select-autodispatch-candidates — published KORRAS foreign-vehicle sub-form is a candidate",
       "request": {
         "method": "POST",

@@ -54,7 +54,7 @@
 
 ---
 
-## 2026-09 — Autojuhi sõidu- ja puhkeaja kontrollvormi täiendused
+## 2026-08 — Autojuhi sõidu- ja puhkeaja kontrollvormi täiendused
 
 Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
 
@@ -78,6 +78,20 @@ Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
   ning see ei ole kohustuslik.
 - **Uued väljad „Jõustunud otsus" ja „Menetluse lõpetamise alus"** — täidetakse
   automaatselt e-toimiku päringuga, kuvatakse kontrollkaardil loetavalt.
+
+---
+
+## 2026-08 — Sõidu- ja puhkeaja kontrollvormi mallid
+
+- Ülalkirjeldatud autojuhi ja meeskonnaliikme sõidu- ja puhkeaja alamvormi
+  täiendused rakenduvad **kõigile vormidele**, ka varem loodutele — eraldi
+  vormimalli versiooni ei tõstetud, olemasolevad vormid saavad avamisel uue
+  kuju.
+- Kontrolli tulemuse uus „Lisameede" väli lisati tagasiulatuvalt igale vormile
+  ja täideti iga vormi uusima seisu põhjal; varasemad seisud jäid muutmata.
+- Klassifikaatorite tekstiparandused („tõestatud koopia" / „kinnitatud
+  ärakiri", „Veose saatedokument" → „Veodokument") kehtivad kohe kõigil
+  vormidel, sh Tööinspektsiooni aktil.
 
 ---
 

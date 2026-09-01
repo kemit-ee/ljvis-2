@@ -41,7 +41,7 @@ const CARGO_ONLY_CLASS_CODES = ['ATP_PERISHABLE'];
 
 // Ühenduse tegevusloa dokumendi/õiguse kontrolli level-2 kirjete nähtavus
 // veoliigi järgi (PASSENGER = ainult sõitjatevedu, CARGO = ainult veosevedu).
-export const DOC_RIGHT_TRANSPORT_VISIBILITY: Record<
+const DOC_RIGHT_TRANSPORT_VISIBILITY: Record<
   string,
   'PASSENGER' | 'CARGO' | 'BOTH'
 > = {
