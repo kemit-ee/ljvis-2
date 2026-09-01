@@ -35,6 +35,9 @@ SELECT
     ol.original_log_id,
     ol.pk_template_id,
     ol.pk_sending_operation_id,
+    (SELECT r.person_email FROM notifications.outbound_log_recipient r WHERE r.log_id = ol.id LIMIT 1) AS first_recipient_email,
+    (SELECT r.person_name  FROM notifications.outbound_log_recipient r WHERE r.log_id = ol.id LIMIT 1) AS first_recipient_name,
+    (SELECT r.person_code  FROM notifications.outbound_log_recipient r WHERE r.log_id = ol.id LIMIT 1) AS first_recipient_code,
     (COUNT(*) OVER ())::INTEGER AS total
 FROM notifications.outbound_log ol
 WHERE (NULLIF(:status, '') IS NULL OR ol.status = :status)
