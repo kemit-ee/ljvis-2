@@ -1,0 +1,44 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Märgib ühe in-app teavituse autenditud kasutaja jaoks loetuks.
+    Idempotentne: ON CONFLICT DO NOTHING.
+    Kaitstud POST/.guard (autentimine) kaudu.
+  namespace: notification
+  allowlist:
+    params:
+      - field: id
+        type: string
+
+extractParams:
+  assign:
+    notification_id: "${incoming.params.id ?? ''}"
+    user_code: "${u.personalcode || ''}"
+  next: checkId
+
+checkId:
+  switch:
+    - condition: ${notification_id === ''}
+      next: returnBadRequest
+  next: markRead
+
+markRead:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/mark_notification_read"
+    headers:
+      type: json
+    body:
+      notification_id: ${notification_id}
+      user_code: ${user_code}
+  result: res
+  next: returnResult
+
+returnResult:
+  return: "${res.response.body[0] ?? {notification_id: notification_id, user_code: user_code}}"
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "notification id is required"
+  next: end

@@ -35,6 +35,56 @@ IKS § 19/§ 25 nõuab et isik saab küsida, kes tema andmeid on töödelnud. Tu
 
 ---
 
+## ADR-006 — Teavituste moodul: in-app + Postkast 2.0 + WebSocket push (LJVIS-2)
+
+**Otsustaja:** Sten Viljus  
+**Kuupäev:** 10.10.2026  
+**Seotud issue:** LJVIS-2 (Jira), GitHub epic
+
+### Kontekst
+
+LJVIS-2 vajab moodulipõhist teavitussüsteemi, mis katab kaks kanalit:
+
+1. **In-app teavitused** — reaalajas kasutajaliideses, õiguspõhine filtreerimine (`required_permission`).  
+2. **Postkast 2.0 (välised e-kirjad)** — raske rikkumise teavitused veoettevõtjatele ja muude DSL-töövoogude genereeritud kirjad.
+
+Lisaks peab süsteem toetama logimist (kes saadeti, millal, mis tulemusega) ning ebaõnnestunud saadetise uuesti saatmist (UC-04).
+
+### Valikud kaalutud
+
+**A) 30-sekundiline HTTP polling unread-count jaoks**  
+— Lihtne, kuid tekitab tarbetut serverikoormust ja viibega UX.
+
+**B) WebSocket push broadcast + HTTP pull andmete jaoks**  
+— Ruuter 0.9.0-rc.1 `ws_send` toetab `broadcast_prefix` moodust HTTP kontekstist (nt `create.yml` internal endpointist). Klient saab signaalina ainult `{type: "notification_update"}` — kasutajaandmeid broadcast ei sisalda. Iga klient teeb seejärel oma authenticated HTTP päringud oma sessiooni alusel. WS-ühenduse katkemine langeb back automaatselt 60 s pollingule, reconnect 5 s pärast.
+
+**C) Server-Sent Events (SSE)**  
+— Ühepoolne, pooleldi standardne. Ruuter 0.9.0-rc.1 ei toeta veel SSE-d; WebSocket on paremini dokumenteeritud.
+
+### Otsus
+
+Valiti **B — WebSocket push + HTTP pull**.
+
+- `DSL/Ruuter/ljvis/WS/inbound/notifications/connect.yml` — WS keep-alive endpoint  
+- `DSL/Ruuter.internal/ljvis/POST/notification/create.yml` — loob in-app teavituse + `ws_send broadcast_prefix: "client:"`  
+- `DSL/Ruuter.internal/ljvis/POST/notification/send-postkast.yml` — Postkast 2.0 saatmine + outbound_log kirje  
+- 7 Ruuter public API endpoint (`/v1/notifications/*`)  
+- 4 Liquibase tabelit: `notifications.notification`, `notification_read`, `outbound_log`, `outbound_recipient`  
+- Frontend: `useNotificationCount` hook (WS + fallback polling), `NotificationBellButton` päises, `NotificationsPage` (kahe tabiga: in-app + saadetud kirjad)
+
+### Turvalisus
+
+- Broadcast payload sisaldab ainult signaali (`{type: "notification_update"}`), mitte kasutajaandmeid.  
+- Iga klient teeb oma authenticated HTTP päringu — sessionipõhine filtreerimine toimub serveri poolel (`required_permission` vs kasutaja tegelikud õigused).  
+- `notification.admin` permission kaitseb outbound-logi vaatamist ja uuesti saatmist (ainult Super Admin Group).
+
+### Piirangud / TODO
+
+- **Postkast 2.0 toodangukredentsiaalid** (`PK_URL`, `PK_TOKEN`) on RIA-lt ootel. `send-postkast.yml` on stub-ga, mis logib kavatsuse ja tagastab mock-`sending_operation_id`. Aktiveerimine: DSL-i kommentaaritud `callPkApi` samm aktiveerida kui credentialid on Kubernetes-es saadaval.  
+- **WS auth**: praegu WS endpoint ei kontrolli sessiooni eraldi — port 8086 on niigi tagapool nginx-i, mis nõuab TIM-sessiooni. Vajadusel lisada `ws_session_check` samm.
+
+---
+
 ## ADR-002 — Rust Ruuter 0.9.0-rc.1 (turnerrainer/ruuter:rc)
 
 **Otsustaja:** Sten Viljus  

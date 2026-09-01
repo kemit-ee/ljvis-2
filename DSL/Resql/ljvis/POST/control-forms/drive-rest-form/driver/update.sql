@@ -32,6 +32,8 @@ declaration:
         type: string
       - field: resultType
         type: string
+      - field: additionalMeasure
+        type: string
       - field: proceedingType
         type: string
       - field: proceedingReferenceNumber
@@ -88,7 +90,7 @@ declaration:
         type: string
 */
 WITH latest AS (
-  SELECT sub_form_number, template_version, compound_form_key
+  SELECT sub_form_number, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
   FROM forms.sp_driver_form
   WHERE sp_driver_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -107,6 +109,7 @@ INSERT INTO forms.sp_driver_form (sp_driver_form_key,
                                   transport_classes,
                                   cabotage_violations,
                                   result_type,
+                                  additional_measure,
                                   proceeding_type,
                                   proceeding_reference_number,
                                   document_checks,
@@ -145,6 +148,7 @@ SELECT
         COALESCE(NULLIF(:transportClasses, '')::jsonb, '[]'::jsonb),
         COALESCE(NULLIF(:cabotageViolations, '')::jsonb, '[]'::jsonb),
         NULLIF(:resultType, ''),
+        NULLIF(:additionalMeasure, ''),
         COALESCE(:proceedingType, 'none'),
         NULLIF(:proceedingReferenceNumber, ''),
         COALESCE(NULLIF(:documentChecks, '')::jsonb, '[]'::jsonb),
@@ -165,8 +169,8 @@ SELECT
         CASE WHEN :atpViolationFound = 'true' THEN TRUE ELSE FALSE END,
         NULLIF(:atpViolationDescription, ''),
         COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb),
-        NULLIF(:enforcementDecision, ''),
-        NULLIF(:proceedingClosureBasis, ''),
+        COALESCE(NULLIF(:enforcementDecision, ''), l.enforcement_decision),
+        COALESCE(NULLIF(:proceedingClosureBasis, ''), l.proceeding_closure_basis),
         NULLIF(:notes, ''),
         :created_by
 FROM latest l

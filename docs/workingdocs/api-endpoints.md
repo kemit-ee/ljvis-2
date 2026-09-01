@@ -79,6 +79,31 @@ Kõik Ruuteri kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioo
 | POST | `/v1/control-forms/foreign-violation-form` | loo uus vorm (body: form fields) |
 | GET | `/v1/control-forms/foreign-violation-form` | `?q=<id>` — päri vorm ID järgi |
 
+### Teavitused (in-app)
+
+Kõik endpointid nõuavad kehtivat sessiooni (vaikimisi `/v1/.guard`). Tulemed filtreeritakse kasutaja tegelike õiguste järgi serveris (RESQL `list_notifications.sql` WHERE `required_permission = ANY(user_permissions)`).
+
+| Meetod | Tee | Query paramid | Märkus |
+|--------|-----|---------------|--------|
+| GET | `/v1/notifications/list` | `page`, `pageSize` | teavituste nimekiri (filtreeritakse kasutaja õiguste järgi) |
+| GET | `/v1/notifications/unread-count` | — | lugemata teavituste arv |
+| POST | `/v1/notifications/{id}/mark-read` | — | märgi üks teavitus loetuks |
+| POST | `/v1/notifications/mark-all-read` | — | märgi kõik loetud |
+
+### Teavituste outbound-logi (nõuab `notification.admin`)
+
+| Meetod | Tee | Query paramid | Märkus |
+|--------|-----|---------------|--------|
+| GET | `/v1/notifications/outbound-log/list` | `status`, `messageType`, `dateFrom`, `page`, `pageSize` | Postkast 2.0 saadetud kirjade logi |
+| GET | `/v1/notifications/outbound-log/recipients` | `logId` | konkreetse kirja adressaadid + saatmise raport |
+| POST | `/v1/notifications/outbound-log/{logId}/resend` | — | saada ebaõnnestunud kiri uuesti (body: `{ recipientEmail? }`) |
+
+### WebSocket endpoint
+
+| Protokoll | Tee | Märkus |
+|-----------|-----|--------|
+| WS | `/ljvis/notifications/connect` | Keep-alive ühendus teavituste push-signaalide jaoks. Broadcast payload: `{type: "notification_update"}` — ei sisalda kasutajaandmeid. Klient teeb seejärel oma HTTP päringu unread-count kohta. |
+
 ---
 
 ## X-tee teenused (Ruuter Internal)

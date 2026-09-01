@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { SideNav } from '@tedi-design-system/react/tedi';
+import { SideNav, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../features/auth/AuthContext';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import {
@@ -9,6 +9,7 @@ import {
   PERMISSIONS,
   FORM_READ_PERMISSIONS,
 } from '../constants/constants';
+import { useNotificationCount } from '../features/notifications/useNotifications';
 import styles from './SideNavWrapper.module.css';
 
 interface UseSideNavPropsResult {
@@ -23,6 +24,7 @@ export function useSideNavProps(): UseSideNavPropsResult {
   const { pathname } = useLocation();
   const { t } = useTranslation();
   const { hasPermission, hasAnyPermission } = useAuth();
+  const { unreadCount } = useNotificationCount();
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -43,6 +45,24 @@ export function useSideNavProps(): UseSideNavPropsResult {
       icon: 'dashboard',
       to: '/',
       isActive: pathname === '/',
+    });
+
+    items.push({
+      children: (
+        <>
+          {t('nav.notifications')}
+          {unreadCount > 0 && (
+            <span style={{ marginLeft: 8 }}>
+              <StatusBadge color="danger">
+                {unreadCount > 99 ? '99+' : String(unreadCount)}
+              </StatusBadge>
+            </span>
+          )}
+        </>
+      ),
+      icon: 'notifications',
+      to: '/notifications',
+      isActive: pathname.startsWith('/notifications'),
     });
 
 
@@ -125,7 +145,10 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
-    if (hasPermission(PERMISSIONS.AUDIT_READ)) {
+    if (
+      hasPermission(PERMISSIONS.AUDIT_READ) ||
+      hasPermission(PERMISSIONS.AUDIT_READ_LOCAL)
+    ) {
       adminSubItems.push({
         children: t('nav.logs'),
         to: '/logs',
@@ -152,7 +175,7 @@ export function useSideNavProps(): UseSideNavPropsResult {
     });
 
     return items;
-  }, [pathname, t, hasPermission, hasAnyPermission]);
+  }, [pathname, t, hasPermission, hasAnyPermission, unreadCount]);
 
   const getWrapperClassName = () => {
     const classes = [styles.wrapper];

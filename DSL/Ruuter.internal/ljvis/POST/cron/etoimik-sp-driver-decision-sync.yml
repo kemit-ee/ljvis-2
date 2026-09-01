@@ -1,0 +1,150 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Öine partii: iga confirmed autojuhi sõidu- ja puhkeaja alamvormi kohta,
+    millel on väärteomenetluse viitenumber + juhi isikukood ja millel
+    enforcement_decision on veel NULL, küsib e-toimikult
+    (AnnaIsikuKvalifikatsioonid) kas otsus on jõustunud, ja kirjutab tulemuse
+    (jõustunud otsus + menetluse lõpetamise alus) alamvormile KOHAPEAL — ei
+    avalikusta, ei bumbi versiooni. Kutsub CronManager 01:30 Europe/Tallinn
+    (DSL/CronManager/etoimik-sp-driver-decision-sync.yaml).
+  namespace: cron
+
+fetchCandidates:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/select_etoimik_candidates"
+    headers:
+      type: json
+    body: {}
+  result: candidatesRes
+  next: assignCandidates
+
+assignCandidates:
+  assign:
+    candidates: "${candidatesRes.response.body || []}"
+  next: processCandidates
+
+# `iterate`'s `do:` on lame jada — `next:` sees ignoreeritakse, `return`
+# katkestaks kogu partii. Seetõttu on kõik harud (XTR viga / ei leitud /
+# leitud) koondatud ühte `decision` assign'i ja kirjutuskutsed selle järel
+# alati käivituvad; update-xroad-fields.sql ise on no-op kui found=false.
+processCandidates:
+  iterate:
+    over: "${candidates}"
+    as: candidate
+    max_items: 1000
+    do:
+      - assign:
+          candidate_key: "${String(candidate.id)}"
+          reference_number: "${candidate.proceedingReferenceNumber || candidate.proceeding_reference_number || ''}"
+          driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
+          case_start: "${new Date().getTime()}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body:
+            reference_number: ${reference_number}
+            personal_code: ${driver_personal_code}
+            userId: "LJVIS-CRON"
+            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
+            service_version: "[#ETOIMIK_SERVICE_VERSION]"
+        result: xtrResponse
+
+      - assign:
+          decision: >-
+            ${(function(){
+              function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+              var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
+              if (!httpOk) {
+                return { success: false, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
+              }
+              var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+              var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
+              var responseNode = responseKey ? soapBody[responseKey] : {};
+              var caseNode = responseNode.response || null;
+              if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
+                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+              }
+              var decisions = [];
+              var bases = [];
+              toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
+                toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
+                  toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
+                    var person = p.Isik || {};
+                    if (String(person.Kood || '') !== driver_personal_code) { return; }
+                    toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
+                      toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
+                        if (!cp.SulgemiseKP) { return; }
+                        decisions.push((cp.LahendKL || '') + (cp.LahendiKP ? (' (' + cp.LahendiKP + ')') : ''));
+                        bases.push(cp.SyydistusPunktCSV || cp.LahendKL || '');
+                      });
+                    });
+                  });
+                });
+              });
+              if (decisions.length === 0) {
+                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+              }
+              return { success: true, found: true, enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+            })()}
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          headers:
+            type: json
+          body:
+            service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.sp_driver"
+            request_xml: "${'referenceNumber=' + reference_number}"
+            response_xml: "${decision.rawResponse}"
+            duration_ms: "${new Date().getTime() - case_start}"
+            success: ${decision.success}
+            error_message: "${decision.errorMessage}"
+            person_identifier: ${driver_personal_code}
+            source_type: "sp_driver_form"
+            source_record_id: ${candidate_key}
+        result: logRes
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update-xroad-fields"
+          headers:
+            type: json
+          body:
+            key: ${candidate_key}
+            found: "${decision.found ? 'true' : 'false'}"
+            enforcementDecision: "${decision.enforcementDecision}"
+            proceedingClosureBasis: "${decision.proceedingClosureBasis}"
+            created_by: "e-toimik"
+        result: applyRes
+
+      # update-xroad-fields.sql tagastab 0 rida kui found=false või status<>'confirmed'
+      # või enforcement_decision juba täidetud — applied_now ütleb kas kirje tekkis.
+      - assign:
+          applied_now: "${!!(applyRes.response.body && applyRes.response.body[0])}"
+          applied_sub_form_number: "${(applyRes.response.body && applyRes.response.body[0] && (applyRes.response.body[0].subFormNumber || applyRes.response.body[0].sub_form_number)) || ''}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/log_etoimik_sp_driver_audit"
+          headers:
+            type: json
+          body:
+            found: "${applied_now ? 'true' : 'false'}"
+            key: ${candidate_key}
+            sub_form_number: ${applied_sub_form_number}
+            driver_personal_code: ${driver_personal_code}
+        result: auditRes
+    collect: "${({ id: candidate.id, found: decision.found, applied: applied_now, success: decision.success })}"
+    into: results
+  next: returnSummary
+
+returnSummary:
+  status: 200
+  return: "${({ candidatesChecked: candidates.length, decisionsApplied: results.filter(r => r.applied).length, failures: results.filter(r => !r.success).length })}"
+  next: end

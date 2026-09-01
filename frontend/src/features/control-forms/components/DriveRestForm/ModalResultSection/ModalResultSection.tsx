@@ -22,9 +22,23 @@ interface ViolationEntry {
   isDetected: string;
 }
 
+// Ühenduse tegevusloa dokumendi/õiguse kontrolli level-2 kirjete nähtavus
+// veoliigi järgi. Sünkroonis DriveRestFormFields.DOC_RIGHT_TRANSPORT_VISIBILITY-ga.
+const DOC_RIGHT_TRANSPORT_VISIBILITY: Record<
+  string,
+  'PASSENGER' | 'CARGO' | 'BOTH'
+> = {
+  TEGEVUSLUBA_01: 'PASSENGER',
+  TEGEVUSLUBA_02: 'CARGO',
+  TEGEVUSLOA_ARAKIRI_01: 'PASSENGER',
+  TEGEVUSLOA_ARAKIRI_02: 'CARGO',
+  TEGEVUSLOA_ARAKIRI_03: 'BOTH',
+};
+
 interface Props {
   checks: ClassifierEntry[];
   type: 'docCheck' | 'drivingViolation' | 'massDimension';
+  transportType?: string;
   setFieldValue?: (field: string, value: unknown) => void;
   fieldName?: string;
   readOnly?: boolean;
@@ -33,8 +47,16 @@ interface Props {
   initialViolations?: Record<string, Violation[]>;
 }
 
-export function ModalResultSection({ checks, type, setFieldValue, fieldName, readOnly, initialDocumentChecks, initialEntries: initialEntriesProp, initialViolations }: Props) {
+export function ModalResultSection({ checks, type, transportType, setFieldValue, fieldName, readOnly, initialDocumentChecks, initialEntries: initialEntriesProp, initialViolations }: Props) {
   const { t } = useTranslation();
+
+  const isL2VisibleForTransport = (code: string) => {
+    const v = DOC_RIGHT_TRANSPORT_VISIBILITY[code];
+    if (!v || v === 'BOTH') return true;
+    return v === 'CARGO'
+      ? transportType === 'Veosevedu'
+      : transportType === 'Sõitjatevedu';
+  };
 
   const level1Items = useMemo(
     () => checks.filter((v) => !v.parentKey),
@@ -45,9 +67,11 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
       checks.filter(
         (v) =>
           v.parentKey &&
-          level1Items.some((l1) => l1.classifierValueKey === v.parentKey),
+          level1Items.some((l1) => l1.classifierValueKey === v.parentKey) &&
+          isL2VisibleForTransport(v.code),
       ),
-    [checks, level1Items],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [checks, level1Items, transportType],
   );
   const level3Items = useMemo(() => {
     if (type === 'massDimension') return [];
@@ -431,13 +455,20 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
         </div>
       ) : (
         <div className={styles.entriesContainer}>
-          {Object.values(groupedEntries).map((group) => (
+          {(() => {
+            // massDimension puhul kannavad mitu level-1 kategooriat sama
+            // description'i ("Mass" — MASS_N3 ja MASS_N2). Ära korda päist.
+            let lastHeader: string | null = null;
+            return Object.values(groupedEntries).map((group) => {
+              const header =
+                type === 'massDimension' ? group.description : group.name;
+              const showHeader = header !== lastHeader;
+              lastHeader = header;
+              return (
             <div key={group.name}>
-              {group.entries.length > 0 && (
+              {group.entries.length > 0 && showHeader && (
                 <div className="mb-1">
-                  <strong>
-                    {type === 'massDimension' ? group.description : group.name}
-                  </strong>
+                  <strong>{header}</strong>
                 </div>
               )}
               {group.entries.map((entry) => (
@@ -512,7 +543,9 @@ export function ModalResultSection({ checks, type, setFieldValue, fieldName, rea
                 </div>
               ))}
             </div>
-          ))}
+              );
+            });
+          })()}
         </div>
       )}
     </div>

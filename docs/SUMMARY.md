@@ -1,5 +1,7 @@
 # LJVIS2 dokumentatsioon
 
+- [Muudatuste logi](muudatused.md)
+
 ---
 
 # Kasutusjuhend
