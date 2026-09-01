@@ -315,7 +315,40 @@
       "driversSection": "Juhid",
       "noDrivers": "Juhte ei ole lisatud",
       "driverName": "Nimi",
-      "driverPersonalCode": "Isikukood"
+      "driverPersonalCode": "Isikukood",
+      "subFormsSection": "Kontrolli üksikasjad",
+      "subFormsEmpty": "Selle kontrolli kohta täiendavaid avaldatud alamvorme ei ole.",
+      "subFormType": {
+        "sp_driver": "Sõidu- ja puhkeaeg (juht)",
+        "sp_teammate": "Sõidu- ja puhkeaeg (kaassõitja)",
+        "vehicle_technical": "Sõiduki tehnonõuetele vastavus",
+        "trailer_technical": "Haagise tehnonõuetele vastavus",
+        "adr": "Ohtlike veoste vedu",
+        "kv": "Autoveo katkestamine"
+      },
+      "subFormNumber": "Alamvormi number",
+      "resultType": "Tulemus",
+      "resultTypes": {
+        "ok": "Korras",
+        "HOIATUS": "Hoiatus",
+        "ETTEKIRJUTUS": "Ettekirjutus",
+        "extraordinary_inspection": "Suunati erakorralisele tehnoülevaatusele",
+        "extraordinary_inspection_ta": "Suunati erakorralisele tehnoülevaatusele",
+        "driving_ban": "Sõidukeeld",
+        "misdemeanor_proceedings": "Alustati väärteomenetlust",
+        "warning": "Hoiatus",
+        "driving_ban_art5": "Sõidukeeld (ADR)",
+        "transport_interruption": "Autovedu katkestati"
+      },
+      "violationsTitle": "Tuvastatud rikkumised",
+      "noViolations": "Rikkumisi ei tuvastatud.",
+      "severity": {
+        "MSI": "Huligaansõit (MSI)",
+        "VSI": "Väga tõsine rikkumine (VSI)",
+        "SI": "Tõsine rikkumine (SI)",
+        "MI": "Vähemtõsine rikkumine (MI)"
+      },
+      "notes": "Märkus"
     },
     "dashboard": {
       "companiesTitle": "Minu ettevõtted",
@@ -331,11 +364,16 @@
         "formNumber": "Vormi number",
         "mainDate": "Kuupäev",
         "vehicleRegNr": "Sõiduki reg-nr",
-        "msi": "MSI",
-        "vsi": "VSI",
-        "si": "SI",
-        "mi": "MI",
+        "msi": "Ülitõsine",
+        "msiTooltip": "MSI – kõige raskemad rikkumised (Most Serious Infringement), nt sõidumeeriku pettus või selle puudumine, kiiruspiiriku puudumine.",
+        "vsi": "Väga tõsine",
+        "vsiTooltip": "VSI – väga tõsised rikkumised (Very Serious Infringement), nt suur sõiduaja või puhkeaja nõuete ületamine.",
+        "si": "Tõsine",
+        "siTooltip": "SI – tõsised rikkumised (Serious Infringement), nt väiksem sõiduaja või puhkeaja nõuete ületamine.",
+        "mi": "Vähetõsine",
+        "miTooltip": "MI – vähetõsised rikkumised (Minor Infringement), nt formaalsed puudused dokumentide täitmisel.",
         "weightedPoints": "Kaalutud punktid",
+        "weightedPointsTooltip": "Kontrolli riskipunktid, arvutatud rikkumiste raskusastme alusel (huligaansõit annab kõige rohkem punkte, vähemtõsine kõige vähem).",
         "view": "Vaata"
       }
     }
@@ -1354,7 +1392,7 @@
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
     "bandPunane": "Punane"
-   },
+  },
   "etoimik": {
     "title": "E-toimiku kvalifikatsiooni kontroll",
     "referenceNumber": "Viitenumber",

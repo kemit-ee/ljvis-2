@@ -1,19 +1,26 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import type { CompoundForm } from '../../../control-forms/types';
-import { getCitizenCompoundForm } from '../../api';
-import styles from './CitizenCompoundDetailPage.module.css';
+import { getCitizenCompoundForm, getCitizenCompoundSubForms } from '../../api';
+import type { CitizenSubForm } from '../../types';
+import { CitizenSubFormsSection } from './CitizenSubFormsSection';
 
-function Field({ label, value }: { label: string; value?: string | null }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={styles.field}>
+    <div className="field-name mb-1">
       <Text modifiers="bold" color="secondary">
         {label}
       </Text>
-      <Text>{value || '—'}</Text>
+      <div className="mt-025">{children}</div>
     </div>
   );
 }
@@ -30,8 +37,10 @@ export function CitizenCompoundDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [form, setForm] = useState<CompoundForm | null>(null);
+  const [subForms, setSubForms] = useState<CitizenSubForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -43,6 +52,12 @@ export function CitizenCompoundDetailPage() {
       .then((data) => setForm(Array.isArray(data) ? data[0] : data))
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
+    // Fetched independently of the main form request — a sub-forms fetch
+    // failure (e.g. transient error) shouldn't block the page from showing
+    // the koondvorm itself; it just renders an empty sub-forms section.
+    getCitizenCompoundSubForms(Number(id))
+      .then(setSubForms)
+      .catch(() => setSubForms([]));
   }, [id]);
 
   if (loading) return <Text>{t('common.loading')}</Text>;
@@ -53,7 +68,19 @@ export function CitizenCompoundDetailPage() {
     <div>
       <Button
         visualType="link"
-        onClick={() => navigate('/minu-ettevotte')}
+        onClick={() => {
+          // Reachable from both the dashboard (MyProtocolsTable/
+          // CompanyControlsTable) and /my-companies (CompanyFormsListPage) —
+          // both entry points pass state.from so we return to wherever the
+          // citizen actually came from, not a hardcoded page. Direct URL/
+          // bookmark access has no such state, so fall back to the
+          // dashboard.
+          if ((location.state as { from?: string })?.from === 'citizen-app') {
+            navigate(-1);
+          } else {
+            navigate('/');
+          }
+        }}
         iconLeft="arrow_back"
       >
         {t('common.back')}
@@ -70,23 +97,19 @@ export function CitizenCompoundDetailPage() {
           <Heading element="h3">
             {t('citizen.compoundDetail.controlSection')}
           </Heading>
-          <div className={styles.grid}>
-            <Field
-              label={t('citizen.compoundDetail.controlDate')}
-              value={form.controlDate}
-            />
-            <Field
-              label={t('citizen.compoundDetail.county')}
-              value={form.county}
-            />
-            <Field
-              label={t('citizen.compoundDetail.address')}
-              value={form.address}
-            />
-            <Field
-              label={t('citizen.compoundDetail.vehicleRegNr')}
-              value={form.vehicleRegNr}
-            />
+          <div className="mt-05">
+            <Field label={t('citizen.compoundDetail.controlDate')}>
+              {form.controlDate || '—'}
+            </Field>
+            <Field label={t('citizen.compoundDetail.county')}>
+              {form.county || '—'}
+            </Field>
+            <Field label={t('citizen.compoundDetail.address')}>
+              {form.address || '—'}
+            </Field>
+            <Field label={t('citizen.compoundDetail.vehicleRegNr')}>
+              {form.vehicleRegNr || '—'}
+            </Field>
           </div>
         </Card.Content>
       </Card>
@@ -96,18 +119,15 @@ export function CitizenCompoundDetailPage() {
           <Heading element="h3">
             {t('citizen.compoundDetail.companySection')}
           </Heading>
-          <div className={styles.grid}>
+          <div className="mt-05">
+            <Field label={t('citizen.compoundDetail.companyName')}>
+              {form.companyName || '—'}
+            </Field>
             <Field
-              label={t('citizen.compoundDetail.companyName')}
-              value={form.companyName}
-            />
-            <Field
-              label={t(
-                'citizen.compoundDetail.companyRegCode',
-                'Registrikood',
-              )}
-              value={form.companyRegCode}
-            />
+              label={t('citizen.compoundDetail.companyRegCode', 'Registrikood')}
+            >
+              {form.companyRegCode || '—'}
+            </Field>
           </div>
         </Card.Content>
       </Card>
@@ -123,22 +143,25 @@ export function CitizenCompoundDetailPage() {
             </Text>
           )}
           {(form.drivers ?? []).map((driver, index) => (
-            <div key={index} className={styles.grid}>
-              <Field
-                label={t('citizen.compoundDetail.driverName')}
-                value={`${driver.firstName || ''} ${driver.lastName || ''}`.trim()}
-              />
+            <div key={index} className="mt-05">
+              <Field label={t('citizen.compoundDetail.driverName')}>
+                {`${driver.firstName || ''} ${driver.lastName || ''}`.trim() ||
+                  '—'}
+              </Field>
               <Field
                 label={t(
                   'citizen.compoundDetail.driverPersonalCode',
                   'Isikukood',
                 )}
-                value={driver.personalCodeEe || driver.personalCodeForeign}
-              />
+              >
+                {driver.personalCodeEe || driver.personalCodeForeign || '—'}
+              </Field>
             </div>
           ))}
         </Card.Content>
       </Card>
+
+      <CitizenSubFormsSection subForms={subForms} />
     </div>
   );
 }

@@ -87,23 +87,23 @@ function AppRoutes() {
                   deep link for existing bookmarks; the landing page is now
                   CitizenDashboardPage. */}
               <Route
-                path="/minu-ettevotte"
+                path="/my-companies"
                 element={<CompanyFormsListPage />}
               />
               <Route
-                path="/minu-ettevotte/labour-inspection/:id"
+                path="/my-companies/labour-inspection/:id"
                 element={<CitizenLabourInspectionDetailPage />}
               />
               <Route
-                path="/minu-ettevotte/compound/:id"
+                path="/my-companies/compound/:id"
                 element={<CitizenCompoundDetailPage />}
               />
               <Route
-                path="/minu-ettevotte/foreign-violation/:id"
+                path="/my-companies/foreign-violation/:id"
                 element={<CitizenForeignViolationDetailPage />}
               />
               <Route
-                path="/minu-ettevotte/good-repute/:id"
+                path="/my-companies/good-repute/:id"
                 element={<CitizenGoodReputeDetailPage />}
               />
               <Route path="*" element={<Navigate to="/" replace />} />

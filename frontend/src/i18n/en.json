@@ -990,7 +990,40 @@
       "driversSection": "Drivers",
       "noDrivers": "No drivers added",
       "driverName": "Name",
-      "driverPersonalCode": "Personal code"
+      "driverPersonalCode": "Personal code",
+      "subFormsSection": "Control details",
+      "subFormsEmpty": "No further published sub-forms exist for this control.",
+      "subFormType": {
+        "sp_driver": "Driving and rest time (driver)",
+        "sp_teammate": "Driving and rest time (co-driver)",
+        "vehicle_technical": "Vehicle technical compliance",
+        "trailer_technical": "Trailer technical compliance",
+        "adr": "Dangerous goods transport",
+        "kv": "Transport interruption"
+      },
+      "subFormNumber": "Sub-form number",
+      "resultType": "Result",
+      "resultTypes": {
+        "ok": "OK",
+        "HOIATUS": "Warning",
+        "ETTEKIRJUTUS": "Prescription",
+        "extraordinary_inspection": "Referred to extraordinary inspection",
+        "extraordinary_inspection_ta": "Referred to extraordinary inspection",
+        "driving_ban": "Driving ban",
+        "misdemeanor_proceedings": "Misdemeanor proceedings started",
+        "warning": "Warning",
+        "driving_ban_art5": "Driving ban (ADR)",
+        "transport_interruption": "Transport interrupted"
+      },
+      "violationsTitle": "Infringements found",
+      "noViolations": "No infringements found.",
+      "severity": {
+        "MSI": "Most Serious Infringement (MSI)",
+        "VSI": "Very Serious Infringement (VSI)",
+        "SI": "Serious Infringement (SI)",
+        "MI": "Minor Infringement (MI)"
+      },
+      "notes": "Note"
     },
     "dashboard": {
       "companiesTitle": "My companies",
@@ -1006,11 +1039,16 @@
         "formNumber": "Form number",
         "mainDate": "Date",
         "vehicleRegNr": "Vehicle reg. no",
-        "msi": "MSI",
-        "vsi": "VSI",
-        "si": "SI",
-        "mi": "MI",
+        "msi": "Most serious",
+        "msiTooltip": "MSI – Most Serious Infringement, e.g. tachograph fraud or a missing tachograph, no speed limiter.",
+        "vsi": "Very serious",
+        "vsiTooltip": "VSI – Very Serious Infringement, e.g. a large excess of driving or rest time limits.",
+        "si": "Serious",
+        "siTooltip": "SI – Serious Infringement, e.g. a smaller excess of driving or rest time limits.",
+        "mi": "Minor",
+        "miTooltip": "MI – Minor Infringement, e.g. formal shortcomings in filling out documents.",
         "weightedPoints": "Weighted points",
+        "weightedPointsTooltip": "Risk points for the control, calculated from infringement severity (most serious infringements score highest, minor ones lowest).",
         "view": "View"
       }
     }

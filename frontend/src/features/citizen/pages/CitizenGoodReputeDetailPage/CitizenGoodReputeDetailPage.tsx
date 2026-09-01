@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -21,6 +21,7 @@ export function CitizenGoodReputeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { getByCode } = useClassifiers();
 
@@ -51,7 +52,13 @@ export function CitizenGoodReputeDetailPage() {
     <div>
       <Button
         visualType="link"
-        onClick={() => navigate('/minu-ettevotte')}
+        onClick={() => {
+          if ((location.state as { from?: string })?.from === 'citizen-app') {
+            navigate(-1);
+          } else {
+            navigate('/');
+          }
+        }}
         iconLeft="arrow_back"
       >
         {t('common.back')}

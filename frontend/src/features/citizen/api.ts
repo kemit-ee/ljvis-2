@@ -8,6 +8,7 @@ import type {
 } from '../control-forms/types';
 import type {
   CitizenFormRow,
+  CitizenSubForm,
   CompanyControlsBreakdown,
   CompanyRiskScore,
 } from './types';
@@ -101,6 +102,36 @@ export function getCitizenCompoundForm(id: number): Promise<CompoundForm> {
   return get<CompoundForm>('/v1/citizen/forms/compound', {
     q: String(id),
   });
+}
+
+// Raw shape as returned by RESQL — `violations` is a JSON-encoded string
+// (compound-subforms.sql casts jsonb to text, same convention as e.g.
+// compound-form/get.sql's `drivers` column), not yet parsed into an array.
+interface RawCitizenSubForm extends Omit<CitizenSubForm, 'violations'> {
+  violations: string;
+}
+
+// GET/v1/citizen/forms/compound/sub-forms.yml — every published sp_driver/
+// sp_teammate/vehicle_technical/trailer_technical/adr/kv sub-form attached
+// to this koondvorm. Ownership is re-checked server-side against the same
+// koondvorm as getCitizenCompoundForm (self-driver or company representative).
+export async function getCitizenCompoundSubForms(
+  compoundFormKey: number,
+): Promise<CitizenSubForm[]> {
+  const rows = await get<RawCitizenSubForm[]>(
+    '/v1/citizen/forms/compound/sub-forms',
+    { q: String(compoundFormKey) },
+  );
+  return rows.map((row) => ({
+    ...row,
+    violations: (() => {
+      try {
+        return JSON.parse(row.violations || '[]');
+      } catch {
+        return [];
+      }
+    })(),
+  }));
 }
 
 export function getCitizenForeignViolationForm(

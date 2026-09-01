@@ -1,7 +1,7 @@
 /*
 declaration:
-  version: 0.1
-  description: "Citizen-facing read-only form listing over forms.form_search (LJVIS2-9 view). Companion to control-forms/search/search.sql, but without the officer allowed_types row-level filter. Two mutually-exclusive scopes, chosen by which param is non-empty (Ruuter passes exactly one, never both): company_reg_code (representative view — every citizen-visible form of that company) or personal_code (füüsiline isik / citizen-self view — forms where the person appears as driver/punished person/good-repute subject, via an exact space-delimited-token match against form_search.driver_search — NOT the officer 'driver' filter's ILIKE substring technique, since a substring match against another person's national ID code would be an unacceptable false-positive/precision risk on a PII-scoped citizen-facing endpoint). Citizen-visible status is 'published' for every form type EXCEPT good_repute, whose lifecycle (chk_grf_status) never reaches 'published' — its terminal state is 'confirmed'."
+  version: 0.2
+  description: "Citizen-facing read-only form listing over forms.form_search (LJVIS2-9 view). Companion to control-forms/search/search.sql, but without the officer allowed_types row-level filter. Two mutually-exclusive scopes, chosen by which param is non-empty (Ruuter passes exactly one, never both): company_reg_code (representative view — every citizen-visible form of that company) or personal_code (füüsiline isik / citizen-self view — forms where the person appears as driver/punished person/good-repute subject, via an exact space-delimited-token match against form_search.driver_search — NOT the officer 'driver' filter's ILIKE substring technique, since a substring match against another person's national ID code would be an unacceptable false-positive/precision risk on a PII-scoped citizen-facing endpoint). Citizen-visible status is 'published' for every form type, including good_repute — matches the general control-form lifecycle spec (LJVIS2-136: only the 'Avalikustatud' state is documented as visible to all read-permission holders; 'Kinnitatud' only relaxes field editability for officers/admins, it does not grant public visibility). A prior version of this query also accepted good_repute at 'confirmed'; that was flagged as an unresolved, not-signed-off-by-product exception during code review (code-review-citizen-company-view.md) and has been reverted to the published-only rule that applies to every other form type. Sub-forms (sp_driver/sp_teammate/vehicle_technical/trailer_technical/adr/kv) carry no data of their own for the citizen view — they're collapsed into their parent 'compound' row (dedup CTE below) so a citizen sees exactly one row per control, with has_violation OR'd in from any sub-form sibling."
   method: post
   accepts: json
   returns: json
@@ -53,32 +53,46 @@ declaration:
       - field: total
         type: number
 */
+WITH scoped AS (
+    SELECT
+        fs.*,
+        -- Sub-form rows share compound_form_key with their parent 'compound'
+        -- row and inherit the same company_reg_code/driver_search — fold a
+        -- violation found on any of them into the control as a whole before
+        -- the dedup step below drops the sub-form rows themselves.
+        bool_or(fs.has_violation) OVER (
+            PARTITION BY COALESCE(fs.compound_form_key, fs.form_key)
+        ) AS agg_has_violation
+    FROM forms.form_search fs
+    WHERE
+        fs.status = 'published'
+        AND (
+            (COALESCE(:company_reg_code, '') <> '' AND fs.company_reg_code = :company_reg_code)
+            OR (COALESCE(:personal_code, '') <> '' AND lower(:personal_code) = ANY(string_to_array(fs.driver_search, ' ')))
+        )
+        AND (COALESCE(:form_type, '') = '' OR fs.form_type = :form_type)
+),
+deduped AS (
+    SELECT
+        form_type, form_key, compound_form_key, form_number, status, main_date,
+        county, vehicle_reg_nr, company_reg_code, company_name,
+        agg_has_violation AS has_violation, created_at
+    FROM scoped
+    -- One row per control: standalone types (compound_form_key IS NULL —
+    -- foreign_violation/labour_inspection/good_repute) pass through as-is;
+    -- for compound + its sub-forms, keep only the 'compound' row.
+    WHERE compound_form_key IS NULL OR form_type = 'compound'
+)
 SELECT
-    fs.form_type,
-    fs.form_key,
-    fs.compound_form_key,
-    fs.form_number,
-    fs.status,
-    fs.main_date,
-    fs.county,
-    fs.vehicle_reg_nr,
-    fs.company_reg_code,
-    fs.company_name,
-    fs.has_violation,
+    form_type, form_key, compound_form_key, form_number, status, main_date,
+    county, vehicle_reg_nr, company_reg_code, company_name, has_violation,
     (COUNT(*) OVER ())::INTEGER AS total
-FROM forms.form_search fs
-WHERE
-    (fs.status = 'published' OR (fs.form_type = 'good_repute' AND fs.status = 'confirmed'))
-    AND (
-        (COALESCE(:company_reg_code, '') <> '' AND fs.company_reg_code = :company_reg_code)
-        OR (COALESCE(:personal_code, '') <> '' AND lower(:personal_code) = ANY(string_to_array(fs.driver_search, ' ')))
-    )
-    AND (COALESCE(:form_type, '') = '' OR fs.form_type = :form_type)
+FROM deduped
 ORDER BY
-    CASE WHEN COALESCE(:sorting, 'main_date desc') = 'main_date asc'   THEN fs.main_date END ASC,
-    CASE WHEN COALESCE(:sorting, 'main_date desc') = 'main_date desc'  THEN fs.main_date END DESC,
-    CASE WHEN COALESCE(:sorting, 'main_date desc') = 'form_number asc'  THEN fs.form_number COLLATE "et-EE-x-icu" END ASC,
-    CASE WHEN COALESCE(:sorting, 'main_date desc') = 'form_number desc' THEN fs.form_number COLLATE "et-EE-x-icu" END DESC,
-    fs.main_date DESC, fs.created_at DESC
+    CASE WHEN COALESCE(:sorting, 'main_date desc') = 'main_date asc'   THEN main_date END ASC,
+    CASE WHEN COALESCE(:sorting, 'main_date desc') = 'main_date desc'  THEN main_date END DESC,
+    CASE WHEN COALESCE(:sorting, 'main_date desc') = 'form_number asc'  THEN form_number COLLATE "et-EE-x-icu" END ASC,
+    CASE WHEN COALESCE(:sorting, 'main_date desc') = 'form_number desc' THEN form_number COLLATE "et-EE-x-icu" END DESC,
+    main_date DESC, created_at DESC
 LIMIT :page_size::INTEGER
 OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);

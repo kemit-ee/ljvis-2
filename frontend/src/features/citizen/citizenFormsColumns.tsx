@@ -2,30 +2,21 @@ import type { TFunction } from 'i18next';
 import type { NavigateFunction } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Button, Tag } from '@tedi-design-system/react/tedi';
+import { FORM_TYPE_META } from '../control-forms/pages/search/formSearchMeta';
 import type { CitizenFormRow } from './types';
 
-// Sub-forms (sp_driver/sp_teammate/vehicle_technical/trailer_technical/adr/
-// kv) carry no business data of their own — per forms.form_search's own
-// docs, vehicle/company/driver/location/date are inherited from the parent
-// compound_form — so they link to the *parent's* detail page via
-// compoundFormKey, not their own formKey. Remaining types (adr/kv/
-// vehicle_technical/trailer_technical as standalone detail pages, i.e. not
-// just via their compound parent) don't have citizen detail endpoints yet.
-export const COMPOUND_DETAIL_ROUTE = '/minu-ettevotte/compound';
+// DSL/Resql/ljvis/POST/citizen/forms/search.sql collapses every sub-form
+// (sp_driver/sp_teammate/vehicle_technical/trailer_technical/adr/kv) into its
+// parent 'compound' row before returning results — a citizen never sees a
+// bare sub-form row, only compound/foreign_violation/labour_inspection/
+// good_repute. Detail routes only need to cover those four.
+export const COMPOUND_DETAIL_ROUTE = '/my-companies/compound';
 export const DETAIL_ROUTE_BY_FORM_TYPE: Record<string, string> = {
   compound: COMPOUND_DETAIL_ROUTE,
-  labour_inspection: '/minu-ettevotte/labour-inspection',
-  foreign_violation: '/minu-ettevotte/foreign-violation',
-  good_repute: '/minu-ettevotte/good-repute',
+  labour_inspection: '/my-companies/labour-inspection',
+  foreign_violation: '/my-companies/foreign-violation',
+  good_repute: '/my-companies/good-repute',
 };
-export const SUB_FORM_TYPES = new Set([
-  'sp_driver',
-  'sp_teammate',
-  'vehicle_technical',
-  'trailer_technical',
-  'adr',
-  'kv',
-]);
 
 const columnHelper = createColumnHelper<CitizenFormRow>();
 
@@ -33,8 +24,7 @@ const columnHelper = createColumnHelper<CitizenFormRow>();
  * Shared column set for the citizen-facing forms table — used by both
  * CompanyFormsListPage (legacy single-company view) and the dashboard's
  * MyProtocolsTable/CompanyControlsTable-adjacent listings, so
- * the detail-routing logic (compound vs. sub-form vs. standalone types)
- * only lives in one place.
+ * the detail-routing logic only lives in one place.
  */
 export function buildCitizenFormsColumns(
   t: TFunction,
@@ -43,20 +33,31 @@ export function buildCitizenFormsColumns(
   return [
     columnHelper.accessor('formType', {
       header: t('citizen.formsList.formType'),
+      // Only mainDate/formNumber are actually sortable server-side (see
+      // citizen/forms/search.sql's ORDER BY) — no sort arrows on the rest.
+      enableSorting: false,
+      cell: (info) => {
+        const meta = FORM_TYPE_META[info.getValue()];
+        return meta ? t(meta.labelKey) : info.getValue();
+      },
     }),
     columnHelper.accessor('formNumber', {
       header: t('citizen.formsList.formNumber'),
+      enableSorting: true,
     }),
     columnHelper.accessor('mainDate', {
       header: t('citizen.formsList.mainDate'),
+      enableSorting: true,
       cell: (info) => info.getValue() || '—',
     }),
     columnHelper.accessor('vehicleRegNr', {
       header: t('citizen.formsList.vehicleRegNr'),
+      enableSorting: false,
       cell: (info) => info.getValue() || '—',
     }),
     columnHelper.accessor('hasViolation', {
       header: t('citizen.formsList.hasViolation'),
+      enableSorting: false,
       cell: (info) =>
         info.getValue() ? (
           <Tag color="danger">{t('citizen.formsList.yes')}</Tag>
@@ -68,18 +69,17 @@ export function buildCitizenFormsColumns(
       id: 'actions',
       header: '',
       cell: ({ row }) => {
-        const isSubForm = SUB_FORM_TYPES.has(row.original.formType);
-        const basePath = isSubForm
-          ? COMPOUND_DETAIL_ROUTE
-          : DETAIL_ROUTE_BY_FORM_TYPE[row.original.formType];
-        const targetId = isSubForm
-          ? row.original.compoundFormKey
-          : row.original.formKey;
+        const basePath = DETAIL_ROUTE_BY_FORM_TYPE[row.original.formType];
+        const targetId = row.original.formKey;
         if (!basePath || !targetId) return null;
         return (
           <Button
             visualType="link"
-            onClick={() => navigate(`${basePath}/${targetId}`)}
+            onClick={() =>
+              navigate(`${basePath}/${targetId}`, {
+                state: { from: 'citizen-app' },
+              })
+            }
           >
             {t('citizen.formsList.view')}
           </Button>

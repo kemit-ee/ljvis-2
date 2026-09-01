@@ -25,11 +25,23 @@ const LANGUAGES: { code: TediLocale; label: string }[] = [
  * company's data at once (independent of activeRole — see
  * CitizenDashboardPage/forms/search.yml's scope param), so there's no more
  * "which company am I representing right now" choice to make here — only
- * whether to view LJVIS as an officer or as a citizen. Only rendered at all
- * when the session has an officer account (see useHeaderProps below); a
- * pure citizen has exactly one destination and needs no switcher.
+ * whether to view LJVIS as an officer or as a citizen.
+ *
+ * Always rendered (see useHeaderProps below), even for a pure citizen with
+ * no officer account: with no dropdown content at all, TEDI's HeaderRole
+ * silently falls back to plain, non-interactive text (no chevron, no
+ * click target) which reads as a half-broken control next to the officer
+ * variant's proper dropdown. Showing a single, already-active "Kodanik"
+ * entry keeps the same dropdown affordance for every user — it's just not
+ * actionable when there's nothing to switch to.
  */
-function RepresentationMenu({ onToggle }: { onToggle: (open: boolean) => void }) {
+function RepresentationMenu({
+  officerAvailable,
+  onToggle,
+}: {
+  officerAvailable: boolean;
+  onToggle: (open: boolean) => void;
+}) {
   const { t } = useTranslation();
   const { user, switchRepresentation } = useAuth();
 
@@ -37,6 +49,20 @@ function RepresentationMenu({ onToggle }: { onToggle: (open: boolean) => void })
     await switchRepresentation(role);
     onToggle(false);
   };
+
+  if (!officerAvailable) {
+    return (
+      <div className="header-role-menu">
+        <Button
+          visualType="link"
+          className="header-role-menu-item-active"
+          disabled
+        >
+          {t('auth.roleCitizen')}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="header-role-menu">
@@ -105,9 +131,12 @@ export function useHeaderProps(): HeaderProps<'a'> {
         </HeaderContent>
         {isDesktop && user && (
           <HeaderRole primaryInfo={displayName} label={t('auth.roleLabel')}>
-            {user.officerAvailable
-              ? ({ onToggle }) => <RepresentationMenu onToggle={onToggle} />
-              : undefined}
+            {({ onToggle }) => (
+              <RepresentationMenu
+                officerAvailable={user.officerAvailable}
+                onToggle={onToggle}
+              />
+            )}
           </HeaderRole>
         )}
         <HeaderSettings onActionClick={logout} iconName="account_circle">
@@ -121,11 +150,12 @@ export function useHeaderProps(): HeaderProps<'a'> {
                         renderModal={true}
                         label={t('auth.roleLabel')}
                       >
-                        {user.officerAvailable
-                          ? ({ onToggle }) => (
-                              <RepresentationMenu onToggle={onToggle} />
-                            )
-                          : undefined}
+                        {({ onToggle }) => (
+                          <RepresentationMenu
+                            officerAvailable={user.officerAvailable}
+                            onToggle={onToggle}
+                          />
+                        )}
                       </HeaderRole>
                     </div>
                   )}

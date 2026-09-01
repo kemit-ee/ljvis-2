@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
-import { Button, Text } from '@tedi-design-system/react/tedi';
+import { Button, Icon, Text, Tooltip } from '@tedi-design-system/react/tedi';
 import type { CompanyControlRow } from '../../types';
 
 interface CompanyControlsTableProps {
@@ -14,6 +14,31 @@ interface CompanyControlsTableProps {
 }
 
 const columnHelper = createColumnHelper<CompanyControlRow>();
+
+/**
+ * Column header with an explanatory tooltip — used for the severity
+ * columns (Huligaansõit/Väga tõsine/Tõsine/Vähemtõsine), since the raw
+ * EU classifier abbreviations (MSI/VSI/SI/MI) mean nothing to a citizen
+ * without transport-sector background.
+ */
+function HeaderWithTooltip({
+  label,
+  tooltip,
+}: {
+  label: string;
+  tooltip: string;
+}) {
+  return (
+    <Tooltip>
+      <Tooltip.Trigger>
+        <span className="ljvis-header-with-tooltip">
+          {label} <Icon name="info" size={16} color="secondary" />
+        </span>
+      </Tooltip.Trigger>
+      <Tooltip.Content>{tooltip}</Tooltip.Content>
+    </Tooltip>
+  );
+}
 
 /**
  * Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints,
@@ -43,21 +68,46 @@ export function CompanyControlsTable({
         cell: (info) => info.getValue() || '—',
       }),
       columnHelper.accessor('msi', {
-        header: t('citizen.dashboard.controls.msi'),
+        header: () => (
+          <HeaderWithTooltip
+            label={t('citizen.dashboard.controls.msi')}
+            tooltip={t('citizen.dashboard.controls.msiTooltip')}
+          />
+        ),
       }),
       columnHelper.accessor('vsi', {
-        header: t('citizen.dashboard.controls.vsi'),
+        header: () => (
+          <HeaderWithTooltip
+            label={t('citizen.dashboard.controls.vsi')}
+            tooltip={t('citizen.dashboard.controls.vsiTooltip')}
+          />
+        ),
       }),
       columnHelper.accessor('si', {
-        header: t('citizen.dashboard.controls.si'),
+        header: () => (
+          <HeaderWithTooltip
+            label={t('citizen.dashboard.controls.si')}
+            tooltip={t('citizen.dashboard.controls.siTooltip')}
+          />
+        ),
       }),
       columnHelper.accessor('mi', {
-        header: t('citizen.dashboard.controls.mi'),
+        header: () => (
+          <HeaderWithTooltip
+            label={t('citizen.dashboard.controls.mi')}
+            tooltip={t('citizen.dashboard.controls.miTooltip')}
+          />
+        ),
       }),
       columnHelper.accessor('weightedPoints', {
-        header: t(
-          'citizen.dashboard.controls.weightedPoints',
-          'Kaalutud punktid',
+        header: () => (
+          <HeaderWithTooltip
+            label={t(
+              'citizen.dashboard.controls.weightedPoints',
+              'Kaalutud punktid',
+            )}
+            tooltip={t('citizen.dashboard.controls.weightedPointsTooltip')}
+          />
         ),
       }),
       columnHelper.display({
@@ -67,7 +117,9 @@ export function CompanyControlsTable({
           <Button
             visualType="link"
             onClick={() =>
-              navigate(`/minu-ettevotte/compound/${row.original.compoundFormKey}`)
+              navigate(`/my-companies/compound/${row.original.compoundFormKey}`, {
+                state: { from: 'citizen-app' },
+              })
             }
           >
             {t('citizen.dashboard.controls.view')}

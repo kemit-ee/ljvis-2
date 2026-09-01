@@ -14,10 +14,18 @@ declaration:
     all (it records the transport manager personally, not the undertaking —
     see DSL/Liquibase/.../initial-good-repute-form.sql), so there is no data
     to authorize a company representative against. Citizen-visible status is
-    'confirmed', NOT 'published' — good_repute_form's lifecycle
-    (chk_grf_status) never reaches 'published', 'confirmed' is its terminal
-    state (same threshold as citizen/forms/search.sql already uses for this
-    type). Reuses the officer resql (control-forms/good-repute/get.sql); no
+    'published' only — matches every other form type and citizen/forms/
+    search.sql's WHERE clause. A prior version of this endpoint also
+    accepted 'confirmed' (chk_grf_status was widened by
+    20260825100000-add-published-status-to-check-constraints.sql to allow
+    reaching 'published' via edit/publish.yml, and it was assumed a citizen
+    should see the record the moment an officer confirms it); that
+    'confirmed'-visible exception was never actually signed off by product
+    (flagged as an open item in code-review-citizen-company-view.md) and
+    contradicts the general control-form lifecycle spec (LJVIS2-136 §"Olek:
+    Avalikustatud" — only the published state is documented as visible to
+    all read-permission holders), so it has been reverted. Reuses
+    the officer resql (control-forms/good-repute/get.sql); no
     DMapper template exists for this type (see GET/v1/control-forms/
     good-repute.yml, which also returns the raw resql row unmapped).
 
@@ -78,7 +86,7 @@ checkOwnership:
 
 checkOwnershipSwitch:
   switch:
-    - condition: "${row.status !== 'confirmed'}"
+    - condition: "${row.status !== 'published'}"
       next: returnNotFound
     - condition: "${!!row.personalCode && row.personalCode === personal_code}"
       next: returnSuccess
