@@ -21,6 +21,9 @@ export interface OutboundLogEntry {
   original_log_id?: string | null;
   pk_template_id?: string | null;
   pk_sending_operation_id?: string | null;
+  first_recipient_email?: string | null;
+  first_recipient_name?: string | null;
+  first_recipient_code?: string | null;
   total: number;
 }
 
