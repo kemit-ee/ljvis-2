@@ -1,0 +1,215 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    M2M-safe variant of xroad/mtr/check-community-licence.yml (LJVIS2-153), for
+    erru/ctud/inbound-request.yml (LJVIS2-144).
+
+    The officer-facing endpoint needs check-user-authority (a browser session cookie)
+    to resolve X-Road-UserId, but the inbound CTUD handler is machine-to-machine with
+    no user involved — check-user-authority would always 401. userId here is a fixed
+    system identifier instead.
+
+    XTR call and response mapping are kept byte-identical to the officer-facing
+    endpoint (including the leitud/ei leitud/viga -> Found/NotFound/Error mapping) —
+    mirror any change there here too.
+  namespace: erru
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+        description: "Required. CTUD ERRU envelope's businessCaseId."
+      - field: originatingAuthority
+        type: string
+        description: "Optional. CTUD ERRU envelope's originatingAuthority."
+      - field: transportUndertakingName
+        type: string
+        description: "Required. Transport undertaking name — search basis."
+      - field: trueCopyNumber
+        type: string
+        description: "Required. Community licence number or certified true copy number (CTUD envelope's communityLicenceNumber)."
+      - field: vehicleRegistrationNumber
+        type: string
+        description: "Optional. Narrows the search to a specific vehicle."
+      - field: allVehicles
+        type: string
+        description: "Optional, defaults to 'false'. 'true' to return every vehicle linked to the community licence."
+
+validateInput:
+  switch:
+    - condition: "${!(incoming.body.businessCaseId || '').trim() || !(incoming.body.transportUndertakingName || '').trim() || !(incoming.body.trueCopyNumber || '').trim()}"
+      next: returnMissingParam
+  next: assignParams
+
+assignParams:
+  assign:
+    business_case_id: "${(incoming.body.businessCaseId || '').trim()}"
+    originating_authority: "${(incoming.body.originatingAuthority || '').trim()}"
+    transport_undertaking_name: "${(incoming.body.transportUndertakingName || '').trim()}"
+    true_copy_number: "${(incoming.body.trueCopyNumber || '').trim()}"
+    vehicle_registration_number: "${(incoming.body.vehicleRegistrationNumber || '').trim()}"
+    all_vehicles: "${(incoming.body.allVehicles || '') === 'true' || incoming.body.allVehicles === true}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  timeout: 35000
+  args:
+    url: "[#LJVIS_XTR]/mtr/checkCommunityLicence"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      transportUndertakingName: ${transport_undertaking_name}
+      trueCopyNumber: ${true_copy_number}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      allVehicles: ${all_vehicles}
+      userId: "EEERRU-CTUD-INBOUND"
+  result: xtrResponse
+  next: checkXtrStatus
+
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "mtr.checkCommunityLicence.v1"
+      request_xml: "${'businessCaseId=' + business_case_id + ';transportUndertakingName=' + transport_undertaking_name + ';trueCopyNumber=' + true_copy_number}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "erru_ctud_inbound"
+      source_record_id: ""
+  result: logResult
+  next: mapResponse
+
+# Kept byte-identical to xroad/mtr/check-community-licence.yml's mapResponse —
+# see that file's comments for the WSDL-confirmed field/status details.
+mapResponse:
+  assign:
+    soap_body: "${(xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {})}"
+  next: findResponseKey
+
+findResponseKey:
+  assign:
+    response_key: "${Object.keys(soap_body).find(k => k.endsWith('checkCommunityLicenceResponse'))}"
+  next: extractResponseNode
+
+extractResponseNode:
+  assign:
+    response_node: "${(response_key ? soap_body[response_key] : {}).response || {}}"
+  next: buildResult
+
+buildResult:
+  assign:
+    result: >-
+      ${(function(){
+        function toArray(x) { return x == null ? [] : (Array.isArray(x) ? x : [x]); }
+        function isNilOrEmpty(v) {
+          return v == null || v === '' || (typeof v === 'object' && (v['@xsi:nil'] === '1' || v['@xsi:nil'] === 'true' || v['@xsi:nil'] === true));
+        }
+        function mapAddress(a) {
+          a = a || {};
+          return { address: a.address || '', postCode: a.postCode || '', city: a.city || '', country: a.country || '' };
+        }
+        function mapLicenceDetails(l) {
+          if (!l) return null;
+          return {
+            communityLicenceNumber: l.communityLicenceNumber || '',
+            communityLicenceStatus: l.communityLicenceStatus || '',
+            communityLicenceType: l.communityLicenceType || '',
+            licencingAuthority: l.licencingAuthority || '',
+            startDate: l.startDate || '',
+            expiryDate: l.expiryDate || '',
+            withdrawalDate: isNilOrEmpty(l.withdrawalDate) ? null : l.withdrawalDate,
+            withdrawalExpiryDate: isNilOrEmpty(l.withdrawalExpiryDate) ? null : l.withdrawalExpiryDate,
+            suspensionDate: isNilOrEmpty(l.suspensionDate) ? null : l.suspensionDate,
+            suspensionExpiryDate: isNilOrEmpty(l.suspensionExpiryDate) ? null : l.suspensionExpiryDate,
+            numberOfVehicles: l.numberOfVehicles != null ? Number(l.numberOfVehicles) : 0
+          };
+        }
+        function mapTrueCopyDetails(c) {
+          if (!c) return null;
+          return {
+            trueCopyNumber: c.trueCopyNumber || '',
+            trueCopyIssueDate: c.trueCopyIssueDate || '',
+            trueCopyIssueCountry: c.trueCopyIssueCountry || '',
+            trueCopyExpiryDate: isNilOrEmpty(c.trueCopyExpiryDate) ? null : c.trueCopyExpiryDate,
+            trueCopyWithdrawalDate: isNilOrEmpty(c.trueCopyWithdrawalDate) ? null : c.trueCopyWithdrawalDate,
+            trueCopyWithdrawalExpiryDate: isNilOrEmpty(c.trueCopyWithdrawalExpiryDate) ? null : c.trueCopyWithdrawalExpiryDate,
+            trueCopySuspensionDate: isNilOrEmpty(c.trueCopySuspensionDate) ? null : c.trueCopySuspensionDate,
+            trueCopySuspensionExpiryDate: isNilOrEmpty(c.trueCopySuspensionExpiryDate) ? null : c.trueCopySuspensionExpiryDate
+          };
+        }
+        function mapVehicle(v) {
+          return { registrationNumber: v.registrationNumber || '', registrationCountry: v.registrationCountry || '' };
+        }
+        function mapStatusCode(s) {
+          var map = { 'leitud': 'Found', 'ei leitud': 'NotFound', 'viga': 'Error' };
+          return map[s] || s || '';
+        }
+        var tu = response_node.transportUndertaking;
+        var transportUndertaking = tu ? {
+          transportUndertakingName: tu.transportUndertakingName || '',
+          address: mapAddress(tu.transportUndertakingAddress),
+          communityLicenceDetails: mapLicenceDetails(tu.communityLicenceDetails),
+          certifiedTrueCopyDetails: mapTrueCopyDetails(tu.certifiedTrueCopyDetails),
+          numberOfEmployees: tu.numberOfEmployees != null ? Number(tu.numberOfEmployees) : 0,
+          vehicles: tu.vehicles && tu.vehicles.vehicle ? toArray(tu.vehicles.vehicle).map(mapVehicle) : []
+        } : null;
+        return {
+          businessCaseId: response_node.businessCaseId || business_case_id,
+          originatingAuthority: response_node.originatingAuthority || '',
+          respondingAuthority: response_node.respondingAuthority || '',
+          statusCode: mapStatusCode(response_node.statusCode),
+          statusMessage: response_node.statusMessage || '',
+          transportUndertaking: transportUndertaking
+        };
+      })()}
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: "${result}"
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "mtr.checkCommunityLicence.v1"
+      request_xml: "${'businessCaseId=' + business_case_id + ';transportUndertakingName=' + transport_undertaking_name + ';trueCopyNumber=' + true_copy_number}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ""
+      source_type: "erru_ctud_inbound"
+      source_record_id: ""
+  result: logResult
+  next: returnXtrError
+
+returnXtrError:
+  status: 502
+  return: '{"error": "XTR_ERROR", "message": "MTR veoettevõtja tegevusloa päring ebaõnnestus"}'
+  next: end
+
+returnMissingParam:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "businessCaseId, transportUndertakingName and trueCopyNumber are required"}'
+  next: end

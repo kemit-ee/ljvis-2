@@ -5,7 +5,9 @@ declaration:
     Fully automatic: no user is involved, no ctud.* permission is required, and the served request
     simply appears in the CTUD list afterwards. Flow: validate the ERRU envelope, store a 'received'
     snapshot, look the undertaking up in Estonian data, then store an 'answered' snapshot carrying the
-    response and return that response in the same call.
+    response and return that response in the same call. If the MTR lookup fails technically (XTR/X-tee
+    error, or MTR's own "viga" status) the request is audited and answered with 502 without an
+    'answered' snapshot, so the requesting state retries rather than recording a false "not found".
 
     TODO(M2M): the specification places this at POST /api/v1/internal/erru/ctud/inbound-request behind
     an OAuth2 machine token. Ruuter has no client-credentials support today — this is a documented gap
@@ -150,35 +152,69 @@ lookupUndertaking:
     headers:
       type: json
     body:
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
       transportUndertakingName: ${undertaking_name}
-      communityLicenceNumber: ${licence_number}
+      trueCopyNumber: ${licence_number}
       vehicleRegistrationNumber: ${vehicle_number}
-      requestAllVehicles: ${all_vehicles}
+      allVehicles: ${all_vehicles}
   result: mtr_res
-  next: checkMtrEnvelope
+  next: buildMtrResponse
 
-# Same dual response shape as the outbound path: the dev/CI stub is a Ruuter DSL and
-# therefore enveloped, real XTR is not.
-checkMtrEnvelope:
-  switch:
-    - condition: ${mtr_res.response.body != null && mtr_res.response.body.response != null}
-      next: extractMtrEnveloped
-  next: extractMtrDirect
 
-extractMtrEnveloped:
+# Known gaps: legalForm (MTR doesn't return it, left null) and riskRating/riskBand
+# (should come from our risk-assessment module, but MTR gives no registryCode to key
+# off of — left at neutral default Grey/0 for now).
+buildMtrResponse:
   assign:
-    resp_status_code: "${JSON.parse(mtr_res.response.body.response).statusCode || ''}"
-    resp_status_message: "${JSON.parse(mtr_res.response.body.response).statusMessage || ''}"
-    resp_authority: "${JSON.parse(mtr_res.response.body.response).respondingAuthority || ''}"
-    resp_content: "${mtr_res.response.body.response}"
+    mtr_body: "${(mtr_res.response.body || {}).response || {}}"
+    tu: "${((mtr_res.response.body || {}).response || {}).transportUndertaking || null}"
+  next: checkMtrStatus
+
+# lookup-mtr.yml tagastab 200 ainult õnnestunud päringu korral (XTR/X-tee tõrge → 502)
+# ja normaliseerib MTR-i "viga" staatuse 'Error'-iks. Kumbki ei ole äriline "ei leitud":
+# tehniline tõrge → audit + 502, päring jääb 'received' seisundisse ja seda saab korrata.
+checkMtrStatus:
+  switch:
+    - condition: "${mtr_res.response == null || mtr_res.response.status == null || mtr_res.response.status >= 400 || mtr_body.statusCode === 'Error'}"
+      next: mtrUnavailableAudit
+    - condition: "${mtr_body.statusCode === 'Found' && tu != null}"
+      next: buildFoundResponse
+  next: buildNotFoundResponse
+
+buildFoundResponse:
+  assign:
+    resp_status_code: "Found"
+    resp_status_message: "${mtr_body.statusMessage || ''}"
+    resp_authority: "${mtr_body.respondingAuthority || 'EE-TRAM'}"
+    resp_content: >-
+      ${JSON.stringify({
+        statusCode: 'Found',
+        statusMessage: mtr_body.statusMessage || '',
+        respondingAuthority: mtr_body.respondingAuthority || 'EE-TRAM',
+        transportUndertakingName: tu.transportUndertakingName || '',
+        legalForm: null,
+        numberOfEmployees: tu.numberOfEmployees || 0,
+        numberOfVehicles: (tu.vehicles || []).length,
+        riskRating: 0,
+        riskBand: 'Grey',
+        searchMethod: 'CommunityLicence',
+        address: tu.address || null,
+        communityLicenceDetails: tu.communityLicenceDetails ? [tu.communityLicenceDetails] : [],
+        certifiedTrueCopyDetails: tu.certifiedTrueCopyDetails ? [tu.certifiedTrueCopyDetails] : [],
+        vehicleRegistrations: all_vehicles === 'true' ? (tu.vehicles || []).map(v => v.registrationNumber) : []
+      })}
   next: storeAnswered
 
-extractMtrDirect:
+# NotFound = MTR vastas edukalt, aga otsitud veoettevõtjat ei leitud ("ei leitud").
+# MTR-i äriline "viga" ja X-tee tehniline tõrge käsitletakse eraldi (checkMtrStatus
+# -> mtrUnavailableAudit), et me ei vastaks küsivale riigile vale eitusega.
+buildNotFoundResponse:
   assign:
-    resp_status_code: "${mtr_res.response.body.statusCode || ''}"
-    resp_status_message: "${mtr_res.response.body.statusMessage || ''}"
-    resp_authority: "${mtr_res.response.body.respondingAuthority || ''}"
-    resp_content: "${JSON.stringify(mtr_res.response.body)}"
+    resp_status_code: "NotFound"
+    resp_status_message: "${mtr_body.statusMessage || ''}"
+    resp_authority: "${mtr_body.respondingAuthority || 'EE-TRAM'}"
+    resp_content: '{"statusCode":"NotFound","statusMessage":"Otsitud veoettevõtjat ei leitud Eesti andmetest","respondingAuthority":"EE-TRAM"}'
   next: storeAnswered
 
 storeAnswered:
@@ -228,6 +264,7 @@ logAudit:
       actor_personal_code: ""
       description: ${audit_description}
       log_content: ${audit_log_content}
+      organisation_id: ""
       created_by: "system"
       trace_id: ""
       span_id: ""
@@ -245,4 +282,40 @@ returnReplayedAnswer:
 returnInvalidData:
   status: 400
   return: '{"statusCode":"InvalidData","statusMessage":"Request does not satisfy the ERRU 3.5 CTUD requirements"}'
+  next: end
+
+# MTR / X-tee tehniline tõrge. Auditeeri (event_id genereerimine byte-identne
+# buildAudit'iga), kuid ära salvesta 'answered' seisundit ega tagasta ärilist
+# vastust — 502 annab küsivale riigile märku päringut korrata.
+mtrUnavailableAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "CTUD sissetuleva päringu teenindamine ebaõnnestus: juhtum ${business_case_id}, küsiv riik ${ctud_from}, MTR/X-tee ei vastanud (HTTP ${(mtr_res.response && mtr_res.response.status) || 'null'}), otsitav veoettevõtja ${undertaking_name}, tegevusloa number ${licence_number}"
+    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['ctudFrom', ctud_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['transportUndertakingName', undertaking_name || null], ['communityLicenceNumber', licence_number || null], ['vehicleRegistrationNumber', vehicle_number || null], ['mtrHttpStatus', (mtr_res.response && mtr_res.response.status) || null], ['mtrStatusCode', (mtr_body && mtr_body.statusCode) || null], ['resultStatus', 'Error']]))}"
+  next: logMtrUnavailableAudit
+
+logMtrUnavailableAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "ctud.inbound_request.serve"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU CTUD inbound service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      organisation_id: ""
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnMtrUnavailable
+
+returnMtrUnavailable:
+  status: 502
+  return: '{"statusCode":"Error","statusMessage":"Estonian transport undertaking register (MTR) is temporarily unavailable, please retry"}'
   next: end

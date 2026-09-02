@@ -272,6 +272,7 @@ logAudit:
       actor_personal_code: ""
       description: ${audit_description}
       log_content: ${audit_log_content}
+      organisation_id: ""
       created_by: "system"
       trace_id: ""
       span_id: ""

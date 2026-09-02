@@ -4,7 +4,11 @@ export interface XRoadCompany {
   legalForm?: string;
   status: string;
   statusText: string;
+  /** Full normalized address (street + city + county), e.g. for free-text fields. */
   address: string;
+  /** Street/house part only, e.g. "Uus-Volta tn 9/1-1" (ADS `asukoht_ettevotja_aadressis`). */
+  street: string;
+  /** EHAK name hierarchy from finest to coarsest, e.g. "Põhja-Tallinna linnaosa, Tallinn, Harju maakond". */
   city: string;
   postalCode: string;
 }
@@ -123,4 +127,44 @@ export interface EtoimikCase {
   typeCode?: number;
   caseNumber?: string;
   proceedings: EtoimikProceeding[];
+}
+
+/**
+ * LJVIS2-57: MTR soidukikaart ("tegevusloa kinnitatud ärakiri"/"tõestatud
+ * koopia" register entries) — see DSL/Ruuter/ljvis/POST/v1/xroad/mtr/
+ * soidukikaart.yml for the SOAP->JSON mapping this mirrors.
+ */
+export interface MtrVehicle {
+  registrationNumber: string;
+  make: string;
+  model: string;
+  buildYear: string;
+}
+
+export interface MtrVehicleCard {
+  type: string;
+  registrationNumber: string;
+  area: string;
+  activityArea: string;
+  activityAreaCode: string;
+  registrationDate: string;
+  mtrDetailLink: string;
+  validityStart: string;
+  validityEnd: string;
+  vehicles: MtrVehicle[];
+}
+
+export interface MtrCompany {
+  name: string;
+  registryCode: string;
+  phone: string;
+  fax: string;
+  email: string;
+  website: string;
+  mtrDetailLink: string;
+}
+
+export interface MtrSoidukikaart {
+  company: MtrCompany;
+  vehicleCards: MtrVehicleCard[];
 }

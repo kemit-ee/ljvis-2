@@ -1,21 +1,25 @@
 declaration:
   version: "1.0"
-  description: "MOCK Estonian transport-undertaking lookup — dev and CI only. Stands in for the X-tee MTR checkCommunityLicence service that the inbound CTUD handler must call to answer another member state (see the LJVIS2-142 comment by Eda Rembel). Production points ERRU_MTR_ENDPOINT at the real service via XTR. Match rule is deterministic so tests can rely on it: an undertaking is found when the community licence number is EE-CL-2020-11111 or the name contains EESTI; everything else is not found. riskBand is always Grey — Estonia returns a neutral risk band until the risk-assessment module (EPIC 16) is delivered, exactly as the specification requires."
+  description: "MOCK Estonian transport-undertaking lookup — dev and CI only. Stands in for the X-tee MTR checkCommunityLicence service that the inbound CTUD handler must call to answer another member state (see the LJVIS2-142 comment by Eda Rembel). Production points ERRU_MTR_ENDPOINT at erru/ctud/lookup-mtr.yml (real MTR via XTR) instead. Field names and response shape are kept identical to that real path (DSL/Ruuter/ljvis/POST/v1/xroad/mtr/check-community-licence.yml's buildResult) so ctud/inbound-request.yml's mapping code works unchanged against either. Match rule is deterministic so tests can rely on it: an undertaking is found when trueCopyNumber is EE-CL-2020-11111 or the name contains EESTI; everything else is not found. riskBand is always Grey — Estonia returns a neutral risk band until the risk-assessment module (EPIC 16) is delivered, exactly as the specification requires."
   namespace: erru
   allowlist:
     body:
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
       - field: transportUndertakingName
         type: string
-      - field: communityLicenceNumber
+      - field: trueCopyNumber
         type: string
       - field: vehicleRegistrationNumber
         type: string
-      - field: requestAllVehicles
+      - field: allVehicles
         type: string
 
 selectScenario:
   switch:
-    - condition: ${('' + (incoming.body.communityLicenceNumber || '')).toUpperCase() === 'EE-CL-2020-11111'}
+    - condition: ${('' + (incoming.body.trueCopyNumber || '')).toUpperCase() === 'EE-CL-2020-11111'}
       next: checkAllVehicles
     - condition: ${('' + (incoming.body.transportUndertakingName || '')).toUpperCase().indexOf('EESTI') >= 0}
       next: checkAllVehicles
@@ -23,18 +27,94 @@ selectScenario:
 
 checkAllVehicles:
   switch:
-    - condition: ${('' + (incoming.body.requestAllVehicles || '')) === 'true'}
+    - condition: ${('' + (incoming.body.allVehicles || '')) === 'true'}
       next: returnFoundWithVehicles
   next: returnFound
 
 returnFoundWithVehicles:
-  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"EE-TRAM","transportUndertakingName":"AS EESTI VEOD","legalForm":"AS","numberOfEmployees":63,"numberOfVehicles":24,"riskRating":0,"riskBand":"Grey","searchMethod":"CommunityLicence","address":{"address":"Tartu mnt 12","postCode":"10145","city":"Tallinn","country":"EE"},"communityLicenceDetails":[{"communityLicenceNumber":"EE-CL-2020-11111","communityLicenceStatus":"Active","communityLicenceType":"CommunityLicenceGoods","startDate":"2020-06-01","expiryDate":"2030-05-31","withdrawalDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":null,"licencingAuthority":"EE-TRAM"}],"certifiedTrueCopyDetails":[{"trueCopyNumber":"EE-CL-2020-11111-001","trueCopyIssueDate":"2020-06-01","trueCopyExpiryDate":"2030-05-31","trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null,"trueCopyWithdrawalDate":null}],"vehicleRegistrations":["123ABC","456DEF","789GHI"]}'
-  next: end
+  assign:
+    result: >-
+      ${(function(){
+        return {
+          businessCaseId: incoming.body.businessCaseId || '',
+          originatingAuthority: incoming.body.originatingAuthority || '',
+          respondingAuthority: 'EE-TRAM',
+          statusCode: 'Found',
+          statusMessage: '',
+          transportUndertaking: {
+            transportUndertakingName: 'AS EESTI VEOD',
+            address: { address: 'Tartu mnt 12', postCode: '10145', city: 'Tallinn', country: 'EE' },
+            communityLicenceDetails: {
+              communityLicenceNumber: 'EE-CL-2020-11111', communityLicenceStatus: 'Active',
+              communityLicenceType: 'CommunityLicenceGoods', licencingAuthority: 'EE-TRAM',
+              startDate: '2020-06-01', expiryDate: '2030-05-31',
+              withdrawalDate: null, withdrawalExpiryDate: null, suspensionDate: null, suspensionExpiryDate: null,
+              numberOfVehicles: 3
+            },
+            certifiedTrueCopyDetails: {
+              trueCopyNumber: 'EE-CL-2020-11111-001', trueCopyIssueDate: '2020-06-01', trueCopyIssueCountry: 'EE',
+              trueCopyExpiryDate: '2030-05-31', trueCopyWithdrawalDate: null, trueCopyWithdrawalExpiryDate: null,
+              trueCopySuspensionDate: null, trueCopySuspensionExpiryDate: null
+            },
+            numberOfEmployees: 63,
+            vehicles: [
+              { registrationNumber: '123ABC', registrationCountry: 'EE' },
+              { registrationNumber: '456DEF', registrationCountry: 'EE' },
+              { registrationNumber: '789GHI', registrationCountry: 'EE' }
+            ]
+          }
+        };
+      })()}
+  next: returnResult
 
 returnFound:
-  return: '{"statusCode":"Found","statusMessage":"","respondingAuthority":"EE-TRAM","transportUndertakingName":"AS EESTI VEOD","legalForm":"AS","numberOfEmployees":63,"numberOfVehicles":24,"riskRating":0,"riskBand":"Grey","searchMethod":"CommunityLicence","address":{"address":"Tartu mnt 12","postCode":"10145","city":"Tallinn","country":"EE"},"communityLicenceDetails":[{"communityLicenceNumber":"EE-CL-2020-11111","communityLicenceStatus":"Active","communityLicenceType":"CommunityLicenceGoods","startDate":"2020-06-01","expiryDate":"2030-05-31","withdrawalDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"suspensionOrWithdrawalReason":null,"licencingAuthority":"EE-TRAM"}],"certifiedTrueCopyDetails":[{"trueCopyNumber":"EE-CL-2020-11111-001","trueCopyIssueDate":"2020-06-01","trueCopyExpiryDate":"2030-05-31","trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null,"trueCopyWithdrawalDate":null}],"vehicleRegistrations":[]}'
-  next: end
+  assign:
+    result: >-
+      ${(function(){
+        return {
+          businessCaseId: incoming.body.businessCaseId || '',
+          originatingAuthority: incoming.body.originatingAuthority || '',
+          respondingAuthority: 'EE-TRAM',
+          statusCode: 'Found',
+          statusMessage: '',
+          transportUndertaking: {
+            transportUndertakingName: 'AS EESTI VEOD',
+            address: { address: 'Tartu mnt 12', postCode: '10145', city: 'Tallinn', country: 'EE' },
+            communityLicenceDetails: {
+              communityLicenceNumber: 'EE-CL-2020-11111', communityLicenceStatus: 'Active',
+              communityLicenceType: 'CommunityLicenceGoods', licencingAuthority: 'EE-TRAM',
+              startDate: '2020-06-01', expiryDate: '2030-05-31',
+              withdrawalDate: null, withdrawalExpiryDate: null, suspensionDate: null, suspensionExpiryDate: null,
+              numberOfVehicles: 3
+            },
+            certifiedTrueCopyDetails: {
+              trueCopyNumber: 'EE-CL-2020-11111-001', trueCopyIssueDate: '2020-06-01', trueCopyIssueCountry: 'EE',
+              trueCopyExpiryDate: '2030-05-31', trueCopyWithdrawalDate: null, trueCopyWithdrawalExpiryDate: null,
+              trueCopySuspensionDate: null, trueCopySuspensionExpiryDate: null
+            },
+            numberOfEmployees: 63,
+            vehicles: []
+          }
+        };
+      })()}
+  next: returnResult
 
 returnNotFound:
-  return: '{"statusCode":"NotFound","statusMessage":"Otsitud veoettevõtjat ei leitud Eesti andmetest","respondingAuthority":"EE-TRAM"}'
+  assign:
+    result: >-
+      ${(function(){
+        return {
+          businessCaseId: incoming.body.businessCaseId || '',
+          originatingAuthority: incoming.body.originatingAuthority || '',
+          respondingAuthority: 'EE-TRAM',
+          statusCode: 'NotFound',
+          statusMessage: 'Otsitud veoettevõtjat ei leitud Eesti andmetest',
+          transportUndertaking: null
+        };
+      })()}
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: "${result}"
   next: end
