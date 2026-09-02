@@ -1,25 +1,45 @@
 declaration:
   version: "1.0"
   description: >-
-    WebSocket keep-alive endpoint teavituste reaalajas uuenduste jaoks.
-    Frontend ühendab siia: ws://<host>/ljvis/notifications/connect
+    WebSocket endpoint teavituste reaalajas uuenduste jaoks.
+    Frontend ühendab: ws://<host>/ljvis/notifications/connect (nginx `/api/` proxy).
 
-    Ruuter registreerib iga ühenduse WsRegistry-sse "client:<hex>" nimeliselt.
-    Kui Ruuter.internal notification/create.yml loob uue teavituse,
-    saadab see ws_send broadcast_prefix: "client:" signaali kõigile
-    ühendatud frontendidele.
+    Iga sissetulev frame (frontend saadab {"type":"hello"} avamisel ja
+    {"type":"ping"} iga 30 s) autendib ühenduse uuesti templates/check-user-authority
+    kaudu (TIM jwt/userinfo → sessiooni aegumise/tühistamise kontroll). Kehtiva
+    sessiooni korral vastab {"type":"ack"}, muidu {"type":"unauthorized"} (frontend
+    lõpetab seepeale reconnect'i).
 
-    Iga sissetulev frame (nt kliendi heartbeat {"type":"ping"}) saab ACK vastuse.
-    Ühenduse hoidmine on piisav — frontendil ei ole vaja regulaarselt frameid saata.
-
-    Turvalisus: broadcast payload sisaldab ainult {type: "notification_update"} —
-    ei edastata kasutajaandmeid. Iga frontend teeb seejärel oma authenticated
-    HTTP GET /v1/notifications/unread-count päringu oma sessiooni alusel.
+    Push: Ruuter.internal notification/create.yml kutsub peale teavituse loomist
+    POST /v1/ws-broadcast, mis teeb ws_send broadcast_prefix "client:" — sisutu
+    {"type":"notification_update"} signaali kõigile ühendatud frontendidele. WS-üle
+    EI edastata kasutajaandmeid; iga frontend teeb oma autenditud
+    GET /v1/notifications/unread-count päringu.
   namespace: notification
 
-ack:
+route:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: checkAuth
+
+checkAuth:
+  switch:
+    - condition: ${u !== "false" && u != null && u.personalcode != null}
+      next: ackOk
+  next: denyAuth
+
+ackOk:
   ws_send:
     payload:
       type: "ack"
       connection_id: "${incoming.connection_id}"
+  next: end
+
+denyAuth:
+  ws_send:
+    payload:
+      type: "unauthorized"
   next: end
