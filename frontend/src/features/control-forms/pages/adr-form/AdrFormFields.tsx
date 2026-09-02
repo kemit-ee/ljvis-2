@@ -6,7 +6,6 @@ import {
   ChoiceGroup,
   TextField,
   TextArea,
-  DateField,
   Select,
   Button,
   Alert,
@@ -18,6 +17,7 @@ import type { AddressFieldsValue } from '../../components/shared/AddressFields';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { COUNTRIES } from '../../../../constants/constants';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../../components/shared/MaskedDateField';
 import type { useAdrForm } from './useAdrForm';
 import styles from './AdrFormFields.module.css';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
@@ -227,7 +227,7 @@ export function AdrFormFields({
             <div
               className={isDesktop ? 'date-row-desktop-50' : 'date-row-mobile'}
             >
-              <DateField
+              <MaskedDateField
                 id={`${idPrefix}driverAssistantBirthDate`}
                 label={t('forms.adr.driverAssistant.birthDate')}
                 monthYearSelectType="grid"
@@ -326,7 +326,7 @@ export function AdrFormFields({
             <div
               className={isDesktop ? 'date-row-desktop-50' : 'date-row-mobile'}
             >
-              <DateField
+              <MaskedDateField
                 id={`${idPrefix}lastLoadDate`}
                 label={t('forms.adr.lastLoad.date')}
                 monthYearSelectType="grid"
@@ -735,7 +735,7 @@ export function AdrFormFields({
                     isDesktop ? 'date-row-desktop-50' : 'date-row-mobile'
                   }
                 >
-                  <DateField
+                  <MaskedDateField
                     id={`${idPrefix}sealOpenedDate`}
                     label={t('forms.adr.result.sealOpenedDate')}
                     monthYearSelectType="grid"
@@ -762,7 +762,7 @@ export function AdrFormFields({
                     isDesktop ? 'date-row-desktop-50' : 'date-row-mobile'
                   }
                 >
-                  <DateField
+                  <MaskedDateField
                     id={`${idPrefix}sealInstalledDate`}
                     label={t('forms.adr.result.sealInstalledDate')}
                     monthYearSelectType="grid"

@@ -7,10 +7,10 @@ import {
   TextArea,
   TextField,
   Text,
-  DateField,
   Alert,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../../components/shared/MaskedDateField';
 import type { ClassifierEntry } from '../../../classifiers/types';
 import type { Trailer } from '../../types';
 import type {
@@ -475,7 +475,7 @@ export function TechnicalCheckFormFields({
             <Heading element="h3" className="mb-1">
               {t('forms.technical_check.xroad.title')}
             </Heading>
-            <DateField
+            <MaskedDateField
               id="extraordinaryInspectionDate"
               monthYearSelectType="grid"
               label={t(

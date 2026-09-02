@@ -464,9 +464,17 @@ Migratsioon: `20260828274000-initial-technical-check-classifiers.sql`
 Kolm klassifikaatorit tehnilise kontrolli ja haagise kontrollvormide jaoks (kategooriad ning massi- ja mõõdunõuete rikkumiskoodid).
 
 ### Välisriigi rikkumine — EU_INFRINGEMENT, CARGO_CABOTAGE_VIOLATION, PASSENGER_CABOTAGE_VIOLATION
-Migratsioon: `20260828275000-initial-foreign-infringement-classifiers.sql`
+Migratsioon: `20260828275000-initial-foreign-infringement-classifiers.sql`; raskusastmed viidud 2016/403 I lisaga kooskõlla migratsiooniga `20260901110000-eu-infringement-annex-severity-alignment.sql`.
 
-Kolm klassifikaatorit välisriigi rikkumise kontrollvormi jaoks (EL rikkumiste tüübid, veose ja sõitjateveo kabotaažrikkumised).
+Kolm klassifikaatorit välisriigi rikkumise kontrollvormi jaoks (EL rikkumiste tüübid, veose ja sõitjateveo kabotaažrikkumised). `EU_INFRINGEMENT` katab komisjoni määruse (EL) 2016/403 I lisa kõiki 14 jaotist.
+
+### ADR rikkumised — DANGEROUS_GOODS_INFRINGEMENTS_NEW
+Migratsioon: `20260901120000-dangerous-goods-infringements-classifier.sql`
+
+2-tasemeline klassifikaator ohtliku veose (ADR) kontrollvormi rikkumiste loendi jaoks. Allikas: 2016/403 I lisa jaotis 9 (direktiiv 2008/68/EÜ), 24 rida, 3 rühma raskusastme järgi.
+
+### Reg 2016/403 I lisa kaardistus
+Ülevaade, milline klassifikaator kannab I lisa iga jaotist: [`rikkumiste-klassifikaatorid-2016-403.md`](rikkumiste-klassifikaatorid-2016-403.md).
 
 ### Tööinspektsioon — TRANSPORT_CLASS, DOC_RIGHT_CHECK
 Migratsioon: `20260828276000-initial-labour-inspection-classifiers.sql`
@@ -477,6 +485,8 @@ Kaks klassifikaatorit tööinspektsiooni kontrollakti jaoks (transpordiliikide k
 Migratsioon: `20260828277000-initial-sp-form-classifiers.sql`
 
 Kolm klassifikaatorit sõidu- ja puhkeaja kontrollvormide jaoks. DRIVING_VIOLATION on kolmetasemeline hierarhia MSI-, VSI- ja SI-rikkumiskoodidega.
+
+Täielik kirjete loend koos õigusakti, artikli, läviväärtuse, raskusastme ja allikaga: [`soidu-puhkeaeg-rikkumiste-klassifikaatorid.md`](soidu-puhkeaeg-rikkumiste-klassifikaatorid.md).
 
 ---
 

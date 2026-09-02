@@ -1358,7 +1358,7 @@
     "forbidden": "Teil puudub ligipääs sellele lehele",
     "noResults": "Päring ei tagastanud ühtegi tulemust",
     "dateFieldPlaceholder": "PP.KK.AAAA",
-    "timeFieldPlaceholder": "HH.MM",
+    "timeFieldPlaceholder": "HH:MM",
     "numberPlaceholder": "Nr",
     "select": "Vali",
     "errors": {
