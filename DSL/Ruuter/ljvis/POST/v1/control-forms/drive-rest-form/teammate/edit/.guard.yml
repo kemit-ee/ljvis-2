@@ -1,0 +1,16 @@
+# Nõutav õigus: sp_teammate_form.write. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+check:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('sp_teammate_form.write')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end
