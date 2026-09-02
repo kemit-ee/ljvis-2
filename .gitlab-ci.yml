@@ -32,17 +32,17 @@ workflow:
     - when: never
 
 include:
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/release-version@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/release-version@6.5.0
     inputs: { base: $VERSION_BASE, arch: arm64 }
 
   # Sonar runs on amd64 because the pinned scanner image has no arm64 variant.
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/sonar-scan@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/sonar-scan@6.5.0
     inputs:
       name: frontend
       sources: frontend
       quality_gate: false
       extra_args: "-Dsonar.exclusions=**/node_modules/**,**/dist/**"
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/sonar-scan@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/sonar-scan@6.5.0
     inputs:
       name: backend
       sources: DSL
@@ -50,45 +50,45 @@ include:
       extra_args: "-Dsonar.exclusions=**/draft/**,**/test/**"
   - template: Security/Secret-Detection.gitlab-ci.yml
 
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: ruuter, image_path: ruuter/images, dockerfile: docker/ruuter/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: ruuter-internal, image_path: ruuter-internal/images, dockerfile: docker/ruuter-internal/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: xtr, image_path: xtr/images, dockerfile: docker/xtr/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: frontend, image_path: frontend/images, dockerfile: frontend/Dockerfile, context: frontend, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: s3-proxy, image_path: s3-proxy/images, dockerfile: docker/s3-proxy/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: liquibase, image_path: liquibase/images, dockerfile: docker/liquibase/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: resql-ljvis, image_path: resql-ljvis/images, dockerfile: docker/resql-ljvis/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: data-mapper, image_path: data-mapper/images, dockerfile: docker/data-mapper/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.5.0
     inputs: { name: tim, image_path: tim/images, dockerfile: docker/tim/Dockerfile.release, version: $RELEASE_VERSION, arch: arm64 }
 
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: ruuter, service_code: $SERVICECODE, project: $SERVICECODE, image_path: ruuter/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: ruuter-internal, service_code: $SERVICECODE, project: $SERVICECODE, image_path: ruuter-internal/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: xtr, service_code: $SERVICECODE, project: $SERVICECODE, image_path: xtr/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: frontend, service_code: $SERVICECODE, project: $SERVICECODE, image_path: frontend/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: s3-proxy, service_code: $SERVICECODE, project: $SERVICECODE, image_path: s3-proxy/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: liquibase, service_code: $SERVICECODE, project: $SERVICECODE, image_path: liquibase/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: resql-ljvis, service_code: $SERVICECODE, project: $SERVICECODE, image_path: resql-ljvis/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: data-mapper, service_code: $SERVICECODE, project: $SERVICECODE, image_path: data-mapper/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.5.0
     inputs: { name: tim, service_code: $SERVICECODE, project: $SERVICECODE, image_path: tim/images, version: $RELEASE_VERSION, arch: arm64 }
 
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/release-pin@6.4.1
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/release-pin@6.5.0
     inputs:
       environment: dev
       repository: gitlab.kemitaws.ee/services/ljvis2/devops.git
