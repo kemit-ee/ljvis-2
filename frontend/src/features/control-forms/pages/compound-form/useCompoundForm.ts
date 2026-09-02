@@ -153,35 +153,41 @@ export function useCompoundForm(
   const counties = useMemo(
     () =>
       getByCode('EHAK')
-        .filter((e) => e.parentKey === null)
+        .filter((e) => e.parentKey === null && e.isValid !== false)
         .map((e) => ({ id: e.classifierValueKey, name: e.name })),
     [getByCode],
   );
 
   const roads = useMemo(
     () =>
-      getByCode('ROAD_NAME').map((e) => ({
-        code: e.code,
-        name: e.name,
-      })),
+      getByCode('ROAD_NAME')
+        .filter((e) => e.isValid !== false)
+        .map((e) => ({
+          code: e.code,
+          name: e.name,
+        })),
     [getByCode],
   );
 
   const trailerCategories = useMemo(
     () =>
-      getByCode('TRAILER_CATEGORY').map((e) => ({
-        code: e.code,
-        name: e.name,
-      })),
+      getByCode('TRAILER_CATEGORY')
+        .filter((e) => e.isValid !== false)
+        .map((e) => ({
+          code: e.code,
+          name: e.name,
+        })),
     [getByCode],
   );
 
   const vehicleCategories = useMemo(
     () =>
-      getByCode('VEHICLE_CATEGORY').map((e) => ({
-        code: e.code,
-        name: e.name,
-      })),
+      getByCode('VEHICLE_CATEGORY')
+        .filter((e) => e.isValid !== false)
+        .map((e) => ({
+          code: e.code,
+          name: e.name,
+        })),
     [getByCode],
   );
 
@@ -513,7 +519,7 @@ export function useCompoundForm(
       String(authUser?.organisationid ?? '');
     const org = organisations.find((o) => String(o.id) === String(orgId));
     return getByCode('STRUCTURE_UNIT')
-      .filter((e) => !org || e.description === org.code)
+      .filter((e) => e.isValid !== false && (!org || e.description === org.code))
       .map((e) => ({ code: e.code, name: e.name }));
   }, [getByCode, organisations, formik.values.inspectorOrganisationId, authUser?.organisationid]);
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useContainerWidth } from '../../../../hooks/useContainerWidth';
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -40,7 +40,8 @@ type DriverErrors = (Partial<Record<keyof Driver, string>> | undefined)[];
 type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
+import { BREAKPOINTS } from '../../../../constants/constants';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../components/shared/MaskedDateField';
 import { MaskedTimeField } from '../../components/shared/MaskedTimeField';
@@ -312,10 +313,15 @@ export function CompoundFormCreatePage() {
     }
   }, [activeTab]);
 
-  const countries = COUNTRIES.map((country) => ({
-    ...country,
-    label: t(country.labelKey),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  const { getByCode } = useClassifiers();
+  const countries = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .filter((c) => c.isValid !== false)
+        .map((c) => ({ value: c.code, label: c.name }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [getByCode],
+  );
 
   const {
     formik,

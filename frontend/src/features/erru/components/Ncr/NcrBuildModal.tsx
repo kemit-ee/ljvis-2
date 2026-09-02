@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Modal, Select } from '@tedi-design-system/react/tedi';
@@ -30,9 +30,21 @@ export function NcrBuildModal({ spFormKey, spFormType, open, onClose }: NcrBuild
   const { getByCode } = useClassifiers();
   const { organisations } = useOrganisations();
 
-  const countries = getByCode('COUNTRY');
-  const requestSources = getByCode('NCR_REQUEST_SOURCE');
-  const requestPurposes = getByCode('NCR_REQUEST_PURPOSE');
+  // Only currently-valid (non-expired) classifier values may be selected for
+  // a new NCR request; already-recorded (possibly since-expired) values are
+  // still rendered correctly elsewhere via the unfiltered classifier list.
+  const countries = useMemo(
+    () => getByCode('COUNTRY').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const requestSources = useMemo(
+    () => getByCode('NCR_REQUEST_SOURCE').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const requestPurposes = useMemo(
+    () => getByCode('NCR_REQUEST_PURPOSE').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
 
   const [ncrTo, setNcrTo] = useState('');
   const [originatingAuthority, setOriginatingAuthority] = useState('');

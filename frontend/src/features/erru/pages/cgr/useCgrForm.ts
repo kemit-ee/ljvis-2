@@ -27,10 +27,10 @@ export function useCgrForm(
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode } = useClassifiers();
 
-  const countries = useMemo(() => getByCode('COUNTRY'), [getByCode]);
-  const authorities = useMemo(() => getByCode('COMPETENT_AUTHORITY'), [getByCode]);
-  const requestSources = useMemo(() => getByCode('CGR_REQUEST_SOURCE'), [getByCode]);
-  const requestPurposes = useMemo(() => getByCode('CGR_REQUEST_PURPOSE'), [getByCode]);
+  const countries = useMemo(() => getByCode('COUNTRY').filter((c) => c.isValid !== false), [getByCode]);
+  const authorities = useMemo(() => getByCode('COMPETENT_AUTHORITY').filter((c) => c.isValid !== false), [getByCode]);
+  const requestSources = useMemo(() => getByCode('CGR_REQUEST_SOURCE').filter((c) => c.isValid !== false), [getByCode]);
+  const requestPurposes = useMemo(() => getByCode('CGR_REQUEST_PURPOSE').filter((c) => c.isValid !== false), [getByCode]);
 
   const required = t(`${T}.required`);
 

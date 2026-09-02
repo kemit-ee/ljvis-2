@@ -90,7 +90,7 @@ export function useAdrForm(
   const counties = useMemo(
     () =>
       getByCode('EHAK')
-        .filter((e) => e.parentKey === null)
+        .filter((e) => e.parentKey === null && e.isValid !== false)
         .map((e) => ({ id: e.classifierValueKey, name: e.name })),
     [getByCode],
   );
