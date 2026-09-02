@@ -56,7 +56,7 @@ callXtr:
   call: http.post
   timeout: 35000
   args:
-    url: "[#LJVIS_XTR_TEST]/mtr/checkCommunityLicence"
+    url: "[#LJVIS_XTR]/mtr/checkCommunityLicence"
     headers:
       type: json
     body:

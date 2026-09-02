@@ -61,7 +61,7 @@ callXtr:
   call: http.post
   timeout: 35000
   args:
-    url: "[#LJVIS_XTR_TEST]/mtr/soidukikaart"
+    url: "[#LJVIS_XTR]/mtr/soidukikaart"
     headers:
       type: json
     body:

@@ -107,7 +107,7 @@ callXtr:
   call: http.post
   timeout: 35000
   args:
-    url: "[#LJVIS_XTR_TEST]/mtr/checkTransportManagerGoodRepute"
+    url: "[#LJVIS_XTR]/mtr/checkTransportManagerGoodRepute"
     headers:
       type: json
     body:
