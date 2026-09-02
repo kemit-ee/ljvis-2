@@ -1,0 +1,18 @@
+# GET /v1/notifications/* — piisab kehtivast sessioonist (list.yml, unread-count.yml
+# loevad auth_user.personalcode / .permissions). outbound-log/ kaustal on oma rangem
+# .guard (notification.admin). auth_user tuleb projektiülesest guardist.
+check:
+  switch:
+    - condition: ${auth_user.personalcode != null}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

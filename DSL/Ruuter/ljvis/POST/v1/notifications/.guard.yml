@@ -1,0 +1,18 @@
+# POST /v1/notifications/* — piisab kehtivast sessioonist (loob/märgib teavitusi;
+# DSL-id loevad auth_user.personalcode). resend/ kaustal on oma rangem
+# .guard (notification.admin).
+check:
+  switch:
+    - condition: ${auth_user.personalcode != null}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end
