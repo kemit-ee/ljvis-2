@@ -144,6 +144,66 @@ jobs:
           count=$(find DSL/Resql DSL/Liquibase/changelog -name '*.sql' | wc -l | tr -d ' ')
           echo "✅ $count SQL files non-empty"
 
+  # ── 1b. Guard audit (Ruuter boot + /_/unguarded) ───────────────────────────
+  # Boots the pinned Ruuter image against each DSL tree. Catches broken YAML,
+  # dangling next:/template: targets (boot fails) AND any HTTP route with zero
+  # applicable guards (/_/unguarded). Replaces `dsl-lint --require-guard`, which
+  # is not shipped in the runtime image.
+  guard-audit:
+    name: Guard Audit
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve pinned Ruuter image
+        id: img
+        run: echo "ref=$(grep -m1 '^FROM ' docker/ruuter/Dockerfile | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Audit both DSL trees
+        run: |
+          set -euo pipefail
+          IMG='${{ steps.img.outputs.ref }}'
+          docker pull -q "$IMG"
+          # require_guards=1 → also assert 0 unguarded routes (public gateway).
+          # Ruuter.internal is IP-restricted, not guard-restricted → boot check only.
+          fail=0
+          for tree in "DSL/Ruuter/ljvis:ruuter.yaml:1" "DSL/Ruuter.internal/ljvis:ruuter-internal.yaml:0"; do
+            dir=$(echo "$tree" | cut -d: -f1); cfg=$(echo "$tree" | cut -d: -f2); require_guards=$(echo "$tree" | cut -d: -f3)
+            echo "── $dir ──"
+            cid=$(docker run -d --rm -p 8080 \
+              -v "$PWD/$dir:/app/DSL/ljvis:ro" \
+              -v "$PWD/constants.ini:/app/constants.ini:ro" \
+              -v "$PWD/$cfg:/app/ruuter.yaml:ro" \
+              -e RUUTER_ADMIN_ENABLED=true "$IMG")
+            port=$(docker port "$cid" 8080 | head -1 | sed 's/.*://')
+            ok=0
+            for i in $(seq 1 30); do
+              if docker logs "$cid" 2>&1 | grep -q 'Server listening'; then ok=1; break; fi
+              if ! docker ps -q --no-trunc | grep -q "$cid"; then break; fi
+              sleep 1
+            done
+            if [ "$ok" != 1 ]; then
+              echo "❌ $dir — Ruuter did not reach 'Server listening'"; docker logs "$cid" 2>&1 | grep -iE 'error|panic' | tail -20
+              docker rm -f "$cid" >/dev/null 2>&1 || true; fail=1; continue
+            fi
+            if [ "$require_guards" = 1 ]; then
+              # only the ljvis project — the base image also bundles demo/samples projects
+              unguarded=$(curl -sf "http://localhost:$port/_/unguarded" \
+                | python3 -c 'import sys,json; print(len(json.load(sys.stdin)["projects"]["ljvis"]["unguarded"]))')
+              docker rm -f "$cid" >/dev/null 2>&1 || true
+              if [ "$unguarded" != 0 ]; then
+                echo "❌ $dir — $unguarded unguarded route(s)"; fail=1
+              else
+                echo "✅ $dir — boots clean, 0 unguarded routes"
+              fi
+            else
+              docker rm -f "$cid" >/dev/null 2>&1 || true
+              echo "✅ $dir — boots clean (guard check skipped: IP-restricted)"
+            fi
+          done
+          exit $fail
+
   # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
   # Runs after E2E so the security checks are the final CI validation stage.
   # Secret findings are blocking on main, but remain advisory on dev.
@@ -327,6 +387,7 @@ jobs:
     if: always()
     needs:
       - validate-dsl
+      - guard-audit
       - security-scan
       - e2e
       - frontend-lint
@@ -338,6 +399,7 @@ jobs:
         run: |
           echo "Job results:"
           echo "  validate-dsl:        ${{ needs.validate-dsl.result }}"
+          echo "  guard-audit:         ${{ needs.guard-audit.result }}"
           echo "  security-scan:       ${{ needs.security-scan.result }}"
           echo "  e2e:                 ${{ needs.e2e.result }}"
           echo "  frontend-lint:       ${{ needs.frontend-lint.result }}"
@@ -348,6 +410,7 @@ jobs:
           failed=""
           for result in \
             "${{ needs.validate-dsl.result }}" \
+            "${{ needs.guard-audit.result }}" \
             "${{ needs.security-scan.result }}" \
             "${{ needs.e2e.result }}" \
             "${{ needs.frontend-lint.result }}" \
