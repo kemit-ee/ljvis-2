@@ -1,0 +1,49 @@
+# Projektiülene guard (Ruuter issue #39) — rakendub KÕIGILE ljvis HTTP-route'idele,
+# igal meetodil, kõige välimise guardina. Teeb ametniku-sessiooni kontrolli ÜHE korra:
+# TIM userinfo + LJVIS kasutaja/õiguste otsing (templates/check-user-authority).
+#
+# Edastab tulemuse muutujas `auth_user` nii alamkaustade permission-guardidele kui ka
+# handleritele (guard-side assign jõuab mõlemani — kontrollitud 0.9.7-rc peal). Seega
+# ei pea ükski permission-guard ega handler enam ise check-user-authority't kutsuma.
+#
+# Erandid (bypass'ivad selle guardi `declaration.override_ancestors: true` kaudu):
+#   - POST|GET /auth/**            — avalik login (allow-all guardid)
+#   - **/mock/**                   — dev/CI mock'id (allow-all guardid)
+#   - GET|POST /v1/citizen/**      — TARA kodaniku-sessioon (templates/citizen-authority)
+#
+# OPTIONS (CORS preflight) käsitletakse framework-tasemel enne guarde — siia ei jõua.
+
+check_cookie:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: deny
+  next: authenticate
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check_auth
+
+check_auth:
+  switch:
+    - condition: ${u !== "false" && u.personalcode != null}
+      next: pass
+  next: deny
+
+pass:
+  assign:
+    auth_user: ${u}
+  next: allow
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 401
+  return: "unauthorized"
+  next: end
