@@ -12,10 +12,11 @@ DSL/
   Ruuter/             — public-facing API endpoints (requires authentication)
     ljvis/
       GET/            — GET endpoints
+        templates/    — shared reusable sub-workflows (called in-process, not exposed as public routes)
+          validate/   — field format validators (email, personal code)
+          user/       — user-entity validation templates
+          audit/      — audit-event writers
       POST/           — POST endpoints
-      TEMPLATES/      — shared reusable sub-workflows (not exposed as HTTP endpoints)
-        validate/     — field format validators (email, personal code)
-        user/         — user-entity validation templates
 
   Ruuter.internal/    — internal endpoints (restricted to internal IPs only)
     ljvis/
@@ -26,14 +27,34 @@ DSL/
   Liquibase/          — database schema migrations
 ```
 
+## Guards (authentication & authorisation)
+
+`ljvis` uses a **project-level guard** — `DSL/Ruuter/ljvis/.guard.yml` (Ruuter issue #39) —
+which runs as the outermost guard on every route and every HTTP method. It authenticates the
+session against TIM once (`templates/check-user-authority`) and passes the resolved user
+object to every downstream guard and handler as `${auth_user}`.
+
+- Per-resource `<dir>/.guard.yml` files are then just a permission `switch` on
+  `${auth_user.permissions}` — no re-authentication.
+- Guards stack (project → method-root → path-ancestors → target); all must pass.
+- `declaration.override_ancestors: true` replaces all ancestors for a subtree — used for
+  public routes (`auth/**`), dev mocks (`**/mock/**`), citizen TARA sessions
+  (`v1/citizen/**`), and the standalone ERRU verb guards.
+- Guard files use the `.guard.yml` extension (YAML tooling, `dsl-lint` globs). The bare
+  `.guard` form also loads but is discouraged.
+- CI (`guard-audit` job) boots the pinned Ruuter image and fails if `GET /_/unguarded`
+  reports any route with zero applicable guards.
+
 ## Template Pattern (shared reusable logic)
 
-Templates live in `TEMPLATES/` and are called in-process (no HTTP overhead) using `requestType: templates`.
+Templates live in `GET/templates/` and are called in-process (no HTTP overhead). Ruuter
+resolves `template: "templates/<name>"` against `GET/templates/<name>.yml` (the `requestType`
+selects the method directory; templates are authored under `GET/`).
 
 ```yaml
 some_step:
-  template: "[#LJVIS_PROJECT_LAYER]/template-name"
-  requestType: templates
+  template: "templates/template-name"
+  requestType: GET
   body:
     field_name: ${variable}
   result: resultVar

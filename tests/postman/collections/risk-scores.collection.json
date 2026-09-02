@@ -895,7 +895,7 @@
       ]
     },
     {
-      "name": "[Admin List] 403 without auth cookie",
+      "name": "[Admin List] 401 without auth cookie",
       "request": {
         "method": "GET",
         "header": [],
@@ -918,7 +918,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('403', () => pm.response.to.have.status(403));"
+              "pm.test('401', () => pm.response.to.have.status(401));"
             ]
           }
         }

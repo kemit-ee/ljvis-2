@@ -16,7 +16,7 @@ declaration:
       5. Append a 'responded' snapshot via append-transition.sql (sent → responded),
          carrying responseStatusCode and responseStatusMessage.
       6. Write audit (rsi.inbound_response.receive) directly to Resql — ruuter-internal
-         cannot reach the main Ruuter instance's TEMPLATES/audit chain.
+         cannot reach the main Ruuter instance's GET/templates/audit chain.
 
     Idempotency: uq_rsi_outbound_response_workflow_id (partial unique index on workflow_id
     WHERE direction='outgoing' AND status='responded') ensures that even if this endpoint

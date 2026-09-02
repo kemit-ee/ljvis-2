@@ -16,7 +16,7 @@ declaration:
          EE-registered vehicles → OK; others → NotFound.
       5. Store an 'answered' snapshot with the response_status_code.
       6. Write audit (rsi.inbound_request.serve) directly to Resql — ruuter-internal
-         cannot reach the main Ruuter instance's TEMPLATES/audit chain.
+         cannot reach the main Ruuter instance's GET/templates/audit chain.
 
     Unlike CGR inbound, RSI has no Heartbeat handling (per LJVIS2-146 §Testimine: RSI
     does not use the Heartbeat requestPurpose — the notification channel carries only

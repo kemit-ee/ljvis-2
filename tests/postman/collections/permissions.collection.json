@@ -91,7 +91,7 @@
       ]
     },
     {
-      "name": "GET /v1/permissions — no cookie → 403",
+      "name": "GET /v1/permissions — no cookie → 401",
       "request": {
         "method": "GET",
         "header": [],
@@ -112,7 +112,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Returns 403 without cookie', () => pm.response.to.have.status(403));"
+              "pm.test('Returns 401 without cookie', () => pm.response.to.have.status(401));"
             ]
           }
         }
