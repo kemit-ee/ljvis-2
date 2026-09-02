@@ -5,15 +5,16 @@ import { Button, Modal, Text } from '@tedi-design-system/react/tedi';
 interface DeleteConfirmModalProps {
   onDelete: () => void;
   subForm?: boolean;
+  trailerSubForm?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
 }
 
-export function DeleteConfirmModal({ onDelete, subForm, isOpen, onClose }: DeleteConfirmModalProps) {
+export function DeleteConfirmModal({ onDelete, subForm, trailerSubForm, isOpen, onClose }: DeleteConfirmModalProps) {
   const { t } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(false);
-  const titleKey = subForm ? 'common.deleteSubConfirmTitle' : 'common.deleteConfirmTitle';
-  const bodyKey = subForm ? 'common.deleteSubConfirm' : 'common.deleteConfirm';
+  const titleKey = trailerSubForm ? 'common.deleteTrailerSubConfirmTitle' : subForm ? 'common.deleteSubConfirmTitle' : 'common.deleteConfirmTitle';
+  const bodyKey = trailerSubForm ? 'common.deleteTrailerSubConfirm' : subForm ? 'common.deleteSubConfirm' : 'common.deleteConfirm';
 
   const controlled = isOpen !== undefined;
   const open = controlled ? isOpen : internalOpen;

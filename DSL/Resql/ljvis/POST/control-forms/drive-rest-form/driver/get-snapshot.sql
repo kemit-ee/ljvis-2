@@ -40,6 +40,8 @@ declaration:
         type: string
       - field: resultType
         type: string
+      - field: additionalMeasure
+        type: string
       - field: proceedingType
         type: string
       - field: proceedingReferenceNumber
@@ -102,6 +104,7 @@ SELECT
   transport_classes::text AS transport_classes,
   cabotage_violations::text AS cabotage_violations,
   result_type,
+  additional_measure,
   proceeding_type,
   proceeding_reference_number,
   document_checks::text AS document_checks,

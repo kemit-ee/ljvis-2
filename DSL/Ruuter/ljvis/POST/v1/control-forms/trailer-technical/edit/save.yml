@@ -35,6 +35,8 @@ declaration:
         type: string
       - field: notes
         type: string
+      - field: trailerRegNr
+        type: string
 
 extractRequestData:
   assign:
@@ -53,6 +55,7 @@ extractRequestData:
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
     violations: "${incoming.body.violations || '[]'}"
     notes: "${incoming.body.notes || ''}"
+    trailer_reg_nr: "${incoming.body.trailerRegNr || ''}"
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
@@ -103,6 +106,7 @@ insertForm:
       proceedingReferenceNumber: ${proceeding_reference_number}
       violations: ${violations}
       notes: ${notes}
+      trailerRegNr: ${trailer_reg_nr}
       created_by: ${created_by}
   result: saveRes
   next: logSave
@@ -152,6 +156,7 @@ updateForm:
       proceedingReferenceNumber: ${proceeding_reference_number}
       violations: ${violations}
       notes: ${notes}
+      trailerRegNr: ${trailer_reg_nr}
       created_by: ${created_by}
   result: saveRes
   next: logSave

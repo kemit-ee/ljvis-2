@@ -9,6 +9,11 @@
     {
       "key": "xroad_internal_url",
       "value": "http://localhost:8089"
+    },
+    {
+      "key": "xroad_client",
+      "value": "EE/GOV/70000310/ljvis-test",
+      "type": "string"
     }
   ],
   "item": [
@@ -16,7 +21,7 @@
       "name": "IsikuKontroll",
       "item": [
         {
-          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "name": "Puuduv X-Road-Client header → 403 FORBIDDEN",
           "request": {
             "method": "POST",
             "header": [
@@ -47,9 +52,54 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Returns 403', () => pm.response.to.have.status(403));",
                   "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-                  "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
+                  "pm.test('error is FORBIDDEN', () => pm.expect(body.error).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vale X-Road-Client formaat → 403 FORBIDDEN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/ainult-kolm-osa",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-kontroll",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-kontroll"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"39001010001\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 403', () => pm.response.to.have.status(403));",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('error is FORBIDDEN', () => pm.expect(body.error).to.eql('FORBIDDEN'));"
                 ]
               }
             }
@@ -240,7 +290,7 @@
       "name": "IsikuEttevoteKontrollid",
       "item": [
         {
-          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "name": "Puuduv X-Road-Client header → 403 FORBIDDEN",
           "request": {
             "method": "POST",
             "header": [
@@ -271,9 +321,54 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Returns 403', () => pm.response.to.have.status(403));",
                   "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-                  "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
+                  "pm.test('error is FORBIDDEN', () => pm.expect(body.error).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vale X-Road-Client formaat → 403 FORBIDDEN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/ainult-kolm-osa",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/isiku-ettevote-kontrollid",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "isiku-ettevote-kontrollid"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"39001010001\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 403', () => pm.response.to.have.status(403));",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('error is FORBIDDEN', () => pm.expect(body.error).to.eql('FORBIDDEN'));"
                 ]
               }
             }
@@ -464,7 +559,7 @@
       "name": "ErakorralineYVquery",
       "item": [
         {
-          "name": "Puuduv X-Road-Client header → 400 MISSING_HEADER",
+          "name": "Puuduv X-Road-Client header → 403 FORBIDDEN",
           "request": {
             "method": "POST",
             "header": [
@@ -495,9 +590,54 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Returns 403', () => pm.response.to.have.status(403));",
                   "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-                  "pm.test('error is MISSING_HEADER', () => pm.expect(body.error).to.eql('MISSING_HEADER'));"
+                  "pm.test('error is FORBIDDEN', () => pm.expect(body.error).to.eql('FORBIDDEN'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vale X-Road-Client formaat → 403 FORBIDDEN",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "EE/GOV/ainult-kolm-osa",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/erakorraline-yv-query",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "erakorraline-yv-query"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"alates\": \"2026-01-01\", \"kuni\": \"2026-12-31\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 403', () => pm.response.to.have.status(403));",
+                  "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('error is FORBIDDEN', () => pm.expect(body.error).to.eql('FORBIDDEN'));"
                 ]
               }
             }

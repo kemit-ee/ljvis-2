@@ -1,0 +1,28 @@
+# Postkast 2.0 saadetud kirjade logi nõuab notification.admin õigust (UC-02).
+# override_ancestors: true — ülimuslik GET/v1/.guard suhtes.
+declaration:
+  override_ancestors: true
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('notification.admin')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

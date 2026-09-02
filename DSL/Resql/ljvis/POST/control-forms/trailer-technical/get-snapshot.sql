@@ -46,6 +46,8 @@ declaration:
         type: string
       - field: proceedingClosureBasis
         type: string
+      - field: trailerRegNr
+        type: string
       - field: createdBy
         type: string
 */
@@ -65,6 +67,7 @@ SELECT
   extraordinary_inspection_date,
   enforcement_decision,
   proceeding_closure_basis,
+  trailer_reg_nr,
   created_by
 FROM forms.trailer_technical_form
 WHERE id = :id::BIGINT

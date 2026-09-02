@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { SideNav } from '@tedi-design-system/react/tedi';
+import { SideNav, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../features/auth/AuthContext';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import {
@@ -9,6 +9,7 @@ import {
   PERMISSIONS,
   FORM_READ_PERMISSIONS,
 } from '../constants/constants';
+import { useNotificationCount } from '../features/notifications/useNotifications';
 import styles from './SideNavWrapper.module.css';
 
 interface UseSideNavPropsResult {
@@ -22,10 +23,12 @@ interface UseSideNavPropsResult {
 export function useSideNavProps(): UseSideNavPropsResult {
   const { pathname } = useLocation();
   const { t } = useTranslation();
-  const { hasPermission, hasAnyPermission } = useAuth();
+  const { hasPermission, hasAnyPermission, user } = useAuth();
+  const { unreadCount } = useNotificationCount();
   const [isMobileOpen, setIsMobileOpen] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+  const isCitizen = user?.activeRole !== 'officer';
 
   React.useEffect(() => {
     if (isMobileOpen) {
@@ -36,6 +39,14 @@ export function useSideNavProps(): UseSideNavPropsResult {
   const navItems = React.useMemo(() => {
     const items: Parameters<typeof SideNav>[0]['navItems'] = [];
 
+    // Citizen sessions (citizen-self / company) have no
+    // permissions and get no side menu at all — the dashboard
+    // (CitizenDashboardPage) is the only citizen page, reached directly at
+    // "/"; there's nothing to navigate to.
+    if (isCitizen) {
+      return items;
+    }
+
     const adminSubItems = [];
 
     items.push({
@@ -43,6 +54,24 @@ export function useSideNavProps(): UseSideNavPropsResult {
       icon: 'dashboard',
       to: '/',
       isActive: pathname === '/',
+    });
+
+    items.push({
+      children: (
+        <>
+          {t('nav.notifications')}
+          {unreadCount > 0 && (
+            <span style={{ marginLeft: 8 }}>
+              <StatusBadge color="danger">
+                {unreadCount > 99 ? '99+' : String(unreadCount)}
+              </StatusBadge>
+            </span>
+          )}
+        </>
+      ),
+      icon: 'notifications',
+      to: '/notifications',
+      isActive: pathname.startsWith('/notifications'),
     });
 
 
@@ -125,7 +154,10 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
-    if (hasPermission(PERMISSIONS.AUDIT_READ)) {
+    if (
+      hasPermission(PERMISSIONS.AUDIT_READ) ||
+      hasPermission(PERMISSIONS.AUDIT_READ_LOCAL)
+    ) {
       adminSubItems.push({
         children: t('nav.logs'),
         to: '/logs',
@@ -143,16 +175,18 @@ export function useSideNavProps(): UseSideNavPropsResult {
 
     const adminIsActive = adminSubItems.some((item) => item.isActive);
 
-    items.push({
-      children: t('nav.administration'),
-      icon: 'account_circle',
-      isActive: adminIsActive,
-      isDefaultOpen: adminIsActive,
-      subItems: adminSubItems,
-    });
+    if (adminSubItems.length > 0) {
+      items.push({
+        children: t('nav.administration'),
+        icon: 'account_circle',
+        isActive: adminIsActive,
+        isDefaultOpen: adminIsActive,
+        subItems: adminSubItems,
+      });
+    }
 
     return items;
-  }, [pathname, t, hasPermission, hasAnyPermission]);
+  }, [pathname, t, hasPermission, hasAnyPermission, isCitizen, unreadCount]);
 
   const getWrapperClassName = () => {
     const classes = [styles.wrapper];
@@ -179,6 +213,19 @@ export function useSideNavProps(): UseSideNavPropsResult {
   const adminIsActive = navItems
     .flatMap((item) => item.subItems ?? [])
     .some((sub) => sub.isActive);
+
+  // No items means no side menu at all for a citizen session — not
+  // even an empty SideNav shell — so the main content area gets the full
+  // width instead of leaving a chrome-only column/toggle button.
+  if (isCitizen) {
+    return {
+      sideNav: null,
+      toggleButton: null,
+      isMobileOpen: false,
+      isDesktop,
+      closeSideNav: () => {},
+    };
+  }
 
   return {
     sideNav: (

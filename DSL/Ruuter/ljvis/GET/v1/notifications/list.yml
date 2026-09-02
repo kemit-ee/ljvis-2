@@ -1,0 +1,41 @@
+declaration:
+  version: "1.0"
+  description: >-
+    In-app teavituste nimekiri autenditud kasutaja jaoks.
+    Filtreeritakse kasutaja õiguste alusel — kasutaja näeb ainult
+    neid teavitusi mille required_permission kuulub tema permissions[].
+    is_unread arvutatakse SQL NOT EXISTS kaudu.
+    Kaitstud GET/v1/.guard (autentimine) kaudu.
+  namespace: notification
+  allowlist:
+    params:
+      - field: page
+        type: number
+      - field: pageSize
+        type: number
+
+fetchUnreadList:
+  assign:
+    user_code: "${u.personalcode || ''}"
+    permissions: "${(u.permissions || []).join(',')}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+  next: queryNotifications
+
+queryNotifications:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/list_notifications"
+    headers:
+      type: json
+    body:
+      user_code: ${user_code}
+      permissions: ${permissions}
+      page: ${page}
+      page_size: ${page_size}
+  result: res
+  next: returnResult
+
+returnResult:
+  return: ${res.response.body}
+  next: end

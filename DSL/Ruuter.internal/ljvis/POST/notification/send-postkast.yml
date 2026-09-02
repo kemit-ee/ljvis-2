@@ -1,0 +1,236 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Saadab välise teavituse Postkast 2.0 partneri haldusliidese kaudu
+    (POST /notification-management/v1/notifications) ja logib saatmiskatse
+    append-only tabelisse notifications.outbound_log (LJVIS2-XXX UC-01).
+
+    Iga kutse loob uue outbound_log rea — ka uuesti saatmisel (original_log_id
+    viitab algse katse reale). Parameeter recipients[] sisaldab 1..N saajat
+    (person_email, person_name, person_code). PK 2.0 tagastatud
+    sending_operation_id salvestatakse outbound_log.pk_sending_operation_id,
+    et UC-04 uuesti saatmisel kasutada PK 2.0 retry endpointi
+    (PUT /notification-management/v1/sending-operations/{id}).
+
+    Eeltingimus: message_type vastav mall peab PK 2.0 haldusliideses olemas
+    olema (template/v1/templates); pk_template_id on keskkonna muutuja.
+
+    TODO(PK2.0): credentials (PK_URL, PK_TOKEN) RIA-lt ootel — praegu logib
+    kavatsuse ja tagastab mock-edu mock-sending_operation_id-ga.
+  namespace: notification
+  allowlist:
+    body:
+      - field: message_type
+        type: string
+      - field: related_entity_type
+        type: string
+      - field: related_entity_id
+        type: string
+      - field: original_log_id
+        type: string
+      - field: pk_sending_operation_id
+        type: string
+      - field: recipient_email_override
+        type: string
+      - field: recipients
+        type: array
+      - field: created_by
+        type: string
+
+validateInput:
+  assign:
+    message_type: "${incoming.body.message_type ?? ''}"
+    related_entity_type: "${incoming.body.related_entity_type ?? ''}"
+    related_entity_id: "${incoming.body.related_entity_id ?? ''}"
+    original_log_id: "${incoming.body.original_log_id ?? ''}"
+    existing_pk_op_id: "${incoming.body.pk_sending_operation_id ?? ''}"
+    recipient_email_override: "${incoming.body.recipient_email_override ?? ''}"
+    recipients_input: "${incoming.body.recipients || []}"
+    created_by: "${incoming.body.created_by || 'system'}"
+  next: checkRequired
+
+checkRequired:
+  switch:
+    - condition: ${message_type === ''}
+      next: returnBadRequest
+  next: resolveTemplate
+
+resolveTemplate:
+  assign:
+    pk_template_id: >-
+      ${message_type === 'carrier_violation'
+        ? '[#PK_TEMPLATE_CARRIER_VIOLATION]'
+        : message_type === 'labor_kabotage'
+          ? '[#PK_TEMPLATE_LABOR_KABOTAGE]'
+          : message_type === 'labor_foreign_proposal'
+            ? '[#PK_TEMPLATE_LABOR_FOREIGN_PROPOSAL]'
+            : ''}
+  next: computeReceivers
+
+# receivers[] PK 2.0 payloadi jaoks — sama prioriteet nagu assignLogId
+# effective_recipients-il: 1) recipient_email_override (UC-04), 2) recipients[].
+# Eraldi sammus, sest sama assign-ploki sees ei näe payload_obj veel siin
+# arvutatud muutujat (Rust Ruuter hindab assign-võtmed pre-assign skoobis).
+computeReceivers:
+  assign:
+    pk_receivers: >-
+      ${(recipient_email_override !== ''
+        ? [{person_code: '', person_email: recipient_email_override, person_name: ''}]
+        : recipients_input
+        ).map(function(r) {
+          return {
+            code: r.person_code || '',
+            email: r.person_email || '',
+            name: r.person_name || ''
+          };
+        })}
+  next: buildPayload
+
+buildPayload:
+  assign:
+    # PK 2.0 notification-management payload (POST /notification-management/v1/notifications).
+    # inputData sisaldab malli {{muutuja}} asendusi; täpsed muutujad vaata docs/pk2-templates/.
+    payload_obj:
+      templateId: "${pk_template_id}"
+      originalTemplateId: "${pk_template_id}"
+      relatedEntityType: "${related_entity_type}"
+      relatedEntityId: "${related_entity_id}"
+      receivers: "${pk_receivers}"
+      inputData:
+        controlFormId: "${related_entity_id}"
+        relatedEntityType: "${related_entity_type}"
+        inspectorName: "${created_by}"
+  next: insertLog
+
+insertLog:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/insert_outbound_log"
+    headers:
+      type: json
+    body:
+      message_type: ${message_type}
+      status: "sent"
+      related_entity_type: ${related_entity_type}
+      related_entity_id: ${related_entity_id}
+      original_log_id: ${original_log_id}
+      pk_template_id: ${pk_template_id}
+      pk_sending_operation_id: "mock-op-id"
+      payload_json: ${JSON.stringify(payload_obj)}
+      created_by: ${created_by}
+  result: logRes
+  next: assignLogId
+
+assignLogId:
+  assign:
+    new_log_id: "${logRes.response.body[0]?.id ?? ''}"
+    # effective_recipients — saajate nimekiri DB-sse (insert_outbound_recipient) ja PK 2.0-le.
+    # Prioriteet: 1) recipient_email_override (UC-04 uuesti saatmine), 2) recipients[], 3) stub.
+    effective_recipients: >-
+      ${recipient_email_override !== ''
+        ? [{person_email: recipient_email_override, person_name: '', person_code: ''}]
+        : recipients_input.length > 0
+          ? recipients_input
+          : [{person_email: 'stub@placeholder.invalid', person_name: 'Stub', person_code: ''}]}
+    # pk_receivers — PK 2.0 receivers[] formaat (code, email, name)
+    pk_receivers: >-
+      ${(recipient_email_override !== ''
+        ? [{person_email: recipient_email_override, person_name: '', person_code: ''}]
+        : recipients_input.length > 0
+          ? recipients_input
+          : []
+        ).map(function(r) {
+          return { code: r.person_code || '', email: r.person_email || '', name: r.person_name || '' };
+        })}
+  next: insertRecipients
+
+insertRecipients:
+  iterate:
+    over: "${effective_recipients}"
+    as: recipient
+    max_items: 50
+    do:
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/notification/insert_outbound_recipient"
+          headers:
+            type: json
+          body:
+            log_id: ${new_log_id}
+            person_email: ${recipient.person_email ?? ''}
+            person_name: ${recipient.person_name ?? ''}
+            person_code: ${recipient.person_code ?? ''}
+            sending_report: "ok"
+  next: callPkApi
+
+callPkApi:
+  # TODO(PK2.0): Eemалda kommentaar MÕLEMALT SAMBALT allpool kui PK_URL + PK_TOKEN on
+  # Kubernetes-es seadistatud (LJVIS2-157). Eemalda stub-assign (viimane blokk).
+  #
+  # Malli seadistuse juhend: docs/pk2-templates/README.md
+  # Malli failid (PK 2.0 haldusliidesesse pasteerimine): docs/pk2-templates/*.json
+  #
+  # UC-04 retry (existing_pk_op_id olemas → PUT, mitte POST):
+  # switch:
+  #   - condition: ${existing_pk_op_id !== ''}
+  #     next: callPkRetry
+  # next: callPkSend
+  #
+  # callPkSend:
+  #   call: http.post
+  #   args:
+  #     url: "[#PK_URL]/notification-management/v1/notifications"
+  #     headers:
+  #       type: json
+  #       Authorization: "Bearer [#PK_TOKEN]"
+  #     body: ${payload_obj}
+  #   result: pkRes
+  #   next: parsePkResult
+  #
+  # callPkRetry:
+  #   call: http.put
+  #   args:
+  #     url: "[#PK_URL]/notification-management/v1/sending-operations/${existing_pk_op_id}"
+  #     headers:
+  #       type: json
+  #       Authorization: "Bearer [#PK_TOKEN]"
+  #     body: ${payload_obj}
+  #   result: pkRes
+  #   next: parsePkResult
+  #
+  # parsePkResult:
+  #   assign:
+  #     pk_sending_operation_id: "${pkRes.response.body?.id ?? pkRes.response.body?.sendingOperationId ?? 'unknown'}"
+  #     pk_status: "${pkRes.response.status >= 200 && pkRes.response.status < 300 ? 'sent' : 'sent_error'}"
+  #   next: updateLogStatus
+  #
+  # updateLogStatus:
+  #   call: http.post
+  #   args:
+  #     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
+  #     headers:
+  #       type: json
+  #     body:
+  #       id: ${new_log_id}
+  #       status: ${pk_status}
+  #       pk_sending_operation_id: ${pk_sending_operation_id}
+  #   result: updateRes
+  #   next: returnResult
+
+  # STUB — eemалda kui PK_URL + PK_TOKEN seadistatud (asenda blokk eeltoodud kommentaariga)
+  assign:
+    pk_sending_operation_id: "stub-op-id"
+    pk_status: "sent"
+  next: returnResult
+
+returnResult:
+  return:
+    logId: "${new_log_id}"
+    pkSendingOperationId: "${pk_sending_operation_id}"
+    status: "${pk_status}"
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "message_type on kohustuslik"
+  next: end

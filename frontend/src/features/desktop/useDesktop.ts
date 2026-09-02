@@ -21,7 +21,8 @@ const buildAvailableForms = (permissions: string[]): ControlForm[] => {
     .filter((p) => p.endsWith(FORM_WRITE_SUFFIX))
     .map((p) => p.replace(WRITE_SUFFIX, ''))
     .filter((key) => !!FORM_CONFIG[key])
-    .filter((key) => FORM_CONFIG[key].showOnDashboard);
+    .filter((key) => FORM_CONFIG[key].showOnDashboard)
+    .filter((key) => FORM_CONFIG[key].route !== '/trailer-technical');
 
   if (!formKeys.includes(COMPOUND_FORM_KEY)) {
     return formKeys.map(toControlForm);

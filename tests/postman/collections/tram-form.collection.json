@@ -1,0 +1,613 @@
+{
+  "info": {
+    "name": "LJVIS — TRAM control card (issue #180)",
+    "_postman_id": "ljvis-tram-form-v1",
+    "description": "Functional tests for /control-forms/tram-form/** endpoints. Covers the tram_driver_form.write/read permission boundary, the separate tram-AAAA-NNNNN number series (compound) vs shared sp- series (driver sub-form), the authority='TRAM' IDOR guard on the sub-form queries, phase-2 forced defaults (sp_applicability/mass/atp), and search visibility. Self-contained.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST tram-form/edit/save — no permission -> 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"formNumber\": \"\", \"status\": \"saved\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"Tallinn\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CITRAM1\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 without tram_driver_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST tram-form/edit/save — create -> 200, tram- number",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"formNumber\": \"\", \"status\": \"saved\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"Tallinn\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CITRAM1\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var row = (b.response || b)[0];",
+              "pm.test('form created with id', () => pm.expect(row.id).to.be.a('number'));",
+              "pm.test('form number has tram- prefix', () => pm.expect(String(row.formnumber || row.formNumber || '')).to.match(/^tram-\\d{4}-\\d{5}\\/1$/));",
+              "pm.environment.set('tram_cf_key', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET tram-form/get -> 200",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/get?q={{tram_cf_key}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{tram_cf_key}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var f = b.response || b;",
+              "pm.test('address matches', () => pm.expect(f.address).to.eql('Testi tee 1'));",
+              "pm.test('status saved', () => pm.expect(f.status).to.eql('saved'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET tram-form/get — no permission -> 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/get?q={{tram_cf_key}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{tram_cf_key}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 without tram_driver_form.read', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST tram-form/sp-driver/edit/save — no permission -> 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/sp-driver/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "sp-driver",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"compoundFormKey\": \"{{tram_cf_key}}\", \"subFormNumber\": \"\", \"status\": \"saved\", \"selectionStatus\": \"active\", \"transportType\": \"cargo\", \"transportEmptyRun\": false, \"transportNature\": \"\", \"transportNatureExempt\": false, \"transportClasses\": \"[]\", \"cabotageViolations\": \"[]\", \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": \"none\", \"proceedingReferenceNumber\": \"\", \"documentChecks\": \"[]\", \"otherDocuments\": \"[]\", \"spApplicability\": \"\", \"tachographTypeCode\": \"\", \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": \"\", \"workDaysCount\": \"\", \"otherActivityDaysCount\": \"\", \"violations5612006\": \"[]\", \"violations1652014\": \"[]\", \"violations200215\": \"[]\", \"violations5932008\": \"[]\", \"violations20201057\": \"[]\", \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": \"[]\", \"atpViolationFound\": \"false\", \"atpViolationDescription\": \"\", \"erruPoints\": \"[]\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"notes\": \"CI tram driver\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 without tram_driver_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST tram-form/sp-driver/edit/save — create -> 200, sp- number",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/sp-driver/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "sp-driver",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"compoundFormKey\": \"{{tram_cf_key}}\", \"subFormNumber\": \"\", \"status\": \"saved\", \"selectionStatus\": \"active\", \"transportType\": \"cargo\", \"transportEmptyRun\": false, \"transportNature\": \"\", \"transportNatureExempt\": false, \"transportClasses\": \"[]\", \"cabotageViolations\": \"[]\", \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": \"none\", \"proceedingReferenceNumber\": \"\", \"documentChecks\": \"[]\", \"otherDocuments\": \"[]\", \"spApplicability\": \"\", \"tachographTypeCode\": \"\", \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": \"\", \"workDaysCount\": \"\", \"otherActivityDaysCount\": \"\", \"violations5612006\": \"[]\", \"violations1652014\": \"[]\", \"violations200215\": \"[]\", \"violations5932008\": \"[]\", \"violations20201057\": \"[]\", \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": \"[]\", \"atpViolationFound\": \"false\", \"atpViolationDescription\": \"\", \"erruPoints\": \"[]\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"notes\": \"CI tram driver\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var row = (b.response || b)[0];",
+              "pm.test('sub-form created', () => pm.expect(row.id).to.be.a('number'));",
+              "pm.test('sub-form number has sp- prefix (shared PPA series)', () => pm.expect(String(row.subFormNumber || '')).to.match(/^sp-\\d{4}-\\d{5}\\/1$/));",
+              "pm.environment.set('tram_sd_key', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET tram-form/sp-driver/get -> 200, phase-2 forced defaults",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/sp-driver/get?q={{tram_sd_key}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "sp-driver",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{tram_sd_key}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var f = b.response || b;",
+              "pm.test('sp_applicability forced to not_checked (phase 2)', () => pm.expect(f.spApplicability).to.eql('not_checked'));",
+              "pm.test('massDimensionNonCompliant forced false (phase 2)', () => pm.expect(f.massDimensionNonCompliant).to.eql(false));",
+              "pm.test('atpViolationFound forced false (phase 2)', () => pm.expect(f.atpViolationFound).to.eql(false));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[IDOR] Setup — create a PPA compound form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"formNumber\": \"\", \"status\": \"saved\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"Tallinn\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CIPPA1\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var row = (b.response || b)[0];",
+              "pm.environment.set('ppa_cf_key', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[IDOR] POST tram-form/sp-driver/edit/save to a PPA compound -> not created",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/sp-driver/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "sp-driver",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"compoundFormKey\": \"{{ppa_cf_key}}\", \"subFormNumber\": \"\", \"status\": \"saved\", \"selectionStatus\": \"active\", \"transportType\": \"cargo\", \"transportEmptyRun\": false, \"transportNature\": \"\", \"transportNatureExempt\": false, \"transportClasses\": \"[]\", \"cabotageViolations\": \"[]\", \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": \"none\", \"proceedingReferenceNumber\": \"\", \"documentChecks\": \"[]\", \"otherDocuments\": \"[]\", \"spApplicability\": \"\", \"tachographTypeCode\": \"\", \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": \"\", \"workDaysCount\": \"\", \"otherActivityDaysCount\": \"\", \"violations5612006\": \"[]\", \"violations1652014\": \"[]\", \"violations200215\": \"[]\", \"violations5932008\": \"[]\", \"violations20201057\": \"[]\", \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": \"[]\", \"atpViolationFound\": \"false\", \"atpViolationDescription\": \"\", \"erruPoints\": \"[]\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"notes\": \"CI tram driver\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var b = pm.response.json(); var rows = b.response || b;",
+              "pm.test('no sub-form row returned (authority guard blocks it)', () => pm.expect(Array.isArray(rows) ? rows.length : 0).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[IDOR] GET tram-form/get with a PPA compound key -> 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/get?q={{ppa_cf_key}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{ppa_cf_key}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('PPA form not found via tram-form endpoint', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — TRAM row visible with tram_driver_form.read",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?page=1&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var rows = b.response || b;",
+              "var tram = rows.filter(r => String(r.formType||'').indexOf('tram') === 0);",
+              "pm.test('at least one tram_compound / tram_driver row present', () => pm.expect(tram.length).to.be.above(0));",
+              "pm.test('our tram compound is in the results', () => pm.expect(rows.some(r => String(r.formNumber||'').match(/^tram-/))).to.be.true);"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    "Is this personal code allowed to see company registry_code's data"
+    check, decoupled from the session's activeRole/activeRegistryCode — the
+    citizen dashboard shows every represented company at once, so a
+    representative must be able to view/click into ANY of them regardless of
+    which role happens to be active, not just a single "currently selected"
+    company. Same check used by GET/v1/citizen/risk-scores/my-company.yml,
+    GET/v1/citizen/risk-scores/controls.yml and POST/v1/citizen/forms/
+    search.yml's scope=company branch — factored out here so citizen/forms/
+    compound.yml, labour-inspection.yml and foreign-violation.yml can reuse
+    it too instead of re-implementing the esindus_v1 SOAP parsing a 4th/5th/
+    6th time. Cached representedCompanies (from the JWT, refreshed by
+    representation/companies or representation/switch) is checked first —
+    free, no X-Road call — falling back to a live Äriregister esindus_v1
+    call only when that claim doesn't cover registry_code yet (stale/absent
+    claim), never trusting the caller's own claim of representation.
+  namespace: service
+  allowlist:
+    body:
+      - field: personal_code
+        type: string
+      - field: registry_code
+        type: string
+        description: "8-digit Estonian company registry code being checked."
+      - field: cached_companies
+        type: array
+        description: "Session's representedCompanies claim (possibly empty/stale)."
+
+checkCachedCompanies:
+  switch:
+    - condition: "${(incoming.body.cached_companies || []).some(c => c.registryCode === incoming.body.registry_code)}"
+      next: returnRepresentative
+  next: checkCompanyRepresentativeLive
+
+checkCompanyRepresentativeLive:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ""
+      personal_code: ${incoming.body.personal_code}
+      personal_code_country: "EST"
+  result: ar_res
+  next: checkArAvailable
+
+checkArAvailable:
+  switch:
+    - condition: "${ar_res.response.status < 200 || ar_res.response.status >= 300}"
+      next: returnArUnavailable
+  next: verifyRepresentativeLive
+
+verifyRepresentativeLive:
+  assign:
+    represented_companies_live: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function stripNs(v) {
+          if (Array.isArray(v)) return v.map(stripNs);
+          if (v && typeof v === 'object') {
+            var out = {};
+            Object.keys(v).forEach(function(k) {
+              if (k.charAt(0) === '@') return;
+              var shortKey = k.indexOf(':') >= 0 ? k.substring(k.indexOf(':') + 1) : k;
+              out[shortKey] = stripNs(v[k]);
+            });
+            return out;
+          }
+          return v;
+        }
+        var soapBody = (ar_res.response.body && ar_res.response.body.body) ? ar_res.response.body.body : (ar_res.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
+        var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
+        var keha = responseNode.keha || {};
+        var items = toArray(keha.ettevotjad && keha.ettevotjad.item);
+        return items.map(function(c) { return c.ariregistri_kood != null ? String(c.ariregistri_kood) : ''; });
+      })()}
+  next: checkRepresentativeLiveResult
+
+checkRepresentativeLiveResult:
+  switch:
+    - condition: "${represented_companies_live.includes(incoming.body.registry_code)}"
+      next: returnRepresentative
+  next: returnNotRepresentative
+
+returnRepresentative:
+  return: >-
+    ${({isRepresentative: true})}
+  next: end
+
+returnNotRepresentative:
+  return: >-
+    ${({isRepresentative: false})}
+  next: end
+
+returnArUnavailable:
+  return: >-
+    ${({isRepresentative: false, error: 'AR_UNAVAILABLE'})}
+  next: end

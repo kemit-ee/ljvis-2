@@ -3,8 +3,8 @@
     "title": "LJVIS"
   },
   "auth": {
-    "title": "Liiklusjärelvalve infosüsteem",
-    "descriptionHeader": "Liiklusjärelvalve infosüsteem on liiklusseaduse alusel loodud andmekogu, mille eesmärgiks on autoveo- ja liiklusjärelevalve käigus kogutud andmete elektrooniline talletamine ja süstematiseerimine, asjaomaste asutuste vahel vahetamine ning nende andmete alusel järelevalve teostamine. Samuti valdkonnaga seotud aruannete ja analüüside koostamine. Liiklusjärelevalve infosüsteemi kantakse nelja liiki andmeid:",
+    "title": "Liiklusjärelevalve infosüsteem",
+    "descriptionHeader": "Liiklusjärelevalve infosüsteem on liiklusseaduse alusel loodud andmekogu, mille eesmärgiks on autoveo- ja liiklusjärelevalve käigus kogutud andmete elektrooniline talletamine ja süstematiseerimine, asjaomaste asutuste vahel vahetamine ning nende andmete alusel järelevalve teostamine. Samuti valdkonnaga seotud aruannete ja analüüside koostamine. Liiklusjärelevalve infosüsteemi kantakse nelja liiki andmeid:",
     "descriptionFooter": "Andmete sisestamist liiklusjärelevalve infosüsteemi korraldavad Politsei- ja Piirivalveamet, Kliimaministeerium, Tööinspektsioon ja Transpordiamet. Isikuandmeid säilitatakse andmekogus kolm aastat, pärast mida need andmed kustutatakse. Muid andmeid, mis ei ole isikuandmed, säilitatakse liiklusjärelevalve infosüsteemis viis aastat, pärast mida need andmed arhiveeritakse.",
     "descriptionItem1": "teedel järelevalve teostamisel kogutud andmed mootorsõidukite ja haagiste tehnoseisundi, veose paigutamise, kinnitamise ja katmise, massi, teljekoormusse ja mõõtmete, teekasutustasu tasumise, autojuhtide sõidu- ja puhkeaja nõuete täitmise, seaduse või välislepingu alusel veo teostamiseks nõutavate dokumentide ning ohtliku veose autoveo kontrollimise kohta. Samuti kontrollimise käigus tuvastatud süüteo kvalifikatsioon ja karistuse liik, kaasa arvatud autoveoalaste raskete rikkumiste andmed;",
     "descriptionItem2": "ettevõttes autojuhtide töö-, sõidu- ja puhkeaja nõuete täitmise kontrollimisel kogutud andmed;",
@@ -16,7 +16,10 @@
     "citizen": "Kodanikule",
     "official": "Ametnikule",
     "citizenInfo": "Liiklusjärelevalve infosüsteemi logides on füüsilisel ja juriidilisel isikul võimalik saada temaga seotud andmeid liiklusjärelevalve infosüsteemist. Juriidilise isikuga seotud andmete liiklusjärelevalve infosüsteemis on juurdepääsuõigus ettevõtte juhatuse liikmel, kelle seotust asjaomase ettevõttega kontrollitakse äriregistrist.",
-    "officialInfo": "Liiklusjärelevalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest."
+    "officialInfo": "Liiklusjärelevalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest.",
+    "roleLabel": "Vaade",
+    "roleOfficer": "Ametnik",
+    "roleCitizen": "Kodanik"
   },
   "countries": {
     "AD": "Andorra",
@@ -283,7 +286,100 @@
     "search": "Otsing",
     "rsi": "RSI teated",
     "ncr": "NCR teated",
-    "riskLevels": "Riskitasemed"
+    "riskLevels": "Riskitasemed",
+    "myCompany": "Minu ettevõte",
+    "notifications": "Teavitused"
+  },
+  "citizen": {
+    "formsList": {
+      "title": "Minu ettevõte",
+      "formType": "Vormi tüüp",
+      "formNumber": "Vormi number",
+      "mainDate": "Kuupäev",
+      "vehicleRegNr": "Sõiduki reg-nr",
+      "hasViolation": "Rikkumine",
+      "yes": "Jah",
+      "no": "Ei",
+      "noCompanies": "Teiega ei ole seotud ühtegi ettevõtet.",
+      "selectCompany": "Valige päisest ettevõte, mille andmeid soovite vaadata.",
+      "view": "Vaata"
+    },
+    "compoundDetail": {
+      "controlSection": "Kontrolli andmed",
+      "controlDate": "Kuupäev",
+      "county": "Maakond",
+      "address": "Aadress",
+      "vehicleRegNr": "Sõiduki reg-nr",
+      "companySection": "Ettevõtte andmed",
+      "companyName": "Ettevõtte nimi",
+      "companyRegCode": "Registrikood",
+      "driversSection": "Juhid",
+      "noDrivers": "Juhte ei ole lisatud",
+      "driverLabel": "Juht {{number}}",
+      "driverName": "Nimi",
+      "driverPersonalCode": "Isikukood",
+      "subFormsSection": "Kontrolli üksikasjad",
+      "subFormsEmpty": "Selle kontrolli kohta täiendavaid avaldatud alamvorme ei ole.",
+      "subFormType": {
+        "sp_driver": "Sõidu- ja puhkeaeg (juht)",
+        "sp_teammate": "Sõidu- ja puhkeaeg (kaassõitja)",
+        "vehicle_technical": "Sõiduki tehnonõuetele vastavus",
+        "trailer_technical": "Haagise tehnonõuetele vastavus",
+        "adr": "Ohtlike veoste vedu",
+        "kv": "Autoveo katkestamine"
+      },
+      "subFormNumber": "Alamvormi number",
+      "resultType": "Tulemus",
+      "resultTypes": {
+        "ok": "Korras",
+        "HOIATUS": "Hoiatus",
+        "ETTEKIRJUTUS": "Ettekirjutus",
+        "extraordinary_inspection": "Suunati erakorralisele tehnoülevaatusele",
+        "extraordinary_inspection_ta": "Suunati erakorralisele tehnoülevaatusele",
+        "driving_ban": "Sõidukeeld",
+        "misdemeanor_proceedings": "Alustati väärteomenetlust",
+        "warning": "Hoiatus",
+        "driving_ban_art5": "Sõidukeeld (ADR)",
+        "transport_interruption": "Autovedu katkestati"
+      },
+      "violationsTitle": "Tuvastatud rikkumised",
+      "noViolations": "Rikkumisi ei tuvastatud.",
+      "severity": {
+        "MSI": "Eriti tõsine rikkumine (MSI)",
+        "VSI": "Väga tõsine rikkumine (VSI)",
+        "SI": "Tõsine rikkumine (SI)",
+        "MI": "Vähetõsine rikkumine (MI)"
+      },
+      "notes": "Märkus"
+    },
+    "dashboard": {
+      "companiesTitle": "Minu ettevõtted",
+      "protocolsTitle": "Minu protokollid",
+      "protocolsSubtitle": "Vormid, kus olete osaline (juht, karistatud isik või usaldusväärsuse kontrolli subjekt).",
+      "company": {
+        "riskWindow": "Riskitase hinnatud ajavahemikus {{start}}–{{end}}",
+        "totalControls": "Kontrollide arv: {{count}}",
+        "hideControls": "Peida kontrollid",
+        "viewControls": "Vaata kontrolle"
+      },
+      "controls": {
+        "formNumber": "Vormi number",
+        "mainDate": "Kuupäev",
+        "vehicleRegNr": "Sõiduki reg-nr",
+        "msi": "Ülitõsine",
+        "msiTooltip": "MSI – kõige raskemad rikkumised (Most Serious Infringement), nt sõidumeeriku pettus või selle puudumine, kiiruspiiriku puudumine.",
+        "vsi": "Väga tõsine",
+        "vsiTooltip": "VSI – väga tõsised rikkumised (Very Serious Infringement), nt suur sõiduaja või puhkeaja nõuete ületamine.",
+        "si": "Tõsine",
+        "siTooltip": "SI – tõsised rikkumised (Serious Infringement), nt väiksem sõiduaja või puhkeaja nõuete ületamine.",
+        "mi": "Vähetõsine",
+        "miTooltip": "MI – vähetõsised rikkumised (Minor Infringement), nt formaalsed puudused dokumentide täitmisel.",
+        "weightedPoints": "Kaalutud punktid",
+        "weightedPointsTooltip": "Kontrolli riskipunktid, arvutatud rikkumiste raskusastme alusel (huligaansõit annab kõige rohkem punkte, vähemtõsine kõige vähem).",
+        "view": "Vaata"
+      }
+    },
+    "notifications": "Teavitused"
   },
   "desktop": {
     "title": "Töölaud",
@@ -423,9 +519,12 @@
       "vehicleTitle": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
       "trailerTitle": "Haagise tehnonõuetele vastavuse kontrollvorm",
       "addNew": "Lisa uus tehnovorm",
+      "trailerDetection": "Haagise tuvastamine",
+      "trailerRegNr": "Haagise registreerimisnumber",
       "validation": {
         "required": "Kohustuslik väli",
         "notesMaxLength": "Märkuste maht on piiratud 2000 tähemärgiga",
+        "checkError": "Salvestamiseks peab olema vähemalt üks sõiduki osa või sõlm kontrollitud",
         "api": {
           "required": "Kohustuslik väli",
           "max_length_2000": "Märkuste maht on piiratud 2000 tähemärgiga",
@@ -645,6 +744,8 @@
     "teammate_drive_rest_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
     "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
     "sp_teammate_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
+    "tram_driver_form": "Transpordiameti kontrollkaart",
+    "tram_add_driver": "Lisa autojuht",
     "sp_form": {
       "transportClass": "Veoliik",
       "transportType": "Veoliik",
@@ -663,7 +764,7 @@
       "classPassengerRegular": "Sõitjate liinivedu",
       "classPassengerOccasional": "Sõitjate juhuvedu",
       "classPassengerSpecial": "Sõitjate eriotstarbeline vedu (õpilased, töölised jne)",
-      "classAtpPerishable": "ATP kokkuleppe kohane kiirestriknevate toiduainete vedu",
+      "classAtpPerishable": "ATP kokkuleppe kohane kiirestiriknevate toiduainete vedu",
       "controlResult": "Kontrolli tulemus",
       "controlResultLabel": "Kontrolli tulemus",
       "controlResultKorras": "Korras",
@@ -672,12 +773,15 @@
       "controlResultJuhtimiselt": "Juhtimiselt kõrvaldamine",
       "controlResultArest": "Arest",
       "controlResultAutovedu": "Autovedu on katkestatud",
-      "controlResultAlustati": "Alustati väärteomentlust",
+      "controlResultAlustati": "Alustati väärteomenetlust",
+      "additionalMeasure": "Lisameede",
+      "additionalMeasureNone": "Lisameedet ei rakendatud",
       "proceedingType": "Menetluse liik",
       "proceedingTypeLyhi": "Lühimenetlus",
       "proceedingTypeKiir": "Kiirmenetlus",
       "proceedingTypeYld": "Üldmenetlus",
       "proceedingReferenceNumberPlaceholder": "Viitenumber",
+      "proceedingCaseNumberPlaceholder": "Väärteoasja number",
       "sp_applicability": "Rakendamine",
       "tachograph_type_code": "Sõidumeeriku liik",
       "applicabilityApplied": "Rakendatakse",
@@ -725,6 +829,9 @@
       "roadTaxNotes": "Märkus",
       "trailer": "Haagis",
       "addTrailer": "Lisa haagis",
+      "trailerNumber": "Haagis #{{number}}",
+      "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
+      "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
       "removeTrailer": "Eemalda haagis",
       "trailerRegNr": "Registreerimismärk",
       "trailerCountry": "Riigi tunnusmärk",
@@ -757,7 +864,7 @@
       "driver2": "Teise juhi / meeskonna liikme andmed",
       "driverPersonalCodeEe": "Eesti isikukood",
       "driverFirstName": "Eesnimi",
-      "driverLastName": "Perenimi",
+      "driverLastName": "Perekonnanimi",
       "driverCitizenshipCode": "Kodakondsus",
       "driverPersonalCodeForeign": "Välisriigi isikukood",
       "driverBirthDate": "Sünniaeg",
@@ -765,7 +872,7 @@
       "removeDriver": "Eemalda juht",
       "inspector": "Sõidukit kontrollinud ametiisiku andmed",
       "inspectorFirstName": "Eesnimi",
-      "inspectorLastName": "Perenimi",
+      "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuurüksus",
       "inspectorProfession": "Ametinimetus"
@@ -800,7 +907,7 @@
       "companyPostalCode": "Sihtnumber",
       "driverBasicInfo": "Autojuhi andmed",
       "driverFirstName": "Eesnimi",
-      "driverLastName": "Perenimi",
+      "driverLastName": "Perekonnanimi",
       "vehicleBasicInfo": "Sõiduki andmed",
       "vehicleRegNr": "Registreerimismärk",
       "vehicleMake": "Mark",
@@ -1000,7 +1107,7 @@
       "dataEntryDate": "Andmete sisestamise kuupäev",
       "inspectorBasicInfo": "Andmete sisestaja",
       "inspectorFirstName": "Eesnimi",
-      "inspectorLastName": "Perenimi",
+      "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus",
@@ -1014,6 +1121,7 @@
       "validation": {
         "required": "Kohustuslik väli",
         "minorViolationsCount": "Lubatud kuni kolmekohaline number",
+        "max_length": "Väli võib olla kuni {{max}} tähemärki",
         "api": {
           "required": "Kohustuslik väli",
           "invalid_personal_code": "Vigane isikukood"
@@ -1031,12 +1139,27 @@
       "otherActivityDaysCount": "nendest päevade arv juhi muu tegevuse kui sõiduki juhtimise kohta"
     },
     "massDimension": {
+      "blockTitle": "Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta",
       "sectionTitle": "Andmed sõiduki massi ja mõõtmete kohta",
       "modalTitle": "Andmed sõiduki massi ja mõõtmete kohta",
       "violationType": "Rikkumise liik",
       "range": "Vahemik",
       "violationCode": "Rikkumise kood",
       "note": "Märkus"
+    },
+    "docRightCheck": {
+      "blockTitle": "Dokumendi või õiguse kontroll",
+      "otherDocuments": "Muud dokumendid"
+    },
+    "otherDocs": {
+      "notChecked": "Ei kontrollitud",
+      "compliant": "Nõuetekohane",
+      "missing": "Puudub",
+      "addRemark": "Lisa märkus",
+      "remarkPlaceholder": "Sisestage märkus..."
+    },
+    "restCheck": {
+      "blockTitle": "Sõidu- ja puhkeaja nõuete täitmine"
     }
   },
   "structureUnits": {
@@ -1235,7 +1358,9 @@
     "forbidden": "Teil puudub ligipääs sellele lehele",
     "noResults": "Päring ei tagastanud ühtegi tulemust",
     "dateFieldPlaceholder": "PP.KK.AAAA",
-    "timeFieldPlaceholder": "HH.MM",
+    "timeFieldPlaceholder": "HH:MM",
+    "numberPlaceholder": "Nr",
+    "select": "Vali",
     "errors": {
       "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
       "networkError": "Ühenduse viga. Kontrollige võrguühendust.",
@@ -1263,6 +1388,8 @@
     "download": "Laadi alla",
     "clear": "Tühista filtrid",
     "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
+    "deleteTrailerSubConfirmTitle": "Haagise eemaldamine ja alamvormi kustutamine",
+    "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada?",
     "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju."
   },
   "xroad": {
@@ -1299,7 +1426,7 @@
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
     "bandPunane": "Punane"
-   },
+  },
   "etoimik": {
     "title": "E-toimiku kvalifikatsiooni kontroll",
     "referenceNumber": "Viitenumber",
@@ -1735,12 +1862,45 @@
       "vehicleTechnical": "Tehnonõuetele vastavus (sõiduk)",
       "trailerTechnical": "Tehnonõuetele vastavus (haagis)",
       "adr": "Ohtlik veos (ADR)",
-      "kv": "Autoveo katkestamine"
+      "kv": "Autoveo katkestamine",
+      "tramCompound": "Transpordiameti kontrollkaart",
+      "tramDriver": "Transpordiameti kontrollkaart (autojuht)"
     },
     "status": {
       "saved": "Salvestatud",
       "confirmed": "Kinnitatud",
       "published": "Avaldatud"
+    }
+  },
+  "notifications": {
+    "title": "Teavitused",
+    "tabInApp": "Teavitused",
+    "tabLog": "Saadetud kirjad",
+    "markAllRead": "Märgi kõik loetuks",
+    "unread": "Lugemata",
+    "read": "Märgi loetuks",
+    "empty": "Uusi teavitusi ei ole",
+    "log": {
+      "sendDate": "Saatmise kp",
+      "messageType": "Sõnumi liik",
+      "addressee": "Adressaat",
+      "name": "Nimi",
+      "email": "E-post",
+      "sendingResult": "Saatmise tulemus",
+      "status": "Staatus",
+      "sent": "Saadetud",
+      "sent_error": "Saatmine ebaõnnestus",
+      "resend": "Saada uuesti",
+      "report": "Saatmise raport"
+    },
+    "types": {
+      "ncr_violation": "NCR raske rikkumise teade",
+      "ncr_response": "NCR vastussõnumi teatis",
+      "driving_ban": "Sõidukeeld",
+      "weight_violation": "Kaalumise/mõõtmise rikkumine",
+      "carrier_violation": "Raske rikkumise teavitus veoettevõtjale",
+      "labor_kabotage": "Kabotaaži kontrolli teavitus",
+      "labor_foreign_proposal": "Välisriigi ettepaneku teavitus"
     }
   }
 }

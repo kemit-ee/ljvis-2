@@ -1,0 +1,21 @@
+# X-Road-Client header guard — rakendub kõigile xroad/provide/ teenustele.
+# Valideerib et päis on olemas ja 4-osalises formaadis (instance/memberClass/memberCode/subsystem).
+# Puuduv või vale formaat → 403 FORBIDDEN.
+
+checkXRoadClient:
+  switch:
+    - condition: "${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}"
+      next: deny
+    - condition: "${incoming.headers['x-road-client'].split('/').filter(function(p){return p !== ''}).length !== 4}"
+      next: deny
+  next: allow
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)"}'
+  next: end

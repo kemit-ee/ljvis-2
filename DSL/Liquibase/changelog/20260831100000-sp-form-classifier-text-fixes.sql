@@ -1,0 +1,37 @@
+-- liquibase formatted sql
+-- changeset ljvis:20260831100000 ignore:true splitStatements:false
+
+-- Autojuhi sõidu- ja puhkeaja kontrollvormi klassifikaatorite tekstiparandused.
+-- Forward-only UPDATE: olemasolevat 20260828276000 / 20260828277000 seemet ei
+-- muudeta (juba rakendatud, checksum). Nimeväärtused viiakse kooskõlla veoliigiga.
+--
+--  1. DOC_RIGHT_CHECK / TEGEVUSLOA_ARAKIRI_01 — tõestatud koopia (ainult sõitjatevedu)
+--  2. DOC_RIGHT_CHECK / TEGEVUSLOA_ARAKIRI_02 — kinnitatud ärakiri (ainult veosevedu)
+--  3. OTHER_DOCUMENTS / VEOSE_DOKUMENDID     — "Veose saatedokument" -> "Veodokument"
+--
+-- DOC_RIGHT_CHECK on jagatud Tööinspektsiooni kontrollaktiga — muudatus kehtib ka seal.
+
+DO $$
+DECLARE
+    v_doc_key BIGINT;
+    v_other_key BIGINT;
+BEGIN
+    SELECT classifier_key INTO v_doc_key   FROM classifier.classifier WHERE code = 'DOC_RIGHT_CHECK';
+    SELECT classifier_key INTO v_other_key FROM classifier.classifier WHERE code = 'OTHER_DOCUMENTS';
+
+    IF v_doc_key IS NOT NULL THEN
+        UPDATE classifier.classifier_value
+        SET name = 'Autojuht ei esita ühenduse tegevusloa kehtivat tõestatud koopiat (sõitjatevedu)'
+        WHERE classifier_key = v_doc_key AND code = 'TEGEVUSLOA_ARAKIRI_01';
+
+        UPDATE classifier.classifier_value
+        SET name = 'Autojuht ei esita ühenduse tegevusloa kehtivat kinnitatud ärakirja (veosevedu)'
+        WHERE classifier_key = v_doc_key AND code = 'TEGEVUSLOA_ARAKIRI_02';
+    END IF;
+
+    IF v_other_key IS NOT NULL THEN
+        UPDATE classifier.classifier_value
+        SET name = 'Veodokument'
+        WHERE classifier_key = v_other_key AND code = 'VEOSE_DOKUMENDID';
+    END IF;
+END $$;

@@ -80,6 +80,11 @@ newman run "$COL/driverest-forms.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/driverest-forms.html"
 
+newman run "$COL/tram-form.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/tram-form.html"
+
 newman run "$COL/labour-inspection.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \
@@ -141,6 +146,22 @@ newman run "$COL/xroad-provide-write.collection.json" -e "$ENV" \
 newman run "$COL/risk-scores.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/risk-scores.html"
+
+newman run "$COL/citizen-representation.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/citizen-representation.html"
+newman run "$COL/cron-jobs.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/cron-jobs.html"
+
+newman run "$COL/notifications.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/notifications.html"
+
+newman run "$COL/audit-log.collection.json" -e "$ENV" \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/audit-log.html"
 
 echo ""
 echo "All collections passed."

@@ -1,0 +1,147 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for one of
+    the citizen's represented companies, backing the CompanyControlsTable
+    accordion under a CompanyCard on the citizen dashboard. Same representative-check
+    convention as GET/v1/citizen/risk-scores/my-company.yml — session claims
+    (activeRole/activeRegistryCode/representedCompanies, from
+    representation/switch or representation/companies, backed by Äriregister
+    esindus_v1) checked first (free, no X-Road call), falling back to a live
+    esindus_v1 call only when the session predates those claims.
+  namespace: risk_score
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "8-digit Estonian company registry code."
+
+getCitizenContext:
+  template: "templates/citizen-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: authority
+  next: checkCitizenAuth
+
+checkCitizenAuth:
+  switch:
+    - condition: "${authority === 'false'}"
+      next: returnUnauthenticated
+  next: extractPersonalCode
+
+extractPersonalCode:
+  assign:
+    personal_code: "${authority.personalCode}"
+    active_role: "${authority.activeRole}"
+    active_registry_code: "${authority.activeRegistryCode ?? ''}"
+    represented_companies: "${authority.representedCompanies ?? []}"
+  next: extractCompanyRegCode
+
+extractCompanyRegCode:
+  assign:
+    company_reg_code: "${(incoming.params.q || '').trim()}"
+  next: validateRegCode
+
+validateRegCode:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test(company_reg_code)}"
+      next: returnInvalidRegCode
+  next: checkSessionClaims
+
+checkSessionClaims:
+  switch:
+    - condition: "${active_role === 'company' && active_registry_code === company_reg_code}"
+      next: getControlsBreakdown
+    - condition: "${represented_companies.some(c => c.registryCode === company_reg_code)}"
+      next: getControlsBreakdown
+  next: checkCompanyRepresentative
+
+checkCompanyRepresentative:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/esindus_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ""
+      personal_code: ${personal_code}
+      personal_code_country: "EST"
+  result: ar_res
+  next: checkArAvailable
+
+checkArAvailable:
+  switch:
+    - condition: "${ar_res.response.status < 200 || ar_res.response.status >= 300}"
+      next: returnArUnavailable
+  next: extractRepresentedCompanies
+
+extractRepresentedCompanies:
+  assign:
+    represented_companies_live: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function stripNs(v) {
+          if (Array.isArray(v)) return v.map(stripNs);
+          if (v && typeof v === 'object') {
+            var out = {};
+            Object.keys(v).forEach(function(k) {
+              if (k.charAt(0) === '@') return;
+              var shortKey = k.indexOf(':') >= 0 ? k.substring(k.indexOf(':') + 1) : k;
+              out[shortKey] = stripNs(v[k]);
+            });
+            return out;
+          }
+          return v;
+        }
+        var soapBody = (ar_res.response.body && ar_res.response.body.body) ? ar_res.response.body.body : (ar_res.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('esindus_v1Response'); });
+        var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {};
+        var keha = responseNode.keha || {};
+        var items = toArray(keha.ettevotjad && keha.ettevotjad.item);
+        return items.map(function(c) { return c.ariregistri_kood != null ? String(c.ariregistri_kood) : ''; });
+      })()}
+  next: verifyRepresentative
+
+verifyRepresentative:
+  switch:
+    - condition: "${!represented_companies_live.includes(company_reg_code)}"
+      next: returnForbidden
+  next: getControlsBreakdown
+
+getControlsBreakdown:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/controls"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+  result: controls_res
+  next: returnSuccess
+
+returnSuccess:
+  status: 200
+  return: "${({controls: controls_res.response.body.response.controls})}"
+  next: end
+
+returnUnauthenticated:
+  status: 400
+  return: "${({error: 'UNAUTHENTICATED', message: 'Valid TARA session required'})}"
+  next: end
+
+returnInvalidRegCode:
+  status: 400
+  return: "${({error: 'INVALID_PARAMETER', message: 'q must be an 8-digit company registry code'})}"
+  next: end
+
+returnArUnavailable:
+  status: 503
+  return: "${({error: 'AR_UNAVAILABLE', message: 'Ariregister representative check unavailable'})}"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: "${({error: 'NOT_REPRESENTATIVE', message: 'Personal code is not a registered representative of this company'})}"
+  next: end

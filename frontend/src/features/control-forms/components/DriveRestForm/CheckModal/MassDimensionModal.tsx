@@ -191,7 +191,7 @@ export function MassDimensionModal({
 
   const getDropdownLabel = (l2Code: string) => {
     const selected = dropdowns[l2Code]?.selected ?? [];
-    if (selected.length === 0) return t('common.select', 'Vali');
+    if (selected.length === 0) return t('common.select');
     const l1 = level1Items.find((item) => item.code === l2Code);
     return selected
       .map((code) => {
@@ -257,22 +257,29 @@ export function MassDimensionModal({
             )}
             <table className={styles.table}>
               <tbody>
-                {level1Items.map((l1) => {
+                {level1Items.map((l1, l1Idx) => {
                   const l2Items = level2Items.filter(
                     (v) => v.parentKey === l1.classifierValueKey,
                   );
                   const hasDescription = !!l1.description;
+                  // Mitu level-1 kategooriat võivad kanda sama description'i
+                  // ("Mass" — MASS_N3 ja MASS_N2). Ära korda päiserida.
+                  const showDescriptionHeader =
+                    hasDescription &&
+                    level1Items[l1Idx - 1]?.description !== l1.description;
                   const groupKey = l1.code;
                   return (
                     <React.Fragment key={l1.code}>
                       {hasDescription ? (
                         <>
+                          {showDescriptionHeader && (
                           <tr className={styles['table-row']}>
                             <td className={styles['table-cell-name']}>
                               <Text modifiers="h4">{l1.description}</Text>
                             </td>
                             <td className={styles['table-cell-dropdown']}></td>
                           </tr>
+                          )}
                           <tr className={styles['table-row']}>
                             <td className={styles['table-cell-name']}>
                               <div className={styles['indented-name']}>
@@ -373,7 +380,7 @@ export function MassDimensionModal({
                                               }
                                               className={styles['clear-button']}
                                             >
-                                              {t('common.remove', 'Eemalda')}
+                                              {t('common.remove')}
                                             </button>
                                           </div>
                                         </div>
@@ -453,7 +460,7 @@ export function MassDimensionModal({
                                         maxRows={10}
                                         minRows={2}
                                         maxHeight="100px"
-                                        placeholder={t('common.note', 'Märkus')}
+                                        placeholder={t('common.note')}
                                         value={state.note || ''}
                                         onChange={(value) =>
                                           setDropdowns((prev) => ({
@@ -483,11 +490,11 @@ export function MassDimensionModal({
         <Modal.Footer>
           <Modal.Closer>
             <Button type="button" visualType="secondary">
-              {t('common.cancel', 'Tühista')}
+              {t('common.cancel')}
             </Button>
           </Modal.Closer>
           <Button type="button" onClick={handleConfirm}>
-            {t('common.select', 'Vali')}
+            {t('common.select')}
           </Button>
         </Modal.Footer>
       </Modal.Content>

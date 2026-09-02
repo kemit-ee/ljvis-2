@@ -142,6 +142,31 @@ checkStored:
   switch:
     - condition: ${received_res.response.body == null || received_res.response.body.length != 1}
       next: lookupExisting
+  next: checkViolation
+
+# Kui checkResult on WITH_INFRINGEMENT, loo in-app teavitus ncr.read õigusega kasutajatele.
+# Teavituse loomine on fire-and-forget (viga ei peata peamist voogu).
+checkViolation:
+  switch:
+    - condition: ${check_result === 'WITH_INFRINGEMENT'}
+      next: createNcrViolationNotification
+  next: buildAudit
+
+createNcrViolationNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "ncr_violation"
+      required_permission: "ncr.read"
+      related_entity_type: "ncr"
+      related_entity_id: ${business_case_id}
+      title_et: "NCR raske rikkumise teade"
+      body_et: "${transport_undertaking_name + ' — kontrolli tulemus: rikkumisega (riik: ' + ncr_from + ')'}"
+      created_by: "system"
+  result: notifRes
   next: buildAudit
 
 lookupExisting:

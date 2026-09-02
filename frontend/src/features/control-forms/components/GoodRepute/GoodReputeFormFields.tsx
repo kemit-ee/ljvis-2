@@ -4,13 +4,13 @@ import {
   Button,
   Card,
   ChoiceGroup,
-  DateField,
   Heading,
   Select,
   TextField,
   Alert,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../shared/MaskedDateField';
 import type { GoodReputeForm } from '../../types';
 import styles from '../../../classifiers/components/ClassifierValueInfoCard/ClassifierValueInfoCard.module.css';
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
@@ -111,7 +111,7 @@ export function GoodReputeFormFields({
                   disabled={searchLoading}
                   onClick={onSearchPerson}
                 >
-                  {t('common.search', 'Otsi')}
+                  {t('common.search')}
                 </Button>
               )}
             </div>
@@ -158,9 +158,10 @@ export function GoodReputeFormFields({
             <div
               className={isDesktop ? 'date-row-desktop-50' : 'date-row-mobile'}
             >
-              <DateField
+              <MaskedDateField
                 id="dateOfBirth"
                 label={t('forms.good_repute.driver.dateOfBirth')}
+                monthYearSelectType="grid"
                 selected={dateValue(values.dateOfBirth)}
                 onSelect={(v) =>
                   setFieldValue('dateOfBirth', toIsoDate(v as Date | undefined))
@@ -224,9 +225,10 @@ export function GoodReputeFormFields({
             <div
               className={isDesktop ? 'date-row-desktop-50' : 'date-row-mobile'}
             >
-              <DateField
+              <MaskedDateField
                 id="certificateIssueDate"
                 label={t('forms.good_repute.certificate.issueDate')}
+                monthYearSelectType="grid"
                 selected={dateValue(values.certificateIssueDate)}
                 onSelect={(v) =>
                   setFieldValue(
@@ -331,9 +333,10 @@ export function GoodReputeFormFields({
                     isDesktop ? 'date-row-desktop-50' : 'date-row-mobile'
                   }
                 >
-                  <DateField
+                  <MaskedDateField
                     id="unfitFromDate"
                     label={t('forms.good_repute.fitness.unfitFromDate')}
+                    monthYearSelectType="grid"
                     selected={dateValue(values.unfitFromDate)}
                     onSelect={(v) =>
                       setFieldValue(
@@ -362,9 +365,10 @@ export function GoodReputeFormFields({
                     isDesktop ? 'date-row-desktop-50' : 'date-row-mobile'
                   }
                 >
-                  <DateField
+                  <MaskedDateField
                     id="unfitUntilDate"
                     label={t('forms.good_repute.fitness.unfitUntilDate')}
+                    monthYearSelectType="grid"
                     selected={dateValue(values.unfitUntilDate)}
                     onSelect={(v) =>
                       setFieldValue(

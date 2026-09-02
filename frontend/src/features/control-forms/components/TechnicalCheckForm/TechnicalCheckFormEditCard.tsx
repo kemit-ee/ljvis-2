@@ -1,7 +1,7 @@
 import { useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
-import type { TechnicalCheckForm } from '../../types';
+import type { TechnicalCheckForm, Trailer } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../../pages/technical-check-form/TechnicalCheckFormCreatePage.tsx';
 
@@ -23,6 +23,8 @@ interface TechnicalCheckFormEditCardProps {
   formType: string;
   onValuesChange?: (values: Partial<TechnicalCheckForm>) => void;
   initialValidate?: boolean;
+  compoundTrailers?: Trailer[];
+  trailerIndex?: number;
 }
 
 export const TechnicalCheckFormEditCard = forwardRef<
@@ -38,6 +40,8 @@ export const TechnicalCheckFormEditCard = forwardRef<
     formType,
     onValuesChange,
     initialValidate,
+    compoundTrailers,
+    trailerIndex,
   },
   ref,
 ) {
@@ -68,6 +72,8 @@ export const TechnicalCheckFormEditCard = forwardRef<
           }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}
+          compoundTrailers={compoundTrailers}
+          trailerIndex={trailerIndex}
           ref={(ref) => {
             formRef.current = ref;
           }}

@@ -78,7 +78,7 @@ sequenceDiagram
 
     Ruuter->>DM: 1. mapRequest (registryCode → ariregistri_kood)
     DM-->>Ruuter: 2. XTR-sõbralik JSON
-    Ruuter->>XTR: 3. POST /ar/lihtandmed_v3 (JSON: ariregistri_kood, evnimi)
+    Ruuter->>XTR: 3. POST /ar/lihtandmed_v1 (JSON: reg_code, company_name)
     XTR->>XTR: 4. Laadi DSL mall, filtreeri params
     XTR->>XTR: 5. Täida Handlebars mall + süsti generate.* päised
     XTR->>TS: 6. Saada SOAP päring (mTLS PKCS12)
@@ -121,8 +121,9 @@ DSL-id asuvad kaustas, mille määrab `dsl_path` (vaikimisi `./DSL/`). URL kujun
 
 ```yaml
 params:
-  - ariregistri_kood
-  - evnimi
+  - reg_code
+  - company_name
+  - max_results
 # service: https://...  # Kui puudub, kasutatakse security_server.url-i
 method: POST
 
@@ -142,20 +143,26 @@ envelope: |
         <id:memberCode>70000310</id:memberCode>
         <id:subsystemCode>arireg</id:subsystemCode>
         <id:serviceCode>lihtandmed</id:serviceCode>
-        <id:serviceVersion>v3</id:serviceVersion>
+        <id:serviceVersion>v1</id:serviceVersion>
       </xroad:service>
     </soapenv:Header>
     <soapenv:Body>
-      <prod:lihtandmed_v3>
+      <prod:lihtandmed_v1>
         <prod:keha>
-          <prod:ariregistri_kood>{{ariregistri_kood}}</prod:ariregistri_kood>
-          <prod:evnimi>{{evnimi}}</prod:evnimi>
+          {{#if company_name}}<prod:evnimi>{{company_name}}</prod:evnimi>{{/if}}
+          {{#if reg_code}}<prod:ariregistri_kood>{{reg_code}}</prod:ariregistri_kood>{{/if}}
+          {{#if max_results}}<prod:evarv>{{max_results}}</prod:evarv>{{/if}}
           <prod:keel>est</prod:keel>
         </prod:keha>
-      </prod:lihtandmed_v3>
+      </prod:lihtandmed_v1>
     </soapenv:Body>
   </soapenv:Envelope>
 ```
+
+> **NB:** `lihtandmed_v1` XSD-s on tulemuste arvu väli nimega `evarv` (v3-s oli `maksRida`) ja
+> `elementFormDefault="qualified"` järjekord on `evnimi`, `ariregistri_kood`, `evarv`, `keel`.
+> Kõik `keha` väljad on `minOccurs="0"`, seega emiteeritakse iga väli ainult siis, kui klient
+> selle tegelikult andis (`ariregistri_kood` on `xsd:integer`, tühja stringi sinna saata ei tohi).
 
 ### DSL väljad
 
@@ -251,76 +258,55 @@ WSDL allikas: `https://x-tee.ee/catalogue-data/ee-test/ee-test/GOV/70000310/arir
 
 Kasutusel olevad teenused:
 
-| DSL fail | `serviceCode` | `serviceVersion` |
-|----------|---------------|-----------------|
-| `ar/lihtandmed_v3.yml` | `lihtandmed` | `v3` |
-| `ar/detailandmed_v4.yml` | `detailandmed` | `v4` |
-| `ar/ettevottegaSeotudIsikud_v1.yml` | `ettevottegaSeotudIsikud` | `v1` |
-| `ar/esindus_v2.yml` | `esindus` | `v2` |
+| DSL fail | `serviceCode` | `serviceVersion` | Transport |
+|----------|---------------|-----------------|-----------|
+| `ar/lihtandmed_v1.yml` | `lihtandmed` | `v1` | reaalne turvaserver (`security_server`), meie subsüsteemil (`GOV/70001231/ljvis2`) on ACL — ei vaja enam kasutajanime/parooli |
+| `ar/esindus_v1.yml` | `esindus` | `v1` | reaalne turvaserver, samuti ACL-iga kaetud |
+| `ar/detailandmed_v1.yml` | `detailandmed` | `v1` | reaalne turvaserver, samuti ACL-iga kaetud |
+| `ar/ettevottegaSeotudIsikud_v1.yml` | `ettevottegaSeotudIsikud` | `v1` | otse HTTPS bypass `ariregxmlv6.rik.ee`-le (ACL puudub — ei ole `allowedMethods` vastuses) |
+
+> **Ajaloomärge:** kuni 2026-08-31 kasutasid `lihtandmed`/`esindus` `v3`/`v2` versioone otse HTTPS bypass'iga (`detailandmed` XTR DSL oli `v2`, kuid ei olnud ühegi Ruuter endpoint'iga ühendatud; selle tabeli varasem `detailandmed_v4` rida oli ekslik) (`service: https://ariregxmlv6.rik.ee/`) koos `AR_USERNAME`/`AR_PASSWORD` autentimisega, kuna X-Road ACL-i arireg'ile ei olnud. Elava `allowedMethods` kontrolliga (vt `.ai/ljvis-tasks/xtee-task.md`) selgus, et meie subsüsteemil on nüüd ACL arireg'i **v1**-meetoditele — migreeriti reaalse turvaserveri kaudu tehtavale kutsele, bypass ja kasutajanimi/parool eemaldatud. `ettevottegaSeotudIsikud_v1` jääb bypass'ile, kuna ACL sellele puudub.
 
 ---
 
 ## DMapper — parameetrite teisendus
 
-Ruuter kasutab REST-sõbralikke väljanimed (`registryCode`, `companyName`), kuid XTR DSL nõuab äriregistri WSDL-i väljanimed (`ariregistri_kood`, `evnimi`). DMapper Handlebars mallid lahendavad selle nimeruumi teisenduse mõlemas suunas.
+Ruuter kasutab REST-sõbralikke väljanimed (`registryCode`, `companyName`), kuid XTR DSL nõuab äriregistri WSDL-i väljanimed (`ariregistri_kood`, `evnimi`). Ajalooliselt tegid selle teisenduse DMapper Handlebars mallid; `arireg/*` endpoint'ides tehakse seda nüüd Ruuteri DSL-is otse (vt märkust allpool).
 
-### Näide: `lihtandmed_v3`
+> **NB (2026-08-31):** `arireg/*` Ruuter endpoint'id ei kutsu enam DMapperit. XTR-i saadetav
+> keha koostatakse Ruuteri DSL-is otse (WSDL väljanimed on juba XTR malli `params`-is) ja vastuse
+> nimeruumi-prefiksite eemaldus tehakse endpoint'is inline `mapResponse` sammuga (vt allpool).
+> DMapper HBS mallid (`arireg_lihtandmed_*.handlebars`) on kasutuseta.
 
-**`DSL/DMapper/ljvis/hbs/arireg_lihtandmed_request.handlebars`** — teisendab Ruuteri JSON XTR-i jaoks:
-
-```json
-{
-  "ariregistri_kood": "{{registryCode}}",
-  "evnimi": "{{companyName}}",
-  "keel": "est"
-}
-```
-
-**`DSL/DMapper/ljvis/hbs/arireg_lihtandmed_response.handlebars`** — teisendab XTR vastuse Ruuteri jaoks:
-
-```json
-{
-  "totalFound": {{#if lihtandmed_v3Response.keha.leitud}}{{lihtandmed_v3Response.keha.leitud}}{{else}}0{{/if}},
-  "data": [
-    {{#each lihtandmed_v3Response.keha.ettevotjad.item}}
-    {
-      "registryCode": "{{this.ariregistri_kood}}",
-      "companyName": "{{this.ettevotja_nimi}}",
-      "status": "{{this.ettevotja_staatus}}"
-    }{{#unless @last}},{{/unless}}
-    {{/each}}
-  ]
-}
-```
-
-### Ruuter DSL voog
+### Ruuter DSL voog (`POST/v1/xroad/arireg/lihtandmed.yml`)
 
 ```yaml
-mapRequest:               # registryCode → ariregistri_kood
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/arireg_lihtandmed_request"
-    body:
-      registryCode: "${reg_code}"
-      companyName: "${company_name}"
-  result: mappedRequest
-  next: callXtr
-
 callXtr:
   call: http.post
   args:
-    url: "[#LJVIS_XTR]/ar/lihtandmed_v3"
-    body: "${mappedRequest.response.body}"
+    url: "[#LJVIS_XTR]/ar/lihtandmed_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${reg_code}
+      company_name: ${company_name}
+      max_results: ${max_results}
   result: xtrResponse
-  next: mapResponse
+  next: checkXtrStatus
 
-mapResponse:              # lihtandmed_v3Response.keha → {registryCode, companyName, ...}
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/arireg_lihtandmed_response"
-    body: "${xtrResponse.response.body}"
-  result: mappedResponse
-  next: logSuccess
+# Reaalse turvaserveri kaudu tuleb XTR-ist täis X-Road SOAP-ümbrik {headers, body},
+# kus iga vastuselement on nimeruumi-prefiksiga (nt "ns1:lihtandmed_v1Response").
+# Strip see maha, et frontend'i olemasolev raw.lihtandmed_v1Response.keha.* juurdepääs
+# jääks muutmata tööle.
+mapResponse:              # ns1:lihtandmed_v1Response → { lihtandmed_v1Response: { keha: {...} } }
+  assign:
+    mapped_result: >-
+      ${(function(){ /* stripNs(...) — vt DSL faili */ })()}
+  next: returnResponse
+
+returnResponse:
+  return: ${mapped_result}
+  status: 200
 ```
 
 ---

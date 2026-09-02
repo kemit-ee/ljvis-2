@@ -10,7 +10,6 @@ import {
   Text,
   ChoiceGroup,
   Alert,
-  DateField,
   TimeField,
   Accordion,
   AccordionItem,
@@ -18,6 +17,7 @@ import {
   AccordionItemContent,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../shared/MaskedDateField';
 import { CompanyPickerModal } from '../CompanyPickerModal';
 import {
   EU_VIOLATION_GROUPS,
@@ -256,9 +256,10 @@ export function ForeignViolationFormFields({
                 styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
               }
             >
-              <DateField
+              <MaskedDateField
                 id="inspectionDate"
                 label={t('forms.foreign_violation.inspectionDate')}
+                monthYearSelectType="grid"
                 disableFuture
                 selected={
                   values.inspectionDate
@@ -625,9 +626,10 @@ export function ForeignViolationFormFields({
                 styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
               }
             >
-              <DateField
+              <MaskedDateField
                 id="vehicleFirstRegistration"
                 label={t('forms.foreign_violation.vehicleFirstRegistration')}
+                monthYearSelectType="grid"
                 selected={
                   values.vehicleFirstRegistration
                     ? new Date(values.vehicleFirstRegistration as string)
@@ -938,9 +940,10 @@ export function ForeignViolationFormFields({
                 styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
               }
             >
-              <DateField
+              <MaskedDateField
                 id="dataEntryDate"
                 label={t('forms.foreign_violation.dataEntryDate')}
+                monthYearSelectType="grid"
                 selected={
                   values.dataEntryDate
                     ? new Date(values.dataEntryDate as string)

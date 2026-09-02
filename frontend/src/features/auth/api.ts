@@ -1,4 +1,4 @@
-import type { AuthUser } from './types';
+import type { AuthUser, RepresentedCompany, RepresentationRole } from './types';
 
 const BASE = '/api';
 
@@ -15,9 +15,11 @@ export async function logout(): Promise<void> {
   });
 }
 
+// GET/auth/session.yml — works for citizen-only TARA sessions (no
+// users.user_account row required, unlike the old /auth/jwt/userinfo).
 export async function getUserInfo(): Promise<AuthUser | null> {
   try {
-    const res = await fetch(`${BASE}/auth/jwt/userinfo`, {
+    const res = await fetch(`${BASE}/auth/session`, {
       credentials: 'include',
     });
     if (!res.ok) return null;
@@ -26,4 +28,36 @@ export async function getUserInfo(): Promise<AuthUser | null> {
   } catch {
     return null;
   }
+}
+
+export async function getRepresentationCompanies(): Promise<
+  RepresentedCompany[]
+> {
+  try {
+    const res = await fetch(`${BASE}/auth/representation/companies`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    if (!res.ok) return [];
+    const json: RuuterResponse<{ companies: RepresentedCompany[] }> =
+      await res.json();
+    return json.response?.companies ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function switchRepresentation(
+  role: RepresentationRole,
+  registryCode?: string,
+): Promise<boolean> {
+  const res = await fetch(`${BASE}/auth/representation/switch`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role, registryCode: registryCode ?? '' }),
+  });
+  return res.ok;
 }
