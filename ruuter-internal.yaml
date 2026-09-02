@@ -23,9 +23,11 @@ internal_requests:
 http_codes_allow_list: [200, 201, 202, 400, 401, 403, 404, 409, 422, 500, 502]
 
 logging:
-  display_request_content: true
-  display_response_content: true
-  print_stack_trace: true
+  # Vt ruuter.yaml: kehad ja stack-trace'id ei lähe logisse (isikuandmed + siseehitus).
+  # ruuter-internal käitleb X-Road integratsioone — kehad sisaldavad rahvastikuregistri jm andmeid.
+  display_request_content: false
+  display_response_content: false
+  print_stack_trace: false
   meaningful_errors: true
 
 dsl:
