@@ -1,8 +1,8 @@
 # Citizen-facing endpoints use a TARA JWT session (representation claims:
 # personalCode/activeRole/activeRegistryCode/representedCompanies), not the
 # officer session that templates/check-user-authority expects (which requires
-# a users.user_account row). override_ancestors: true so the parent POST/.guard
-# (officer-only) doesn't reject citizen requests before they even reach here.
+# a users.user_account row). override_ancestors: true jätab projektiülese
+# guardi (ametniku-sessioon) vahele, et kodaniku päring siia jõuaks.
 declaration:
   override_ancestors: true
 
