@@ -119,7 +119,7 @@
       ]
     },
     {
-      "name": "GET /v1/permissions — TARA user not registered in LJVIS → 401",
+      "name": "GET /v1/permissions — TARA user not registered in LJVIS → 403",
       "request": {
         "method": "GET",
         "header": [
@@ -145,7 +145,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Returns 401 for TARA user not registered in LJVIS', () => pm.response.to.have.status(401));"
+              "pm.test('Returns 403 for TARA user not registered in LJVIS', () => pm.response.to.have.status(403));"
             ]
           }
         }

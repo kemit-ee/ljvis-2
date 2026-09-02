@@ -16,7 +16,7 @@
 check_cookie:
   switch:
     - condition: ${incoming.headers == null || incoming.headers.cookie == null}
-      next: deny
+      next: deny_unauthenticated
   next: authenticate
 
 authenticate:
@@ -31,7 +31,7 @@ check_auth:
   switch:
     - condition: ${u !== "false" && u.personalcode != null}
       next: pass
-  next: deny
+  next: deny_forbidden
 
 pass:
   assign:
@@ -43,7 +43,14 @@ allow:
   return: "ok"
   next: end
 
-deny:
+# Küpsis puudub → 401 (frontend suunab login'i).
+deny_unauthenticated:
   status: 401
   return: "unauthorized"
+  next: end
+
+# Kehtiv TARA-sessioon, aga vigane JWT või pole LJVIS-i kasutaja → 403 (nagu vanad juur-guardid).
+deny_forbidden:
+  status: 403
+  return: "forbidden"
   next: end
