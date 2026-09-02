@@ -860,6 +860,13 @@
       "mtrTooltip": "Otsida saab Eesti veoettevõtjate andmeid. Välisriigi ettevõtja puhul tuleb number käsitsi sisestada.",
       "companyActivityLicenceCopyNumber": "Ühenduse tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number",
       "mtrSearchButton": "Otsi majandustegevuse registrist",
+      "mtrError": {
+        "notEstonianCompany": "Päring majandustegevuse registrisse toimub ainult Eesti ettevõtte registrikoodi korral.",
+        "missingFields": "Päringu tegemiseks on vajalik nii registrikood kui ka sõiduki registreerimismärk.",
+        "companyNotFound": "Ettevõtte andmeid MTR-ist ei leitud.",
+        "licenceNotFound": "Tegevusloa numbrit ei leitud.",
+        "requestFailed": "MTR päring ebaõnnestus."
+      },
       "driver": "Sõidukijuhi andmed",
       "driver2": "Teise juhi / meeskonna liikme andmed",
       "driverPersonalCodeEe": "Eesti isikukood",

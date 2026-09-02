@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: 'http://localhost:8086',
           changeOrigin: true,
+          ws: true, // teavituste WebSocket (/api/notifications/connect)
           rewrite: useMock
             ? (path) => path.replace(/^\/api(.+?)(\?.*)?$/, '/ljvis$1/mock$2')
             : (path) => path.replace(/^\/api/, '/ljvis'),

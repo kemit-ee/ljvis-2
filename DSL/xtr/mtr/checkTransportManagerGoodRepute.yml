@@ -1,0 +1,63 @@
+params:
+  - firstName
+  - lastName
+  - birthDate
+  - birthPlace
+  - cpcDocumentNumber
+  - cpcDocumentIssueCountry
+  - cpcDocumentIssueDate
+  - userId
+
+method: POST
+
+# LJVIS2-154 — MTR checkTransportManagerGoodRepute/v1
+# (EE/GOV/70003218/mtr/checkTransportManagerGoodRepute/v1).
+#
+# firstName/lastName must already be NYSIIS-encoded by the caller (via
+# templates/erru/cgr/nysiis-key.yml, delegating to the nysiis sidecar) —
+# MTR matches transport manager names in NYSIIS-normalised form; this
+# template does not re-encode them.
+#
+# elementFormDefault is unset on the producer's schema (confirmed via the
+# real getWsdl meta-service response, LJVIS2-154), i.e. defaults to
+# "unqualified" per XSD — same gotcha as paring2.yml: only the top-level
+# <prod:checkTransportManagerGoodRepute> element is namespace-qualified,
+# its children (request/firstName/lastName/...) must NOT carry the prod:
+# prefix. birthPlace is minOccurs="0" in CheckTransportManagerGoodReputeRequest_Body
+# — omitted entirely (not xsi:nil) when the caller didn't supply it, since
+# the producer's schema has it truly optional rather than xsd:all-nillable
+# like paring2's fields.
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:prod="http://mtr.x-road.ee/producer/">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  <xroad:userId>{{userId}}</xroad:userId>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70003218</id:memberCode>
+  <id:subsystemCode>mtr</id:subsystemCode>
+  <id:serviceCode>checkTransportManagerGoodRepute</id:serviceCode>
+  <id:serviceVersion>v1</id:serviceVersion>
+  </xroad:service>
+  </soapenv:Header>
+  <soapenv:Body>
+  <prod:checkTransportManagerGoodRepute>
+  <request>
+  <firstName>{{firstName}}</firstName>
+  <lastName>{{lastName}}</lastName>
+  <birthDate>{{birthDate}}</birthDate>
+  {{#if birthPlace}}<birthPlace>{{birthPlace}}</birthPlace>{{/if}}
+  <cpcDocumentNumber>{{cpcDocumentNumber}}</cpcDocumentNumber>
+  <cpcDocumentIssueCountry>{{cpcDocumentIssueCountry}}</cpcDocumentIssueCountry>
+  <cpcDocumentIssueDate>{{cpcDocumentIssueDate}}</cpcDocumentIssueDate>
+  </request>
+  </prod:checkTransportManagerGoodRepute>
+  </soapenv:Body>
+  </soapenv:Envelope>

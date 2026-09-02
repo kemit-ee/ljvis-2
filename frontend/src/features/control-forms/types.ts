@@ -187,6 +187,7 @@ export interface DriveRestForm {
   id?: string;
   compoundFormKey?: number;
   subFormNumber?: string;
+  version?: number;
   templateVersion?: number;
   status?: string;
   selectionStatus?: string;

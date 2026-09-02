@@ -196,6 +196,7 @@ export function useDriveRestForm(
       id: form?.id ?? '',
       compoundFormKey: form?.compoundFormKey,
       subFormNumber: form?.subFormNumber ?? '',
+      version: form?.version ?? 1,
       status: form?.status ?? 'saved',
       selectionStatus: form?.selectionStatus ?? 'active',
       transportType: form?.transportType ?? '',
@@ -289,21 +290,12 @@ export function useDriveRestForm(
         const isReconfirmedEdit = !isConfirming && form?.status === 'confirmed';
         const nextStatus =
           isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
-        const subFormNumberString = form?.subFormNumber ?? '';
-        const incrementSubFormNumber = (n: string): string => {
-          const match = n.match(/^(.+\/)([0-9]+)$/);
-          return match ? `${match[1]}${parseInt(match[2], 10) + 1}` : n;
-        };
-        const nextSubFormNumber = isReconfirmedEdit
-          ? incrementSubFormNumber(subFormNumberString)
-          : subFormNumberString;
 
         const overrideKey = pendingCompoundFormKey.current;
         pendingCompoundFormKey.current = undefined;
 
         const trimmedValues = {
           ...serializeDriveRestFormValues(values, nextStatus),
-          subFormNumber: nextSubFormNumber,
           compoundFormKey: overrideKey ?? values.compoundFormKey,
         };
 

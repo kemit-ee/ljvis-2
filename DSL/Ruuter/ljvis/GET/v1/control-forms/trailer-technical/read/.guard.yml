@@ -1,0 +1,16 @@
+# Nõutav õigus: control_form.view_unpublished,trailer_technical_form.read. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+check:
+  switch:
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('trailer_technical_form.read'))}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

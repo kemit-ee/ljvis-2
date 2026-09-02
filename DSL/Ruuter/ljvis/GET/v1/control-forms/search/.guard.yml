@@ -1,0 +1,16 @@
+# Nõutav õigus: control_form.view_unpublished,compound_form.read,foreign_violation_form.read,labour_inspection_form.read,good_repute_form.read,adr_form.read,sp_driver_form.read,sp_teammate_form.read,vehicle_technical_form.read,trailer_technical_form.read,transport_interruption_form.read. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+check:
+  switch:
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('compound_form.read') || auth_user.permissions.includes('foreign_violation_form.read') || auth_user.permissions.includes('labour_inspection_form.read') || auth_user.permissions.includes('good_repute_form.read') || auth_user.permissions.includes('adr_form.read') || auth_user.permissions.includes('sp_driver_form.read') || auth_user.permissions.includes('sp_teammate_form.read') || auth_user.permissions.includes('vehicle_technical_form.read') || auth_user.permissions.includes('trailer_technical_form.read') || auth_user.permissions.includes('transport_interruption_form.read'))}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

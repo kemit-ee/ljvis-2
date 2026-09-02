@@ -5,16 +5,13 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from './api';
+import { subscribeToNotificationUpdates } from './notificationSocket';
 import type { InAppNotification, UnreadCountResult } from './types';
 
-// WebSocket endpoint — sama host mis Ruuter API, protokoll ws:// (dev) / wss:// (prod)
-function buildWsUrl(): string {
-  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = window.location.host;
-  // dev proxy: vite ei proxyi ws:// automaatselt; vajalik Ruuter host otseselt
-  // toodangus: sama host, nginx teeb upgrade
-  return `${proto}//${host.replace('3001', '8086')}/ljvis/notifications/connect`;
-}
+// Fallback-polling intervall, kui WS ei ole saadaval (proxy, võrk, loobutud
+// pärast korduvaid ebaõnnestumisi). WS-i töötades pole seda vaja, aga hoiame
+// alati käigus — arv on väike päring ja tagab, et badge ei jää kunagi kinni.
+const FALLBACK_POLL_MS = 60_000;
 
 // --------------------------------------------------------------------------
 // useNotificationCount — kerge hook kelluke-badge jaoks
@@ -31,62 +28,14 @@ export function useNotificationCount(): {
       .catch(() => {/* viga ei peata renderdust */});
   }, []);
 
-  // WebSocket ühendus — reaalajas push notification_update sündmusel
   React.useEffect(() => {
-    let ws: WebSocket | null = null;
-    let fallbackTimer: ReturnType<typeof setInterval> | null = null;
-    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-    let dead = false;
-
     refetch(); // esmane laadimine
-
-    function connect() {
-      if (dead) return;
-      try {
-        ws = new WebSocket(buildWsUrl());
-
-        ws.onopen = () => {
-          // WS ühendus avatud — peatame fallback polling-u
-          if (fallbackTimer) {
-            clearInterval(fallbackTimer);
-            fallbackTimer = null;
-          }
-        };
-
-        ws.onmessage = (evt) => {
-          try {
-            const msg = JSON.parse(evt.data as string);
-            if (msg.type === 'notification_update') {
-              refetch();
-            }
-          } catch {/* mitteJSON frame — ignoreerime */}
-        };
-
-        ws.onerror = () => {/* reconnect toimub onclose kaudu */};
-
-        ws.onclose = () => {
-          if (dead) return;
-          // WS katkestus — aktiveeri fallback polling + planeeri reconnect
-          if (!fallbackTimer) {
-            fallbackTimer = setInterval(refetch, 60_000);
-          }
-          reconnectTimer = setTimeout(connect, 5_000);
-        };
-      } catch {
-        // WebSocket konstruktori viga (nt SSR) — kasuta ainult fallback
-        if (!fallbackTimer) {
-          fallbackTimer = setInterval(refetch, 60_000);
-        }
-      }
-    }
-
-    connect();
-
+    // Jagatud WS-singleton annab märku serveri-poolsest muutusest.
+    const unsubscribe = subscribeToNotificationUpdates(refetch);
+    const poll = setInterval(refetch, FALLBACK_POLL_MS);
     return () => {
-      dead = true;
-      if (ws) { try { ws.close(); } catch {/* ignore */} }
-      if (fallbackTimer) clearInterval(fallbackTimer);
-      if (reconnectTimer) clearTimeout(reconnectTimer);
+      unsubscribe();
+      clearInterval(poll);
     };
   }, [refetch]);
 
@@ -123,6 +72,8 @@ export function useNotifications(): {
 
   React.useEffect(() => {
     void refetch();
+    const unsubscribe = subscribeToNotificationUpdates(() => void refetch());
+    return unsubscribe;
   }, [refetch]);
 
   const markRead = React.useCallback(

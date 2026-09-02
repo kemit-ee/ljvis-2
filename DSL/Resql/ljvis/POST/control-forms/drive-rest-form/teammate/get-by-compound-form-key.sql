@@ -18,6 +18,8 @@ declaration:
         type: string
       - field: subFormNumber
         type: string
+      - field: version
+        type: number
       - field: status
         type: string
       - field: selectionStatus
@@ -91,6 +93,7 @@ SELECT
   sp_teammate_form_key AS id,
   compound_form_key,
   sub_form_number,
+  version,
   status,
   selection_status,
   transport_type,

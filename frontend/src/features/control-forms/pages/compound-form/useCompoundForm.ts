@@ -21,7 +21,7 @@ import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 import { useVehicleSearch } from '../../../xroad/hooks/useVehicleSearch';
-import { searchVehicleByRegNr } from '../../../xroad/api';
+import { searchVehicleByRegNr, searchMtrSoidukikaart } from '../../../xroad/api';
 import type { XRoadVehicle } from '../../../xroad/types';
 import { FORM_CONFIG } from "../../formRoutes.ts";
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
@@ -144,7 +144,10 @@ export function useCompoundForm(
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
     null,
   );
-  const [mtrSearchError, setMtrSearchError] = useState(false);
+  // Holds an i18n key (see forms.compound.mtrError.* below), not a boolean —
+  // the MTR search has several distinct outcomes, not a single generic
+  // "not found" message.
+  const [mtrSearchError, setMtrSearchError] = useState<string | null>(null);
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
@@ -568,15 +571,46 @@ export function useCompoundForm(
     }
   };
 
+  // Äriregister returns the EHAK county/city as free text (finest to
+  // coarsest, e.g. "Põhja-Tallinna linnaosa, Tallinn, Harju maakond"), but
+  // our EHAK classifier only has 2 levels (maakond -> linn/vald), and the
+  // companyCounty/companyCity fields are Selects bound to classifier value
+  // keys, not free text. Resolve by matching names: the last segment is
+  // always the maakond, the one before it is always the linn/vald — any
+  // finer segments (city districts) aren't modeled in our classifier and
+  // are dropped.
+  const resolveEhakByText = (ehakText: string) => {
+    const segments = ehakText
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (segments.length < 2) return { countyKey: '', cityKey: '' };
+    const countyName = segments[segments.length - 1];
+    const cityName = segments[segments.length - 2];
+    const county = getByCode('EHAK')
+      .filter((e) => e.parentKey === null)
+      .find((e) => e.name.toLowerCase() === countyName.toLowerCase());
+    if (!county) return { countyKey: '', cityKey: '' };
+    const city = getChildren('EHAK', county.classifierValueKey).find(
+      (e) => e.name.toLowerCase() === cityName.toLowerCase(),
+    );
+    return {
+      countyKey: String(county.classifierValueKey),
+      cityKey: city ? String(city.classifierValueKey) : '',
+    };
+  };
+
   const {
     searchByRegCode,
     error: companySearchError,
     setError: setCompanySearchError,
   } = useCompanySearch({
     onCompanyFound: (company) => {
+      const { countyKey, cityKey } = resolveEhakByText(company.city);
       formik.setFieldValue('companyName', company.companyName);
-      formik.setFieldValue('companyAddress', company.address);
-      formik.setFieldValue('companyCity', company.city);
+      formik.setFieldValue('companyAddressLine1', company.street);
+      formik.setFieldValue('companyCounty', countyKey);
+      formik.setFieldValue('companyCity', cityKey);
       formik.setFieldValue('companyPostalCode', company.postalCode);
       formik.setFieldValue('companyCountryCode', 'EE');
     },
@@ -644,10 +678,53 @@ export function useCompoundForm(
     }
   };
 
+  // "Otsi majandustegevuse registrist" — queries MTR soidukikaart by the
+  // carrier's registrikood, then matches the returned vehicle cards against
+  // the motor vehicle block's registration number.
   const handleMtrSearch = async () => {
-    setMtrSearchError(false);
-    const result = null;
-    if (!result) setMtrSearchError(true);
+    setMtrSearchError(null);
+    // Only Estonian carriers have MTR entries at all.
+    if (formik.values.companyCountryCode !== 'EE') {
+      setMtrSearchError('forms.compound.mtrError.notEstonianCompany');
+      return;
+    }
+    const regCode = formik.values.companyRegCode?.trim();
+    const vehicleRegNr = formik.values.vehicleRegNr?.trim();
+    // Both the carrier's registrikood and the vehicle's registration number
+    // are needed to identify the right soidukikaart.
+    if (!regCode || !vehicleRegNr) {
+      setMtrSearchError('forms.compound.mtrError.missingFields');
+      return;
+    }
+    try {
+      // Search by registrikood; no match at all.
+      const result = await searchMtrSoidukikaart(regCode);
+      if (!result) {
+        setMtrSearchError('forms.compound.mtrError.companyNotFound');
+        return;
+      }
+      // Among the returned cards, find the one whose vehicle list contains
+      // the motor vehicle block's registration number.
+      const matchingCard = result.vehicleCards.find((card) =>
+        card.vehicles.some(
+          (v) =>
+            v.registrationNumber.trim().toUpperCase() ===
+            vehicleRegNr.toUpperCase(),
+        ),
+      );
+      if (!matchingCard) {
+        setMtrSearchError('forms.compound.mtrError.licenceNotFound');
+        return;
+      }
+      // Prefills but stays editable.
+      formik.setFieldValue(
+        'companyActivityLicenceCopyNumber',
+        matchingCard.registrationNumber,
+      );
+    } catch {
+      // X-tee/MTR request failed outright.
+      setMtrSearchError('forms.compound.mtrError.requestFailed');
+    }
   };
 
   const buildAvailableForms = (permissions: string[]): ControlForm[] =>

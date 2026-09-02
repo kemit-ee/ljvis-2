@@ -1,0 +1,33 @@
+# Nõutav õigus: ctud.send. override_ancestors: verbi-õigus on iseseisev, ei stacki
+# parent erru-guardi ega projektiülese guardi peale — seega autendib see guard ise.
+declaration:
+  override_ancestors: true
+
+authenticate:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: u
+  next: check
+
+check:
+  switch:
+    - condition: ${u !== "false" && u.permissions != null && u.permissions.includes('ctud.send')}
+      next: pass
+  next: deny
+
+pass:
+  assign:
+    auth_user: ${u}
+  next: allow
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

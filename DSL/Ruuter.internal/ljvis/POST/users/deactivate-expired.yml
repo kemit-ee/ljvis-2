@@ -51,6 +51,7 @@ logAuditEvent:
       actor_personal_code: ""
       description: "${'Öine protsess deaktiveeris ' + res.response.body.length + ' kasutaja(t) (ligipääsu lõpu kuupäev möödas)'}"
       log_content: "${JSON.stringify({ deactivatedCount: res.response.body.length, deactivatedUserAccountKeys: res.response.body.map(r => r.id), deactivatedPersonalCodes: res.response.body.map(r => r.personalCode || r.personal_code) })}"
+      organisation_id: ""
       created_by: "system"
       trace_id: ""
       span_id: ""

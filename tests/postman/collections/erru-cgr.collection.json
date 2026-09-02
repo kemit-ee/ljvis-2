@@ -2100,7 +2100,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"technicalId\": \"{{cgr_inbound_tech_id}}\", \"workflowId\": \"aabbccdd-1002-1002-1002-aabbccdd1002\", \"sentAt\": \"2026-07-23T09:01:00Z\", \"from\": \"LV\", \"businessCaseId\": \"LV-CGR-NEWMAN-1\", \"originatingAuthority\": \"LV-ATD\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Mart\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-05-15\", \"tmPlaceOfBirth\": \"Tallinn\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+          "raw": "{\"technicalId\": \"{{cgr_inbound_tech_id}}\", \"workflowId\": \"aabbccdd-1002-1002-1002-aabbccdd1002\", \"sentAt\": \"2026-07-23T09:01:00Z\", \"from\": \"LV\", \"businessCaseId\": \"LV-CGR-NEWMAN-1\", \"originatingAuthority\": \"LV-ATD\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Mart\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-05-15\", \"tmPlaceOfBirth\": \"Tallinn\", \"certificateNumber\": \"EE-CPC-2020-00111\", \"certificateIssueDate\": \"2020-06-01\", \"certificateIssueCountry\": \"EE\"}"
         }
       },
       "event": [
@@ -2153,7 +2153,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"technicalId\": \"{{cgr_inbound_tech_id}}\", \"workflowId\": \"aabbccdd-1002-1002-1002-aabbccdd1002\", \"sentAt\": \"2026-07-23T09:01:00Z\", \"from\": \"LV\", \"businessCaseId\": \"LV-CGR-NEWMAN-1\", \"originatingAuthority\": \"LV-ATD\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Mart\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-05-15\", \"tmPlaceOfBirth\": \"Tallinn\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\"}"
+          "raw": "{\"technicalId\": \"{{cgr_inbound_tech_id}}\", \"workflowId\": \"aabbccdd-1002-1002-1002-aabbccdd1002\", \"sentAt\": \"2026-07-23T09:01:00Z\", \"from\": \"LV\", \"businessCaseId\": \"LV-CGR-NEWMAN-1\", \"originatingAuthority\": \"LV-ATD\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Mart\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-05-15\", \"tmPlaceOfBirth\": \"Tallinn\", \"certificateNumber\": \"EE-CPC-2020-00111\", \"certificateIssueDate\": \"2020-06-01\", \"certificateIssueCountry\": \"EE\"}"
         }
       },
       "event": [
@@ -2243,7 +2243,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"technicalId\": \"aabbccdd-3001-3001-3001-aabbccdd3001\", \"workflowId\": \"aabbccdd-3002-3002-3002-aabbccdd3002\", \"sentAt\": \"2026-07-23T09:03:00Z\", \"from\": \"SE\", \"businessCaseId\": \"SE-CGR-NEWMAN-3\", \"originatingAuthority\": \"SE-TF\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"\", \"tmFamilyName\": \"\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"certificateNumber\": \"EE-CPC-2020-00111\", \"certificateIssueDate\": \"2020-06-01\", \"certificateIssueCountry\": \"EE\"}"
+          "raw": "{\"technicalId\": \"{{$guid}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-07-23T09:03:00Z\", \"from\": \"SE\", \"businessCaseId\": \"SE-CGR-NEWMAN-3\", \"originatingAuthority\": \"SE-TF\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"Mart\", \"tmFamilyName\": \"Tamm\", \"tmDateOfBirth\": \"1980-05-15\", \"tmPlaceOfBirth\": \"Tallinn\", \"certificateNumber\": \"EE-CPC-2020-00111\", \"certificateIssueDate\": \"2020-06-01\", \"certificateIssueCountry\": \"EE\"}"
         }
       },
       "event": [
@@ -2251,11 +2251,17 @@
           "listen": "test",
           "script": {
             "exec": [
+              "// MTR's real checkTransportManagerGoodRepute requires full identification",
+              "// (firstName/lastName/birthDate + certificate) — a certificate-only (ERRU 7B)",
+              "// request cannot be forwarded to MTR alone, so this now sends both name+DOB",
+              "// and certificate fields together. MTR always reports searchMethod NYSIIS",
+              "// (it never tells us which criteria matched), never CPC.",
               "pm.test('Returns 200', () => pm.response.to.have.status(200));",
               "var raw = pm.response.json();",
               "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('statusCode Found', () => pm.expect(body.statusCode).to.eql('Found'));",
-              "pm.test('searchMethod CPC', () => pm.expect(body.transportManagerDetails.searchMethod).to.eql('CPC'));"
+              "pm.test('searchMethod NYSIIS', () => pm.expect(body.transportManagerDetails.searchMethod).to.eql('NYSIIS'));",
+              "pm.test('certificateNumber matches', () => pm.expect(body.transportManagerDetails.certificateDetails.certificateNumber).to.eql('EE-CPC-2020-00111'));"
             ]
           }
         }

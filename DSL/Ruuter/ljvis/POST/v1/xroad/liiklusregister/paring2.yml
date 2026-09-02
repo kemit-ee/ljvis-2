@@ -24,15 +24,10 @@ validateInput:
 # short-circuits with 401/403/400 itself when there's no valid session; on
 # success it also gives us the personal code needed for X-Road-UserId.
 get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  assign:
+    auth_user: ${auth_user}
   next: assignParams
-
-# All input values are trimmed and uppercased before the X-tee call
-# (LJVIS2-55 §: " 123abc " -> "123ABC").
 assignParams:
   assign:
     reg_mrk: "${(incoming.body.registrationNumber || '').trim().toUpperCase()}"

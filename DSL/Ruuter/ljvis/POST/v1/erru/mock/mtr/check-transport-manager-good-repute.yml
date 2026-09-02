@@ -1,36 +1,73 @@
 declaration:
   version: "1.0"
-  description: "MOCK Estonian transport manager good-repute lookup — dev and CI only. Stands in for the X-tee MTR CheckTransportManagerGoodRepute service that the inbound CGR handler must call when the transport manager is NOT found in the local good_repute_form UNFIT register (see LJVIS2-139, comment by Eda Rembel). Production points ERRU_CGR_MTR_ENDPOINT at the real service via XTR. Match rule is deterministic so Newman tests can rely on it: a transport manager is Found when tmFamilyName is 'TAMM' or tmFirstName is 'MART'; everything else is NotFound. The Found response returns a single EE undertaking with fitnessStatus 'Fit', mirroring the structure of the ERRU 3.5 CheckGoodRepute_ResponseBodyMemberState transportManagerDetails field. The certificate number EE-CPC-2020-00111 is also a match trigger so CPC-based inbound searches can be tested."
+  description: "MOCK Estonian transport manager good-repute lookup — dev and CI only. Stands in for the WHOLE erru/cgr/lookup-mtr.yml wrapper (NYSIIS encoding + real MTR CheckTransportManagerGoodRepute via XTR), which erru/cgr/inbound-request.yml calls with RAW (not yet NYSIIS-encoded) firstName/lastName — lookup-mtr.yml only NYSIIS-encodes internally, right before its own XTR call. This mock therefore matches on the raw names, exactly like lookup-mtr.yml's caller sees them. Field names and response shape are kept identical to that real path (DSL/Ruuter/ljvis/POST/v1/xroad/mtr/check-transport-manager-good-repute.yml's buildResult) so cgr/inbound-request.yml's mapping code works unchanged against either. Match rule: Found when lastName is 'TAMM' or firstName is 'MART' (case-insensitive) or cpcDocumentNumber is EE-CPC-2020-00111; everything else is NotFound."
   namespace: erru
   allowlist:
     body:
-      - field: tmFirstName
+      - field: firstName
         type: string
-      - field: tmFamilyName
+      - field: lastName
         type: string
-      - field: tmDateOfBirth
+      - field: birthDate
         type: string
-      - field: certNumber
+      - field: birthPlace
+        type: string
+      - field: cpcDocumentNumber
+        type: string
+      - field: cpcDocumentIssueCountry
+        type: string
+      - field: cpcDocumentIssueDate
         type: string
 
 selectScenario:
   switch:
-    - condition: ${('' + (incoming.body.certNumber || '')).toUpperCase() === 'EE-CPC-2020-00111'}
-      next: returnFoundBycertificate
-    - condition: ${('' + (incoming.body.tmFamilyName || '')).toUpperCase() === 'TAMM'}
-      next: returnFoundByName
-    - condition: ${('' + (incoming.body.tmFirstName || '')).toUpperCase() === 'MART'}
-      next: returnFoundByName
+    - condition: ${('' + (incoming.body.cpcDocumentNumber || '')).toUpperCase() === 'EE-CPC-2020-00111'}
+      next: returnFound
+    - condition: ${('' + (incoming.body.lastName || '')).toUpperCase() === 'TAMM'}
+      next: returnFound
+    - condition: ${('' + (incoming.body.firstName || '')).toUpperCase() === 'MART'}
+      next: returnFound
   next: returnNotFound
 
-returnFoundByName:
-  return: '{"statusCode":"Found","statusMessage":"","transportManagerDetails":{"respondingAuthority":"EE-TRAM","searchMethod":"NYSIIS","nameDetails":{"firstName":"Mart","familyName":"Tamm","dateOfBirth":"1980-05-15","placeOfBirth":"Tallinn"},"addressDetails":{"address":"Tartu mnt 12","postCode":"10145","city":"Tallinn","country":"EE"},"certificateDetails":{"certificateNumber":"EE-CPC-2020-00111","certificateIssueDate":"2020-06-01","certificateIssueCountry":"EE","certificateValidity":"Valid","fitness":{"fitnessStatus":"Fit","unfitStartDate":null,"unfitEndDate":null}},"transportUndertakings":{"totalManagedUndertakings":1,"totalManagedVehicles":8,"undertaking":[{"transportUndertakingName":"AS EESTI VEOD","communityLicenceNumber":"EE-CL-2020-11111","communityLicenceStatus":"Active","numberOfVehicles":8,"address":{"address":"Tartu mnt 12","postCode":"10145","city":"Tallinn","country":"EE"}}]}}}'
-  next: end
-
-returnFoundBycertificate:
-  return: '{"statusCode":"Found","statusMessage":"","transportManagerDetails":{"respondingAuthority":"EE-TRAM","searchMethod":"CPC","nameDetails":{"firstName":"Mart","familyName":"Tamm","dateOfBirth":"1980-05-15","placeOfBirth":"Tallinn"},"addressDetails":{"address":"Tartu mnt 12","postCode":"10145","city":"Tallinn","country":"EE"},"certificateDetails":{"certificateNumber":"EE-CPC-2020-00111","certificateIssueDate":"2020-06-01","certificateIssueCountry":"EE","certificateValidity":"Valid","fitness":{"fitnessStatus":"Fit","unfitStartDate":null,"unfitEndDate":null}},"transportUndertakings":{"totalManagedUndertakings":1,"totalManagedVehicles":8,"undertaking":[{"transportUndertakingName":"AS EESTI VEOD","communityLicenceNumber":"EE-CL-2020-11111","communityLicenceStatus":"Active","numberOfVehicles":8,"address":{"address":"Tartu mnt 12","postCode":"10145","city":"Tallinn","country":"EE"}}]}}}'
-  next: end
+returnFound:
+  assign:
+    result: >-
+      ${(function(){
+        return {
+          transportManager: {
+            firstName: 'Mart',
+            lastName: 'Tamm',
+            birthDate: '1980-05-15',
+            birthPlace: 'Tallinn',
+            cpcDocumentNumber: 'EE-CPC-2020-00111',
+            cpcDocumentIssueCountry: 'EE',
+            cpcDocumentIssueDate: '2020-06-01',
+            companyCount: 1,
+            carCount: 8,
+            fitness: 'Fit',
+            unfitUntil: null
+          },
+          companies: [
+            {
+              name: 'AS EESTI VEOD',
+              registryCode: '10145678',
+              carCount: 8,
+              address: { address: 'Tartu mnt 12', postCode: '10145', city: 'Tallinn', country: 'EE' },
+              communityLicenses: [
+                { communityLicenceNumber: 'EE-CL-2020-11111', communityLicenceStatus: 'Active' }
+              ]
+            }
+          ]
+        };
+      })()}
+  next: returnResult
 
 returnNotFound:
-  return: '{"statusCode":"NotFound","statusMessage":"Transport manager not found in Estonian register","transportManagerDetails":null}'
+  assign:
+    result: "${(function(){ return { transportManager: null, companies: [] }; })()}"
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: "${result}"
   next: end

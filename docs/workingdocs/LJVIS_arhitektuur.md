@@ -132,7 +132,7 @@ DSL/Ruuter/ljvis/PUT/v1/users/admin.yml   →   PUT /v1/users/admin
 ```
 
 Jagatud alamvoogud (ei ole HTTP endpointid):
-- `DSL/Ruuter/ljvis/TEMPLATES/` — valideerimine, kasutajate autentimine, andmete arvutamine
+- `DSL/Ruuter/ljvis/GET/templates/` — valideerimine, kasutajate autentimine, andmete arvutamine
 
 Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
 
@@ -187,7 +187,7 @@ Brauser
 ```
 Frontend (POST /v1/users/admin)
   → Ruuter: check-user-authority (TIM)
-  → Ruuter: väljaväljade valideerimine (TEMPLATES)
+  → Ruuter: väljaväljade valideerimine (GET/templates/)
   → RESQL: insert_user_account (PostgreSQL)
   → RESQL: insert_audit_event (PostgreSQL)
   → vastus Frontendile
@@ -311,53 +311,41 @@ Lähemalt: [`docs/db_errorhandling_rules.md`](db_errorhandling_rules.md)
 
 ### 7.1 Autentimine
 
-- Kõik API endpointid on kaitstud `.guard` failidega
-- Guard kontrollib JWT küpsist TIM-i vastu (`check-user-authority` mall)
-- Ebaõnnestunud autentimine → HTTP 403
+- **Projektiülene guard** `DSL/Ruuter/ljvis/.guard.yml` (Ruuter issue #39) kaitseb
+  KÕIKI `ljvis` route'e igal HTTP-meetodil kõige välimise guardina. Kontrollib
+  sessiooniküpsist TIM-i vastu (`templates/check-user-authority`) täpselt üks kord.
+- Ebaõnnestunud autentimine → HTTP 401.
+- Guard annab tulemuse muutujas **`auth_user`** edasi nii alamkausta permission-
+  guardidele kui handleritele — seega ei autendi ükski handler enam ise.
+- Erandid (`declaration.override_ancestors: true`, bypass'ivad projektiülese guardi):
+  `auth/**` (avalik login), `**/mock/**` (dev/CI), `v1/citizen/**` (TARA
+  kodaniku-sessioon, `templates/citizen-authority`), ERRU verbi-guardid (autendivad ise).
 
 ### 7.2 Autoriseerimine
 
 - Ressursipõhised õigused koodidega `ressurss.tegevus[.ulatus]`
 - Näited: `user.list.admin`, `user_group.update`, `classifier.edit`
 - Scope (`admin`/`local`) jõustab nii õiguse koodi kui ka andmefiltri (organisatsioon)
+- Iga alamkausta `.guard.yml` on puhas õiguse-kontroll (`auth_user` juba olemas):
 
-Guard-fail näide (`GET/v1/.guard`) — tegelik struktuur:
 ```yaml
-check_for_cookie:
+# DSL/Ruuter/ljvis/GET/v1/classifiers/.guard.yml
+check:
   switch:
-    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
-      next: guard_fail
-  next: authenticate
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('classifier.list')}
+      next: allow
+  next: deny
 
-authenticate:
-  template: "[#LJVIS_PROJECT_LAYER]/check-user-authority"
-  requestType: templates
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: authority_result
-
-check_authority_result:
-  switch:
-    - condition: ${authority_result !== "false"}
-      next: check_permission
-  next: guard_fail
-
-check_permission:
-  switch:
-    - condition: ${authority_result.permissions.matchesAny(REQUIRED_PERMS)}
-      next: guard_success
-  next: guard_fail
-
-guard_success:
-  return: "success"
-  status: 200
-  next: end
-
-guard_fail:
-  return: "unauthorized"
-  status: 403
-  next: end
+allow: { status: 200, return: "ok", next: end }
+deny:  { status: 403, return: "forbidden", next: end }
 ```
+
+Guardid **stackivad** (kõik ülemad peavad läbima, väljast sisse):
+projektiülene `*` → meetodi-juur → tee-esivanemad → siht. `override_ancestors: true`
+asendab kõik ülemad selle alampuu jaoks.
+
+CI **guard-audit** job bootib pinnitud Ruuteri image'i ja nõuab, et
+`GET /_/unguarded` näitaks 0 valveta route'i.
 
 Lähemalt: [`docs/rest-api-design-guide.md §6.4`](rest-api-design-guide.md)
 
@@ -380,7 +368,7 @@ Kõik olulised lugemis- ja kirjutamisoperatsioonid logitakse `audit_event` tabel
 | `log_content` | JSONB detailid (muudetud väljad, ID-d) |
 | `created_at` | Sündmuse aeg (UTC), serveri poolne timestamp |
 
-Logimine toimub Ruuteri DSL lõpus (`logAuditEvent` samm läbi `TEMPLATES/audit/log-audit-event.yml`) pärast edukat andmebaasi kirjutamist.
+Logimine toimub Ruuteri DSL lõpus (`logAuditEvent` samm läbi `GET/templates/audit/log-audit-event.yml`) pärast edukat andmebaasi kirjutamist.
 
 Lähemalt: [`docs/audit-logging.md`](audit-logging.md)
 

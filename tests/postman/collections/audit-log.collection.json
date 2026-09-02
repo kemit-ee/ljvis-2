@@ -300,14 +300,14 @@
       "response": []
     },
     {
-      "name": "GET /v1/logs \u2014 no cookie \u2192 403",
+      "name": "GET /v1/logs \u2014 no cookie \u2192 401",
       "event": [
         {
           "listen": "test",
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('403', () => pm.response.to.have.status(403));"
+              "pm.test('401', () => pm.response.to.have.status(401));"
             ]
           }
         }

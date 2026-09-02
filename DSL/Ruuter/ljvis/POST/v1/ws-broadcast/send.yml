@@ -1,0 +1,31 @@
+declaration:
+  version: "1.0"
+  description: >-
+    SISEMINE endpoint. Ruuter.internal notification/create.yml kutsub selle peale
+    teavituse loomist. Teeb ws_send broadcast_prefix "client:" — sisutu
+    {"type":"notification_update"} signaali KÕIGILE ühendatud frontendidele.
+
+    Miks eraldi endpoint: WsRegistry on protsessisisene. Kliendid ühenduvad
+    `ruuter` containerisse; `ruuter-internal` ei näe neid ühendusi. Seega peab
+    broadcast'i tegema `ruuter` ise.
+
+    Payload EI sisalda kasutajaandmeid — iga frontend teeb seejärel oma autenditud
+    GET /v1/notifications/unread-count päringu. Sessiooni kehtivust kontrollib
+    WS/inbound/notifications/connect.yml iga frame'i peal.
+  namespace: notification
+  allowlist:
+    body:
+      - field: type
+        type: string
+
+fanout:
+  ws_send:
+    broadcast_prefix: "client:"
+    payload:
+      type: "notification_update"
+  next: returnOk
+
+returnOk:
+  return: '{"status":"ok"}'
+  status: 200
+  next: end

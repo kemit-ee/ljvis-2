@@ -101,6 +101,7 @@ writeAuditEvent:
           failures: failed_reg_codes.length,
           failedCompanyRegCodes: failed_reg_codes
         })}
+      organisation_id: ""
       created_by: "system"
       trace_id: ""
       span_id: ""

@@ -109,8 +109,8 @@ interface CompoundFormEditCardProps {
   setVehicleSearchError: (v: boolean) => void;
   trailerSearchError: number | null;
   setTrailerSearchError: (v: number | null) => void;
-  mtrSearchError: boolean;
-  setMtrSearchError: (v: boolean) => void;
+  mtrSearchError: string | null;
+  setMtrSearchError: (v: string | null) => void;
   handleOrgChange: (
     val:
       | { value: string; label: string | React.ReactNode }
@@ -1295,9 +1295,9 @@ export function CompoundFormEditCard({
                         <Alert
                           type="danger"
                           size="small"
-                          onClose={() => setMtrSearchError(false)}
+                          onClose={() => setMtrSearchError(null)}
                         >
-                          {t('common.noResults')}
+                          {t(mtrSearchError)}
                         </Alert>
                       </div>
                     )}

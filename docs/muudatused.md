@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-09 — Teavituste kelluke uueneb taas reaalajas
+
+- **Päise ja külgmenüü teavituste kelluke** uueneb nüüd usaldusväärselt kohe, kui
+  tekib uus teavitus — vahepeal võis loendur jääda vananenud arvu näitama kuni
+  lehe värskendamiseni.
+- **Brauserikonsool ei täitu enam WebSocket-i vigadega.** Ühendus katkemise korral
+  taastub see kasvava viivitusega ja korduva ebaõnnestumise järel langeb rakendus
+  vaikselt tagavararežiimile (perioodiline pärimine), ilma vearodata.
+- **Avalikustamine ei anna enam eksitavat viga.** Kontrollkaardi avalikustamisel
+  võis kõrvaltoiminguks oleva teavituse loomise häire kuvada kasutajale vea, kuigi
+  vorm sai tegelikult avalikustatud. Nüüd avalikustamine õnnestub sõltumatult ja
+  juba avalikustatud vormi uuesti avalikustamine annab korrektse selgituse.
+- *Paigaldusmärkus:* rakenduse ette jääv veebiserver / koormusjagaja peab lubama
+  WebSocket-i uuendamise (`Upgrade`) teel `/api/notifications/connect`.
+
+---
+
 ## 2026-09 — Tühjad klassifikaatori-rippmenüüd vormidel
 
 - **Kontrollvormide klassifikaatori-rippmenüüd** (nt SP-vormi „Veoklass",

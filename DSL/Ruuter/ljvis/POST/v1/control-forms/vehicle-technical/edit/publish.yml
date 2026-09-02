@@ -92,7 +92,13 @@ publishForm:
 
 buildLogDescription:
   assign:
-    description: "Sõiduki tehnovorm avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${publishRes.response.body[0].subFormNumber}/${publishRes.response.body[0].version}"
+    sub_form_number: "${(publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].subFormNumber) || ''}"
+    sub_form_version: "${(publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].version) || ''}"
+  next: buildLogDescription2
+
+buildLogDescription2:
+  assign:
+    description: "Sõiduki tehnovorm avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${sub_form_number}/${sub_form_version}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -133,6 +139,9 @@ createDrivingBanNotification:
       body_et: "${'Koondvormi võti: ' + compound_form_key}"
       created_by: ${actor_personal_code}
   result: notifRes
+  # Fire-and-forget: teavituse loomise viga ei tohi avalikustamist 500-tada
+  # (vorm on DB-s juba published). error: → returnSuccess.
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

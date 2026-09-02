@@ -692,6 +692,13 @@
       "mtrTooltip": "You can search for Estonian carrier data. For foreign carriers, the number must be entered manually.",
       "companyActivityLicenceCopyNumber": "Community licence, its certified copy or authenticated copy number",
       "mtrSearchButton": "Search economic activities register",
+      "mtrError": {
+        "notEstonianCompany": "The economic activities register query is only available for an Estonian company registry code.",
+        "missingFields": "Registry code and vehicle registration number are required for the query.",
+        "companyNotFound": "No company data was found in MTR.",
+        "licenceNotFound": "No licence number was found.",
+        "requestFailed": "The MTR query failed."
+      },
       "driver": "Driver data",
       "driver2": "Second driver / crew member data",
       "driverPersonalCodeEe": "Estonian personal code",

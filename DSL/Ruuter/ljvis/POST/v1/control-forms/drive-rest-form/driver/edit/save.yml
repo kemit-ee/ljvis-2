@@ -180,7 +180,7 @@ insertForm:
 extractInsertResponseData:
   assign:
     sp_driver_form_key: "${saveRes.response.body[0].id || ''}"
-    sub_form_number: "${saveRes.response.body[0].subFormNumber || ''}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber + '/' + saveRes.response.body[0].version}"
   next: getCompoundFormInsert
 
 getCompoundFormInsert:
@@ -294,7 +294,7 @@ updateForm:
 extractUpdateResponseData:
   assign:
     sp_driver_form_key: "${saveRes.response.body[0].id || ''}"
-    sub_form_number: "${saveRes.response.body[0].subFormNumber || ''}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber + '/' + saveRes.response.body[0].version}"
   next: getCompoundFormUpdate
 
 getCompoundFormUpdate:

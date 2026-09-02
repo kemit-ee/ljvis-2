@@ -169,7 +169,7 @@ insertForm:
 extractInsertResponseData:
   assign:
     sp_teammate_form_key: "${saveRes.response.body[0].id || ''}"
-    sub_form_number: "${saveRes.response.body[0].subFormNumber || ''}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber + '/' + saveRes.response.body[0].version}"
   next: getCompoundFormInsert
 
 getCompoundFormInsert:
@@ -280,7 +280,7 @@ updateForm:
 extractUpdateResponseData:
   assign:
     sp_teammate_form_key: "${saveRes.response.body[0].id || ''}"
-    sub_form_number: "${saveRes.response.body[0].subFormNumber || ''}"
+    sub_form_number: "${saveRes.response.body[0].subFormNumber + '/' + saveRes.response.body[0].version}"
   next: getCompoundFormUpdate
 
 getCompoundFormUpdate:

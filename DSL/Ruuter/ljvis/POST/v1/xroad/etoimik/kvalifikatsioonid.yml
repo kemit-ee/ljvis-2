@@ -94,11 +94,9 @@ checkPersonIdentification:
 
 # Eraldi privileegi ei kehtestata (LJVIS2-56 §3) — only requires a valid session.
 get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  assign:
+    auth_user: ${auth_user}
   next: assignXtrParams
 
 assignXtrParams:

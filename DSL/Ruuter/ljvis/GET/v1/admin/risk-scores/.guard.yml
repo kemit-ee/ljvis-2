@@ -1,0 +1,16 @@
+# Nõutav õigus: risk_report.list. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+check:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('risk_report.list')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end
