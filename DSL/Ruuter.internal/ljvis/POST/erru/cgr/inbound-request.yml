@@ -18,7 +18,9 @@ declaration:
       6. If not found in UNFIT register → call the MTR mock (ERRU_CGR_MTR_ENDPOINT, which
          points at check-transport-manager-good-repute.yml in dev/CI, real XTR in production).
          If MTR returns Found → respond Found + Fit (searchMethod='NYSIIS' or 'CPC').
-      7. If MTR returns NotFound → respond NotFound.
+      7. If MTR returns NotFound → respond NotFound. If the MTR call itself fails
+         technically (NYSIIS/XTR/X-tee error) → audit + respond 502 without storing
+         an 'answered' snapshot, so the requesting state retries.
       8. Store an 'answered' snapshot with the EE member_states entry.
       9. Write audit (cgr.inbound_request.serve) directly to Resql — ruuter-internal cannot
          reach the main instance's TEMPLATES/audit chain (same limitation as CTUD
@@ -231,8 +233,16 @@ callMtr:
 # its HTTP response is therefore always enveloped as {"response": <result>} like every
 # other Ruuter endpoint (confirmed live against real MTR data: the bare fields are one
 # level deeper than mtr_res.response.body). Unwrap one level before reading fields.
+#
+# lookup-mtr.yml tagastab 200 ainult õnnestunud päringu korral; NYSIIS/XTR/X-tee
+# tõrge tuleb 502 (või 400) staatusega. Sellist tõrget EI TOHI tõlgendada ärilise
+# "ei leitud" vastusena — muidu saab küsiv liikmesriik meilt vale eituse ja me
+# salvestame selle 'answered' seisundina. Tehniline tõrge → audit + 502, päring
+# jääb 'received' seisundisse ja seda saab korrata (LJVIS2-139).
 checkMtrStatus:
   switch:
+    - condition: "${mtr_res.response == null || mtr_res.response.status == null || mtr_res.response.status >= 400}"
+      next: mtrUnavailableAudit
     - condition: "${mtr_res.response.body != null && mtr_res.response.body.response != null && mtr_res.response.body.response.transportManager != null}"
       next: buildMtrFoundResponse
   next: buildNotFoundResponse
@@ -292,11 +302,13 @@ buildNotFoundResponse:
 
 # Request didn't have enough data to even ask MTR — distinct from a real MTR
 # "not found", logged with its own status message for traceability.
+# search_method jääb 'NYSIIS' (sama mis buildNotFoundResponse) — MTR ei anna
+# kunagi 'CPC' meetodit, seega vana tingimuslik väärtus oli eksitav.
 buildInsufficientDataResponse:
   assign:
     resp_status_code: "NotFound"
     resp_status_message: "Insufficient data to query MTR (ERRU 7A/7B partial identification is not supported by MTR's checkTransportManagerGoodRepute, which requires full identification)"
-    search_method: "${certificate_number ? 'CPC' : 'NYSIIS'}"
+    search_method: "NYSIIS"
     resp_details: "null"
   next: buildFullResponse
 
@@ -369,4 +381,40 @@ returnHeartbeatNotFound:
 returnInvalidData:
   status: 400
   return: '{"statusCode":"InvalidData","statusMessage":"Request does not satisfy the ERRU 3.5 CGR requirements"}'
+  next: end
+
+# MTR / X-tee / NYSIIS tehniline tõrge. Auditeeri (event_id genereerimine
+# byte-identne buildAudit'iga), kuid ÄRA salvesta 'answered' seisundit ega
+# tagasta ärilist vastust — 502 annab küsivale riigile märku korrata.
+mtrUnavailableAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "CGR sissetuleva päringu teenindamine ebaõnnestus: juhtum ${business_case_id}, küsiv riik ${cgr_from}, MTR/X-tee ei vastanud (HTTP ${(mtr_res.response && mtr_res.response.status) || 'null'}), otsitud isik ${tm_first_name} ${tm_family_name}"
+    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['cgrFrom', cgr_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['tmFirstName', tm_first_name || null], ['tmFamilyName', tm_family_name || null], ['mtrHttpStatus', (mtr_res.response && mtr_res.response.status) || null], ['resultStatus', 'Error']]))}"
+  next: logMtrUnavailableAudit
+
+logMtrUnavailableAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "cgr.inbound_request.serve"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU CGR inbound service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      organisation_id: ""
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnMtrUnavailable
+
+returnMtrUnavailable:
+  status: 502
+  return: '{"statusCode":"Error","statusMessage":"Estonian transport manager register (MTR) is temporarily unavailable, please retry"}'
   next: end
