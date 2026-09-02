@@ -27,6 +27,24 @@ DSL/
   Liquibase/          — database schema migrations
 ```
 
+## Guards (authentication & authorisation)
+
+`ljvis` uses a **project-level guard** — `DSL/Ruuter/ljvis/.guard.yml` (Ruuter issue #39) —
+which runs as the outermost guard on every route and every HTTP method. It authenticates the
+session against TIM once (`templates/check-user-authority`) and passes the resolved user
+object to every downstream guard and handler as `${auth_user}`.
+
+- Per-resource `<dir>/.guard.yml` files are then just a permission `switch` on
+  `${auth_user.permissions}` — no re-authentication.
+- Guards stack (project → method-root → path-ancestors → target); all must pass.
+- `declaration.override_ancestors: true` replaces all ancestors for a subtree — used for
+  public routes (`auth/**`), dev mocks (`**/mock/**`), citizen TARA sessions
+  (`v1/citizen/**`), and the standalone ERRU verb guards.
+- Guard files use the `.guard.yml` extension (YAML tooling, `dsl-lint` globs). The bare
+  `.guard` form also loads but is discouraged.
+- CI (`guard-audit` job) boots the pinned Ruuter image and fails if `GET /_/unguarded`
+  reports any route with zero applicable guards.
+
 ## Template Pattern (shared reusable logic)
 
 Templates live in `GET/templates/` and are called in-process (no HTTP overhead). Ruuter
