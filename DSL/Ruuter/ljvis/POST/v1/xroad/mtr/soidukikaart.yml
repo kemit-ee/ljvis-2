@@ -1,0 +1,212 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Look up a company's MTR "sõidukikaardid" (activity-licence / community-
+    licence certified-copy register entries, per Eda Rembel's comment on
+    LJVIS2-57 — the term "sõidukikaart" itself is legacy MTR terminology,
+    the current one is "tegevusloa kinnitatud ärakiri"/"tõestatud koopia")
+    via X-tee MTR soidukikaart/v1, routed through XTR (see
+    DSL/xtr/mtr/soidukikaart.yml). Reusable service backing the compound
+    form's general-info section (carrier licence info) and NCR forms'
+    licence-copy validity checks (registrationNumber + validity dates).
+
+    Service identifier: EE/GOV/70003218/mtr/soidukikaart/v1. Single
+    required input — the company's Estonian business registry code
+    ("registrikood").
+  namespace: xroad
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    body:
+      - field: registryCode
+        type: string
+        description: "Required. Company's Estonian business registry code (äriregistri kood)."
+      - field: sourceType
+        type: string
+        description: "Optional: which feature triggered this call, e.g. 'compound_form', 'ncr'."
+      - field: sourceRecordId
+        type: string
+        description: "Optional: the specific record identifier within sourceType."
+
+validateInput:
+  switch:
+    - condition: "${!(incoming.body.registryCode || '').trim()}"
+      next: returnMissingParam
+  next: get_user_context
+
+# Eraldi privileegi ei ole (LJVIS2-57 §3 — "Kasutaja peab olema
+# autenditud... ligipääsukontroll on nende funktsionaalsuste vastutusalas,
+# kust teenust käivitatakse").
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: assignParams
+
+assignParams:
+  assign:
+    registry_code: "${(incoming.body.registryCode || '').trim()}"
+    source_type: "${(incoming.body.sourceType || '').trim()}"
+    source_record_id: "${(incoming.body.sourceRecordId || '').trim()}"
+    x_road_user_id: "${'EE' + (auth_user.personalcode || '')}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  timeout: 35000
+  args:
+    url: "[#LJVIS_XTR_TEST]/mtr/soidukikaart"
+    headers:
+      type: json
+    body:
+      registrikood: ${registry_code}
+      userId: ${x_road_user_id}
+  result: xtrResponse
+  next: checkXtrStatus
+
+# XTR maps every failure mode — Security Server unreachable, timeout, and
+# business-level SOAP Faults alike — to a non-2xx status, so a single
+# range check covers all of LJVIS2-57's error scenarios (§Veaolukorrad).
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "mtr.soidukikaart.v1"
+      request_xml: "${'registrikood=' + registry_code}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logResult
+  next: mapResponse
+
+# soidukikaart's producer schema has elementFormDefault unset
+# (= "unqualified"), same convention as the other two MTR templates. The
+# whole <response> element is nillable="true" (WSDL SoidukikaardiVastus) —
+# a completely unknown registrikood comes back with response entirely nil,
+# mapped to data:null (LJVIS2-57 §Testimine "MTR-is vastet ei ole" case),
+# not an error. A known company with zero linked "sõidukikaardid" is
+# mapped to an empty vehicleCards array (also not an error).
+mapResponse:
+  assign:
+    soap_body: "${(xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {})}"
+  next: findResponseKey
+
+findResponseKey:
+  assign:
+    response_key: "${Object.keys(soap_body).find(k => k.endsWith('soidukikaartResponse'))}"
+  next: extractResponseNode
+
+extractResponseNode:
+  assign:
+    response_node: "${response_key ? (soap_body[response_key].response || null) : null}"
+  next: checkResponseNil
+
+# XTR's xsi:nil serialisation isn't consistent across responses — seen as
+# both the string "1" and the string "true" in the wild — so check for
+# either rather than assuming one form.
+checkResponseNil:
+  switch:
+    - condition: "${response_node == null || (typeof response_node === 'object' && (response_node['@xsi:nil'] === '1' || response_node['@xsi:nil'] === 'true' || response_node['@xsi:nil'] === true))}"
+      next: returnNoMatch
+  next: buildResult
+
+returnNoMatch:
+  status: 200
+  return: '{"data": null}'
+  next: end
+
+buildResult:
+  assign:
+    result: >-
+      ${(function(){
+        function toArray(x) { return x == null ? [] : (Array.isArray(x) ? x : [x]); }
+        var yldinfo = response_node.yldinfo || {};
+        var company = {
+          name: yldinfo.nimi || '',
+          registryCode: yldinfo.kood || registry_code,
+          phone: yldinfo.tel || '',
+          fax: yldinfo.fax || '',
+          email: yldinfo.email || '',
+          website: yldinfo.web || '',
+          mtrDetailLink: yldinfo.mtrlink || ''
+        };
+        function mapVehicle(v) {
+          return {
+            registrationNumber: v.registreerimismark || '',
+            make: v.mark || '',
+            model: v.mudel || '',
+            buildYear: v.ehitusaasta || ''
+          };
+        }
+        function mapCard(c) {
+          var vehiclesRaw = c.soidukid && c.soidukid.soiduk;
+          return {
+            type: c.tyyp || '',
+            registrationNumber: c.regnr || '',
+            area: c.valdkond || '',
+            activityArea: c.tegevusala || '',
+            activityAreaCode: c.tegevusalakood || '',
+            registrationDate: c.registreerimisekp || '',
+            mtrDetailLink: c.mtrlink || '',
+            validityStart: c.kehtivuse_algus || '',
+            validityEnd: c.kehtivuse_lopp || '',
+            vehicles: toArray(vehiclesRaw).map(mapVehicle)
+          };
+        }
+        var cardsRaw = response_node.soidukikaardid && response_node.soidukikaardid.soidukikaart;
+        return { data: { company: company, vehicleCards: toArray(cardsRaw).map(mapCard) } };
+      })()}
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: "${result}"
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "mtr.soidukikaart.v1"
+      request_xml: "${'registrikood=' + registry_code}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ""
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logResult
+  next: returnXtrError
+
+returnXtrError:
+  status: 502
+  return: '{"error": "XTR_ERROR", "message": "MTR sõidukikaartide päring ebaõnnestus"}'
+  next: end
+
+returnMissingParam:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "registryCode is required"}'
+  next: end

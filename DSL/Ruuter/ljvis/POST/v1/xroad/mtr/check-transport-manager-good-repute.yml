@@ -1,0 +1,298 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Check a transport manager's ("veokorraldaja") good repute via X-tee MTR
+    checkTransportManagerGoodRepute/v1 (LJVIS2-154), routed through XTR (see
+    DSL/xtr/mtr/checkTransportManagerGoodRepute.yml). Reusable service backing
+    control-form general-info sections, the transport-manager-unfitness form,
+    and NCR forms' ERRU good-repute (CGR) lookups.
+
+    Service identifier: EE/GOV/70003218/mtr/checkTransportManagerGoodRepute/v1.
+    firstName/lastName are NYSIIS-encoded server-side before the X-tee call
+    (MTR matches names in phonetically-normalised form) — callers pass the
+    raw name, not a pre-computed key.
+  namespace: xroad
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+        description: "Cookie field"
+    body:
+      - field: firstName
+        type: string
+        description: "Required. Transport manager's first name (raw, not NYSIIS-encoded)."
+      - field: lastName
+        type: string
+        description: "Required. Transport manager's last name (raw, not NYSIIS-encoded)."
+      - field: birthDate
+        type: string
+        description: "Required. ISO date (yyyy-MM-dd)."
+      - field: birthPlace
+        type: string
+        description: "Optional. Place of birth."
+      - field: cpcDocumentNumber
+        type: string
+        description: "Required. CPC (competence certificate) document number."
+      - field: cpcDocumentIssueCountry
+        type: string
+        description: "Required. 2-letter ISO country code of the CPC issuing country."
+      - field: cpcDocumentIssueDate
+        type: string
+        description: "Required. ISO date (yyyy-MM-dd) the CPC was issued."
+      - field: personIdentifier
+        type: string
+        description: "Optional: the subject's Estonian personal code, when known to the caller — logged as-is on xroad_integration_log.person_identifier. Leave blank when the lookup is purely by name+birthdate (matches log_integration.sql's own convention)."
+      - field: sourceType
+        type: string
+        description: "Optional: which feature triggered this call, e.g. 'compound_form', 'ncr'."
+      - field: sourceRecordId
+        type: string
+        description: "Optional: the specific record identifier within sourceType."
+
+validateInput:
+  switch:
+    - condition: "${!(incoming.body.firstName || '').trim() || !(incoming.body.lastName || '').trim() || !(incoming.body.birthDate || '').trim() || !(incoming.body.cpcDocumentNumber || '').trim() || !(incoming.body.cpcDocumentIssueCountry || '').trim() || !(incoming.body.cpcDocumentIssueDate || '').trim()}"
+      next: returnMissingParam
+  next: get_user_context
+
+# Eraldi privileegi ei ole (LJVIS2-154 §3) — kasutaja peab olema autenditud.
+# check-user-authority short-circuits with 401/403 itself when there's no
+# valid session; on success it also gives us the personal code needed for
+# X-Road-UserId, same pattern as liiklusregister/paring2.yml.
+get_user_context:
+  template: "templates/check-user-authority"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  result: auth_user
+  next: assignParams
+
+assignParams:
+  assign:
+    first_name: "${(incoming.body.firstName || '').trim()}"
+    last_name: "${(incoming.body.lastName || '').trim()}"
+    birth_date: "${(incoming.body.birthDate || '').trim()}"
+    birth_place: "${(incoming.body.birthPlace || '').trim()}"
+    cpc_document_number: "${(incoming.body.cpcDocumentNumber || '').trim()}"
+    cpc_document_issue_country: "${(incoming.body.cpcDocumentIssueCountry || '').trim().toUpperCase()}"
+    cpc_document_issue_date: "${(incoming.body.cpcDocumentIssueDate || '').trim()}"
+    person_identifier: "${(incoming.body.personIdentifier || '').trim()}"
+    source_type: "${(incoming.body.sourceType || '').trim()}"
+    source_record_id: "${(incoming.body.sourceRecordId || '').trim()}"
+    x_road_user_id: "${'EE' + (auth_user.personalcode || '')}"
+  next: computeNysiisFirst
+
+# Call NYSIIS sidecar directly (not via `template:`) — same reasoning as
+# erru/cgr/send.yml: the template mechanism is unreliable for GET+body in
+# this Ruuter engine. useFullName=false for the first name (key computed
+# over just the first word), true for the last name (may be multi-word) —
+# per the EC NYSIIS package spec §4, same convention as
+# templates/erru/cgr/nysiis-key.yml.
+computeNysiisFirst:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${first_name}
+      useFullName: false
+  result: nysiisFirstRes
+  next: checkNysiisFirstOk
+
+checkNysiisFirstOk:
+  switch:
+    - condition: ${nysiisFirstRes.response == null || nysiisFirstRes.response.status !== 200 || nysiisFirstRes.response.body == null}
+      next: returnNysiisError
+  next: storeNysiisFirstKey
+
+storeNysiisFirstKey:
+  assign:
+    first_name_nysiis: "${nysiisFirstRes.response.body.searchKey || ''}"
+  next: computeNysiisLast
+
+computeNysiisLast:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${last_name}
+      useFullName: true
+  result: nysiisLastRes
+  next: checkNysiisLastOk
+
+checkNysiisLastOk:
+  switch:
+    - condition: ${nysiisLastRes.response == null || nysiisLastRes.response.status !== 200 || nysiisLastRes.response.body == null}
+      next: returnNysiisError
+  next: storeNysiisLastKeyAndCallXtr
+
+storeNysiisLastKeyAndCallXtr:
+  assign:
+    last_name_nysiis: "${nysiisLastRes.response.body.searchKey || ''}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  timeout: 35000
+  args:
+    url: "[#LJVIS_XTR_TEST]/mtr/checkTransportManagerGoodRepute"
+    headers:
+      type: json
+    body:
+      firstName: ${first_name_nysiis}
+      lastName: ${last_name_nysiis}
+      birthDate: ${birth_date}
+      birthPlace: ${birth_place}
+      cpcDocumentNumber: ${cpc_document_number}
+      cpcDocumentIssueCountry: ${cpc_document_issue_country}
+      cpcDocumentIssueDate: ${cpc_document_issue_date}
+      userId: ${x_road_user_id}
+  result: xtrResponse
+  next: checkXtrStatus
+
+# XTR maps every failure mode — Security Server unreachable, timeout, and
+# business-level SOAP Faults alike — to a non-2xx status, so a single range
+# check covers "X-tee turvaserver ei ole kättesaadav" / MTR error / invalid
+# SOAP response alike (LJVIS2-154 testing §7).
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "mtr.checkTransportManagerGoodRepute.v1"
+      request_xml: "${'firstName=' + first_name_nysiis + ';lastName=' + last_name_nysiis + ';birthDate=' + birth_date + ';cpcDocumentNumber=' + cpc_document_number}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ${person_identifier}
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logResult
+  next: mapResponse
+
+# checkTransportManagerGoodRepute's producer schema has elementFormDefault
+# unset (= "unqualified" per XSD, confirmed via the real getWsdl response) —
+# only the top-level response element is namespace-qualified, so we look it
+# up by suffix (same convention as liiklusregister/paring2.yml) and read its
+# children as-is, no stripNs needed. "Not found" (transportManager
+# absent/null, companies null) is a valid, non-error result (LJVIS2-154
+# testing §2) — mapped to null/[] rather than treated as a failure.
+mapResponse:
+  assign:
+    soap_body: "${(xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {})}"
+  next: findResponseKey
+
+findResponseKey:
+  assign:
+    response_key: "${Object.keys(soap_body).find(k => k.endsWith('checkTransportManagerGoodReputeResponse'))}"
+  next: extractResponseNode
+
+extractResponseNode:
+  assign:
+    response_node: "${(response_key ? soap_body[response_key] : {}).response || {}}"
+  next: buildResult
+
+buildResult:
+  assign:
+    result: >-
+      ${(function(){
+        function toArray(x) { return x == null ? [] : (Array.isArray(x) ? x : [x]); }
+        function isNilOrEmpty(v) {
+          // XTR's xsi:nil serialisation isn't consistent across responses
+          // — seen as both the string "1" and the string "true" — check
+          // for either rather than assuming one form.
+          return v == null || v === '' || (typeof v === 'object' && (v['@xsi:nil'] === '1' || v['@xsi:nil'] === 'true' || v['@xsi:nil'] === true));
+        }
+        function mapLicense(l) {
+          return {
+            communityLicenceNumber: l.communityLicenceNumber || '',
+            communityLicenceStatus: l.communityLicenceStatus || ''
+          };
+        }
+        function mapCompany(c) {
+          var addr = c.transportUndertakingAddress || {};
+          var licRaw = c.communityLicenses && c.communityLicenses.communityLicense;
+          return {
+            name: c.name || '',
+            registryCode: c.regNumber || '',
+            carCount: c.carCount != null ? Number(c.carCount) : 0,
+            address: {
+              address: addr.address || '',
+              postCode: addr.postCode || '',
+              city: addr.city || '',
+              country: addr.country || ''
+            },
+            communityLicenses: toArray(licRaw).map(mapLicense)
+          };
+        }
+        var tm = response_node.transportManager;
+        var transportManager = tm ? {
+          firstName: tm.firstName || '',
+          lastName: tm.lastName || '',
+          birthDate: tm.birthDate || '',
+          birthPlace: tm.birthPlace || '',
+          cpcDocumentNumber: tm.cpcDocumentNumber || '',
+          cpcDocumentIssueCountry: tm.cpcDocumentIssueCountry || '',
+          cpcDocumentIssueDate: tm.cpcDocumentIssueDate || '',
+          companyCount: tm.companyCount != null ? Number(tm.companyCount) : 0,
+          carCount: tm.carCount != null ? Number(tm.carCount) : 0,
+          fitness: tm.fitness || '',
+          unfitUntil: isNilOrEmpty(tm.unfitUntil) ? null : tm.unfitUntil
+        } : null;
+        var companiesRaw = response_node.companies && response_node.companies.company;
+        return { transportManager: transportManager, companies: toArray(companiesRaw).map(mapCompany) };
+      })()}
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: "${result}"
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "mtr.checkTransportManagerGoodRepute.v1"
+      request_xml: "${'firstName=' + first_name_nysiis + ';lastName=' + last_name_nysiis + ';birthDate=' + birth_date + ';cpcDocumentNumber=' + cpc_document_number}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ${person_identifier}
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logResult
+  next: returnXtrError
+
+returnXtrError:
+  status: 502
+  return: '{"error": "XTR_ERROR", "message": "MTR veokorraldaja hea maine päring ebaõnnestus"}'
+  next: end
+
+returnNysiisError:
+  status: 502
+  return: '{"error": "NYSIIS_ERROR", "message": "NYSIIS otsinguvõtme arvutamine ebaõnnestus"}'
+  next: end
+
+returnMissingParam:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "firstName, lastName, birthDate, cpcDocumentNumber, cpcDocumentIssueCountry and cpcDocumentIssueDate are required"}'
+  next: end

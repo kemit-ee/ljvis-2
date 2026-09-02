@@ -1,0 +1,57 @@
+params:
+  - businessCaseId
+  - originatingAuthority
+  - transportUndertakingName
+  - trueCopyNumber
+  - vehicleRegistrationNumber
+  - allVehicles
+  - userId
+
+method: POST
+
+# LJVIS2-153 — MTR checkCommunityLicence/v1
+# (EE/GOV/70003218/mtr/checkCommunityLicence/v1).
+#
+# elementFormDefault is unset on the producer's schema (same as
+# checkTransportManagerGoodRepute.yml / liiklusregister/paring2.yml) —
+# only the top-level <prod:checkCommunityLicence> element is
+# namespace-qualified; children are not. originatingAuthority and
+# vehicleRegistrationNumber are minOccurs="0" — omitted entirely (not
+# xsi:nil) when the caller didn't supply them. allVehicles is
+# minOccurs="0" default="false" xsd:boolean — only emitted when true (the
+# XSD default already covers the false/omitted case).
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:prod="http://mtr.x-road.ee/producer/">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  <xroad:userId>{{userId}}</xroad:userId>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70003218</id:memberCode>
+  <id:subsystemCode>mtr</id:subsystemCode>
+  <id:serviceCode>checkCommunityLicence</id:serviceCode>
+  <id:serviceVersion>v1</id:serviceVersion>
+  </xroad:service>
+  </soapenv:Header>
+  <soapenv:Body>
+  <prod:checkCommunityLicence>
+  <request>
+  <businessCaseId>{{businessCaseId}}</businessCaseId>
+  {{#if originatingAuthority}}<originatingAuthority>{{originatingAuthority}}</originatingAuthority>{{/if}}
+  <searchedCommunityLicence>
+  <transportUndertakingName>{{transportUndertakingName}}</transportUndertakingName>
+  <trueCopyNumber>{{trueCopyNumber}}</trueCopyNumber>
+  {{#if vehicleRegistrationNumber}}<vehicleRegistrationNumber>{{vehicleRegistrationNumber}}</vehicleRegistrationNumber>{{/if}}
+  </searchedCommunityLicence>
+  {{#if allVehicles}}<allVehicles>true</allVehicles>{{/if}}
+  </request>
+  </prod:checkCommunityLicence>
+  </soapenv:Body>
+  </soapenv:Envelope>

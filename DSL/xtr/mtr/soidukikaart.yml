@@ -1,0 +1,43 @@
+params:
+  - registrikood
+  - userId
+
+method: POST
+
+# LJVIS2-57 — MTR soidukikaart/v1 (EE/GOV/70003218/mtr/soidukikaart/v1).
+#
+# Request body is the simplest of the three MTR services: a single
+# required field (registrikood), wrapped in an xsd:all (order-independent,
+# but there's only one field anyway) — confirmed via the real getWsdl
+# response (EttevotjaKoodiParing). elementFormDefault is unset (=
+# "unqualified") on this producer's schema, same as the other two MTR
+# templates — only the top-level <prod:soidukikaart> element carries the
+# namespace prefix.
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+                    xmlns:id="http://x-road.eu/xsd/identifiers"
+                    xmlns:prod="http://mtr.x-road.ee/producer/">
+  <soapenv:Header>
+  <xroad:protocolVersion>{{generate.protocol_version}}</xroad:protocolVersion>
+  <xroad:id>{{generate.uuid}}</xroad:id>
+  <xroad:userId>{{userId}}</xroad:userId>
+  {{{generate.client}}}
+  <xroad:service id:objectType="SERVICE">
+  <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
+  <id:memberClass>GOV</id:memberClass>
+  <id:memberCode>70003218</id:memberCode>
+  <id:subsystemCode>mtr</id:subsystemCode>
+  <id:serviceCode>soidukikaart</id:serviceCode>
+  <id:serviceVersion>v1</id:serviceVersion>
+  </xroad:service>
+  </soapenv:Header>
+  <soapenv:Body>
+  <prod:soidukikaart>
+  <request>
+  <registrikood>{{registrikood}}</registrikood>
+  </request>
+  </prod:soidukikaart>
+  </soapenv:Body>
+  </soapenv:Envelope>
