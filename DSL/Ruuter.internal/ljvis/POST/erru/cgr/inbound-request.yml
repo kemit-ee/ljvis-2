@@ -7,8 +7,8 @@ declaration:
     afterwards. Flow:
       1. Validate the required ERRU envelope fields.
       2. If requestPurpose == 'Heartbeat' → return NotFound immediately; do NOT store,
-         do NOT audit (spec §3: "Heartbeat-proovipäring vastatakse 'Ei leitud', kuid seda
-         ei salvestata ega auditeerita").
+         do NOT audit (per LJVIS2-139: "Heartbeat-proovipäring vastatakse 'Ei leitud', kuid
+         seda ei salvestata ega auditeerita").
       3. Store a 'received' snapshot (append-inbound.sql, idempotent via partial unique
          index uq_cgr_inbound_technical_id).
       4. A re-delivered message yields zero rows: look up the existing snapshot by
@@ -21,7 +21,8 @@ declaration:
       7. If MTR returns NotFound → respond NotFound.
       8. Store an 'answered' snapshot with the EE member_states entry.
       9. Write audit (cgr.inbound_request.serve) directly to Resql — ruuter-internal cannot
-         reach the main instance's TEMPLATES/audit chain (see CTUD inbound-request.yml §8).
+         reach the main instance's TEMPLATES/audit chain (same limitation as CTUD
+         inbound-request.yml).
 
     TODO(M2M): OAuth2 machine-token auth as per spec. Until Ruuter supports client_credentials
     this runs on ruuter-internal (port 8089, allowedIPs 127.0.0.1 only) following the CTUD
@@ -184,7 +185,7 @@ checkGoodReputeFound:
   switch:
     - condition: ${unfit_res.response.body != null && unfit_res.response.body.length == 1}
       next: buildUnfitResponse
-  next: callMtr
+  next: checkMtrDataComplete
 
 # Found in UNFIT register: build Found + Unfit response. searchMethod is 'Local' per
 # CGR_SEARCH_METHOD classifier (checked against ERRU 3.5 XSD in previous session).
@@ -198,6 +199,17 @@ buildUnfitResponse:
   next: buildFullResponse
 
 # Step 6: transport manager not in UNFIT register — ask MTR.
+#
+# MTR requires all six identifying fields at once, but ERRU's CGR message
+# allows partial identification (7A: name+DOB, 7B: certificate only). If the
+# request lacks what MTR needs, short-circuit to NotFound instead of sending
+# MTR a request it will reject anyway.
+checkMtrDataComplete:
+  switch:
+    - condition: "${!tm_first_name || !tm_family_name || !tm_date_of_birth || !certificate_number || !certificate_issue_country || !certificate_issue_date}"
+      next: buildInsufficientDataResponse
+  next: callMtr
+
 callMtr:
   call: http.post
   args:
@@ -205,50 +217,85 @@ callMtr:
     headers:
       type: json
     body:
-      tmFirstName: ${tm_first_name}
-      tmFamilyName: ${tm_family_name}
-      tmDateOfBirth: ${tm_date_of_birth}
-      certNumber: ${certificate_number}
+      firstName: ${tm_first_name}
+      lastName: ${tm_family_name}
+      birthDate: ${tm_date_of_birth}
+      birthPlace: ${tm_place_of_birth}
+      cpcDocumentNumber: ${certificate_number}
+      cpcDocumentIssueCountry: ${certificate_issue_country}
+      cpcDocumentIssueDate: ${certificate_issue_date}
   result: mtr_res
-  next: checkMtrEnvelope
-
-checkMtrEnvelope:
-  switch:
-    - condition: ${mtr_res.response.body != null && mtr_res.response.body.response != null}
-      next: extractMtrEnveloped
-  next: extractMtrDirect
-
-extractMtrEnveloped:
-  assign:
-    mtr_body: "${JSON.parse(mtr_res.response.body.response)}"
   next: checkMtrStatus
 
-extractMtrDirect:
-  assign:
-    mtr_body: "${mtr_res.response.body}"
-  next: checkMtrStatus
-
+# ERRU_CGR_MTR_ENDPOINT points at erru/cgr/lookup-mtr.yml, which is itself a Ruuter DSL —
+# its HTTP response is therefore always enveloped as {"response": <result>} like every
+# other Ruuter endpoint (confirmed live against real MTR data: the bare fields are one
+# level deeper than mtr_res.response.body). Unwrap one level before reading fields.
 checkMtrStatus:
   switch:
-    - condition: ${mtr_body != null && mtr_body.statusCode === 'Found'}
+    - condition: "${mtr_res.response.body != null && mtr_res.response.body.response != null && mtr_res.response.body.response.transportManager != null}"
       next: buildMtrFoundResponse
   next: buildNotFoundResponse
 
-# MTR Found: the details come from MTR (the address is the undertaking's address per spec
-# comment by Eda Rembel: "mitte isikliku koduse aadressiga, vaid veoettevõtja ametliku
-# aadressiga"). Search method is NYSIIS (name search) or CPC (certificate search).
+# MTR Found: address is the undertaking's (not personal) address per spec. searchMethod
+# and fitness are hardcoded — MTR always matches by NYSIIS and is always "Fit" (MTR has
+# no "Unfit" concept; that's our local UNFIT register, checked above already).
 buildMtrFoundResponse:
+  assign:
+    tm: "${mtr_res.response.body.response.transportManager}"
+    company0: "${(mtr_res.response.body.response.companies || [])[0] || null}"
+    all_companies: "${mtr_res.response.body.response.companies || []}"
+  next: assignMtrFoundResponse
+
+# tm/company0/all_companies come from the previous assign step: Ruuter evaluates
+# every expression in one assign block against the pre-step variable scope, so a
+# later key in the same block cannot see an earlier key's value — hence the split.
+assignMtrFoundResponse:
   assign:
     resp_status_code: "Found"
     resp_status_message: ""
-    search_method: "${certificate_number ? 'CPC' : 'NYSIIS'}"
-    resp_details: "${JSON.stringify(mtr_body.transportManagerDetails)}"
+    search_method: "NYSIIS"
+    resp_details: >-
+      ${JSON.stringify({
+        respondingAuthority: 'EE-TRAM',
+        searchMethod: 'NYSIIS',
+        nameDetails: { firstName: tm.firstName, familyName: tm.lastName, dateOfBirth: tm.birthDate, placeOfBirth: tm.birthPlace || null },
+        addressDetails: company0 ? company0.address : null,
+        certificateDetails: {
+          certificateNumber: tm.cpcDocumentNumber,
+          certificateIssueDate: tm.cpcDocumentIssueDate,
+          certificateIssueCountry: tm.cpcDocumentIssueCountry,
+          certificateValidity: 'Valid',
+          fitness: { fitnessStatus: 'Fit', unfitStartDate: null, unfitEndDate: tm.unfitUntil || null }
+        },
+        transportUndertakings: {
+          totalManagedUndertakings: tm.companyCount || 0,
+          totalManagedVehicles: tm.carCount || 0,
+          undertaking: all_companies.map(c => ({
+            transportUndertakingName: c.name,
+            communityLicenceNumber: (c.communityLicenses || [])[0] ? c.communityLicenses[0].communityLicenceNumber : null,
+            communityLicenceStatus: (c.communityLicenses || [])[0] ? c.communityLicenses[0].communityLicenceStatus : null,
+            numberOfVehicles: c.carCount || 0,
+            address: c.address
+          }))
+        }
+      })}
   next: buildFullResponse
 
 buildNotFoundResponse:
   assign:
     resp_status_code: "NotFound"
     resp_status_message: "Transport manager not found in Estonian register"
+    search_method: "NYSIIS"
+    resp_details: "null"
+  next: buildFullResponse
+
+# Request didn't have enough data to even ask MTR — distinct from a real MTR
+# "not found", logged with its own status message for traceability.
+buildInsufficientDataResponse:
+  assign:
+    resp_status_code: "NotFound"
+    resp_status_message: "Insufficient data to query MTR (ERRU 7A/7B partial identification is not supported by MTR's checkTransportManagerGoodRepute, which requires full identification)"
     search_method: "${certificate_number ? 'CPC' : 'NYSIIS'}"
     resp_details: "null"
   next: buildFullResponse
@@ -299,6 +346,7 @@ logAudit:
       actor_personal_code: ""
       description: ${audit_description}
       log_content: ${audit_log_content}
+      organisation_id: ""
       created_by: "system"
       trace_id: ""
       span_id: ""

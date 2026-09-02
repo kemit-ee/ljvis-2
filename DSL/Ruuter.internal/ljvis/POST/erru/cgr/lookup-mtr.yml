@@ -1,0 +1,252 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    M2M-safe variant of xroad/mtr/check-transport-manager-good-repute.yml (LJVIS2-154),
+    for erru/cgr/inbound-request.yml (LJVIS2-139) — no browser cookie exists on an M2M
+    ERRU call, so check-user-authority can't be used here.
+
+    MTR requires all six identifying fields (only birthPlace is optional), but ERRU's
+    CGR message allows partial identification (7A: name+DOB, or 7B: certificate only).
+    The caller must check all six fields are present before calling this endpoint —
+    returnMissingParam is an expected outcome for a valid partial CGR request.
+
+    searchMethod is always "NYSIIS" and fitness is always "Fit" per MTR's schema — MTR
+    has no "Unfit" concept, that's our own local UNFIT register, checked before this.
+  namespace: erru
+  allowlist:
+    body:
+      - field: firstName
+        type: string
+        description: "Required. Transport manager's first name (raw, not NYSIIS-encoded)."
+      - field: lastName
+        type: string
+        description: "Required. Transport manager's last name (raw, not NYSIIS-encoded)."
+      - field: birthDate
+        type: string
+        description: "Required. ISO date (yyyy-MM-dd)."
+      - field: birthPlace
+        type: string
+        description: "Optional. Place of birth."
+      - field: cpcDocumentNumber
+        type: string
+        description: "Required. CPC (competence certificate) document number."
+      - field: cpcDocumentIssueCountry
+        type: string
+        description: "Required. 2-letter ISO country code of the CPC issuing country."
+      - field: cpcDocumentIssueDate
+        type: string
+        description: "Required. ISO date (yyyy-MM-dd) the CPC was issued."
+
+validateInput:
+  switch:
+    - condition: "${!(incoming.body.firstName || '').trim() || !(incoming.body.lastName || '').trim() || !(incoming.body.birthDate || '').trim() || !(incoming.body.cpcDocumentNumber || '').trim() || !(incoming.body.cpcDocumentIssueCountry || '').trim() || !(incoming.body.cpcDocumentIssueDate || '').trim()}"
+      next: returnMissingParam
+  next: assignParams
+
+assignParams:
+  assign:
+    first_name: "${(incoming.body.firstName || '').trim()}"
+    last_name: "${(incoming.body.lastName || '').trim()}"
+    birth_date: "${(incoming.body.birthDate || '').trim()}"
+    birth_place: "${(incoming.body.birthPlace || '').trim()}"
+    cpc_document_number: "${(incoming.body.cpcDocumentNumber || '').trim()}"
+    cpc_document_issue_country: "${(incoming.body.cpcDocumentIssueCountry || '').trim().toUpperCase()}"
+    cpc_document_issue_date: "${(incoming.body.cpcDocumentIssueDate || '').trim()}"
+  next: computeNysiisFirst
+
+# Same NYSIIS pre-encoding as the officer-facing endpoint.
+computeNysiisFirst:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${first_name}
+      useFullName: false
+  result: nysiisFirstRes
+  next: checkNysiisFirstOk
+
+checkNysiisFirstOk:
+  switch:
+    - condition: ${nysiisFirstRes.response == null || nysiisFirstRes.response.status !== 200 || nysiisFirstRes.response.body == null}
+      next: returnNysiisError
+  next: storeNysiisFirstKey
+
+storeNysiisFirstKey:
+  assign:
+    first_name_nysiis: "${nysiisFirstRes.response.body.searchKey || ''}"
+  next: computeNysiisLast
+
+computeNysiisLast:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${last_name}
+      useFullName: true
+  result: nysiisLastRes
+  next: checkNysiisLastOk
+
+checkNysiisLastOk:
+  switch:
+    - condition: ${nysiisLastRes.response == null || nysiisLastRes.response.status !== 200 || nysiisLastRes.response.body == null}
+      next: returnNysiisError
+  next: storeNysiisLastKeyAndCallXtr
+
+storeNysiisLastKeyAndCallXtr:
+  assign:
+    last_name_nysiis: "${nysiisLastRes.response.body.searchKey || ''}"
+    start_time: "${new Date().getTime()}"
+  next: callXtr
+
+callXtr:
+  call: http.post
+  timeout: 35000
+  args:
+    url: "[#LJVIS_XTR_TEST]/mtr/checkTransportManagerGoodRepute"
+    headers:
+      type: json
+    body:
+      firstName: ${first_name_nysiis}
+      lastName: ${last_name_nysiis}
+      birthDate: ${birth_date}
+      birthPlace: ${birth_place}
+      cpcDocumentNumber: ${cpc_document_number}
+      cpcDocumentIssueCountry: ${cpc_document_issue_country}
+      cpcDocumentIssueDate: ${cpc_document_issue_date}
+      userId: "EEERRU-CGR-INBOUND"
+  result: xtrResponse
+  next: checkXtrStatus
+
+checkXtrStatus:
+  switch:
+    - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
+      next: logFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "mtr.checkTransportManagerGoodRepute.v1"
+      request_xml: "${'firstName=' + first_name_nysiis + ';lastName=' + last_name_nysiis + ';birthDate=' + birth_date + ';cpcDocumentNumber=' + cpc_document_number}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "erru_cgr_inbound"
+      source_record_id: ""
+  result: logResult
+  next: mapResponse
+
+# Kept byte-identical to xroad/mtr/check-transport-manager-good-repute.yml's mapResponse.
+mapResponse:
+  assign:
+    soap_body: "${(xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {})}"
+  next: findResponseKey
+
+findResponseKey:
+  assign:
+    response_key: "${Object.keys(soap_body).find(k => k.endsWith('checkTransportManagerGoodReputeResponse'))}"
+  next: extractResponseNode
+
+extractResponseNode:
+  assign:
+    response_node: "${(response_key ? soap_body[response_key] : {}).response || {}}"
+  next: buildResult
+
+buildResult:
+  assign:
+    result: >-
+      ${(function(){
+        function toArray(x) { return x == null ? [] : (Array.isArray(x) ? x : [x]); }
+        function isNilOrEmpty(v) {
+          return v == null || v === '' || (typeof v === 'object' && (v['@xsi:nil'] === '1' || v['@xsi:nil'] === 'true' || v['@xsi:nil'] === true));
+        }
+        function mapLicense(l) {
+          return {
+            communityLicenceNumber: l.communityLicenceNumber || '',
+            communityLicenceStatus: l.communityLicenceStatus || ''
+          };
+        }
+        function mapCompany(c) {
+          var addr = c.transportUndertakingAddress || {};
+          var licRaw = c.communityLicenses && c.communityLicenses.communityLicense;
+          return {
+            name: c.name || '',
+            registryCode: c.regNumber || '',
+            carCount: c.carCount != null ? Number(c.carCount) : 0,
+            address: {
+              address: addr.address || '',
+              postCode: addr.postCode || '',
+              city: addr.city || '',
+              country: addr.country || ''
+            },
+            communityLicenses: toArray(licRaw).map(mapLicense)
+          };
+        }
+        var tm = response_node.transportManager;
+        var transportManager = tm ? {
+          firstName: tm.firstName || '',
+          lastName: tm.lastName || '',
+          birthDate: tm.birthDate || '',
+          birthPlace: tm.birthPlace || '',
+          cpcDocumentNumber: tm.cpcDocumentNumber || '',
+          cpcDocumentIssueCountry: tm.cpcDocumentIssueCountry || '',
+          cpcDocumentIssueDate: tm.cpcDocumentIssueDate || '',
+          companyCount: tm.companyCount != null ? Number(tm.companyCount) : 0,
+          carCount: tm.carCount != null ? Number(tm.carCount) : 0,
+          fitness: tm.fitness || '',
+          unfitUntil: isNilOrEmpty(tm.unfitUntil) ? null : tm.unfitUntil
+        } : null;
+        var companiesRaw = response_node.companies && response_node.companies.company;
+        return { transportManager: transportManager, companies: toArray(companiesRaw).map(mapCompany) };
+      })()}
+  next: returnResult
+
+returnResult:
+  status: 200
+  return: "${result}"
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "mtr.checkTransportManagerGoodRepute.v1"
+      request_xml: "${'firstName=' + first_name_nysiis + ';lastName=' + last_name_nysiis + ';birthDate=' + birth_date + ';cpcDocumentNumber=' + cpc_document_number}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
+      person_identifier: ""
+      source_type: "erru_cgr_inbound"
+      source_record_id: ""
+  result: logResult
+  next: returnXtrError
+
+returnXtrError:
+  status: 502
+  return: '{"error": "XTR_ERROR", "message": "MTR veokorraldaja hea maine päring ebaõnnestus"}'
+  next: end
+
+returnNysiisError:
+  status: 502
+  return: '{"error": "NYSIIS_ERROR", "message": "NYSIIS otsinguvõtme arvutamine ebaõnnestus"}'
+  next: end
+
+returnMissingParam:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "firstName, lastName, birthDate, cpcDocumentNumber, cpcDocumentIssueCountry and cpcDocumentIssueDate are required"}'
+  next: end

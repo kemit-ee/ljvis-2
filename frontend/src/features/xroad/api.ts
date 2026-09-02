@@ -5,6 +5,7 @@ import type {
   XRoadPerson,
   XRoadVehicle,
   EtoimikCase,
+  MtrSoidukikaart,
 } from './types';
 
 interface LihtandmedCompanyRaw {
@@ -16,6 +17,7 @@ interface LihtandmedCompanyRaw {
   evaadressid?: {
     aadress_ads__ads_normaliseeritud_taisaadress?: string;
     asukoha_ehak_tekstina?: string;
+    asukoht_ettevotja_aadressis?: string;
     indeks_ettevotja_aadressis?: string;
   };
 }
@@ -61,6 +63,7 @@ function mapCompany(raw: LihtandmedCompanyRaw): XRoadCompany {
     status: raw.staatus ?? '',
     statusText: raw.staatus_tekstina ?? '',
     address: raw.evaadressid?.aadress_ads__ads_normaliseeritud_taisaadress ?? '',
+    street: raw.evaadressid?.asukoht_ettevotja_aadressis ?? '',
     city: raw.evaadressid?.asukoha_ehak_tekstina ?? '',
     postalCode: raw.evaadressid?.indeks_ettevotja_aadressis ?? '',
   };
@@ -187,6 +190,30 @@ export const queryEtoimikQualifications = async (
   const raw = await post<EtoimikQueryRawResponse>(
     '/v1/xroad/etoimik/kvalifikatsioonid',
     { ...params },
+  );
+  return raw?.data ?? null;
+};
+
+/**
+ * LJVIS2-57 / LJVIS2-70: MTR sõidukikaartide otsing ettevõtte registrikoodi
+ * alusel — koondvormi vedaja-ploki "Otsi majandustegevuse registrist" nupu
+ * jaoks (see useCompoundForm.ts's handleMtrSearch).
+ */
+interface MtrSoidukikaartRawResponse {
+  data: MtrSoidukikaart | null;
+}
+
+export const searchMtrSoidukikaart = async (
+  registryCode: string,
+): Promise<MtrSoidukikaart | null> => {
+  // Ruuter's `declare` step requires every allowlist.body key to be present
+  // in the request even when unused (see
+  // .ai/coding_guidelines_and_lessons_learned.md § "allowlist.body —
+  // контракт на присутствие ключей") — sourceRecordId must be sent as '',
+  // not omitted, or the call 500s before reaching any DSL logic.
+  const raw = await post<MtrSoidukikaartRawResponse>(
+    '/v1/xroad/mtr/soidukikaart',
+    { registryCode, sourceType: 'compound_form', sourceRecordId: '' },
   );
   return raw?.data ?? null;
 };

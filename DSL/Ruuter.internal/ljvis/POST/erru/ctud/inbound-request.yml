@@ -150,35 +150,64 @@ lookupUndertaking:
     headers:
       type: json
     body:
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
       transportUndertakingName: ${undertaking_name}
-      communityLicenceNumber: ${licence_number}
+      trueCopyNumber: ${licence_number}
       vehicleRegistrationNumber: ${vehicle_number}
-      requestAllVehicles: ${all_vehicles}
+      allVehicles: ${all_vehicles}
   result: mtr_res
-  next: checkMtrEnvelope
+  next: buildMtrResponse
 
-# Same dual response shape as the outbound path: the dev/CI stub is a Ruuter DSL and
-# therefore enveloped, real XTR is not.
-checkMtrEnvelope:
-  switch:
-    - condition: ${mtr_res.response.body != null && mtr_res.response.body.response != null}
-      next: extractMtrEnveloped
-  next: extractMtrDirect
 
-extractMtrEnveloped:
+# Known gaps: legalForm (MTR doesn't return it, left null) and riskRating/riskBand
+# (should come from our risk-assessment module, but MTR gives no registryCode to key
+# off of — left at neutral default Grey/0 for now).
+buildMtrResponse:
   assign:
-    resp_status_code: "${JSON.parse(mtr_res.response.body.response).statusCode || ''}"
-    resp_status_message: "${JSON.parse(mtr_res.response.body.response).statusMessage || ''}"
-    resp_authority: "${JSON.parse(mtr_res.response.body.response).respondingAuthority || ''}"
-    resp_content: "${mtr_res.response.body.response}"
+    mtr_body: "${(mtr_res.response.body || {}).response || {}}"
+    tu: "${((mtr_res.response.body || {}).response || {}).transportUndertaking || null}"
+  next: checkMtrStatus
+
+checkMtrStatus:
+  switch:
+    - condition: "${mtr_body.statusCode === 'Found' && tu != null}"
+      next: buildFoundResponse
+  next: buildNotFoundResponse
+
+buildFoundResponse:
+  assign:
+    resp_status_code: "Found"
+    resp_status_message: "${mtr_body.statusMessage || ''}"
+    resp_authority: "${mtr_body.respondingAuthority || 'EE-TRAM'}"
+    resp_content: >-
+      ${JSON.stringify({
+        statusCode: 'Found',
+        statusMessage: mtr_body.statusMessage || '',
+        respondingAuthority: mtr_body.respondingAuthority || 'EE-TRAM',
+        transportUndertakingName: tu.transportUndertakingName || '',
+        legalForm: null,
+        numberOfEmployees: tu.numberOfEmployees || 0,
+        numberOfVehicles: (tu.vehicles || []).length,
+        riskRating: 0,
+        riskBand: 'Grey',
+        searchMethod: 'CommunityLicence',
+        address: tu.address || null,
+        communityLicenceDetails: tu.communityLicenceDetails ? [tu.communityLicenceDetails] : [],
+        certifiedTrueCopyDetails: tu.certifiedTrueCopyDetails ? [tu.certifiedTrueCopyDetails] : [],
+        vehicleRegistrations: all_vehicles === 'true' ? (tu.vehicles || []).map(v => v.registrationNumber) : []
+      })}
   next: storeAnswered
 
-extractMtrDirect:
+# NotFound covers both MTR's "ei leitud" and business-level "viga" — ERRU only
+# distinguishes Found/NotFound when EE is the responder. A real X-tee failure is
+# already handled by lookupUndertaking's own 502.
+buildNotFoundResponse:
   assign:
-    resp_status_code: "${mtr_res.response.body.statusCode || ''}"
-    resp_status_message: "${mtr_res.response.body.statusMessage || ''}"
-    resp_authority: "${mtr_res.response.body.respondingAuthority || ''}"
-    resp_content: "${JSON.stringify(mtr_res.response.body)}"
+    resp_status_code: "NotFound"
+    resp_status_message: "${mtr_body.statusMessage || ''}"
+    resp_authority: "${mtr_body.respondingAuthority || 'EE-TRAM'}"
+    resp_content: '{"statusCode":"NotFound","statusMessage":"Otsitud veoettevõtjat ei leitud Eesti andmetest","respondingAuthority":"EE-TRAM"}'
   next: storeAnswered
 
 storeAnswered:
@@ -228,6 +257,7 @@ logAudit:
       actor_personal_code: ""
       description: ${audit_description}
       log_content: ${audit_log_content}
+      organisation_id: ""
       created_by: "system"
       trace_id: ""
       span_id: ""

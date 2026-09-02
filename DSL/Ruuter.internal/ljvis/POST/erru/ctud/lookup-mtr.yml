@@ -2,60 +2,43 @@ declaration:
 
   version: "1.0"
   description: >-
-    Check a transport undertaking's community licence / certified true copy
-    via X-tee MTR checkCommunityLicence/v1 (LJVIS2-153), routed through XTR
-    (see DSL/xtr/mtr/checkCommunityLicence.yml). MTR is the data source for
-    the ERRU inbound CTUD (transport-undertaking-data) handler, which builds
-    Estonia's answer to other member states' requests.
+    M2M-safe variant of xroad/mtr/check-community-licence.yml (LJVIS2-153), for
+    erru/ctud/inbound-request.yml (LJVIS2-144).
 
-    Service identifier: EE/GOV/70003218/mtr/checkCommunityLicence/v1. This
-    is a company/licence-based lookup — no personal data, no NYSIIS
-    encoding needed (unlike checkTransportManagerGoodRepute).
-  namespace: xroad
+    The officer-facing endpoint needs check-user-authority (a browser session cookie)
+    to resolve X-Road-UserId, but the inbound CTUD handler is machine-to-machine with
+    no user involved — check-user-authority would always 401. userId here is a fixed
+    system identifier instead.
+
+    XTR call and response mapping are kept byte-identical to the officer-facing
+    endpoint (including the leitud/ei leitud/viga -> Found/NotFound/Error mapping) —
+    mirror any change there here too.
+  namespace: erru
   allowlist:
-    headers:
-      - field: cookie
-        type: string
-        description: "Cookie field"
     body:
       - field: businessCaseId
         type: string
-        description: "Required. Ties the request to a specific proceeding (LJVIS2-153 §4)."
+        description: "Required. CTUD ERRU envelope's businessCaseId."
+      - field: originatingAuthority
+        type: string
+        description: "Optional. CTUD ERRU envelope's originatingAuthority."
       - field: transportUndertakingName
         type: string
         description: "Required. Transport undertaking name — search basis."
       - field: trueCopyNumber
         type: string
-        description: "Required. Either the certified true copy number or the community licence number itself."
+        description: "Required. Community licence number or certified true copy number (CTUD envelope's communityLicenceNumber)."
       - field: vehicleRegistrationNumber
         type: string
         description: "Optional. Narrows the search to a specific vehicle."
-      - field: originatingAuthority
-        type: string
-        description: "Optional. The authority submitting the search."
       - field: allVehicles
         type: string
         description: "Optional, defaults to 'false'. 'true' to return every vehicle linked to the community licence."
-      - field: sourceType
-        type: string
-        description: "Optional: which feature triggered this call, e.g. 'erru_ctud'."
-      - field: sourceRecordId
-        type: string
-        description: "Optional: the specific record identifier within sourceType."
 
 validateInput:
   switch:
     - condition: "${!(incoming.body.businessCaseId || '').trim() || !(incoming.body.transportUndertakingName || '').trim() || !(incoming.body.trueCopyNumber || '').trim()}"
       next: returnMissingParam
-  next: get_user_context
-
-# Eraldi privileegi ei ole (LJVIS2-153 §3) — kasutaja peab olema autenditud.
-get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
   next: assignParams
 
 assignParams:
@@ -66,9 +49,6 @@ assignParams:
     true_copy_number: "${(incoming.body.trueCopyNumber || '').trim()}"
     vehicle_registration_number: "${(incoming.body.vehicleRegistrationNumber || '').trim()}"
     all_vehicles: "${(incoming.body.allVehicles || '') === 'true' || incoming.body.allVehicles === true}"
-    source_type: "${(incoming.body.sourceType || '').trim()}"
-    source_record_id: "${(incoming.body.sourceRecordId || '').trim()}"
-    x_road_user_id: "${'EE' + (auth_user.personalcode || '')}"
     start_time: "${new Date().getTime()}"
   next: callXtr
 
@@ -86,16 +66,10 @@ callXtr:
       trueCopyNumber: ${true_copy_number}
       vehicleRegistrationNumber: ${vehicle_registration_number}
       allVehicles: ${all_vehicles}
-      userId: ${x_road_user_id}
+      userId: "EEERRU-CTUD-INBOUND"
   result: xtrResponse
   next: checkXtrStatus
 
-# XTR maps every failure mode — Security Server unreachable, timeout, and
-# business-level SOAP Faults alike — to a non-2xx status, so a single
-# range check covers all of LJVIS2-153's error scenarios (§Testimine).
-# NB: MTR's own "viga" (error) statusCode is a *successful* X-tee call with
-# a substantive error payload, not an HTTP failure — that is handled in
-# mapResponse below, not here.
 checkXtrStatus:
   switch:
     - condition: "${xtrResponse.response.status < 200 || xtrResponse.response.status >= 300}"
@@ -116,21 +90,13 @@ logSuccess:
       success: true
       error_message: ""
       person_identifier: ""
-      source_type: ${source_type}
-      source_record_id: ${source_record_id}
+      source_type: "erru_ctud_inbound"
+      source_record_id: ""
   result: logResult
   next: mapResponse
 
-# checkCommunityLicence's producer schema has elementFormDefault unset
-# (= "unqualified"), same convention as checkTransportManagerGoodRepute —
-# only the top-level response element is namespace-qualified, looked up by
-# suffix. "ei leitud" (not found) is a valid, non-error result
-# (LJVIS2-153 §Testimine) — mapped to statusCode/transportUndertaking:null
-# rather than treated as a failure. certifiedTrueCopyDetails may be
-# genuinely absent per spec (§"Reeglid") — mapped to null, not an error.
-#
-# MTR's statusCode is Estonian ("leitud"/"ei leitud"/"viga"), normalised
-# below to Found/NotFound/Error for all callers.
+# Kept byte-identical to xroad/mtr/check-community-licence.yml's mapResponse —
+# see that file's comments for the WSDL-confirmed field/status details.
 mapResponse:
   assign:
     soap_body: "${(xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {})}"
@@ -152,9 +118,6 @@ buildResult:
       ${(function(){
         function toArray(x) { return x == null ? [] : (Array.isArray(x) ? x : [x]); }
         function isNilOrEmpty(v) {
-          // XTR's xsi:nil serialisation isn't consistent across responses
-          // — seen as both the string "1" and the string "true" — check
-          // for either rather than assuming one form.
           return v == null || v === '' || (typeof v === 'object' && (v['@xsi:nil'] === '1' || v['@xsi:nil'] === 'true' || v['@xsi:nil'] === true));
         }
         function mapAddress(a) {
@@ -236,8 +199,8 @@ logFailure:
       success: false
       error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
       person_identifier: ""
-      source_type: ${source_type}
-      source_record_id: ${source_record_id}
+      source_type: "erru_ctud_inbound"
+      source_record_id: ""
   result: logResult
   next: returnXtrError
 
