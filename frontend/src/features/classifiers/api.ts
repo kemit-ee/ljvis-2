@@ -66,7 +66,7 @@ export const getClassifierValue = (
   classifierId: string,
   classifierValueId: string,
 ) =>
-  get<ClassifierValue[]>(
+  get<ClassifierValue>(
     '/v1/classifiers/value',
     { q: classifierId, valueId: classifierValueId },
   );
