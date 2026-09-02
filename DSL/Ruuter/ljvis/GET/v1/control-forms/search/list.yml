@@ -48,11 +48,9 @@ declaration:
         description: "Form lifecycle status"
 
 getAuthority:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: u
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  assign:
+    u: ${auth_user}
   next: buildAllowedTypes
 
 buildAllowedTypes:

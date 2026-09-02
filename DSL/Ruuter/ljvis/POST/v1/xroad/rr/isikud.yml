@@ -26,11 +26,9 @@ validateInput:
 # X-Road-UserId (the official who initiated the query) is a mandatory header on
 # every RR REST call, so we need the authenticated LJVIS user's personal code.
 get_user_context:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  assign:
+    auth_user: ${auth_user}
   next: assignParams
 
 assignParams:

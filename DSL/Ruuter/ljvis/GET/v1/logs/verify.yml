@@ -13,11 +13,9 @@ declaration:
         description: "End event_id (inclusive). Omit to walk to the current tail."
 
 getContext:
-  template: "templates/check-user-authority"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  result: auth_user
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  assign:
+    auth_user: ${auth_user}
   next: checkVerifyPermission
 
 checkVerifyPermission:
