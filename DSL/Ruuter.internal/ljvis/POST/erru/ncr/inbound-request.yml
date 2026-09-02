@@ -16,7 +16,7 @@ declaration:
          et see kinnitatakse, kuid uut kirjet ei looda').
       4. Return a synchronous NCRN_Ack acknowledgement.
       5. Write audit (ncr.inbound_request.serve) directly to Resql — ruuter-internal cannot
-         reach the main Ruuter instance's TEMPLATES/audit chain.
+         reach the main Ruuter instance's GET/templates/audit chain.
 
     minorInfringement/seriousInfringements arrive as JSON text, already split into
     category+infringementType (matching the request/save.yml convention).

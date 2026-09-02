@@ -12,10 +12,11 @@ DSL/
   Ruuter/             — public-facing API endpoints (requires authentication)
     ljvis/
       GET/            — GET endpoints
+        templates/    — shared reusable sub-workflows (called in-process, not exposed as public routes)
+          validate/   — field format validators (email, personal code)
+          user/       — user-entity validation templates
+          audit/      — audit-event writers
       POST/           — POST endpoints
-      TEMPLATES/      — shared reusable sub-workflows (not exposed as HTTP endpoints)
-        validate/     — field format validators (email, personal code)
-        user/         — user-entity validation templates
 
   Ruuter.internal/    — internal endpoints (restricted to internal IPs only)
     ljvis/
@@ -28,12 +29,14 @@ DSL/
 
 ## Template Pattern (shared reusable logic)
 
-Templates live in `TEMPLATES/` and are called in-process (no HTTP overhead) using `requestType: templates`.
+Templates live in `GET/templates/` and are called in-process (no HTTP overhead). Ruuter
+resolves `template: "templates/<name>"` against `GET/templates/<name>.yml` (the `requestType`
+selects the method directory; templates are authored under `GET/`).
 
 ```yaml
 some_step:
-  template: "[#LJVIS_PROJECT_LAYER]/template-name"
-  requestType: templates
+  template: "templates/template-name"
+  requestType: GET
   body:
     field_name: ${variable}
   result: resultVar

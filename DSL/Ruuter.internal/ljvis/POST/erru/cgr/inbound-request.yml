@@ -21,7 +21,7 @@ declaration:
       7. If MTR returns NotFound → respond NotFound.
       8. Store an 'answered' snapshot with the EE member_states entry.
       9. Write audit (cgr.inbound_request.serve) directly to Resql — ruuter-internal cannot
-         reach the main instance's TEMPLATES/audit chain (see CTUD inbound-request.yml §8).
+         reach the main instance's GET/templates/audit chain (see CTUD inbound-request.yml §8).
 
     TODO(M2M): OAuth2 machine-token auth as per spec. Until Ruuter supports client_credentials
     this runs on ruuter-internal (port 8089, allowedIPs 127.0.0.1 only) following the CTUD
@@ -277,7 +277,7 @@ storeAnswered:
   next: buildAudit
 
 # Audit written directly to Resql (ruuter-internal cannot reach main instance's templates).
-# event_id generation is byte-identical to TEMPLATES/audit/log-audit-event.yml.
+# event_id generation is byte-identical to GET/templates/audit/log-audit-event.yml.
 buildAudit:
   assign:
     event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"

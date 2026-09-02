@@ -132,7 +132,7 @@ DSL/Ruuter/ljvis/PUT/v1/users/admin.yml   →   PUT /v1/users/admin
 ```
 
 Jagatud alamvoogud (ei ole HTTP endpointid):
-- `DSL/Ruuter/ljvis/TEMPLATES/` — valideerimine, kasutajate autentimine, andmete arvutamine
+- `DSL/Ruuter/ljvis/GET/templates/` — valideerimine, kasutajate autentimine, andmete arvutamine
 
 Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
 
@@ -187,7 +187,7 @@ Brauser
 ```
 Frontend (POST /v1/users/admin)
   → Ruuter: check-user-authority (TIM)
-  → Ruuter: väljaväljade valideerimine (TEMPLATES)
+  → Ruuter: väljaväljade valideerimine (GET/templates/)
   → RESQL: insert_user_account (PostgreSQL)
   → RESQL: insert_audit_event (PostgreSQL)
   → vastus Frontendile
@@ -380,7 +380,7 @@ Kõik olulised lugemis- ja kirjutamisoperatsioonid logitakse `audit_event` tabel
 | `log_content` | JSONB detailid (muudetud väljad, ID-d) |
 | `created_at` | Sündmuse aeg (UTC), serveri poolne timestamp |
 
-Logimine toimub Ruuteri DSL lõpus (`logAuditEvent` samm läbi `TEMPLATES/audit/log-audit-event.yml`) pärast edukat andmebaasi kirjutamist.
+Logimine toimub Ruuteri DSL lõpus (`logAuditEvent` samm läbi `GET/templates/audit/log-audit-event.yml`) pärast edukat andmebaasi kirjutamist.
 
 Lähemalt: [`docs/audit-logging.md`](audit-logging.md)
 

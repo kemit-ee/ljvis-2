@@ -9,7 +9,7 @@ declaration:
 
     TODO(M2M): the specification places this at POST /api/v1/internal/erru/ctud/inbound-request behind
     an OAuth2 machine token. Ruuter has no client-credentials support today — this is a documented gap
-    (see TEMPLATES/audit/form/labour-inspection/log-labour-inspection-import.yml). Until that infra
+    (see GET/templates/audit/form/labour-inspection/log-labour-inspection-import.yml). Until that infra
     exists the endpoint lives on the separate ruuter-internal instance (port 8089, allowedIPs
     127.0.0.1), which is not exposed outside the Docker network, following the precedent set by
     POST/users/deactivate-expired.yml. Moving it to the specified path is then a routing change only.
@@ -202,11 +202,11 @@ storeAnswered:
   next: buildAudit
 
 # The audit event is written by calling Resql directly rather than through the
-# TEMPLATES/audit chain used everywhere else. ruuter-internal is a separate Ruuter
+# GET/templates/audit chain used everywhere else. ruuter-internal is a separate Ruuter
 # instance mounting only DSL/Ruuter.internal, so it cannot reach the main instance's
 # templates, and copying log-audit-event.yml here would duplicate the writer of a
 # hash-chained table — the one place drift would be most damaging. The event_id
-# generation below is therefore kept byte-identical to TEMPLATES/audit/log-audit-event.yml.
+# generation below is therefore kept byte-identical to GET/templates/audit/log-audit-event.yml.
 buildAudit:
   assign:
     event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
