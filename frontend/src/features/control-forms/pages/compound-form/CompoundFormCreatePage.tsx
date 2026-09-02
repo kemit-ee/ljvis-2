@@ -1733,9 +1733,9 @@ export function CompoundFormCreatePage() {
                               <Alert
                                 type="danger"
                                 size="small"
-                                onClose={() => setMtrSearchError(false)}
+                                onClose={() => setMtrSearchError(null)}
                               >
-                                {t('common.noResults')}
+                                {t(mtrSearchError)}
                               </Alert>
                             </div>
                           )}

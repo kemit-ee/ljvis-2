@@ -8,7 +8,9 @@ declaration:
     using the X-Road Message Protocol for REST — it does NOT go through the XTR
     component, which only wraps legacy XRoad SOAP services (see
     https://github.com/buerokratt/XTR and docs.x-road.global REST protocol).
-    Service identifier: ee-test/GOV/70008440/rr/dde/v1/isikud.
+    Service identifier: GOV/70008440/rr/domesticDataExchange/v1/isikud (member
+    70008440 = Siseministeeriumi infotehnoloogia- ja arenduskeskus / SMIT, which
+    hosts RR's test subsystems on both ee-dev and ee-test
     Returns firstName/lastName/citizenship/dateOfBirth/personStatus, or null data
     if no match. See LJVIS2-54.
   namespace: xroad
@@ -48,10 +50,10 @@ assignParams:
 callRr:
   call: http.post
   args:
-    url: "[#XROAD_SECURITY_SERVER]/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/dde/v1/isikud"
+    url: "[#XROAD_SECURITY_SERVER]/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
     headers:
       type: json
-      X-Road-Client: "[#XROAD_INSTANCE]/GOV/70006317/ljvis"
+      X-Road-Client: "[#XROAD_INSTANCE]/GOV/70001231/ljvis2"
       X-Road-UserId: ${x_road_user_id}
       RR-Request-Reason: "avalik"
     body:
