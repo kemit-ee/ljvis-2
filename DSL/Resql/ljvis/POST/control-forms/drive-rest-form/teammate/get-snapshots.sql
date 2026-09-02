@@ -29,6 +29,7 @@ WITH ranked AS (
     id,
     sp_teammate_form_key,
     sub_form_number,
+    version,
     status,
     created_at,
     created_by,
@@ -43,6 +44,7 @@ filtered AS (
   SELECT
     id AS snapshot_id,
     sub_form_number,
+    version,
     status,
     created_at,
     created_by
@@ -51,7 +53,7 @@ filtered AS (
 )
 SELECT
   snapshot_id,
-  SPLIT_PART(sub_form_number, '/', 2)::integer AS version,
+  version,
   status,
   created_at,
   (SELECT first_name || ' ' || last_name FROM users.user_account WHERE user_account.personal_code = filtered.created_by ORDER BY user_account.id DESC LIMIT 1) AS created_by,
