@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-09 — Tühjad klassifikaatori-rippmenüüd vormidel
+
+- **Kontrollvormide klassifikaatori-rippmenüüd** (nt SP-vormi „Veoklass",
+  liitvormi „maakond", „linn/vald" ja „maantee", samuti rikkumiste ja
+  dokumendikontrolli valikud) võisid olla kõik korraga tühjad („Valikud
+  puuduvad"), kuigi väärtused olid klassifikaatorihalduses olemas ja kehtivad.
+  Põhjus: klassifikaatori väärtuste päring katkes veaga, kui mõnda
+  klassifikaatorit oli kunagi muudetud (nime/kirjelduse redigeerimine loob uue
+  versioonikirje). Päring valib nüüd alati klassifikaatori viimase versiooni.
+
+---
+
 ## 2026-09 — Liitvorm: kõik andmevormi vahekaardid on alati avatavad
 
 - **Liitvormile mitme andmevormi lisamisel** ei jää viimasena lisatud vormide

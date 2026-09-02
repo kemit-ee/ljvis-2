@@ -22,6 +22,6 @@ SELECT
     cv.code,
     cv.name
 FROM classifier.classifier_value cv
-WHERE cv.classifier_key = (SELECT classifier_key FROM classifier.classifier WHERE code = 'EHAK')
+WHERE cv.classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'EHAK')
   AND cv.parent_key = :parentId
 ORDER BY cv.name;

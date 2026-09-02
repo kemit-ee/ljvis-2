@@ -2,13 +2,13 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
-  DateField,
   Heading,
   TextField,
 } from '@tedi-design-system/react/tedi';
 import type { FormikProps } from 'formik';
 import styles from './ClassifierValueInfoCard.module.css';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
 
 interface ClassifierValueFormValues {
   id: string;
@@ -94,15 +94,18 @@ export function ClassifierValueInfoCard({
                 styles[isDesktop ? 'date-row-desktop' : 'date-row-mobile']
               }
             >
-              <DateField
+              <MaskedDateField
                 id="validFrom"
                 label={t('classifiers.validFrom')}
+                monthYearSelectType="grid"
                 selected={
                   formik.values.validFrom
                     ? new Date(formik.values.validFrom)
                     : undefined
                 }
-                onSelect={(v) => formik.setFieldValue('validFrom', toIsoDate(v))}
+                onSelect={(v) =>
+                  formik.setFieldValue('validFrom', toIsoDate(v))
+                }
                 placeholder={t('common.dateFieldPlaceholder')}
                 required
                 inputProps={
@@ -116,15 +119,18 @@ export function ClassifierValueInfoCard({
                     : undefined
                 }
               />
-              <DateField
+              <MaskedDateField
                 id="validUntil"
                 label={t('classifiers.validUntil')}
+                monthYearSelectType="grid"
                 selected={
                   formik.values.validUntil
                     ? new Date(formik.values.validUntil)
                     : undefined
                 }
-                onSelect={(v) => formik.setFieldValue('validUntil', toIsoDate(v))}
+                onSelect={(v) =>
+                  formik.setFieldValue('validUntil', toIsoDate(v))
+                }
                 placeholder={t('common.dateFieldPlaceholder')}
                 inputProps={
                   formik.touched.validUntil && formik.errors.validUntil

@@ -26,6 +26,11 @@ declaration:
       - field: is_valid
         type: string
 */
+-- classifier and classifier_value are INSERT-only snapshot tables: every edit
+-- appends a new row sharing the same *_key. The classifier_code subquery must
+-- pick the latest snapshot (ORDER BY created_at DESC LIMIT 1), otherwise a
+-- classifier that has ever been edited returns >1 row and the whole query fails
+-- with "more than one row returned by a subquery used as an expression".
 WITH latest_value AS (
     SELECT DISTINCT ON (classifier_value_key)
         classifier_value_key,
@@ -42,7 +47,10 @@ WITH latest_value AS (
 )
 SELECT
     v.classifier_value_key,
-    (SELECT code FROM classifier.classifier WHERE v.classifier_key = classifier_key) AS classifier_code,
+    (SELECT code FROM classifier.classifier
+      WHERE classifier_key = v.classifier_key
+      ORDER BY created_at DESC
+      LIMIT 1) AS classifier_code,
     v.code,
     v.name,
     v.parent_key,

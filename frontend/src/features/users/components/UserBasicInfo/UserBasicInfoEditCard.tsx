@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
-  DateField,
   Heading,
   Select,
   TextField,
@@ -17,6 +16,7 @@ import type { FormikProps } from 'formik';
 import { PhoneField } from '../PhoneField/PhoneField';
 import styles from './UserBasicInfoEditCard.module.css';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
 
 interface UserEditFormValues {
   firstName: string;
@@ -196,15 +196,18 @@ export function UserBasicInfoEditCard({
                 : {})}
             />
             {isDesktop && <div />}
-            <DateField
+            <MaskedDateField
               id="accessStart"
               label={t('users.accessStart')}
+              monthYearSelectType="grid"
               selected={
                 formik.values.accessStart
                   ? new Date(formik.values.accessStart)
                   : undefined
               }
-              onSelect={(v) => formik.setFieldValue('accessStart', toIsoDate(v))}
+              onSelect={(v) =>
+                formik.setFieldValue('accessStart', toIsoDate(v))
+              }
               placeholder={t('common.dateFieldPlaceholder')}
               required
               inputProps={
@@ -218,9 +221,10 @@ export function UserBasicInfoEditCard({
                   : undefined
               }
             />
-            <DateField
+            <MaskedDateField
               id="accessEnd"
               label={t('users.accessEnd')}
+              monthYearSelectType="grid"
               selected={
                 formik.values.accessEnd
                   ? new Date(formik.values.accessEnd)
