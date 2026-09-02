@@ -82,9 +82,11 @@ declaration:
         type: number
       - field: subFormNumber
         type: string
+      - field: version
+        type: number
 */
 WITH latest AS (
-  SELECT sub_form_number, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
+  SELECT sub_form_number, CASE WHEN status = 'saved' THEN version ELSE version + 1 END AS version, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
   FROM forms.sp_teammate_form
   WHERE sp_teammate_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -93,6 +95,7 @@ WITH latest AS (
 INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   compound_form_key,
                                   sub_form_number,
+                                  version,
                                   template_version,
                                   status,
                                   selection_status,
@@ -129,6 +132,7 @@ SELECT
         :key::BIGINT,
         COALESCE(NULLIF(:compoundFormKey::text, ''), l.compound_form_key::text)::BIGINT,
         COALESCE(NULLIF(:subFormNumber, ''), l.sub_form_number),
+        l.version,
         l.template_version,
         :status,
         NULLIF(:selectionStatus, ''),
@@ -162,4 +166,4 @@ SELECT
         NULLIF(:notes, ''),
         :created_by
 FROM latest l
-RETURNING sp_teammate_form_key AS id, sub_form_number;
+RETURNING sp_teammate_form_key AS id, sub_form_number, version;

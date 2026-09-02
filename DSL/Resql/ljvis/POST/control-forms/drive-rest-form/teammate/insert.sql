@@ -82,10 +82,13 @@ declaration:
         type: number
       - field: subFormNumber
         type: string
+      - field: version
+        type: number
 */
 INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   compound_form_key,
                                   sub_form_number,
+                                  version,
                                   template_version,
                                   status,
                                   selection_status,
@@ -121,7 +124,8 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
 VALUES (nextval('forms.seq_sp_teammate_form_key'),
         :compoundFormKey::BIGINT,
         'sp-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' ||
-        LPAD(currval('forms.seq_sp_teammate_form_key')::text, 5, '0') || '/1',
+        LPAD(currval('forms.seq_sp_teammate_form_key')::text, 5, '0'),
+        1,
         1,
         :status,
         NULLIF(:selectionStatus, ''),
@@ -153,4 +157,4 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         NULLIF(:enforcementDecision, ''),
         NULLIF(:proceedingClosureBasis, ''),
         NULLIF(:notes, ''),
-        :created_by) RETURNING sp_teammate_form_key AS id, sub_form_number;
+        :created_by) RETURNING sp_teammate_form_key AS id, sub_form_number, version;
