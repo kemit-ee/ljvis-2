@@ -67,7 +67,7 @@ declaration:
 */
 WITH latest AS (
   SELECT compound_form_key, sub_form_number,
-         CASE WHEN status = 'saved' THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
          enforcement_decision, proceeding_closure_basis
   FROM forms.adr_form
   WHERE adr_form_key = :key::BIGINT
