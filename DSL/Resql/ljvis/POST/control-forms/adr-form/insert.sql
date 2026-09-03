@@ -32,12 +32,18 @@ declaration:
         type: boolean
       - field: exemptionAdrProvision
         type: string
-      - field: containerType
+      - field: exemptionNotes
+        type: string
+      - field: containerTypes
         type: string
       - field: infringements
         type: string
-      - field: otherViolations
+      - field: otherInfringements
         type: string
+      - field: drivingBanApplied
+        type: boolean
+      - field: transportInterruptionApplied
+        type: boolean
       - field: resultType
         type: string
       - field: proceedingType
@@ -82,9 +88,12 @@ WITH ins AS (
     dangerous_goods,
     exemption_applied,
     exemption_adr_provision,
-    container_type,
+    exemption_notes,
+    container_types,
     infringements,
-    other_violations,
+    other_infringements,
+    driving_ban_applied,
+    transport_interruption_applied,
     result_type,
     proceeding_type,
     proceeding_reference_number,
@@ -111,9 +120,12 @@ WITH ins AS (
     COALESCE(NULLIF(:dangerousGoods, '')::jsonb, '[]'::jsonb),
     COALESCE(:exemptionApplied::BOOLEAN, FALSE),
     NULLIF(:exemptionAdrProvision, ''),
-    NULLIF(:containerType, ''),
+    NULLIF(:exemptionNotes, ''),
+    COALESCE(NULLIF(:containerTypes, '')::jsonb, '[]'::jsonb),
     COALESCE(NULLIF(:infringements, '')::jsonb, '[]'::jsonb),
-    NULLIF(:otherViolations, ''),
+    COALESCE(NULLIF(:otherInfringements, '')::jsonb, '[]'::jsonb),
+    COALESCE(:drivingBanApplied::BOOLEAN, FALSE),
+    COALESCE(:transportInterruptionApplied::BOOLEAN, FALSE),
     COALESCE(NULLIF(:resultType, ''), 'ok'),
     NULLIF(:proceedingType, ''),
     NULLIF(:proceedingReferenceNumber, ''),
