@@ -45,7 +45,7 @@ declaration:
 */
 WITH latest AS (
   SELECT sub_form_number,
-         CASE WHEN status = 'saved' THEN version ELSE version + 1 END AS version
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version
   FROM forms.kv_form
   WHERE kv_form_key = :key::BIGINT
   ORDER BY created_at DESC

@@ -57,7 +57,7 @@ declaration:
 -- edit_locked gate for confirmed data.
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' THEN version ELSE version + 1 END AS version
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :key::BIGINT
   ORDER BY created_at DESC
