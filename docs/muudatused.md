@@ -9,7 +9,9 @@
 - **Liitvormi raadionupu valikute** (mootorsõiduki ja haagise kategooria,
   teekasutustasu staatus) sildid jäid kitsal ekraanil või mitme avatud
   vahekaardiga vaates raadionupu alla. Nüüd asetatakse kitsas vaates iga valik
-  omaette reale, nii et nupp ja silt on alati kõrvuti.
+  omaette reale, nii et nupp ja silt on alati kõrvuti. Paigutus reageerib ka
+  siis, kui avatud andmevormi vahekaardid kitsendavad vormi töölaual, ja kehtib
+  ühtviisi nii liitvormi loomise kui muutmise vaates.
 
 ---
 
