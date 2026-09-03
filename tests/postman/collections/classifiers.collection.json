@@ -139,7 +139,10 @@
               "if (test_) pm.environment.set('seeded_classifier_id_2', String(test_.id));",
               "var adrCp = content.find(c => c.code === 'ADR_CONTROL_CHECKPOINT');",
               "pm.test('Setup: ADR_CONTROL_CHECKPOINT classifier present (#229)', () => pm.expect(adrCp, 'ADR_CONTROL_CHECKPOINT not found').to.not.be.undefined);",
-              "if (adrCp) pm.environment.set('adr_checkpoint_classifier_id', String(adrCp.id));"
+              "if (adrCp) pm.environment.set('adr_checkpoint_classifier_id', String(adrCp.id));",
+              "var adrUnit = content.find(c => c.code === 'ADR_QUANTITY_UNIT');",
+              "pm.test('Setup: ADR_QUANTITY_UNIT classifier present (#230)', () => pm.expect(adrUnit, 'ADR_QUANTITY_UNIT not found').to.not.be.undefined);",
+              "if (adrUnit) pm.environment.set('adr_quantity_unit_classifier_id', String(adrUnit.id));"
             ]
           }
         }
@@ -286,7 +289,7 @@
               "  pm.expect(Array.isArray(data.content)).to.be.true;",
               "  pm.expect(data.total).to.be.a('number');",
               "});",
-              "pm.test('Total equals 58 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(58));",
+              "pm.test('Total equals 59 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(59));",
               "pm.test('Each item has id, code, name, description', () => {",
               "  data.content.forEach(c => {",
               "    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
@@ -515,7 +518,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=58",
+      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=59",
       "request": {
         "method": "GET",
         "header": [
@@ -555,7 +558,7 @@
               "var body = pm.response.json();",
               "var data = (body && body.response) ? body.response : body;",
               "pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-              "pm.test('Total is still 58', () => pm.expect(data.total).to.eql(58));"
+              "pm.test('Total is still 59', () => pm.expect(data.total).to.eql(59));"
             ]
           }
         }
@@ -1048,6 +1051,63 @@
               "  pm.expect(rl10.name).to.match(/^10 – /);",
               "  pm.expect(rl10.name).to.match(/\\(VSI\\)$/);",
               "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/classifiers/values — ADR_QUANTITY_UNIT has 8 units (#230)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{adr_quantity_unit_classifier_id}}&page=1&pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "classifiers",
+            "values"
+          ],
+          "query": [
+            {
+              "key": "classifierId",
+              "value": "{{adr_quantity_unit_classifier_id}}"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var resp = (body && body.response) ? body.response : body;",
+              "var data = resp.content || [];",
+              "pm.test('Total equals 8', () => pm.expect(parseInt(resp.total||0)).to.eql(8));",
+              "pm.test('Ühikute koodid õiged', () => {",
+              "  var codes = data.map(v => v.code).sort();",
+              "  pm.expect(codes).to.eql(['ballooni','kg','l','m3','nem_kg','pakendit','t','tk']);",
+              "});",
+              "pm.test('m3 kuvasilt on m³', () => pm.expect(data.find(v => v.code==='m3').name).to.eql('m³'));"
             ]
           }
         }
