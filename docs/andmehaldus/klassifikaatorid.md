@@ -468,10 +468,20 @@ Migratsioon: `20260828275000-initial-foreign-infringement-classifiers.sql`; rask
 
 Kolm klassifikaatorit välisriigi rikkumise kontrollvormi jaoks (EL rikkumiste tüübid, veose ja sõitjateveo kabotaažrikkumised). `EU_INFRINGEMENT` katab komisjoni määruse (EL) 2016/403 I lisa kõiki 14 jaotist.
 
-### ADR rikkumised — DANGEROUS_GOODS_INFRINGEMENTS_NEW
-Migratsioon: `20260901120000-dangerous-goods-infringements-classifier.sql`
+### ADR kontrollkaardi punktid — ADR_CONTROL_CHECKPOINT
+Migratsioon: `20260903120000-adr-control-checkpoint-classifier.sql` (asendab `DANGEROUS_GOODS_INFRINGEMENTS_NEW`, mis kustutati migratsiooniga `20260903140000`).
 
-2-tasemeline klassifikaator ohtliku veose (ADR) kontrollvormi rikkumiste loendi jaoks. Allikas: 2016/403 I lisa jaotis 9 (direktiiv 2008/68/EÜ), 24 rida, 3 rühma raskusastme järgi.
+2-tasemeline klassifikaator ohtliku veose (ADR) kontrollvormi rikkumiste ploki jaoks (kliimaministri määruse RT I, 16.06.2026, 11 lisa 1):
+
+- **Tase 1** — kontrollkaardi punktid `P12`…`P27` (16 kirjet). `name` = kontrollitav valdkond, `description` = ADR-viide.
+- **Tase 2** — punktiga seotud komisjoni määruse (EL) 2016/403 I lisa jaotise 9 rikkumisliigid (27 kirjet). `code` = `RL<nr>_<Pnn>` (sama rikkumisliik võib olla seotud mitme punktiga → eraldi kirjed), `name` algab 2016/403 numbriga, `description` = raskusaste (`MSI`/`VSI`/`SI`). Allikas: Priit Tuuna seostetabel + määruse lisa 1.
+
+Vormil kasutatakse tase-2 väärtusi ainult rikkumiskirje väljal „Määruse (EL) 2016/403 rikkumisliik". Rippmenüü „puudub" valik on frontendi konstant, mitte klassifikaatoris.
+
+### ADR koguse ühik — ADR_QUANTITY_UNIT
+Migratsioon: `20260903130000-adr-quantity-unit-classifier.sql`
+
+1-tasemeline, 8 väärtust: `l`, `kg`, `t`, `m3` („m³"), `tk`, `pakendit`, `ballooni`, `nem_kg` („NEM kg"). Kasutusel ADR-vormi „Veetavate ohtlike kaupade andmed" ploki väljal „Ühik".
 
 ### Reg 2016/403 I lisa kaardistus
 Ülevaade, milline klassifikaator kannab I lisa iga jaotist: [`rikkumiste-klassifikaatorid-2016-403.md`](rikkumiste-klassifikaatorid-2016-403.md).

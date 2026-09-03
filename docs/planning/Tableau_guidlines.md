@@ -650,8 +650,14 @@ CROSS JOIN LATERAL jsonb_array_elements(COALESCE(cp->'records','[]'::jsonb)) AS 
 
 `checkpoint_code` → nimi ja ADR-viide: JOIN `tableau.classifier_value_current`
 (`classifier_code = 'ADR_CONTROL_CHECKPOINT'`, `value_code = checkpoint_code`,
-`parent_key IS NULL`). `reg_2016_403_code` → rikkumisliigi nimi: sama vaade,
-`parent_key IS NOT NULL`, `value_code = reg_2016_403_code`.
+`parent_key IS NULL`).
+
+`reg_2016_403_code` JSONB-s on **paljas 2016/403 number** (nt `"10"`) või `"NONE"`.
+Klassifikaatoris on tase-2 `value_code` kujul `RL10_P17` (punktipõhine), seega
+rikkumisliigi nime saab nii: võta number koodist —
+`split_part(regexp_replace(value_code, '^RL0*', ''), '_', 1) = reg_2016_403_code`
+ning kitsenda punktiga `value_code LIKE '%\_' || checkpoint_code`. `reg_2016_403_severity`
+on JSONB-s juba salvestatud, eraldi JOIN-i ei vaja.
 
 ---
 

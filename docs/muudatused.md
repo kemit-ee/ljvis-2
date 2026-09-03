@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-09 — ADR (ohtliku veose) kontrollvorm kliimaministri määruse kujul
+
+- **Rikkumiste plokk** on täielikult ümber tehtud ja järgib nüüd kliimaministri
+  määruse (RT I, 16.06.2026, 11) lisa 1: rikkumised on struktureeritud
+  **kontrollkaardi punktide 12–27** kaupa (pealkiri koos ADR-viitega). Iga punkti
+  all on kontrollimise staatus **C / NC / NA** ning „rikkumine tuvastatud"; iga
+  tuvastatud rikkumine on **eraldi korratav kirje** (riskikategooria I/II/III,
+  rikutud ADR punkt, võimalikud vastutavad osalejad, ning vedaja vastutuse korral
+  määruse (EL) 2016/403 rikkumisliik koos automaatse raskusastmega).
+- Uus plokk **„Muu rikkumine"** — saab lisada n+1 rikkumist, mida punktid 12–27
+  ei kata.
+- **Veetavate ohtlike kaupade** real: „ÜN-number" → **„ÜRO number"**; „Ühik" on
+  nüüd valik loendist (l, kg, t, m³, tk, pakendit, ballooni, NEM kg).
+- **Mahuti tüüp** on mitmene valik (koormas võib olla mitu ohtlikku kaupa eri
+  mahutites).
+- **Erandi kohaldamine**: lisatud „Märkus (direktiivi 2008/68/EÜ erandid)".
+- **Kontrolli tulemus**: sõidukeeld (direktiivi (EL) 2022/1999 artikkel 5) ja
+  autoveo katkestamine on nüüd eraldi lisameetmed, mitte tulemuse valik.
+  Üldmenetluse puhul on viitenumbri väli **„Väärteoasja number"**.
+- **Laadimisaadressid**: riik ei ole enam vaikimisi Eesti; riigivaliku alguses on
+  tühi valik; välisriigi puhul saab maakonna ja linna/valla käsitsi täita.
+- Andmehaldus: uued klassifikaatorid **ADR kontrollkaardi punktid**
+  (`ADR_CONTROL_CHECKPOINT`) ja **ADR koguse ühik** (`ADR_QUANTITY_UNIT`).
+
+---
+
 ## 2026-09 — Kasutus- ja administraatorijuhend ekraanipiltidega
 
 - **Kasutusjuhendi ja administraatorijuhendi peatükid** on nüüd illustreeritud

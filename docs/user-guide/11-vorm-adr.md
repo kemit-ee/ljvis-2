@@ -26,7 +26,7 @@ Vorm on jagatud kaartideks. Kui välja juures on täht `*`, on see kohustuslik.
 
 ### 1. Autojuhi abi andmed
 
-Andmed täidetakse ainult rikkumise korral. Isikukoodi järgi saab otsida andmeid X-tee liidese kaudu.
+Täita ainult juhul, kui see on rikkumise puhul asjakohane. Isikukoodi järgi saab otsida andmeid X-tee liidese kaudu.
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
@@ -65,49 +65,61 @@ Tabelisse saab lisada ühe või mitu rida. Igale kaubale täidetakse:
 
 | Väli | Selgitus |
 |---|---|
-| ÜN-number (`unNumber`) | Ohtliku kauba ÜRO number |
+| ÜRO number (`unNumber`) | Ohtliku kauba ÜRO number |
 | Pakendirühm (`packagingGroup`) | Pakkumisrühm |
-| Kogus (`quantity`) | |
-| Ühik (`unitCode`) | |
+| Kogus (`quantity`) | Arvväli |
+| Ühik (`unitCode`) | Valik: l, kg, t, m³, tk, pakendit, ballooni, NEM kg (klassifikaator `ADR_QUANTITY_UNIT`) |
 
 Ridade lisamiseks klõpsake **+ Lisa ohtlik kaup**. Rida saab kustutada prügikasti ikooni abil.
+
+> **Aadressiväljad (3. ja 4. osa):** riik ei ole vaikimisi täidetud. Riigivaliku alguses on tühi valik. Kui riik ei ole Eesti, siis maakonna ja linna/valla väljad täidetakse käsitsi (klassifikaatorit ei pakuta).
 
 ### 6. Erandi kohaldamine
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Kas kohaldatakse erandit (`exemptionApplied`) | Ei | Jah / Ei |
-| ADRi punkt (`exemptionAdrProvision`) | Jah, kui erandit kohaldatakse | ADR säte, max 200 tähemärki |
+| Kas kohaldatakse erandit (`exemptionApplied`) | Ei | Jah / Ei kohe pealkirja all |
+| ADRi punkt (`exemptionAdrProvision`) | Jah, kui erandit kohaldatakse | Lause „ADR erandi kohaldamine vastavalt ADR sättele:" järel; ADR säte, max 200 tähemärki |
+| Märkus (direktiivi 2008/68/EÜ erandid) (`exemptionNotes`) | Ei | Vabatekst |
 
 ### 7. Mahuti tüüp
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Mahuti tüüp (`containerType`) | Ei | Mahtlast, Paak, Pakend, MEMU |
+| Mahuti tüüp (`containerTypes`) | Ei | **Mitmene valik** (märkeruudud): Mahtlast, Paak, Pakend, MEMU — koormas võib olla mitu ohtlikku kaupa erinevates mahutites |
 
 ### 8. Rikkumised
 
-Rikkumiste loend kuvatakse klassifikaatori `DANGEROUS_GOODS_INFRINGEMENTS_NEW` väärtuste järgi. Iga rea kohta määratakse tulemus:
+Rikkumiste plokk on struktureeritud **kontrollkaardi punktide 12–27 kaupa** (klassifikaator `ADR_CONTROL_CHECKPOINT`). Iga punkti pealkiri sisaldab valdkonna nime ja sulgudes ADR-viidet.
 
-- **Kontrollitud (C)**
-- **Ei ole võimalik kontrollida (NC)**
-- **Ei kohaldata (NA)**
+**Punkti tasand:**
 
-Kui tulemus on valitud, saab täiendavalt sisestada:
+1. **Kontroll** — üks valik: `C` (kontrollitud), `NC` (ei ole võimalik kontrollida), `NA` (ei kohaldata).
+2. `NC` / `NA` korral saab lisada põhjuse.
+3. `C` korral kuvatakse **Rikkumine tuvastatud: Ei / Jah**. „Jah" loob esimese rikkumiskirje.
 
-- Riskikategooria (`riskCategory`)
-- ADRi punkt (`adrProvision`)
-- Märkus (`notes`)
+**Rikkumiskirje** (korratav, „+ Lisa rikkumine", piiramatu arv):
 
-Väli **Muud rikkumised** (`otherViolations`) võimaldab vabalt teksti sisestada.
+| Väli | Selgitus |
+|---|---|
+| Riskikategooria | `I` / `II` / `III` (üks valik kirje kohta; mitu kategooriat → mitu kirjet) |
+| Rikutud ADR punkt | Kohustuslik vabatekst (nt `4.3.2.2.4`) |
+| Võimalik vastutav osaleja | Mitmene valik: Kaubasaatja (Ci), Vedaja (C), Kaubasaaja (Ce), Laadija (L), Pakendaja (P), Täitja (F), Paagi käitaja (To), Mahalaadija (U) |
+| Määruse (EL) 2016/403 rikkumisliik | Aktiveerub **ainult siis, kui vastutavaks osalejaks on valitud Vedaja (C)**. Valikus selle punktiga seotud rikkumisliigid + „Ei ole 2016/403 p 9 rikkumisliik" |
+| 2016/403 raskusaste | Kuvatakse automaatselt valitud rikkumisliigist (MSI / VSI / SI), kasutaja ei muuda |
+
+### 8a. Muu rikkumine
+
+Plokk „Muu rikkumine" võimaldab lisada n+1 rikkumist, mida kontrollkaardi punktid 12–27 ei kata („+ Lisa uus muu rikkumine"). Iga plokk: vabatekst-pealkiri + sama rikkumiskirje struktuur nagu punktil (rikkumisliigi valikus kõik 24 + „puudub").
 
 ### 9. Kontrolli tulemus
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Kontrolli tulemus (`resultType`) | Ei | Korras, alustati väärteomenetlust, hoiatus, sõidukeeld (ADR art 5), autovedu on katkestatud |
+| Kontrolli tulemus (`resultType`) | Ei | Korras, alustati väärteomenetlust, hoiatus |
+| Lisameetmed | Ei | Eraldi märkeruudud (tulemusest sõltumatud): **Sõidukeeld (direktiivi (EL) 2022/1999 artikkel 5)**, **Autovedu on katkestatud** |
 | Menetluse liik (`proceedingType`) | Ei | Kiirmenetlus / Üldmenetlus |
-| Menetluse viitenumber (`proceedingReferenceNumber`) | Jah, kui menetlus valitud | |
+| Menetluse viitenumber / **Väärteoasja number** (`proceedingReferenceNumber`) | Jah, kui menetlus valitud | Üldmenetluse puhul kuvatakse sildina „Väärteoasja number" |
 | Rakendatud meetmed (`correctiveMeasures`) | Ei | Kohapeal, enne sõidu lõppu, ettevõtte territooriumil |
 | Plomm avatud kontrolli käigus (`sealOpened`) | Ei | Jah / Ei |
 | Plommi avamise kuupäev (`sealOpenedDate`) | Ei | Kui plomm avati |
