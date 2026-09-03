@@ -87,16 +87,16 @@ Kõik endpointid nõuavad kehtivat sessiooni (vaikimisi `/v1/.guard`). Tulemed f
 |--------|-----|---------------|--------|
 | GET | `/v1/notifications/list` | `page`, `pageSize` | teavituste nimekiri (filtreeritakse kasutaja õiguste järgi) |
 | GET | `/v1/notifications/unread-count` | — | lugemata teavituste arv |
-| POST | `/v1/notifications/{id}/mark-read` | — | märgi üks teavitus loetuks |
+| POST | `/v1/notifications/mark-read` | `q` (teavituse id) | märgi üks teavitus loetuks |
 | POST | `/v1/notifications/mark-all-read` | — | märgi kõik loetud |
 
 ### Teavituste outbound-logi (nõuab `notification.admin`)
 
 | Meetod | Tee | Query paramid | Märkus |
 |--------|-----|---------------|--------|
-| GET | `/v1/notifications/outbound-log/list` | `status`, `messageType`, `dateFrom`, `page`, `pageSize` | Postkast 2.0 saadetud kirjade logi |
-| GET | `/v1/notifications/outbound-log/recipients` | `logId` | konkreetse kirja adressaadid + saatmise raport |
-| POST | `/v1/notifications/outbound-log/{logId}/resend` | — | saada ebaõnnestunud kiri uuesti (body: `{ recipientEmail? }`) |
+| GET | `/v1/notifications/outbound-log/list` | `status`, `messageType`, `dateFrom`, `page`, `pageSize` | Postkast 2.0 saadetud kirjade logi; vastus `{ content, total }` |
+| GET | `/v1/notifications/outbound-log/recipients` | `q` (outbound-logi id) | konkreetse kirja adressaadid + saatmise raport |
+| POST | `/v1/notifications/outbound-log/resend` | `q` (outbound-logi id) | saada ebaõnnestunud kiri uuesti (body: `{ recipientEmail }`) |
 
 ### WebSocket endpoint
 

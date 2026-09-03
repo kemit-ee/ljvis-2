@@ -7,12 +7,12 @@ declaration:
   namespace: notification
   allowlist:
     params:
-      - field: logId
+      - field: q
         type: string
 
 extractParams:
   assign:
-    log_id: "${incoming.params.logId ?? ''}"
+    log_id: "${incoming.params.q ?? ''}"
   next: checkLogId
 
 checkLogId:
@@ -38,5 +38,5 @@ returnResult:
 
 returnBadRequest:
   status: 400
-  return: "logId is required"
+  return: "q (outbound log id) is required"
   next: end

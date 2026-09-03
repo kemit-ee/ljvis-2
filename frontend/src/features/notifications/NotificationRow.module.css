@@ -1,0 +1,32 @@
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--tedi-border-color, #e0e0e0);
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+}
+
+.unread {
+  border-left-color: var(--tedi-blue-300);
+}
+
+.read {
+  opacity: 0.7;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.titleLine {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

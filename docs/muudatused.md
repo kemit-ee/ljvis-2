@@ -13,6 +13,20 @@
 
 ---
 
+## 2026-09 — Teavitused: „Märgi loetuks" ja „Saada uuesti" tööle, saadetud kirjade filtrid
+
+- **„Märgi loetuks" (üksik teavitus) ja „Saada uuesti" (ebaõnnestunud e-kiri)**
+  toimivad nüüd kasutajaliideses — varem ei jõudnud nupuvajutus serverini ja midagi
+  ei juhtunud.
+- **„Saadetud kirjad" vaade** (nähtav ainult peakasutajale) näeb nüüd välja nagu
+  ülejäänud rakenduse loendivaated: **filtririba** (staatus, sõnumi liik, alates
+  kuupäevast) koos „Otsi" ja „Tühjenda filtrid" nuppudega ning **leheküljed**
+  (20 rida lehel, uuemad ees).
+- **„Saatmise raport" ja „Saada uuesti"** avanevad nüüd korralike modaalakendena,
+  mitte kogu tabelivaate asemele.
+
+---
+
 ## 2026-09 — Teavituste kelluke uueneb taas reaalajas
 
 - **Päise ja külgmenüü teavituste kelluke** uueneb nüüd usaldusväärselt kohe, kui
