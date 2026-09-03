@@ -142,7 +142,8 @@
               "if (adrCp) pm.environment.set('adr_checkpoint_classifier_id', String(adrCp.id));",
               "var adrUnit = content.find(c => c.code === 'ADR_QUANTITY_UNIT');",
               "pm.test('Setup: ADR_QUANTITY_UNIT classifier present (#230)', () => pm.expect(adrUnit, 'ADR_QUANTITY_UNIT not found').to.not.be.undefined);",
-              "if (adrUnit) pm.environment.set('adr_quantity_unit_classifier_id', String(adrUnit.id));"
+              "if (adrUnit) pm.environment.set('adr_quantity_unit_classifier_id', String(adrUnit.id));",
+              "pm.test('Setup: DANGEROUS_GOODS_INFRINGEMENTS_NEW eemaldatud (#231)', () => pm.expect(content.find(c => c.code === 'DANGEROUS_GOODS_INFRINGEMENTS_NEW')).to.be.undefined);"
             ]
           }
         }
@@ -289,7 +290,7 @@
               "  pm.expect(Array.isArray(data.content)).to.be.true;",
               "  pm.expect(data.total).to.be.a('number');",
               "});",
-              "pm.test('Total equals 59 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(59));",
+              "pm.test('Total equals 58 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(58));",
               "pm.test('Each item has id, code, name, description', () => {",
               "  data.content.forEach(c => {",
               "    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
@@ -518,7 +519,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=59",
+      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=58",
       "request": {
         "method": "GET",
         "header": [
@@ -558,7 +559,7 @@
               "var body = pm.response.json();",
               "var data = (body && body.response) ? body.response : body;",
               "pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-              "pm.test('Total is still 59', () => pm.expect(data.total).to.eql(59));"
+              "pm.test('Total is still 58', () => pm.expect(data.total).to.eql(58));"
             ]
           }
         }
