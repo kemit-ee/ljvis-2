@@ -568,6 +568,58 @@
       ]
     },
     {
+      "name": "GET search/list — ADR-vorm ilma rikkumiseta → hasViolation false (#234)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?formType=adr&pageSize=200",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "formType",
+              "value": "adr"
+            },
+            {
+              "key": "pageSize",
+              "value": "200"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var row = rows.find(r => String(r.formKey) === String(pm.environment.get('created_adr_id')));",
+              "pm.test('ADR-vorm on otsingutulemustes', () => pm.expect(row, 'rida ei leitud').to.not.be.undefined);",
+              "pm.test('hasViolation === false', () => pm.expect(String(row.hasViolation)).to.eql('false'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "POST adr-form/edit/save — re-save while saved → 200, version stays 1 (no-bump rule)",
       "request": {
         "method": "POST",
@@ -797,6 +849,58 @@
               "pm.test('resultType is misdemeanor_proceedings', () => pm.expect(body.resultType).to.eql('misdemeanor_proceedings'));",
               "pm.test('sealOpened is true', () => pm.expect(body.sealOpened).to.eql(true));",
               "pm.test('notes match', () => pm.expect(body.notes).to.eql('CI ADR form confirmed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET search/list — ADR-vorm rikkumisega → hasViolation true (#234)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?formType=adr&pageSize=200",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "formType",
+              "value": "adr"
+            },
+            {
+              "key": "pageSize",
+              "value": "200"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var row = rows.find(r => String(r.formKey) === String(pm.environment.get('created_adr_id')));",
+              "pm.test('ADR-vorm on otsingutulemustes', () => pm.expect(row, 'rida ei leitud').to.not.be.undefined);",
+              "pm.test('hasViolation === true', () => pm.expect(String(row.hasViolation)).to.eql('true'));"
             ]
           }
         }
