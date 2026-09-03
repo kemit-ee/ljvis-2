@@ -68,15 +68,21 @@ Valiti **B — WebSocket push + HTTP pull**.
 - `DSL/Ruuter/ljvis/WS/inbound/notifications/connect.yml` — WS keep-alive endpoint  
 - `DSL/Ruuter.internal/ljvis/POST/notification/create.yml` — loob in-app teavituse + `ws_send broadcast_prefix: "client:"`  
 - `DSL/Ruuter.internal/ljvis/POST/notification/send-postkast.yml` — Postkast 2.0 saatmine + outbound_log kirje  
-- 7 Ruuter public API endpoint (`/v1/notifications/*`)  
-- 4 Liquibase tabelit: `notifications.notification`, `notification_read`, `outbound_log`, `outbound_recipient`  
+- 7 Ruuter public API endpoint (`/v1/notifications/*`) — dünaamiline id käib
+  `?q=` query-paramina (`rest-api-disainijuhend.md` §4.2). Kehaväli ei sobi:
+  Ruuter 0.9.7 nõuab, et kõik `allowlist.body` väljad oleksid päringus olemas,
+  seega ei saa id-d valikuliseks kehaväljaks teha. Nt
+  `POST /v1/notifications/mark-read?q={id}`,
+  `POST /v1/notifications/outbound-log/resend?q={logId}` body `{ recipientEmail }`  
+- 4 Liquibase tabelit: `notifications.notification`, `notification_read`, `outbound_log`, `outbound_log_recipient`  
 - Frontend: `useNotificationCount` hook (WS + fallback polling), `NotificationBellButton` päises, `NotificationsPage` (kahe tabiga: in-app + saadetud kirjad)
 
 ### Turvalisus
 
 - Broadcast payload sisaldab ainult signaali (`{type: "notification_update"}`), mitte kasutajaandmeid.  
 - Iga klient teeb oma authenticated HTTP päringu — sessionipõhine filtreerimine toimub serveri poolel (`required_permission` vs kasutaja tegelikud õigused).  
-- `notification.admin` permission kaitseb outbound-logi vaatamist ja uuesti saatmist (ainult Super Admin Group).
+- `notification.admin` permission kaitseb outbound-logi vaatamist ja uuesti saatmist (ainult Super Admin Group) —
+  guard `DSL/Ruuter/ljvis/{GET,POST}/v1/notifications/outbound-log/.guard.yml`.
 
 ### Piirangud / TODO
 

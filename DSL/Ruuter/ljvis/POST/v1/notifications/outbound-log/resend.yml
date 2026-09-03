@@ -6,11 +6,13 @@ declaration:
     PK 2.0 retry kasutatakse: PUT /notification-management/v1/sending-operations/{id}
     (kui pk_sending_operation_id on olemas — toodangurežiim).
     APPEND-ONLY: uuesti saatmine loob uue outbound_log rea; algne kirje jääb muutmata.
-    Nõuab notification.admin õigust (kaitstud resend/.guard kaudu).
+    Outbound-logi id käib ?q= query-paramina (rest-api-disainijuhend §4.2),
+    uus e-post request body's.
+    Nõuab notification.admin õigust (kaitstud outbound-log/.guard kaudu).
   namespace: notification
   allowlist:
     params:
-      - field: logId
+      - field: q
         type: string
     body:
       - field: recipientEmail
@@ -18,7 +20,7 @@ declaration:
 
 extractParams:
   assign:
-    log_id: "${incoming.params.logId ?? ''}"
+    log_id: "${incoming.params.q ?? ''}"
     recipient_email: "${incoming.body.recipientEmail ?? ''}"
     actor_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"

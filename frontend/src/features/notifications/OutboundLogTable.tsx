@@ -1,217 +1,176 @@
-import React from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  StatusBadge,
-  Text,
-} from '@tedi-design-system/react/tedi';
-import type { OutboundLogEntry, OutboundRecipient } from './types';
-import { fetchOutboundLog, fetchOutboundRecipients, resendNotification } from './api';
+import { createColumnHelper } from '@tanstack/react-table';
+import { Button, DateField, Select } from '@tedi-design-system/react/tedi';
+import { AppTable } from '../../shared/components/AppTable';
+import { formatDate, toIsoDate } from '../../hooks/dateUtils';
+import { useOutboundLog } from './useOutboundLog';
+import { OutboundReportModal } from './OutboundReportModal';
+import { ResendModal } from './ResendModal';
+import type { OutboundLogEntry } from './types';
 
-interface OutboundReportModalProps {
-  logId: string;
-  onClose: () => void;
+const columnHelper = createColumnHelper<OutboundLogEntry>();
+
+const MESSAGE_TYPES = [
+  'ncr_violation',
+  'ncr_response',
+  'driving_ban',
+  'weight_violation',
+  'carrier_violation',
+  'labor_kabotage',
+  'labor_foreign_proposal',
+] as const;
+
+function addressee(entry: OutboundLogEntry): string {
+  if (entry.firstRecipientName) {
+    return entry.firstRecipientCode
+      ? `${entry.firstRecipientName} (${entry.firstRecipientCode})`
+      : entry.firstRecipientName;
+  }
+  return entry.firstRecipientEmail ?? '—';
 }
 
-function OutboundReportModal({ logId, onClose }: OutboundReportModalProps) {
+export function OutboundLogTable() {
   const { t } = useTranslation();
-  const [recipients, setRecipients] = React.useState<OutboundRecipient[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const {
+    data,
+    totalRows,
+    isLoading,
+    pagination,
+    setPagination,
+    draftFilters,
+    setFilter,
+    applyFilters,
+    resetFilters,
+  } = useOutboundLog();
 
-  React.useEffect(() => {
-    fetchOutboundRecipients(logId)
-      .then(setRecipients)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [logId]);
+  const [reportLogId, setReportLogId] = useState<string | null>(null);
+  const [resendLogId, setResendLogId] = useState<string | null>(null);
+
+  const statusOptions = useMemo(
+    () => [
+      { value: 'sent', label: t('notifications.log.sent') },
+      { value: 'sent_error', label: t('notifications.log.sent_error') },
+    ],
+    [t],
+  );
+
+  const typeOptions = useMemo(
+    () => MESSAGE_TYPES.map((v) => ({ value: v, label: t(`notifications.types.${v}`) })),
+    [t],
+  );
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor('sendDate', {
+        header: t('notifications.log.sendDate'),
+        enableSorting: false,
+        cell: (info) => formatDate(info.getValue()),
+      }),
+      columnHelper.accessor('messageType', {
+        header: t('notifications.log.messageType'),
+        enableSorting: false,
+        cell: (info) =>
+          t(`notifications.types.${info.getValue()}`, {
+            defaultValue: info.getValue(),
+          }),
+      }),
+      columnHelper.display({
+        id: 'addressee',
+        header: t('notifications.log.addressee'),
+        cell: (info) => addressee(info.row.original),
+      }),
+      columnHelper.accessor('status', {
+        header: t('notifications.log.status'),
+        enableSorting: false,
+        cell: (info) =>
+          info.getValue() === 'sent'
+            ? t('notifications.log.sent')
+            : t('notifications.log.sent_error'),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: '',
+        cell: (info) => (
+          <div className="filter-actions">
+            <Button
+              visualType="secondary"
+              size="small"
+              onClick={() => setReportLogId(info.row.original.id)}
+            >
+              {t('notifications.log.report')}
+            </Button>
+            {info.row.original.status === 'sent_error' && (
+              <Button size="small" onClick={() => setResendLogId(info.row.original.id)}>
+                {t('notifications.log.resend')}
+              </Button>
+            )}
+          </div>
+        ),
+      }),
+    ],
+    [t],
+  );
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <Text>{t('notifications.log.report')}</Text>
-      {loading ? (
-        <Text>{t('common.loading')}</Text>
-      ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('notifications.log.name')}</th>
-              <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('notifications.log.email')}</th>
-              <th style={{ textAlign: 'left', padding: '4px 8px' }}>{t('notifications.log.sendingResult')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recipients.map((r) => (
-              <tr key={r.id}>
-                <td style={{ padding: '4px 8px' }}>
-                  {r.person_name
-                    ? r.person_code
-                      ? `${r.person_name} (${r.person_code})`
-                      : r.person_name
-                    : (r.person_code ?? '-')}
-                </td>
-                <td style={{ padding: '4px 8px' }}>{r.person_email ?? '-'}</td>
-                <td style={{ padding: '4px 8px' }}>
-                  <StatusBadge color={r.sending_report === 'ok' ? 'success' : 'danger'}>
-                    {r.sending_report === 'ok' ? t('notifications.log.sent') : r.sending_report}
-                  </StatusBadge>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      <Button onClick={onClose} style={{ marginTop: '1rem' }}>
-        {t('common.close')}
-      </Button>
-    </div>
-  );
-}
-
-interface ResendModalProps {
-  logId: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function ResendModal({ logId, onClose, onSuccess }: ResendModalProps) {
-  const { t } = useTranslation();
-  const [email, setEmail] = React.useState('');
-  const [sending, setSending] = React.useState(false);
-
-  const handleResend = async () => {
-    if (!email) return;
-    setSending(true);
-    try {
-      await resendNotification(logId, email);
-      onSuccess();
-      onClose();
-    } catch {
-      setSending(false);
-    }
-  };
-
-  return (
-    <div style={{ padding: '1rem' }}>
-      <Text>{t('notifications.log.resend')}</Text>
-      <div style={{ marginTop: '0.5rem' }}>
-        <label>
-          <Text>{t('notifications.log.addressee')}</Text>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ display: 'block', width: '100%', marginTop: '4px', padding: '6px' }}
-          />
-        </label>
+    <>
+      <div className="filter-bar">
+        <Select
+          id="outbound-filter-status"
+          label={t('notifications.log.filterStatus')}
+          options={statusOptions}
+          value={statusOptions.find((o) => o.value === draftFilters.status) ?? null}
+          onChange={(o) =>
+            setFilter('status', (o as { value?: string } | null)?.value ?? '')
+          }
+        />
+        <Select
+          id="outbound-filter-type"
+          label={t('notifications.log.filterType')}
+          options={typeOptions}
+          value={typeOptions.find((o) => o.value === draftFilters.messageType) ?? null}
+          onChange={(o) =>
+            setFilter('messageType', (o as { value?: string } | null)?.value ?? '')
+          }
+        />
+        <DateField
+          id="outbound-filter-date-from"
+          label={t('notifications.log.filterDateFrom')}
+          selected={draftFilters.dateFrom ? new Date(draftFilters.dateFrom) : undefined}
+          onSelect={(v) => setFilter('dateFrom', toIsoDate(v))}
+          placeholder={t('common.dateFieldPlaceholder')}
+          monthYearSelectType="grid"
+        />
+        <div className="filter-actions">
+          <Button onClick={applyFilters}>{t('common.search')}</Button>
+          <Button visualType="secondary" onClick={resetFilters}>
+            {t('common.clear')}
+          </Button>
+        </div>
       </div>
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '8px' }}>
-        <Button onClick={() => void handleResend()} disabled={sending || !email}>
-          {t('notifications.log.resend')}
-        </Button>
-        <Button visualType="secondary" onClick={onClose}>
-          {t('common.cancel')}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
-export function OutboundLogTable(): React.ReactElement {
-  const { t } = useTranslation();
-  const [entries, setEntries] = React.useState<OutboundLogEntry[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [reportLogId, setReportLogId] = React.useState<string | null>(null);
-  const [resendLogId, setResendLogId] = React.useState<string | null>(null);
+      <AppTable
+        id="outbound-log-table"
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        totalRows={totalRows}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        manualPagination
+      />
 
-  const load = React.useCallback(() => {
-    setLoading(true);
-    fetchOutboundLog()
-      .then(setEntries)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  React.useEffect(() => { load(); }, [load]);
-
-  if (loading) return <Text>{t('common.loading')}</Text>;
-
-  if (reportLogId)
-    return (
       <OutboundReportModal
+        key={reportLogId ?? 'report-closed'}
         logId={reportLogId}
         onClose={() => setReportLogId(null)}
       />
-    );
-
-  if (resendLogId)
-    return (
       <ResendModal
+        key={resendLogId ?? 'resend-closed'}
         logId={resendLogId}
         onClose={() => setResendLogId(null)}
-        onSuccess={load}
+        onSuccess={applyFilters}
       />
-    );
-
-  return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', padding: '8px' }}>{t('notifications.log.sendDate')}</th>
-            <th style={{ textAlign: 'left', padding: '8px' }}>{t('notifications.log.messageType')}</th>
-            <th style={{ textAlign: 'left', padding: '8px' }}>{t('notifications.log.addressee')}</th>
-            <th style={{ textAlign: 'left', padding: '8px' }}>{t('notifications.log.status')}</th>
-            <th style={{ padding: '8px' }} />
-          </tr>
-        </thead>
-        <tbody>
-          {entries.length === 0 ? (
-            <tr>
-              <td colSpan={5} style={{ padding: '16px', textAlign: 'center' }}>
-                <Text>{t('notifications.empty')}</Text>
-              </td>
-            </tr>
-          ) : entries.map((entry) => (
-            <tr key={entry.id} style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '8px' }}>
-                {new Date(entry.send_date).toLocaleDateString('et-EE')}
-              </td>
-              <td style={{ padding: '8px' }}>
-                {t(`notifications.types.${entry.message_type}`, { defaultValue: entry.message_type })}
-              </td>
-              <td style={{ padding: '8px' }}>
-                {entry.first_recipient_name
-                  ? entry.first_recipient_code
-                    ? `${entry.first_recipient_name} (${entry.first_recipient_code})`
-                    : entry.first_recipient_name
-                  : (entry.first_recipient_email ?? '-')}
-              </td>
-              <td style={{ padding: '8px' }}>
-                <StatusBadge color={entry.status === 'sent' ? 'success' : 'danger'}>
-                  {t(`notifications.log.${entry.status}`)}
-                </StatusBadge>
-              </td>
-              <td style={{ padding: '8px', display: 'flex', gap: '8px' }}>
-                <Button
-                  visualType="secondary"
-                  size="small"
-                  onClick={() => setReportLogId(entry.id)}
-                >
-                  {t('notifications.log.report')}
-                </Button>
-                {entry.status === 'sent_error' && (
-                  <Button
-                    size="small"
-                    onClick={() => setResendLogId(entry.id)}
-                  >
-                    {t('notifications.log.resend')}
-                  </Button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    </>
   );
 }
