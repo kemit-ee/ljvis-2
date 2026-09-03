@@ -251,6 +251,51 @@ confirmForm:
 extractResponseData:
   assign:
     compound_form_key: "${confirmRes.response.body[0].id || ''}"
+  next: checkDriver1AjLog
+
+# Andmejälgija (AJ) — logi Eesti isikukoodi alusel tuvastatud juhtide andmete
+# esmakordne registreerimine LJVIS2-sse. Välisriigi juhte (personalCodeForeign)
+# ei logita, kuna AJ nõuab Eesti isikukoodi formaati.
+checkDriver1AjLog:
+  switch:
+    - condition: "${driver1_personal_code_ee == null || driver1_personal_code_ee == ''}"
+      next: checkDriver2AjLog
+  next: logAjDriver1
+
+logAjDriver1:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${driver1_personal_code_ee}"
+      action: "Juhi isikuandmete registreerimine liiklusjärelevalve teekontrolli protokollis (koondvorm kinnitatud)"
+      receiver_code: "${inspector_organisation_id}"
+      receiver_name: ""
+      receiver_system: "ljvis2"
+  result: ajLog1Result
+  next: checkDriver2AjLog
+
+checkDriver2AjLog:
+  switch:
+    - condition: "${driver2_personal_code_ee == null || driver2_personal_code_ee == ''}"
+      next: returnSuccess
+  next: logAjDriver2
+
+logAjDriver2:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${driver2_personal_code_ee}"
+      action: "Juhi isikuandmete registreerimine liiklusjärelevalve teekontrolli protokollis (koondvorm kinnitatud)"
+      receiver_code: "${inspector_organisation_id}"
+      receiver_name: ""
+      receiver_system: "ljvis2"
+  result: ajLog2Result
   next: returnSuccess
 
 returnSuccess:
