@@ -136,7 +136,10 @@
               "pm.test('Setup: RTK classifier present', () => pm.expect(rtk, 'RTK not found').to.not.be.undefined);",
               "pm.test('Setup: TEST classifier present', () => pm.expect(test_, 'TEST not found').to.not.be.undefined);",
               "if (rtk)   pm.environment.set('seeded_classifier_id',   String(rtk.id));",
-              "if (test_) pm.environment.set('seeded_classifier_id_2', String(test_.id));"
+              "if (test_) pm.environment.set('seeded_classifier_id_2', String(test_.id));",
+              "var adrCp = content.find(c => c.code === 'ADR_CONTROL_CHECKPOINT');",
+              "pm.test('Setup: ADR_CONTROL_CHECKPOINT classifier present (#229)', () => pm.expect(adrCp, 'ADR_CONTROL_CHECKPOINT not found').to.not.be.undefined);",
+              "if (adrCp) pm.environment.set('adr_checkpoint_classifier_id', String(adrCp.id));"
             ]
           }
         }
@@ -283,7 +286,7 @@
               "  pm.expect(Array.isArray(data.content)).to.be.true;",
               "  pm.expect(data.total).to.be.a('number');",
               "});",
-              "pm.test('Total equals 57 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(57));",
+              "pm.test('Total equals 58 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(58));",
               "pm.test('Each item has id, code, name, description', () => {",
               "  data.content.forEach(c => {",
               "    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
@@ -512,7 +515,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=57",
+      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=58",
       "request": {
         "method": "GET",
         "header": [
@@ -552,7 +555,7 @@
               "var body = pm.response.json();",
               "var data = (body && body.response) ? body.response : body;",
               "pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-              "pm.test('Total is still 57', () => pm.expect(data.total).to.eql(57));"
+              "pm.test('Total is still 58', () => pm.expect(data.total).to.eql(58));"
             ]
           }
         }
@@ -976,6 +979,75 @@
               "var total = resp.total || 0;",
               "pm.test('Page has exactly 2 items', () => pm.expect(data.length).to.eql(2));",
               "pm.test('Total is still 28', () => pm.expect(parseInt(total)).to.eql(28));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/classifiers/values — ADR_CONTROL_CHECKPOINT has 46 values (16 punkti + 30 rikkumisliiki) (#229)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/classifiers/values?classifierId={{adr_checkpoint_classifier_id}}&page=1&pageSize=100",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "classifiers",
+            "values"
+          ],
+          "query": [
+            {
+              "key": "classifierId",
+              "value": "{{adr_checkpoint_classifier_id}}"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "100"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var resp = (body && body.response) ? body.response : body;",
+              "var data = resp.content || [];",
+              "var total = parseInt(resp.total || 0);",
+              "pm.test('Total equals 46 (16 kontrollkaardi punkti + 30 seotud 2016/403 rikkumisliiki)', () => pm.expect(total).to.eql(46));",
+              "var codes = data.map(v => v.code);",
+              "pm.test('Tase 1: punktid P12..P27 olemas', () => {",
+              "  for (var i = 12; i <= 27; i++) pm.expect(codes).to.include('P' + i);",
+              "});",
+              "pm.test('Tase 2: sama rikkumisliik mitme punkti all eraldi kirjena', () => {",
+              "  pm.expect(codes).to.include('RL10_P17');",
+              "  pm.expect(codes).to.include('RL10_P19');",
+              "  pm.expect(codes).to.include('RL23_P21');",
+              "  pm.expect(codes).to.include('RL23_P22');",
+              "  pm.expect(codes).to.include('RL23_P23');",
+              "});",
+              "pm.test('Tase 2 nimi algab 2016/403 numbriga ja lõpeb raskusastmega', () => {",
+              "  var rl10 = data.find(v => v.code === 'RL10_P17');",
+              "  pm.expect(rl10.name).to.match(/^10 – /);",
+              "  pm.expect(rl10.name).to.match(/\\(VSI\\)$/);",
+              "});"
             ]
           }
         }
