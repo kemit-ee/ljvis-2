@@ -19,6 +19,8 @@ Või otse URL-ilt: `/control-forms/good-repute/new`
 
 Vorm koosneb kolmest kaardist. Tähe `*` tähistab kohustuslikku välja.
 
+![Hea maine vormi loomisvaade](images/12-vorm-hea-maine/01-loomisvaade.png)
+
 ### 1. Veokorraldusjuhi andmed
 
 Isiku andmeid saab osaliselt automaatselt täita, sisestades isikukoodi ja klõpsates nuppu **Otsi**.

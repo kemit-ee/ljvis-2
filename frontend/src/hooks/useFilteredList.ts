@@ -11,6 +11,10 @@ export interface UseFilteredListOptions {
  * state because several list screens require that editing a filter does NOT refresh
  * the list — it refreshes only when "Otsi" is pressed, and then returns to the first
  * page. Extracted from the near-identical useCgrList/useCtudList/useRsiList/useNcrList.
+ *
+ * `resetKey` increments on every `resetFilters` call — use it as a React `key` on
+ * components with internal state that doesn't sync when the controlled prop becomes
+ * undefined (e.g. TEDI DateField).
  */
 export function useFilteredList<TItem, TFilters extends object>(
   listFn: (params: ListParams, filters: TFilters) => Promise<PagedResponse<TItem>>,
@@ -20,6 +24,7 @@ export function useFilteredList<TItem, TFilters extends object>(
   const [draftFilters, setDraftFilters] = useState<TFilters>({} as TFilters);
   // what is actually applied to the query
   const [appliedFilters, setAppliedFilters] = useState<TFilters>({} as TFilters);
+  const [resetKey, setResetKey] = useState(0);
 
   const fetchFn = useCallback(
     (params: ListParams) => listFn(params, appliedFilters),
@@ -41,7 +46,8 @@ export function useFilteredList<TItem, TFilters extends object>(
     setDraftFilters({} as TFilters);
     setAppliedFilters({} as TFilters);
     list.setPagination((p) => ({ ...p, pageIndex: 0 }));
+    setResetKey((k) => k + 1);
   }, [list]);
 
-  return { ...list, draftFilters, setFilter, applyFilters, resetFilters };
+  return { ...list, draftFilters, setFilter, applyFilters, resetFilters, resetKey };
 }

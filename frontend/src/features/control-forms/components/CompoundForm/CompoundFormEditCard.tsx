@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -14,7 +15,8 @@ import {
 } from '@tedi-design-system/react/tedi';
 import type { FormikProps } from 'formik';
 import type { Trailer, Driver } from '../../types';
-import { COUNTRIES, OTHER, ROAD } from '../../../../constants/constants';
+import { BREAKPOINTS, OTHER, ROAD } from '../../../../constants/constants';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { vehicleCategoryColWidth } from './vehicleCategoryLayout';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
@@ -93,6 +95,8 @@ interface DriverErrors {
 interface CompoundFormEditCardProps {
   formik: FormikProps<CompoundFormValues>;
   isDesktop: boolean;
+  /** Vormi tegelik laius px-des (kitseneb, kui andmevormi vahekaardid on lahti). */
+  containerWidth?: number;
   orgOptions: { label: string; value: string }[];
   structureUnits: { code: string; name: string }[];
   roads: { code: string; name: string }[];
@@ -143,6 +147,7 @@ interface CompoundFormEditCardProps {
 export function CompoundFormEditCard({
   formik,
   isDesktop,
+  containerWidth,
   orgOptions,
   structureUnits,
   roads,
@@ -175,14 +180,26 @@ export function CompoundFormEditCard({
   onRemoveTrailer,
 }: CompoundFormEditCardProps) {
   const { t } = useTranslation();
+  const { getByCode } = useClassifiers();
 
-  const countries = COUNTRIES.map((country) => ({
-    ...country,
-    label: t(country.labelKey),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  const countries = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .filter((c) => c.isValid !== false)
+        .map((c) => ({ value: c.code, label: c.name }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [getByCode],
+  );
 
   const gridClass =
     styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'];
+
+  // Raadionupu grupid mahuvad ühte ritta ainult siis, kui vorm on piisavalt lai.
+  // Lisaks mobiilile tuleb arvestada, et avatud andmevormi vahekaardid
+  // kitsendavad vormi ka töölaual (containerWidth).
+  const radioRowsFit =
+    isDesktop &&
+    (containerWidth === undefined || containerWidth >= BREAKPOINTS.DESKTOP);
 
   // Välisriigi ettevõtte puhul ei kohaldu Eesti EHAK-klassifikaator —
   // maakond/linn-vald sisestatakse vabatekstina.
@@ -589,7 +606,9 @@ export function CompoundFormEditCard({
                       id: `vehicleCat-${c.code}`,
                       value: c.code,
                       label: c.name,
-                      colProps: { width: vehicleCategoryColWidth(c.code) },
+                      colProps: {
+                        width: vehicleCategoryColWidth(c.code, radioRowsFit),
+                      },
                     }))}
                     required
                     {...(formik.touched.vehicleCategoryCode &&
@@ -660,7 +679,7 @@ export function CompoundFormEditCard({
                     label={<strong>{t('forms.compound.roadTaxStatus')}</strong>}
                     name="roadTaxStatus"
                     inputType="radio"
-                    direction="row"
+                    direction={radioRowsFit ? 'row' : 'column'}
                     value={formik.values.roadTaxStatus}
                     onChange={(val) =>
                       formik.setFieldValue('roadTaxStatus', val)
@@ -897,7 +916,7 @@ export function CompoundFormEditCard({
                             name={`trailerCategoryCode_${index}`}
                             label={t('forms.compound.trailerCategory')}
                             inputType="radio"
-                            direction="row"
+                            direction={radioRowsFit ? 'row' : 'column'}
                             value={trailer.categoryCode}
                             onChange={(val) => {
                               const u = [...formik.values.trailers];

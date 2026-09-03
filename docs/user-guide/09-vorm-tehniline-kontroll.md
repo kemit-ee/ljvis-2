@@ -27,6 +27,14 @@ Liitvorm → **Tehniline kontroll — sõiduk** / **Tehniline kontroll — haagi
 
 ## Vormi osad ja väljad
 
+Alamvorm avaneb liitvormi vahekaardil. Mootorsõiduki variant:
+
+![Mootorsõiduki tehnonõuetele vastavuse kontrollvorm](images/09-vorm-tehniline-kontroll/01-alamvorm.png)
+
+Haagise variandil on lisaks haagise registreerimismärk vahekaardi nimes:
+
+![Haagise tehnonõuetele vastavuse kontrollvorm](images/09-vorm-tehniline-kontroll/02-haagis.png)
+
 ### 1. Sõiduki kontrollitavate osade ja sõlmede nimekiri
 
 Iga osa/sõlm reana. Iga rea olekut saab määrata:

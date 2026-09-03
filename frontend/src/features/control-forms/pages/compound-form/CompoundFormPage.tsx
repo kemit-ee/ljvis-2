@@ -606,6 +606,7 @@ export function CompoundFormPage() {
   const editCardProps = {
     formik,
     ...sharedProps,
+    containerWidth,
     canConfirm,
     canDelete,
     companySearchError,

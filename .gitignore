@@ -47,3 +47,6 @@ DSL/Ruuter/ljvis/POST/auth/dev/dev-login.yml
 
 # mdBook generated output
 docs/book/
+
+# Genereeritud dokumentatsiooni abifailid (mermaid SVG, Confluence-media)
+build/

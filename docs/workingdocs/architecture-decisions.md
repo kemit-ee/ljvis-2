@@ -5,6 +5,119 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-007 — ADR (ohtliku veose) kontrollvormi vastavusseviimine kliimaministri määrusega; rikkumiste klassifikaatori restruktureerimine
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 03.09.2026
+**Seotud:** LJVIS2-141 (ADR alamvorm), kliimaministri määrus (RT I, 16.06.2026, 11 — <https://www.riigiteataja.ee/et/akt/116062026011>), komisjoni määrus (EL) 2016/403 I lisa jaotis 9, direktiiv 2008/68/EÜ, direktiiv (EL) 2022/1999. Valdkonna sisenddokumendid: „Kontrollkaardi ridade 12–27 seosed määruse 2016-403 rikkumisliikidega" (PDF), „ADR Kontrollkaardi tehniline suunis" (PDF, rea 17 näidisloogika).
+**Seotud failid:** `DSL/Liquibase/changelog/20260804160000-initial-adr-form.sql`, `DSL/Liquibase/changelog/20260901120000-dangerous-goods-infringements-classifier.sql`, `frontend/src/features/control-forms/pages/adr-form/*`, `frontend/src/features/control-forms/components/shared/AddressFields.tsx`
+
+### Kontekst
+
+Ohtliku veose (ADR) kontrollvorm on Eestis kehtestatud **kliimaministri määrusega** ja avaldatud Riigi Teatajas. Määruse **lisa 1** on vormikohane ohtlike ainete veo kontrollvorm; **lisa 2** on kontrollkaart, mis seob vormi read 12–27 komisjoni määruse (EL) 2016/403 I lisa jaotise 9 rikkumisliikidega.
+
+Olemasolev ADR-alamvorm (LJVIS2-141) ja seda toitev klassifikaator `DANGEROUS_GOODS_INFRINGEMENTS_NEW` (lisatud `dev`-i 01.09.2026, **veel toodangusse jõudmata**) on üles ehitatud teistsuguse loogikaga, kui määruse lisa 1 nõuab:
+
+* rikkumised on rühmitatud **raskusastme järgi** (MSI / VSI / SI), mitte kontrollkaardi punktide 12–27 kaupa;
+* iga rikkumisrea kohta on üks C / NC / NA raadionupuvalik, riskikategooria on vabatekst; rikkumine ei ole korratav;
+* mahuti tüüp ja kontrolli tulemuse lisameetmed on raadionupud, kuigi reaalselt on tegemist mitmese valikuga.
+
+„ADR Kontrollkaardi tehniline suunis" (rea 17 näidisel) täpsustab rikkumiste ploki loogika:
+
+* kontrollkaardi rea tasand: **C / NC / NA** (üks valik); kui **C**, siis „Rikkumine tuvastatud: Ei / Jah" — „Jah" korral genereeritakse esimene rikkumiskirje;
+* **rikkumiskirje on korratav** („+ Lisa rikkumine", piiramatu), iga kirje: üks riskikategooria (I / II / III, raadionupud), kohustuslik vabatekst „Rikutud ADR punkt", mitmene „Võimalik vastutav osaleja" (Ci / C / Ce / L / P / F / To / U), ning **ainult kui osalejaks on valitud Vedaja (C)** aktiveeruv „Määruse (EL) 2016/403 rikkumisliik" (rippmenüü selle reaga eelnevalt seostatud liikidest + „Ei ole 2016/403 p 9 rikkumisliik");
+* **2016/403 raskusaste (MSI / VSI / SI)** tuletatakse automaatselt valitud rikkumisliigist ja hoitakse **eraldi tunnusena** riskikategooriast — neid ei tohi samastada.
+
+Lisaks on valdkonnalt saabunud **11 punkti muudatusettepanekut** (pealkirjavihjete tekstid, vaikeväärtused, raadio → märkeruut, „ÜN-number" → „ÜRO number", erandi ploki ülesehitus, väärteoasja numbri sõnastus jne).
+
+Lisa 2 juhib tähelepanu, et seos kontrollkaardi rea ja 2016/403 rikkumisliigi vahel on **mitmene mõlemas suunas** (nt rikkumisliik 10 → rida 17 või 19; rikkumisliik 23 → rida 21, 22 või 23; read 7 ja 17 → mõlemad rida 24).
+
+### Otsused
+
+#### Otsus 1 — Rikkumiste klassifikaator: uus 2-tasemeline `ADR_CONTROL_CHECKPOINT`; `DANGEROUS_GOODS_INFRINGEMENTS_NEW` kustutatakse
+
+* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = punkti nimetus (nt „Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „ADR 4.1–4.7").
+* **Tase 2 = selle punktiga eelnevalt seostatud 2016/403 I lisa jaotise 9 rikkumisliik.** `parent_key` viitab punktile; `code` = rikkumisliigi number (`1`…`24`); `name` = rikkumisliigi lühikirjeldus; `description` = raskusaste (`MSI` / `VSI` / `SI`). Neid väärtusi kasutab vormil ainult rikkumiskirje väli „Määruse (EL) 2016/403 rikkumisliik" (rippmenüü filtreerimiseks punkti järgi).
+* **Rikkumisliigi „puudub" valik** („Ei ole määruse 2016/403 p 9 rikkumisliik") **ei ole klassifikaatoris** — see on rippmenüü kõva­kood. sentinel (`NONE`), kuna vedaja võib vastutada ka väljaspool jaotist 9.
+* **Many-to-many realiseeritakse duplikaatkirjetena.** Sama rikkumisliik, mis seondub mitme punktiga, sisestatakse iga punkti alla eraldi `classifier_value` kirjena. Eraldi seostabelit **ei tehta**. Lõplik seoste loend: Priit Tuuna ettevalmistatud tabel.
+* `DANGEROUS_GOODS_INFRINGEMENTS_NEW` **kustutatakse** (`20260901120000-rollback.sql` loogika uude changesetti) — kuna klassifikaator pole veel toodangus, ei jäeta seda „deprecated" seisu.
+
+**Alternatiivid (tagasi lükatud):**
+
+* *3-tasemeline klassifikaator* punkt → raskusaste → rikkumisliik — lisab taseme ilma väärtust andmata; raskusaste tuletatakse niikuinii koodist.
+* *Eraldi `forms`-skeemi seostabel* `adr_checkpoint_infringement` (päris many-to-many) — rikub projekti mustri (kõik loendid on klassifikaatoris, hallatavad administraatori liidesest); klassifikaatori haldusliides ja frontendi `getByCode` / `GroupedClassifierChecklist` ei toeta seostabelit. Duplikaadid on 24 rikkumisliigi ja ~15 mitmese seose juures hallatav maht (~40 tase-2 kirjet).
+* *Praeguse klassifikaatori nime taaskasutamine uue struktuuriga* — segane migratsiooniajaloos; uus `code` teeb muudatuse üheselt jälgitavaks.
+
+#### Otsus 2 — Kõvakood. loendid: riskikategooria I / II / III ja võimalik vastutav osaleja
+
+Mõlemad on õigusaktiga fikseeritud, muutumatud loendid — käsitletakse nagu `CONTAINER_TYPES` / `RESULT_OPTIONS` (konstant + i18n-sildid), **mitte klassifikaatorina**.
+
+* **Riskikategooria** (direktiiv (EL) 2022/1999): `I` / `II` / `III`, **raadionupud — üks valik rikkumiskirje kohta** (tehniline suunis p 3: mitu kategooriat → mitu eraldi rikkumiskirjet).
+* **Võimalik vastutav osaleja** (ADR 1.4): `Ci` kaubasaatja, `C` vedaja, `Ce` kaubasaaja, `L` laadija, `P` pakendaja, `F` täitja, `To` paagi käitaja, `U` mahalaadija — **mitmene valik** (rippmenüü), vaikimisi tühi, kuvasilt „Vedaja (C)" kujul.
+* **2016/403 raskusaste** ei ole eraldi valik — tuletatakse rikkumisliigi koodist (tase-2 kirje `description`), aga **salvestatakse rikkumiskirjes eraldi väljana**, et jääks stabiilseks klassifikaatori muutumisel.
+
+#### Otsus 3 — `forms.adr_form` väljade kujumuutus (üks uus changeset)
+
+Tabel on append-only hetktõmmete tabel; JSONB-väljade *sisemine* kuju muutub ilma skeemimuutuseta, uued skalaar-/JSONB-veerud lisatakse ühe changesetiga `20260903150000-adr-form-maarus-alignment.sql` (+ `.xml`). Toodangus ADR-vormi andmeid ei ole → andmemigratsiooni ei tehta.
+
+`infringements` JSONB — üks kirje kontrollkaardi punkti kohta (puutumata read jäetakse salvestamata), sees korratav `records` massiiv:
+
+```json
+[{
+  "checkpointCode": "P17",
+  "inspectionStatus": "C|NC|NA",
+  "notCheckedReason": "…",          // NC/NA korral, valikuline
+  "infringementDetected": true,      // ainult inspectionStatus=C korral
+  "records": [{
+    "riskCategory": "I|II|III",
+    "adrReference": "4.3.2.2.4",     // kohustuslik
+    "responsibleParticipants": ["C","F"],
+    "reg2016403Code": "10|NONE|null", // aktiivne ainult kui participants sisaldab "C"
+    "reg2016403Severity": "MSI|VSI|SI|null" // tuletatud koodist, salvestatud eraldi
+  }]
+}]
+```
+
+| Väli | Muutus |
+|---|---|
+| `infringements` JSONB | uus kuju (ülal); vana kuju kaob — toodangus andmeid ei ole |
+| `other_violations` TEXT | Vormilt eemaldatakse. **Uus** `other_infringements` JSONB `DEFAULT '[]'` — n+1 korratav („Lisa uus muu rikkumine"): vabatekst­pealkiri `title` + sama `records` massiiv (rikkumisliigi rippmenüü näitab kõiki 24 + `NONE`) |
+| `container_type` VARCHAR | **Uus** `container_types` JSONB `DEFAULT '[]'` (mitmene valik). Vana veerg jääb alles (append-only), uus vorm kirjutab ainult massiivi |
+| `exemption_adr_provision` VARCHAR | Jääb. **Uus** `exemption_notes` TEXT — „Märkus (direktiivi 2008/68/EÜ erandid)" |
+| `result_type` CHECK | Jääb `{ok, misdemeanor_proceedings, warning}`. **Uued** `driving_ban_applied` BOOLEAN + `transport_interruption_applied` BOOLEAN — lisameetmed, mitte tulemuse raadionupp. Väärtused `driving_ban_art5` ja `transport_interruption` eemaldatakse CHECK-ist |
+| `proceeding_reference_number` | Väli jääb; kuvasilt muutub tingimuslikuks — üldmenetluse puhul „Väärteoasja number", muidu senine sõnastus |
+
+#### Otsus 4 — Aadressiväli: Eesti-vaikeväärtus eemaldatakse ADR-vormilt; `AddressFields` saab tühja esimese valiku ja lubab välisriigi puhul käsitsi maakonna/linna
+
+* ADR-hookist kaob `toObject(..., { countryCode: 'EE' })` fallback → riik vaikimisi täitmata (viimase ja järgmise laadimise aadress võivad olla väljaspool Eestit).
+* `AddressFields` riigi `Select` saab **tühja esimese valiku**, et ekslikult valitud riiki saaks tühjendada. Kehtib ka autoveo katkestamise vormil — kahjutu paranus.
+* `AddressFields`: kui `countryCode` ≠ `EE`, on maakond ja linn/vald **käsitsi täidetavad** tekstiväljad (praegu `disabled={true}` — viga). Kehtib ka autoveo katkestamise vormil — paranus.
+
+#### Otsus 5 — Uus klassifikaator `ADR_QUANTITY_UNIT` ohtlike kaupade koguse ühikule
+
+1-tasemeline klassifikaator, 8 väärtust: `l`, `kg`, `t`, `m³`, `tk`, `pakendit`, `ballooni`, `NEM kg`. Vormil: „Kogus" jääb arvväljaks; „Ühik" muutub `Select`-iks (`getByCode('ADR_QUANTITY_UNIT')`).
+
+#### Otsus 6 — Ülejäänud muudatusettepanekud on i18n- ja väiksed komponendimuudatused
+
+Pealkirjavihjete tekst („Andmed täidetakse ainult rikkumise korral" → „Täita ainult juhul, kui see on rikkumise puhul asjakohane"), „ÜN-number" → „ÜRO number", erandi ploki paigutus, sõidukeelu viide „(direktiivi (EL) 2022/1999 artikkel 5)" jne — ainult `et.json` + vormikomponent. ADR-i neid ei koorma; täisloend on teostusplaanis.
+
+### Põhjendus
+
+* **Klassifikaatoripõhine loend + duplikaadid** hoiab lahenduse projekti mustri sees (haldus administraatori liidesest, olemasolev `GroupedClassifierChecklist` ilma koodimuutuseta) ja väldib eraldi seostabeli hoolduskoormust väikese kirjete arvu juures.
+* **Kõvakood. riskikategooria ja osalejad** — õigusaktiga fikseeritud loendid ei vaja haldusliidest ega migratsiooni; sama muster on projektis juba kasutusel.
+* **Raskusaste eraldi väljana** (ehkki tuletatud) — tehniline suunis nõuab riskikategooria ja 2016/403 raskusastme lahushoidmist; koodist tuletamine toimub sisestushetkel, salvestus on stabiilne.
+* **Uued veerud, mitte olemasolevate ümberkirjutamine** — append-only tabeli filosoofia; toodangus andmeid ei ole, seega andmeteisendus on tarbetu, aga vanad veerud jäävad ajalukku loetavaks.
+* **TEDI disainikeel** — rikkumiste plokk kasutab olemasolevaid `@tedi-design-system` komponente samas mustris nagu ohtlike kaupade tabel ja tehnokontrolli osade loend: `Card` / `Card.Content` sektsioonideks, `GroupedClassifierChecklist` punktide grupeerimiseks, `ChoiceGroup` (raadio/checkbox), `Select` (mitmene), pesastatud `Card` iga rikkumiskirje kohta, `Button visualType="secondary"` „+ Lisa rikkumine" ja `Button icon="delete" color="danger" size="small"` kustutamiseks. Uusi UI-primitiive ei looda.
+* **Aadressimuudatused `AddressFields` tasemel** on üldised parandused, mis on kasulikud kõigile aadressi kasutavatele vormidele; „ei vaikimisi Eestit" jääb ADR-hooki, et mitte muuta teiste vormide käitumist.
+
+### Piirangud / TODO
+
+* Administraator peab enne vormi kasutuselevõttu seemnema kaks klassifikaatorit (`ADR_CONTROL_CHECKPOINT`, `ADR_QUANTITY_UNIT`) — mõlemad tulevad Liquibase-migratsioonis, kui valdkonna loendid (Priit Tuuna MSI/VSI/SI seosed, ühikute loend) on käes.
+* Dokumentatsioon uuendada: `docs/user-guide/11-vorm-adr.md`, `docs/andmehaldus/klassifikaatorid.md`, `docs/andmehaldus/rikkumiste-klassifikaatorid-2016-403.md`, `docs/muudatused.md`, kasutusjuhendi näidisvorm (`DSL/Liquibase/test/20260903100000-user-guide-fixture-forms.sql`).
+* Määruse jõustumiskuupäev ja lisa 1 täpne sõnastus kontrollida RT-st enne toodangusse minekut.
+
+---
+
 ## ADR-005 — Andmejälgija: ainult inbound X-tee päringud, eraldi append-only tabel
 
 **Otsustaja:** Sten Viljus  

@@ -17,6 +17,10 @@ Iga sündmus saab unikaalse `event_id` (ULID), serveripoolse ajatempli, tegija n
 
 `audit.read` annab ligipääsu logidele; `audit.verify` on eraldi õigus, sest see võimaldab tuvastada, kas logitabeli kallutamiskindlus on säilinud.
 
+Auditilogi avaneb menüüst **Haldus → Logid**. Loendi paremas ülanurgas on nupp **Ekspordi CSV**.
+
+![Auditilogi administraatori vaates](images/05-auditilogi/01-auditilogi.png)
+
 ## Mida logitakse
 
 ### Sündmuste kategooriad

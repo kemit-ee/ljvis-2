@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
@@ -31,10 +31,13 @@ export function GoodReputeFormPage() {
   const { hasPermission } = useAuth();
   const { getByCode } = useClassifiers();
 
-  const countryOptions = getByCode('COUNTRY').map((c) => ({
-    value: c.code,
-    label: c.name,
-  }));
+  const countryOptions = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .filter((c) => c.isValid !== false)
+        .map((c) => ({ value: c.code, label: c.name })),
+    [getByCode],
+  );
 
   const forbidden = !(
     hasPermission('good_repute_form.read') ||

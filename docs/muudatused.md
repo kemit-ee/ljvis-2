@@ -4,6 +4,60 @@
 
 ---
 
+## 2026-09 — ADR (ohtliku veose) kontrollvorm kliimaministri määruse kujul
+
+- **Rikkumiste plokk** on täielikult ümber tehtud ja järgib nüüd kliimaministri
+  määruse (RT I, 16.06.2026, 11) lisa 1: rikkumised on struktureeritud
+  **kontrollkaardi punktide 12–27** kaupa (pealkiri koos ADR-viitega). Iga punkti
+  all on kontrollimise staatus **C / NC / NA** ning „rikkumine tuvastatud"; iga
+  tuvastatud rikkumine on **eraldi korratav kirje** (riskikategooria I/II/III,
+  rikutud ADR punkt, võimalikud vastutavad osalejad, ning vedaja vastutuse korral
+  määruse (EL) 2016/403 rikkumisliik koos automaatse raskusastmega).
+- Uus plokk **„Muu rikkumine"** — saab lisada n+1 rikkumist, mida punktid 12–27
+  ei kata.
+- **Veetavate ohtlike kaupade** real: „ÜN-number" → **„ÜRO number"**; „Ühik" on
+  nüüd valik loendist (l, kg, t, m³, tk, pakendit, ballooni, NEM kg).
+- **Mahuti tüüp** on mitmene valik (koormas võib olla mitu ohtlikku kaupa eri
+  mahutites).
+- **Erandi kohaldamine**: lisatud „Märkus (direktiivi 2008/68/EÜ erandid)".
+- **Kontrolli tulemus**: sõidukeeld (direktiivi (EL) 2022/1999 artikkel 5) ja
+  autoveo katkestamine on nüüd eraldi lisameetmed, mitte tulemuse valik.
+  Üldmenetluse puhul on viitenumbri väli **„Väärteoasja number"**.
+- **Laadimisaadressid**: riik ei ole enam vaikimisi Eesti; riigivaliku alguses on
+  tühi valik; välisriigi puhul saab maakonna ja linna/valla käsitsi täita.
+- Andmehaldus: uued klassifikaatorid **ADR kontrollkaardi punktid**
+  (`ADR_CONTROL_CHECKPOINT`) ja **ADR koguse ühik** (`ADR_QUANTITY_UNIT`).
+
+---
+
+## 2026-09 — Kasutus- ja administraatorijuhend ekraanipiltidega
+
+- **Kasutusjuhendi ja administraatorijuhendi peatükid** on nüüd illustreeritud
+  ekraanipiltidega: sisselogimine, vasakmenüü ja „Vaade" rollivahetus, ametniku ja
+  kodaniku töölaud, kõik kontrollkaardi vormid ja alamvormid (välisriigi rikkumine,
+  liitvorm ja selle alamvormid — sõidu-/puhkeaeg, tehnokontroll, ADR, autoveo
+  katkestamine —, tööinspektsioon, hea maine, Transpordiameti kontrollkaart),
+  failide lisamine, vormi versioonid, riskitasemete loend ja auditilogi; administraatori
+  poolel kasutajate, kasutajagruppide ja klassifikaatorite haldus.
+- Ekraanipildid genereeritakse korratava skriptiga (`docs/screenshots/capture.mjs`)
+  näidisvormide põhjal (`DSL/Liquibase/test/20260903100000-user-guide-fixture-forms.sql`),
+  nii et UI muutudes saab need uuesti luua.
+- Juhend on ka **Confluence'is** navigeeritava lehepuuna (wiki.kemit.ee, ruum LIA,
+  leht „LJVIS2 kasutusjuhend"); uuendamiseks `scripts/publish-guide-to-confluence.py`.
+
+---
+
+## 2026-09 — Liitvorm: raadionupu sildid ei kuku kitsal ekraanil nupu alla
+
+- **Liitvormi raadionupu valikute** (mootorsõiduki ja haagise kategooria,
+  teekasutustasu staatus) sildid jäid kitsal ekraanil või mitme avatud
+  vahekaardiga vaates raadionupu alla. Nüüd asetatakse kitsas vaates iga valik
+  omaette reale, nii et nupp ja silt on alati kõrvuti. Paigutus reageerib ka
+  siis, kui avatud andmevormi vahekaardid kitsendavad vormi töölaual, ja kehtib
+  ühtviisi nii liitvormi loomise kui muutmise vaates.
+
+---
+
 ## 2026-09 — Teavitused: „Märgi loetuks" ja „Saada uuesti" tööle, saadetud kirjade filtrid
 
 - **„Märgi loetuks" (üksik teavitus) ja „Saada uuesti" (ebaõnnestunud e-kiri)**

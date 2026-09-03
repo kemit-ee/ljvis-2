@@ -8,7 +8,7 @@ import { toIsoDate } from '../../../../hooks/dateUtils.ts';
 
 export function useClassifierValueForm(
   classifierId: string | undefined,
-  onSaved: () => void,
+  onSaved: () => void | Promise<void>,
   existingValue?: ClassifierValue | null,
 ) {
   const { t } = useTranslation();
@@ -69,7 +69,7 @@ export function useClassifierValueForm(
             validUntil: trimmedValues.validUntil,
           });
         }
-        onSaved();
+        await onSaved();
       } catch (e) {
         if (
           !applyValidationError(e, setFieldError, (code) =>

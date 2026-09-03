@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, ChoiceGroup, DateField, Heading, Select, Text, TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -43,16 +44,40 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
     removePenaltyRequested,
   } = form;
 
-  const countries = getByCode('COUNTRY');
-  const requestSources = getByCode('NCR_REQUEST_SOURCE');
-  const requestPurposes = getByCode('NCR_REQUEST_PURPOSE');
-  const infringementCategories = getByCode('NCR_INFRINGEMENT_CATEGORY');
+  const countries = useMemo(
+    () => getByCode('COUNTRY').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const requestSources = useMemo(
+    () => getByCode('NCR_REQUEST_SOURCE').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const requestPurposes = useMemo(
+    () => getByCode('NCR_REQUEST_PURPOSE').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const infringementCategories = useMemo(
+    () => getByCode('NCR_INFRINGEMENT_CATEGORY').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
   // EU_INFRINGEMENT codes have the category as their prefix (MSI101, VSI847, SI926 …).
   // Filtering by startsWith(si.category) gives the correct subset without any backend change.
-  const euInfringements = getByCode('EU_INFRINGEMENT');
-  const penaltyTypeImposedReq = getByCode('NCR_PENALTY_TYPE_IMPOSED_REQ');
-  const penaltyTypeRequested = getByCode('NCR_PENALTY_TYPE_REQUESTED');
-  const isExecutedOptions = getByCode('NCR_IS_EXECUTED');
+  const euInfringements = useMemo(
+    () => getByCode('EU_INFRINGEMENT').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const penaltyTypeImposedReq = useMemo(
+    () => getByCode('NCR_PENALTY_TYPE_IMPOSED_REQ').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const penaltyTypeRequested = useMemo(
+    () => getByCode('NCR_PENALTY_TYPE_REQUESTED').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const isExecutedOptions = useMemo(
+    () => getByCode('NCR_IS_EXECUTED').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const opts = classifierOptions;

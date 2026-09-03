@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, ChoiceGroup, DateField, Heading, Select, TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -41,10 +42,22 @@ export function NcrResponseFields({ form, message, organisations }: Props) {
   const { label: classifierLabel } = useClassifierLabel();
   const { formik, updatePenalty } = form;
 
-  const responseStatuses = getByCode('NCR_RESPONSE_STATUS');
-  const licenceStatuses = getByCode('NCR_COMMUNITY_LICENCE_STATUS');
-  const penaltyTypeImposedRes = getByCode('NCR_PENALTY_TYPE_IMPOSED_RES');
-  const countries = getByCode('COUNTRY');
+  const responseStatuses = useMemo(
+    () => getByCode('NCR_RESPONSE_STATUS').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const licenceStatuses = useMemo(
+    () => getByCode('NCR_COMMUNITY_LICENCE_STATUS').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const penaltyTypeImposedRes = useMemo(
+    () => getByCode('NCR_PENALTY_TYPE_IMPOSED_RES').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const countries = useMemo(
+    () => getByCode('COUNTRY').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const opts = classifierOptions;

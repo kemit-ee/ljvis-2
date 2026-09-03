@@ -389,18 +389,39 @@ export type DangerousGoodEntry = {
   unitCode: string;
 };
 
-export type AdrInfringementCheckStatus =
-  | ''
-  | 'checked'
-  | 'not_possible'
-  | 'not_applicable';
+/** Kliimaministri määruse (RT I, 16.06.2026, 11) lisa 1 rikkumiste plokk. */
+export type AdrInspectionStatus = '' | 'C' | 'NC' | 'NA';
+export type AdrRiskCategory = 'I' | 'II' | 'III';
+export type AdrParticipant = 'Ci' | 'C' | 'Ce' | 'L' | 'P' | 'F' | 'To' | 'U';
+export type AdrRegSeverity = 'MSI' | 'VSI' | 'SI';
 
-export type AdrInfringementEntry = {
-  classifierValueKey: number;
-  checkStatus: AdrInfringementCheckStatus;
-  riskCategory?: string;
-  adrProvision?: string;
-  notes?: string;
+/** Üks tuvastatud rikkumine kontrollkaardi punkti / muu rikkumise all. */
+export type AdrInfringementRecord = {
+  riskCategory: '' | AdrRiskCategory;
+  adrReference: string;
+  responsibleParticipants: AdrParticipant[];
+  /** ADR_CONTROL_CHECKPOINT tase-2 klassifikaatori 2016/403 number | 'NONE' | null (aktiivne ainult kui responsibleParticipants sisaldab 'C'). */
+  reg2016403Code: string | null;
+  /** Tuletatud reg2016403Code-ist; hoitakse riskCategory-st eraldi. */
+  reg2016403Severity: AdrRegSeverity | null;
+};
+
+/** Üks kontrollkaardi punkt (P12–P27) koos selle all olevate rikkumiskirjetega. */
+export type AdrCheckpointEntry = {
+  checkpointCode: string;
+  inspectionStatus: AdrInspectionStatus;
+  notCheckedReason?: string;
+  infringementDetected: boolean;
+  records: AdrInfringementRecord[];
+};
+
+/** §4.10 "Muu rikkumine" — sama kuju, kuid punkti asemel vabatekst-pealkiri. */
+export type AdrOtherInfringementEntry = {
+  title: string;
+  inspectionStatus: AdrInspectionStatus;
+  notCheckedReason?: string;
+  infringementDetected: boolean;
+  records: AdrInfringementRecord[];
 };
 
 export interface AdrForm {
@@ -419,9 +440,12 @@ export interface AdrForm {
   dangerousGoods?: DangerousGoodEntry[];
   exemptionApplied?: boolean;
   exemptionAdrProvision?: string;
-  containerType?: string;
-  infringements?: AdrInfringementEntry[];
-  otherViolations?: string;
+  exemptionNotes?: string;
+  containerTypes?: string[];
+  infringements?: AdrCheckpointEntry[];
+  otherInfringements?: AdrOtherInfringementEntry[];
+  drivingBanApplied?: boolean;
+  transportInterruptionApplied?: boolean;
   resultType?: string;
   proceedingType?: string;
   proceedingReferenceNumber?: string;

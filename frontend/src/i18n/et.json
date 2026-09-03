@@ -630,7 +630,7 @@
       "title": "ADR kontrollvorm (ohtlik veos)",
       "sectionTitle": "ADR kontrollvorm",
       "addNew": "Lisa ADR kontrollvorm",
-      "hintOnlyOnViolation": "Andmed täidetakse ainult rikkumise korral.",
+      "hintOnlyOnViolation": "Täita ainult juhul, kui see on rikkumise puhul asjakohane.",
       "driverAssistant": {
         "title": "Autojuhi abi andmed",
         "personalCode": "Isikukood",
@@ -658,7 +658,7 @@
         "title": "Veetavate ohtlike kaupade andmed",
         "empty": "Ohtlikke kaupu ei ole lisatud",
         "addRow": "+ Lisa ohtlik kaup",
-        "unNumber": "ÜN-number",
+        "unNumber": "ÜRO number",
         "packagingGroup": "Pakendirühm",
         "quantity": "Kogus",
         "quantityInvalid": "Kogus ei tohi lõppeda koma ega punktiga",
@@ -668,7 +668,9 @@
         "title": "Erandi kohaldamine",
         "hint": "ADR erandite kohaldamine vastavalt ADR sätetele.",
         "applied": "Kas kohaldatakse erandit",
-        "provision": "ADRi punkt"
+        "provision": "ADRi punkt",
+        "provisionIntro": "ADR erandi kohaldamine vastavalt ADR sättele:",
+        "notes": "Märkus (direktiivi 2008/68/EÜ erandid)"
       },
       "containerType": {
         "title": "Mahuti tüüp",
@@ -682,16 +684,39 @@
       "infringements": {
         "title": "Rikkumised",
         "classifierMissing": "Rikkumiste kontrollnimekirja klassifikaator ei ole veel seadistatud.",
-        "checkStatus": "Tulemus",
+        "inspectionStatus": "Kontroll",
         "status": {
-          "checked": "Kontrollitud (C)",
-          "not_possible": "Ei ole võimalik kontrollida (NC)",
-          "not_applicable": "Ei kohaldata (NA)"
+          "C": "C – kontrollitud",
+          "NC": "NC – ei ole võimalik kontrollida",
+          "NA": "NA – ei kohaldata"
         },
-        "riskCategory": "Riskikategooria",
-        "adrProvision": "ADRi punkt",
-        "notes": "Märkus",
-        "otherViolations": "Muud rikkumised"
+        "notCheckedReason": "Põhjus",
+        "infringementDetected": "Rikkumine tuvastatud",
+        "record": "Rikkumine {{n}}",
+        "addRecord": "+ Lisa rikkumine",
+        "removeRecord": "Kustuta rikkumine",
+        "riskCategory": "Riskikategooria (direktiivi 2022/1999 kohane)",
+        "riskCategoryOptions": {
+          "I": "I",
+          "II": "II",
+          "III": "III"
+        },
+        "adrReference": "Rikutud ADR punkt",
+        "participants": "Võimalik vastutav osaleja",
+        "participantOptions": {
+          "Ci": "Kaubasaatja (Ci)",
+          "C": "Vedaja (C)",
+          "Ce": "Kaubasaaja (Ce)",
+          "L": "Laadija (L)",
+          "P": "Pakendaja (P)",
+          "F": "Täitja (F)",
+          "To": "Paagi käitaja (To)",
+          "U": "Mahalaadija (U)"
+        },
+        "regCode": "Määruse (EL) 2016/403 rikkumisliik",
+        "regCodeNone": "Ei ole määruse 2016/403 p 9 rikkumisliik",
+        "regCodeDisabledHint": "2016/403 rikkumisliik määratakse ainult juhul, kui rikkumise eest võib täielikult või osaliselt vastutada vedaja.",
+        "regSeverityAuto": "2016/403 raskusaste: {{severity}} (automaatselt)"
       },
       "result": {
         "title": "Kontrolli tulemus",
@@ -717,7 +742,11 @@
         },
         "sealOpened": "Plomm avatud kontrolli käigus",
         "sealOpenedDate": "Plommi avamise kuupäev",
-        "sealInstalledDate": "Plommi paigaldamise kuupäev"
+        "sealInstalledDate": "Plommi paigaldamise kuupäev",
+        "additionalMeasures": "Lisameetmed",
+        "drivingBanApplied": "Sõidukeeld (direktiivi (EL) 2022/1999 artikkel 5)",
+        "transportInterruptionApplied": "Autovedu on katkestatud",
+        "misdemeanourCaseNumber": "Väärteoasja number"
       },
       "notes": {
         "title": "Märkused",
@@ -738,6 +767,13 @@
           "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
           "already_confirmed": "See vorm on juba kinnitatud"
         }
+      },
+      "otherInfringements": {
+        "sectionTitle": "Muu rikkumine",
+        "title": "Pealkiri",
+        "addRow": "+ Lisa uus muu rikkumine",
+        "remove": "Kustuta muu rikkumine",
+        "empty": "Muid rikkumisi ei ole lisatud"
       }
     },
     "driver_drive_rest_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",

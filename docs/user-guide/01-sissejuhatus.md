@@ -8,6 +8,11 @@ LJVIS2 (Liiklusjärelvalve infosüsteem 2) on veebipõhine tööriist transpordi
 - **Administraatoritele**, kes haldavad süsteemi kasutajaid, gruppe, õigusi ja klassifikaatoreid.
 - **Ettevõtja esindajatele**, kes soovivad tulevikus vaadata ettevõtte riskitaset.
 
+Ettevõtja esindaja näeb sisselogimisel kodaniku töölauda, kus on koondatud tema ettevõtetega
+seotud kontrollid ja protokollid:
+
+![Kodaniku töölaud](images/01-sissejuhatus/01-kodaniku-toolaud.png)
+
 ## Peamised funktsioonid
 
 - TARA autentimine

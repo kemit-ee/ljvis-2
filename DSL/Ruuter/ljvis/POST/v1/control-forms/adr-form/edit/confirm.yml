@@ -27,12 +27,18 @@ declaration:
         type: boolean
       - field: exemptionAdrProvision
         type: string
-      - field: containerType
+      - field: exemptionNotes
+        type: string
+      - field: containerTypes
         type: string
       - field: infringements
         type: string
-      - field: otherViolations
+      - field: otherInfringements
         type: string
+      - field: drivingBanApplied
+        type: boolean
+      - field: transportInterruptionApplied
+        type: boolean
       - field: resultType
         type: string
       - field: proceedingType
@@ -63,9 +69,12 @@ extractRequestData:
     dangerous_goods: "${incoming.body.dangerousGoods || '[]'}"
     exemption_applied: "${incoming.body.exemptionApplied || false}"
     exemption_adr_provision: "${incoming.body.exemptionAdrProvision || ''}"
-    container_type: "${incoming.body.containerType || ''}"
+    exemption_notes: "${incoming.body.exemptionNotes || ''}"
+    container_types: "${incoming.body.containerTypes || '[]'}"
     infringements: "${incoming.body.infringements || '[]'}"
-    other_violations: "${incoming.body.otherViolations || ''}"
+    other_infringements: "${incoming.body.otherInfringements || '[]'}"
+    driving_ban_applied: "${incoming.body.drivingBanApplied || false}"
+    transport_interruption_applied: "${incoming.body.transportInterruptionApplied || false}"
     result_type: "${incoming.body.resultType || 'ok'}"
     proceeding_type: "${incoming.body.proceedingType || ''}"
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
@@ -129,9 +138,12 @@ confirmForm:
       dangerousGoods: ${dangerous_goods}
       exemptionApplied: ${exemption_applied}
       exemptionAdrProvision: ${exemption_adr_provision}
-      containerType: ${container_type}
+      exemptionNotes: ${exemption_notes}
+      containerTypes: ${container_types}
       infringements: ${infringements}
-      otherViolations: ${other_violations}
+      otherInfringements: ${other_infringements}
+      drivingBanApplied: ${driving_ban_applied}
+      transportInterruptionApplied: ${transport_interruption_applied}
       resultType: ${result_type}
       proceedingType: ${proceeding_type}
       proceedingReferenceNumber: ${proceeding_reference_number}

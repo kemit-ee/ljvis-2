@@ -20,7 +20,7 @@ esine I lisas — see pärineb direktiivi 2006/22/EÜ III lisa läviväärtustes
 | 6 | Direktiiv 92/6/EMÜ | Kiiruspiirikud | `EU_INFRINGEMENT` (MSI203, MSI204, VSI847, SI926) | välisrikkumise vorm; tehnokontrolli vorm |
 | 7 | Direktiiv 2003/59/EÜ | Juhtide koolitus (kutsetunnistus) | `EU_INFRINGEMENT` (VSI848, SI927) | välisrikkumise vorm |
 | 8 | Direktiiv 2006/126/EÜ | Juhiload | `EU_INFRINGEMENT` (MSI501, SI928) | välisrikkumise vorm |
-| 9 | Direktiiv 2008/68/EÜ | Ohtlike kaupade vedu (ADR) | `DANGEROUS_GOODS_INFRINGEMENTS_NEW` (24 rida, 3 rühma); `EU_INFRINGEMENT` (MSI401–403, VSI849–859, SI929–938) | ADR (ohtliku veose) kontrollvorm; välisrikkumise vorm |
+| 9 | Direktiiv 2008/68/EÜ | Ohtlike kaupade vedu (ADR) | `ADR_CONTROL_CHECKPOINT` (16 kontrollkaardi punkti P12–P27 + 27 seotud 2016/403 rikkumisliiki); `EU_INFRINGEMENT` (MSI401–403, VSI849–859, SI929–938) | ADR (ohtliku veose) kontrollvorm; välisrikkumise vorm |
 | 10 | Määrus (EÜ) nr 1072/2009 | Rahvusvahelisele veoseveoturule juurdepääs | `CARGO_CABOTAGE_VIOLATION` (VSI869–871); `EU_INFRINGEMENT` (MSI504, VSI860–861, SI939) | SP vormi kabotaažiplokk; välisrikkumise vorm |
 | 11 | Määrus (EÜ) nr 1073/2009 | Bussiteenuste turule juurdepääs | `PASSENGER_CABOTAGE_VIOLATION` (VSI872–873); `EU_INFRINGEMENT` (MSI503, VSI862–863, SI940–942) | sama |
 | 12 | Määrus (EÜ) nr 1/2005 | Loomade vedu | `EU_INFRINGEMENT` (VSI864, SI943–946) | välisrikkumise vorm |
@@ -33,7 +33,10 @@ esine I lisas — see pärineb direktiivi 2006/22/EÜ III lisa läviväärtustes
 |---|---|---|
 | `20260901100000-sp-driving-violation-annex-severity-alignment.sql` | `DRIVING_VIOLATION` | 39 tase-3 raskusastet I lisaga kooskõlla (jaotised 1, 2, 3, 13, 14). Vt eraldi dokk `soidu-puhkeaeg-rikkumiste-klassifikaatorid.md`. |
 | `20260901110000-eu-infringement-annex-severity-alignment.sql` | `EU_INFRINGEMENT` | 52 raskusastet I lisaga kooskõlla (allpool). |
-| `20260901120000-dangerous-goods-infringements-classifier.sql` | `DANGEROUS_GOODS_INFRINGEMENTS_NEW` | uus klassifikaator ADR-vormile (jaotis 9, 24 rida). |
+| `20260901120000-dangerous-goods-infringements-classifier.sql` | `DANGEROUS_GOODS_INFRINGEMENTS_NEW` | ~~uus klassifikaator ADR-vormile~~ — asendatud (vt allpool). |
+| `20260903120000-adr-control-checkpoint-classifier.sql` | `ADR_CONTROL_CHECKPOINT` | ADR-vormi rikkumiste plokk kliimaministri määruse (RT I, 16.06.2026, 11) lisa 1 kujul: kontrollkaardi punktid P12–P27 + nendega seotud 2016/403 jaotise 9 rikkumisliigid (27). |
+| `20260903130000-adr-quantity-unit-classifier.sql` | `ADR_QUANTITY_UNIT` | ADR-vormi koguse ühik (8 väärtust). |
+| `20260903140000-drop-dangerous-goods-infringements-new.sql` | `DANGEROUS_GOODS_INFRINGEMENTS_NEW` | klassifikaator kustutatud (asendatud `ADR_CONTROL_CHECKPOINT`-iga). |
 | `20260901130000-sp-driving-violation-unique-l3-codes.sql` | `DRIVING_VIOLATION` | 24 korduva `MI`-koodiga tase-3 rida ümber nimetatud kujule `<parent>_MI` — muidu `getByCode()` deduplib need ära ja Rooma I + lähetamise rikkumised kaovad vormilt. |
 
 Kõigis migratsioonides jäetakse tase-2/3 `code` väärtused muutmata, et juba
@@ -101,24 +104,40 @@ salvestatud kontrollvormide `violation_code` väljad ei orvuks. Muudetakse ainul
 | `VSI878` | juhi käsutusse ei anta kehtivat lähetusdeklaratsiooni | 14 | art 1 lg 11 p b | VSI | **MSI** |
 | `VSI879` | taotletud dokumendid jäetakse lähetuse sihtliikmesriigile esitamata … | 14 | art 1 lg 11 p c | VSI | **SI** |
 
-## `DANGEROUS_GOODS_INFRINGEMENTS_NEW` — ADR rikkumiste loend
+## `ADR_CONTROL_CHECKPOINT` — ADR kontrollkaardi punktid ja 2016/403 rikkumisliigid
 
-Uus 2-tasemeline klassifikaator (rühm → rikkumine). Allikas: I lisa jaotis 9
-(direktiiv 2008/68/EÜ). ADR-vormil (`AdrInfringementsSection`) kuvatakse rühmade
-kaupa; ametnik märgib iga rea kohta tulemuse (kontrollitud / ei ole võimalik /
-ei kohaldata) ning vajadusel riskikategooria, ADR-i punkti ja märkuse.
+2-tasemeline klassifikaator, mis viib ADR (ohtliku veose) kontrollvormi rikkumiste
+ploki kliimaministri määruse (RT I, 16.06.2026, 11) lisa 1 kujule. Asendab
+varasema `DANGEROUS_GOODS_INFRINGEMENTS_NEW`-i (kustutatud, polnud toodangus),
+mis oli rühmitatud raskusastme, mitte kontrollkaardi punkti järgi.
 
-| Rühm (tase 1) | Kood | Rikkumine | Raskusaste |
-|---|---|---|---|
-| Kõige raskem rikkumine (MSI) | `ADR_01` | Selliste ohtlike kaupade vedu, mille vedamine on keelatud | MSI |
-| | `ADR_02` | Ohtlike kaupade vedu keelatud või tunnustamata kaitsemahutites | MSI |
-| | `ADR_03` | Ohtlike kaupade vedu ilma neid kaupu sõidukis ohtlike kaupadena tuvastamata | MSI |
-| | `ADR_07` | Sõiduk ei vasta enam vastavusstandarditele ja kujutab otsest ohtu | MSI |
-| Väga tõsine rikkumine (VSI) | `ADR_04` | Ohtlike ainete lekkimine | VSI |
-| | `ADR_05` | Lahtiseks veoks kasutatakse mahutit, mille ehitus ei ole sobiv | VSI |
-| | `ADR_06` | Vedu toimub sõidukiga, millel puudub nõuetekohane vastavustunnistus | VSI |
-| | `ADR_12` | Juhil puudub kehtiv kutsealase ettevalmistuse tunnistus | VSI |
-| | `ADR_13` | Kasutatakse tuld või lahtist leeki | VSI |
-| Tõsine rikkumine (SI) | `ADR_08`–`ADR_24` | Veose kinnitus, kooslaadimine, koguste piirangud, suitsetamiskeeld, järelevalve, tulekustutid, pakendid, mahutid, märgistused, kirjalik juhend jne (15 rida) | SI |
+- **Tase 1 — kontrollkaardi punktid `P12`…`P27`** (16). `name` = kontrollitav valdkond, `description` = ADR-viide (kuvatakse pealkirjas sulgudes).
+- **Tase 2 — punktiga seotud 2016/403 I lisa jaotise 9 rikkumisliik** (27). `code` = `RL<nr>_<Pnn>` (sama rikkumisliik seondub mitme punktiga → eraldi kirjed, nt `RL10_P17` ja `RL10_P19`). `name` algab 2016/403 numbriga ja lõpeb raskusastmega, `description` = `MSI`/`VSI`/`SI`.
 
-Täisnimekiri: `DSL/Liquibase/changelog/20260901120000-dangerous-goods-infringements-classifier.sql`.
+Seosed (allikas: Priit Tuuna tabel „Kontrollkaardi ridade 12–27 seosed määruse 2016-403 rikkumisliikidega"):
+
+| Punkt | Seotud 2016/403 rikkumisliigid |
+|---|---|
+| P12 Veodokumendid | 11 |
+| P13 Kirjalikud juhised | 24 |
+| P14 Sõiduki heakskiitmise nõuetele vastavus | 6 |
+| P15 Juhi koolitustunnistus ja isikut tõendav dokument | 12 |
+| P16 Kauba vedamiseks lubatavus | 1 |
+| P17 Mahuteid käsitlevad sätted (ADR 4.1–4.7) | 2, 4, 10, 20, 22 |
+| P18 Veole esitatavad nõuded (ADR 7.1–7.4) | 5, 21 |
+| P19 Kooslaadimise keeld ja kogusepiirangud | 9, 10 |
+| P20 Käitlemine ja veose paigutamine/kinnitamine | 8 |
+| P21 Pakendi/paagi/puistlasti tehniline märgistus (ADR osa 6) | 23 |
+| P22 Pakendite märgistamine ja ohumärgised (ADR osa 5) | 23 |
+| P23 Ohusildid, oranžid tahvlid ja muud tähised | 3, 23 |
+| P24 Sõidukile esitatavad nõuded (ADR osa 9) | 7, 17 |
+| P25 Üld- ja erivarustus (ADR 8.1.4, 8.1.5) | 18, 19 |
+| P26 Kahe-/mitmepoolsed kokkulepped jne | — (ainult „puudub") |
+| P27 Muud rikkumised | 13, 14, 15, 16 |
+
+Vormil (`AdrInfringementsSection`): iga punkti tasandil C/NC/NA + „rikkumine tuvastatud";
+korratav rikkumiskirje riskikategooria (I/II/III), ADR punkti, vastutava osalejaga
+ning — ainult kui vastutav on Vedaja (C) — 2016/403 rikkumisliigiga (tase-2 kirjed
++ „puudub"). Raskusaste tuletatakse valitud rikkumisliigist automaatselt.
+
+Täisnimekiri: `DSL/Liquibase/changelog/20260903120000-adr-control-checkpoint-classifier.sql`.
