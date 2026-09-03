@@ -1,6 +1,16 @@
-# Vormide üldine käsitsemine
+# Vormid
 
-Kõik kontrollaktid töötavad sarnaselt. Selles peatükis kirjeldatakse ühised toimingud.
+Kõik kontrollaktid (vormid) töötavad sarnaselt. Selles peatükis kirjeldatakse kõigile
+vormidele ühised toimingud; iga vormitüüpi käsitletakse eraldi alampeatükis:
+
+- [Välisriigi rikkumine](06-vorm-valisrikkumine.md)
+- [Liitvorm](07-vorm-liitvorm.md) ja selle alamvormid
+- [Tööinspektsiooni kontrollakt](08-vorm-tooinspektsioon.md)
+- [Tehniline kontroll](09-vorm-tehniline-kontroll.md)
+- [Autoveo katkestamine](10-vorm-vedude-katkestamine.md)
+- [ADR-vorm](11-vorm-adr.md)
+- [Hea maine](12-vorm-hea-maine.md)
+- [Sõidu- ja puhkeaeg](13-vorm-soidu-puhkeaeg.md)
 
 ## Vormi elutsükkel
 

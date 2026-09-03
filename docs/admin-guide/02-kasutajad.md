@@ -17,7 +17,9 @@ Kui `admin` õigus puudub, rakendatakse automaatselt `local` skoop, mis piirab l
 
 ## 2. Kasutajate nimekirja avamine
 
-Kasutajate nimekirja leiad peamenüüst valiku **Kasutajad** kaudu. Navigeerimisel avaneb lehekülg `/users`, mis kuvab kõik kasutajad, kellele sul on õigusega ligipääs.
+Kasutajate nimekirja leiad peamenüüst valiku **Haldus → Kasutajad** kaudu. Navigeerimisel avaneb lehekülg `/users`, mis kuvab kõik kasutajad, kellele sul on õigusega ligipääs.
+
+![Kasutajate loend](images/02-kasutajad/01-kasutajate-loend.png)
 
 Nimekirja päringu skoop määratakse automaatselt:
 
@@ -37,7 +39,11 @@ Otsinguparameetrid saadetakse HTTP GET päringuga lõpp-punkti `/v1/users/{scope
 
 ## 4. Uue kasutaja loomine
 
-Uue kasutaja lisamiseks ava kasutajate nimekirja lehel nupp **Lisa kasutaja** (või mine otse aadressile `/users/new`). Avaneb leht `UserCreatePage`. Järgmised väljad on kohustuslikud (tärniga tähistatud):
+Uue kasutaja lisamiseks ava kasutajate nimekirja lehel nupp **Lisa kasutaja** (või mine otse aadressile `/users/new`). Avaneb kasutaja loomise vorm.
+
+![Uue kasutaja loomine](images/02-kasutajad/02-kasutaja-loomine.png)
+
+Järgmised väljad on kohustuslikud (tärniga tähistatud):
 
 - **Eesnimi** (`firstName`) — kuni 200 tähemärki.
 - **Perekonnanimi** (`lastName`) — kuni 200 tähemärki.
@@ -55,6 +61,8 @@ Pärast vajalike väljade täitmist vajuta **Salvesta**. Kui kõik andmed on kor
 ## 5. Kasutaja muutmine
 
 Olemasoleva kasutaja muutmiseks klõpsa kasutajate nimekirjas soovitud kasutaja real. Avanevas detailvaates (`/users/{id}`) kuvatakse kasutaja põhiandmed ja grupiliikmelisused.
+
+![Kasutaja detailvaade](images/02-kasutajad/03-kasutaja-detail.png)
 
 Muutmiseks:
 

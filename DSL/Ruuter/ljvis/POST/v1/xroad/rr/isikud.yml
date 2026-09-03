@@ -91,6 +91,22 @@ logSuccess:
       source_type: ""
       source_record_id: ""
   result: logResult
+  next: logAjUsage
+
+# Andmejälgija (AJ) — IKS § 19: logi et RR-st päriti isiku andmeid
+logAjUsage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${personal_code}"
+      action: "Rahvastikuregistrist isikuandmete pärimine liiklusjärelevalve teekontrolli läbiviimiseks"
+      receiver_code: "70001231"
+      receiver_name: "Liiklusjärelevalve infosüsteem (LJVIS2)"
+      receiver_system: "ljvis2"
+  result: ajLogResult
   next: mapResponse
 
 # RR returns a JSON array of Isikuandmed (max 20, one per requested isikukood);

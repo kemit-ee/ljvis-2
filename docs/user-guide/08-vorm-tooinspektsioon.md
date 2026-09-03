@@ -22,6 +22,8 @@ Menüü → Kontrollaktid → **Tööinspektsiooni kontrollkaart**
 
 Vorm koosneb mitmest kaardist. Kui välja juures on täht `*`, on see kohustuslik.
 
+![Tööinspektsiooni kontrollkaardi loomisvaade](images/08-vorm-tooinspektsioon/01-loomisvaade.png)
+
 ### 1. Üldandmed
 
 | Väli | Kohustuslik | Selgitus |

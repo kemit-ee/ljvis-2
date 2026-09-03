@@ -36,6 +36,8 @@ Olemasolevat vormi saab avada otse URL-ilt:
 
 Vormis on täidetavad kaardid/akkordionid. Tärniga `*` tähistatud väljad on kohustuslikud.
 
+![Autojuhi sõidu- ja puhkeaja kontrollvorm liitvormi vahekaardil](images/13-vorm-soidu-puhkeaeg/01-alamvorm.png)
+
 ### 1. Veoliik ja veoklass
 
 | Väli | Kohustuslik | Selgitus |

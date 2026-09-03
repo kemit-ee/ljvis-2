@@ -1,6 +1,21 @@
 # Töölaud
 
-Töölaud on süsteemi avaleht pärast sisselogimist. Sellelt saab kiiresti alustada levinud tegevusi.
+Töölaud on süsteemi avaleht pärast sisselogimist. Ametniku töölaualt saab alustada uue
+kontrollkaardi täitmist.
+
+![Ametniku töölaud](images/04-toolaud/01-toolaud.png)
+
+Nupp **+ Lisa** avab loetelu kontrollkaartidest, mida Teil on õigus luua. Alamvormid on
+näidatud oma põhivormi all taandega.
+
+![Nupu „+ Lisa" rippmenüü](images/04-toolaud/02-lisa-rippmenyy.png)
+
+## Kodaniku töölaud
+
+Kodaniku vaates kuvatakse **Minu ettevõtted** (esindatavate ettevõtete kontrollid ja
+riskitase) ning **Minu protokollid** (vormid, kus olete osaline).
+
+![Kodaniku töölaud](images/04-toolaud/03-kodaniku-toolaud.png)
 
 ## Töövoo algus
 

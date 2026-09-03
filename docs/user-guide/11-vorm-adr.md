@@ -20,6 +20,8 @@ Menüü → Kontrollaktid → **ADR kontrollvorm**
 
 ## Vormi osad ja kohustuslikud väljad
 
+![ADR kontrollvorm liitvormi vahekaardil](images/11-vorm-adr/01-alamvorm.png)
+
 Vorm on jagatud kaartideks. Kui välja juures on täht `*`, on see kohustuslik.
 
 ### 1. Autojuhi abi andmed

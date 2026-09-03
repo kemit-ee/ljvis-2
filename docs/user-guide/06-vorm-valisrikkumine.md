@@ -21,6 +21,8 @@ Menüü → Kontrollaktid → **Välisriigis toimunud rikkumise akt**
 
 Vorm on jagatud kaartideks. Allpool on iga kaardi väljad. Kui välja juures on täht `*`, on see kohustuslik.
 
+![Välisriigi rikkumise vormi loomisvaade](images/06-vorm-valisrikkumine/01-loomisvaade.png)
+
 ### 1. Teatava info
 
 | Väli | Kohustuslik | Selgitus |

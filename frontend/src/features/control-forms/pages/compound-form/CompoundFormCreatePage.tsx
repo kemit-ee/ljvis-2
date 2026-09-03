@@ -193,6 +193,12 @@ export function CompoundFormCreatePage() {
 
   const containerWidth = useContainerWidth(isDesktop, openTabs);
 
+  // Raadionupu grupid mahuvad ühte ritta ainult siis, kui vorm on piisavalt lai.
+  // Avatud andmevormi vahekaardid kitsendavad vormi ka töölaual (containerWidth).
+  const radioRowsFit =
+    isDesktop &&
+    (containerWidth === undefined || containerWidth >= BREAKPOINTS.DESKTOP);
+
   const formRefs = useRef<Record<string, React.MutableRefObject<FormRef | null>>>(
     Object.values(ROUTE_TO_TAB).reduce((acc, { tabId }) => {
       acc[tabId] = { current: null };
@@ -973,7 +979,9 @@ export function CompoundFormCreatePage() {
                             id: `vehicleCat-${c.code}`,
                             value: c.code,
                             label: c.name,
-                            colProps: { width: vehicleCategoryColWidth(c.code) },
+                            colProps: {
+                              width: vehicleCategoryColWidth(c.code, radioRowsFit),
+                            },
                           }))}
                           required
                           {...(formik.touched.vehicleCategoryCode &&
@@ -1049,7 +1057,7 @@ export function CompoundFormCreatePage() {
                           }
                           name="roadTaxStatus"
                           inputType="radio"
-                          direction="row"
+                          direction={radioRowsFit ? 'row' : 'column'}
                           value={formik.values.roadTaxStatus}
                           onChange={(val) =>
                             formik.setFieldValue('roadTaxStatus', val)
@@ -1315,7 +1323,7 @@ export function CompoundFormCreatePage() {
                                         'forms.compound.trailerCategory',
                                       )}
                                       inputType="radio"
-                                      direction="row"
+                                      direction={radioRowsFit ? 'row' : 'column'}
                                       value={trailer.categoryCode}
                                       onChange={(val) => {
                                         const u = [...formik.values.trailers];
