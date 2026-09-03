@@ -91,10 +91,10 @@ export function useRsiForm(
   const [savedOk, setSavedOk] = useState(false);
   const { getByCode, getChildren } = useClassifiers();
 
-  const countries = useMemo(() => getByCode('COUNTRY'), [getByCode]);
-  const vehicleCategories = useMemo(() => getByCode('RSI_VEHICLE_CATEGORY'), [getByCode]);
+  const countries = useMemo(() => getByCode('COUNTRY').filter((c) => c.isValid !== false), [getByCode]);
+  const vehicleCategories = useMemo(() => getByCode('RSI_VEHICLE_CATEGORY').filter((c) => c.isValid !== false), [getByCode]);
 
-  const allParts = useMemo(() => getByCode('TECHNICAL_CHECK'), [getByCode]);
+  const allParts = useMemo(() => getByCode('TECHNICAL_CHECK').filter((c) => c.isValid !== false), [getByCode]);
   const parts: ClassifierEntry[] = useMemo(
     () =>
       allParts

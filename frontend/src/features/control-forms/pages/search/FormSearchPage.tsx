@@ -40,6 +40,7 @@ export function FormSearchPage() {
     setField,
     applyFilters,
     clearFilters,
+    resetKey,
     data,
     totalRows,
     isLoading,
@@ -158,6 +159,7 @@ export function FormSearchPage() {
             setField={setField}
             onSearch={applyFilters}
             onClear={clearFilters}
+            resetKey={resetKey}
           />
           <Table
             id="form-search-table"

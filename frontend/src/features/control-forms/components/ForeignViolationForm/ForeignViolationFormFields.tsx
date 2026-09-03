@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FormikProps } from 'formik';
 import {
@@ -19,10 +20,8 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../shared/MaskedDateField';
 import { CompanyPickerModal } from '../CompanyPickerModal';
-import {
-  EU_VIOLATION_GROUPS,
-  COUNTRIES,
-} from '../../../../constants/constants';
+import { EU_VIOLATION_GROUPS } from '../../../../constants/constants';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type { XRoadCompany, XRoadAssociatedPerson } from '../../../xroad/types';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
 import type { ForeignViolationForm } from '../../types';
@@ -153,6 +152,7 @@ export function ForeignViolationFormFields({
   associatedPersonsLoading,
 }: ForeignViolationFormFieldsProps) {
   const { t } = useTranslation();
+  const { getByCode } = useClassifiers();
   const { values, errors, touched, setFieldValue } = formik;
 
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
@@ -164,10 +164,14 @@ export function ForeignViolationFormFields({
     })),
   }));
 
-  const countries = COUNTRIES.map((country) => ({
-    ...country,
-    label: t(country.labelKey),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  const countries = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .filter((c) => readOnly || c.isValid !== false)
+        .map((c) => ({ value: c.code, label: c.name }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [getByCode, readOnly],
+  );
 
   return (
     <div>

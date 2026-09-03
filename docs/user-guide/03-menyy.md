@@ -1,6 +1,12 @@
 # Menüü ja navigatsioon
 
-Põhimenüü asub vasakul küljel. Süsteemi vaates on topeltnupp: vasakul **Menüü** ja paremal **Kasutaja**.
+Põhimenüü asub vasakul küljel. Menüüpunktid sõltuvad Teie õigustest.
+
+![Vasakmenüü](images/03-menyy/01-vasakmenyy.png)
+
+Haldustegevused on koondatud **Haldus** rühma alla, mis avaneb sellele klõpsates:
+
+![Haldus alammenüü](images/03-menyy/02-haldus-alammenyy.png)
 
 ## Menüü struktuur
 

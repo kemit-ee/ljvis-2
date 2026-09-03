@@ -20,5 +20,13 @@ const VEHICLE_CATEGORY_COL_WIDTH = {
   [OTHER.VEHICLE_CATEGORY]: 12, // (m) Muu
 } as const satisfies Record<string, 2 | 6 | 12>;
 
-export const vehicleCategoryColWidth = (code: string): 2 | 6 | 12 =>
-  (VEHICLE_CATEGORY_COL_WIDTH as Record<string, 2 | 6 | 12>)[code] ?? 12;
+// Kitsal ekraanil (mobiil / avatud vahekaardid kitsendavad vormi) ei mahu
+// "raadionupp + silt" 2- ega 6-veerulisse lahtrisse kõrvuti ja silt kukub nupu
+// alla. Seepärast anname mobiilis igale valikule terve rea (laius 12).
+export const vehicleCategoryColWidth = (
+  code: string,
+  isDesktop = true,
+): 2 | 6 | 12 =>
+  isDesktop
+    ? ((VEHICLE_CATEGORY_COL_WIDTH as Record<string, 2 | 6 | 12>)[code] ?? 12)
+    : 12;

@@ -4,9 +4,11 @@ Auditilogi kuvab süsteemis toimunud olulisi tegevusi. See on abivahend, mille a
 
 ## Ligipääs
 
-Auditilogi avamiseks vali menüüst **Haldus → Auditilogi**.
+Auditilogi avamiseks vali menüüst **Haldus → Logid**.
 
 Õigus: `audit.read`
+
+![Auditilogi loend](images/17-auditilogi/01-auditilogi-loend.png)
 
 ## Mida logitakse
 
@@ -41,6 +43,10 @@ Auditilogi lehel saad:
 - valida kuupäevavahemiku
 - sorteerida ajatemplite järgi
 - avada detailvaate, kus näidatakse täpsemaid andmeid ja JSON-i
+
+Rea lõpus oleval lingil **Vaata** avaneb auditikirje detailvaade:
+
+![Auditikirje detailvaade](images/17-auditilogi/02-auditilogi-detail.png)
 
 ```mermaid
 flowchart LR

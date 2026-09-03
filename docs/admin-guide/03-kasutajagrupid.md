@@ -21,6 +21,8 @@ Kasutajagruppidega tegelemiseks on vajalikud erinevad õigused sõltuvalt soovit
 
 Kasutajagruppide lehele jõudes kuvatakse kõikide gruppide nimekiri. Vaikimisi on nimekiri sorteeritud grupi nime järgi kasvavas järjekorras (`name asc`).
 
+![Kasutajagruppide loend](images/03-kasutajagrupid/01-gruppide-loend.png)
+
 Otsingulahtris saab sisestada grupi nime või osa sellest. Otsingu käivitamisel laetakse iga leitud grupi kohta ka sellega seotud asutuste nimed, et tulemusi oleks lihtsam üksteisest eristada. Tabelis võidakse sama grupi kohta kuvada mitu rida, kui grupp on seotud mitme asutusega.
 
 Märkus. Kui grupi loomisel on valitud kõikidele asutustele ulatuv lipp (`coversAllOrganisations`), siis selle grupi puhul asutusi eraldi ei kuvata.
@@ -36,6 +38,11 @@ Uue grupi loomiseks ava leht **Lisa kasutajagrupp**. Vorm koosneb kolmest osast:
 Kui nime või asutusi pole valitud, kuvatakse vastav veateade. Pärast salvestamist suunatakse sind äsjaloodud grupi detailvaatesse.
 
 ## 4. Kasutajate lisamine ja eemaldamine
+
+Grupi detailvaade koondab neli plokki: **Kasutajagrupi andmed**, **Seotud asutused**,
+**Kasutajagrupi õigused** ja **Kasutajad**.
+
+![Kasutajagrupi detailvaade](images/03-kasutajagrupid/02-grupi-detail.png)
 
 ### Kasutajate lisamine
 

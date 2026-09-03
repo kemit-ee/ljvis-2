@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useContainerWidth } from '../../../../hooks/useContainerWidth';
 import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -40,7 +40,8 @@ type DriverErrors = (Partial<Record<keyof Driver, string>> | undefined)[];
 type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS, COUNTRIES } from '../../../../constants/constants';
+import { BREAKPOINTS } from '../../../../constants/constants';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../components/shared/MaskedDateField';
 import { MaskedTimeField } from '../../components/shared/MaskedTimeField';
@@ -192,6 +193,12 @@ export function CompoundFormCreatePage() {
 
   const containerWidth = useContainerWidth(isDesktop, openTabs);
 
+  // Raadionupu grupid mahuvad ühte ritta ainult siis, kui vorm on piisavalt lai.
+  // Avatud andmevormi vahekaardid kitsendavad vormi ka töölaual (containerWidth).
+  const radioRowsFit =
+    isDesktop &&
+    (containerWidth === undefined || containerWidth >= BREAKPOINTS.DESKTOP);
+
   const formRefs = useRef<Record<string, React.MutableRefObject<FormRef | null>>>(
     Object.values(ROUTE_TO_TAB).reduce((acc, { tabId }) => {
       acc[tabId] = { current: null };
@@ -312,10 +319,15 @@ export function CompoundFormCreatePage() {
     }
   }, [activeTab]);
 
-  const countries = COUNTRIES.map((country) => ({
-    ...country,
-    label: t(country.labelKey),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  const { getByCode } = useClassifiers();
+  const countries = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .filter((c) => c.isValid !== false)
+        .map((c) => ({ value: c.code, label: c.name }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [getByCode],
+  );
 
   const {
     formik,
@@ -967,7 +979,9 @@ export function CompoundFormCreatePage() {
                             id: `vehicleCat-${c.code}`,
                             value: c.code,
                             label: c.name,
-                            colProps: { width: vehicleCategoryColWidth(c.code) },
+                            colProps: {
+                              width: vehicleCategoryColWidth(c.code, radioRowsFit),
+                            },
                           }))}
                           required
                           {...(formik.touched.vehicleCategoryCode &&
@@ -1043,7 +1057,7 @@ export function CompoundFormCreatePage() {
                           }
                           name="roadTaxStatus"
                           inputType="radio"
-                          direction="row"
+                          direction={radioRowsFit ? 'row' : 'column'}
                           value={formik.values.roadTaxStatus}
                           onChange={(val) =>
                             formik.setFieldValue('roadTaxStatus', val)
@@ -1309,7 +1323,7 @@ export function CompoundFormCreatePage() {
                                         'forms.compound.trailerCategory',
                                       )}
                                       inputType="radio"
-                                      direction="row"
+                                      direction={radioRowsFit ? 'row' : 'column'}
                                       value={trailer.categoryCode}
                                       onChange={(val) => {
                                         const u = [...formik.values.trailers];

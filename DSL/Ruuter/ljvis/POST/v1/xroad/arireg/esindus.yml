@@ -79,6 +79,29 @@ logSuccess:
       source_type: "user_account"
       source_record_id: ""
   result: logResult
+  next: checkPersonalCodeForAj
+
+# Andmejälgija (AJ) — logi ainult kui päring sisaldas isikukoodi
+# (päring võib olla ka ainult registryCode järgi, siis isikut ei tuvastata)
+checkPersonalCodeForAj:
+  switch:
+    - condition: "${personal_code == null || personal_code == ''}"
+      next: mapResponse
+  next: logAjUsage
+
+logAjUsage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${personal_code}"
+      action: "Äriregistrist esindusõiguste pärimine ettevõtte liiklusjärelevalve teekontrolli käigus"
+      receiver_code: "70001231"
+      receiver_name: "Liiklusjärelevalve infosüsteem (LJVIS2)"
+      receiver_system: "ljvis2"
+  result: ajLogResult
   next: mapResponse
 
 mapResponse:

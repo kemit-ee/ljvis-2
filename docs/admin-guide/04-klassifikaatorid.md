@@ -17,6 +17,8 @@ Nimekiri kuvab kõik süsteemi klassifikaatorid. Iga klassifikaatori juures on:
 - kehtivusperiood
 - väärtuste arv
 
+![Klassifikaatorite loend](images/04-klassifikaatorid/01-klassifikaatorite-loend.png)
+
 ```mermaid
 flowchart TD
     A[Klassifikaatorite nimekiri] --> B[Otsing]
@@ -29,7 +31,11 @@ flowchart TD
 
 ## Klassifikaatori väärtused
 
-Avage klassifikaator, et näha selle väärtusi. Iga väärtus sisaldab:
+Avage klassifikaator, et näha selle andmeid ja väärtuste tabelit:
+
+![Klassifikaatori detailvaade](images/04-klassifikaatorid/02-klassifikaatori-detail.png)
+
+Iga väärtus sisaldab:
 
 | Väli | Selgitus |
 |---|---|
@@ -38,6 +44,10 @@ Avage klassifikaator, et näha selle väärtusi. Iga väärtus sisaldab:
 | Kehtiv alates | Kuupäev, millest väärtus kehtib |
 | Kehtiv kuni | Kuupäev, millest väärtus ei kehti |
 | Järjekord | Kuvamise järjekord loendites |
+
+Uue väärtuse lisamiseks klõpsa detailvaates **+ Lisa väärtus**:
+
+![Klassifikaatori väärtuse lisamine](images/04-klassifikaatorid/03-vaartuse-lisamine.png)
 
 ## Klassifikaatori väärtuse muutmine
 

@@ -19,6 +19,8 @@ või
 
 ## Vormi osad ja väljad
 
+![Autoveo katkestamise kontrollvorm liitvormi vahekaardil](images/10-vorm-vedude-katkestamine/01-alamvorm.png)
+
 ### 1. Päis
 
 | Väli | Kohustuslik | Selgitus |

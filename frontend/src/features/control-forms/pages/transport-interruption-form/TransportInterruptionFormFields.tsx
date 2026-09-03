@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -35,7 +36,10 @@ export function TransportInterruptionFormFields({
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
 
-  const legalBases = getByCode('INTERRUPTION_BASES');
+  const legalBases = useMemo(
+    () => getByCode('INTERRUPTION_BASES').filter((c) => !canEdit || c.isValid !== false),
+    [getByCode, canEdit],
+  );
   const values = formik.values;
   const formNumber = values.subFormNumber
     ? `${values.subFormNumber}/${values.version ?? 1}`

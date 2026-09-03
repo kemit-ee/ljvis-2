@@ -2,6 +2,12 @@
 
 Süsteemi sisenemiseks kasutatakse Eesti autentimisteenust TARA. Sisselogimislehel on kaks sisenevusnuppu: **Kodanikule** ja **Ametnikule**.
 
+![LJVIS2 sisselogimisleht](images/02-sisselogimine/01-sisselogimisleht.png)
+
+Lingile **Kuva rohkem** klõpsates avaneb süsteemi täpsem kirjeldus:
+
+![Sisselogimislehe kirjeldus](images/02-sisselogimine/02-sisselogimisleht-kirjeldus.png)
+
 ## Sisselogimise sammud
 
 1. Avage LJVIS2 veebiaadress.
@@ -11,6 +17,9 @@ Süsteemi sisenemiseks kasutatakse Eesti autentimisteenust TARA. Sisselogimisleh
 3. Teid suunatakse TARA autentimiskeskkonda.
 4. Sisestage isikukood ja autentige end (Smart-ID, Mobiil-ID või ID-kaart).
 5. Pärast edukat autentimist suunatakse Teid tagasi LJVIS2 töölauale.
+
+> TARA autentimisaken kuulub riigi autentimisteenusele ega ole selle juhendi osa. Testkeskkonnas
+> võib autentimisaken erineda päris TARA-st.
 
 ```mermaid
 sequenceDiagram
@@ -38,6 +47,9 @@ Pärast sisselogimist määrab süsteem, millised menüüpunktid kuvatakse. See 
 | Organisatsiooni admin | `user.list.local`, `user_group.list.local` | Oma organisatsioon |
 | Ametnik | `foreign_violation_form.write` jms | Kontrollaktide täitmine |
 | Ettevõtja esindaja | — (riskivaade) | Oma ettevõtte andmed |
+
+Kui Teil on nii ametniku konto kui ka kodaniku õigused, saate pärast sisselogimist vaadet
+vahetada — vt peatükk [Vaate vahetamine](19-vaate-vahetamine.md).
 
 ## Väljalogimine
 

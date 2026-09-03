@@ -8,6 +8,8 @@ Menüü → **Haldus → Riskitasemed**
 
 Õigus: `risk_report.list`
 
+![Riskitasemete loend administraatori vaates](images/06-riskihindamine-admin/01-riskitasemed.png)
+
 ## Loendi võimalused
 
 Riskitasemete loend kuvab järgmised veerud:

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -97,7 +98,10 @@ export function AdrFormFields({
   const formNumber = values.subFormNumber
     ? `${values.subFormNumber}/${values.version ?? 1}`
     : undefined;
-  const infringementItems = getByCode('DANGEROUS_GOODS_INFRINGEMENTS_NEW');
+  const infringementItems = useMemo(
+    () => getByCode('DANGEROUS_GOODS_INFRINGEMENTS_NEW').filter((c) => !canEdit || c.isValid !== false),
+    [getByCode, canEdit],
+  );
 
   const citizenshipOptions = COUNTRIES.map((c) => ({
     value: c.value,

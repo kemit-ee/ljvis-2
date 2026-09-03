@@ -15,6 +15,11 @@ Failide lisamine on saadaval peamistes vormides, kus on vaja tõendada visuaalse
 
 ## Manuse lisamise sammud
 
+Failide plokk „Failid" ilmub vormile pärast esimest salvestamist. Nupp **Lisa manus**
+avab failivaliku; lisatud failid kuvatakse loendis.
+
+![Failide plokk vormil](images/14-failide-lisamine/01-failide-plokk.png)
+
 ```mermaid
 sequenceDiagram
     autonumber
