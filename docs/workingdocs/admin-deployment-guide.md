@@ -206,13 +206,51 @@ See fail monteeritakse **ConfigMap**-ina mõlemasse Ruuter konteinerisse (`ruute
 
 ### 2.6 Ruuter CORS ja turvaseadistus
 
+Rust Ruuter loeb kogu konfiguratsiooni failist `ruuter.yaml` (monteeritud
+ConfigMap-ina konteinerisse `/app/ruuter.yaml`). Repo juures olev `ruuter.yaml`
+on **dev/CI variant** (`internal_requests.allowed_urls: []`, s.t. SSRF-allowlist
+on välja lülitatud); prod-keskkonna ConfigMap-is on eraldi, lukustatud variant.
+
 ```yaml
-# ruuter-config
-ALLOWED_ORIGINS: https://<domeen>
-ALLOWED_METHOD_TYPES: POST,GET,PUT,DELETE
-HTTP_CODES_ALLOWLIST: 200,201,202,400,401,403,500
-INTERNAL_REQUESTS_ALLOWED_IPS: 127.0.0.1
+# ruuter.yaml (prod ConfigMap)
+cors:
+  allowed_origins:
+    - https://<domeen>
+incoming_requests:
+  allowed_method_types: [GET, POST, PUT, DELETE, OPTIONS]
+http_codes_allow_list: [200, 201, 202, 400, 401, 403, 404, 409, 422, 500, 502]
+
+internal_requests:
+  disabled: false
+  block_private_networks: true
+  allowed_ips: []
+  allowed_urls:
+    # ⚠️ Kui see loend on MITTETÜHI, siis KÕIK väljaminevad http-sammud, mille
+    # URL ei kattu ühegi kirjega, blokeeritakse veaga
+    #   "HTTP request rejected: url not in internal_requests.allowed_urls: <url>"
+    # ja Ruuter saadab selle vea (koos sisemise hostinimega) 500-vastuse kehas.
+    #
+    # Siin peavad olema KÕIK sisemised teenused, mida avalik `ruuter` kutsub —
+    # vaata constants.ini `LJVIS_*` väärtusi. Kasuta path-scoped kirjeid
+    # (lõpus kaldkriips), mitte pelgalt hosti:
+    - http://resql-ljvis:8090/ljvis/
+    - http://ruuter-internal:8089/ljvis/     # <-- risk-scores/recalculate, notification/create, risk-scores/current|controls
+    - http://data-mapper:3005/
+    - http://tim:8085/
+    - http://nysiis:8080/nysiis/
+    - http://xtr:8080/                        # X-tee + ERRU (CGR/CTUD/NCR/RSI) + e-Toimik
 ```
+
+> **Kui riskiskoori ümberarvutus või mõni muu sisemine kõne annab
+> `url not in internal_requests.allowed_urls`:** puudu on selle teenuse
+> hostikirje `allowed_urls` loendist (nt `http://ruuter-internal:8089/ljvis/`).
+> Lisa see, tee ConfigMap-i uuendus ja **restardi `ruuter` pod** (`ruuter.yaml`
+> ei laadi kuumalt). Hostinimi/port peab ühtima `constants.ini` `LJVIS_*`
+> väärtusega täpselt (skeem, host, port).
+>
+> Analoogselt: kui `ruuter-internal.yaml` prod-variandis on `allowed_urls`
+> mittetühi, peab seal olema `http://ruuter:8086/ljvis/` (tagasisuunaline
+> `ws-broadcast` kõne).
 
 ### 2.7 Mis teenus vajab mis Secret-i — kokkuvõte
 

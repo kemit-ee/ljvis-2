@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-09 — Liitvormi/trammivormi avalikustamine ei sõltu enam riskiskoori ümberarvutusest
+
+- **Liitvormi ja trammi kontrollkaardi avalikustamine** õnnestub nüüd ka siis, kui
+  ettevõtte riskiskoori kohene ümberarvutus ei käivitu (nt sisemise teenuse tõrge).
+  Varem võis ümberarvutuse häire kuvada avalikustajale serverivea, kuigi vorm sai
+  tegelikult avalikustatud. Riskiskoor arvutatakse igal juhul öösel ümber iga
+  avalikustatud liitvormiga ettevõtte kohta.
+
+---
+
 ## 2026-09 — Teavitused: „Märgi loetuks" ja „Saada uuesti" tööle, saadetud kirjade filtrid
 
 - **„Märgi loetuks" (üksik teavitus) ja „Saada uuesti" (ebaõnnestunud e-kiri)**

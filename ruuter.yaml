@@ -13,6 +13,12 @@ cors:
 incoming_requests:
   allowed_method_types: [GET, POST, PUT, DELETE, OPTIONS]
 
+# DEV/CI variant: SSRF-allowlist on välja lülitatud (allowed_urls tühi +
+# block_private_networks false), et docker-compose'i sisevõrgu kõned (resql,
+# data-mapper, ruuter-internal, tim, nysiis, xtr) töötaksid ilma loeteluta.
+# PROD-keskkonna ConfigMap kasutab lukustatud varianti — vt
+# docs/workingdocs/admin-deployment-guide.md §2.6. Kui lisad siia allowed_urls
+# kirjeid, blokeerid KÕIK loetlemata sihtkohad (ka CI katkeb).
 internal_requests:
   disabled: false
   block_private_networks: false

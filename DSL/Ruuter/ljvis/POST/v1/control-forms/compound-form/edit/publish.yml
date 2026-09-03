@@ -149,25 +149,15 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"compoundFormKey\":${compound_form_key},\"formNumber\":\"${form_number}\"}"
   result: audit_result
-  next: triggerRiskRecalculate
-
-triggerRiskRecalculate:
-  switch:
-    - condition: "${!/^[0-9]{8}$/.test('' + (company_reg_code || ''))}"
-      next: returnSuccess
-  next: callRiskRecalculate
-
-callRiskRecalculate:
-  call: http.post
-  args:
-    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
-    headers:
-      type: json
-    body:
-      company_reg_code: ${company_reg_code}
-      calculation_trigger: "kontrollvorm"
-  result: recalc_result
   next: returnSuccess
+
+# Riskiskoori ümberarvutust EI kutsuta siit sünkroonselt. Vorm on juba
+# avalikustatud (publishForm), aga risk-scores/recalculate kõne
+# ruuter-internal'ile võib ebaõnnestuda (nt SSRF-allowlist, ruuter-internal
+# maas) ning Ruuter ei võimalda http-sammu viga DSL-is kinni püüda — see
+# 500-taks eduka avalikustamise ja lekitaks sisemise vea kasutajaliidesesse.
+# Iga avalikustatud liitvormiga ettevõtte riskiskoor arvutatakse öösel
+# ümber cron-tööga DSL/Ruuter.internal/ljvis/POST/cron/risk-score-recalc-sync.yml.
 
 returnSuccess:
   return: ${publishRes.response.body}
