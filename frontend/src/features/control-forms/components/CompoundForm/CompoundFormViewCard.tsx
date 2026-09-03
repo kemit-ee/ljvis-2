@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -9,7 +10,7 @@ import {
   TimeField,
 } from '@tedi-design-system/react/tedi';
 import type { CompoundForm, Trailer, Driver } from '../../types';
-import { COUNTRIES } from '../../../../constants/constants';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 
@@ -37,22 +38,63 @@ export function CompoundFormViewCard({
   form,
   isDesktop,
   orgOptions,
-  structureUnits,
-  roads,
-  trailerCategories,
-  vehicleCategories,
-  counties,
-  citiesParishes,
-  companyCitiesParishes,
   formType,
   versionsRefreshKey,
 }: CompoundFormViewCardProps) {
   const { t } = useTranslation();
+  const { getByCode, getChildren } = useClassifiers();
 
-  const countries = COUNTRIES.map((country) => ({
-    ...country,
-    label: t(country.labelKey),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  const countries = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .map((c) => ({ value: c.code, label: c.name }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [getByCode],
+  );
+
+  const allRoads = useMemo(
+    () => getByCode('ROAD_NAME').map((e) => ({ value: e.code, label: e.name })),
+    [getByCode],
+  );
+
+  const allTrailerCategories = useMemo(
+    () => getByCode('TRAILER_CATEGORY').map((e) => ({ code: e.code, name: e.name })),
+    [getByCode],
+  );
+
+  const allVehicleCategories = useMemo(
+    () => getByCode('VEHICLE_CATEGORY').map((e) => ({ code: e.code, name: e.name })),
+    [getByCode],
+  );
+
+  const allCounties = useMemo(
+    () =>
+      getByCode('EHAK')
+        .filter((e) => e.parentKey === null)
+        .map((e) => ({ id: e.classifierValueKey, name: e.name })),
+    [getByCode],
+  );
+
+  const allCitiesParishes = useMemo(
+    () =>
+      form.county
+        ? getChildren('EHAK', Number(form.county)).map((e) => ({ id: e.classifierValueKey, name: e.name }))
+        : [],
+    [form.county, getChildren],
+  );
+
+  const allCompanyCitiesParishes = useMemo(
+    () =>
+      form.companyCounty
+        ? getChildren('EHAK', Number(form.companyCounty)).map((e) => ({ id: e.classifierValueKey, name: e.name }))
+        : [],
+    [form.companyCounty, getChildren],
+  );
+
+  const allStructureUnits = useMemo(
+    () => getByCode('STRUCTURE_UNIT').map((e) => ({ code: e.code, name: e.name })),
+    [getByCode],
+  );
 
   const disabled = true;
   const gridClass =
@@ -98,12 +140,8 @@ export function CompoundFormViewCard({
                 <Select
                   id="road"
                   label={t('forms.compound.road')}
-                  options={roads.map((r) => ({ value: r.code, label: r.name }))}
-                  value={
-                    roads
-                      .map((r) => ({ value: r.code, label: r.name }))
-                      .find((o) => o.value === form.road) ?? null
-                  }
+                  options={allRoads}
+                  value={allRoads.find((o) => o.value === form.road) ?? null}
                   disabled={disabled}
                 />
                 <TextField
@@ -133,12 +171,12 @@ export function CompoundFormViewCard({
                   <Select
                     id="county"
                     label={t('forms.foreign_violation.county')}
-                    options={counties.map((c) => ({
+                    options={allCounties.map((c) => ({
                       value: String(c.id),
                       label: c.name,
                     }))}
                     value={
-                      counties
+                      allCounties
                         .map((c) => ({ value: String(c.id), label: c.name }))
                         .find((o) => o.value === form.county) ?? null
                     }
@@ -147,12 +185,12 @@ export function CompoundFormViewCard({
                   <Select
                     id="city"
                     label={t('forms.foreign_violation.city')}
-                    options={citiesParishes.map((c) => ({
+                    options={allCitiesParishes.map((c) => ({
                       value: String(c.id),
                       label: c.name,
                     }))}
                     value={
-                      citiesParishes
+                      allCitiesParishes
                         .map((c) => ({ value: String(c.id), label: c.name }))
                         .find((o) => o.value === form.city) ?? null
                     }
@@ -271,7 +309,7 @@ export function CompoundFormViewCard({
                   id="vehicleCategoryCode"
                   label={t('forms.compound.vehicleCategory')}
                   value={
-                    vehicleCategories
+                    allVehicleCategories
                       .map((c) => ({ value: c.code, label: c.name }))
                       .find((o) => o.value === form.vehicleCategoryCode)?.label ?? ''
                   }
@@ -405,7 +443,7 @@ export function CompoundFormViewCard({
                           id={`trailerCategoryCode_${index}`}
                           label={t('forms.compound.trailerCategory')}
                           value={
-                            trailerCategories.find(
+                            allTrailerCategories.find(
                               (c) => c.code === trailer.categoryCode,
                             )?.name ?? ''
                           }
@@ -466,12 +504,12 @@ export function CompoundFormViewCard({
                   <Select
                     id="companyCounty"
                     label={t('forms.compound.companyCounty')}
-                    options={counties.map((c) => ({
+                    options={allCounties.map((c) => ({
                       value: String(c.id),
                       label: c.name,
                     }))}
                     value={
-                      counties
+                      allCounties
                         .map((c) => ({ value: String(c.id), label: c.name }))
                         .find((o) => o.value === form.companyCounty) ?? null
                     }
@@ -490,12 +528,12 @@ export function CompoundFormViewCard({
                   <Select
                     id="companyCity"
                     label={t('forms.compound.companyCity')}
-                    options={companyCitiesParishes.map((c) => ({
+                    options={allCompanyCitiesParishes.map((c) => ({
                       value: String(c.id),
                       label: c.name,
                     }))}
                     value={
-                      companyCitiesParishes
+                      allCompanyCitiesParishes
                         .map((c) => ({ value: String(c.id), label: c.name }))
                         .find((o) => o.value === form.companyCity) ?? null
                     }
@@ -639,12 +677,12 @@ export function CompoundFormViewCard({
                 <Select
                   id="inspectorUnit"
                   label={t('forms.compound.inspectorUnit')}
-                  options={structureUnits.map((opt) => ({
+                  options={allStructureUnits.map((opt) => ({
                     label: opt.name,
                     value: opt.code,
                   }))}
                   value={
-                    structureUnits
+                    allStructureUnits
                       .map((opt) => ({ label: opt.name, value: opt.code }))
                       .find((o) => o.value === form.inspectorUnit) ?? null
                   }

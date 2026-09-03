@@ -149,42 +149,42 @@ export function useDriveRestForm(
   const { getByCode } = useClassifiers();
 
   const cargoCabotageViolations = useMemo(
-    () => getByCode('CARGO_CABOTAGE_VIOLATION'),
+    () => getByCode('CARGO_CABOTAGE_VIOLATION').filter((c) => c.isValid !== false),
     [getByCode],
   );
 
   const passengerCabotageViolations = useMemo(
-    () => getByCode('PASSENGER_CABOTAGE_VIOLATION'),
+    () => getByCode('PASSENGER_CABOTAGE_VIOLATION').filter((c) => c.isValid !== false),
     [getByCode],
   );
 
   const transportClasses = useMemo(
-    () => getByCode('TRANSPORT_CLASS'),
+    () => getByCode('TRANSPORT_CLASS').filter((c) => c.isValid !== false),
     [getByCode],
   );
 
   const docRightChecks = useMemo(
-    () => getByCode('DOC_RIGHT_CHECK'),
+    () => getByCode('DOC_RIGHT_CHECK').filter((c) => c.isValid !== false),
     [getByCode],
   );
 
   const docRightOtherDocs = useMemo(
-    () => getByCode('OTHER_DOCUMENTS'),
+    () => getByCode('OTHER_DOCUMENTS').filter((c) => c.isValid !== false),
     [getByCode],
   );
 
   const tachographTypes = useMemo(
-    () => getByCode('TACHOGRAPH_TYPES'),
+    () => getByCode('TACHOGRAPH_TYPES').filter((c) => c.isValid !== false),
     [getByCode],
   );
 
   const drivingViolations = useMemo(
-    () => getByCode('DRIVING_VIOLATION'),
+    () => getByCode('DRIVING_VIOLATION').filter((c) => c.isValid !== false),
     [getByCode],
   );
 
   const massDimensions = useMemo(
-    () => getByCode('MASS_DIMENSION'),
+    () => getByCode('MASS_DIMENSION').filter((c) => c.isValid !== false),
     [getByCode],
   );
 
