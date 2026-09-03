@@ -985,7 +985,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers/values — ADR_CONTROL_CHECKPOINT has 46 values (16 punkti + 30 rikkumisliiki) (#229)",
+      "name": "GET /v1/classifiers/values — ADR_CONTROL_CHECKPOINT has 43 values (16 punkti + 27 rikkumisliiki) (#229)",
       "request": {
         "method": "GET",
         "header": [
@@ -1031,7 +1031,7 @@
               "var resp = (body && body.response) ? body.response : body;",
               "var data = resp.content || [];",
               "var total = parseInt(resp.total || 0);",
-              "pm.test('Total equals 46 (16 kontrollkaardi punkti + 30 seotud 2016/403 rikkumisliiki)', () => pm.expect(total).to.eql(46));",
+              "pm.test('Total equals 43 (16 kontrollkaardi punkti + 27 seotud 2016/403 rikkumisliiki)', () => pm.expect(total).to.eql(43));",
               "var codes = data.map(v => v.code);",
               "pm.test('Tase 1: punktid P12..P27 olemas', () => {",
               "  for (var i = 12; i <= 27; i++) pm.expect(codes).to.include('P' + i);",
