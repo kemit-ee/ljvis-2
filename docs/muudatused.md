@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-09 — Liitvorm: raadionupu sildid ei kuku kitsal ekraanil nupu alla
+
+- **Liitvormi raadionupu valikute** (mootorsõiduki ja haagise kategooria,
+  teekasutustasu staatus) sildid jäid kitsal ekraanil või mitme avatud
+  vahekaardiga vaates raadionupu alla. Nüüd asetatakse kitsas vaates iga valik
+  omaette reale, nii et nupp ja silt on alati kõrvuti.
+
+---
+
 ## 2026-09 — Teavituste kelluke uueneb taas reaalajas
 
 - **Päise ja külgmenüü teavituste kelluke** uueneb nüüd usaldusväärselt kohe, kui

@@ -589,7 +589,7 @@ export function CompoundFormEditCard({
                       id: `vehicleCat-${c.code}`,
                       value: c.code,
                       label: c.name,
-                      colProps: { width: vehicleCategoryColWidth(c.code) },
+                      colProps: { width: vehicleCategoryColWidth(c.code, isDesktop) },
                     }))}
                     required
                     {...(formik.touched.vehicleCategoryCode &&
@@ -660,7 +660,7 @@ export function CompoundFormEditCard({
                     label={<strong>{t('forms.compound.roadTaxStatus')}</strong>}
                     name="roadTaxStatus"
                     inputType="radio"
-                    direction="row"
+                    direction={isDesktop ? 'row' : 'column'}
                     value={formik.values.roadTaxStatus}
                     onChange={(val) =>
                       formik.setFieldValue('roadTaxStatus', val)
@@ -897,7 +897,7 @@ export function CompoundFormEditCard({
                             name={`trailerCategoryCode_${index}`}
                             label={t('forms.compound.trailerCategory')}
                             inputType="radio"
-                            direction="row"
+                            direction={isDesktop ? 'row' : 'column'}
                             value={trailer.categoryCode}
                             onChange={(val) => {
                               const u = [...formik.values.trailers];
