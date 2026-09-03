@@ -41,6 +41,7 @@ export function CtudListPage() {
     setFilter,
     applyFilters,
     resetFilters,
+    resetKey,
   } = useCtudList();
 
   const openRequest = useCallback(
@@ -154,6 +155,7 @@ export function CtudListPage() {
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <DateField
+              key={`ctud-sent-from-${resetKey}`}
               id="ctud-filter-sent-from"
               label={t('erru.ctud.filters.sentFrom')}
               selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
@@ -162,6 +164,7 @@ export function CtudListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              key={`ctud-sent-until-${resetKey}`}
               id="ctud-filter-sent-until"
               label={t('erru.ctud.filters.sentUntil')}
               selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}

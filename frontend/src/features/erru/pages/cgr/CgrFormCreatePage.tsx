@@ -1,7 +1,13 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
+import {
+  Alert,
+  Button,
+  Card,
+  Heading,
+  Text,
+} from '@tedi-design-system/react/tedi';
 import { useCgrForm } from './useCgrForm';
 import { CgrRequestFields } from '../../components/Cgr/CgrRequestFields';
 import { useAuth } from '../../../auth/AuthContext';
@@ -28,7 +34,9 @@ export function CgrFormCreatePage() {
     if (!copyFromId) return;
     getCgrRequest(copyFromId)
       .then(setCopySource)
-      .catch((e) => console.error('[CgrFormCreatePage] copy source load failed', e))
+      .catch((e) =>
+        console.error('[CgrFormCreatePage] copy source load failed', e),
+      )
       .finally(() => setCopyLoading(false));
   }, [copyFromId]);
 
@@ -37,11 +45,12 @@ export function CgrFormCreatePage() {
   const prefill = copySource
     ? ({
         ...copySource,
+        id: undefined,
         cgrTo: '',
         originatingAuthority: '',
         requestSource: '',
         requestPurpose: '',
-      } as CgrRequest)
+      } as Partial<CgrRequest>)
     : undefined;
 
   const form = useCgrForm(prefill, (id) =>
@@ -67,11 +76,12 @@ export function CgrFormCreatePage() {
           {form.formError}
         </Alert>
       )}
-      {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
-        <Alert type="danger" size="small" className="mt-05">
-          {t('common.formHasErrors')}
-        </Alert>
-      )}
+      {form.formik.submitCount > 0 &&
+        Object.keys(form.formik.errors).length > 0 && (
+          <Alert type="danger" size="small" className="mt-05">
+            {t('common.formHasErrors')}
+          </Alert>
+        )}
 
       <PageActions>
         <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>

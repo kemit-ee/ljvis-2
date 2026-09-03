@@ -46,6 +46,7 @@ export function CgrListPage() {
     setFilter,
     applyFilters,
     resetFilters,
+    resetKey,
   } = useCgrList();
 
   const openRequest = useCallback(
@@ -163,6 +164,7 @@ export function CgrListPage() {
               onChange={(v) => setFilter('tmFamilyName', v)}
             />
             <DateField
+              key={`cgr-sent-from-${resetKey}`}
               id="cgr-filter-sent-from"
               label={t('erru.cgr.filters.sentFrom')}
               selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
@@ -171,6 +173,7 @@ export function CgrListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              key={`cgr-sent-until-${resetKey}`}
               id="cgr-filter-sent-until"
               label={t('erru.cgr.filters.sentUntil')}
               selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}

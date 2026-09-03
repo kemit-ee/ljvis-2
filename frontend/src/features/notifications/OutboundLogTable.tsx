@@ -42,6 +42,7 @@ export function OutboundLogTable() {
     setFilter,
     applyFilters,
     resetFilters,
+    resetKey,
   } = useOutboundLog();
 
   const [reportLogId, setReportLogId] = useState<string | null>(null);
@@ -134,6 +135,7 @@ export function OutboundLogTable() {
           }
         />
         <DateField
+          key={`outbound-date-from-${resetKey}`}
           id="outbound-filter-date-from"
           label={t('notifications.log.filterDateFrom')}
           selected={draftFilters.dateFrom ? new Date(draftFilters.dateFrom) : undefined}

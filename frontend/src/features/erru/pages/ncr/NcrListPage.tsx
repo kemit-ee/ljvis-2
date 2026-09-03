@@ -47,6 +47,7 @@ export function NcrListPage() {
     setFilter,
     applyFilters,
     resetFilters,
+    resetKey,
   } = useNcrList();
 
   const openCase = useCallback(
@@ -153,6 +154,7 @@ export function NcrListPage() {
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <DateField
+              key={`ncr-sent-from-${resetKey}`}
               id="ncr-filter-sent-from"
               label={t('erru.ncr.list.sentFrom')}
               selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
@@ -161,6 +163,7 @@ export function NcrListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              key={`ncr-sent-until-${resetKey}`}
               id="ncr-filter-sent-until"
               label={t('erru.ncr.list.sentUntil')}
               selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}
