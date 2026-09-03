@@ -73,14 +73,16 @@ BEGIN
 
   INSERT INTO forms.adr_form (
     adr_form_key, compound_form_key, sub_form_number, version, status,
-    driver_adr_certificate_number, dangerous_goods, exemption_applied, container_type,
-    infringements, result_type, corrective_measures, notes, created_at, created_by
+    driver_adr_certificate_number, dangerous_goods, exemption_applied, container_types,
+    infringements, other_infringements, driving_ban_applied, transport_interruption_applied,
+    result_type, corrective_measures, notes, created_at, created_by
   ) VALUES (
     95302001, 95002001, 'adr-2026-95302001/1', 1, 'published',
     'EE/ADR/2023/00456',
-    '[{"unNumber":"1202","properShippingName":"Diislikütus","class":"3","packingGroup":"III","quantity":"18000 l"}]'::jsonb,
-    false, 'TANK',
-    '[]'::jsonb, 'ok', '[]'::jsonb, 'Veos nõuetekohaselt märgistatud ja dokumenteeritud.',
+    '[{"unNumber":"1202","packagingGroup":"III","quantity":"18000","unitCode":"l"}]'::jsonb,
+    false, '["paak"]'::jsonb,
+    '[]'::jsonb, '[]'::jsonb, false, false,
+    'ok', '[]'::jsonb, 'Veos nõuetekohaselt märgistatud ja dokumenteeritud.',
     now() - INTERVAL '12 days', v_by
   );
 
@@ -297,15 +299,17 @@ BEGIN
 
   INSERT INTO forms.adr_form (
     adr_form_key, compound_form_key, sub_form_number, version, status,
-    driver_adr_certificate_number, dangerous_goods, exemption_applied, container_type,
-    infringements, result_type, corrective_measures, notes, created_at, created_by
+    driver_adr_certificate_number, dangerous_goods, exemption_applied, container_types,
+    infringements, other_infringements, driving_ban_applied, transport_interruption_applied,
+    result_type, corrective_measures, notes, created_at, created_by
   ) VALUES (
     95302005, 95002005, 'adr-2026-95302005/1', 1, 'confirmed',
     'EE/ADR/2022/01187',
-    '[{"unNumber":"1863","properShippingName":"Lennukikütus","class":"3","packingGroup":"III","quantity":"22000 l"}]'::jsonb,
-    false, 'TANK',
-    '[{"infringementCode":"ADR-5.4.1","severity":"II","description":"Veodokumendil puudus ohtliku veose klassifikaatorikood"}]'::jsonb,
-    'ok', '[]'::jsonb, 'Puudus kõrvaldati kohapeal.', now() - INTERVAL '4 days', v_by
+    '[{"unNumber":"1863","packagingGroup":"III","quantity":"22000","unitCode":"l"}]'::jsonb,
+    false, '["paak"]'::jsonb,
+    '[{"checkpointCode":"P12","inspectionStatus":"C","infringementDetected":true,"records":[{"riskCategory":"II","adrReference":"5.4.1","responsibleParticipants":["C"],"reg2016403Code":"11","reg2016403Severity":"VSI"}]}]'::jsonb,
+    '[]'::jsonb, false, false,
+    'warning', '[]'::jsonb, 'Puudus kõrvaldati kohapeal.', now() - INTERVAL '4 days', v_by
   );
 
   RAISE NOTICE 'Kasutusjuhendi näidisvormid loodud (95002001..95002005).';
