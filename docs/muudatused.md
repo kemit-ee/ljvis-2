@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-09 — Kasutus- ja administraatorijuhend ekraanipiltidega
+
+- **Kasutusjuhendi ja administraatorijuhendi peatükid** on nüüd illustreeritud
+  ekraanipiltidega: sisselogimine, vasakmenüü ja „Vaade" rollivahetus, ametniku ja
+  kodaniku töölaud, kõik kontrollkaardi vormid ja alamvormid (välisriigi rikkumine,
+  liitvorm ja selle alamvormid — sõidu-/puhkeaeg, tehnokontroll, ADR, autoveo
+  katkestamine —, tööinspektsioon, hea maine, Transpordiameti kontrollkaart),
+  failide lisamine, vormi versioonid, riskitasemete loend ja auditilogi; administraatori
+  poolel kasutajate, kasutajagruppide ja klassifikaatorite haldus.
+- Ekraanipildid genereeritakse korratava skriptiga (`docs/screenshots/capture.mjs`)
+  näidisvormide põhjal (`DSL/Liquibase/test/20260903100000-user-guide-fixture-forms.sql`),
+  nii et UI muutudes saab need uuesti luua.
+- Juhend on ka **Confluence'is** navigeeritava lehepuuna (wiki.kemit.ee, ruum LIA,
+  leht „LJVIS2 kasutusjuhend"); uuendamiseks `scripts/publish-guide-to-confluence.py`.
+
+---
+
 ## 2026-09 — Liitvorm: raadionupu sildid ei kuku kitsal ekraanil nupu alla
 
 - **Liitvormi raadionupu valikute** (mootorsõiduki ja haagise kategooria,

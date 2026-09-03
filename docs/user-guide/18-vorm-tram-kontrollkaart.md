@@ -32,6 +32,8 @@ Olemasolevat vormi saab avada otse URL-ilt:
 
 ## Vormi ülesehitus
 
+![Transpordiameti kontrollkaardi loomisvaade](images/18-vorm-tram-kontrollkaart/01-loomisvaade.png)
+
 Vormil on üldosa (identne PPA liitvormi üldosaga) ja üks alamvorm — autojuhi tab.
 Kaasreisija / meeskonnaliikme, tehnoülevaatuse, ADR ja veo katkestamise alamvorme
 TRAM-kaardil ei ole.

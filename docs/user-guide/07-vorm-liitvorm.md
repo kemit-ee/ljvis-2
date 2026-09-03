@@ -18,6 +18,10 @@ Menüü → Kontrollaktid → **Liitvorm**
 
 ## Vormi osad ja kohustuslikud väljad
 
+Vorm koosneb **Üldosast** ja alamvormide vahekaartidest. Uue vormi loomisel avaneb Üldosa:
+
+![Liitvormi loomisvaade](images/07-vorm-liitvorm/01-loomisvaade.png)
+
 ### 1. Kontrolli asukoht ja aeg
 
 | Väli | Kohustuslik | Selgitus |
@@ -97,7 +101,10 @@ flowchart TD
     A --> G[Vedude katkestamine]
 ```
 
-Iga alamvorm salvestatakse eraldi, kuid on seotud liitvormi ID-ga.
+Iga alamvorm salvestatakse eraldi, kuid on seotud liitvormi ID-ga. Salvestatud liitvormi
+vaates on Üldosa ja iga alamvorm eraldi vahekaardil:
+
+![Liitvormi detailvaade vahekaartidega](images/07-vorm-liitvorm/02-detailvaade.png)
 
 ## Vormi salvestamine ja kinnitamine
 

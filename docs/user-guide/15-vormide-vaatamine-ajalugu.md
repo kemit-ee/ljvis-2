@@ -36,6 +36,11 @@ Näide:
 - `/control-forms/foreign-violation/12345`
 - `/control-forms/foreign-violation/12345/snapshot-67890`
 
+Vormi vaate lõpus on **Versioonid** tabel, kus on iga salvestatud versioon koos
+staatuse, muutja ja kuupäevaga. Lingiga **Ava link** avaneb vastav ajalooline versioon.
+
+![Versioonide tabel vormi detailvaates](images/15-vormide-vaatamine-ajalugu/01-versioonid.png)
+
 ## Snapshot (ajalooline versioon)
 
 Snapshot on vormi salvestatud seisund ajateljel. Iga salvestamine loob uue snapshoti. Snapshotide abil saab:
@@ -43,6 +48,10 @@ Snapshot on vormi salvestatud seisund ajateljel. Iga salvestamine loob uue snaps
 - vaadata, kuidas vorm aja jooksul muutus
 - võrrelda kahte versiooni
 - tõendada, milline oli vormi seisund kindlal ajal
+
+Ajaloolises versioonis on kõik väljad kirjutuskaitstud:
+
+![Ajalooline versioon (snapshot) kirjutuskaitstuna](images/15-vormide-vaatamine-ajalugu/02-varasem-versioon.png)
 
 ## Muudatuste võrdlus
 
