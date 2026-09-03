@@ -1,4 +1,4 @@
-# Nõutav õigus: notification.admin (UC-04 uuesti saatmine).
+# Nõutav õigus: notification.admin (Postkast 2.0 outbound-log toimingud, UC-04 uuesti saatmine).
 # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
 check:
   switch:

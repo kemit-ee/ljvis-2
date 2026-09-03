@@ -1,0 +1,21 @@
+{
+    "content": [
+        {{#each rows}}
+        {
+            "id": "{{this.id}}",
+            "messageType": "{{this.messageType}}",
+            "sendDate": {{#if this.sendDate}}"{{this.sendDate}}"{{else}}null{{/if}},
+            "status": "{{this.status}}",
+            "relatedEntityType": {{#if this.relatedEntityType}}"{{this.relatedEntityType}}"{{else}}null{{/if}},
+            "relatedEntityId": {{#if this.relatedEntityId}}"{{this.relatedEntityId}}"{{else}}null{{/if}},
+            "originalLogId": {{#if this.originalLogId}}"{{this.originalLogId}}"{{else}}null{{/if}},
+            "pkTemplateId": {{#if this.pkTemplateId}}"{{this.pkTemplateId}}"{{else}}null{{/if}},
+            "pkSendingOperationId": {{#if this.pkSendingOperationId}}"{{this.pkSendingOperationId}}"{{else}}null{{/if}},
+            "firstRecipientEmail": {{#if this.firstRecipientEmail}}"{{this.firstRecipientEmail}}"{{else}}null{{/if}},
+            "firstRecipientName": {{#if this.firstRecipientName}}"{{this.firstRecipientName}}"{{else}}null{{/if}},
+            "firstRecipientCode": {{#if this.firstRecipientCode}}"{{this.firstRecipientCode}}"{{else}}null{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with rows.[0]}}{{total}}{{else}}0{{/with}}
+}

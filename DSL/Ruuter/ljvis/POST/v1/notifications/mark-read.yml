@@ -3,16 +3,19 @@ declaration:
   description: >-
     Märgib ühe in-app teavituse autenditud kasutaja jaoks loetuks.
     Idempotentne: ON CONFLICT DO NOTHING.
+    Teavituse id käib ?q= query-paramina (rest-api-disainijuhend §4.2) —
+    Ruuter nõuab kõigi allowlist.body väljade olemasolu, seega ei saa id-d
+    valikuliseks kehaväljaks teha.
     Kaitstud POST/.guard (autentimine) kaudu.
   namespace: notification
   allowlist:
     params:
-      - field: id
+      - field: q
         type: string
 
 extractParams:
   assign:
-    notification_id: "${incoming.params.id ?? ''}"
+    notification_id: "${incoming.params.q ?? ''}"
     user_code: "${u.personalcode || ''}"
   next: checkId
 
@@ -35,7 +38,7 @@ markRead:
   next: returnResult
 
 returnResult:
-  return: "${res.response.body[0] ?? {notification_id: notification_id, user_code: user_code}}"
+  return: "${res.response.body[0] ?? {notificationId: notification_id, userCode: user_code}}"
   next: end
 
 returnBadRequest:

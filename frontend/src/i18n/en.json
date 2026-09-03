@@ -1866,6 +1866,8 @@
     "unread": "Unread",
     "read": "Mark as read",
     "empty": "No new notifications",
+    "bellAriaLabel": "Notifications ({{count}} unread)",
+    "bellAriaLabelEmpty": "Notifications",
     "log": {
       "sendDate": "Sent date",
       "messageType": "Message type",
@@ -1877,7 +1879,11 @@
       "sent": "Sent",
       "sent_error": "Send failed",
       "resend": "Resend",
-      "report": "Send report"
+      "resendTitle": "Email address",
+      "report": "Send report",
+      "filterStatus": "Status",
+      "filterType": "Message type",
+      "filterDateFrom": "From date"
     },
     "types": {
       "ncr_violation": "NCR serious infringement notice",

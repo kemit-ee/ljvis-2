@@ -86,7 +86,7 @@ declaration:
         type: number
 */
 WITH latest AS (
-  SELECT sub_form_number, CASE WHEN status = 'saved' THEN version ELSE version + 1 END AS version, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
+  SELECT sub_form_number, CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
   FROM forms.sp_teammate_form
   WHERE sp_teammate_form_key = :key::BIGINT
   ORDER BY created_at DESC

@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS \u2014 Notifications (teavituste moodul)",
     "_postman_id": "ljvis-notifications-v1",
-    "description": "Functional tests for the notifications module: in-app notifications (GET /v1/notifications/list, unread-count, POST mark-read, mark-all-read), the Postkast 2.0 outbound send log (outbound-log/list, outbound-log/recipients) and UC-04 resend. Covers the permission boundary (in-app endpoints need auth only and are filtered by the caller's permissions[]; outbound-log/* and resend/* require notification.admin), idempotency (insert_notification ON CONFLICT DO NOTHING, mark-read / mark-all-read) and the append-only rule (resend appends a new outbound_log row and never mutates the original). Self-contained: authenticates, seeds notifications + an outbound_log row + recipient via Resql, and exercises the internal notification/create orchestrator. PK 2.0 has no CI mock \u2014 send-postkast returns a mock success (documented TODO in the DSL), so resend is exercised at the HTTP layer. Rust Resql returns camelCase field names; assertions match that.",
+    "description": "Functional tests for the notifications module: in-app notifications (GET /v1/notifications/list, unread-count, POST mark-read, mark-all-read), the Postkast 2.0 outbound send log (outbound-log/list (returns {content,total}), outbound-log/recipients (?q=)) and UC-04 resend. Covers the permission boundary (in-app endpoints need auth only and are filtered by the caller's permissions[]; outbound-log/* and resend/* require notification.admin), idempotency (insert_notification ON CONFLICT DO NOTHING, mark-read / mark-all-read) and the append-only rule (resend appends a new outbound_log row and never mutates the original). Self-contained: authenticates, seeds notifications + an outbound_log row + recipient via Resql, and exercises the internal notification/create orchestrator. PK 2.0 has no CI mock \u2014 send-postkast returns a mock success (documented TODO in the DSL), so resend is exercised at the HTTP layer. Rust Resql returns camelCase field names; assertions match that.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -502,9 +502,14 @@
       ],
       "request": {
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?id=00000000-0000-0000-0000-000000000000",
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?q=00000000-0000-0000-0000-000000000000",
           "host": [
             "{{api_url}}"
           ],
@@ -516,7 +521,7 @@
           ],
           "query": [
             {
-              "key": "id",
+              "key": "q",
               "value": "00000000-0000-0000-0000-000000000000"
             }
           ]
@@ -565,7 +570,7 @@
       "response": []
     },
     {
-      "name": "POST /v1/notifications/mark-read?id=A \u2014 admin \u2192 200",
+      "name": "POST /v1/notifications/mark-read \u2014 admin \u2192 200",
       "event": [
         {
           "listen": "test",
@@ -590,7 +595,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?id={{notif_a_id}}",
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?q={{notif_a_id}}",
           "host": [
             "{{api_url}}"
           ],
@@ -602,7 +607,7 @@
           ],
           "query": [
             {
-              "key": "id",
+              "key": "q",
               "value": "{{notif_a_id}}"
             }
           ]
@@ -611,7 +616,7 @@
       "response": []
     },
     {
-      "name": "POST /v1/notifications/mark-read?id=A again \u2014 idempotent 200",
+      "name": "POST /v1/notifications/mark-read again \u2014 idempotent 200",
       "event": [
         {
           "listen": "test",
@@ -636,7 +641,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?id={{notif_a_id}}",
+          "raw": "{{api_url}}/ljvis/v1/notifications/mark-read?q={{notif_a_id}}",
           "host": [
             "{{api_url}}"
           ],
@@ -648,7 +653,7 @@
           ],
           "query": [
             {
-              "key": "id",
+              "key": "q",
               "value": "{{notif_a_id}}"
             }
           ]
@@ -1026,7 +1031,7 @@
             "exec": [
               "pm.test('200 (admin has notification.admin)', () => pm.response.to.have.status(200));",
               "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
-              "var list = Array.isArray(body) ? body : [];",
+              "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
               "var r = list.find(x => String(x.id) === pm.environment.get('outbound_log_id'));",
               "pm.test('seeded outbound_log row present', () => pm.expect(r).to.not.be.undefined);",
               "pm.test('status sent', () => pm.expect(r.status).to.eql('sent'));"
@@ -1074,7 +1079,7 @@
             "exec": [
               "pm.test('200', () => pm.response.to.have.status(200));",
               "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
-              "var list = Array.isArray(body) ? body : [];",
+              "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
               "pm.test('filter excludes everything', () => pm.expect(list.length).to.eql(0));"
             ]
           }
@@ -1111,7 +1116,7 @@
       "response": []
     },
     {
-      "name": "GET /v1/notifications/outbound-log/recipients \u2014 missing logId \u2192 400",
+      "name": "GET /v1/notifications/outbound-log/recipients \u2014 missing q \u2192 400",
       "event": [
         {
           "listen": "test",
@@ -1169,7 +1174,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/recipients?logId={{outbound_log_id}}",
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/recipients?q={{outbound_log_id}}",
           "host": [
             "{{api_url}}"
           ],
@@ -1182,7 +1187,7 @@
           ],
           "query": [
             {
-              "key": "logId",
+              "key": "q",
               "value": "{{outbound_log_id}}"
             }
           ]
@@ -1191,7 +1196,7 @@
       "response": []
     },
     {
-      "name": "GET /v1/notifications/outbound-log/recipients?logId= \u2014 admin \u2192 200, seeded recipient",
+      "name": "GET /v1/notifications/outbound-log/recipients?q= \u2014 admin \u2192 200, seeded recipient",
       "event": [
         {
           "listen": "test",
@@ -1216,7 +1221,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/recipients?logId={{outbound_log_id}}",
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/recipients?q={{outbound_log_id}}",
           "host": [
             "{{api_url}}"
           ],
@@ -1229,7 +1234,7 @@
           ],
           "query": [
             {
-              "key": "logId",
+              "key": "q",
               "value": "{{outbound_log_id}}"
             }
           ]
@@ -1263,7 +1268,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/resend/resend?logId={{outbound_log_id}}",
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend?q={{outbound_log_id}}",
           "host": [
             "{{api_url}}"
           ],
@@ -1271,12 +1276,12 @@
             "ljvis",
             "v1",
             "notifications",
-            "resend",
+            "outbound-log",
             "resend"
           ],
           "query": [
             {
-              "key": "logId",
+              "key": "q",
               "value": "{{outbound_log_id}}"
             }
           ]
@@ -1314,7 +1319,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/resend/resend",
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend",
           "host": [
             "{{api_url}}"
           ],
@@ -1322,7 +1327,7 @@
             "ljvis",
             "v1",
             "notifications",
-            "resend",
+            "outbound-log",
             "resend"
           ]
         },
@@ -1334,7 +1339,7 @@
       "response": []
     },
     {
-      "name": "POST /v1/notifications/resend?logId= \u2014 admin \u2192 200 (PK 2.0 mock)",
+      "name": "POST /v1/notifications/outbound-log/resend \u2014 admin \u2192 200 (PK 2.0 mock)",
       "event": [
         {
           "listen": "test",
@@ -1362,7 +1367,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/resend/resend?logId={{outbound_log_id}}",
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend?q={{outbound_log_id}}",
           "host": [
             "{{api_url}}"
           ],
@@ -1370,12 +1375,12 @@
             "ljvis",
             "v1",
             "notifications",
-            "resend",
+            "outbound-log",
             "resend"
           ],
           "query": [
             {
-              "key": "logId",
+              "key": "q",
               "value": "{{outbound_log_id}}"
             }
           ]
@@ -1397,7 +1402,7 @@
             "exec": [
               "pm.test('200', () => pm.response.to.have.status(200));",
               "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
-              "var list = Array.isArray(body) ? body : [];",
+              "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
               "var orig = pm.environment.get('outbound_log_id');",
               "var origRow = list.find(x => String(x.id) === orig);",
               "pm.test('original row still present and unchanged (append-only)', () => { pm.expect(origRow).to.not.be.undefined; pm.expect(origRow.status).to.eql('sent'); });",
