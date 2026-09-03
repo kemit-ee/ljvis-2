@@ -1,0 +1,118 @@
+declaration:
+
+  version: "1.0"
+  description: "Single source of truth for foreign violation form field validation — shared by save.yml (insert + update) and confirm.yml. Mirrors the frontend Yup schema. Returns '{\"valid\":true}' when all checks pass, otherwise a VALIDATION_ERROR shape ready to be forwarded to the client as-is."
+  namespace: service
+  allowlist:
+    body:
+      - field: reportingCountryCode
+        type: string
+      - field: reportingAuthority
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: sanctionCode
+        type: string
+      - field: recommendedMeasureCode
+        type: string
+      - field: recommendedMeasureNotes
+        type: string
+      - field: dataEntryDate
+        type: string
+      - field: inspectorFirstName
+        type: string
+      - field: inspectorLastName
+        type: string
+      - field: inspectorOrganisationId
+        type: string
+      - field: inspectorProfession
+        type: string
+
+extractFields:
+  assign:
+    reporting_country_code: "${incoming.body.reportingCountryCode || ''}"
+    reporting_authority: "${incoming.body.reportingAuthority || ''}"
+    inspection_date: "${incoming.body.inspectionDate || ''}"
+    sanction_code: "${incoming.body.sanctionCode || ''}"
+    recommended_measure_code: "${incoming.body.recommendedMeasureCode || ''}"
+    recommended_measure_notes: "${incoming.body.recommendedMeasureNotes || ''}"
+    data_entry_date: "${incoming.body.dataEntryDate || ''}"
+    inspector_first_name: "${incoming.body.inspectorFirstName || ''}"
+    inspector_last_name: "${incoming.body.inspectorLastName || ''}"
+    inspector_organisation_id: "${incoming.body.inspectorOrganisationId != null ? String(incoming.body.inspectorOrganisationId) : ''}"
+    inspector_profession: "${incoming.body.inspectorProfession || ''}"
+  next: validate
+
+validate:
+  switch:
+    - condition: ${!reporting_country_code || reporting_country_code.trim() === ''}
+      next: returnReportingCountryCodeRequiredError
+    - condition: ${!reporting_authority || reporting_authority.trim() === ''}
+      next: returnReportingAuthorityRequiredError
+    - condition: ${!inspection_date || inspection_date.trim() === ''}
+      next: returnInspectionDateRequiredError
+    - condition: ${!sanction_code || sanction_code.trim() === ''}
+      next: returnSanctionCodeRequiredError
+    - condition: ${!recommended_measure_code || recommended_measure_code.trim() === ''}
+      next: returnRecommendedMeasureCodeRequiredError
+    - condition: ${recommended_measure_code === 'MUU' && (!recommended_measure_notes || recommended_measure_notes.trim() === '')}
+      next: returnRecommendedMeasureNotesRequiredError
+    - condition: ${!data_entry_date || data_entry_date.trim() === ''}
+      next: returnDataEntryDateRequiredError
+    - condition: ${!inspector_first_name || inspector_first_name.trim() === ''}
+      next: returnInspectorFirstNameRequiredError
+    - condition: ${!inspector_last_name || inspector_last_name.trim() === ''}
+      next: returnInspectorLastNameRequiredError
+    - condition: ${!inspector_organisation_id || inspector_organisation_id.trim() === ''}
+      next: returnInspectorOrganisationIdRequiredError
+    - condition: ${!inspector_profession || inspector_profession.trim() === ''}
+      next: returnInspectorProfessionRequiredError
+  next: returnValid
+
+returnValid:
+  return: '{"valid":true}'
+  next: end
+
+returnReportingCountryCodeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"reportingCountryCode","code":"required"}'
+  next: end
+
+returnReportingAuthorityRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"reportingAuthority","code":"required"}'
+  next: end
+
+returnInspectionDateRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionDate","code":"required"}'
+  next: end
+
+returnSanctionCodeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"sanctionCode","code":"required"}'
+  next: end
+
+returnRecommendedMeasureCodeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"recommendedMeasureCode","code":"required"}'
+  next: end
+
+returnRecommendedMeasureNotesRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"recommendedMeasureNotes","code":"required"}'
+  next: end
+
+returnDataEntryDateRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"dataEntryDate","code":"required"}'
+  next: end
+
+returnInspectorFirstNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorFirstName","code":"required"}'
+  next: end
+
+returnInspectorLastNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorLastName","code":"required"}'
+  next: end
+
+returnInspectorOrganisationIdRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorOrganisationId","code":"required"}'
+  next: end
+
+returnInspectorProfessionRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorProfession","code":"required"}'
+  next: end

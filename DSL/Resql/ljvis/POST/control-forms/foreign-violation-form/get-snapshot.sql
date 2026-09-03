@@ -20,6 +20,8 @@ declaration:
         type: string
       - field: form_number
         type: string
+      - field: version
+        type: number
       - field: reporting_country_code
         type: string
       - field: reporting_authority_name
@@ -108,6 +110,7 @@ declaration:
 SELECT
   foreign_violation_form_key AS id,
   form_number,
+  version,
   reporting_country_code,
   reporting_authority_name,
   inspection_country_code,

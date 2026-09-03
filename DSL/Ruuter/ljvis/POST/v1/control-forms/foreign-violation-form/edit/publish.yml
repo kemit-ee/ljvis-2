@@ -45,7 +45,7 @@ extractCurrentFormData:
   assign:
     form_number: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].formNumber) || ''}"
     reporting_country_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].reportingCountryCode) || ''}"
-    reporting_authority: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].reportingAuthority) || ''}"
+    reporting_authority: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].reportingAuthorityName) || ''}"
     inspection_country_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionCountryCode) || ''}"
     inspection_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionDate) || ''}"
     inspection_time: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectionTime) || ''}"
@@ -94,7 +94,6 @@ publishForm:
       type: json
     body:
       key: ${id}
-      formNumber: ${form_number}
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
@@ -142,7 +141,7 @@ publishForm:
 
 extractResponseData:
   assign:
-    form_number: "${publishRes.response.body[0].formNumber || ''}"
+    form_number: "${publishRes.response.body[0].formNumber + '/' + publishRes.response.body[0].version}"
     old_status: ${current_status}
     new_status: ${status}
   next: logAuditEvent

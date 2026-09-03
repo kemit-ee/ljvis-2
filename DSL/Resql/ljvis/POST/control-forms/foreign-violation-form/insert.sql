@@ -98,10 +98,13 @@ declaration:
         type: number
       - field: form_number
         type: string
+      - field: version
+        type: number
 */
 INSERT INTO forms.foreign_violation_form (
   foreign_violation_form_key,
   form_number,
+  version,
   template_version,
   status,
   reporting_country_code,
@@ -148,7 +151,8 @@ INSERT INTO forms.foreign_violation_form (
 )
 VALUES (
   nextval('forms.seq_foreign_violation_form_key'),
-  'vr-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_foreign_violation_form_key')::text, 5, '0') || '/1',
+  'vr-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_foreign_violation_form_key')::text, 5, '0'),
+  1,
   1,
   :status,
   :reportingCountryCode,
@@ -193,4 +197,4 @@ VALUES (
   :inspectorProfession,
   :created_by
 )
-RETURNING foreign_violation_form_key AS id, form_number;
+RETURNING foreign_violation_form_key AS id, form_number, version;

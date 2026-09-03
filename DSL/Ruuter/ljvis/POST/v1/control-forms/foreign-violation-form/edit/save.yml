@@ -7,8 +7,6 @@ declaration:
     body:
       - field: id
         type: string
-      - field: formNumber
-        type: string
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -93,7 +91,6 @@ declaration:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    form_number: "${incoming.body.formNumber}"
     reporting_country_code: "${incoming.body.reportingCountryCode}"
     reporting_authority: "${incoming.body.reportingAuthority}"
     inspection_country_code: "${incoming.body.inspectionCountryCode}"
@@ -137,6 +134,30 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateForm
+
+validateForm:
+  template: "templates/form/foreign-violation/validate-foreign-violation-form"
+  requestType: GET
+  body:
+    reportingCountryCode: ${reporting_country_code}
+    reportingAuthority: ${reporting_authority}
+    inspectionDate: ${inspection_date}
+    sanctionCode: ${sanction_code}
+    recommendedMeasureCode: ${recommended_measure_code}
+    recommendedMeasureNotes: ${recommended_measure_notes}
+    dataEntryDate: ${data_entry_date}
+    inspectorFirstName: ${inspector_first_name}
+    inspectorLastName: ${inspector_last_name}
+    inspectorOrganisationId: ${inspector_organisation_id}
+    inspectorProfession: ${inspector_profession}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
   next: checkIsCreate
 
 checkIsCreate:
@@ -153,7 +174,6 @@ insertForm:
       type: json
     body:
       status: saved
-      formNumber: ${form_number}
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
@@ -200,7 +220,7 @@ insertForm:
 
 extractInsertResponseData:
   assign:
-    form_number: "${saveRes.response.body[0].formNumber || ''}"
+    form_number: "${saveRes.response.body[0].formNumber + '/' + saveRes.response.body[0].version}"
   next: logAuditEventCreate
 
 logAuditEventCreate:
@@ -301,7 +321,6 @@ updateForm:
       type: json
     body:
       key: ${id}
-      formNumber: ${form_number}
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
@@ -349,13 +368,7 @@ updateForm:
 
 extractUpdateResponseData:
   assign:
-    form_number: "${saveRes.response.body[0].formNumber || ''}"
-  next: checkStatus
-
-checkStatus:
-  switch:
-    - condition: ${status === 'confirmed'}
-      next: logAuditEventLocked
+    form_number: "${saveRes.response.body[0].formNumber + '/' + saveRes.response.body[0].version}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -371,19 +384,13 @@ logAuditEvent:
   result: audit_result
   next: returnSuccess
 
-logAuditEventLocked:
-  template: "templates/audit/form/foreign-violation/log-foreign-violation-update-locked"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  body:
-    form_number: ${form_number}
-    changed_fields: ${changed_fields_result}
-  result: audit_result
-  next: returnSuccess
-
 returnSuccess:
   return: ${saveRes.response.body}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
   next: end
 
 returnFormLockedError:

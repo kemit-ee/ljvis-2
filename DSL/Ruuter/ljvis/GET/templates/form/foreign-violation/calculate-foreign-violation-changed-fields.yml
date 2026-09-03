@@ -98,7 +98,7 @@ getForm:
 buildAuditData:
   assign:
     old_reporting_country_code: "${res.response.body[0].reportingCountryCode || ''}"
-    old_reporting_authority: "${res.response.body[0].reportingAuthorityName || ''}"
+    old_reporting_authority: "${res.response.body[0].reportingAuthority || ''}"
     old_inspection_country_code: "${res.response.body[0].inspectionCountryCode || ''}"
     old_inspection_date: "${res.response.body[0].inspectionDate || ''}"
     old_inspection_time: "${res.response.body[0].inspectionTime || ''}"

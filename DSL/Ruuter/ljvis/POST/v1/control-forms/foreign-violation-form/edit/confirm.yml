@@ -7,8 +7,6 @@ declaration:
     body:
       - field: id
         type: string
-      - field: formNumber
-        type: string
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -94,7 +92,6 @@ extractRequestData:
   assign:
     key: "${incoming.body.id}"
     status: "confirmed"
-    form_number: "${incoming.body.formNumber}"
     reporting_country_code: "${incoming.body.reportingCountryCode}"
     reporting_authority: "${incoming.body.reportingAuthority}"
     inspection_country_code: "${incoming.body.inspectionCountryCode}"
@@ -138,6 +135,30 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateForm
+
+validateForm:
+  template: "templates/form/foreign-violation/validate-foreign-violation-form"
+  requestType: GET
+  body:
+    reportingCountryCode: ${reporting_country_code}
+    reportingAuthority: ${reporting_authority}
+    inspectionDate: ${inspection_date}
+    sanctionCode: ${sanction_code}
+    recommendedMeasureCode: ${recommended_measure_code}
+    recommendedMeasureNotes: ${recommended_measure_notes}
+    dataEntryDate: ${data_entry_date}
+    inspectorFirstName: ${inspector_first_name}
+    inspectorLastName: ${inspector_last_name}
+    inspectorOrganisationId: ${inspector_organisation_id}
+    inspectorProfession: ${inspector_profession}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
   next: getOldStatus
 
 getOldStatus:
@@ -159,7 +180,6 @@ confirmForm:
       type: json
     body:
       key: ${key}
-      formNumber: ${form_number}
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
@@ -207,7 +227,7 @@ confirmForm:
 
 extractResponseData:
   assign:
-    form_number: "${insertRes.response.body[0].formNumber || ''}"
+    form_number: "${insertRes.response.body[0].formNumber + '/' + insertRes.response.body[0].version}"
     old_status: "${oldFormRes.response.body[0].status || 'saved'}"
     new_status: ${status}
   next: logAuditEvent
@@ -228,4 +248,9 @@ logAuditEvent:
 
 returnSuccess:
   return: ${insertRes.response.body}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
   next: end

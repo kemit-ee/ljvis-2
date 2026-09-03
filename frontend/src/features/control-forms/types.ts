@@ -74,6 +74,7 @@ export interface ControlForm {
 export interface ForeignViolationForm {
   id?: string;
   formNumber: string;
+  version?: number;
   status?: string;
   reportingCountryCode: string;
   reportingAuthority: string;
