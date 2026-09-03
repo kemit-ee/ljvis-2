@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -14,12 +15,8 @@ import {
 } from '@tedi-design-system/react/tedi';
 import type { FormikProps } from 'formik';
 import type { Trailer, Driver } from '../../types';
-import {
-  BREAKPOINTS,
-  COUNTRIES,
-  OTHER,
-  ROAD,
-} from '../../../../constants/constants';
+import { BREAKPOINTS, OTHER, ROAD } from '../../../../constants/constants';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { vehicleCategoryColWidth } from './vehicleCategoryLayout';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
@@ -183,11 +180,16 @@ export function CompoundFormEditCard({
   onRemoveTrailer,
 }: CompoundFormEditCardProps) {
   const { t } = useTranslation();
+  const { getByCode } = useClassifiers();
 
-  const countries = COUNTRIES.map((country) => ({
-    ...country,
-    label: t(country.labelKey),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  const countries = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .filter((c) => c.isValid !== false)
+        .map((c) => ({ value: c.code, label: c.name }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [getByCode],
+  );
 
   const gridClass =
     styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'];

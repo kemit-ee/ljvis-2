@@ -37,6 +37,7 @@ export function useFormSearch() {
     pageSize: 20,
   });
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [resetKey, setResetKey] = useState(0);
   const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
@@ -81,6 +82,7 @@ export function useFormSearch() {
     setDraft(EMPTY_FILTERS);
     setApplied(EMPTY_FILTERS);
     setPagination((p) => ({ ...p, pageIndex: 0 }));
+    setResetKey((k) => k + 1);
   }, []);
 
   return {
@@ -88,6 +90,7 @@ export function useFormSearch() {
     setField,
     applyFilters,
     clearFilters,
+    resetKey,
     data,
     totalRows,
     isLoading,

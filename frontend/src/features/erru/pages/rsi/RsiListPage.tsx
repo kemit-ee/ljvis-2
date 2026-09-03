@@ -46,6 +46,7 @@ export function RsiListPage() {
     setFilter,
     applyFilters,
     resetFilters,
+    resetKey,
   } = useRsiList();
 
   const openMessage = useCallback(
@@ -160,6 +161,7 @@ export function RsiListPage() {
               onChange={(v) => setFilter('vehicleRegistrationNumber', v)}
             />
             <DateField
+              key={`rsi-sent-from-${resetKey}`}
               id="rsi-filter-sent-from"
               label={t('erru.cgr.filters.sentFrom')}
               selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
@@ -168,6 +170,7 @@ export function RsiListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              key={`rsi-sent-until-${resetKey}`}
               id="rsi-filter-sent-until"
               label={t('erru.cgr.filters.sentUntil')}
               selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}

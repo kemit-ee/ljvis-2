@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
@@ -18,10 +19,13 @@ export function GoodReputeFormCreatePage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasPermission('good_repute_form.write');
 
-  const countryOptions = getByCode('COUNTRY').map((c) => ({
-    value: c.code,
-    label: c.name,
-  }));
+  const countryOptions = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .filter((c) => c.isValid !== false)
+        .map((c) => ({ value: c.code, label: c.name })),
+    [getByCode],
+  );
 
   const handleSaved = (id?: string) => {
     navigate(`/control-forms/good-repute/${id}`, {

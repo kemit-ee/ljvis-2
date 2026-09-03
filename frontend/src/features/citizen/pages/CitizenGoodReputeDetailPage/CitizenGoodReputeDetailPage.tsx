@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Heading, Text } from '@tedi-design-system/react/tedi';
@@ -25,10 +25,13 @@ export function CitizenGoodReputeDetailPage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { getByCode } = useClassifiers();
 
-  const countryOptions = getByCode('COUNTRY').map((c) => ({
-    value: c.code,
-    label: c.name,
-  }));
+  const countryOptions = useMemo(
+    () =>
+      getByCode('COUNTRY')
+        .filter((c) => c.isValid !== false)
+        .map((c) => ({ value: c.code, label: c.name })),
+    [getByCode],
+  );
 
   const [form, setForm] = useState<GoodReputeForm | null>(null);
   const [loading, setLoading] = useState(true);

@@ -10,6 +10,7 @@ import {
 import { useClassifierValueForm } from '../ClassifierValueEditPage/useClassifierValueForm.ts';
 import { useClassifierValueDetail } from '../ClassifierValueEditPage/useClassifierValueDetail.ts';
 import { useAuth } from '../../../auth/AuthContext';
+import { useClassifiers } from '../../ClassifierProvider';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { ClassifierValueInfoCard } from '../../components/ClassifierValueInfoCard/ClassifierValueInfoCard.tsx';
@@ -21,13 +22,15 @@ export function ClassifierValueEditPage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { hasPermission } = useAuth();
   const forbidden = !hasPermission('classifier_value.edit');
+  const { refetch } = useClassifiers();
 
   const { value, loading: valueLoading } = useClassifierValueDetail(
     id,
     valueId,
   );
 
-  const handleEditSaved = () => {
+  const handleEditSaved = async () => {
+    await refetch();
     if (id) {
       navigate(`/classifiers/${id}`, {
         state: { alert: { message: t('classifiers.valueEditedNote') } },

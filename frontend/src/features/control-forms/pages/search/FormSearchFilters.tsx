@@ -21,6 +21,7 @@ interface Props {
   setField: (key: keyof Filters, value: string) => void;
   onSearch: () => void;
   onClear: () => void;
+  resetKey: number;
 }
 
 const pick = (options: Option[], value: string): Option | null =>
@@ -34,6 +35,7 @@ export function FormSearchFilters({
   setField,
   onSearch,
   onClear,
+  resetKey,
 }: Props) {
   const { t } = useTranslation();
 
@@ -67,6 +69,7 @@ export function FormSearchFilters({
     <div>
       <div className={styles['filter-grid']}>
         <DateField
+          key={`search-date-from-${resetKey}`}
           id="search-date-from"
           label={t('search.filters.dateFrom')}
           monthYearSelectType="grid"
@@ -75,6 +78,7 @@ export function FormSearchFilters({
           placeholder={t('common.dateFieldPlaceholder')}
         />
         <DateField
+          key={`search-date-to-${resetKey}`}
           id="search-date-to"
           label={t('search.filters.dateTo')}
           monthYearSelectType="grid"

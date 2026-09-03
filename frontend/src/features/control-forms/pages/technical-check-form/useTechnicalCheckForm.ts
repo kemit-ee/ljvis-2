@@ -79,7 +79,7 @@ export function useTechnicalCheckForm(
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode, getChildren } = useClassifiers();
 
-  const allParts = useMemo(() => getByCode('TECHNICAL_CHECK'), [getByCode]);
+  const allParts = useMemo(() => getByCode('TECHNICAL_CHECK').filter((c) => c.isValid !== false), [getByCode]);
 
   const parts: ClassifierEntry[] = useMemo(() => {
     const level1 = allParts
@@ -108,7 +108,7 @@ export function useTechnicalCheckForm(
 
   const euViolations = useMemo(() => {
     const all = getByCode('EU_INFRINGEMENT').filter((v) =>
-      VEHICLE_VIOLATION_CODES.includes(v.code),
+      v.isValid !== false && VEHICLE_VIOLATION_CODES.includes(v.code),
     );
     return variant === 'trailer'
       ? all.filter((v) => !TRAILER_EXCLUDED_VIOLATIONS.includes(v.code))

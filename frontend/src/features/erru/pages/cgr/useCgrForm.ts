@@ -19,18 +19,27 @@ const T = 'erru.cgr.validation';
  * (broadcast, stored as 'ZZ'), so there is no `.required()` on it here.
  */
 export function useCgrForm(
-  request: CgrRequest | undefined,
+  request: Partial<CgrRequest> | undefined,
   onSaved: (id?: string) => void,
 ) {
   const { t } = useTranslation();
-  const isEdit = !!request;
+  const isEdit = !!request?.id;
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode } = useClassifiers();
 
-  const countries = useMemo(() => getByCode('COUNTRY'), [getByCode]);
-  const authorities = useMemo(() => getByCode('COMPETENT_AUTHORITY'), [getByCode]);
-  const requestSources = useMemo(() => getByCode('CGR_REQUEST_SOURCE'), [getByCode]);
-  const requestPurposes = useMemo(() => getByCode('CGR_REQUEST_PURPOSE'), [getByCode]);
+  const countries = useMemo(() => getByCode('COUNTRY').filter((c) => c.isValid !== false), [getByCode]);
+  const authorities = useMemo(
+    () => getByCode('COMPETENT_AUTHORITY').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const requestSources = useMemo(
+    () => getByCode('CGR_REQUEST_SOURCE').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const requestPurposes = useMemo(
+    () => getByCode('CGR_REQUEST_PURPOSE').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
 
   const required = t(`${T}.required`);
 
@@ -40,7 +49,9 @@ export function useCgrForm(
       t(`${T}.invalid_country_code`),
       (v) => !v || v.trim().length === 2,
     ),
-    originatingAuthority: Yup.string().required(required).max(50, t(`${T}.max_length_exceeded`)),
+    originatingAuthority: Yup.string()
+      .required(required)
+      .max(50, t(`${T}.max_length_exceeded`)),
     requestSource: Yup.string().required(required),
     requestPurpose: Yup.string().required(required),
     tmFirstName: Yup.string().max(100, t(`${T}.max_length_exceeded`)),
@@ -57,8 +68,11 @@ export function useCgrForm(
   })
     // XSD choice: 7A (name+DOB) or 7B (certificate), each complete if used at all.
     .test('search-choice', t(`${T}.search_choice_required`), function (values) {
-      const nameFilled = [values?.tmFirstName, values?.tmFamilyName, values?.tmDateOfBirth]
-        .map((v) => !!v && String(v).trim() !== '');
+      const nameFilled = [
+        values?.tmFirstName,
+        values?.tmFamilyName,
+        values?.tmDateOfBirth,
+      ].map((v) => !!v && String(v).trim() !== '');
       const certFilled = [
         values?.certificateNumber,
         values?.certificateIssueDate,
@@ -94,7 +108,7 @@ export function useCgrForm(
   const formik = useFormik<CgrRequestWrite>({
     enableReinitialize: true,
     initialValues: {
-      cgrTo: request?.cgrTo === 'ZZ' ? '' : request?.cgrTo ?? '',
+      cgrTo: request?.cgrTo === 'ZZ' ? '' : (request?.cgrTo ?? ''),
       originatingAuthority: request?.originatingAuthority ?? '',
       requestSource: request?.requestSource ?? '',
       requestPurpose: request?.requestPurpose ?? '',
