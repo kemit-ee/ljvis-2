@@ -32,10 +32,14 @@ export function AddressFields({
   const { t } = useTranslation();
   const { getChildren } = useClassifiers();
 
-  const countryOptions = COUNTRIES.map((c) => ({
-    value: c.value,
-    label: t(c.labelKey),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  const countryOptions = [
+    // Tühi esimene valik, et ekslikult valitud riiki saaks tühjendada.
+    { value: '', label: '' },
+    ...COUNTRIES.map((c) => ({
+      value: c.value,
+      label: t(c.labelKey),
+    })).sort((a, b) => a.label.localeCompare(b.label)),
+  ];
 
   const citiesParishes = useMemo(
     () =>
@@ -92,8 +96,8 @@ export function AddressFields({
           id="addressCounty"
           label={t('forms.shared.address.county')}
           value={value.county}
-          onChange={(v) => onChange({ ...value, county: v, city: '' })}
-          disabled={true}
+          onChange={(v) => onChange({ ...value, county: v })}
+          disabled={disabled}
           {...(errors?.county
             ? { helper: { text: errors.county, type: 'error' as const } }
             : {})}
@@ -122,7 +126,7 @@ export function AddressFields({
           label={t('forms.shared.address.city')}
           value={value.city}
           onChange={(v) => onChange({ ...value, city: v })}
-          disabled={true}
+          disabled={disabled}
           {...(errors?.city
             ? { helper: { text: errors.city, type: 'error' as const } }
             : {})}

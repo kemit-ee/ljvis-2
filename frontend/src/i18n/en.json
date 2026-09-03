@@ -521,7 +521,7 @@
       "title": "ADR control form (dangerous goods)",
       "sectionTitle": "ADR control form",
       "addNew": "Add ADR control form",
-      "hintOnlyOnViolation": "These fields are filled in only if a violation is found.",
+      "hintOnlyOnViolation": "Täita ainult juhul, kui see on rikkumise puhul asjakohane.",
       "driverAssistant": {
         "title": "Driver's assistant data",
         "personalCode": "Personal code",
@@ -549,7 +549,7 @@
         "title": "Transported dangerous goods",
         "empty": "No dangerous goods added",
         "addRow": "+ Add dangerous good",
-        "unNumber": "UN number",
+        "unNumber": "ÜRO number",
         "packagingGroup": "Packaging group",
         "quantity": "Quantity",
         "quantityInvalid": "Quantity must not end with a comma or period",
@@ -559,7 +559,9 @@
         "title": "Exemption",
         "hint": "Application of ADR exemptions per ADR provisions.",
         "applied": "Is an exemption applied",
-        "provision": "ADR provision"
+        "provision": "ADR provision",
+        "provisionIntro": "ADR erandi kohaldamine vastavalt ADR sättele:",
+        "notes": "Märkus (direktiivi 2008/68/EÜ erandid)"
       },
       "containerType": {
         "title": "Container type",
@@ -571,18 +573,41 @@
         }
       },
       "infringements": {
-        "title": "Infringements",
-        "classifierMissing": "The infringements checklist classifier has not been configured yet.",
-        "checkStatus": "Result",
+        "title": "Rikkumised",
+        "classifierMissing": "Rikkumiste kontrollnimekirja klassifikaator ei ole veel seadistatud.",
+        "inspectionStatus": "Kontroll",
         "status": {
-          "checked": "Checked (C)",
-          "not_possible": "Not possible to check (NC)",
-          "not_applicable": "Not applicable (NA)"
+          "C": "C – kontrollitud",
+          "NC": "NC – ei ole võimalik kontrollida",
+          "NA": "NA – ei kohaldata"
         },
-        "riskCategory": "Risk category",
-        "adrProvision": "ADR provision",
-        "notes": "Note",
-        "otherViolations": "Other violations"
+        "notCheckedReason": "Põhjus",
+        "infringementDetected": "Rikkumine tuvastatud",
+        "record": "Rikkumine {{n}}",
+        "addRecord": "+ Lisa rikkumine",
+        "removeRecord": "Kustuta rikkumine",
+        "riskCategory": "Riskikategooria (direktiivi 2022/1999 kohane)",
+        "riskCategoryOptions": {
+          "I": "I",
+          "II": "II",
+          "III": "III"
+        },
+        "adrReference": "Rikutud ADR punkt",
+        "participants": "Võimalik vastutav osaleja",
+        "participantOptions": {
+          "Ci": "Kaubasaatja (Ci)",
+          "C": "Vedaja (C)",
+          "Ce": "Kaubasaaja (Ce)",
+          "L": "Laadija (L)",
+          "P": "Pakendaja (P)",
+          "F": "Täitja (F)",
+          "To": "Paagi käitaja (To)",
+          "U": "Mahalaadija (U)"
+        },
+        "regCode": "Määruse (EL) 2016/403 rikkumisliik",
+        "regCodeNone": "Ei ole määruse 2016/403 p 9 rikkumisliik",
+        "regCodeDisabledHint": "2016/403 rikkumisliik määratakse ainult juhul, kui rikkumise eest võib täielikult või osaliselt vastutada vedaja.",
+        "regSeverityAuto": "2016/403 raskusaste: {{severity}} (automaatselt)"
       },
       "result": {
         "title": "Inspection result",
@@ -608,7 +633,11 @@
         },
         "sealOpened": "Seal opened during inspection",
         "sealOpenedDate": "Seal opened date",
-        "sealInstalledDate": "Seal installed date"
+        "sealInstalledDate": "Seal installed date",
+        "additionalMeasures": "Lisameetmed",
+        "drivingBanApplied": "Sõidukeeld (direktiivi (EL) 2022/1999 artikkel 5)",
+        "transportInterruptionApplied": "Autovedu on katkestatud",
+        "misdemeanourCaseNumber": "Väärteoasja number"
       },
       "notes": {
         "title": "Notes",
@@ -629,6 +658,13 @@
           "form_locked_after_publish": "This form has been published and can no longer be edited",
           "already_confirmed": "This form has already been confirmed"
         }
+      },
+      "otherInfringements": {
+        "sectionTitle": "Muu rikkumine",
+        "title": "Pealkiri",
+        "addRow": "+ Lisa uus muu rikkumine",
+        "remove": "Kustuta muu rikkumine",
+        "empty": "Muid rikkumisi ei ole lisatud"
       }
     },
     "compound": {

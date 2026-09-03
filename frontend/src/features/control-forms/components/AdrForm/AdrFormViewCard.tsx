@@ -29,8 +29,18 @@ export function AdrFormViewCard({ form, formType, canPublish, onPublish }: AdrFo
     updateDangerousGood,
     removeDangerousGood,
     toggleCorrectiveMeasure,
-    setInfringement,
-    getInfringement,
+    toggleContainerType,
+    getCheckpoint,
+    setCheckpoint,
+    addRecord,
+    updateRecord,
+    removeRecord,
+    addOtherInfringement,
+    updateOtherInfringement,
+    removeOtherInfringement,
+    addOtherRecord,
+    updateOtherRecord,
+    removeOtherRecord,
   } = useAdrForm(form, () => {}, form.compoundFormKey ? Number(form.compoundFormKey) : undefined);
 
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -56,8 +66,18 @@ export function AdrFormViewCard({ form, formType, canPublish, onPublish }: AdrFo
           updateDangerousGood={updateDangerousGood}
           removeDangerousGood={removeDangerousGood}
           toggleCorrectiveMeasure={toggleCorrectiveMeasure}
-          setInfringement={setInfringement}
-          getInfringement={getInfringement}
+          toggleContainerType={toggleContainerType}
+          getCheckpoint={getCheckpoint}
+          setCheckpoint={setCheckpoint}
+          addRecord={addRecord}
+          updateRecord={updateRecord}
+          removeRecord={removeRecord}
+          addOtherInfringement={addOtherInfringement}
+          updateOtherInfringement={updateOtherInfringement}
+          removeOtherInfringement={removeOtherInfringement}
+          addOtherRecord={addOtherRecord}
+          updateOtherRecord={updateOtherRecord}
+          removeOtherRecord={removeOtherRecord}
           canEdit={false}
           isDesktop={isDesktop}
         />
