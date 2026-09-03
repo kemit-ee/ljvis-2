@@ -25,5 +25,5 @@ queryCount:
   next: returnResult
 
 returnResult:
-  return: "${res.response.body[0] ?? {unread_count: 0}}"
+  return: "${res.response.body[0] ?? {unreadCount: 0}}"
   next: end

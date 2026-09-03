@@ -24,7 +24,7 @@ export function useNotificationCount(): {
 
   const refetch = React.useCallback(() => {
     fetchUnreadCount()
-      .then((r: UnreadCountResult) => setUnreadCount(r.unread_count ?? 0))
+      .then((r: UnreadCountResult) => setUnreadCount(r.unreadCount ?? 0))
       .catch(() => {/* viga ei peata renderdust */});
   }, []);
 
@@ -64,7 +64,7 @@ export function useNotifications(): {
         fetchUnreadCount(),
       ]);
       setNotifications(notifs ?? []);
-      setUnreadCount(countRes.unread_count ?? 0);
+      setUnreadCount(countRes.unreadCount ?? 0);
     } catch {/* viga ei peata renderdust */} finally {
       setLoading(false);
     }
