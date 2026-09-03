@@ -1,48 +1,57 @@
+// Väljanimed on camelCase — Rust Resql tagastab kõik veerud camelCase kujul
+// (ka selgelt snake_case aliasitud veerud), sama nagu mujal rakenduses.
+
 export interface InAppNotification {
   id: string;
   type: string;
-  required_permission: string;
-  related_entity_type?: string | null;
-  related_entity_id?: string | null;
-  title_et: string;
-  body_et?: string | null;
-  created_at: string;
-  is_unread: boolean;
-  total: number;
+  requiredPermission: string;
+  relatedEntityType?: string | null;
+  relatedEntityId?: string | null;
+  titleEt: string;
+  bodyEt?: string | null;
+  createdAt: string;
+  isUnread: boolean;
+  total?: number;
 }
 
 export interface OutboundLogEntry {
   id: string;
-  message_type: string;
-  send_date: string;
+  messageType: string;
+  sendDate: string;
   status: 'sent' | 'sent_error';
-  related_entity_type?: string | null;
-  related_entity_id?: string | null;
-  original_log_id?: string | null;
-  pk_template_id?: string | null;
-  pk_sending_operation_id?: string | null;
-  first_recipient_email?: string | null;
-  first_recipient_name?: string | null;
-  first_recipient_code?: string | null;
-  total: number;
+  relatedEntityType?: string | null;
+  relatedEntityId?: string | null;
+  originalLogId?: string | null;
+  pkTemplateId?: string | null;
+  pkSendingOperationId?: string | null;
+  firstRecipientEmail?: string | null;
+  firstRecipientName?: string | null;
+  firstRecipientCode?: string | null;
+  total?: number;
+}
+
+export interface OutboundLogFilters {
+  status?: string;
+  messageType?: string;
+  dateFrom?: string;
 }
 
 export interface OutboundRecipient {
   id: string;
-  log_id: string;
-  person_email?: string | null;
-  person_name?: string | null;
-  person_code?: string | null;
-  sending_report: string;
+  logId: string;
+  personEmail?: string | null;
+  personName?: string | null;
+  personCode?: string | null;
+  sendingReport: string;
 }
 
 export interface UnreadCountResult {
-  unread_count: number;
+  unreadCount: number;
 }
 
 export interface MarkReadResult {
-  notification_id: string;
-  user_code: string;
+  notificationId: string;
+  userCode: string;
 }
 
 export interface MarkAllReadResult {

@@ -41,8 +41,22 @@ queryLog:
       page: ${page}
       page_size: ${page_size}
   result: res
+  next: mapResponse
+
+# Mähime read {content, total} kujusse (frontend PagedResponse), sama mustriga
+# nagu erru list-otspunktid (map_rsi_list / map_ctud_list). total tuleb
+# list_outbound_log.sql-i COUNT(*) OVER () veerust, mis on igal real ühesugune.
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_outbound_log_list"
+    headers:
+      type: json
+    body:
+      rows: ${res.response.body}
+  result: mapped
   next: returnResult
 
 returnResult:
-  return: ${res.response.body}
+  return: ${mapped.response.body}
   next: end
