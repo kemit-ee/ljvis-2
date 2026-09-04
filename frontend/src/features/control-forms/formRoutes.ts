@@ -83,7 +83,6 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     hasParent: true,
     parentKey: 'compound_form',
     typeParam: 'trailer-technical',
-    classifierCode: 'SP_TRAILER_TECH',
   },
   adr_form: {
     labelKey: 'forms.adr.title',
