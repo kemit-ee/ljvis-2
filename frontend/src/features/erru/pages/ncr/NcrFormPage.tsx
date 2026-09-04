@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useNcrCase } from './useNcrCase';
@@ -36,6 +36,7 @@ export function NcrFormPage() {
   const { t } = useTranslation();
   const { businessCaseId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { hasAnyPermission } = useAuth();
   const { label } = useClassifierLabel();
   const { organisations } = useOrganisations();
@@ -50,7 +51,9 @@ export function NcrFormPage() {
   const canSend = hasAnyPermission(['ncr.send']);
 
   const { current, snapshots, isLoading, notFound, reload } = useNcrCase(businessCaseId);
-  const [savedOk, setSavedOk] = useState(false);
+  const [savedOk, setSavedOk] = useState(
+    !!(location.state as { justSaved?: boolean } | null)?.justSaved,
+  );
 
   const requestForm = useNcrRequestForm(current, () => { setSavedOk(true); reload(); });
   const responseForm = useNcrResponseForm(current, () => { setSavedOk(true); reload(); });
@@ -66,8 +69,10 @@ export function NcrFormPage() {
   const responseSendable = isNcrResponseSendable(current) && canSend;
 
   const doSend = async () => {
+    setSavedOk(false);
     setSendError(null);
     setSending(true);
+    window.scrollTo(0, 0);
     try {
       await sendNcrRequest(current.businessCaseId);
       await reload();
@@ -81,8 +86,10 @@ export function NcrFormPage() {
   };
 
   const doSendResponse = async () => {
+    setSavedOk(false);
     setSendError(null);
     setSending(true);
+    window.scrollTo(0, 0);
     try {
       await sendNcrResponse(current.businessCaseId);
       await reload();
@@ -97,6 +104,16 @@ export function NcrFormPage() {
 
   return (
     <div>
+      {savedOk && (
+        <Alert
+          type="success"
+          size="small"
+          className="mt-05"
+          onClose={() => setSavedOk(false)}
+        >
+          {t('common.saved')}
+        </Alert>
+      )}
       <Card className="mt-05">
         <Card.Content>
           <div className="card-main">
@@ -130,13 +147,13 @@ export function NcrFormPage() {
         <form onSubmit={requestForm.formik.handleSubmit}>
           <NcrRequestFields form={requestForm} />
           {requestForm.formError && (
-            <Alert type="danger" size="small" className="mt-05">
+            <Alert
+              type="danger"
+              size="small"
+              className="mt-05"
+              onClose={() => requestForm.clearFormError()}
+            >
               {requestForm.formError}
-            </Alert>
-          )}
-          {savedOk && (
-            <Alert type="success" size="small" className="mt-05">
-              {t('common.saved')}
             </Alert>
           )}
           {requestForm.formik.submitCount > 0 &&
@@ -174,13 +191,13 @@ export function NcrFormPage() {
             organisations={organisations}
           />
           {responseForm.formError && (
-            <Alert type="danger" size="small" className="mt-05">
+            <Alert
+              type="danger"
+              size="small"
+              className="mt-05"
+              onClose={() => responseForm.clearFormError()}
+            >
               {responseForm.formError}
-            </Alert>
-          )}
-          {savedOk && (
-            <Alert type="success" size="small" className="mt-05">
-              {t('common.saved')}
             </Alert>
           )}
           {responseForm.formik.submitCount > 0 &&
@@ -216,7 +233,7 @@ export function NcrFormPage() {
 
       {!requestEditable && !responseEditable && (
         <>
-          <Card>
+          <Card className="mt-05">
             <Card.Content>
               <Heading element="h2" className="mb-1">
                 {t('erru.ncr.form.headerBlock')}

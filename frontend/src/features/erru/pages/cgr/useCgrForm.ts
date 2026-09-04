@@ -144,6 +144,7 @@ export function useCgrForm(
     formik,
     isEdit,
     formError,
+    clearFormError: () => setFormError(null),
     countries,
     authorities,
     requestSources,
