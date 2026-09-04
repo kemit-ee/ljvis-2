@@ -105,5 +105,5 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
     formik.setFieldValue('responsePenaltiesImposed', items);
   };
 
-  return { formik, formError, updatePenalty };
+  return { formik, formError, clearFormError: () => setFormError(null), updatePenalty };
 }

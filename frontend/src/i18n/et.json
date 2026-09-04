@@ -1487,7 +1487,7 @@
         "vehicleNumber": "Sõiduki registreerimisnumber",
         "vehicleCountry": "Sõiduki registreerimisriik",
         "requestAllVehicles": "Kõikide sõidukite andmed",
-        "minTwoHint": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast.",
+        "minTwoHint": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast  — veoettevõtja nimi, ühenduse tegevusloa või selle kinnitatud ärakirja/tõestatud koopia number ning sõiduki registreerimisnumber",
         "send": "Saada",
         "resend": "Saada uuesti",
         "readOnly": "ainult lugemiseks",
@@ -1526,7 +1526,7 @@
       },
       "validation": {
         "required": "Väli on kohustuslik",
-        "min_two_search_criteria": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast.",
+        "min_two_search_criteria": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast  — veoettevõtja nimi, ühenduse tegevusloa või selle kinnitatud ärakirja/tõestatud koopia number ning sõiduki registreerimisnumber",
         "unknown_not_allowed": "Väärtus „unknown“ ei ole lubatud",
         "invalid_country_code": "Riigi kood peab olema kahetäheline",
         "max_length_exceeded": "Välja pikkus on ületatud",

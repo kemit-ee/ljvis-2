@@ -1468,7 +1468,7 @@
         "vehicleNumber": "Vehicle registration number",
         "vehicleCountry": "Vehicle registration country",
         "requestAllVehicles": "Return all managed vehicles",
-        "minTwoHint": "At least two of the three search fields must be filled.",
+        "minTwoHint": "At least two of the three search fields must be filled - transport undertaking name, community licence or certified true copy number, vehicle registration number",
         "send": "Send",
         "resend": "Send again",
         "readOnly": "read-only",
@@ -1507,7 +1507,7 @@
       },
       "validation": {
         "required": "This field is required",
-        "min_two_search_criteria": "At least two of the three search fields must be filled.",
+        "min_two_search_criteria": "At least two of the three search fields must be filled - transport undertaking name, community licence or certified true copy number, vehicle registration number",
         "unknown_not_allowed": "The value \"unknown\" is not allowed",
         "invalid_country_code": "Country code must be two letters",
         "max_length_exceeded": "Maximum length exceeded",

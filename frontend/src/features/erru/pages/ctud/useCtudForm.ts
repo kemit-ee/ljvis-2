@@ -119,6 +119,7 @@ export function useCtudForm(
     formik,
     isEdit,
     formError,
+    clearFormError: () => setFormError(null),
     countries,
     authorities,
     requestSources,

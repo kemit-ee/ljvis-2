@@ -88,7 +88,6 @@ export function useRsiForm(
   const { t } = useTranslation();
   const isEdit = !!message;
   const [formError, setFormError] = useState<string | null>(null);
-  const [savedOk, setSavedOk] = useState(false);
   const { getByCode, getChildren } = useClassifiers();
 
   const countries = useMemo(() => getByCode('COUNTRY').filter((c) => c.isValid !== false), [getByCode]);
@@ -122,14 +121,30 @@ export function useRsiForm(
   const validationSchema = useMemo(
     () =>
       Yup.object({
-        originatingAuthority: Yup.string().required(required).max(100, t(`${T}.max_length_exceeded`)),
-        vehicleRegistrationNumber: Yup.string().required(required).max(50, t(`${T}.max_length_exceeded`)),
-        vehicleRegistrationCountry: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
-        vehicleIdentificationNumber: Yup.string().max(20, t(`${T}.max_length_exceeded`)),
-        inspectionLocation: Yup.string().required(required).max(200, t(`${T}.max_length_exceeded`)),
+        originatingAuthority: Yup.string()
+          .trim()
+          .required(required)
+          .max(100, t(`${T}.max_length_exceeded`)),
+        vehicleRegistrationNumber: Yup.string()
+          .trim()
+          .required(required)
+          .max(50, t(`${T}.max_length_exceeded`)),
+        vehicleRegistrationCountry: Yup.string()
+          .required(required)
+          .length(2, t(`${T}.invalid_country_code`)),
+        vehicleIdentificationNumber: Yup.string()
+          .trim()
+          .max(20, t(`${T}.max_length_exceeded`)),
+        inspectionLocation: Yup.string()
+          .trim()
+          .required(required)
+          .max(200, t(`${T}.max_length_exceeded`)),
         inspectionDate: Yup.string().required(required),
         inspectionTime: Yup.string().required(required),
-        inspectionAuthorityOrName: Yup.string().required(required).max(100, t(`${T}.max_length_exceeded`)),
+        inspectionAuthorityOrName: Yup.string()
+          .trim()
+          .required(required)
+          .max(100, t(`${T}.max_length_exceeded`)),
         // inspectionPassed is always 'false' for outgoing EE — no need to validate
         ptiRequested: Yup.string().required(required),
         vehicleProhibitionOrRestriction: Yup.string().required(required),
@@ -205,7 +220,6 @@ export function useRsiForm(
     },
     onSubmit: async (values, { setFieldError }) => {
       setFormError(null);
-      setSavedOk(false);
       try {
         const identification = identificationBlockOpen
           ? ({
@@ -274,7 +288,6 @@ export function useRsiForm(
           checkedItems: JSON.stringify(values.checkedItems ?? []),
         };
         const result = await saveRsiMessage(message?.id ?? '', payload);
-        setSavedOk(true);
         onSaved(String(result.id));
       } catch (e) {
         const handled = applyValidationError(
@@ -339,7 +352,7 @@ export function useRsiForm(
     formik,
     isEdit,
     formError,
-    savedOk,
+    clearFormError: () => setFormError(null),
     countries,
     vehicleCategories,
     parts,

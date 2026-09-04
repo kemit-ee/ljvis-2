@@ -23,8 +23,9 @@ export function RsiFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  // Show success banner when navigated here after a successful create
-  const [justCreated] = useState(() => !!(location.state as { justSaved?: boolean } | null)?.justSaved);
+  const [savedOk, setSavedOk] = useState(
+    !!(location.state as { justSaved?: boolean } | null)?.justSaved,
+  );
   const { hasAnyPermission } = useAuth();
   const { label } = useClassifierLabel();
 
@@ -34,8 +35,13 @@ export function RsiFormPage() {
 
   const { message, isLoading, notFound, send, isSending, sendError, reload } =
     useRsiMessageDetail(id);
-  const form = useRsiForm(message, () => reload());
-  const { savedOk } = form;
+  const handleSaved = () => {
+    setSavedOk(true);
+    window.scrollTo(0, 0);
+    reload();
+  };
+  const handleSend = () => { setSavedOk(false); window.scrollTo(0, 0); send(); };
+  const form = useRsiForm(message, handleSaved);
   const prevSubmitCount = useRef(0);
 
   useEffect(() => {
@@ -52,7 +58,7 @@ export function RsiFormPage() {
   }, [form.formik.submitCount, form.formik.errors]);
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
-  if (isLoading) return <Text>{t('common.loading')}</Text>;
+  if (isLoading && !message) return <Text>{t('common.loading')}</Text>;
   if (notFound || !message) return <Text>{t('erru.rsi.notFound')}</Text>;
 
   const editable = isRsiEditable(message) && canEdit;
@@ -61,6 +67,16 @@ export function RsiFormPage() {
 
   return (
     <div>
+      {savedOk && (
+        <Alert
+          type="success"
+          size="small"
+          className="mt-05"
+          onClose={() => setSavedOk(false)}
+        >
+          {t('common.saved')}
+        </Alert>
+      )}
       <Card className="mt-05">
         <Card.Content>
           <div className="card-main">
@@ -92,13 +108,13 @@ export function RsiFormPage() {
         <form onSubmit={form.formik.handleSubmit}>
           <RsiMessageFields form={form} />
           {form.formError && (
-            <Alert type="danger" size="small" className="mt-05">
+            <Alert
+              type="danger"
+              size="small"
+              className="mt-05"
+              onClose={() => form.clearFormError()}
+            >
               {form.formError}
-            </Alert>
-          )}
-          {(savedOk || justCreated) && (
-            <Alert type="success" size="small" className="mt-05">
-              {t('common.saved')}
             </Alert>
           )}
           {form.formik.submitCount > 0 &&
@@ -118,7 +134,7 @@ export function RsiFormPage() {
               {t('common.save')}
             </Button>
             {sendable && (
-              <Button onClick={send} disabled={isSending}>
+              <Button onClick={handleSend} disabled={isSending}>
                 {t('erru.rsi.form.send')}
               </Button>
             )}

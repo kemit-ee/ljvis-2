@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useCgrRequestDetail } from './useCgrRequestDetail';
@@ -24,6 +24,10 @@ export function CgrFormPage() {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [savedOk, setSavedOk] = useState(
+    !!(location.state as { justSaved?: boolean } | null)?.justSaved,
+  );
   const { hasAnyPermission } = useAuth();
   const { label } = useClassifierLabel();
 
@@ -31,13 +35,19 @@ export function CgrFormPage() {
   const canEdit = hasAnyPermission(['cgr.create']);
   const canSend = hasAnyPermission(['cgr.send']);
 
-  const [savedOk, setSavedOk] = useState(false);
   const { request, isLoading, notFound, send, isSending, resend, resendingCountry, sendError, reload } =
     useCgrRequestDetail(id);
-  const form = useCgrForm(request, () => { setSavedOk(true); reload(); });
+  const handleSaved = () => {
+    setSavedOk(true);
+    window.scrollTo(0, 0);
+    reload();
+  };
+  const handleSend = () => { setSavedOk(false); window.scrollTo(0, 0); send(); };
+  const handleResend = (code: string) => { setSavedOk(false); window.scrollTo(0, 0); resend(code); };
+  const form = useCgrForm(request, handleSaved);
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
-  if (isLoading) return <Text>{t('common.loading')}</Text>;
+  if (isLoading && !request) return <Text>{t('common.loading')}</Text>;
   if (notFound || !request) return <Text>{t('erru.cgr.notFound')}</Text>;
 
   const cgrToLabel = (code: string | null | undefined) =>
@@ -49,6 +59,16 @@ export function CgrFormPage() {
 
   return (
     <div>
+      {savedOk && (
+        <Alert
+          type="success"
+          size="small"
+          className="mt-05"
+          onClose={() => setSavedOk(false)}
+        >
+          {t('common.saved')}
+        </Alert>
+      )}
       <Card className="mt-05">
         <Card.Content>
           <div className="card-main">
@@ -80,13 +100,13 @@ export function CgrFormPage() {
         <form onSubmit={form.formik.handleSubmit}>
           <CgrRequestFields form={form} />
           {form.formError && (
-            <Alert type="danger" size="small" className="mt-05">
+            <Alert
+              type="danger"
+              size="small"
+              className="mt-05"
+              onClose={() => form.clearFormError()}
+            >
               {form.formError}
-            </Alert>
-          )}
-          {savedOk && (
-            <Alert type="success" size="small" className="mt-05">
-              {t('common.saved')}
             </Alert>
           )}
           {form.formik.submitCount > 0 &&
@@ -106,7 +126,7 @@ export function CgrFormPage() {
               {t('common.save')}
             </Button>
             {sendable && (
-              <Button onClick={send} disabled={isSending}>
+              <Button onClick={handleSend} disabled={isSending}>
                 {t('erru.cgr.form.send')}
               </Button>
             )}
@@ -194,7 +214,7 @@ export function CgrFormPage() {
           <CgrMemberStatesTable
             request={request}
             canSend={canSend}
-            onResend={resend}
+            onResend={handleResend}
             resendingCountry={resendingCountry}
           />
 
@@ -206,7 +226,7 @@ export function CgrFormPage() {
               {t('common.back')}
             </Button>
             {sendable && (
-              <Button onClick={send} disabled={isSending}>
+              <Button onClick={handleSend} disabled={isSending}>
                 {t('erru.cgr.form.resend')}
               </Button>
             )}
