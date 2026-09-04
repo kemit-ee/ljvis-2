@@ -212,6 +212,7 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
   return {
     formik,
     formError,
+    clearFormError: () => setFormError(null),
     setCheckPassed,
     addSeriousInfringement,
     removeSeriousInfringement,

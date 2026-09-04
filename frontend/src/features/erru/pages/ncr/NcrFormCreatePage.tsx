@@ -16,7 +16,7 @@ export function NcrFormCreatePage() {
   const { hasAnyPermission } = useAuth();
 
   const form = useNcrRequestForm(undefined, (businessCaseId) =>
-    navigate(businessCaseId ? `/erru/ncr/${businessCaseId}` : '/erru/ncr'),
+    navigate(businessCaseId ? `/erru/ncr/${businessCaseId}` : '/erru/ncr', { state: { justSaved: true } }),
   );
 
   if (!hasAnyPermission(['ncr.create'])) return <Text>{t('common.forbidden')}</Text>;
