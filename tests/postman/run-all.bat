@@ -72,6 +72,9 @@ call newman run "%COL%\risk-scores.collection.json" -e "%ENV%" -r cli,htmlextra 
 echo Running collection: citizen-representation.collection.json
 call newman run "%COL%\citizen-representation.collection.json" -e "%ENV%" -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\citizen-representation.html"
 
+echo Running collection: dashboard.collection.json
+call newman run "%COL%\dashboard.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\dashboard.html"
+
 echo.
 echo All collections passed.
 echo HTML reports:

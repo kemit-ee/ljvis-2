@@ -1,0 +1,196 @@
+/* Kompleksvorm + Vormid sit side by side (global .grid-2col) on desktop, but
+   must stack into a single column on a narrow/mobile screen. Higher-specificity
+   selector (two classes) so it wins over .grid-2col regardless of stylesheet
+   order. */
+@media (max-width: 820px) {
+  :global(.grid-2col).formsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scopeToggle {
+  margin-bottom: 16px;
+}
+
+.errorBanner {
+  margin-bottom: 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.helperText {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.formRowKind {
+  display: block;
+}
+
+.formContent {
+    margin-bottom: 16px;
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.formBlock {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.choiceBlock {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-left: 1.5rem;
+}
+
+/* Each "Kompleksvorm"/"Vormid" entry row: icon + two-line label (bold title +
+   grey Kontrollkaart/Protokoll/Vorm kind) on the left, "Täida →" on the right. */
+.formRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.formRowLabel {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.expandButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.expandButton:hover {
+  background-color: var(--color-bg-subtle, #f0f0f2);
+}
+
+.expandButton:focus-visible {
+  outline: 2px solid var(--color-border-default, #b9bac2);
+  outline-offset: 1px;
+}
+
+/* LJVIS2-37 AC (row 120): overdue kiirmenetlus/üldmenetlus deadlines are
+   shown in red (red text + subtle red fill) in the active-compound / sub-form
+   tables. */
+.rowOverdue {
+  cursor: pointer;
+}
+
+.rowOverdue td {
+  color: var(--button-main-danger-neutral-text-default, #c00);
+  background: var(--color-bg-danger-subtle, #fdecec);
+}
+
+/* LJVIS2-37: the dashboard tables (TEDI <Table hideCardBorder/>) render as a
+   bare <table> with no cell borders. Give every cell a full 1px grid border,
+   a tinted header, and a hover cue on the clickable rows. Targeted by the
+   stable table ids set in DesktopPage.tsx. */
+:global(#dashboard-active-compound),
+:global(#dashboard-active-standalone) {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Mobile: TEDI wraps the table in an overflow-x:auto container, but with no
+   min-width the columns just get crushed on a narrow screen (the grid
+   collapses, headers squish). A min-width keeps the full grid intact and lets
+   it scroll horizontally instead. Desktop is always wider, so unaffected. */
+:global(#dashboard-active-compound) {
+  min-width: 920px;
+}
+
+:global(#dashboard-active-standalone) {
+  min-width: 640px;
+}
+
+:global(#dashboard-active-compound th),
+:global(#dashboard-active-compound td),
+:global(#dashboard-active-standalone th),
+:global(#dashboard-active-standalone td) {
+  border: 1px solid var(--color-border-default, #e1e2e5);
+  padding: 12px 16px;
+  vertical-align: middle;
+}
+
+/* Mockup: header is white with muted grey labels and a firmer bottom rule
+   (no grey fill). */
+:global(#dashboard-active-compound thead th),
+:global(#dashboard-active-standalone thead th) {
+  background-color: transparent;
+  color: var(--color-text-subtle, #52535f);
+  font-weight: 600;
+  border-bottom: 2px solid var(--color-border-default, #e1e2e5);
+}
+
+:global(#dashboard-active-compound tbody tr:hover td),
+:global(#dashboard-active-standalone tbody tr:hover td) {
+  background-color: var(--color-bg-subtle, #f0f0f2);
+}
+
+/* Mockup: the last (action / "Jätka →") column sits flush right. */
+:global(#dashboard-active-compound th:last-child),
+:global(#dashboard-active-compound td:last-child),
+:global(#dashboard-active-standalone th:last-child),
+:global(#dashboard-active-standalone td:last-child) {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Expanded sub-form rows are real <tr> rows of the parent table (see
+   renderSubComponent), so they inherit the grid borders and their cells line
+   up under the parent columns. They only need a pointer + hover cue and the
+   default cell background. */
+.subRow {
+  cursor: pointer;
+}
+
+.subRow td {
+  background: var(--color-bg-default, #fff);
+}
+
+.subRow:hover td {
+  background: var(--color-bg-hover, var(--color-bg-subtle, #f0f0f2));
+}
+
+.subTableAction {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Mobile: tighter cell padding so the (horizontally scrolling) grid wastes
+   less width. */
+@media (max-width: 640px) {
+  :global(#dashboard-active-compound th),
+  :global(#dashboard-active-compound td),
+  :global(#dashboard-active-standalone th),
+  :global(#dashboard-active-standalone td) {
+    padding: 8px 10px;
+  }
+}

@@ -38,6 +38,12 @@
       "description": "Regular user with no permissions (Mari Tamm)"
     },
     {
+      "key": "pc_officer",
+      "value": "60002020202",
+      "enabled": true,
+      "description": "Regular officer, Officer Group, PPA (seed_test_data.sql) — used for own/org-scope isolation checks against pc_admin"
+    },
+    {
       "key": "cookie_admin",
       "value": "",
       "enabled": true

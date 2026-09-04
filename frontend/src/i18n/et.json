@@ -385,6 +385,58 @@
     "title": "Töölaud",
     "addForm": "+ Lisa"
   },
+  "dashboard": {
+    "scope": {
+      "label": "Vaade",
+      "own": "Mina",
+      "organisation": "Organisatsioon"
+    },
+    "sections": {
+      "compoundBlock": "Kompleksvorm",
+      "formsBlock": "Vormid",
+      "activeCompound": "Töös olevad kompleksvormid",
+      "activeStandalone": "Töös olevad vormid"
+    },
+    "compound": {
+      "selectSubforms": "Vali kontrollvorm(id):",
+      "selectSubformsHint": "Vali vähemalt üks kontrollvorm"
+    },
+    "kind": {
+      "kontrollkaart": "Kontrollkaart",
+      "protokoll": "Protokoll",
+      "vorm": "Vorm"
+    },
+    "empty": {
+      "activeCompound": "Pooleliolevaid kompleksvorme ei ole",
+      "activeStandalone": "Pooleliolevaid vorme ei ole"
+    },
+    "columns": {
+      "date": "Kuupäev",
+      "time": "Kellaaeg",
+      "vehicle": "Sõiduk",
+      "driver": "Autojuht",
+      "company": "Ettevõte",
+      "formNumber": "Vorm",
+      "formType": "Nimetus",
+      "status": "Staatus",
+      "progress": "Edenemine"
+    },
+    "actions": {
+      "fill": "Täida",
+      "continue": "Jätka",
+      "toggleExpand": "Näita/peida alamvormid",
+      "viewAllSearch": "Vaata kõiki otsingus →"
+    },
+    "status": {
+      "saved": "Salvestatud",
+      "confirmed": "Kinnitatud",
+      "published": "Avalikustatud",
+      "deleted": "Kustutatud"
+    },
+    "errors": {
+      "summaryFailed": "Töölaua andmete laadimine ebaõnnestus."
+    }
+  },
   "forms": {
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
@@ -921,10 +973,6 @@
       "inspectorProfession": "Ametinimetus"
     },
     "admin_procedure_form": "Haldusmenetlus seoses raskete autoveoalaste rikkumistega",
-    "sp_vehicle_tech_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
-    "sp_trailer_tech_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
-    "sp_dangerous_goods_form": "Ohtliku veose veo kontrollvorm",
-    "sp_transport_suspended_form": "Autovedu on katkestatud kontrollvorm",
     "foreign_violation": {
       "reportingBasicInfo": "Teate saatnud riik ja asutus",
       "reportingCountry": "Teate saatnud riik",

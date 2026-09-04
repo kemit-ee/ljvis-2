@@ -112,16 +112,25 @@ export function CompoundFormCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const type = searchParams.get('type');
+  // Dashboard "Kompleksvorm" checklist (LJVIS2-37) — lets the officer
+  // pre-select several sub-form types at once, e.g. ?types=driver,adr
+  const types = searchParams.get('types');
 
-  const initialTabRoute = type
-    ? (ROUTE_TO_TAB[`/sp-${type}`] ? `/sp-${type}` : ROUTE_TO_TAB[`/${type}`] ? `/${type}` : null)
-    : null;
-  const initialTab = initialTabRoute ? ROUTE_TO_TAB[initialTabRoute].tabId : null;
+  const routeForType = (t: string): string | null =>
+    ROUTE_TO_TAB[`/sp-${t}`] ? `/sp-${t}` : ROUTE_TO_TAB[`/${t}`] ? `/${t}` : null;
 
-  const [activeTab, setActiveTab] = useState(initialTab ?? 'tab-1');
-  const [openTabs, setOpenTabs] = useState<string[]>(
-    initialTab ? [initialTab] : [],
-  );
+  const initialTabRoutes = types
+    ? types.split(',').map((t) => t.trim()).filter(Boolean).map(routeForType).filter((r): r is string => r !== null)
+    : type
+      ? [routeForType(type)].filter((r): r is string => r !== null)
+      : [];
+  const initialTabs = Array.from(new Set(initialTabRoutes.map((r) => ROUTE_TO_TAB[r].tabId)));
+
+  // The pre-selected sub-form tabs (checklist on the dashboard, or a single
+  // ?type=) are opened, but "Üldosa" (tab-1) is always the one the officer
+  // lands on first.
+  const [activeTab, setActiveTab] = useState('tab-1');
+  const [openTabs, setOpenTabs] = useState<string[]>(initialTabs);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
   const [trailerTabIndices, setTrailerTabIndices] = useState<Set<number>>(new Set());

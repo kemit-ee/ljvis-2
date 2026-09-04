@@ -163,6 +163,11 @@ newman run "$COL/audit-log.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/audit-log.html"
 
+newman run "$COL/dashboard.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/dashboard.html"
+
 echo ""
 echo "All collections passed."
 echo "HTML reports:"

@@ -276,6 +276,58 @@
     "title": "Desktop",
     "addForm": "+ Add"
   },
+  "dashboard": {
+    "scope": {
+      "label": "View",
+      "own": "Mine",
+      "organisation": "Organisation"
+    },
+    "sections": {
+      "compoundBlock": "Compound form",
+      "formsBlock": "Forms",
+      "activeCompound": "Active compound forms",
+      "activeStandalone": "Active forms"
+    },
+    "compound": {
+      "selectSubforms": "Select control form(s):",
+      "selectSubformsHint": "Select at least one control form"
+    },
+    "kind": {
+      "kontrollkaart": "Control card",
+      "protokoll": "Protocol",
+      "vorm": "Form"
+    },
+    "empty": {
+      "activeCompound": "No unfinished compound forms",
+      "activeStandalone": "No unfinished forms"
+    },
+    "columns": {
+      "date": "Date",
+      "time": "Time",
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "company": "Company",
+      "formNumber": "Form",
+      "formType": "Name",
+      "status": "Status",
+      "progress": "Progress"
+    },
+    "actions": {
+      "fill": "Fill in",
+      "continue": "Continue",
+      "toggleExpand": "Show/hide sub-forms",
+      "viewAllSearch": "View all in search →"
+    },
+    "status": {
+      "saved": "Saved",
+      "confirmed": "Confirmed",
+      "published": "Published",
+      "deleted": "Deleted"
+    },
+    "errors": {
+      "summaryFailed": "Failed to load dashboard data."
+    }
+  },
   "forms": {
     "savedNote": "Form has been saved",
     "confirmedNote": "Form has been confirmed",
@@ -760,10 +812,6 @@
     "sp_teammate_form": "Team member driving and rest time inspection form",
     "tram_driver_form": "Transport Administration inspection card",
     "tram_add_driver": "Add driver",
-    "sp_vehicle_tech_form": "Motor vehicle technical compliance inspection form",
-    "sp_trailer_tech_form": "Trailer technical compliance inspection form",
-    "sp_dangerous_goods_form": "Dangerous goods transport inspection form",
-    "sp_transport_suspended_form": "Transport suspended inspection form",
     "foreign_violation": {
       "reportingBasicInfo": "Reporting country and authority",
       "reportingCountry": "Reporting country",

@@ -23,7 +23,7 @@ import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 import { useVehicleSearch } from '../../../xroad/hooks/useVehicleSearch';
 import { searchVehicleByRegNr, searchMtrSoidukikaart } from '../../../xroad/api';
 import type { XRoadVehicle } from '../../../xroad/types';
-import { FORM_CONFIG } from "../../formRoutes.ts";
+import { FORM_CONFIG, getAvailableFormKeys } from "../../formRoutes.ts";
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 
 // Separate maps for vehicle and trailer EU category codes (liiklusregister
@@ -127,8 +127,6 @@ export function useCompoundForm(
     subFormsAllConfirmedOrPublishedRef.current = subFormsAllConfirmedOrPublished;
   });
   const { getByCode, getChildren } = useClassifiers();
-
-  const WRITE_SUFFIX = '.write';
 
   const incrementFormNumber = (formNumber: string): string => {
     const match = formNumber.match(/^(.+\/)([0-9]+)$/);
@@ -733,21 +731,17 @@ export function useCompoundForm(
     }
   };
 
-  const buildAvailableForms = (permissions: string[]): ControlForm[] =>
-      permissions
-          .filter((p) => p.endsWith(WRITE_SUFFIX))
-          .map((p) => p.replace(WRITE_SUFFIX, ''))
-          .filter((key) => !!FORM_CONFIG[key] && FORM_CONFIG[key].hasParent)
-          .filter((key) => FORM_CONFIG[key].route !== '/trailer-technical')
-          .map((key) => ({
-            labelKey: FORM_CONFIG[key].labelKey,
-            route: FORM_CONFIG[key].route,
-            hasParent: FORM_CONFIG[key].hasParent,
-          }));
-
-  const availableForms = useMemo(
-      () => buildAvailableForms(permissions),
-      [permissions],
+  const availableForms = useMemo<ControlForm[]>(
+      () =>
+          getAvailableFormKeys(getByCode('FORM_TYPE'), permissions)
+              .filter((key) => FORM_CONFIG[key].hasParent)
+              .filter((key) => FORM_CONFIG[key].route !== '/trailer-technical')
+              .map((key) => ({
+                labelKey: FORM_CONFIG[key].labelKey,
+                route: FORM_CONFIG[key].route,
+                hasParent: FORM_CONFIG[key].hasParent,
+              })),
+      [getByCode, permissions],
   );
 
   return {

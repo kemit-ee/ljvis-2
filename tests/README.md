@@ -118,6 +118,7 @@ tests/postman/
 │   ├── erru-ctud.collection.json
 │   ├── erru-ncr.collection.json
 │   ├── erru-rsi.collection.json
+│   ├── dashboard.collection.json
 │   ├── form-search.collection.json
 │   ├── good-repute-form.collection.json
 │   ├── labour-inspection.collection.json
@@ -150,6 +151,7 @@ tests/postman/
 | **driverest-forms** | Drive-rest driver + teammate sub-forms: edit/save (403 without sp_driver/teammate_form.write, 422 compoundFormKey required, 200 create+version=1), GET by id (403/404/200), GET get-by-compound-form-key, re-save while saved (version unchanged — no-bump rule), confirm (403, 200 status confirmed, already_confirmed 422), delete (403, 200, deleted form still readable with status=deleted). Self-contained: creates its own compound form + sub-forms. |
 | **good-repute-form** | Hea maine (good repute) independent form (LJVIS2-136): edit/save (403, 422 required/future-date/conditional unfit dates + date ordering, 200 create+version=1), UPPERCASE transform of personalCode/firstName/lastName/placeOfBirth/certificateNumber, read/get (403/404/200), re-save while saved (version unchanged — no-bump rule), confirm (403, 200 version unchanged, already_confirmed 422), edit-after-confirm (422 form_locked_after_confirm) |
 | **form-search** | Cross-entity form search (LJVIS2-9): 403 without any form read permission, unfiltered search (content+total), formType filter, companyName (ILIKE) filter, date-range inclusive/exclusive, pagination (pageSize=1), sorting, deleted-form hidden from results. Creates + deletes its own labour-inspection act. |
+| **dashboard** | Officer dashboard (LJVIS2-37/LJVIS2-68): `GET /v1/dashboard/summary` unauthenticated 401, all 3 sections present, draft compound form + sub-form appear in `activeCompoundForms`/nested `subForms`, overdue general-proceeding deadline surfaces in `needsAttention`, confirmed-but-unpublished compound form stays active, standalone draft act in `activeStandaloneForms`, `scope=organisation` silently falls back to `own` without `control_form.view_unpublished` (200, not 403) vs honoured for admin. The LJVIS2-68 "Kompleksvorm"/"Vormid" ("+ Lisa") menu is resolved client-side (FORM_TYPE classifier + permissions), no backend endpoint to cover. Creates + deletes its own compound form/sub-form/standalone act. |
 | **citizen-representation** | Citizen dashboard's decoupled-from-activeRole model: `auth/representation/switch` regression (role=citizen-self without `registryCode` key must still be 200 — Rust Ruuter's `contains_key` allowlist check), role=company without registryCode → 400; `citizen/forms/search` scope=self (200) and scope=company (403 NOT_REPRESENTATIVE for an unrepresented company, 400 for invalid reg-code format); `citizen/risk-scores/controls` authorization (400 unauthenticated, 403 for an unrepresented company via `?q=`, 400 for invalid format). |
 | **organisations** | `GET /organisations/list` — verify 3 seeded orgs (CBO, JUM, PPA) |
 | **permissions** | `GET /permissions/list` — verify seeded permissions (39), check `user_group.update`, vehicle/trailer/transport-interruption/adr/good-repute form permissions present |
@@ -172,6 +174,7 @@ tests/postman/
 | driverest-forms | Super Admin, No-perm (403 tests) | none — creates its own compound form + sub-forms |
 | good-repute-form | Super Admin, No-perm (403 tests) | none — creates its own independent forms |
 | form-search | Super Admin, No-perm (403 tests) | none — creates and deletes its own labour-inspection act |
+| dashboard | Super Admin, No-perm (403/scope-fallback tests) | none — creates and deletes its own compound form + sub-form + standalone act |
 | organisations | Super Admin | — |
 | permissions | Super Admin | — |
 | users | Super Admin, No-perm (403 tests) | org ID, group ID |

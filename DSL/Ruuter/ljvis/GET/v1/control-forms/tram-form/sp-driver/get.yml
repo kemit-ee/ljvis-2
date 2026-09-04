@@ -61,7 +61,7 @@ extractFormData:
     sub_form_number: "${res.response.body[0].subFormNumber}"
     compound_form_key: "${res.response.body[0].compoundFormKey}"
     created_by: "${res.response.body[0].createdBy}"
-    drivers: ${JSON.parse(comres.response.body[0].drivers)}
+    drivers: ${JSON.parse(comres.response.body[0].drivers || '[]')}
   next: extractDriverCodes
 
 extractDriverCodes:
