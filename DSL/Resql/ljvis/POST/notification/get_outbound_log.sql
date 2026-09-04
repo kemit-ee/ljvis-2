@@ -1,7 +1,10 @@
 /*
 declaration:
-  version: 0.1
-  description: "Single Postkast 2.0 outbound_log row by id. Used by UC-04 resend (resend.yml) to load the original send attempt it is retrying."
+  version: 0.2
+  description: >-
+    Single Postkast 2.0 outbound_log row by id. Used by UC-04 resend
+    (resend.yml) to load the original send attempt it is retrying — reads
+    recipient_address + template_variables + notification_type unchanged.
   method: post
   accepts: json
   returns: json
@@ -15,25 +18,40 @@ declaration:
     fields:
       - field: id
         type: string
-      - field: message_type
+      - field: notificationKey
+        type: string
+      - field: notificationType
         type: string
       - field: status
         type: string
-      - field: related_entity_type
+      - field: recipientAddress
         type: string
-      - field: related_entity_id
+      - field: notificationLanguage
         type: string
-      - field: original_log_id
+      - field: templateVariables
+        type: json
+      - field: failureReason
         type: string
-      - field: pk_template_id
+      - field: relatedEntityType
         type: string
-      - field: pk_sending_operation_id
+      - field: relatedEntityId
+        type: string
+      - field: originalLogId
+        type: string
+      - field: pkTemplateId
+        type: string
+      - field: pkSendingOperationId
         type: string
 */
 SELECT
     ol.id,
-    ol.message_type,
+    ol.notification_key,
+    ol.message_type AS notification_type,
     ol.status,
+    ol.recipient_address,
+    ol.notification_language,
+    ol.template_variables,
+    ol.failure_reason,
     ol.related_entity_type,
     ol.related_entity_id,
     ol.original_log_id,
