@@ -174,14 +174,14 @@ export function NcrListPage() {
             <Select
               id="ncr-filter-from"
               label={t('erru.ncr.list.ncrFrom')}
-              options={countryOptions}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
               value={countryOptions.find((o) => o.value === draftFilters.ncrFrom) ?? null}
               onChange={(o) => setFilter('ncrFrom', (o as { value?: string } | null)?.value ?? '')}
             />
             <Select
               id="ncr-filter-to"
               label={t('erru.ncr.list.ncrTo')}
-              options={countryOptions}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
               value={countryOptions.find((o) => o.value === draftFilters.ncrTo) ?? null}
               onChange={(o) => setFilter('ncrTo', (o as { value?: string } | null)?.value ?? '')}
             />

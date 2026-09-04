@@ -184,7 +184,7 @@ export function CgrListPage() {
             <Select
               id="cgr-filter-to"
               label={t('erru.cgr.list.cgrTo')}
-              options={countryOptions}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
               value={countryOptions.find((o) => o.value === draftFilters.cgrTo) ?? null}
               onChange={(o) =>
                 setFilter('cgrTo', (o as { value?: string } | null)?.value ?? '')

@@ -181,7 +181,7 @@ export function RsiListPage() {
             <Select
               id="rsi-filter-from"
               label={t('erru.rsi.list.rsiFrom')}
-              options={countryOptions}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
               value={countryOptions.find((o) => o.value === draftFilters.rsiFrom) ?? null}
               onChange={(o) =>
                 setFilter('rsiFrom', (o as { value?: string } | null)?.value ?? '')
@@ -190,7 +190,7 @@ export function RsiListPage() {
             <Select
               id="rsi-filter-to"
               label={t('erru.rsi.list.rsiTo')}
-              options={countryOptions}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
               value={countryOptions.find((o) => o.value === draftFilters.rsiTo) ?? null}
               onChange={(o) =>
                 setFilter('rsiTo', (o as { value?: string } | null)?.value ?? '')

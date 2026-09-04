@@ -178,7 +178,7 @@ export function CtudListPage() {
             <Select
               id="ctud-filter-from"
               label={t('erru.ctud.list.ctudFrom')}
-              options={countryOptions}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
               value={countryOptions.find((o) => o.value === draftFilters.ctudFrom) ?? null}
               onChange={(o) =>
                 setFilter('ctudFrom', (o as { value?: string } | null)?.value ?? '')
@@ -187,7 +187,7 @@ export function CtudListPage() {
             <Select
               id="ctud-filter-to"
               label={t('erru.ctud.list.ctudTo')}
-              options={countryOptions}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
               value={countryOptions.find((o) => o.value === draftFilters.ctudTo) ?? null}
               onChange={(o) =>
                 setFilter('ctudTo', (o as { value?: string } | null)?.value ?? '')
