@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-09 — Postkast 2.0: saadetud kirjade logi (analüüs 12-2)
+
+- **Saadetud kirjad** tabelis on nüüd **1 rida = 1 saatmiskatse ühele adressaadile**
+  (varem 1 rida sai olla mitu saajat). Staatuseid on **4**: „Saatmisel (ootel)",
+  „Saatmisel (töös)" — mõlemad kuvatakse tabelis lihtsalt **„Saatmisel"** —,
+  „Saadetud" ja **„Viga"**. Vea korral kuvatakse ebaõnnestumise põhjus tooltipina
+  staatuse peal.
+- Uus veerg **„Teavituse tunnus"**; „Adressaat" veerg näitab nüüd otse saaja
+  e-posti aadressi.
+- Kõik veerud peale „Tegevused" on **sorditavad**.
+- Uued filtrid: **adressaat** (sisaldab-otsing) ja **teavituse tunnus**
+  (täpne otsing); kuupäevafilter on nüüd **vahemik** (alates/kuni).
+- Kui otsingule ei vasta ükski rida, kuvatakse tekst „Otsingule vastavaid
+  teavitusi ei leitud." tavalise tühja tabeli asemel.
+- **„Saada uuesti"** ei ava enam eraldi vormi uue e-posti sisestamiseks — kinnitusel
+  saadetakse teavitus uuesti täpselt samale adressaadile muutmata kujul.
+- Õigus **notification.admin** on asendatud kahega: **notification.list**
+  (logi nägemine) ja **notification.resend** (uuesti saatmine).
+
+---
+
 ## 2026-09 — ADR (ohtliku veose) kontrollvorm kliimaministri määruse kujul
 
 - **Rikkumiste plokk** on täielikult ümber tehtud ja järgib nüüd kliimaministri

@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Button, DateField, Select } from '@tedi-design-system/react/tedi';
+import { Button, DateField, Select, Text, TextField, Tooltip } from '@tedi-design-system/react/tedi';
+import { useAuth } from '../auth/AuthContext';
 import { AppTable } from '../../shared/components/AppTable';
 import { formatDate, toIsoDate } from '../../hooks/dateUtils';
+import { PERMISSIONS } from '../../constants/constants';
 import { useOutboundLog } from './useOutboundLog';
 import { OutboundReportModal } from './OutboundReportModal';
-import { ResendModal } from './ResendModal';
+import { resendNotification } from './api';
 import type { OutboundLogEntry } from './types';
 
 const columnHelper = createColumnHelper<OutboundLogEntry>();
@@ -21,23 +23,35 @@ const MESSAGE_TYPES = [
   'labor_foreign_proposal',
 ] as const;
 
-function addressee(entry: OutboundLogEntry): string {
-  if (entry.firstRecipientName) {
-    return entry.firstRecipientCode
-      ? `${entry.firstRecipientName} (${entry.firstRecipientCode})`
-      : entry.firstRecipientName;
+/**
+ * Staatuse-veerg kuvab "Saatmisel" nii `queued` kui `in_progress` väärtuste korral —
+ * analüüs 12-2 järgi on kasutajale nähtav ainult 3 staatust (vt filtri kommentaari all).
+ */
+function statusLabel(t: (key: string) => string, status: OutboundLogEntry['status']): string {
+  switch (status) {
+    case 'queued':
+    case 'in_progress':
+      return t('notifications.log.statusSending');
+    case 'sent':
+      return t('notifications.log.sent');
+    case 'error':
+    default:
+      return t('notifications.log.statusError');
   }
-  return entry.firstRecipientEmail ?? '—';
 }
 
 export function OutboundLogTable() {
   const { t } = useTranslation();
+  const { hasPermission } = useAuth();
+  const canResend = hasPermission(PERMISSIONS.NOTIFICATION_RESEND);
   const {
     data,
     totalRows,
     isLoading,
     pagination,
     setPagination,
+    sorting,
+    setSorting,
     draftFilters,
     setFilter,
     applyFilters,
@@ -46,12 +60,17 @@ export function OutboundLogTable() {
   } = useOutboundLog();
 
   const [reportLogId, setReportLogId] = useState<string | null>(null);
-  const [resendLogId, setResendLogId] = useState<string | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
+  // API toetab filtrina ainult üht status-väärtust korraga, seega jäävad 4 API-väärtust
+  // (queued/in_progress/sent/error) filtrisse eraldi valikutena, kuigi tabeli enda
+  // staatuse-veerg näitab kasutajale ainult 3 väärtust (vt statusLabel).
   const statusOptions = useMemo(
     () => [
+      { value: 'queued', label: t('notifications.log.statusQueued') },
+      { value: 'in_progress', label: t('notifications.log.statusInProgress') },
       { value: 'sent', label: t('notifications.log.sent') },
-      { value: 'sent_error', label: t('notifications.log.sent_error') },
+      { value: 'error', label: t('notifications.log.statusError') },
     ],
     [t],
   );
@@ -61,37 +80,68 @@ export function OutboundLogTable() {
     [t],
   );
 
+  const handleResend = useCallback(
+    async (logId: string) => {
+      if (!window.confirm(t('notifications.log.resendConfirm'))) return;
+      setResendingId(logId);
+      try {
+        await resendNotification(logId);
+        applyFilters();
+      } finally {
+        setResendingId(null);
+      }
+    },
+    [t, applyFilters],
+  );
+
   const columns = useMemo(
     () => [
       columnHelper.accessor('sendDate', {
         header: t('notifications.log.sendDate'),
-        enableSorting: false,
+        enableSorting: true,
         cell: (info) => formatDate(info.getValue()),
       }),
-      columnHelper.accessor('messageType', {
+      columnHelper.accessor('notificationType', {
         header: t('notifications.log.messageType'),
-        enableSorting: false,
+        enableSorting: true,
         cell: (info) =>
           t(`notifications.types.${info.getValue()}`, {
             defaultValue: info.getValue(),
           }),
       }),
-      columnHelper.display({
-        id: 'addressee',
+      columnHelper.accessor('recipientAddress', {
         header: t('notifications.log.addressee'),
-        cell: (info) => addressee(info.row.original),
+        enableSorting: true,
+        cell: (info) => info.getValue() ?? '—',
+      }),
+      columnHelper.accessor('notificationKey', {
+        header: t('notifications.log.notificationKey'),
+        enableSorting: true,
+        cell: (info) => info.getValue() ?? '—',
       }),
       columnHelper.accessor('status', {
         header: t('notifications.log.status'),
-        enableSorting: false,
-        cell: (info) =>
-          info.getValue() === 'sent'
-            ? t('notifications.log.sent')
-            : t('notifications.log.sent_error'),
+        enableSorting: true,
+        cell: (info) => {
+          const label = statusLabel(t, info.getValue());
+          const failureReason = info.row.original.failureReason;
+          if (info.getValue() === 'error' && failureReason) {
+            return (
+              <Tooltip>
+                <Tooltip.Trigger>
+                  <span>{label}</span>
+                </Tooltip.Trigger>
+                <Tooltip.Content>{failureReason}</Tooltip.Content>
+              </Tooltip>
+            );
+          }
+          return label;
+        },
       }),
       columnHelper.display({
         id: 'actions',
         header: '',
+        enableSorting: false,
         cell: (info) => (
           <div className="filter-actions">
             <Button
@@ -101,8 +151,12 @@ export function OutboundLogTable() {
             >
               {t('notifications.log.report')}
             </Button>
-            {info.row.original.status === 'sent_error' && (
-              <Button size="small" onClick={() => setResendLogId(info.row.original.id)}>
+            {info.row.original.status === 'error' && canResend && (
+              <Button
+                size="small"
+                disabled={resendingId === info.row.original.id}
+                onClick={() => void handleResend(info.row.original.id)}
+              >
                 {t('notifications.log.resend')}
               </Button>
             )}
@@ -110,30 +164,12 @@ export function OutboundLogTable() {
         ),
       }),
     ],
-    [t],
+    [t, canResend, resendingId, handleResend],
   );
 
   return (
     <>
       <div className="filter-bar">
-        <Select
-          id="outbound-filter-status"
-          label={t('notifications.log.filterStatus')}
-          options={statusOptions}
-          value={statusOptions.find((o) => o.value === draftFilters.status) ?? null}
-          onChange={(o) =>
-            setFilter('status', (o as { value?: string } | null)?.value ?? '')
-          }
-        />
-        <Select
-          id="outbound-filter-type"
-          label={t('notifications.log.filterType')}
-          options={typeOptions}
-          value={typeOptions.find((o) => o.value === draftFilters.messageType) ?? null}
-          onChange={(o) =>
-            setFilter('messageType', (o as { value?: string } | null)?.value ?? '')
-          }
-        />
         <DateField
           key={`outbound-date-from-${resetKey}`}
           id="outbound-filter-date-from"
@@ -143,6 +179,45 @@ export function OutboundLogTable() {
           placeholder={t('common.dateFieldPlaceholder')}
           monthYearSelectType="grid"
         />
+        <DateField
+          key={`outbound-date-to-${resetKey}`}
+          id="outbound-filter-date-to"
+          label={t('notifications.log.filterDateTo')}
+          selected={draftFilters.dateTo ? new Date(draftFilters.dateTo) : undefined}
+          onSelect={(v) => setFilter('dateTo', toIsoDate(v))}
+          placeholder={t('common.dateFieldPlaceholder')}
+          monthYearSelectType="grid"
+        />
+        <Select
+          id="outbound-filter-type"
+          label={t('notifications.log.filterType')}
+          options={typeOptions}
+          value={typeOptions.find((o) => o.value === draftFilters.notificationType) ?? null}
+          onChange={(o) =>
+            setFilter('notificationType', (o as { value?: string } | null)?.value ?? '')
+          }
+        />
+        <TextField
+          id="outbound-filter-recipient"
+          label={t('notifications.log.filterRecipient')}
+          value={draftFilters.recipient ?? ''}
+          onChange={(v) => setFilter('recipient', v)}
+        />
+        <TextField
+          id="outbound-filter-notification-key"
+          label={t('notifications.log.filterNotificationKey')}
+          value={draftFilters.notificationKey ?? ''}
+          onChange={(v) => setFilter('notificationKey', v)}
+        />
+        <Select
+          id="outbound-filter-status"
+          label={t('notifications.log.filterStatus')}
+          options={statusOptions}
+          value={statusOptions.find((o) => o.value === draftFilters.status) ?? null}
+          onChange={(o) =>
+            setFilter('status', (o as { value?: string } | null)?.value ?? '')
+          }
+        />
         <div className="filter-actions">
           <Button onClick={applyFilters}>{t('common.search')}</Button>
           <Button visualType="secondary" onClick={resetFilters}>
@@ -151,27 +226,28 @@ export function OutboundLogTable() {
         </div>
       </div>
 
-      <AppTable
-        id="outbound-log-table"
-        data={data}
-        columns={columns}
-        isLoading={isLoading}
-        totalRows={totalRows}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        manualPagination
-      />
+      {!isLoading && totalRows === 0 ? (
+        <Text>{t('notifications.log.emptyResult')}</Text>
+      ) : (
+        <AppTable
+          id="outbound-log-table"
+          data={data}
+          columns={columns}
+          isLoading={isLoading}
+          totalRows={totalRows}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          sorting={sorting}
+          onSortingChange={setSorting}
+          manualPagination
+          manualSorting
+        />
+      )}
 
       <OutboundReportModal
         key={reportLogId ?? 'report-closed'}
         logId={reportLogId}
         onClose={() => setReportLogId(null)}
-      />
-      <ResendModal
-        key={resendLogId ?? 'resend-closed'}
-        logId={resendLogId}
-        onClose={() => setResendLogId(null)}
-        onSuccess={applyFilters}
       />
     </>
   );
