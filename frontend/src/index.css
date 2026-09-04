@@ -193,6 +193,18 @@ nav[aria-label='Main navigation'] {
   grid-column: 1 / -1;
 }
 
+.three-col-desktop {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.three-col-mobile {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
 .table-row-4 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -298,9 +310,21 @@ nav[aria-label='Main navigation'] {
    with the same rhythm as the rest of the app's tables/cards. */
 .filter-bar {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+@media (max-width: 991px) {
+  .filter-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 575px) {
+  .filter-bar {
+    grid-template-columns: 1fr;
+  }
 }
 
 .filter-actions {

@@ -68,7 +68,7 @@ export function RsiCheckedItemsTable({
             return (
               <tr key={part.classifierValueKey}>
                 <td style={{ padding: '4px 8px' }}>
-                  {part.code} — {part.name}
+                  {part.code.replace(/^[A-Z]+_/, '')} — {part.name}
                 </td>
                 <td style={{ padding: '4px 8px' }}>
                   <ChoiceGroup
@@ -195,8 +195,8 @@ function RsiDefectModal({
 
   return (
     <Modal open={open} onToggle={(next) => !next && onClose()}>
-      <Modal.Content aria-label={part?.name ?? ''}>
-        <Modal.Header title={part?.name ?? ''} />
+      <Modal.Content aria-label={part ? part.name.charAt(0).toUpperCase() + part.name.slice(1) : ''}>
+        <Modal.Header title={part ? part.name.charAt(0).toUpperCase() + part.name.slice(1) : ''} />
         <Modal.Body>
           {defects.length === 0 && <Text>{t('erru.rsi.defectModal.noDefects')}</Text>}
           {defects.map((defect) => (

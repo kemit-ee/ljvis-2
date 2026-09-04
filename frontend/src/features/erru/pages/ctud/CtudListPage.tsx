@@ -17,6 +17,8 @@ import type { CtudRequestListItem } from '../../types';
 import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery';
+import { BREAKPOINTS } from '../../../../constants/constants';
 
 const columnHelper = createColumnHelper<CtudRequestListItem>();
 
@@ -26,6 +28,7 @@ export function CtudListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
 
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['ctud.read']);
   const canCreate = hasAnyPermission(['ctud.create']);
 
@@ -147,7 +150,7 @@ export function CtudListPage() {
           </div>
 
           {/* Filters are applied only on "Otsi" — editing them must not refetch. */}
-          <div className="filter-bar">
+          <div className="filter-bar" style={isDesktop ? { width: '80%' } : undefined}>
             <TextField
               id="ctud-filter-id"
               label={t('erru.ctud.list.id')}

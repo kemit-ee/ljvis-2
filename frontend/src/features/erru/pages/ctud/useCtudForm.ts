@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { createCtudRequest, updateCtudRequest } from '../../api';
+import { createCtudRequest, sendCtudRequest, updateCtudRequest } from '../../api';
 import type { CtudRequest, CtudRequestWrite } from '../../types';
 import { ApiError } from '../../../../shared/api/client';
 import { ValidationError, applyValidationError } from '../../../../shared/api/errors';
@@ -19,6 +19,7 @@ const T = 'erru.ctud.validation';
 export function useCtudForm(
   request: CtudRequest | undefined,
   onSaved: (id?: string) => void,
+  { sendAfterCreate = false }: { sendAfterCreate?: boolean } = {},
 ) {
   const { t } = useTranslation();
   const isEdit = !!request;
@@ -34,9 +35,7 @@ export function useCtudForm(
 
   const validationSchema = Yup.object({
     ctudTo: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
-    originatingAuthority: Yup.string().required(required).max(50, t(`${T}.max_length_exceeded`)),
-    requestSource: Yup.string().required(required),
-    requestPurpose: Yup.string().required(required),
+    originatingAuthority: Yup.string().max(50, t(`${T}.max_length_exceeded`)),
     transportUndertakingName: Yup.string()
       .max(150, t(`${T}.max_length_exceeded`))
       // ERRU forbids the literal placeholder "unknown"
@@ -71,9 +70,9 @@ export function useCtudForm(
     enableReinitialize: true,
     initialValues: {
       ctudTo: request?.ctudTo ?? '',
-      originatingAuthority: request?.originatingAuthority ?? '',
-      requestSource: request?.requestSource ?? '',
-      requestPurpose: request?.requestPurpose ?? '',
+      originatingAuthority: request?.originatingAuthority ?? 'EE-PPA',
+      requestSource: request?.requestSource ?? 'CA',
+      requestPurpose: request?.requestPurpose ?? 'Control',
       transportUndertakingName: request?.transportUndertakingName ?? '',
       communityLicenceNumber: request?.communityLicenceNumber ?? '',
       vehicleRegistrationNumber: request?.vehicleRegistrationNumber ?? '',
@@ -93,6 +92,9 @@ export function useCtudForm(
         const result = isEdit
           ? await updateCtudRequest(String(request!.id), values)
           : await createCtudRequest(values);
+        if (!isEdit && sendAfterCreate) {
+          await sendCtudRequest(String(result.id));
+        }
         onSaved(String(result.id));
       } catch (e) {
         // min_two_search_criteria is a form-wide rule — always surface it via formError,

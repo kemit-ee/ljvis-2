@@ -125,7 +125,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.cgr.form.nameBlock')}</Heading>
-          <Text className="mb-1">{t('erru.cgr.form.searchChoiceHint')}</Text>
+          <Text className="mb-1">{t('erru.cgr.form.searchCertChoiceHint')}</Text>
           <div className={gridClass}>
             <TextField
               id="cgr-tm-first-name"
@@ -175,7 +175,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.cgr.form.certificateBlock')}</Heading>
-          <Text className="mb-1">{t('erru.cgr.form.searchChoiceHint')}</Text>
+          <Text className="mb-1">{t('erru.cgr.form.searchTransportChoiceHint')}</Text>
           <div className={gridClass}>
             <TextField
               id="cgr-certificate-number"

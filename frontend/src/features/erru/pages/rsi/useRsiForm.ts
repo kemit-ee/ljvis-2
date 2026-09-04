@@ -98,7 +98,12 @@ export function useRsiForm(
     () =>
       allParts
         .filter((p) => p.parentKey === null && !RSI_EXCLUDED_PARTS.includes(p.code))
-        .sort((a, b) => a.code.localeCompare(b.code)),
+        .sort((a, b) => {
+          const numA = parseInt(a.code.replace(/^\D+/, ''), 10);
+          const numB = parseInt(b.code.replace(/^\D+/, ''), 10);
+          if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+          return a.code.localeCompare(b.code);
+        }),
     [allParts],
   );
   const defectsByPartKey = useMemo(() => {
