@@ -1,0 +1,23 @@
+# Nõutav õigus: notification.resend (analüüs 12-2 — UC-04 käsitsi uuesti saatmine).
+# EI kasuta override_ancestors: guard-id STACK'ivad vaikimisi (Guard mode: Stack) —
+# projektiülene guard (ljvis/.guard.yml) autendib ja seab auth_user, seejärel see
+# guard lisab omalt poolt notification.resend kontrolli. override_ancestors: true
+# EEMALDAKS ka projektiülese autentimise (see on ette nähtud ainult mock/system-
+# to-system guardidele, kes peavad cookie-nõudest täielikult mööda minema) — kui
+# see siia jääks, jookseks `check` enne kui auth_user on üldse olemas
+# (ReferenceError: auth_user is not defined -> 500 401/403 asemel).
+check:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('notification.resend')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

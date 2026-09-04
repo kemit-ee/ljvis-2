@@ -1,6 +1,6 @@
 # POST /v1/notifications/* — piisab kehtivast sessioonist (loob/märgib teavitusi;
 # DSL-id loevad auth_user.personalcode). outbound-log/ kaustal on oma rangem
-# .guard (notification.admin).
+# .guard (notification.list / resend/ nõuab notification.resend).
 check:
   switch:
     - condition: ${auth_user.personalcode != null}

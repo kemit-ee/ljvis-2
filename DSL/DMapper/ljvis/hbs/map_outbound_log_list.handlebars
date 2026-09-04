@@ -3,17 +3,19 @@
         {{#each rows}}
         {
             "id": "{{this.id}}",
-            "messageType": "{{this.messageType}}",
+            "notificationKey": {{#if this.notificationKey}}"{{this.notificationKey}}"{{else}}null{{/if}},
+            "notificationType": "{{this.notificationType}}",
             "sendDate": {{#if this.sendDate}}"{{this.sendDate}}"{{else}}null{{/if}},
             "status": "{{this.status}}",
+            "recipientAddress": {{#if this.recipientAddress}}"{{this.recipientAddress}}"{{else}}null{{/if}},
+            "failureReason": {{#if this.failureReason}}"{{this.failureReason}}"{{else}}null{{/if}},
             "relatedEntityType": {{#if this.relatedEntityType}}"{{this.relatedEntityType}}"{{else}}null{{/if}},
             "relatedEntityId": {{#if this.relatedEntityId}}"{{this.relatedEntityId}}"{{else}}null{{/if}},
             "originalLogId": {{#if this.originalLogId}}"{{this.originalLogId}}"{{else}}null{{/if}},
             "pkTemplateId": {{#if this.pkTemplateId}}"{{this.pkTemplateId}}"{{else}}null{{/if}},
             "pkSendingOperationId": {{#if this.pkSendingOperationId}}"{{this.pkSendingOperationId}}"{{else}}null{{/if}},
-            "firstRecipientEmail": {{#if this.firstRecipientEmail}}"{{this.firstRecipientEmail}}"{{else}}null{{/if}},
-            "firstRecipientName": {{#if this.firstRecipientName}}"{{this.firstRecipientName}}"{{else}}null{{/if}},
-            "firstRecipientCode": {{#if this.firstRecipientCode}}"{{this.firstRecipientCode}}"{{else}}null{{/if}}
+            "pkOperationRestartAllowed": {{#if this.pkOperationRestartAllowed}}{{this.pkOperationRestartAllowed}}{{else}}null{{/if}},
+            "pkCompletedAt": {{#if this.pkCompletedAt}}"{{this.pkCompletedAt}}"{{else}}null{{/if}}
         }{{#unless @last}},{{/unless}}
         {{/each}}
     ],
