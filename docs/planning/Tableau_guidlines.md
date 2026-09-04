@@ -136,6 +136,8 @@ CREATE OR REPLACE VIEW tableau.adr_form_current AS
 SELECT DISTINCT ON (adr_form_key) *
 FROM forms.adr_form
 ORDER BY adr_form_key, created_at DESC;
+-- ADR JSONB-detailide lame-vaated (LATERAL): tableau.adr_dangerous_good (§11)
+-- ja tableau.adr_infringement_record (§7.1) — loo need samas skeemis.
 
 -- ── forms: autoveo katkestamine ──────────────────────────────────────
 CREATE OR REPLACE VIEW tableau.kv_form_current AS
@@ -335,16 +337,31 @@ Struktuurilt identsed. Mootorsõiduki / haagise tehnonõuetele vastavuse kontrol
 
 ### 5.5 `forms.adr_form` — võtmeveerud
 
-Ohtliku veose (ADR) kontroll.
+Ohtliku veose (ADR) kontroll. Vorm on kliimaministri määruse (RT I, 16.06.2026, 11)
+lisa 1 kujul — vt [ADR-007](../workingdocs/architecture-decisions.md) ja
+[teostusplaan](../workingdocs/adr-vorm-maarus-teostusplaan.md).
 
 | Veer | Tähendus |
 |---|---|
 | `adr_form_key`, `compound_form_key`, `version`, `status` | Identiteet / lifecycle |
-| `dangerous_goods` (JSONB) | Ohtlike ainete massiiv |
-| `infringements` (JSONB) | Rikkumised |
-| `result_type` | Kontrolli tulemus (default `ok`) |
-| `driver_adr_certificate_number`, `crew_adr_certificate_number` | ADR-tunnistuste numbrid |
+| `dangerous_goods` (JSONB) | Veetavate ohtlike kaupade massiiv: `[{unNumber, packagingGroup, quantity, unitCode}]`. `quantity` = arv (string kujul), `unitCode` = `ADR_QUANTITY_UNIT` klassifikaatori kood (`l`/`kg`/`t`/`m3`/`tk`/`pakendit`/`ballooni`/`nem_kg`) |
+| `infringements` (JSONB) | Rikkumised **kontrollkaardi punkti (P12–P27) kaupa**, sees korratav `records` massiiv — vt [§7.1](#71-adr-vormi-infringements-struktuur) |
+| `other_infringements` (JSONB) | „Muu rikkumine" — sama `records` struktuur, aga vabatekst­pealkiri `title` |
+| `container_types` (JSONB) | Mahuti tüüpide massiik (mitmene valik): nt `["paak","pakend"]` |
+| `result_type` | Kontrolli tulemus: `ok` / `misdemeanor_proceedings` / `warning` (default `ok`) |
+| `driving_ban_applied`, `transport_interruption_applied` | BOOLEAN — lisameetmed (sõidukeeld / veo katkestamine), tulemusest sõltumatud |
+| `exemption_applied`, `exemption_adr_provision`, `exemption_notes` | ADR erandi kohaldamine |
+| `driver_adr_certificate_number`, `crew_adr_certificate_number`, `assistant_adr_certificate_number` | ADR-tunnistuste numbrid |
 | `seal_opened`, `seal_opened_date`, `seal_installed_date` | Plommi info |
+
+> **Vanad veerud `infringements` (vana kuju), `other_violations`, `container_type`
+> (ainsuses)** võivad `dev`-andmetes esineda enne määruse-vormi kasutuselevõttu —
+> uus vorm neisse enam ei kirjuta. Analüütikas kasuta uut kuju.
+
+> **„Korras" vs „pole korras"** — `forms.form_search.has_violation` reegel ADR-vormil:
+> `result_type <> 'ok'` **VÕI** `driving_ban_applied` **VÕI** `transport_interruption_applied`
+> **VÕI** vähemalt üks `infringements` / `other_infringements` kirje, kus tuvastati
+> rikkumine (`records` mittetühi). Vt [§11 → „ADR — ohtlike kaupade kogus…"](#adr--ohtlike-kaupade-kogus-ühiku-kaupa-korras-vs-pole-korras).
 
 ### 5.6 `forms.kv_form` — autoveo katkestamine
 
@@ -513,6 +530,8 @@ Custom SQL, mis teeb JOIN-id juba baasis (kiirem, vähem Tableau-poolset loogika
 | `OTHER_DOCUMENTS` | Muud dokumendid | `sp_driver_form.other_documents` |
 | `MASS_DIMENSION` | Massi/mõõtmete rikkumised | `sp_driver_form.mass_dimension_measurements` |
 | `TECHNICAL_CHECK` | Tehnoülevaatuse osad (1. tase) + rikked (2. tase, `parent_key` kaudu) | tehnovormide `parts_summary`, `parts_defects` |
+| `ADR_CONTROL_CHECKPOINT` | ADR kontrollkaardi punktid P12–P27 (1. tase, `description` = ADR-viide) + nendega seotud 2016/403 rikkumisliigid (2. tase, `parent_key` kaudu, `description` = raskusaste MSI/VSI/SI) | `adr_form.infringements[].checkpointCode` ja `records[].reg2016403Code` |
+| `ADR_QUANTITY_UNIT` | Ohtliku kauba koguse ühik (`l`, `kg`, `t`, `m3`, `tk`, `pakendit`, `ballooni`, `nem_kg`) | `adr_form.dangerous_goods[].unitCode` |
 | `FORM_TYPE` | Vormitüübid | üldine |
 | `STRUCTURE_UNIT` / `STRUCTURE_UNIT` | Struktuuriüksused | inspektori plokk |
 | `SANCTIONS` | Sanktsioonid (`KORRAS`, ...) | `foreign_violation_form.sanction_code` |
@@ -527,6 +546,10 @@ Rikkumistele omistatakse raskusaste. Kohtad kahte konventsiooni:
 
 - **ERRU / EL:** `MSI` (kõige raskem), `VSI`, `SI`, `MI` (kergeim).
 - **Tehnoülevaatus:** `VO` (väike), `OV` (oluline), `EOV` (eluohtlik).
+- **ADR:** rikkumiskirjes on **kaks eraldi tunnust** — `reg2016403Severity`
+  (`MSI`/`VSI`/`SI`, 2016/403 raskusaste, tuletatud rikkumisliigist) ja
+  `riskCategory` (`I`/`II`/`III`, direktiivi 2022/1999 riskikategooria, kontrollija
+  hinnang). Neid ei tuletata teineteisest ega samastata.
 
 ---
 
@@ -569,6 +592,72 @@ Levinud JSONB-massiivide kujud:
 **Soovitus:** loo iga sageli vajatava JSONB-detaili jaoks eraldi
 `tableau.*_violations` / `tableau.*_drivers` vaade (LATERAL-iga nagu ülal), et
 Tableau saaks lihtsalt tabelit lugeda.
+
+### 7.1 ADR-vormi `infringements` struktuur
+
+`forms.adr_form.infringements` on **kahetasandiline** JSONB-massiiv: üks kirje
+kontrollkaardi punkti (P12–P27) kohta, ja iga punkti sees korratav `records`
+massiiv (üks kirje tuvastatud rikkumise kohta). Puutumata punkte ei salvestata.
+
+```jsonc
+[
+  {
+    "checkpointCode": "P17",          // kontrollkaardi punkt 12–27, vt ADR_CONTROL_CHECKPOINT
+    "inspectionStatus": "C",           // C = kontrollitud | NC = ei saa kontrollida | NA = ei kohaldata
+    "notCheckedReason": null,          // vabatekst, kui NC/NA
+    "infringementDetected": true,      // ainult kui inspectionStatus = C
+    "records": [
+      {
+        "riskCategory": "I",           // direktiiv 2022/1999: I | II | III (üks kirje kohta)
+        "adrReference": "4.3.2.2.4",   // rikutud ADR punkt (vabatekst)
+        "responsibleParticipants": ["C","F"],  // Ci|C|Ce|L|P|F|To|U (mitmene)
+        "reg2016403Code": "10",        // 2016/403 rikkumisliik | "NONE" | null
+        "reg2016403Severity": "VSI"    // MSI|VSI|SI|null — tuletatud koodist, salvestatud eraldi
+      }
+    ]
+  }
+]
+```
+
+Olulised nüansid analüütikas:
+
+* **`reg2016403Code` täidetakse ainult siis, kui `responsibleParticipants` sisaldab `"C"` (vedaja).** Muidu `null` — see ei tähenda „rikkumist pole", vaid „vedaja ei ole vastutav".
+* **`reg2016403Severity` ≠ `riskCategory`.** Esimene on 2016/403 raskusaste (MSI/VSI/SI, tuletatud rikkumisliigist), teine direktiivi 2022/1999 riskikategooria (I/II/III, kontrollija hinnang). Neid **ei tohi** samastada.
+* Rikkumise „olemasolu" = `inspectionStatus = 'C' AND infringementDetected = true AND jsonb_array_length(records) > 0`.
+* `other_infringements` on sama `records` kujuga, aga punkti asemel vabatekst­väli `title`.
+
+**LATERAL-lahtivõtt (üks rida rikkumiskirje kohta):**
+
+```sql
+CREATE OR REPLACE VIEW tableau.adr_infringement_record AS
+SELECT
+    a.adr_form_key,
+    a.compound_form_key,
+    a.sub_form_number,
+    cp->>'checkpointCode'                       AS checkpoint_code,
+    cp->>'inspectionStatus'                     AS inspection_status,
+    (cp->>'infringementDetected')::boolean      AS infringement_detected,
+    r->>'riskCategory'                          AS risk_category,
+    r->>'adrReference'                          AS adr_reference,
+    r->>'reg2016403Code'                        AS reg_2016_403_code,
+    r->>'reg2016403Severity'                    AS reg_2016_403_severity,
+    (SELECT string_agg(p::text, ',') FROM jsonb_array_elements_text(r->'responsibleParticipants') p)
+                                                AS responsible_participants
+FROM tableau.adr_form_current a
+CROSS JOIN LATERAL jsonb_array_elements(a.infringements) AS cp
+CROSS JOIN LATERAL jsonb_array_elements(COALESCE(cp->'records','[]'::jsonb)) AS r;
+```
+
+`checkpoint_code` → nimi ja ADR-viide: JOIN `tableau.classifier_value_current`
+(`classifier_code = 'ADR_CONTROL_CHECKPOINT'`, `value_code = checkpoint_code`,
+`parent_key IS NULL`).
+
+`reg_2016_403_code` JSONB-s on **paljas 2016/403 number** (nt `"10"`) või `"NONE"`.
+Klassifikaatoris on tase-2 `value_code` kujul `RL10_P17` (punktipõhine), seega
+rikkumisliigi nime saab nii: võta number koodist —
+`split_part(regexp_replace(value_code, '^RL0*', ''), '_', 1) = reg_2016_403_code`
+ning kitsenda punktiga `value_code LIKE '%\_' || checkpoint_code`. `reg_2016_403_severity`
+on JSONB-s juba salvestatud, eraldi JOIN-i ei vaja.
 
 ---
 
@@ -746,6 +835,115 @@ SELECT form_type, status, COUNT(*) AS vorme
 FROM forms.form_search
 GROUP BY 1, 2
 ORDER BY 1, 2;
+```
+
+### ADR — ohtlike kaupade kogus ühiku kaupa, korras vs pole korras
+
+**Küsimus:** kui palju ühikuid (kg, l, t, tk …) ohtlikke kaupu on läbi liikunud —
+eraldi nende ADR-kontrollide lõikes, mis olid **korras**, ja nende, mis **ei olnud
+korras**.
+
+Samm 1 — abivaade: üks rida ohtliku kauba kirje kohta, koos vanem-ADR-vormi
+„korras / pole korras" tunnusega.
+
+```sql
+CREATE OR REPLACE VIEW tableau.adr_dangerous_good AS
+WITH adr AS (
+    SELECT
+        a.*,
+        -- "pole korras" = tulemus <> ok, VÕI lisameede, VÕI tuvastatud rikkumiskirje
+        (
+            a.result_type <> 'ok'
+            OR a.driving_ban_applied
+            OR a.transport_interruption_applied
+            OR EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements(a.infringements) cp
+                WHERE cp->>'inspectionStatus' = 'C'
+                  AND (cp->>'infringementDetected')::boolean
+                  AND jsonb_array_length(COALESCE(cp->'records','[]'::jsonb)) > 0
+            )
+            OR EXISTS (
+                SELECT 1
+                FROM jsonb_array_elements(a.other_infringements) oi
+                WHERE jsonb_array_length(COALESCE(oi->'records','[]'::jsonb)) > 0
+            )
+        ) AS has_violation
+    FROM tableau.adr_form_current a
+)
+SELECT
+    adr.adr_form_key,
+    adr.compound_form_key,
+    adr.sub_form_number,
+    cf.control_date,
+    cf.county,
+    cf.company_reg_code,
+    adr.has_violation,
+    CASE WHEN adr.has_violation THEN 'Pole korras' ELSE 'Korras' END AS kontrolli_seis,
+    g->>'unNumber'                                  AS un_number,
+    g->>'packagingGroup'                            AS packaging_group,
+    NULLIF(regexp_replace(g->>'quantity', '[^0-9.\-]', '', 'g'), '')::numeric AS quantity,
+    g->>'unitCode'                                  AS unit_code
+FROM adr
+CROSS JOIN LATERAL jsonb_array_elements(adr.dangerous_goods) AS g
+LEFT JOIN tableau.compound_form_current cf ON cf.compound_form_key = adr.compound_form_key;
+```
+
+> `quantity` puhastatakse tekstist (`"1 200,5"` → NULL-i asemel numbriks; koma →
+> punkt vajadusel eraldi). Kui sisestusdistsipliin on hea, piisab
+> `(g->>'quantity')::numeric`-ist.
+
+Samm 2 — agregatsioon (see ongi vastus):
+
+```sql
+SELECT
+    dg.unit_code,
+    u.value_name                         AS uhik,
+    dg.kontrolli_seis,
+    COUNT(DISTINCT dg.adr_form_key)       AS adr_kontrolle,
+    SUM(dg.quantity)                      AS kogus_kokku
+FROM tableau.adr_dangerous_good dg
+LEFT JOIN tableau.classifier_value_current u
+       ON u.classifier_code = 'ADR_QUANTITY_UNIT'
+      AND u.value_code      = dg.unit_code
+WHERE dg.control_date >= DATE '2026-01-01'
+GROUP BY dg.unit_code, u.value_name, dg.kontrolli_seis
+ORDER BY dg.unit_code, dg.kontrolli_seis;
+```
+
+Näidistulemus:
+
+| unit_code | uhik | kontrolli_seis | adr_kontrolle | kogus_kokku |
+|---|---|---|---|---|
+| kg  | kg | Korras      | 128 | 1 940 300 |
+| kg  | kg | Pole korras |  17 |   210 450 |
+| l   | l  | Korras      |  64 |   512 000 |
+| l   | l  | Pole korras |  12 |    88 300 |
+| tk  | tk | Korras      |  30 |     4 210 |
+| tk  | tk | Pole korras |   9 |     1 004 |
+
+Tableau's: too `tableau.adr_dangerous_good` andmeallikaks, `unit_code` (JOIN
+`ADR_QUANTITY_UNIT`) ridadeks, `kontrolli_seis` värviks/veeruks, `SUM(quantity)`
+mõõduks. **NB:** ära liida `quantity` üle eri `unit_code` väärtuste — need on eri
+mõõtühikud (kg ≠ l ≠ tk). Alati grupeeri/filtreeri `unit_code` järgi.
+
+### ADR — rikkumised kontrollkaardi punkti ja 2016/403 raskusastme kaupa
+
+```sql
+SELECT
+    ir.checkpoint_code,
+    cp.value_name                        AS punkti_nimi,
+    ir.reg_2016_403_severity             AS raskusaste,
+    COUNT(*)                             AS rikkumiskirjeid,
+    COUNT(*) FILTER (WHERE ir.reg_2016_403_code = 'NONE') AS ilma_2016_403_liigita
+FROM tableau.adr_infringement_record ir
+LEFT JOIN tableau.classifier_value_current cp
+       ON cp.classifier_code = 'ADR_CONTROL_CHECKPOINT'
+      AND cp.value_code      = ir.checkpoint_code
+      AND cp.parent_key IS NULL
+WHERE ir.infringement_detected
+GROUP BY ir.checkpoint_code, cp.value_name, ir.reg_2016_403_severity
+ORDER BY ir.checkpoint_code, ir.reg_2016_403_severity;
 ```
 
 ---

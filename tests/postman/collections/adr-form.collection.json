@@ -1,13 +1,13 @@
 {
   "info": {
-    "name": "LJVIS \u2014 ADR Form (Ohtlik Veos)",
+    "name": "LJVIS — ADR Form (Ohtlik Veos)",
     "_postman_id": "ljvis-adr-form-v1",
     "description": "Functional tests for /control-forms/adr-form endpoints (LJVIS2-141). Covers permission boundaries (adr_form.write/read, control_form.edit_locked), backend validation (compoundFormKey required, notes max length), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data), and the X-tee fields block. Self-contained: authenticates and creates its own compound form + ADR sub-form.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "[Auth] Login \u2014 Super Admin",
+      "name": "[Auth] Login — Super Admin",
       "request": {
         "method": "POST",
         "header": [
@@ -49,7 +49,7 @@
       ]
     },
     {
-      "name": "[Auth] Login \u2014 No-perm User",
+      "name": "[Auth] Login — No-perm User",
       "request": {
         "method": "POST",
         "header": [
@@ -91,7 +91,7 @@
       ]
     },
     {
-      "name": "[Auth] Login \u2014 Officer (no edit_locked)",
+      "name": "[Auth] Login — Officer (no edit_locked)",
       "request": {
         "method": "POST",
         "header": [
@@ -182,7 +182,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/save \u2014 no permission \u2192 403",
+      "name": "POST adr-form/edit/save — no permission → 403",
       "request": {
         "method": "POST",
         "header": [
@@ -211,7 +211,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"infringements\": null, \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -226,7 +226,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/save \u2014 missing compoundFormKey \u2192 422 required",
+      "name": "POST adr-form/edit/save — missing compoundFormKey → 422 required",
       "request": {
         "method": "POST",
         "header": [
@@ -255,7 +255,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"id\": null, \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"id\": null, \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"infringements\": null, \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -274,7 +274,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/save \u2014 notes over 4000 chars \u2192 422 max_length_4000",
+      "name": "POST adr-form/edit/save — notes over 4000 chars → 422 max_length_4000",
       "request": {
         "method": "POST",
         "header": [
@@ -303,7 +303,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"{{long_string_4001}}\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"{{long_string_4001}}\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"infringements\": null, \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -330,7 +330,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/save \u2014 create \u2192 200, save id/subFormNumber, version=1",
+      "name": "POST adr-form/edit/save — create → 200, save id/subFormNumber, version=1",
       "request": {
         "method": "POST",
         "header": [
@@ -359,7 +359,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[{\\\"unNumber\\\":\\\"1090\\\",\\\"packagingGroup\\\":\\\"II\\\",\\\"quantity\\\":100,\\\"unitCode\\\":\\\"L\\\"}]\", \"exemptionApplied\": false, \"infringements\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"sealOpened\": false, \"notes\": \"CI ADR form\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"compoundFormKey\": {{created_adr_compound_key}}, \"dangerousGoods\": \"[{\\\"unNumber\\\":\\\"1090\\\",\\\"packagingGroup\\\":\\\"II\\\",\\\"quantity\\\":100,\\\"unitCode\\\":\\\"L\\\"}]\", \"exemptionApplied\": false, \"infringements\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"sealOpened\": false, \"notes\": \"CI ADR form\", \"id\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -385,7 +385,7 @@
       ]
     },
     {
-      "name": "GET adr-form \u2014 no permission \u2192 403",
+      "name": "GET adr-form — no permission → 403",
       "request": {
         "method": "GET",
         "header": [
@@ -425,7 +425,7 @@
       ]
     },
     {
-      "name": "GET adr-form \u2014 not found \u2192 404",
+      "name": "GET adr-form — not found → 404",
       "request": {
         "method": "GET",
         "header": [
@@ -465,7 +465,7 @@
       ]
     },
     {
-      "name": "GET adr-form \u2014 happy path, verify fields",
+      "name": "GET adr-form — happy path, verify fields",
       "request": {
         "method": "GET",
         "header": [
@@ -506,14 +506,21 @@
               "pm.test('notes match', () => pm.expect(body.notes).to.eql('CI ADR form'));",
               "pm.test('resultType is ok', () => pm.expect(body.resultType).to.eql('ok'));",
               "pm.test('subFormNumber matches', () => pm.expect(body.subFormNumber).to.eql(pm.environment.get('created_adr_sub_form_number')));",
-              "pm.test('compoundFormKey matches', () => pm.expect(Number(body.compoundFormKey)).to.eql(Number(pm.environment.get('created_adr_compound_key'))));"
+              "pm.test('compoundFormKey matches', () => pm.expect(Number(body.compoundFormKey)).to.eql(Number(pm.environment.get('created_adr_compound_key'))));",
+              "pm.test('Uued määruse-vormi väljad tagastatakse', () => {",
+              "  pm.expect(body).to.have.property('containerTypes');",
+              "  pm.expect(body).to.have.property('otherInfringements');",
+              "  pm.expect(body).to.have.property('drivingBanApplied');",
+              "  pm.expect(body).to.have.property('transportInterruptionApplied');",
+              "  pm.expect(body).to.have.property('exemptionNotes');",
+              "});"
             ]
           }
         }
       ]
     },
     {
-      "name": "GET adr-form/get-by-compound-form-key \u2014 happy path",
+      "name": "GET adr-form/get-by-compound-form-key — happy path",
       "request": {
         "method": "GET",
         "header": [
@@ -561,7 +568,59 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/save \u2014 re-save while saved \u2192 200, version stays 1 (no-bump rule)",
+      "name": "GET search/list — ADR-vorm ilma rikkumiseta → hasViolation false (#234)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?formType=adr&pageSize=200",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "formType",
+              "value": "adr"
+            },
+            {
+              "key": "pageSize",
+              "value": "200"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var row = rows.find(r => String(r.formKey) === String(pm.environment.get('created_adr_id')));",
+              "pm.test('ADR-vorm on otsingutulemustes', () => pm.expect(row, 'rida ei leitud').to.not.be.undefined);",
+              "pm.test('hasViolation === false', () => pm.expect(String(row.hasViolation)).to.eql('false'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/save — re-save while saved → 200, version stays 1 (no-bump rule)",
       "request": {
         "method": "POST",
         "header": [
@@ -590,7 +649,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"CI ADR form updated\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"CI ADR form updated\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"infringements\": null, \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -610,7 +669,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/xroad/save-xroad-fields \u2014 form not confirmed yet \u2192 422",
+      "name": "POST adr-form/edit/xroad/save-xroad-fields — form not confirmed yet → 422",
       "request": {
         "method": "POST",
         "header": [
@@ -658,7 +717,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/confirm \u2014 no permission \u2192 403",
+      "name": "POST adr-form/edit/confirm — no permission → 403",
       "request": {
         "method": "POST",
         "header": [
@@ -687,7 +746,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"infringements\": null, \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -702,7 +761,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/confirm \u2014 happy path \u2192 200, status confirmed, version unchanged",
+      "name": "POST adr-form/edit/confirm — happy path → 200, status confirmed, version unchanged",
       "request": {
         "method": "POST",
         "header": [
@@ -731,7 +790,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[{\\\"unNumber\\\":\\\"1090\\\",\\\"packagingGroup\\\":\\\"II\\\",\\\"quantity\\\":100,\\\"unitCode\\\":\\\"L\\\"}]\", \"exemptionApplied\": false, \"infringements\": \"[{\\\"classifierValueKey\\\":1,\\\"checkStatus\\\":\\\"checked\\\",\\\"riskCategory\\\":\\\"I\\\",\\\"adrProvision\\\":\\\"ADR 1.1\\\",\\\"notes\\\":\\\"\\\"}]\", \"resultType\": \"misdemeanor_proceedings\", \"proceedingType\": \"expedited\", \"proceedingReferenceNumber\": \"REF-001\", \"correctiveMeasures\": \"[\\\"on_spot\\\"]\", \"sealOpened\": true, \"sealOpenedDate\": \"2024-01-01\", \"sealInstalledDate\": \"2024-01-01\", \"notes\": \"CI ADR form confirmed\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"otherViolations\": null}"
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[{\\\"unNumber\\\":\\\"1090\\\",\\\"packagingGroup\\\":\\\"II\\\",\\\"quantity\\\":100,\\\"unitCode\\\":\\\"L\\\"}]\", \"exemptionApplied\": false, \"infringements\": \"[{\\\"checkpointCode\\\":\\\"P17\\\",\\\"inspectionStatus\\\":\\\"C\\\",\\\"infringementDetected\\\":true,\\\"records\\\":[{\\\"riskCategory\\\":\\\"I\\\",\\\"adrReference\\\":\\\"4.3.2.2.4\\\",\\\"responsibleParticipants\\\":[\\\"C\\\",\\\"F\\\"],\\\"reg2016403Code\\\":\\\"10\\\",\\\"reg2016403Severity\\\":\\\"VSI\\\"}]}]\", \"resultType\": \"misdemeanor_proceedings\", \"proceedingType\": \"expedited\", \"proceedingReferenceNumber\": \"REF-001\", \"correctiveMeasures\": \"[\\\"on_spot\\\"]\", \"sealOpened\": true, \"sealOpenedDate\": \"2024-01-01\", \"sealInstalledDate\": \"2024-01-01\", \"notes\": \"CI ADR form confirmed\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[\\\"paak\\\",\\\"pakend\\\"]\", \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": true, \"transportInterruptionApplied\": false}"
         }
       },
       "event": [
@@ -750,7 +809,7 @@
       ]
     },
     {
-      "name": "GET adr-form \u2014 status is confirmed after confirm",
+      "name": "GET adr-form — status is confirmed after confirm",
       "request": {
         "method": "GET",
         "header": [
@@ -796,7 +855,59 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/confirm \u2014 already confirmed \u2192 422 already_confirmed",
+      "name": "GET search/list — ADR-vorm rikkumisega → hasViolation true (#234)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?formType=adr&pageSize=200",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "formType",
+              "value": "adr"
+            },
+            {
+              "key": "pageSize",
+              "value": "200"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var data = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "if (typeof data === 'string') { try { data = JSON.parse(data); } catch (e) {} }",
+              "var rows = Array.isArray(data) ? data : (data && data.content) || [];",
+              "var row = rows.find(r => String(r.formKey) === String(pm.environment.get('created_adr_id')));",
+              "pm.test('ADR-vorm on otsingutulemustes', () => pm.expect(row, 'rida ei leitud').to.not.be.undefined);",
+              "pm.test('hasViolation === true', () => pm.expect(String(row.hasViolation)).to.eql('true'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST adr-form/edit/confirm — already confirmed → 422 already_confirmed",
       "request": {
         "method": "POST",
         "header": [
@@ -825,7 +936,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"notes\": \"\", \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"infringements\": null, \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"correctiveMeasures\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -843,7 +954,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/xroad/save-xroad-fields \u2014 no control_form.edit_locked \u2192 403",
+      "name": "POST adr-form/edit/xroad/save-xroad-fields — no control_form.edit_locked → 403",
       "request": {
         "method": "POST",
         "header": [
@@ -888,7 +999,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/xroad/save-xroad-fields \u2014 happy path (confirmed status) \u2192 200",
+      "name": "POST adr-form/edit/xroad/save-xroad-fields — happy path (confirmed status) → 200",
       "request": {
         "method": "POST",
         "header": [
@@ -918,7 +1029,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_adr_id}}\", \"enforcementDecision\": \"Otsus j\u00f5ustunud\", \"proceedingClosureBasis\": \"Menetlus l\u00f5petatud\"}"
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"enforcementDecision\": \"Otsus jõustunud\", \"proceedingClosureBasis\": \"Menetlus lõpetatud\"}"
         }
       },
       "event": [
@@ -937,7 +1048,7 @@
       ]
     },
     {
-      "name": "GET adr-form \u2014 X-tee fields persisted, version unchanged",
+      "name": "GET adr-form — X-tee fields persisted, version unchanged",
       "request": {
         "method": "GET",
         "header": [
@@ -973,8 +1084,8 @@
               "pm.test('Returns 200', () => pm.response.to.have.status(200));",
               "var raw = pm.response.json();",
               "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "pm.test('enforcementDecision persisted', () => pm.expect(body.enforcementDecision).to.eql('Otsus j\u00f5ustunud'));",
-              "pm.test('proceedingClosureBasis persisted', () => pm.expect(body.proceedingClosureBasis).to.eql('Menetlus l\u00f5petatud'));",
+              "pm.test('enforcementDecision persisted', () => pm.expect(body.enforcementDecision).to.eql('Otsus jõustunud'));",
+              "pm.test('proceedingClosureBasis persisted', () => pm.expect(body.proceedingClosureBasis).to.eql('Menetlus lõpetatud'));",
               "pm.test('version still 1', () => pm.expect(Number(body.version)).to.eql(1));"
             ]
           }
@@ -982,7 +1093,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/save \u2014 officer (no edit_locked) saves confirmed form \u2192 422 form_locked",
+      "name": "POST adr-form/edit/save — officer (no edit_locked) saves confirmed form → 422 form_locked",
       "request": {
         "method": "POST",
         "header": [
@@ -1011,7 +1122,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"Should not save\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"Should not save\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"infringements\": null, \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -1029,7 +1140,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/save \u2014 admin (edit_locked) saves confirmed form \u2192 200, version bumps to 2",
+      "name": "POST adr-form/edit/save — admin (edit_locked) saves confirmed form → 200, version bumps to 2",
       "request": {
         "method": "POST",
         "header": [
@@ -1058,7 +1169,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"CI ADR form re-saved after confirm\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerType\": null, \"infringements\": null, \"otherViolations\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
+          "raw": "{\"id\": \"{{created_adr_id}}\", \"dangerousGoods\": \"[]\", \"resultType\": \"ok\", \"correctiveMeasures\": \"[]\", \"notes\": \"CI ADR form re-saved after confirm\", \"compoundFormKey\": null, \"driverAssistant\": null, \"driverAdrCertificateNumber\": null, \"crewAdrCertificateNumber\": null, \"assistantAdrCertificateNumber\": null, \"lastLoadAddress\": null, \"lastLoadDate\": null, \"nextLoadAddress\": null, \"exemptionApplied\": null, \"exemptionAdrProvision\": null, \"containerTypes\": \"[]\", \"infringements\": null, \"otherInfringements\": \"[]\", \"exemptionNotes\": null, \"drivingBanApplied\": false, \"transportInterruptionApplied\": false, \"proceedingType\": null, \"proceedingReferenceNumber\": null, \"sealOpened\": null, \"sealOpenedDate\": null, \"sealInstalledDate\": null}"
         }
       },
       "event": [
@@ -1077,7 +1188,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/delete \u2014 no permission \u2192 403",
+      "name": "POST adr-form/edit/delete — no permission → 403",
       "request": {
         "method": "POST",
         "header": [
@@ -1122,7 +1233,7 @@
       ]
     },
     {
-      "name": "POST adr-form/edit/delete \u2014 happy path \u2192 200",
+      "name": "POST adr-form/edit/delete — happy path → 200",
       "request": {
         "method": "POST",
         "header": [
@@ -1167,7 +1278,7 @@
       ]
     },
     {
-      "name": "GET adr-form \u2014 deleted form still readable, status=deleted",
+      "name": "GET adr-form — deleted form still readable, status=deleted",
       "request": {
         "method": "GET",
         "header": [

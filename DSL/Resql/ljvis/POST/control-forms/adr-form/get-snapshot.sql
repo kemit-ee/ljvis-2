@@ -44,12 +44,18 @@ declaration:
         type: boolean
       - field: exemptionAdrProvision
         type: string
-      - field: containerType
+      - field: exemptionNotes
+        type: string
+      - field: containerTypes
         type: string
       - field: infringements
         type: string
-      - field: otherViolations
+      - field: otherInfringements
         type: string
+      - field: drivingBanApplied
+        type: boolean
+      - field: transportInterruptionApplied
+        type: boolean
       - field: resultType
         type: string
       - field: proceedingType
@@ -88,9 +94,12 @@ SELECT
   dangerous_goods::text,
   exemption_applied,
   exemption_adr_provision,
-  container_type,
+  exemption_notes,
+  container_types::text,
   infringements::text,
-  other_violations,
+  other_infringements::text,
+  driving_ban_applied,
+  transport_interruption_applied,
   result_type,
   proceeding_type,
   proceeding_reference_number,

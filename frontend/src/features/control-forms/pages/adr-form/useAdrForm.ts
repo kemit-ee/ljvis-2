@@ -7,12 +7,14 @@ import type {
   AdrDriverAssistant,
   AdrAddress,
   DangerousGoodEntry,
-  AdrInfringementEntry,
-  AdrInfringementCheckStatus,
+  AdrCheckpointEntry,
+  AdrOtherInfringementEntry,
+  AdrInfringementRecord,
 } from '../../types';
 import { confirmAdrForm, saveAdrForm, publishAdrForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
+import { EMPTY_ADR_RECORD, normalizeAdrRecord } from './adrRecordUtils';
 
 const NOTES_MAX_LENGTH = 4000;
 
@@ -46,7 +48,6 @@ export function createAdrValidationSchema(t: (key: string, opts?: Record<string,
 
 // RESQL returns JSONB columns cast via `::text`, so object/array fields
 // arrive over the wire as JSON-encoded strings, not real objects/arrays.
-// Normalize defensively regardless of which shape we get.
 function toObject<T>(value: unknown, fallback: T): T {
   if (value && typeof value === 'object') return value as T;
   if (typeof value === 'string' && value.length > 0) {
@@ -86,7 +87,6 @@ export function useAdrForm(
   const [formError, setFormError] = useState<string | null>(null);
   const { getByCode } = useClassifiers();
 
-
   const counties = useMemo(
     () =>
       getByCode('EHAK')
@@ -109,16 +109,20 @@ export function useAdrForm(
       driverAdrCertificateNumber: form?.driverAdrCertificateNumber ?? '',
       crewAdrCertificateNumber: form?.crewAdrCertificateNumber ?? '',
       assistantAdrCertificateNumber: form?.assistantAdrCertificateNumber ?? '',
-      lastLoadAddress: toObject<AdrAddress>(form?.lastLoadAddress, { countryCode: 'EE' }),
+      // §4.5/4.6: riik ei ole vaikimisi Eesti — pealelaadimine võib toimuda mujal.
+      lastLoadAddress: toObject<AdrAddress>(form?.lastLoadAddress, {}),
       lastLoadDate: form?.lastLoadDate ?? '',
-      nextLoadAddress: toObject<AdrAddress>(form?.nextLoadAddress, { countryCode: 'EE' }),
+      nextLoadAddress: toObject<AdrAddress>(form?.nextLoadAddress, {}),
       dangerousGoods: toArray<DangerousGoodEntry>(form?.dangerousGoods),
       exemptionApplied: form?.exemptionApplied ?? false,
       exemptionAdrProvision: form?.exemptionAdrProvision ?? '',
-      containerType: form?.containerType ?? '',
-      infringements: toArray<AdrInfringementEntry>(form?.infringements),
-      otherViolations: form?.otherViolations ?? '',
+      exemptionNotes: form?.exemptionNotes ?? '',
+      containerTypes: toArray<string>(form?.containerTypes),
+      infringements: toArray<AdrCheckpointEntry>(form?.infringements),
+      otherInfringements: toArray<AdrOtherInfringementEntry>(form?.otherInfringements),
       resultType: form?.resultType ?? 'ok',
+      drivingBanApplied: form?.drivingBanApplied ?? false,
+      transportInterruptionApplied: form?.transportInterruptionApplied ?? false,
       proceedingType: form?.proceedingType ?? '',
       proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
       correctiveMeasures: toArray<string>(form?.correctiveMeasures),
@@ -146,9 +150,6 @@ export function useAdrForm(
         const nextStatus = isConfirming || isReconfirmedEdit ? 'confirmed' : 'saved';
         const overrideKey = pendingCompoundFormKey.current;
         pendingCompoundFormKey.current = undefined;
-        // Empty driver-assistant / address blocks are sent as null so the
-        // backend stores them as SQL NULL rather than an empty-but-present
-        // JSON object (LJVIS2-141 §4.3/4.5/4.6: these blocks are optional).
         const isBlank = (obj: Record<string, unknown>) =>
           Object.values(obj).every((v) => v == null || v === '');
         const payload = {
@@ -166,9 +167,15 @@ export function useAdrForm(
             ? ''
             : JSON.stringify(values.nextLoadAddress),
           dangerousGoods: JSON.stringify(values.dangerousGoods ?? []),
-          // Rows the user never touched (checkStatus still unset) are not persisted.
+          containerTypes: JSON.stringify(values.containerTypes ?? []),
+          // Puutumata punkte / muid rikkumisi ei persistita.
           infringements: JSON.stringify(
-            (values.infringements ?? []).filter((e) => !!e.checkStatus),
+            (values.infringements ?? []).filter((e) => !!e.inspectionStatus),
+          ),
+          otherInfringements: JSON.stringify(
+            (values.otherInfringements ?? []).filter(
+              (e) => !!e.title || !!e.inspectionStatus || e.records.length > 0,
+            ),
           ),
           correctiveMeasures: JSON.stringify(values.correctiveMeasures ?? []),
         } as unknown as AdrForm;
@@ -238,31 +245,112 @@ export function useAdrForm(
     );
   };
 
-  const setInfringement = (
-    classifierValueKey: number,
-    patch: Partial<AdrInfringementEntry>,
-  ) => {
-    const current = formik.values.infringements ?? [];
-    const existing = current.find((e) => e.classifierValueKey === classifierValueKey);
-    if (existing) {
-      formik.setFieldValue(
-        'infringements',
-        current.map((e) =>
-          e.classifierValueKey === classifierValueKey ? { ...e, ...patch } : e,
-        ),
-      );
-    } else {
-      formik.setFieldValue('infringements', [
-        ...current,
-        { classifierValueKey, checkStatus: '' as AdrInfringementCheckStatus, ...patch },
-      ]);
-    }
+  const toggleContainerType = (code: string, checked: boolean) => {
+    const current = formik.values.containerTypes ?? [];
+    formik.setFieldValue(
+      'containerTypes',
+      checked ? [...current, code] : current.filter((c) => c !== code),
+    );
   };
 
-  const getInfringement = (classifierValueKey: number): AdrInfringementEntry =>
-    (formik.values.infringements ?? []).find(
-      (e) => e.classifierValueKey === classifierValueKey,
-    ) ?? { classifierValueKey, checkStatus: '' };
+  // ── Kontrollkaardi punktid (infringements) ─────────────────────────────
+  const getCheckpoint = (checkpointCode: string): AdrCheckpointEntry =>
+    (formik.values.infringements ?? []).find((e) => e.checkpointCode === checkpointCode) ?? {
+      checkpointCode,
+      inspectionStatus: '',
+      infringementDetected: false,
+      records: [],
+    };
+
+  const setCheckpoint = (checkpointCode: string, patch: Partial<AdrCheckpointEntry>) => {
+    const current = formik.values.infringements ?? [];
+    const existing = current.find((e) => e.checkpointCode === checkpointCode);
+    const next = existing
+      ? current.map((e) => (e.checkpointCode === checkpointCode ? { ...e, ...patch } : e))
+      : [
+          ...current,
+          {
+            checkpointCode,
+            inspectionStatus: '' as AdrCheckpointEntry['inspectionStatus'],
+            infringementDetected: false,
+            records: [],
+            ...patch,
+          },
+        ];
+    formik.setFieldValue('infringements', next);
+  };
+
+  const patchCheckpointRecords = (
+    checkpointCode: string,
+    fn: (records: AdrInfringementRecord[]) => AdrInfringementRecord[],
+  ) => {
+    const cp = getCheckpoint(checkpointCode);
+    setCheckpoint(checkpointCode, { records: fn(cp.records).map(normalizeAdrRecord) });
+  };
+
+  const addRecord = (checkpointCode: string) =>
+    patchCheckpointRecords(checkpointCode, (r) => [...r, { ...EMPTY_ADR_RECORD }]);
+
+  const updateRecord = (
+    checkpointCode: string,
+    index: number,
+    patch: Partial<AdrInfringementRecord>,
+  ) =>
+    patchCheckpointRecords(checkpointCode, (r) =>
+      r.map((rec, i) => (i === index ? { ...rec, ...patch } : rec)),
+    );
+
+  const removeRecord = (checkpointCode: string, index: number) =>
+    patchCheckpointRecords(checkpointCode, (r) => r.filter((_, i) => i !== index));
+
+  // ── Muud rikkumised (other_infringements) ──────────────────────────────
+  const setOtherInfringements = (next: AdrOtherInfringementEntry[]) =>
+    formik.setFieldValue('otherInfringements', next);
+
+  const addOtherInfringement = () =>
+    setOtherInfringements([
+      ...(formik.values.otherInfringements ?? []),
+      { title: '', inspectionStatus: '', infringementDetected: false, records: [] },
+    ]);
+
+  const updateOtherInfringement = (
+    index: number,
+    patch: Partial<AdrOtherInfringementEntry>,
+  ) =>
+    setOtherInfringements(
+      (formik.values.otherInfringements ?? []).map((e, i) =>
+        i === index ? { ...e, ...patch } : e,
+      ),
+    );
+
+  const removeOtherInfringement = (index: number) =>
+    setOtherInfringements(
+      (formik.values.otherInfringements ?? []).filter((_, i) => i !== index),
+    );
+
+  const patchOtherRecords = (
+    index: number,
+    fn: (records: AdrInfringementRecord[]) => AdrInfringementRecord[],
+  ) => {
+    const entry = (formik.values.otherInfringements ?? [])[index];
+    if (!entry) return;
+    updateOtherInfringement(index, { records: fn(entry.records).map(normalizeAdrRecord) });
+  };
+
+  const addOtherRecord = (index: number) =>
+    patchOtherRecords(index, (r) => [...r, { ...EMPTY_ADR_RECORD }]);
+
+  const updateOtherRecord = (
+    index: number,
+    recordIndex: number,
+    patch: Partial<AdrInfringementRecord>,
+  ) =>
+    patchOtherRecords(index, (r) =>
+      r.map((rec, i) => (i === recordIndex ? { ...rec, ...patch } : rec)),
+    );
+
+  const removeOtherRecord = (index: number, recordIndex: number) =>
+    patchOtherRecords(index, (r) => r.filter((_, i) => i !== recordIndex));
 
   return {
     formik,
@@ -278,7 +366,17 @@ export function useAdrForm(
     updateDangerousGood,
     removeDangerousGood,
     toggleCorrectiveMeasure,
-    setInfringement,
-    getInfringement,
+    toggleContainerType,
+    getCheckpoint,
+    setCheckpoint,
+    addRecord,
+    updateRecord,
+    removeRecord,
+    addOtherInfringement,
+    updateOtherInfringement,
+    removeOtherInfringement,
+    addOtherRecord,
+    updateOtherRecord,
+    removeOtherRecord,
   };
 }
