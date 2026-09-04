@@ -7,9 +7,10 @@ declaration:
     Idempotentne: sama type+entity_type+entity_id loob ainult ühe teavituse
     (uq_notification_entity_type indeks + ON CONFLICT DO NOTHING).
     APPEND-ONLY: INSERT only.
-    WebSocket push: broadcast_prefix "client:" saadab notification_update signaali
-    kõigile ühendatud frontend sessionidele; iga frontend teeb seejärel oma
-    authenticated GET /v1/notifications/unread-count päringu oma andmete jaoks.
+    WebSocket push: POST /v1/ws-broadcast/send teeb broadcast_where perms-sildi
+    järgi — notification_update signaal AINULT nendele ühendustele, kellel on
+    required_permission; iga frontend teeb seejärel oma authenticated
+    GET /v1/notifications/unread-count päringu oma andmete jaoks.
   namespace: notification
   allowlist:
     body:
@@ -71,6 +72,7 @@ wsPush:
       x-viljus-knows-a-secret: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       type: "notification_update"
+      required_permission: ${required_permission}
   result: wsPushRes
   error: returnResult
   next: returnResult
