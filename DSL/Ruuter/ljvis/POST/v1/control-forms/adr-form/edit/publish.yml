@@ -47,6 +47,8 @@ checkStatusSwitch:
       next: returnNotConfirmedError
   next: extractCurrentFormData
 
+# Väljanimed peavad ühtima adr-form/get + adr-form/update kujuga (määruse-teisenduse
+# skeem — vt save.yml). Iga update.sql allowlist väli PEAB body's olemas olema.
 extractCurrentFormData:
   assign:
     driver_assistant: "${currentFormRes.response.body[0].driverAssistant || ''}"
@@ -59,9 +61,12 @@ extractCurrentFormData:
     dangerous_goods: "${currentFormRes.response.body[0].dangerousGoods || '[]'}"
     exemption_applied: "${currentFormRes.response.body[0].exemptionApplied || false}"
     exemption_adr_provision: "${currentFormRes.response.body[0].exemptionAdrProvision || ''}"
-    container_type: "${currentFormRes.response.body[0].containerType || ''}"
+    exemption_notes: "${currentFormRes.response.body[0].exemptionNotes || ''}"
+    container_types: "${currentFormRes.response.body[0].containerTypes || '[]'}"
     infringements: "${currentFormRes.response.body[0].infringements || '[]'}"
-    other_violations: "${currentFormRes.response.body[0].otherViolations || ''}"
+    other_infringements: "${currentFormRes.response.body[0].otherInfringements || '[]'}"
+    driving_ban_applied: "${currentFormRes.response.body[0].drivingBanApplied || false}"
+    transport_interruption_applied: "${currentFormRes.response.body[0].transportInterruptionApplied || false}"
     result_type: "${currentFormRes.response.body[0].resultType || 'ok'}"
     proceeding_type: "${currentFormRes.response.body[0].proceedingType || ''}"
     proceeding_reference_number: "${currentFormRes.response.body[0].proceedingReferenceNumber || ''}"
@@ -91,9 +96,12 @@ publishForm:
       dangerousGoods: ${dangerous_goods}
       exemptionApplied: ${exemption_applied}
       exemptionAdrProvision: ${exemption_adr_provision}
-      containerType: ${container_type}
+      exemptionNotes: ${exemption_notes}
+      containerTypes: ${container_types}
       infringements: ${infringements}
-      otherViolations: ${other_violations}
+      otherInfringements: ${other_infringements}
+      drivingBanApplied: ${driving_ban_applied}
+      transportInterruptionApplied: ${transport_interruption_applied}
       resultType: ${result_type}
       proceedingType: ${proceeding_type}
       proceedingReferenceNumber: ${proceeding_reference_number}
@@ -108,7 +116,13 @@ publishForm:
 
 buildLogDescription:
   assign:
-    description: "ADR alamvorm avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${publishRes.response.body[0].subFormNumber}/${publishRes.response.body[0].version}"
+    sub_form_number: "${(publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].subFormNumber) || ''}"
+    sub_form_version: "${(publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].version) || ''}"
+  next: buildLogDescription2
+
+buildLogDescription2:
+  assign:
+    description: "ADR alamvorm avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${sub_form_number}/${sub_form_version}"
   next: logAuditEvent
 
 logAuditEvent:
