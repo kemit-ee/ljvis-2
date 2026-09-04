@@ -1,3 +1,13 @@
+/* Kompleksvorm + Vormid sit side by side (global .grid-2col) on desktop, but
+   must stack into a single column on a narrow/mobile screen. Higher-specificity
+   selector (two classes) so it wins over .grid-2col regardless of stylesheet
+   order. */
+@media (max-width: 820px) {
+  :global(.grid-2col).formsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .scopeToggle {
   margin-bottom: 16px;
 }

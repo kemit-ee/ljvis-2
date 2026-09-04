@@ -283,7 +283,7 @@ export function DesktopPage() {
         <div
           className={
             compoundEntry && standaloneForms.length > 0
-              ? 'grid-2col mt-1 mb-1'
+              ? `grid-2col mt-1 mb-1 ${styles.formsGrid}`
               : 'mt-1 mb-1'
           }
         >
