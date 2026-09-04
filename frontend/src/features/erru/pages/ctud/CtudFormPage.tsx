@@ -100,7 +100,7 @@ export function CtudFormPage() {
 
       {editable ? (
         <form onSubmit={form.formik.handleSubmit}>
-          <CtudRequestFields form={form} />
+          <CtudRequestFields form={form} businessCaseId={request.businessCaseId} />
           {form.formError && (
             <Alert
               type="danger"
