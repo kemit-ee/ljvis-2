@@ -226,6 +226,7 @@ deadline_candidates AS (
     FROM compound_progress cp,
          LATERAL jsonb_array_elements(cp.sub_forms) sf
     WHERE sf->>'proceedingType' IN ('expedited', 'general')
+      AND sf->>'status' <> 'published'
 ),
 needs_attention AS (
     SELECT jsonb_build_object(
