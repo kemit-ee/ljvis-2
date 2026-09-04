@@ -188,13 +188,14 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
 
       <Card className="mt-05">
         <Card.Content>
-          <div className="card-main">
+          <div>
             <Heading element="h2">{t('erru.rsi.form.driverBlock')}</Heading>
             <ChoiceGroup
               id="rsi-driver-block-open"
               name="rsi-driver-block-open"
-              label={t('erru.rsi.form.driverBlockOpen')}
               inputType="checkbox"
+              label=""
+              className="mt-05"
               value={driverBlockOpen ? ['open'] : []}
               onChange={(v) =>
                 setDriverBlockOpen((v as string[]).includes('open'))
@@ -210,7 +211,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
           </div>
           {driverBlockOpen && (
             <>
-              <div className={gridClass}>
+              <div className={`${gridClass} mt-05`}>
                 <TextField
                   id="rsi-driver-first-name"
                   label={t('erru.rsi.form.driverFirstName')}
@@ -255,14 +256,15 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
 
       <Card className="mt-05">
         <Card.Content>
-          <div className="card-main">
+          <div>
             <Heading element="h2">
               {t('erru.rsi.form.identificationBlock')}
             </Heading>
             <ChoiceGroup
               id="rsi-identification-block-open"
               name="rsi-identification-block-open"
-              label={t('erru.rsi.form.identificationBlockOpen')}
+              label=""
+              className="mt-05"
               inputType="checkbox"
               value={identificationBlockOpen ? ['open'] : []}
               onChange={(v) =>
@@ -283,7 +285,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 id="rsi-identification-holder"
                 name="rsi-identification-holder"
                 label={t('erru.rsi.form.identificationHolder')}
-                className="mb-05"
+                className="mb-05 mt-05"
                 required
                 inputType="radio"
                 direction="row"
@@ -548,7 +550,9 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
 
       <Card className="mt-05">
         <Card.Content>
-          <Heading element="h2" className="mb-1">{t('erru.rsi.form.resultsBlock')}</Heading>
+          <Heading element="h2" className="mb-1">
+            {t('erru.rsi.form.resultsBlock')}
+          </Heading>
           {/* inspectionPassed is always "Ei" for outgoing EE (LJVIS2-147 §4):
               "Eesti väljaminevatel teadetel on väärtus alati „Ei", sest teavitatakse
               ainult mittevastavustest." — rendered as disabled. */}
