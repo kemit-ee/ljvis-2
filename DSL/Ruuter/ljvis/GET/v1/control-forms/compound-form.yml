@@ -47,7 +47,7 @@ extractFormData:
   assign:
     form_number: "${res.response.body[0].formNumber}"
     created_by: "${res.response.body[0].createdBy}"
-    drivers: ${JSON.parse(res.response.body[0].drivers)}
+    drivers: ${JSON.parse(res.response.body[0].drivers || '[]')}
   next: extractDriverCodes
 
 extractDriverCodes:

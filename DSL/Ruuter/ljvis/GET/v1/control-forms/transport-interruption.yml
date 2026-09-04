@@ -61,13 +61,13 @@ extractFormData:
     sub_form_number: "${res.response.body[0].subFormNumber}"
     compound_form_key: "${res.response.body[0].compoundFormKey}"
     created_by: "${res.response.body[0].createdBy}"
-    drivers: ${JSON.parse(comres.response.body[0].drivers)}
+    drivers: ${JSON.parse(comres.response.body[0].drivers || '[]')}
   next: extractDriverCodes
 
 extractDriverCodes:
   assign:
-    driver1_personal_code_ee: "${drivers[0].personalCodeEe || ''}"
-    driver1_personal_code_foreign: "${drivers[0].personalCodeForeign || ''}"
+    driver1_personal_code_ee: "${drivers[0] != null ? drivers[0].personalCodeEe || '' : ''}"
+    driver1_personal_code_foreign: "${drivers[0] != null ? drivers[0].personalCodeForeign || '' : ''}"
     driver2_personal_code_ee: "${drivers[1] != null ? drivers[1].personalCodeEe || '' : ''}"
     driver2_personal_code_foreign: "${drivers[1] != null ? drivers[1].personalCodeForeign || '' : ''}"
   next: checkShouldLog
