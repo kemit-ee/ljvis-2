@@ -121,14 +121,30 @@ export function useRsiForm(
   const validationSchema = useMemo(
     () =>
       Yup.object({
-        originatingAuthority: Yup.string().required(required).max(100, t(`${T}.max_length_exceeded`)),
-        vehicleRegistrationNumber: Yup.string().required(required).max(50, t(`${T}.max_length_exceeded`)),
-        vehicleRegistrationCountry: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
-        vehicleIdentificationNumber: Yup.string().max(20, t(`${T}.max_length_exceeded`)),
-        inspectionLocation: Yup.string().required(required).max(200, t(`${T}.max_length_exceeded`)),
+        originatingAuthority: Yup.string()
+          .trim()
+          .required(required)
+          .max(100, t(`${T}.max_length_exceeded`)),
+        vehicleRegistrationNumber: Yup.string()
+          .trim()
+          .required(required)
+          .max(50, t(`${T}.max_length_exceeded`)),
+        vehicleRegistrationCountry: Yup.string()
+          .required(required)
+          .length(2, t(`${T}.invalid_country_code`)),
+        vehicleIdentificationNumber: Yup.string()
+          .trim()
+          .max(20, t(`${T}.max_length_exceeded`)),
+        inspectionLocation: Yup.string()
+          .trim()
+          .required(required)
+          .max(200, t(`${T}.max_length_exceeded`)),
         inspectionDate: Yup.string().required(required),
         inspectionTime: Yup.string().required(required),
-        inspectionAuthorityOrName: Yup.string().required(required).max(100, t(`${T}.max_length_exceeded`)),
+        inspectionAuthorityOrName: Yup.string()
+          .trim()
+          .required(required)
+          .max(100, t(`${T}.max_length_exceeded`)),
         // inspectionPassed is always 'false' for outgoing EE — no need to validate
         ptiRequested: Yup.string().required(required),
         vehicleProhibitionOrRestriction: Yup.string().required(required),

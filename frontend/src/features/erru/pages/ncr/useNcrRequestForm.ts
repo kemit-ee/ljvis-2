@@ -34,11 +34,15 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
     originatingAuthority: Yup.string().required(required),
     requestSource: Yup.string().required(required),
     requestPurpose: Yup.string().required(required),
-    ncrTo: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
-    transportUndertakingName: Yup.string().required(required),
-    communityLicenceNumber: Yup.string().required(required),
-    vehicleRegistrationNumber: Yup.string().required(required),
-    vehicleRegistrationCountry: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
+    ncrTo: Yup.string()
+      .required(required)
+      .length(2, t(`${T}.invalid_country_code`)),
+    transportUndertakingName: Yup.string().trim().required(required),
+    communityLicenceNumber: Yup.string().trim().required(required),
+    vehicleRegistrationNumber: Yup.string().trim().required(required),
+    vehicleRegistrationCountry: Yup.string()
+      .required(required)
+      .length(2, t(`${T}.invalid_country_code`)),
     checkDate: Yup.string().required(required),
     // When checkPassed=false, each serious infringement row must have the four mandatory fields
     // (LJVIS2-63 §4 "Rasked rikkumised ja karistused"). The category/infringementType/dates are
