@@ -158,7 +158,13 @@ confirmForm:
 
 buildLogDescription:
   assign:
-    description: "ADR alamvorm kinnitatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${confirmRes.response.body[0].subFormNumber}/${confirmRes.response.body[0].version}"
+    sub_form_number: "${(confirmRes.response.body && confirmRes.response.body[0] && confirmRes.response.body[0].subFormNumber) || ''}"
+    sub_form_version: "${(confirmRes.response.body && confirmRes.response.body[0] && confirmRes.response.body[0].version) || ''}"
+  next: buildLogDescription2
+
+buildLogDescription2:
+  assign:
+    description: "ADR alamvorm kinnitatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${sub_form_number}/${sub_form_version}"
   next: logAuditEvent
 
 logAuditEvent:

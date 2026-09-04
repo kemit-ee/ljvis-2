@@ -54,7 +54,7 @@ export function CgrFormCreatePage() {
     : undefined;
 
   const form = useCgrForm(prefill, (id) =>
-    navigate(id ? `/erru/cgr/${id}` : '/erru/cgr'),
+    navigate(id ? `/erru/cgr/${id}` : '/erru/cgr', { state: { justSaved: true } }),
   );
 
   if (!hasAnyPermission(['cgr.create']))

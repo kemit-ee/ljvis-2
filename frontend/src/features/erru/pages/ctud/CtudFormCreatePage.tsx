@@ -16,7 +16,7 @@ export function CtudFormCreatePage() {
   const { hasAnyPermission } = useAuth();
 
   const form = useCtudForm(undefined, (id) =>
-    navigate(id ? `/erru/ctud/${id}` : '/erru/ctud'),
+    navigate(id ? `/erru/ctud/${id}` : '/erru/ctud', { state: { justSaved: true } }),
   );
 
   if (!hasAnyPermission(['ctud.create']))

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -28,6 +28,10 @@ export function CtudFormPage() {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [savedOk, setSavedOk] = useState(
+    !!(location.state as { justSaved?: boolean } | null)?.justSaved,
+  );
   const { hasAnyPermission } = useAuth();
   const { label } = useClassifierLabel();
 
@@ -35,13 +39,18 @@ export function CtudFormPage() {
   const canEdit = hasAnyPermission(['ctud.create']);
   const canSend = hasAnyPermission(['ctud.send']);
 
-  const [savedOk, setSavedOk] = useState(false);
   const { request, isLoading, notFound, send, isSending, sendError, reload } =
     useCtudRequestDetail(id);
-  const form = useCtudForm(request, () => { setSavedOk(true); reload(); });
+  const handleSaved = () => {
+    setSavedOk(true);
+    window.scrollTo(0, 0);
+    reload();
+  };
+  const handleSend = () => { setSavedOk(false); window.scrollTo(0, 0); send(); };
+  const form = useCtudForm(request, handleSaved);
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
-  if (isLoading) return <Text>{t('common.loading')}</Text>;
+  if (isLoading && !request) return <Text>{t('common.loading')}</Text>;
   if (notFound || !request) return <Text>{t('erru.ctud.notFound')}</Text>;
 
   const editable = isCtudEditable(request) && canEdit;
@@ -50,6 +59,16 @@ export function CtudFormPage() {
 
   return (
     <div>
+      {savedOk && (
+        <Alert
+          type="success"
+          size="small"
+          className="mt-05"
+          onClose={() => setSavedOk(false)}
+        >
+          {t('common.saved')}
+        </Alert>
+      )}
       <Card className="mt-05">
         <Card.Content>
           <div className="card-main">
@@ -73,7 +92,9 @@ export function CtudFormPage() {
           {request.errorMessage && (
             <Text modifiers="bold">{request.errorMessage}</Text>
           )}
-          {sendError && <Text modifiers="bold">{t('erru.ctud.sendFailed')}</Text>}
+          {sendError && (
+            <Text modifiers="bold">{t('erru.ctud.sendFailed')}</Text>
+          )}
         </Card.Content>
       </Card>
 
@@ -81,30 +102,34 @@ export function CtudFormPage() {
         <form onSubmit={form.formik.handleSubmit}>
           <CtudRequestFields form={form} />
           {form.formError && (
-            <Alert type="danger" size="small" className="mt-05">
+            <Alert
+              type="danger"
+              size="small"
+              className="mt-05"
+              onClose={() => form.clearFormError()}
+            >
               {form.formError}
             </Alert>
           )}
-          {savedOk && (
-            <Alert type="success" size="small" className="mt-05">
-              {t('common.saved')}
-            </Alert>
-          )}
-          {form.formik.submitCount > 0 && Object.keys(form.formik.errors).length > 0 && (
-            <Alert type="danger" size="small" className="mt-05">
-              {t('common.formHasErrors')}
-            </Alert>
-          )}
+          {form.formik.submitCount > 0 &&
+            Object.keys(form.formik.errors).length > 0 && (
+              <Alert type="danger" size="small" className="mt-05">
+                {t('common.formHasErrors')}
+              </Alert>
+            )}
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/ctud')}>
+              <Button
+                visualType="secondary"
+                onClick={() => navigate('/erru/ctud')}
+              >
                 {t('common.back')}
               </Button>
               <Button type="submit" disabled={form.formik.isSubmitting}>
                 {t('common.save')}
               </Button>
               {sendable && (
-                <Button onClick={send} disabled={isSending}>
+                <Button onClick={handleSend} disabled={isSending}>
                   {t('erru.ctud.form.send')}
                 </Button>
               )}
@@ -117,11 +142,14 @@ export function CtudFormPage() {
           <CtudResponseBlock request={request} />
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button visualType="secondary" onClick={() => navigate('/erru/ctud')}>
+              <Button
+                visualType="secondary"
+                onClick={() => navigate('/erru/ctud')}
+              >
                 {t('common.back')}
               </Button>
               {sendable && (
-                <Button onClick={send} disabled={isSending}>
+                <Button onClick={handleSend} disabled={isSending}>
                   {t('erru.ctud.form.resend')}
                 </Button>
               )}
