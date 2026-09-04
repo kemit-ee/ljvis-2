@@ -191,7 +191,7 @@ standalone_union AS (
     FROM (SELECT DISTINCT ON (labour_inspection_form_key) * FROM forms.labour_inspection_form
           ORDER BY labour_inspection_form_key, created_at DESC) li
     WHERE li.status NOT IN ('deleted','published')
-      AND (:scope <> 'organisation' AND li.created_by = :actor_code OR :scope = 'organisation')
+      AND li.created_by = :actor_code
     UNION ALL
     SELECT 'good_repute', gr.good_repute_form_key,
            gr.form_number, gr.status, gr.certificate_issue_date,
@@ -199,7 +199,7 @@ standalone_union AS (
     FROM (SELECT DISTINCT ON (good_repute_form_key) * FROM forms.good_repute_form
           ORDER BY good_repute_form_key, created_at DESC) gr
     WHERE gr.status NOT IN ('deleted','published')
-      AND (:scope <> 'organisation' AND gr.created_by = :actor_code OR :scope = 'organisation')
+      AND gr.created_by = :actor_code
 ),
 active_standalone AS (
     SELECT jsonb_build_object(
