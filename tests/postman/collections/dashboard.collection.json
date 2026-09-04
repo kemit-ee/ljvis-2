@@ -10,13 +10,28 @@
       "name": "[Auth] Login — Super Admin",
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "auth", "dev", "dev-login"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
         },
-        "body": { "mode": "raw", "raw": "{\"personalCode\": \"{{pc_admin}}\"}" }
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
       },
       "event": [
         {
@@ -37,13 +52,28 @@
       "name": "[Auth] Login — No-perm User",
       "request": {
         "method": "POST",
-        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "auth", "dev", "dev-login"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
         },
-        "body": { "mode": "raw", "raw": "{\"personalCode\": \"{{pc_user}}\"}" }
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
       },
       "event": [
         {
@@ -66,15 +96,24 @@
         "method": "GET",
         "url": {
           "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "dashboard", "summary"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
         }
       },
       "event": [
         {
           "listen": "test",
           "script": {
-            "exec": ["pm.test('Unauthenticated 401', () => pm.response.to.have.status(401));"]
+            "exec": [
+              "pm.test('Unauthenticated 401', () => pm.response.to.have.status(401));"
+            ]
           }
         }
       ]
@@ -83,11 +122,23 @@
       "name": "GET dashboard/summary — admin, no data yet → 200 with all sections",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Cookie", "value": "{{cookie_admin}}" }],
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "dashboard", "summary"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
         }
       },
       "event": [
@@ -139,13 +190,28 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Cookie", "value": "{{cookie_admin}}" },
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "save"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -173,13 +239,29 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Cookie", "value": "{{cookie_admin}}" },
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "control-forms", "drive-rest-form", "driver", "edit", "save"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -191,11 +273,23 @@
       "name": "GET dashboard/summary — draft compound form appears with its sub-form",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Cookie", "value": "{{cookie_admin}}" }],
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "dashboard", "summary"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
         }
       },
       "event": [
@@ -234,19 +328,38 @@
       "event": [
         {
           "listen": "test",
-          "script": { "exec": ["pm.test('Returns 200', () => pm.response.to.have.status(200));"] }
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
         }
       ],
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Cookie", "value": "{{cookie_admin}}" },
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/confirm",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "confirm"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "confirm"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -258,11 +371,23 @@
       "name": "GET dashboard/summary — confirmed-but-unpublished compound form still active",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Cookie", "value": "{{cookie_admin}}" }],
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "dashboard", "summary"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
         }
       },
       "event": [
@@ -289,7 +414,9 @@
         {
           "listen": "prerequest",
           "script": {
-            "exec": ["pm.environment.set('dash_li_company', 'Dashboard LI Test ' + Date.now());"]
+            "exec": [
+              "pm.environment.set('dash_li_company', 'Dashboard LI Test ' + Date.now());"
+            ]
           }
         },
         {
@@ -308,13 +435,28 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Cookie", "value": "{{cookie_admin}}" },
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "control-forms", "labour-inspection", "edit", "save"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -326,11 +468,23 @@
       "name": "GET dashboard/summary — standalone draft act appears in activeStandaloneForms",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Cookie", "value": "{{cookie_admin}}" }],
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "dashboard", "summary"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
         }
       },
       "event": [
@@ -356,12 +510,29 @@
       "name": "GET dashboard/summary?scope=organisation — no-perm user silently falls back to own",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Cookie", "value": "{{cookie_noperm}}" }],
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/dashboard/summary?scope=organisation",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "dashboard", "summary"],
-          "query": [{ "key": "scope", "value": "organisation" }]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ],
+          "query": [
+            {
+              "key": "scope",
+              "value": "organisation"
+            }
+          ]
         }
       },
       "event": [
@@ -385,12 +556,29 @@
       "name": "GET dashboard/summary?scope=organisation — admin (control_form.view_unpublished) → organisation honoured",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Cookie", "value": "{{cookie_admin}}" }],
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/dashboard/summary?scope=organisation",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "dashboard", "summary"],
-          "query": [{ "key": "scope", "value": "organisation" }]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ],
+          "query": [
+            {
+              "key": "scope",
+              "value": "organisation"
+            }
+          ]
         }
       },
       "event": [
@@ -411,24 +599,206 @@
       ]
     },
     {
-      "name": "[Cleanup] Delete standalone labour-inspection act",
+      "name": "[Setup] Create TRAM compound form",
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Cookie", "value": "{{cookie_admin}}" },
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "cookie",
+            "value": "{{cookie_admin}}"
+          }
         ],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/delete",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "control-forms", "labour-inspection", "edit", "delete"]
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"formNumber\": \"\", \"status\": \"saved\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"Tallinn\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CITRAM1\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
         },
-        "body": { "mode": "raw", "raw": "{\"id\": \"{{dash_li_id}}\", \"old_status\": \"saved\"}" }
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "edit",
+            "save"
+          ]
+        }
       },
       "event": [
         {
           "listen": "test",
-          "script": { "exec": ["pm.test('Returns 200', () => pm.response.to.have.status(200));"] }
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar b = pm.response.json();\nvar row = b.response && b.response[0] ? b.response[0] : b[0] || b;\npm.test('TRAM form created', () => pm.expect(row.id).to.be.a('number').and.above(0));\npm.environment.set('tram_dash_key', row.id);\npm.environment.set('tram_dash_formnumber', row.formnumber || '');\npm.environment.set('tram_dash_status', row.status || 'saved');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard/summary — TRAM compound appears in activeCompoundForms",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar b = pm.response.json();\nvar summary = b.response || b;\nvar activeCompound = summary.activeCompoundForms || [];\nvar tramKey = parseInt(pm.environment.get('tram_dash_key'));\npm.test('TRAM compound form appears in activeCompoundForms',\n  () => pm.expect(activeCompound.some(f => f.compoundFormKey === tramKey)).to.be.true\n);\npm.test('TRAM compound form has tram- form number',\n  () => {\n    var tram = activeCompound.find(f => f.compoundFormKey === tramKey);\n    pm.expect(tram && tram.formNumber || '').to.match(/^tram-/);\n  }\n);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard/summary — no-perm user cannot see TRAM compound form",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar b = pm.response.json();\nvar summary = b.response || b;\nvar activeCompound = summary.activeCompoundForms || [];\nvar tramKey = parseInt(pm.environment.get('tram_dash_key'));\npm.test('no-perm user cannot see TRAM form in activeCompoundForms',\n  () => pm.expect(activeCompound.some(f => f.compoundFormKey === tramKey)).to.be.false\n);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete TRAM compound form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{tram_dash_key}}\", \"form_number\": \"{{tram_dash_formnumber}}\", \"old_status\": \"{{tram_dash_status}}\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "edit",
+            "delete"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete standalone labour-inspection act",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{dash_li_id}}\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
         }
       ]
     },
@@ -437,13 +807,28 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Cookie", "value": "{{cookie_admin}}" },
-          { "key": "Content-Type", "value": "application/json" }
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
         ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/delete",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "delete"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "delete"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -453,7 +838,11 @@
       "event": [
         {
           "listen": "test",
-          "script": { "exec": ["pm.test('Returns 200', () => pm.response.to.have.status(200));"] }
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
         }
       ]
     },
@@ -461,11 +850,23 @@
       "name": "GET dashboard/summary — deleted compound form no longer active",
       "request": {
         "method": "GET",
-        "header": [{ "key": "Cookie", "value": "{{cookie_admin}}" }],
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
         "url": {
           "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
-          "host": ["{{api_url}}"],
-          "path": ["ljvis", "v1", "dashboard", "summary"]
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
         }
       },
       "event": [
