@@ -269,6 +269,17 @@
       "key": "cookie_citizen",
       "value": "",
       "enabled": true
+    },
+    {
+      "key": "pc_officer",
+      "value": "60002020202",
+      "enabled": true,
+      "description": "Regular officer (Mari Tamm) — has *_form.write/read but NOT control_form.edit_locked; used to verify confirmed/published sub-forms cannot be re-saved without edit_locked."
+    },
+    {
+      "key": "cookie_officer",
+      "value": "",
+      "enabled": true
     }
   ],
   "_postman_variable_scope": "environment"
