@@ -143,4 +143,4 @@ SELECT
   l.notes,
   :created_by
 FROM latest l
-RETURNING sp_driver_form_key AS id, sub_form_number;
+RETURNING sp_driver_form_key AS id, sub_form_number, version;
