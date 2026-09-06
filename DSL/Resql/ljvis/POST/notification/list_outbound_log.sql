@@ -57,7 +57,12 @@ SELECT
 FROM notifications.outbound_log ol
 WHERE (NULLIF(:status, '') IS NULL OR ol.status = :status)
   AND (NULLIF(:notification_type, '') IS NULL OR ol.message_type = :notification_type)
-  AND (NULLIF(:recipient, '') IS NULL OR ol.recipient_address ILIKE '%' || :recipient || '%')
+  -- escape LIKE-metamärgid (\ % _) kasutaja sisendis, et '_' / '%' oleks
+  -- literaalne (e-posti aadressides on '_' tavaline)
+  AND (NULLIF(:recipient, '') IS NULL
+       OR ol.recipient_address ILIKE '%' ||
+          replace(replace(replace(:recipient, '\', '\\'), '%', '\%'), '_', '\_')
+          || '%' ESCAPE '\')
   AND (NULLIF(:notification_key, '') IS NULL OR ol.notification_key = :notification_key)
   AND ol.send_date >= COALESCE(NULLIF(:date_from, '')::TIMESTAMPTZ, '-infinity'::TIMESTAMPTZ)
   AND ol.send_date <  COALESCE(NULLIF(:date_to, '')::TIMESTAMPTZ + INTERVAL '1 day', 'infinity'::TIMESTAMPTZ)

@@ -85,12 +85,29 @@ callSendPostkast:
 unwrapSendResult:
   assign:
     send_result: "${(sendRes.response.body && sendRes.response.body.response) ? sendRes.response.body.response : sendRes.response.body}"
+  next: checkSendResult
+
+# send-postkast tagastab 2xx korral objekti {logId, notificationKey, status}
+# (ka 'error'-staatusega loob ta uue rea — see on korrektne append-only tulem).
+# 400/422 (checkRequired / not_postkast_channel) korral tuleb string-keha ja
+# ROLLI EI LOODUD — sel juhul ei tohi auditisse valesündmust kirjutada ega
+# 200 tagastada.
+checkSendResult:
+  switch:
+    - condition: ${!send_result || typeof send_result !== 'object' || !send_result.notificationKey}
+      next: returnSendFailed
   next: assignAuditFields
 
 assignAuditFields:
   assign:
     new_status: "${send_result?.status ?? ''}"
     new_key: "${send_result?.notificationKey ?? ''}"
+    audit_description: >-
+      ${('Teavitus ' + original_log.notificationKey + ' saadetud uuesti adressaadile '
+        + original_log.recipientAddress + ', uus katse ' + (send_result.notificationKey || '')
+        + ', eelmise katse vea põhjus \'' + (original_log.failureReason || '')
+        + '\', uus staatus ' + (send_result.status || ''))
+        .replace(/[\r\n\t\\]+/g, ' ').substring(0, 480)}
   next: logAuditEvent
 
 # 12-2 §7 sündmuse formaat: notification.resend.manual / notification_management.
@@ -104,13 +121,18 @@ logAuditEvent:
     event_category: "notification_management"
     actor_personal_code: ${actor_code}
     actor_name: ${actor_name}
-    description: "Teavitus ${original_log.notificationKey} saadetud uuesti adressaadile ${original_log.recipientAddress}, uus katse ${new_key}, eelmise katse vea põhjus '${original_log.failureReason ?? ''}', uus staatus ${new_status}"
+    description: ${audit_description}
     log_content: "{\"originalLogId\":\"${log_id}\",\"originalNotificationKey\":\"${original_log.notificationKey}\",\"newNotificationKey\":\"${new_key}\"}"
   result: audit_result
   next: returnResult
 
 returnResult:
   return: ${send_result}
+  next: end
+
+returnSendFailed:
+  status: 502
+  return: "resend failed: Postkast 2.0 send did not create a new log entry"
   next: end
 
 returnBadRequest:

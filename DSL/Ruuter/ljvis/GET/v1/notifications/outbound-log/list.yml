@@ -65,6 +65,21 @@ queryLog:
       page: ${page}
       page_size: ${page_size}
   result: res
+  next: sanitizeRows
+
+# failure_reason võib pärineda X-teelt / Postkast 2.0-st (op.resolution) ja
+# sisaldada reavahetusi / kurakaldkriipse. map_outbound_log_list.handlebars
+# ehitab JSON-i käsitsi (ei escape'i), seega üherealiseks siin — muidu tekitaks
+# üksainus vigane rida terve lehe DMapper-parse vea (500).
+sanitizeRows:
+  assign:
+    clean_rows: >-
+      ${(res.response.body || []).map(function(r){
+        if (r.failureReason) {
+          r.failureReason = String(r.failureReason).replace(/[\r\n\t\\]+/g, ' ').replace(/"/g, "'");
+        }
+        return r;
+      })}
   next: mapResponse
 
 # Mähime read {content, total} kujusse (frontend PagedResponse), sama mustriga
@@ -77,7 +92,7 @@ mapResponse:
     headers:
       type: json
     body:
-      rows: ${res.response.body}
+      rows: ${clean_rows}
   result: mapped
   next: buildAuditDescription
 

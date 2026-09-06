@@ -96,11 +96,15 @@ iterateRows:
                 : (op_status === 'ERROR' || (op_status === 'FINISHED' && created_count === 0))
                   ? 'error'
                   : (is_capped ? 'error' : pendingRow.status)}
+      # op.resolution tuleb X-teelt / Postkast 2.0-st — võib sisaldada reavahetusi,
+      # tabeldusi, kurakaldkriipse. failure_reason liigub DMapperi käsitsi ehitatud
+      # JSON-i (map_outbound_log_list), mis neid ei escape'i — puhastame siin
+      # üherealiseks ja lõikame 500 märgini (audit/veerg mahud).
       - assign:
           mapped_failure_reason: >-
-            ${mapped_status === 'error'
+            ${(mapped_status === 'error'
               ? ((op && op.resolution) || 'Lõppstaatust ei saabunud lubatud kontrollikatsete jooksul')
-              : ''}
+              : '').replace(/[\r\n\t\\]+/g, ' ').replace(/"/g, "'").substring(0, 500)}
       - call: http.post
         args:
           url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
