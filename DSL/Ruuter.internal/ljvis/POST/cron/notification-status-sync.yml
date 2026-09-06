@@ -97,9 +97,9 @@ iterateRows:
                   ? 'error'
                   : (is_capped ? 'error' : pendingRow.status)}
       # op.resolution tuleb X-teelt / Postkast 2.0-st — võib sisaldada reavahetusi,
-      # tabeldusi, kurakaldkriipse. failure_reason liigub DMapperi käsitsi ehitatud
-      # JSON-i (map_outbound_log_list), mis neid ei escape'i — puhastame siin
-      # üherealiseks ja lõikame 500 märgini (audit/veerg mahud).
+      # tabeldusi, kurakaldkriipse. Puhastame üherealiseks ja lõikame 500 märgini
+      # (failure_reason veeru ja audit-description mahud; ka list.yml puhastab
+      # veel kord lugemisel, aga parem hoida andmebaasis puhtana).
       - assign:
           mapped_failure_reason: >-
             ${(mapped_status === 'error'

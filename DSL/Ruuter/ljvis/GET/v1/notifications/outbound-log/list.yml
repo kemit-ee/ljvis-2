@@ -65,35 +65,32 @@ queryLog:
       page: ${page}
       page_size: ${page_size}
   result: res
-  next: sanitizeRows
+  next: buildResult
 
-# failure_reason võib pärineda X-teelt / Postkast 2.0-st (op.resolution) ja
-# sisaldada reavahetusi / kurakaldkriipse. map_outbound_log_list.handlebars
-# ehitab JSON-i käsitsi (ei escape'i), seega üherealiseks siin — muidu tekitaks
-# üksainus vigane rida terve lehe DMapper-parse vea (500).
-sanitizeRows:
+# Mähime read {content, total} kujusse (frontend PagedResponse). total tuleb
+# list_outbound_log.sql-i COUNT(*) OVER () veerust (igal real ühesugune).
+# NB: EI kasuta DMapperit (varem map_outbound_log_list.handlebars) — see ehitas
+# JSON-i käsitsi ilma escape'imata, seega üksainus failure_reason reavahetuse /
+# kurakaldkriipsuga (nt X-teelt op.resolution) tegi terve vastuse vigaseks
+# JSON-iks ja Ruuter tagastas selle stringina (frontend: 0 rida). Ehitame
+# objekti siin ja puhastame failure_reason üherealiseks (split/join, mitte
+# regex — Ruuteri väljendimootor).
+buildResult:
   assign:
-    clean_rows: >-
-      ${(res.response.body || []).map(function(r){
-        if (r.failureReason) {
-          r.failureReason = String(r.failureReason).replace(/[\r\n\t\\]+/g, ' ').replace(/"/g, "'");
-        }
-        return r;
+    result_obj: >-
+      ${({
+        content: (res.response.body || []).map(function(r){
+          if (r.failureReason != null) {
+            r.failureReason = String(r.failureReason)
+              .split(String.fromCharCode(13)).join(' ')
+              .split(String.fromCharCode(10)).join(' ')
+              .split(String.fromCharCode(9)).join(' ')
+              .split(String.fromCharCode(92)).join('/');
+          }
+          return r;
+        }),
+        total: (res.response.body && res.response.body[0]) ? res.response.body[0].total : 0
       })}
-  next: mapResponse
-
-# Mähime read {content, total} kujusse (frontend PagedResponse), sama mustriga
-# nagu erru list-otspunktid (map_rsi_list / map_ctud_list). total tuleb
-# list_outbound_log.sql-i COUNT(*) OVER () veerust, mis on igal real ühesugune.
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_outbound_log_list"
-    headers:
-      type: json
-    body:
-      rows: ${clean_rows}
-  result: mapped
   next: buildAuditDescription
 
 # 12-2 §7: iga avamine logitakse, sest vaates kuvatakse adressaatide
@@ -124,5 +121,5 @@ logAuditEvent:
   next: returnResult
 
 returnResult:
-  return: ${mapped.response.body}
+  return: ${result_obj}
   next: end
