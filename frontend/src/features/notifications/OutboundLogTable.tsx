@@ -4,7 +4,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { Button, DateField, Select, Text, TextField, Tooltip } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../auth/AuthContext';
 import { AppTable } from '../../shared/components/AppTable';
-import { formatDate, toIsoDate } from '../../hooks/dateUtils';
+import { formatDateTime, toIsoDate } from '../../hooks/dateUtils';
 import { PERMISSIONS } from '../../constants/constants';
 import { useOutboundLog } from './useOutboundLog';
 import { OutboundReportModal } from './OutboundReportModal';
@@ -99,7 +99,7 @@ export function OutboundLogTable() {
       columnHelper.accessor('sendDate', {
         header: t('notifications.log.sendDate'),
         enableSorting: true,
-        cell: (info) => formatDate(info.getValue()),
+        cell: (info) => formatDateTime(info.getValue()),
       }),
       columnHelper.accessor('notificationType', {
         header: t('notifications.log.messageType'),

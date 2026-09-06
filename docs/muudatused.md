@@ -22,6 +22,11 @@
   saadetakse teavitus uuesti täpselt samale adressaadile muutmata kujul.
 - Õigus **notification.admin** on asendatud kahega: **notification.list**
   (logi nägemine) ja **notification.resend** (uuesti saatmine).
+- Väline saatmine (e-kiri) käib nüüd **X-tee kaudu Postkast 2.0 teenusega**.
+  Saatmise lõppstaatust uuendab taustatöö; kui lõppstaatust ei saabu 24 tunni
+  jooksul, märgitakse teavitus „Veaks".
+- Uus administraatori juhendi peatükk **„Teavitused"** kirjeldab vaadet,
+  õigusi, filtreid ja uuesti saatmist.
 
 ---
 

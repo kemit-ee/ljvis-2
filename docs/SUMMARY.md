@@ -38,6 +38,7 @@
 - [Riskihindamine](admin-guide/06-riskihindamine-admin.md)
 - [API info](admin-guide/07-api-info.md)
 - [Manused](admin-guide/08-manused.md)
+- [Teavitused](admin-guide/09-teavitused.md)
 
 ---
 
