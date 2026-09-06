@@ -82,12 +82,14 @@ mapResponse:
   next: buildAuditDescription
 
 # 12-2 §7: iga avamine logitakse, sest vaates kuvatakse adressaatide
-# e-posti aadresse. Kirje sisaldab filtrid, lehekülje ja kuvatud
-# teavituste tunnused/adressaadid.
+# e-posti aadresse. `description` on audit-tabelis varchar(500), seega hoiame
+# selle lühikese (filter + lehekülg + kirjete arv); kuvatud teavituste
+# tunnused ja adressaadid lähevad täies mahus struktureeritud log_content'i.
 buildAuditDescription:
   assign:
-    shown_keys: "${(res.response.body || []).map(function(r){ return r.notificationKey || r.id; }).join(', ')}"
-    shown_recipients: "${(res.response.body || []).map(function(r){ return r.recipientAddress; }).filter(function(e){ return !!e; }).join(', ')}"
+    shown_count: "${(res.response.body || []).length}"
+    shown_keys_json: "${JSON.stringify((res.response.body || []).map(function(r){ return r.notificationKey || r.id; }))}"
+    shown_recipients_json: "${JSON.stringify((res.response.body || []).map(function(r){ return r.recipientAddress; }).filter(function(e){ return !!e; }))}"
     filter_summary: "${'status=' + (status || '-') + ', notificationType=' + (notification_type || '-') + ', dateFrom=' + (date_from || '-') + ', dateTo=' + (date_to || '-') + ', recipient=' + (recipient || '-') + ', notificationKey=' + (notification_key || '-')}"
   next: logAuditEvent
 
@@ -101,8 +103,8 @@ logAuditEvent:
     event_category: "notification_management"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
-    description: "Teavituste logi vaadatud, filter ${filter_summary}, lehekülg ${page}, kuvatud teavitused ${shown_keys}, adressaadid ${shown_recipients}, ulatus: kõik asutused"
-    log_content: "{\"page\":${page},\"pageSize\":${page_size},\"sortBy\":\"${sort_by}\",\"sortDir\":\"${sort_dir}\"}"
+    description: "${('Teavituste logi vaadatud, filter ' + filter_summary + ', lehekülg ' + page + ', kuvatud ' + shown_count + ' kirjet, ulatus: kõik asutused').substring(0, 480)}"
+    log_content: "${JSON.stringify({ page: page, pageSize: page_size, sortBy: sort_by, sortDir: sort_dir, filters: { status: status, notificationType: notification_type, dateFrom: date_from, dateTo: date_to, recipient: recipient, notificationKey: notification_key }, shownNotificationKeys: JSON.parse(shown_keys_json), shownRecipients: JSON.parse(shown_recipients_json) })}"
   result: audit_result
   next: returnResult
 
