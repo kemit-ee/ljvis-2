@@ -75,8 +75,13 @@ normalizeRecipient:
 checkRecipientFormat:
   switch:
     - condition: ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient_email)}
-      next: insertInvalidRecipient
+      next: markInvalidRecipient
   next: getTemplateMapping
+
+markInvalidRecipient:
+  assign:
+    pre_send_failure_reason: "Adressaadi e-posti aadress puudub või ei vasta lubatud kujule"
+  next: insertAsError
 
 getTemplateMapping:
   call: http.post
@@ -120,7 +125,22 @@ resolveTemplateId:
 resolveTemplateId2:
   assign:
     original_template_id: "${mapping.originalTemplateId || fallback_template_id}"
+  next: checkTemplateIdResolved
+
+# Kaitse: kui notification_template_mapping.original_template_id on tühi JA
+# liigil pole [#PK_TEMPLATE_*] tagavarakonstanti (nt uus liik lisati kataloogi
+# andmetega, aga see tagavara-switch unustati uuendada), ei tohi X-tee kutset
+# tühja originalTemplateId'ga saata — logi kohe veaga selle asemel.
+checkTemplateIdResolved:
+  switch:
+    - condition: ${original_template_id === ''}
+      next: markMissingTemplateId
   next: insertQueued
+
+markMissingTemplateId:
+  assign:
+    pre_send_failure_reason: "Teavituse liigil '${notification_type}' puudub Postkast 2.0 malli tunnus (originalTemplateId)"
+  next: insertAsError
 
 insertQueued:
   call: http.post
@@ -315,10 +335,11 @@ returnFailed:
     status: "error"
   next: end
 
-# Kehtetu adressaadi puhul (12-1 §"Veaolukorrad": "Kui adressaadi aadress
-# puudub või ei vasta lubatud kujule, teavitust ei saadeta ja teavitus
-# märgitakse veaga") logime kirje kohe staatusega error, ilma X-tee kutseta.
-insertInvalidRecipient:
+# Jagatud haru "logi kirje kohe error'iga, ilma X-tee kutseta" — mõlemale
+# eeltingimuste kontrollile (kehtetu adressaat, lahendamata malli tunnus).
+# 12-1 §"Veaolukorrad": "Kui adressaadi aadress puudub või ei vasta lubatud
+# kujule, teavitust ei saadeta ja teavitus märgitakse veaga."
+insertAsError:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_log"
@@ -330,7 +351,7 @@ insertInvalidRecipient:
       status: "error"
       recipient_address: ${recipient_email}
       notification_language: ""
-      failure_reason: "Adressaadi e-posti aadress puudub või ei vasta lubatud kujule"
+      failure_reason: ${pre_send_failure_reason}
       related_entity_type: ${related_entity_type}
       related_entity_id: ${related_entity_id}
       original_log_id: ${original_log_id}
@@ -339,33 +360,33 @@ insertInvalidRecipient:
       template_variables: ${template_variables}
       payload_json: ${template_variables}
       created_by: ${created_by}
-  result: invalidInsertRes
-  next: assignInvalidLogId
+  result: errorInsertRes
+  next: assignErrorLogId
 
-assignInvalidLogId:
+assignErrorLogId:
   assign:
-    invalid_log_id: "${invalidInsertRes.response.body[0]?.id ?? ''}"
-  next: insertInvalidRecipientRow
+    error_log_id: "${errorInsertRes.response.body[0]?.id ?? ''}"
+  next: insertErrorRecipientRow
 
-insertInvalidRecipientRow:
+insertErrorRecipientRow:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_recipient"
     headers:
       type: json
     body:
-      log_id: ${invalid_log_id}
+      log_id: ${error_log_id}
       person_email: ${recipient_email}
       person_name: ""
       person_code: ""
-      sending_report: "error: invalid recipient address"
-  result: invalidRecipientInsertRes
-  error: returnInvalidRecipient
-  next: returnInvalidRecipient
+      sending_report: "error: ${pre_send_failure_reason}"
+  result: errorRecipientInsertRes
+  error: returnError
+  next: returnError
 
-returnInvalidRecipient:
+returnError:
   return:
-    logId: ${invalid_log_id}
+    logId: ${error_log_id}
     notificationKey: ${generated_key}
     status: "error"
   next: end

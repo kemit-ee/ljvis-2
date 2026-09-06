@@ -1,6 +1,6 @@
 # GET /v1/notifications/* — piisab kehtivast sessioonist (list.yml, unread-count.yml
 # loevad auth_user.personalcode / .permissions). outbound-log/ kaustal on oma rangem
-# .guard (notification.list / resend/ nõuab notification.resend). auth_user tuleb projektiülesest guardist.
+# .guard (notification.list). auth_user tuleb projektiülesest guardist.
 check:
   switch:
     - condition: ${auth_user.personalcode != null}

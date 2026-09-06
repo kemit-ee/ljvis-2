@@ -11,6 +11,14 @@ declaration:
     status_check_count ilma parameetrita antud korral jääb muutmata; anna
     increment_check väärtus 'true' et suurendada +1 (sync-status kasutab
     seda katsete lae jälgimiseks).
+
+    NB pk_operation_restart_allowed on STRING ("true"/"false"/""), MITTE
+    boolean: Rust Resql'i BOOLEAN-parameetri sidumine COALESCE(...::BOOLEAN)
+    konteksti läheb Postgres'is katki ("invalid byte sequence for encoding
+    UTF8" / "invalid input syntax for type boolean"). Töötav kombinatsioon:
+    DSL saadab stringi, SQL kasutab NULLIF(:param, '')::BOOLEAN. increment_check
+    seevastu läheb bare JSON boolean'ina (CASE WHEN :param::BOOLEAN — see kuju
+    töötab).
   method: post
   accepts: json
   returns: json
@@ -26,7 +34,7 @@ declaration:
       - field: pk_sending_operation_id
         type: string
       - field: pk_operation_restart_allowed
-        type: boolean
+        type: string
       - field: pk_completed_at
         type: string
       - field: increment_check

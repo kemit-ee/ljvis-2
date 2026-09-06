@@ -50,6 +50,14 @@ checkFound2:
   switch:
     - condition: ${original_log == null}
       next: returnNotFound
+  next: checkStatus
+
+# 12-2 §"Uuesti saatmine": uuesti saa­dab AINULT ebaõnnestunud ("Viga") katset.
+# Õnnestunud / saatmisel oleva kirje dubleerimist ei lubata.
+checkStatus:
+  switch:
+    - condition: ${original_log.status !== 'error'}
+      next: returnConflict
   next: callSendPostkast
 
 callSendPostkast:
@@ -69,12 +77,20 @@ callSendPostkast:
       original_log_id: ${log_id}
       created_by: ${actor_code}
   result: sendRes
+  next: unwrapSendResult
+
+# send-postkast.yml on Ruuter.internal DSL — Ruuteri vaikimisi
+# response.default_wrapper: true mähib selle vastuse {"response": ...} kujule
+# (sama nagu send-postkast.yml enda callPk lugemisel). Loe mõlemat kuju.
+unwrapSendResult:
+  assign:
+    send_result: "${(sendRes.response.body && sendRes.response.body.response) ? sendRes.response.body.response : sendRes.response.body}"
   next: assignAuditFields
 
 assignAuditFields:
   assign:
-    new_status: "${sendRes.response.body.status ?? ''}"
-    new_key: "${sendRes.response.body.notificationKey ?? ''}"
+    new_status: "${send_result?.status ?? ''}"
+    new_key: "${send_result?.notificationKey ?? ''}"
   next: logAuditEvent
 
 # 12-2 §7 sündmuse formaat: notification.resend.manual / notification_management.
@@ -94,7 +110,7 @@ logAuditEvent:
   next: returnResult
 
 returnResult:
-  return: ${sendRes.response.body}
+  return: ${send_result}
   next: end
 
 returnBadRequest:
@@ -105,4 +121,9 @@ returnBadRequest:
 returnNotFound:
   status: 404
   return: "outbound log entry not found"
+  next: end
+
+returnConflict:
+  status: 409
+  return: "only failed notifications can be resent"
   next: end

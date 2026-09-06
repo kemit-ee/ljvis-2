@@ -59,6 +59,27 @@ iterateRows:
             ${(opRes.response.status >= 200 && opRes.response.status < 300
                && op_body && op_body.content
                && op_body.content[0]) || null}
+      # X-tee integratsioonilogi — sama nagu send-postkast.yml salvestab
+      # notifications endpoint'i kutse; siin logitakse sending-operations
+      # päring, et kogu Postkast 2.0 X-tee liiklus oleks jälgitav.
+      # NB: iterate `do:` sees ei toimi `error:` hüpe (Rust Ruuteri piirang),
+      # seepärast ilma veaharuta — sama nagu ülal PK-päringul.
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          headers:
+            type: json
+          body:
+            service_code: "pk.notification-management.v1"
+            request_xml: "${'externalId=' + pendingRow.notificationKey}"
+            response_xml: "${JSON.stringify(opRes.response.body)}"
+            duration_ms: 0
+            success: "${opRes.response.status >= 200 && opRes.response.status < 300}"
+            error_message: ""
+            person_identifier: ""
+            source_type: "notification_status_sync"
+            source_record_id: ${pendingRow.id}
+        result: xroadLogRes
       - assign:
           op_status: "${op ? op.status : ''}"
           created_count: "${(op && op.createdRecipientCount != null) ? op.createdRecipientCount : -1}"
