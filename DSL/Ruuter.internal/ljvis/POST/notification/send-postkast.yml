@@ -266,7 +266,7 @@ updateInProgress:
       status: "in_progress"
       failure_reason: ""
       pk_sending_operation_id: ${pk_sending_operation_id}
-      pk_operation_restart_allowed: null
+      pk_operation_restart_allowed: ""
       pk_completed_at: ""
       increment_check: false
   result: updateRes
@@ -321,7 +321,7 @@ updateFailedStatus:
       status: "error"
       failure_reason: ${pk_error_message}
       pk_sending_operation_id: ""
-      pk_operation_restart_allowed: null
+      pk_operation_restart_allowed: ""
       pk_completed_at: ""
       increment_check: false
   result: updateFailRes
