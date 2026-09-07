@@ -149,7 +149,7 @@
 :global(#dashboard-active-compound td:last-child),
 :global(#dashboard-active-standalone th:last-child),
 :global(#dashboard-active-standalone td:last-child) {
-  text-align: right;
+  text-align: center;
   white-space: nowrap;
 }
 
