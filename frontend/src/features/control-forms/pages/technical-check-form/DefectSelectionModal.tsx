@@ -65,26 +65,31 @@ export function DefectSelectionModal({
           {defects.length === 0 && (
             <Text>{t('forms.technical_check.defectModal.noDefects')}</Text>
           )}
-          {defects.map((defect) => (
-            <div key={defect.code} className="mb-1">
-              <ChoiceGroup
-                id={`defect-${defect.code}`}
-                name={`defect-${defect.code}`}
-                label={defect.name}
-                inputType="radio"
-                direction="row"
-                value={selections[defect.code] ?? ''}
-                onChange={(val) =>
-                  setSelections((prev) => ({ ...prev, [defect.code]: val as PartSeverity }))
-                }
-                items={applicableSeverities(defect).map((sev) => ({
-                  id: `defect-${defect.code}-${sev}`,
-                  value: sev,
-                  label: sev,
-                }))}
-              />
-            </div>
-          ))}
+          {defects.map((defect) => {
+            const current = selections[defect.code] ?? '';
+            return (
+              <div key={defect.code} className="mb-1">
+                <ChoiceGroup
+                  id={`defect-${defect.code}`}
+                  name={`defect-${defect.code}`}
+                  label={defect.name}
+                  inputType="checkbox"
+                  direction="row"
+                  value={current ? [current] : []}
+                  onChange={(val) => {
+                    const arr = (Array.isArray(val) ? val : []) as PartSeverity[];
+                    const added = arr.find((v) => v !== current);
+                    setSelections((prev) => ({ ...prev, [defect.code]: added ?? '' }));
+                  }}
+                  items={applicableSeverities(defect).map((sev) => ({
+                    id: `defect-${defect.code}-${sev}`,
+                    value: sev,
+                    label: sev,
+                  }))}
+                />
+              </div>
+            );
+          })}
           {showHint && (
             <Text color="danger">{t('forms.technical_check.defectModal.selectAtLeastOne')}</Text>
           )}
