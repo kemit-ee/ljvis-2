@@ -114,6 +114,7 @@ export function ForeignViolationFormPage() {
     setVehicleSearchError,
     licenceCopyNumberError,
     setLicenceCopyNumberError,
+    duplicateWarning,
     handleCompanyRegCodeSearch,
     handleCompanyNameSearch,
     handleVehicleSearch,
@@ -229,6 +230,19 @@ export function ForeignViolationFormPage() {
         </Alert>
       )}
 
+      {isEditActive && duplicateWarning && (
+        <Alert
+          icon="warning"
+          className="mb-1"
+          type="warning"
+          size="small"
+        >
+          {t('forms.foreign_violation.duplicateWarning', {
+            formNumber: duplicateWarning.formNumber,
+          })}
+        </Alert>
+      )}
+
       <Button
         visualType="link"
         onClick={() => navigate('/')}
@@ -270,6 +284,7 @@ export function ForeignViolationFormPage() {
           associatedPersons={associatedPersons}
           associatedPersonsLoading={associatedPersonsLoading}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
+          showAdminSection={isAdmin}
         />
 
         {id && (

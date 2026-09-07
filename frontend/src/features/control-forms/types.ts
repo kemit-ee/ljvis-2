@@ -106,11 +106,22 @@ export interface ForeignViolationForm {
   minorViolationsCount?: string;
   sanctionCode: string;
   sanctionNotes?: string;
+  additionalSanctionCodes?: string[];
   violations?: string[];
   recommendedMeasureCode: string;
   recommendedMeasureNotes?: string;
   notes?: string;
   dataEntryDate: string;
+  klimClarificationDate?: string;
+  carrierExplanationDate?: string;
+  penaltyValidUntil?: string;
+  penaltyExpiredOrProcessed?: boolean;
+  akvkNextMeetingDate?: string;
+  commissionLastDecisionDate?: string;
+  adminProcedureDecision?: string;
+  foreignAuthorityProposal?: boolean;
+  notifyCarrier?: boolean;
+  erruNcrMessageKey?: number | null;
   inspectorFirstName: string;
   inspectorLastName: string;
   inspectorOrganisationId: string;
@@ -524,4 +535,8 @@ export interface FormSearchFilters {
   /** '' = any, 'true' = has violation, 'false' = no violation */
   hasViolation: string;
   status: string;
+  /** VR only - reporting country code, exact match */
+  vrReportingCountryCode: string;
+  /** VR only - applied sanction code, exact match */
+  vrSanctionCode: string;
 }

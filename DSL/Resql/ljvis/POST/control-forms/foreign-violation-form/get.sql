@@ -136,6 +136,39 @@ returns:
 - name: inspector_profession
   type: string
   nullable: true
+- name: additional_sanction_codes
+  type: string
+  nullable: true
+- name: klim_clarification_date
+  type: string
+  nullable: true
+- name: carrier_explanation_date
+  type: string
+  nullable: true
+- name: penalty_valid_until
+  type: string
+  nullable: true
+- name: penalty_expired_or_processed
+  type: string
+  nullable: true
+- name: akvk_next_meeting_date
+  type: string
+  nullable: true
+- name: commission_last_decision_date
+  type: string
+  nullable: true
+- name: admin_procedure_decision
+  type: string
+  nullable: true
+- name: foreign_authority_proposal
+  type: string
+  nullable: true
+- name: notify_carrier
+  type: string
+  nullable: true
+- name: erru_ncr_message_key
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -187,6 +220,17 @@ SELECT
   inspector_organisation_id,
   inspector_unit,
   inspector_profession,
+  additional_sanction_codes::text,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
+  foreign_authority_proposal,
+  notify_carrier,
+  erru_ncr_message_key,
   status,
   created_by
 FROM forms.foreign_violation_form

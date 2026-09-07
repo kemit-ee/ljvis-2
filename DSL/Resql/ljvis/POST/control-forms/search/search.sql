@@ -63,6 +63,14 @@ params:
     type: string
     required: false
     description: Form lifecycle status
+  vr_reporting_country_code:
+    type: string
+    required: false
+    description: VR only - reporting country code (exact match)
+  vr_sanction_code:
+    type: string
+    required: false
+    description: VR only - applied sanction code (exact match)
 returns:
 - name: form_type
   type: string
@@ -144,6 +152,8 @@ WHERE
     AND (COALESCE(:inspector_org_id, '') = '' OR fs.inspector_org_id = :inspector_org_id)
     AND (COALESCE(:has_violation, '') = '' OR fs.has_violation = :has_violation::BOOLEAN)
     AND (COALESCE(:status, '') = '' OR fs.status = :status)
+    AND (COALESCE(:vr_reporting_country_code, '') = '' OR fs.vr_reporting_country_code = :vr_reporting_country_code)
+    AND (COALESCE(:vr_sanction_code, '') = '' OR fs.vr_sanction_code = :vr_sanction_code)
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'main_date desc') = 'main_date asc'      THEN fs.main_date END ASC,
     CASE WHEN COALESCE(:sorting, 'main_date desc') = 'main_date desc'     THEN fs.main_date END DESC,

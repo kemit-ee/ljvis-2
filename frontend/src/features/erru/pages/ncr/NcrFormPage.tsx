@@ -15,6 +15,7 @@ import {
   isNcrResponseSendable,
 } from '../../types';
 import { sendNcrRequest, sendNcrResponse } from '../../api';
+import { createVrFormFromNcr } from '../../../control-forms/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useOrganisations } from '../../../organisations/hooks';
@@ -44,11 +45,14 @@ export function NcrFormPage() {
     code ? (organisations.find((o) => o.code === code)?.name ?? code) : '—';
   const [sendError, setSendError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [creatingVr, setCreatingVr] = useState(false);
+  const [createVrError, setCreateVrError] = useState<string | null>(null);
 
   const canRead = hasAnyPermission(['ncr.read']);
   const canCreate = hasAnyPermission(['ncr.create']);
   const canRespond = hasAnyPermission(['ncr.respond']);
   const canSend = hasAnyPermission(['ncr.send']);
+  const canCreateVr = hasAnyPermission(['foreign_violation_form.write']);
 
   const { current, snapshots, isLoading, notFound, reload } = useNcrCase(businessCaseId);
   const [savedOk, setSavedOk] = useState(
@@ -85,6 +89,25 @@ export function NcrFormPage() {
     }
   };
 
+  const doCreateVr = async () => {
+    setCreateVrError(null);
+    setCreatingVr(true);
+    try {
+      const res = await createVrFormFromNcr(current.businessCaseId);
+      const newId = res?.[0]?.id;
+      if (newId) {
+        navigate(`/control-forms/foreign-violation/${newId}`, {
+          state: { justCreated: true },
+        });
+      }
+    } catch (e) {
+      setCreateVrError(t('erru.ncr.form.createVrFailed'));
+      console.error('Create VR from NCR failed', e);
+    } finally {
+      setCreatingVr(false);
+    }
+  };
+
   const doSendResponse = async () => {
     setSavedOk(false);
     setSendError(null);
@@ -112,6 +135,16 @@ export function NcrFormPage() {
           onClose={() => setSavedOk(false)}
         >
           {t('common.saved')}
+        </Alert>
+      )}
+      {createVrError && (
+        <Alert
+          type="danger"
+          size="small"
+          className="mt-05"
+          onClose={() => setCreateVrError(null)}
+        >
+          {createVrError}
         </Alert>
       )}
       <Card className="mt-05">
@@ -414,6 +447,30 @@ export function NcrFormPage() {
                   disabled={sending}
                 >
                   {t('erru.ncr.form.sendResponse')}
+                </Button>
+              )}
+              {canCreateVr && isInbound && !current.linkedForeignViolationFormKey && (
+                <Button
+                  type="button"
+                  visualType="secondary"
+                  iconLeft="add"
+                  onClick={doCreateVr}
+                  disabled={creatingVr}
+                >
+                  {t('erru.ncr.form.createVr')}
+                </Button>
+              )}
+              {canCreateVr && isInbound && current.linkedForeignViolationFormKey && (
+                <Button
+                  type="button"
+                  visualType="secondary"
+                  onClick={() =>
+                    navigate(
+                      `/control-forms/foreign-violation/${current.linkedForeignViolationFormKey}`,
+                    )
+                  }
+                >
+                  {t('erru.ncr.form.openVr')}
                 </Button>
               )}
             </div>

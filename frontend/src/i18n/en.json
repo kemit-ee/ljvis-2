@@ -868,6 +868,20 @@
       "sanctionLiiklemiskeeld": "Prohibition from driving",
       "sanctionSoiduk": "Immobilisation of vehicle",
       "sanctionMuu": "Other",
+      "duplicateWarning": "Warning: a control card with this company, vehicle and inspection date combination already exists ({{formNumber}}). Please check that you are not creating a duplicate.",
+      "addSanction": "+ Add sanction",
+      "additionalSanctions": "Additional sanctions",
+      "adminProc": {
+        "klimDate": "KLIM clarification request date",
+        "carrierDate": "Carrier explanation date",
+        "penaltyUntil": "Penalty valid until",
+        "akvkDate": "Next committee meeting (AKVK)",
+        "commissionDate": "Last committee decision date",
+        "decision": "Decision",
+        "expired": "Expired or processed",
+        "foreignProposal": "Proposal received from foreign authority for carrier inspection",
+        "notifyCarrier": "Notify carrier of violation"
+      },
       "euViolationGroupMsi": "Most serious infringements (MSI)",
       "euViolationMsi101": "MSI101 - Exceeds the maximum driving time of 2 consecutive weeks by 25% or more 112h30 ≤ ...",
       "euViolationMsi102": "MSI102 - Exceeds the daily driving time of 9 hours by 50% or more 13h30 ≤ ...",
@@ -1867,7 +1881,10 @@
         "ackStatusCode": "Acknowledgement status",
         "send": "Send",
         "sendResponse": "Send response",
-        "sendFailed": "Sending failed. The message moved to Error status."
+        "sendFailed": "Sending failed. The message moved to Error status.",
+        "createVr": "Create foreign violation control card",
+        "openVr": "Open foreign violation control card",
+        "createVrFailed": "Creating the VR control card failed"
       },
       "buildModal": {
         "button": "Add NCR message",
@@ -1918,7 +1935,9 @@
       "driver": "Driver (personal code or name)",
       "county": "County",
       "hasViolation": "Violation",
-      "status": "Status"
+      "status": "Status",
+      "vrReportingCountry": "VR: reporting country",
+      "vrSanctionCode": "VR: sanction"
     },
     "columns": {
       "formType": "Form type",

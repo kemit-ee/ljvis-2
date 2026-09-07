@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-09 — VR kontrollkaart: RS ettepanekud
+
+- Ühe sanktsiooni asemel saab nüüd märkida mitu sanktsiooni korraga (lisasanktsioonid lisatakse põhisanktsiooni kõrvale).
+- Lisandus **haldusmenetluse plokk**: KLIM selgitustaotluse kuupäev, vedaja seletus, karistuse kehtivus, AKVK koosolek, komisjoni otsus ja otsuse vabatekst.
+- Süsteem hoiatab, kui sama ettevõtte, sõiduki ja kuupäevaga VR vorm on juba olemas.
+- NCR-teatise vaates saab nüüd otse luua sellele vastava VR kontrollkaardi — vorm täidetakse NCR andmetega eeltäidetult.
+- Vormiotsingus on VR kontrollkaardile lisandunud kaks filtrit: teatav riik ja sanktsioon.
+- Nupu tekst muudetud: „Loo VR kontrollkaart" → „Loo välisriigis toimunud rikkumise kontrollkaart".
+
+---
+
 ## 2026-09 — ADR-vorm: veetavate ohtlike kaupade plokk ja aadressiväljad
 
 - Väli **„Pakendirühm"** on nüüd vabateksti asemel valik loendist: tühi valik,

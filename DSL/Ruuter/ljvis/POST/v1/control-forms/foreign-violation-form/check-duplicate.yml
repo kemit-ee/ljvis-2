@@ -1,0 +1,40 @@
+declaration:
+  version: "1.0"
+  description: "Check for duplicate VR foreign violation form (same company reg code + vehicle reg nr + inspection date)"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: companyRegCode
+        type: string
+      - field: vehicleRegNr
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: excludeId
+        type: string
+
+extractRequestData:
+  assign:
+    company_reg_code: "${incoming.body.companyRegCode}"
+    vehicle_reg_nr:   "${incoming.body.vehicleRegNr}"
+    inspection_date:  "${incoming.body.inspectionDate}"
+    exclude_id:       "${incoming.body.excludeId || ''}"
+  next: runQuery
+
+runQuery:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/check-duplicate"
+    headers:
+      type: json
+    body:
+      companyRegCode: ${company_reg_code}
+      vehicleRegNr:   ${vehicle_reg_nr}
+      inspectionDate: ${inspection_date}
+      excludeId:      ${exclude_id}
+  result: queryRes
+  next: returnResult
+
+returnResult:
+  return: ${queryRes.response.body}
+  next: end
