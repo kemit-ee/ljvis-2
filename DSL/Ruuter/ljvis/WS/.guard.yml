@@ -1,0 +1,25 @@
+# WS-alampuu guard — bypassib projektiülese `ljvis/.guard.yml`.
+#
+# Taust: Ruuter 0.9.11 (h2ck.me H2) hakkab guarde jooksutama ka WS-upgrade'i
+# handshake'i ajal, sünteesitud konteksti vastu (päised + query, kehata).
+# `ljvis/.guard.yml` nõuab kehtivat ametniku-sessiooni → autentimata
+# WS-upgrade katkeks HTTP-tasemel 401-ga ENNE kui esimene frame jõuab
+# autentida.
+#
+# `inbound/notifications/connect.yml` autendib JUBA igat sissetulevat frame'i
+# ise (`templates/check-user-authority` küpsisega, re-auth ≤ 30 s; vigase
+# sessiooni korral `{"type":"unauthorized"}` → frontend lõpetab reconnect'i).
+# Seega on õige lasta upgrade'il õnnestuda ja jätta autentimine frame-tasemele
+# nagu praeguses disainis.
+#
+# 0.9.10-l on see fail INERTNE — `handle_ws_upgrade` ei kutsu guarde
+# (H2 parandus tuli alles 0.9.11-s). Lisatud ette, et 0.9.11 bump oleks
+# ohutu.
+
+declaration:
+  override_ancestors: true
+
+guard_allow_all:
+  return: "success"
+  status: 200
+  next: end
