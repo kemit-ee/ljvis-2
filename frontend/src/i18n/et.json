@@ -590,7 +590,8 @@
         "statusColumn": "Olek",
         "notChecked": "Ei kontrollitud",
         "checked": "Kontrollitud",
-        "nonCompliant": "Ei vasta nõuetele"
+        "nonCompliant": "Ei vasta nõuetele",
+        "editDefects": "Muuda puudusi"
       },
       "resultsTable": {
         "title": "Tuvastatud rikked",
@@ -602,7 +603,8 @@
       "defectModal": {
         "select": "Vali",
         "noDefects": "Sellel osal ei ole rikkeid",
-        "selectAtLeastOne": "Valige vähemalt üks rike."
+        "selectAtLeastOne": "Valige vähemalt üks rike.",
+        "clear": "Puudub"
       },
       "result": {
         "title": "Kontrolli tulemus",
@@ -1733,12 +1735,14 @@
         "result": "Tulemus",
         "notChecked": "Ei kontrollitud",
         "checked": "Kontrollitud",
-        "nonCompliant": "Ei vasta nõuetele"
+        "nonCompliant": "Ei vasta nõuetele",
+        "editDefects": "Muuda puudusi"
       },
       "defectModal": {
         "noDefects": "Sellel osal ei ole rikkeid",
         "selectAtLeastOne": "Valige vähemalt üks rike",
-        "select": "Vali"
+        "select": "Vali",
+        "clear": "Puudub"
       },
       "form": {
         "titleOutgoing": "Tehnokontrolli teade (EST → ERRU)",

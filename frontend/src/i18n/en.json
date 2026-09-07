@@ -481,7 +481,8 @@
         "statusColumn": "Status",
         "notChecked": "Not checked",
         "checked": "Checked",
-        "nonCompliant": "Non-compliant"
+        "nonCompliant": "Non-compliant",
+        "editDefects": "Edit defects"
       },
       "resultsTable": {
         "title": "Detected defects",
@@ -493,7 +494,8 @@
       "defectModal": {
         "select": "Select",
         "noDefects": "This part has no defects",
-        "selectAtLeastOne": "Select at least one defect."
+        "selectAtLeastOne": "Select at least one defect.",
+        "clear": "None"
       },
       "result": {
         "title": "Inspection result",
@@ -1714,12 +1716,14 @@
         "result": "Result",
         "notChecked": "Not checked",
         "checked": "Checked",
-        "nonCompliant": "Non-compliant"
+        "nonCompliant": "Non-compliant",
+        "editDefects": "Edit defects"
       },
       "defectModal": {
         "noDefects": "This part has no defects",
         "selectAtLeastOne": "Select at least one defect",
-        "select": "Select"
+        "select": "Select",
+        "clear": "None"
       },
       "form": {
         "titleOutgoing": "Roadside inspection message (EST → ERRU)",
