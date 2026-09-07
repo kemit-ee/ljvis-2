@@ -644,7 +644,7 @@
         "method": "POST",
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/insert", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "insert"]},
-        "body": {"mode": "raw", "raw": "{\"spDriverFormKey\": null, \"compoundFormKey\": \"{{cron_spd_cf_id}}\", \"subFormNumber\": \"\", \"templateVersion\": null, \"status\": \"confirmed\", \"selectionStatus\": \"active\", \"transportType\": \"Veosevedu\", \"transportEmptyRun\": false, \"transportNature\": \"\", \"transportNatureExempt\": null, \"transportClasses\": \"\", \"cabotageViolations\": \"\", \"resultType\": \"ALUSTATI\", \"additionalMeasure\": \"\", \"proceedingType\": \"YLD\", \"proceedingReferenceNumber\": \"1-20/26/SPD-CRON\", \"documentChecks\": \"\", \"otherDocuments\": \"\", \"spApplicability\": \"\", \"tachographTypeCode\": \"\", \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": \"\", \"violations1652014\": \"\", \"violations200215\": \"\", \"violations5932008\": \"\", \"violations20201057\": \"\", \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": \"\", \"atpViolationFound\": \"false\", \"atpViolationDescription\": \"\", \"erruPoints\": \"\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"notes\": \"\", \"created_by\": \"newman\"}"}
+        "body": {"mode": "raw", "raw": "{\"compoundFormKey\": \"{{cron_spd_cf_id}}\", \"status\": \"confirmed\", \"selectionStatus\": \"active\", \"transportType\": \"Veosevedu\", \"transportEmptyRun\": false, \"transportNature\": \"\", \"transportNatureExempt\": null, \"transportClasses\": \"\", \"cabotageViolations\": \"\", \"resultType\": \"ALUSTATI\", \"additionalMeasure\": \"\", \"proceedingType\": \"YLD\", \"proceedingReferenceNumber\": \"1-20/26/SPD-CRON\", \"documentChecks\": \"\", \"otherDocuments\": \"\", \"spApplicability\": \"\", \"tachographTypeCode\": \"\", \"tachographDataNotDownloaded\": false, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": \"\", \"violations1652014\": \"\", \"violations200215\": \"\", \"violations5932008\": \"\", \"violations20201057\": \"\", \"massDimensionNonCompliant\": false, \"massDimensionMeasurements\": \"\", \"atpViolationFound\": \"false\", \"atpViolationDescription\": \"\", \"erruPoints\": \"\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"notes\": \"\", \"created_by\": \"newman\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -675,7 +675,7 @@
         "method": "POST",
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/update-xroad-fields", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "update-xroad-fields"]},
-        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"false\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\", \"created_by\": \"e-toimik\"}"}
+        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"false\", \"enforcementDecision\": \"\", \"proceedingClosureBasis\": \"\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -689,7 +689,7 @@
         "method": "POST",
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/update-xroad-fields", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "update-xroad-fields"]},
-        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"true\", \"enforcementDecision\": \"Rahatrahv 120 eurot (2026-08-15)\", \"proceedingClosureBasis\": \"VTMS \u00a7 29\", \"created_by\": \"e-toimik\"}"}
+        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"true\", \"enforcementDecision\": \"Rahatrahv 120 eurot (2026-08-15)\", \"proceedingClosureBasis\": \"VTMS \u00a7 29\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
@@ -718,7 +718,7 @@
         "method": "POST",
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "url": {"raw": "{{resql_ljvis_url}}/control-forms/drive-rest-form/driver/update-xroad-fields", "host": ["{{resql_ljvis_url}}"], "path": ["control-forms", "drive-rest-form", "driver", "update-xroad-fields"]},
-        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"true\", \"enforcementDecision\": \"Should not overwrite\", \"proceedingClosureBasis\": \"Should not overwrite\", \"created_by\": \"e-toimik\"}"}
+        "body": {"mode": "raw", "raw": "{\"key\": \"{{cron_spd_id}}\", \"found\": \"true\", \"enforcementDecision\": \"Should not overwrite\", \"proceedingClosureBasis\": \"Should not overwrite\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
         "pm.test('Returns 200', () => pm.response.to.have.status(200));",
