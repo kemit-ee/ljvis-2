@@ -49,8 +49,8 @@ Täita ainult juhul, kui see on rikkumise puhul asjakohane. Isikukoodi järgi sa
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | Riik (`lastLoadAddress.countryCode`) | Ei | |
-| Maakond (`lastLoadAddress.county`) | Ei | EHAK valik, kui riik on Eesti |
-| Linn (`lastLoadAddress.city`) | Ei | EHAK valik, kui riik on Eesti |
+| Maakond (`lastLoadAddress.county`) | Ei | EHAK valik (tühja valikuga), kui riik on Eesti |
+| Linn (`lastLoadAddress.city`) | Ei | EHAK valik (tühja valikuga), kui riik on Eesti |
 | Tänav (`lastLoadAddress.street`) | Ei | |
 | Postiindeks (`lastLoadAddress.postalCode`) | Ei | Max 10 tähemärki |
 | Kuupäev (`lastLoadDate`) | Ei | |
@@ -74,7 +74,7 @@ Tabelisse saab lisada ühe või mitu rida. Igale kaubale täidetakse:
 
 Ridade lisamiseks klõpsake **+ Lisa ohtlik kaup**. Rida saab kustutada prügikasti ikooni abil.
 
-> **Aadressiväljad (3. ja 4. osa):** riik ei ole vaikimisi täidetud. Riigivaliku alguses on tühi valik. Kui riik ei ole Eesti, siis maakonna ja linna/valla väljad täidetakse käsitsi (klassifikaatorit ei pakuta).
+> **Aadressiväljad (3. ja 4. osa):** riik ei ole vaikimisi täidetud. Riigivaliku alguses on nähtava sildiga („—") tühi valik, millega saab ekslikult valitud riigi tühjendada. Kui riik on Eesti, on ka maakonna ja linna/valla rippmenüüs tühi valik. Kui riik ei ole Eesti, siis maakonna ja linna/valla väljad täidetakse käsitsi (klassifikaatorit ei pakuta).
 
 ### 6. Erandi kohaldamine
 

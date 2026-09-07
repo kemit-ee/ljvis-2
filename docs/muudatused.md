@@ -12,6 +12,10 @@
   (klassifikaator `ADR_PACKING_GROUP`).
 - Ploki **„Veetavate ohtlike kaupade andmed"** pealkirja alla lisati selgitus
   „Täidetakse rikkumise tuvastamise korral".
+- Aadressiväljade **riigi** rippmenüü esimene tühi valik on nüüd nähtava sildiga
+  („—"), et ekslikult valitud riiki saaks tühjendada. Kui riik on **Eesti**, saab
+  ka **maakonna** ja **linna/valla** valiku tühjaks jätta. (Muudatus kehtib kõigil
+  aadressivälju kasutavatel kontrollvormidel.)
 
 ---
 
