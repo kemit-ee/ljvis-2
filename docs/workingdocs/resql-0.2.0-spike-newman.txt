@@ -1,0 +1,71 @@
+# Newman spike run — turnerrainer/resql:0.2.0-alpha + turnerrainer/ruuter:0.9.9-rc
+# 2026-09-07, chore/resql-turnerrainer-spike @ 6d58319 (converted tree)
+
+adr-form                      pass=23 fail=43 reqErr=0 <<< FAIL
+audit-log                     pass=33 fail=0 reqErr=0
+citizen-representation        pass=19 fail=0 reqErr=0
+classifiers                   pass=77 fail=1 reqErr=0 <<< FAIL
+cron-jobs                     pass=101 fail=14 reqErr=0 <<< FAIL
+dashboard                     pass=37 fail=32 reqErr=0 <<< FAIL
+driverest-forms               pass=24 fail=24 reqErr=0 <<< FAIL
+erru-cgr                      pass=149 fail=1 reqErr=0 <<< FAIL
+erru-ctud                     pass=146 fail=2 reqErr=0 <<< FAIL
+erru-ncr                      pass=180 fail=4 reqErr=0 <<< FAIL
+erru-rsi                      pass=142 fail=6 reqErr=0 <<< FAIL
+foreign-violation-form        pass=36 fail=0 reqErr=0
+form-search                   pass=32 fail=0 reqErr=0
+good-repute-form              pass=53 fail=0 reqErr=0
+labour-inspection             pass=52 fail=0 reqErr=0
+notifications                 pass=59 fail=0 reqErr=0
+organisations                 pass=13 fail=0 reqErr=0
+permissions                   pass=24 fail=0 reqErr=0
+risk-scores                   pass=103 fail=0 reqErr=0
+technical-check-forms         pass=71 fail=0 reqErr=0
+tram-form                     pass=27 fail=14 reqErr=0 <<< FAIL
+transport-interruption        pass=17 fail=33 reqErr=0 <<< FAIL
+user-groups                   pass=58 fail=0 reqErr=0
+users                         pass=51 fail=2 reqErr=0 <<< FAIL
+xroad-provide-query           pass=41 fail=0 reqErr=0
+xroad-provide-write           pass=42 fail=0 reqErr=0
+
+[exited with code 0]
+
+## resql::error taxonomy (100 lines)
+  50  [BadSqlGrammarException] SQL execution failed: error returned from database: invalid input syntax for type bigint: "X"
+        control-forms/adr-form/delete
+        control-forms/adr-form/get
+        control-forms/adr-form/update
+        control-forms/drive-rest-form/driver/delete
+        control-forms/drive-rest-form/driver/get
+        control-forms/drive-rest-form/teammate/delete
+        control-forms/drive-rest-form/teammate/get
+        control-forms/tram-form/sp-driver/get
+        control-forms/transport-interruption/delete
+        control-forms/transport-interruption/get
+        control-forms/transport-interruption/update
+        erru/ncr/build
+  32  [InvalidParameterTypeException] Parameter 'X' has the wrong type: expected string, got number
+        classifier/update_classifier
+        control-forms/compound-form/get
+        control-forms/labour-inspection/update
+        dashboard/summary
+        erru/cgr/append-transition
+        erru/ctud/append-transition
+        erru/rsi/append-transition
+        user/list_users
+        user_group/get_user_group_permissions
+   8  [BadSqlGrammarException] SQL execution failed: error returned from database: invalid input syntax for type double precision: 
+        control-forms/drive-rest-form/driver/insert
+        control-forms/drive-rest-form/driver/update
+        control-forms/drive-rest-form/teammate/insert
+        control-forms/drive-rest-form/teammate/update
+   6  [UnknownParameterException] Unexpected parameter 'X' not declared for this endpoint
+        control-forms/drive-rest-form/driver/insert
+        control-forms/drive-rest-form/driver/update-xroad-fields
+        control-forms/tram-form/sp-driver/insert
+   2  [BadSqlGrammarException] SQL execution failed: error returned from database: new row for relation "X" violates check constrai
+        erru/ctud/append-inbound
+   1  [BadSqlGrammarException] SQL execution failed: error returned from database: syntax error at or near "X"
+        log/get_logs_verify
+   1  [InvalidParameterTypeException] Parameter 'X' has the wrong type: expected number, got string "X" is not a valid number
+        control-forms/drive-rest-form/driver/insert
