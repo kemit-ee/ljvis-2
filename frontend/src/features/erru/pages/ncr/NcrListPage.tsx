@@ -17,6 +17,8 @@ import type { NcrCaseListItem } from '../../types';
 import { useNcrList } from './useNcrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import {useMediaQuery} from "../../../../hooks/useMediaQuery.ts";
+import {BREAKPOINTS} from "../../../../constants/constants.ts";
 
 const columnHelper = createColumnHelper<NcrCaseListItem & { rowClassName?: string }>();
 
@@ -32,6 +34,7 @@ export function NcrListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
 
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['ncr.list']);
   const canCreate = hasAnyPermission(['ncr.create']);
 
@@ -141,12 +144,17 @@ export function NcrListPage() {
           <div className="card-main">
             <Heading element="h1">{t('erru.ncr.list.title')}</Heading>
             {canCreate && (
-              <Button onClick={() => navigate('/erru/ncr/new')}>{t('erru.ncr.list.newMessage')}</Button>
+              <Button onClick={() => navigate('/erru/ncr/new')}>
+                {t('erru.ncr.list.newMessage')}
+              </Button>
             )}
           </div>
 
           {/* Filters refresh only on "Otsi" — editing must not auto-refetch. */}
-          <div className="filter-bar">
+          <div
+            className="filter-bar"
+            style={isDesktop ? { width: '80%' } : undefined}
+          >
             <TextField
               id="ncr-filter-id"
               label={t('erru.ncr.list.id')}
@@ -157,7 +165,11 @@ export function NcrListPage() {
               key={`ncr-sent-from-${resetKey}`}
               id="ncr-filter-sent-from"
               label={t('erru.ncr.list.sentFrom')}
-              selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
+              selected={
+                draftFilters.sentFrom
+                  ? new Date(draftFilters.sentFrom)
+                  : undefined
+              }
               onSelect={(v) => setFilter('sentFrom', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
@@ -166,7 +178,11 @@ export function NcrListPage() {
               key={`ncr-sent-until-${resetKey}`}
               id="ncr-filter-sent-until"
               label={t('erru.ncr.list.sentUntil')}
-              selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}
+              selected={
+                draftFilters.sentUntil
+                  ? new Date(draftFilters.sentUntil)
+                  : undefined
+              }
               onSelect={(v) => setFilter('sentUntil', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
@@ -175,29 +191,62 @@ export function NcrListPage() {
               id="ncr-filter-from"
               label={t('erru.ncr.list.ncrFrom')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
-              value={countryOptions.find((o) => o.value === draftFilters.ncrFrom) ?? null}
-              onChange={(o) => setFilter('ncrFrom', (o as { value?: string } | null)?.value ?? '')}
+              value={
+                countryOptions.find((o) => o.value === draftFilters.ncrFrom) ??
+                null
+              }
+              onChange={(o) =>
+                setFilter(
+                  'ncrFrom',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
+              }
             />
             <Select
               id="ncr-filter-to"
               label={t('erru.ncr.list.ncrTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
-              value={countryOptions.find((o) => o.value === draftFilters.ncrTo) ?? null}
-              onChange={(o) => setFilter('ncrTo', (o as { value?: string } | null)?.value ?? '')}
+              value={
+                countryOptions.find((o) => o.value === draftFilters.ncrTo) ??
+                null
+              }
+              onChange={(o) =>
+                setFilter(
+                  'ncrTo',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
+              }
             />
             <Select
               id="ncr-filter-status"
               label={t('erru.ncr.list.status')}
-              options={statusOptions}
-              value={statusOptions.find((o) => o.value === draftFilters.status) ?? null}
-              onChange={(o) => setFilter('status', (o as { value?: string } | null)?.value ?? '')}
+              options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
+              value={
+                statusOptions.find((o) => o.value === draftFilters.status) ??
+                null
+              }
+              onChange={(o) =>
+                setFilter(
+                  'status',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
+              }
             />
             <Select
               id="ncr-filter-direction"
               label={t('erru.ncr.list.direction')}
-              options={directionOptions}
-              value={directionOptions.find((o) => o.value === draftFilters.direction) ?? null}
-              onChange={(o) => setFilter('direction', (o as { value?: string } | null)?.value ?? '')}
+              options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
+              value={
+                directionOptions.find(
+                  (o) => o.value === draftFilters.direction,
+                ) ?? null
+              }
+              onChange={(o) =>
+                setFilter(
+                  'direction',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
+              }
             />
             <TextField
               id="ncr-filter-handler"

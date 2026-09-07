@@ -206,7 +206,7 @@ export function CgrListPage() {
             <Select
               id="cgr-filter-status"
               label={t('erru.cgr.list.status')}
-              options={statusOptions}
+              options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
               value={
                 statusOptions.find((o) => o.value === draftFilters.status) ??
                 null
