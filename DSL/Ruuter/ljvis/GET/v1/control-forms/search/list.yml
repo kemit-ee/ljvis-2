@@ -46,6 +46,12 @@ declaration:
       - field: status
         type: string
         description: "Form lifecycle status"
+      - field: vrReportingCountryCode
+        type: string
+        description: "VR only - reporting country code (exact match)"
+      - field: vrSanctionCode
+        type: string
+        description: "VR only - applied sanction code (exact match)"
 
 getAuthority:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -80,6 +86,8 @@ search:
       inspector_org_id: "${incoming.params.inspectorOrgId ?? ''}"
       has_violation: "${incoming.params.hasViolation ?? ''}"
       status: "${incoming.params.status ?? ''}"
+      vr_reporting_country_code: "${incoming.params.vrReportingCountryCode ?? ''}"
+      vr_sanction_code: "${incoming.params.vrSanctionCode ?? ''}"
   result: res
   next: returnSuccess
 

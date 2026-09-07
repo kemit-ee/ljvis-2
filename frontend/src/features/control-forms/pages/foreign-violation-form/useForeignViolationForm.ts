@@ -8,6 +8,7 @@ import {
   saveForeignViolationForm,
   confirmForeignViolationForm,
   publishForeignViolationForm,
+  checkDuplicateForeignViolationForm,
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
 import { listOrganisations } from '../../../organisations/api';
@@ -31,6 +32,10 @@ export function useForeignViolationForm(
   const { getByCode } = useClassifiers();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState<{
+    formNumber: string;
+    status: string;
+  } | null>(null);
   const [associatedPersons, setAssociatedPersons] = useState<
     XRoadAssociatedPerson[]
   >([]);
@@ -43,6 +48,40 @@ export function useForeignViolationForm(
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    const { companyRegCode, vehicleRegNr, inspectionDate } = formik.values;
+    if (!companyRegCode || !vehicleRegNr || !inspectionDate) {
+      setDuplicateWarning(null);
+      return;
+    }
+    let cancelled = false;
+    checkDuplicateForeignViolationForm({
+      companyRegCode: companyRegCode as string,
+      vehicleRegNr: vehicleRegNr as string,
+      inspectionDate: inspectionDate as string,
+      excludeId: form?.id ?? '',
+    })
+      .then((res) => {
+        if (!cancelled) {
+          setDuplicateWarning(res?.[0] ? { formNumber: res[0].formNumber, status: res[0].status } : null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setDuplicateWarning(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    formik.values.companyRegCode,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    formik.values.vehicleRegNr,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    formik.values.inspectionDate,
+    form?.id,
+  ]);
 
   const validationSchema = Yup.object({
     reportingCountryCode: Yup.string().required(
@@ -108,7 +147,7 @@ export function useForeignViolationForm(
       reportingAuthority: form?.reportingAuthority ?? '',
       inspectionCountryCode: form?.inspectionCountryCode ?? '',
       inspectionDate: form?.inspectionDate ?? '',
-      inspectionTime: form?.inspectionTime ?? '',
+      inspectionTime: form?.inspectionTime ?? '00:00:00',
       inspectionAddressLine1: form?.inspectionAddressLine1 ?? '',
       inspectionAddressLine2: form?.inspectionAddressLine2 ?? '',
       inspectionRegion: form?.inspectionRegion ?? '',
@@ -120,8 +159,8 @@ export function useForeignViolationForm(
       companyAddressLine2: form?.companyAddressLine2 ?? '',
       companyCity: form?.companyCity ?? '',
       companyPostalCode: form?.companyPostalCode ?? '',
-      driverFirstName: form?.driverFirstName ?? '',
-      driverLastName: form?.driverLastName ?? '',
+      driverFirstName: form?.driverFirstName ?? '–',
+      driverLastName: form?.driverLastName ?? '–',
       vehicleRegNr: form?.vehicleRegNr ?? '',
       vehicleMake: form?.vehicleMake ?? '',
       vehicleModel: form?.vehicleModel ?? '',
@@ -134,11 +173,21 @@ export function useForeignViolationForm(
       minorViolationsCount: form?.minorViolationsCount ?? '',
       sanctionCode: form?.sanctionCode ?? 'KORRAS',
       sanctionNotes: form?.sanctionNotes ?? '',
+      additionalSanctionCodes: form?.additionalSanctionCodes ?? [],
       recommendedMeasureCode: form?.recommendedMeasureCode ?? 'PUUDUVAD',
       recommendedMeasureNotes: form?.recommendedMeasureNotes ?? '',
       recommendedMeasureGeneralNotes: form?.notes ?? '',
       violations: form?.violations ?? [],
       dataEntryDate: form?.dataEntryDate ?? dayjs().format('YYYY-MM-DD'),
+      klimClarificationDate: form?.klimClarificationDate ?? '',
+      carrierExplanationDate: form?.carrierExplanationDate ?? '',
+      penaltyValidUntil: form?.penaltyValidUntil ?? '',
+      penaltyExpiredOrProcessed: form?.penaltyExpiredOrProcessed ?? false,
+      akvkNextMeetingDate: form?.akvkNextMeetingDate ?? '',
+      commissionLastDecisionDate: form?.commissionLastDecisionDate ?? '',
+      adminProcedureDecision: form?.adminProcedureDecision ?? '',
+      foreignAuthorityProposal: form?.foreignAuthorityProposal ?? false,
+      notifyCarrier: form?.notifyCarrier ?? false,
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId:
@@ -160,9 +209,17 @@ export function useForeignViolationForm(
           inspectionTime: toIsoTime(values.inspectionTime),
           dataEntryDate: toIsoDate(values.dataEntryDate),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
+          klimClarificationDate: toIsoDate(values.klimClarificationDate as string | undefined),
+          carrierExplanationDate: toIsoDate(values.carrierExplanationDate as string | undefined),
+          penaltyValidUntil: toIsoDate(values.penaltyValidUntil as string | undefined),
+          akvkNextMeetingDate: toIsoDate(values.akvkNextMeetingDate as string | undefined),
+          commissionLastDecisionDate: toIsoDate(values.commissionLastDecisionDate as string | undefined),
           violations: Array.isArray(values.violations)
             ? JSON.stringify(values.violations)
             : (values.violations ?? '[]'),
+          additionalSanctionCodes: Array.isArray(values.additionalSanctionCodes)
+            ? JSON.stringify(values.additionalSanctionCodes)
+            : (values.additionalSanctionCodes ?? '[]'),
         };
         const payload = {
           ...trimmedValues,
@@ -315,6 +372,7 @@ export function useForeignViolationForm(
     setVehicleSearchError,
     licenceCopyNumberError,
     setLicenceCopyNumberError,
+    duplicateWarning,
     handleCompanyRegCodeSearch,
     handleCompanyNameSearch,
     handleVehicleSearch,

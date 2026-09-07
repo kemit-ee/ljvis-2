@@ -131,6 +131,36 @@ params:
   inspectorProfession:
     type: string
     required: false
+  additionalSanctionCodes:
+    type: string
+    required: false
+  klimClarificationDate:
+    type: string
+    required: false
+  carrierExplanationDate:
+    type: string
+    required: false
+  penaltyValidUntil:
+    type: string
+    required: false
+  penaltyExpiredOrProcessed:
+    type: string
+    required: false
+  akvkNextMeetingDate:
+    type: string
+    required: false
+  commissionLastDecisionDate:
+    type: string
+    required: false
+  adminProcedureDecision:
+    type: string
+    required: false
+  foreignAuthorityProposal:
+    type: string
+    required: false
+  notifyCarrier:
+    type: string
+    required: false
   created_by:
     type: string
     required: false
@@ -200,6 +230,16 @@ INSERT INTO forms.foreign_violation_form (
   inspector_organisation_id,
   inspector_unit,
   inspector_profession,
+  additional_sanction_codes,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
+  foreign_authority_proposal,
+  notify_carrier,
   created_by
 )
 SELECT
@@ -248,6 +288,16 @@ SELECT
   :inspectorOrganisationId,
   :inspectorUnit,
   :inspectorProfession,
+  COALESCE(NULLIF(:additionalSanctionCodes, ''), '[]')::JSONB,
+  NULLIF(:klimClarificationDate, '')::DATE,
+  NULLIF(:carrierExplanationDate, '')::DATE,
+  NULLIF(:penaltyValidUntil, '')::DATE,
+  COALESCE(NULLIF(:penaltyExpiredOrProcessed, ''), 'false')::BOOLEAN,
+  NULLIF(:akvkNextMeetingDate, '')::DATE,
+  NULLIF(:commissionLastDecisionDate, '')::DATE,
+  NULLIF(:adminProcedureDecision, ''),
+  COALESCE(NULLIF(:foreignAuthorityProposal, ''), 'false')::BOOLEAN,
+  COALESCE(NULLIF(:notifyCarrier, ''), 'false')::BOOLEAN,
   :created_by
 FROM latest
 RETURNING foreign_violation_form_key AS id, form_number, version;

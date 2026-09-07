@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FormikProps } from 'formik';
 import {
@@ -61,6 +61,7 @@ interface ForeignViolationFormFieldsProps {
   associatedPersons?: XRoadAssociatedPerson[];
   associatedPersonsLoading?: boolean;
   formType?: string;
+  showAdminSection?: boolean;
 }
 
 const recommendedMeasureOptions = [
@@ -150,10 +151,12 @@ export function ForeignViolationFormFields({
   closeCompanyPicker,
   associatedPersons,
   associatedPersonsLoading,
+  showAdminSection,
 }: ForeignViolationFormFieldsProps) {
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
   const { values, errors, touched, setFieldValue } = formik;
+  const [showAdditionalSanctions, setShowAdditionalSanctions] = useState(false);
 
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
     ...group,
@@ -777,6 +780,61 @@ export function ForeignViolationFormFields({
             }}
             className="mb-1"
           />
+          {!readOnly && !showAdditionalSanctions && (
+            <div className="mb-1">
+              <Button
+                type="button"
+                visualType="secondary"
+                iconLeft="add"
+                onClick={() => setShowAdditionalSanctions(true)}
+              >
+                {t('forms.foreign_violation.addSanction')}
+              </Button>
+            </div>
+          )}
+          {(showAdditionalSanctions ||
+            ((values.additionalSanctionCodes as string[])?.length ?? 0) > 0) && (
+            <div className="mb-1">
+              <ChoiceGroup
+                id="additionalSanctionCodes"
+                name="additionalSanctionCodes"
+                inputType="checkbox"
+                label={
+                  <strong>
+                    {t('forms.foreign_violation.additionalSanctions')}
+                  </strong>
+                }
+                value={
+                  Array.isArray(values.additionalSanctionCodes)
+                    ? (values.additionalSanctionCodes as string[])
+                    : []
+                }
+                items={sanctionOptions
+                  .filter((opt) => opt.value !== (values.sanctionCode as string))
+                  .map((opt) => ({
+                    id: `additionalSanctionCode_${opt.value}`,
+                    label: t(opt.labelKey),
+                    value: opt.value,
+                    disabled: readOnly,
+                    ...(readOnly
+                      ? {
+                          defaultChecked:
+                            (
+                              values.additionalSanctionCodes as
+                                | string[]
+                                | undefined
+                            )?.includes(opt.value) ?? false,
+                        }
+                      : {}),
+                  }))}
+                onChange={(val) => {
+                  if (!readOnly) {
+                    setFieldValue('additionalSanctionCodes', val);
+                  }
+                }}
+              />
+            </div>
+          )}
           <div className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}>
             <TextArea
               id="sanctionNotes"
@@ -1076,6 +1134,187 @@ export function ForeignViolationFormFields({
           </div>
         </Card.Content>
       </Card>
+
+      {showAdminSection && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.admin_procedure_form')}
+            </Heading>
+            <div
+              className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}
+            >
+              <div
+                className={
+                  styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
+                }
+              >
+                <MaskedDateField
+                  id="klimClarificationDate"
+                  label={t('forms.foreign_violation.adminProc.klimDate')}
+                  monthYearSelectType="grid"
+                  selected={
+                    values.klimClarificationDate
+                      ? new Date(values.klimClarificationDate as string)
+                      : undefined
+                  }
+                  onSelect={(v) =>
+                    setFieldValue('klimClarificationDate', toIsoDate(v))
+                  }
+                  placeholder={t('common.dateFieldPlaceholder')}
+                  inputProps={readOnly ? { disabled: true } : undefined}
+                />
+              </div>
+              <div
+                className={
+                  styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
+                }
+              >
+                <MaskedDateField
+                  id="carrierExplanationDate"
+                  label={t('forms.foreign_violation.adminProc.carrierDate')}
+                  monthYearSelectType="grid"
+                  selected={
+                    values.carrierExplanationDate
+                      ? new Date(values.carrierExplanationDate as string)
+                      : undefined
+                  }
+                  onSelect={(v) =>
+                    setFieldValue('carrierExplanationDate', toIsoDate(v))
+                  }
+                  placeholder={t('common.dateFieldPlaceholder')}
+                  inputProps={readOnly ? { disabled: true } : undefined}
+                />
+              </div>
+              <div
+                className={
+                  styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
+                }
+              >
+                <MaskedDateField
+                  id="penaltyValidUntil"
+                  label={t('forms.foreign_violation.adminProc.penaltyUntil')}
+                  monthYearSelectType="grid"
+                  selected={
+                    values.penaltyValidUntil
+                      ? new Date(values.penaltyValidUntil as string)
+                      : undefined
+                  }
+                  onSelect={(v) =>
+                    setFieldValue('penaltyValidUntil', toIsoDate(v))
+                  }
+                  placeholder={t('common.dateFieldPlaceholder')}
+                  inputProps={readOnly ? { disabled: true } : undefined}
+                />
+              </div>
+              <div
+                className={
+                  styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
+                }
+              >
+                <MaskedDateField
+                  id="akvkNextMeetingDate"
+                  label={t('forms.foreign_violation.adminProc.akvkDate')}
+                  monthYearSelectType="grid"
+                  selected={
+                    values.akvkNextMeetingDate
+                      ? new Date(values.akvkNextMeetingDate as string)
+                      : undefined
+                  }
+                  onSelect={(v) =>
+                    setFieldValue('akvkNextMeetingDate', toIsoDate(v))
+                  }
+                  placeholder={t('common.dateFieldPlaceholder')}
+                  inputProps={readOnly ? { disabled: true } : undefined}
+                />
+              </div>
+              <div
+                className={
+                  styles[isDesktop ? 'date-row-desktop-50' : 'date-row-mobile']
+                }
+              >
+                <MaskedDateField
+                  id="commissionLastDecisionDate"
+                  label={t(
+                    'forms.foreign_violation.adminProc.commissionDate',
+                  )}
+                  monthYearSelectType="grid"
+                  selected={
+                    values.commissionLastDecisionDate
+                      ? new Date(values.commissionLastDecisionDate as string)
+                      : undefined
+                  }
+                  onSelect={(v) =>
+                    setFieldValue('commissionLastDecisionDate', toIsoDate(v))
+                  }
+                  placeholder={t('common.dateFieldPlaceholder')}
+                  inputProps={readOnly ? { disabled: true } : undefined}
+                />
+              </div>
+              <TextArea
+                id="adminProcedureDecision"
+                label={t('forms.foreign_violation.adminProc.decision')}
+                value={(values.adminProcedureDecision as string) ?? ''}
+                placeholder={
+                  readOnly ? undefined : t('common.enterNotesPlaceholder')
+                }
+                maxHeight="8rem"
+                onChange={(v) => setFieldValue('adminProcedureDecision', v)}
+                className={styles['full-span']}
+                disabled={readOnly}
+              />
+            </div>
+            <ChoiceGroup
+              id="adminProcCheckboxes"
+              name="adminProcCheckboxes"
+              inputType="checkbox"
+              label=""
+              value={[
+                ...(values.penaltyExpiredOrProcessed ? ['penaltyExpiredOrProcessed'] : []),
+                ...(values.foreignAuthorityProposal ? ['foreignAuthorityProposal'] : []),
+                ...(values.notifyCarrier ? ['notifyCarrier'] : []),
+              ]}
+              items={[
+                {
+                  id: 'penaltyExpiredOrProcessed',
+                  label: t('forms.foreign_violation.adminProc.expired'),
+                  value: 'penaltyExpiredOrProcessed',
+                  disabled: readOnly,
+                },
+                {
+                  id: 'foreignAuthorityProposal',
+                  label: t('forms.foreign_violation.adminProc.foreignProposal'),
+                  value: 'foreignAuthorityProposal',
+                  disabled: readOnly,
+                },
+                {
+                  id: 'notifyCarrier',
+                  label: t('forms.foreign_violation.adminProc.notifyCarrier'),
+                  value: 'notifyCarrier',
+                  disabled: readOnly,
+                },
+              ]}
+              onChange={(val) => {
+                if (!readOnly) {
+                  const vals = Array.isArray(val) ? val : [val];
+                  setFieldValue(
+                    'penaltyExpiredOrProcessed',
+                    vals.includes('penaltyExpiredOrProcessed'),
+                  );
+                  setFieldValue(
+                    'foreignAuthorityProposal',
+                    vals.includes('foreignAuthorityProposal'),
+                  );
+                  setFieldValue(
+                    'notifyCarrier',
+                    vals.includes('notifyCarrier'),
+                  );
+                }
+              }}
+            />
+          </Card.Content>
+        </Card>
+      )}
 
       {values.formNumber && (
         <Card className="mb-1">

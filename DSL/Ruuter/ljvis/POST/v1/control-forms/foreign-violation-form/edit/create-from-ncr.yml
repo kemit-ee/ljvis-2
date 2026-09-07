@@ -1,0 +1,117 @@
+declaration:
+  version: "1.0"
+  description: "Create a new VR (foreign violation) control card pre-filled from an ERRU NCR message and link them bidirectionally"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: businessCaseId
+        type: string
+
+extractRequestData:
+  assign:
+    business_case_id: "${incoming.body.businessCaseId}"
+    created_by: "${u.personalcode || ''}"
+    inspector_first_name: "${u.firstname || ''}"
+    inspector_last_name: "${u.lastname || ''}"
+    inspector_organisation_id: "${String(u.organisationid || '')}"
+    inspector_unit: "${u.structuralunit || ''}"
+    inspector_profession: "${u.jobtitle || ''}"
+  next: getNcrData
+
+getNcrData:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/get"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+  result: ncrRes
+  next: extractNcrFields
+
+extractNcrFields:
+  assign:
+    ncr_id: "${ncrRes.response.body[0].id || ''}"
+    reporting_country_code: "${ncrRes.response.body[0].ncrFrom || ''}"
+    company_name: "${ncrRes.response.body[0].transportUndertakingName || ''}"
+    vehicle_reg_nr: "${ncrRes.response.body[0].vehicleRegistrationNumber || ''}"
+    vehicle_country_code: "${ncrRes.response.body[0].vehicleRegistrationCountry || ''}"
+    licence_copy_number: "${ncrRes.response.body[0].communityLicenceNumber || ''}"
+    inspection_date: "${ncrRes.response.body[0].checkDate || ''}"
+    data_entry_date: "${new Date().toISOString().slice(0, 10)}"
+  next: insertVrForm
+
+insertVrForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/insert"
+    headers:
+      type: json
+    body:
+      status: "saved"
+      reportingCountryCode: ${reporting_country_code}
+      reportingAuthority: ""
+      inspectionCountryCode: ""
+      inspectionDate: ${inspection_date}
+      inspectionTime: "00:00:00"
+      inspectionAddressLine1: ""
+      inspectionAddressLine2: ""
+      inspectionRegion: ""
+      inspectionCity: ""
+      companyRegCode: ""
+      companyName: ${company_name}
+      companyCountryCode: ""
+      companyAddressLine1: ""
+      companyAddressLine2: ""
+      companyCity: ""
+      companyPostalCode: ""
+      driverFirstName: "–"
+      driverLastName: "–"
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ""
+      vehicleModel: ""
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ""
+      vehicleFirstRegistration: ""
+      vehicleBodyType: ""
+      licenceCopyNumber: ${licence_copy_number}
+      violationDescription: ""
+      minorViolationsCount: ""
+      sanctionCode: "KORRAS"
+      sanctionNotes: ""
+      recommendedMeasureCode: "PUUDUVAD"
+      recommendedMeasureNotes: ""
+      recommendedMeasureGeneralNotes: ""
+      additionalSanctionCodes: "[]"
+      violations: "[]"
+      dataEntryDate: ${data_entry_date}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      erruNcrMessageKey: ${ncr_id}
+      created_by: ${created_by}
+  result: insertRes
+  next: extractVrFormKey
+
+extractVrFormKey:
+  assign:
+    vr_form_key: "${insertRes.response.body[0].id || ''}"
+  next: updateNcrLink
+
+updateNcrLink:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/update-vr-link"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      foreignViolationFormKey: ${vr_form_key}
+  result: linkRes
+  next: returnResult
+
+returnResult:
+  return: ${insertRes.response.body}
+  next: end

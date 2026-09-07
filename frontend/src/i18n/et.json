@@ -1027,6 +1027,20 @@
       "sanctionLiiklemiskeeld": "Liiklemiskeeld",
       "sanctionSoiduk": "Sõiduki kasutamise takistamine",
       "sanctionMuu": "Muu",
+      "duplicateWarning": "Hoiatus: selle ettevõtte, sõiduki ja kontrollikuupäeva kombinatsiooniga kontrollkaart on juba olemas ({{formNumber}}). Palun kontrollige, et te ei loo duplikaati.",
+      "addSanction": "+ Lisa sanktsioon",
+      "additionalSanctions": "Lisasanktsioonid",
+      "adminProc": {
+        "klimDate": "KLIM selgitustaotluse kuupäev",
+        "carrierDate": "Vedaja seletuse kuupäev",
+        "penaltyUntil": "Karistus kehtib kuni",
+        "akvkDate": "Järgmise komisjoni koosolek (AKVK)",
+        "commissionDate": "Viimase komisjoni otsuse kuupäev",
+        "decision": "Otsus",
+        "expired": "Kehtetu või menetletud",
+        "foreignProposal": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks",
+        "notifyCarrier": "Teavita vedajat rikkumisest"
+      },
       "euViolationGroupMsi": "Kõige raskemad rikkumised (MSI)",
       "euViolationMsi101": "MSI101 - ületatakse 2 järjestikuse nädala maksimaalset sõiduaega 25% või rohkem 112h30 ≤ ...",
       "euViolationMsi102": "MSI102 - ületatakse ööpäevast 9 tunni pikkust sõiduaega 50 % või rohkem 13h30 ≤ ...",
@@ -1886,7 +1900,10 @@
         "ackStatusCode": "Kinnituse staatus",
         "send": "Saada",
         "sendResponse": "Saada vastus",
-        "sendFailed": "Saatmine ebaõnnestus. Teade liigus olekusse Viga."
+        "sendFailed": "Saatmine ebaõnnestus. Teade liigus olekusse Viga.",
+        "createVr": "Loo välisriigis toimunud rikkumise kontrollkaart",
+        "openVr": "Ava välisriigis toimunud rikkumise kontrollkaart",
+        "createVrFailed": "VR kontrollkaardi loomine ebaõnnestus"
       },
       "buildModal": {
         "button": "Lisa NCR vorm",
@@ -1937,7 +1954,9 @@
       "driver": "Juht (isikukood või nimi)",
       "county": "Maakond",
       "hasViolation": "Rikkumine",
-      "status": "Staatus"
+      "status": "Staatus",
+      "vrReportingCountry": "VR: teatav riik",
+      "vrSanctionCode": "VR: sanktsioon"
     },
     "columns": {
       "formType": "Vormi tüüp",
