@@ -1,37 +1,33 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    Audit event for the hourly yvkehtivus sync writing
-    extraordinary_inspection_date onto a vehicle technical-check sub-form
-    (LJVIS2-135/58/23). Uses the same event_type as the human
-    edit/xroad/save-xroad-fields.yml path
-    (control_form.vehicle_technical.save_xroad), actor_name='system' is
-    the only difference. Writes directly to audit.audit_event rather than
-    through the session-gated log-audit-event template, since
-    Ruuter.internal has no session. No-op (0 rows) when applied=false,
-    mirroring update-extraordinary-inspection-date.sql's guard.
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: applied
-        type: string
-        description: "'true'/'1'/'yes' when update-extraordinary-inspection-date.sql actually wrote a row; anything else is a no-op."
-      - field: key
-        type: string
-      - field: sub_form_number
-        type: string
-      - field: version
-        type: string
-      - field: inspection_date
-        type: string
-  response:
-    fields:
-      - field: event_id
-        type: string
+description: Audit event for the hourly yvkehtivus sync writing extraordinary_inspection_date onto a vehicle
+  technical-check sub-form (LJVIS2-135/58/23). Uses the same event_type as the human edit/xroad/save-xroad-fields.yml
+  path (control_form.vehicle_technical.save_xroad), actor_name='system' is the only difference. Writes
+  directly to audit.audit_event rather than through the session-gated log-audit-event template, since
+  Ruuter.internal has no session. No-op (0 rows) when applied=false, mirroring update-extraordinary-inspection-date.sql's
+  guard.
+namespace: control-forms
+params:
+  applied:
+    type: string
+    required: false
+    description: '''true''/''1''/''yes'' when update-extraordinary-inspection-date.sql actually wrote
+      a row; anything else is a no-op.'
+  key:
+    type: string
+    required: false
+  sub_form_number:
+    type: string
+    required: false
+  version:
+    type: string
+    required: false
+  inspection_date:
+    type: string
+    required: false
+returns:
+- name: event_id
+  type: string
+  nullable: true
 */
 INSERT INTO audit.audit_event (
     event_id,

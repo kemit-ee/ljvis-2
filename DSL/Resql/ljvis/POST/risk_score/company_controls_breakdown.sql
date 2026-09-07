@@ -1,55 +1,56 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for one
-    company's controls, letting a citizen see WHY their company's risk score
-    is what it is (not just the aggregate number). Uses the same rolling
-    window definition as calculate_risk_score.sql/recalculate.yml (caller
-    passes window_start/window_end explicitly — Ruuter.internal controls.yml
-    uses "now - 2 years" .. "now", matching the persisted aggregate score's
-    window so the two stay comparable). Shares the exact
-    qualifying_forms/violation_counts/sp_form_category CTE logic as
-    calculate_risk_score.sql — kept as a separate query rather than reusing
-    that one's output because this returns one row PER CONTROL
-    (compound_form_key) instead of one aggregated row. Display fields
-    (form_number/main_date/vehicle_reg_nr) come from forms.form_search
-    rather than forms.compound_form directly, to reuse its existing "latest
-    non-deleted snapshot" projection instead of duplicating a DISTINCT ON.
-  method: post
-  accepts: json
-  returns: json
-  namespace: risk_score
-  allowlist:
-    body:
-      - field: company_reg_code
-        type: string
-      - field: window_start
-        type: string
-      - field: window_end
-        type: string
-  response:
-    fields:
-      - field: compound_form_key
-        type: number
-      - field: form_number
-        type: string
-      - field: main_date
-        type: string
-      - field: vehicle_reg_nr
-        type: string
-      - field: is_fully_excluded
-        type: boolean
-      - field: n_msi
-        type: number
-      - field: n_vsi
-        type: number
-      - field: n_si
-        type: number
-      - field: n_mi
-        type: number
-      - field: weighted_points
-        type: number
+description: Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for one company's controls,
+  letting a citizen see WHY their company's risk score is what it is (not just the aggregate number).
+  Uses the same rolling window definition as calculate_risk_score.sql/recalculate.yml (caller passes window_start/window_end
+  explicitly — Ruuter.internal controls.yml uses "now - 2 years" .. "now", matching the persisted aggregate
+  score's window so the two stay comparable). Shares the exact qualifying_forms/violation_counts/sp_form_category
+  CTE logic as calculate_risk_score.sql — kept as a separate query rather than reusing that one's output
+  because this returns one row PER CONTROL (compound_form_key) instead of one aggregated row. Display
+  fields (form_number/main_date/vehicle_reg_nr) come from forms.form_search rather than forms.compound_form
+  directly, to reuse its existing "latest non-deleted snapshot" projection instead of duplicating a DISTINCT
+  ON.
+namespace: risk_score
+params:
+  company_reg_code:
+    type: string
+    required: false
+  window_start:
+    type: string
+    required: false
+  window_end:
+    type: string
+    required: false
+returns:
+- name: compound_form_key
+  type: number
+  nullable: true
+- name: form_number
+  type: string
+  nullable: true
+- name: main_date
+  type: string
+  nullable: true
+- name: vehicle_reg_nr
+  type: string
+  nullable: true
+- name: is_fully_excluded
+  type: boolean
+  nullable: true
+- name: n_msi
+  type: number
+  nullable: true
+- name: n_vsi
+  type: number
+  nullable: true
+- name: n_si
+  type: number
+  nullable: true
+- name: n_mi
+  type: number
+  nullable: true
+- name: weighted_points
+  type: number
+  nullable: true
 */
 WITH enforcement_dates AS (
   SELECT compound_form_key, MIN(created_at) AS enforcement_date

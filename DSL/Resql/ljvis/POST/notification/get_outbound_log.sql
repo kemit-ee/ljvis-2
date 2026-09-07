@@ -1,47 +1,53 @@
 /*
-declaration:
-  version: 0.2
-  description: >-
-    Single Postkast 2.0 outbound_log row by id. Used by UC-04 resend
-    (resend.yml) to load the original send attempt it is retrying — reads
-    recipient_address + template_variables + notification_type unchanged.
-  method: post
-  accepts: json
-  returns: json
-  namespace: notification
-  allowlist:
-    body:
-      - field: id
-        type: string
-        description: "outbound_log id"
-  response:
-    fields:
-      - field: id
-        type: string
-      - field: notificationKey
-        type: string
-      - field: notificationType
-        type: string
-      - field: status
-        type: string
-      - field: recipientAddress
-        type: string
-      - field: notificationLanguage
-        type: string
-      - field: templateVariables
-        type: json
-      - field: failureReason
-        type: string
-      - field: relatedEntityType
-        type: string
-      - field: relatedEntityId
-        type: string
-      - field: originalLogId
-        type: string
-      - field: pkTemplateId
-        type: string
-      - field: pkSendingOperationId
-        type: string
+description: Single Postkast 2.0 outbound_log row by id. Used by UC-04 resend (resend.yml) to load the
+  original send attempt it is retrying — reads recipient_address + template_variables + notification_type
+  unchanged.
+namespace: notification
+params:
+  id:
+    type: string
+    required: false
+    description: outbound_log id
+returns:
+- name: id
+  type: string
+  nullable: true
+- name: notificationKey
+  type: string
+  nullable: true
+- name: notificationType
+  type: string
+  nullable: true
+- name: status
+  type: string
+  nullable: true
+- name: recipientAddress
+  type: string
+  nullable: true
+- name: notificationLanguage
+  type: string
+  nullable: true
+- name: templateVariables
+  type: object
+  nullable: true
+- name: failureReason
+  type: string
+  nullable: true
+- name: relatedEntityType
+  type: string
+  nullable: true
+- name: relatedEntityId
+  type: string
+  nullable: true
+- name: originalLogId
+  type: string
+  nullable: true
+- name: pkTemplateId
+  type: string
+  nullable: true
+- name: pkSendingOperationId
+  type: string
+  nullable: true
 */
 SELECT
     ol.id,

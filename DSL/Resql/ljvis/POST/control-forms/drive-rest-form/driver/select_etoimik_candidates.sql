@@ -1,18 +1,20 @@
 /*
-declaration:
-  version: 0.1
-  description: "Kandidaadid autojuhi sõidu- ja puhkeaja alamvormi öisele e-toimiku otsuse-sünkroonile: iga confirmed alamvormi uusim snapshot, millel on väärteomenetluse viitenumber, juhi (drivers[0]) Eesti isikukood ja millel enforcement_decision on veel NULL. Read kaovad kandidaatide seast niipea kui update-xroad-fields.sql kirjutab otsuse — see teeb töö idempotentseks."
-  method: post
-  namespace: control-forms
-  returns: json
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: proceeding_reference_number
-        type: string
-      - field: driver_personal_code
-        type: string
+description: 'Kandidaadid autojuhi sõidu- ja puhkeaja alamvormi öisele e-toimiku otsuse-sünkroonile: iga
+  confirmed alamvormi uusim snapshot, millel on väärteomenetluse viitenumber, juhi (drivers[0]) Eesti
+  isikukood ja millel enforcement_decision on veel NULL. Read kaovad kandidaatide seast niipea kui update-xroad-fields.sql
+  kirjutab otsuse — see teeb töö idempotentseks.'
+namespace: control-forms
+params: {}
+returns:
+- name: id
+  type: number
+  nullable: true
+- name: proceeding_reference_number
+  type: string
+  nullable: true
+- name: driver_personal_code
+  type: string
+  nullable: true
 */
 -- `latest_sd` peab lahendama ühe rea per võti (tõeline uusim snapshot) ENNE
 -- filtreerimist — filtreerides esmalt saaks stale eelmise oleku (vt labour

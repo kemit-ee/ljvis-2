@@ -1,22 +1,26 @@
 /*
-declaration:
-  version: 0.1
-  description: "Candidates for the nightly e-toimik decision sync (LJVIS2-56 §34/§51, LJVIS2-75 §53): latest snapshot of each confirmed labour inspection act with a väärteomenetlus reference number + punished person but no enforcement_decision yet. Rows drop out once apply_etoimik_decision.sql writes a decision, which makes the job idempotent."
-  method: post
-  namespace: control-forms
-  returns: json
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: proceeding_reference_number
-        type: string
-      - field: punished_person_id_code
-        type: string
-      - field: punished_person_first_name
-        type: string
-      - field: punished_person_last_name
-        type: string
+description: 'Candidates for the nightly e-toimik decision sync (LJVIS2-56 §34/§51, LJVIS2-75 §53): latest
+  snapshot of each confirmed labour inspection act with a väärteomenetlus reference number + punished
+  person but no enforcement_decision yet. Rows drop out once apply_etoimik_decision.sql writes a decision,
+  which makes the job idempotent.'
+namespace: control-forms
+params: {}
+returns:
+- name: id
+  type: number
+  nullable: true
+- name: proceeding_reference_number
+  type: string
+  nullable: true
+- name: punished_person_id_code
+  type: string
+  nullable: true
+- name: punished_person_first_name
+  type: string
+  nullable: true
+- name: punished_person_last_name
+  type: string
+  nullable: true
 */
 -- `latest` must resolve one row per key (the true latest snapshot) before
 -- any filtering — filtering first, then DISTINCT ON, would instead pick

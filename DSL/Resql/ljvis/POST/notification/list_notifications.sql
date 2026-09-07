@@ -1,25 +1,21 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    Teavituste nimekiri kasutaja õiguste alusel, lehe kaupa.
-    is_unread arvutatakse NOT EXISTS subpäringu kaudu (JOIN keelatud).
-    total sisaldab filtreerimata koguarvu (COUNT OVER window).
-    Sorteeritud created_at DESC (uuemad ees).
-  method: post
-  accepts: json
-  returns: json
-  namespace: notification
-  allowlist:
-    body:
-      - field: user_code
-        type: string
-      - field: permissions
-        type: string
-      - field: page
-        type: integer
-      - field: page_size
-        type: integer
+description: Teavituste nimekiri kasutaja õiguste alusel, lehe kaupa. is_unread arvutatakse NOT EXISTS
+  subpäringu kaudu (JOIN keelatud). total sisaldab filtreerimata koguarvu (COUNT OVER window). Sorteeritud
+  created_at DESC (uuemad ees).
+namespace: notification
+params:
+  user_code:
+    type: string
+    required: false
+  permissions:
+    type: string
+    required: false
+  page:
+    type: integer
+    required: false
+  page_size:
+    type: integer
+    required: false
 */
 SELECT
     n.id,

@@ -1,42 +1,42 @@
 /*
-declaration:
-  version: 0.2
-  description: >-
-    Postkast 2.0 saadetud kirjade logi (12-2 "Saadetud teavituste nimekirja
-    vaatamine"). Üks rida = üks saatmiskatse = üks adressaat.
-    Filtrid: status, notification_type, date_from/date_to (saatmise kuupäev),
-    recipient (adressaat, sisaldab), notification_key (täpne).
-    Sortimine: sort_by + sort_dir (whitelist Ruuter DSL-i tasemel, aga
-    kaitstud siin ka CASE-iga kui väärtus ei sobi loendisse).
-    Vaikimisi sorditud send_date DESC (12-2 §"Sortimine").
-    Leheküljed: page + page_size. total sisaldab filtreerimata koguarvu.
-    notification.list õiguse kontroll on Ruuter DSL-i tasemel.
-  method: post
-  accepts: json
-  returns: json
-  namespace: notification
-  allowlist:
-    body:
-      - field: status
-        type: string
-      - field: notification_type
-        type: string
-      - field: date_from
-        type: string
-      - field: date_to
-        type: string
-      - field: recipient
-        type: string
-      - field: notification_key
-        type: string
-      - field: sort_by
-        type: string
-      - field: sort_dir
-        type: string
-      - field: page
-        type: integer
-      - field: page_size
-        type: integer
+description: 'Postkast 2.0 saadetud kirjade logi (12-2 "Saadetud teavituste nimekirja vaatamine"). Üks
+  rida = üks saatmiskatse = üks adressaat. Filtrid: status, notification_type, date_from/date_to (saatmise
+  kuupäev), recipient (adressaat, sisaldab), notification_key (täpne). Sortimine: sort_by + sort_dir (whitelist
+  Ruuter DSL-i tasemel, aga kaitstud siin ka CASE-iga kui väärtus ei sobi loendisse). Vaikimisi sorditud
+  send_date DESC (12-2 §"Sortimine"). Leheküljed: page + page_size. total sisaldab filtreerimata koguarvu.
+  notification.list õiguse kontroll on Ruuter DSL-i tasemel.'
+namespace: notification
+params:
+  status:
+    type: string
+    required: false
+  notification_type:
+    type: string
+    required: false
+  date_from:
+    type: string
+    required: false
+  date_to:
+    type: string
+    required: false
+  recipient:
+    type: string
+    required: false
+  notification_key:
+    type: string
+    required: false
+  sort_by:
+    type: string
+    required: false
+  sort_dir:
+    type: string
+    required: false
+  page:
+    type: integer
+    required: false
+  page_size:
+    type: integer
+    required: false
 */
 SELECT
     ol.id,

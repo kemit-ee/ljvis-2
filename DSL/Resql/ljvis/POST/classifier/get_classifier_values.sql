@@ -1,22 +1,22 @@
 /*
-declaration:
-  version: 0.1
-  description: "List classifier values for a given classifier with optional search and sorting"
-  method: post
-  namespace: classifier
-  returns: json
-  allowlist:
-    body:
-      - field: classifierId
-        type: number
-      - field: search
-        type: string
-      - field: sorting
-        type: string
-      - field: page
-        type: number
-      - field: pageSize
-        type: number
+description: List classifier values for a given classifier with optional search and sorting
+namespace: classifier
+params:
+  classifierId:
+    type: number
+    required: false
+  search:
+    type: string
+    required: false
+  sorting:
+    type: string
+    required: false
+  page:
+    type: number
+    required: false
+  pageSize:
+    type: number
+    required: false
 */
 WITH latest AS (
     SELECT DISTINCT ON (classifier_value_key)

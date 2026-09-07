@@ -1,32 +1,30 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    Loob uue in-app teavituse notifications.notification tabelisse.
-    Idempotentne: ON CONFLICT DO NOTHING indeksi uq_notification_entity_type
-    kaudu — sama tüüp + seotud kirje loob ainult ühe teavituse.
-    Tagastab loodud kirje id (või null kui kirje juba eksisteeris).
-    APPEND-ONLY: INSERT only, UPDATE puudub.
-  method: post
-  accepts: json
-  returns: json
-  namespace: notification
-  allowlist:
-    body:
-      - field: type
-        type: string
-      - field: required_permission
-        type: string
-      - field: related_entity_type
-        type: string
-      - field: related_entity_id
-        type: string
-      - field: title_et
-        type: string
-      - field: body_et
-        type: string
-      - field: created_by
-        type: string
+description: 'Loob uue in-app teavituse notifications.notification tabelisse. Idempotentne: ON CONFLICT
+  DO NOTHING indeksi uq_notification_entity_type kaudu — sama tüüp + seotud kirje loob ainult ühe teavituse.
+  Tagastab loodud kirje id (või null kui kirje juba eksisteeris). APPEND-ONLY: INSERT only, UPDATE puudub.'
+namespace: notification
+params:
+  type:
+    type: string
+    required: false
+  required_permission:
+    type: string
+    required: false
+  related_entity_type:
+    type: string
+    required: false
+  related_entity_id:
+    type: string
+    required: false
+  title_et:
+    type: string
+    required: false
+  body_et:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
 */
 INSERT INTO notifications.notification (
     type,
