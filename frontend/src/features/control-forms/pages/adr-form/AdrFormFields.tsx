@@ -399,6 +399,7 @@ export function AdrFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.adr.dangerousGoods.title')}
           </Heading>
+          <Text className="mb-1">{t('forms.adr.dangerousGoods.subtitle')}</Text>
           <DangerousGoodsTable
             rows={values.dangerousGoods ?? []}
             onAdd={canEdit ? addDangerousGood : () => {}}

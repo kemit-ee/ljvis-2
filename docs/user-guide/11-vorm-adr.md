@@ -61,6 +61,8 @@ Sisaldab samu välju nagu eelmine osa (`nextLoadAddress`), kuupäev puudub.
 
 ### 5. Veetavate ohtlike kaupade andmed
 
+*Täidetakse rikkumise tuvastamise korral.*
+
 Tabelisse saab lisada ühe või mitu rida. Igale kaubale täidetakse:
 
 | Väli | Selgitus |

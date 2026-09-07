@@ -706,6 +706,7 @@
       },
       "dangerousGoods": {
         "title": "Veetavate ohtlike kaupade andmed",
+        "subtitle": "Täidetakse rikkumise tuvastamise korral",
         "empty": "Ohtlikke kaupu ei ole lisatud",
         "addRow": "+ Lisa ohtlik kaup",
         "unNumber": "ÜRO number",

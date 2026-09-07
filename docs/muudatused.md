@@ -10,6 +10,8 @@
   „I pakendirühm – väga ohtlik aine", „II pakendirühm – keskmise ohtlikkusega
   aine", „III pakendirühm – madala ohtlikkusega aine", „Ei ole määratud"
   (klassifikaator `ADR_PACKING_GROUP`).
+- Ploki **„Veetavate ohtlike kaupade andmed"** pealkirja alla lisati selgitus
+  „Täidetakse rikkumise tuvastamise korral".
 
 ---
 
