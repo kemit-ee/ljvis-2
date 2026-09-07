@@ -60,13 +60,13 @@ params:
     type: boolean
     required: false
   checkedDaysCount:
-    type: number
+    type: string
     required: false
   workDaysCount:
-    type: number
+    type: string
     required: false
   otherActivityDaysCount:
-    type: number
+    type: string
     required: false
   violations5612006:
     type: string
