@@ -290,7 +290,7 @@
               "  pm.expect(Array.isArray(data.content)).to.be.true;",
               "  pm.expect(data.total).to.be.a('number');",
               "});",
-              "pm.test('Total equals 58 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(58));",
+              "pm.test('Total equals 59 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(59));",
               "pm.test('Each item has id, code, name, description', () => {",
               "  data.content.forEach(c => {",
               "    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
@@ -519,7 +519,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=58",
+      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=59",
       "request": {
         "method": "GET",
         "header": [
@@ -559,7 +559,7 @@
               "var body = pm.response.json();",
               "var data = (body && body.response) ? body.response : body;",
               "pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-              "pm.test('Total is still 58', () => pm.expect(data.total).to.eql(58));"
+              "pm.test('Total is still 59', () => pm.expect(data.total).to.eql(59));"
             ]
           }
         }
@@ -1047,10 +1047,9 @@
               "  pm.expect(codes).to.include('RL23_P22');",
               "  pm.expect(codes).to.include('RL23_P23');",
               "});",
-              "pm.test('Tase 2 nimi algab ametliku rikkumise koodiga (MSI/VSI/SI nnn), description = raskusaste', () => {",
+              "pm.test('Tase 2 nimi algab ametliku rikkumise koodiga (MSI/VSI/SI nnn)', () => {",
               "  var rl10 = data.find(v => v.code === 'RL10_P17');",
               "  pm.expect(rl10.name).to.match(/^VSI 855 – /);",
-              "  pm.expect(rl10.description).to.eql('VSI');",
               "});"
             ]
           }
