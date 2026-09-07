@@ -17,7 +17,7 @@ pinnitud, mis on uusim, mis muutub katkendlikult, mida ljvis-2-s muuta.
 |---|---|---|---|---|
 | **Ruuter** | `turnerrainer/ruuter:0.9.9-rc` (digest, `docker/ruuter*/Dockerfile`) | **`0.9.10-rc`** (= liikuv `:rc`) | `0.9.11-rc` (tag+publish tegemata; README juba viitab) | 0.9.10: **madal**. 0.9.11: **KÕRGE** (H1 template-guardid, H2 WS-guardid) |
 | **Resql** | ✅ **migreeritud** `turnerrainer/resql:0.2.0-alpha` (`feat/resql-turnerrainer-0.2.0`; oli `askendest/resql:0.1.0-alpha.5`) | `turnerrainer/resql:0.2.0-alpha` | — | ~~KESKMINE~~ tehtud: 212 SQL `params:` kujule, ID-param `type: integer`, config-vaikeväärtused, Newman roheline |
-| **TIM** | `turnerrainer/tim:0.2.0-alpha.2` (`docker/tim/Dockerfile`); release-Dockerfile juba `0.2.1-alpha` | **`0.3.0-alpha`** | — | **KESKMINE** (OIDC discovery fail-closed plain-HTTP peal; PKCE nüüd saadetakse; token-exchange `client_secret_basic`) |
+| **TIM** | ✅ **migreeritud** `turnerrainer/tim:0.3.0-alpha` (`feat/tim-0.3.0-alpha`; oli `0.2.0-alpha.2`) | `0.3.0-alpha` | — | ~~KESKMINE~~ tehtud: tara-mock ühilduv (https discovery, client_secret_basic, PKCE-taluv), Newman + päris login-voog rohelised |
 | **DataMapper** | ✅ **migreeritud** `turnerrainer/datamapper:0.1.3-alpha` (`feat/datamapper-0.1.3-alpha`; oli `0.1.0-alpha.2`) | `0.1.3-alpha` | — | ~~MADAL~~ tehtud: ainult Dockerfile digesti-bump, Newman roheline |
 | **XTR** | harbor digest = `turnerrainer/xtr:0.1.0-rc.2` (`docker/xtr/Dockerfile`); compose `:rc` | **`0.2.0-rc.1`** (= liikuv `:rc`) | — | **KESKMINE** (SOAP-fault vastuse kuju; `xroad_protocol_version` enum-valideerimine; HTTP no-decompress) |
 | **CronManager** | `turnerrainer/cronmanager:alpha` (= `0.1.4-alpha`) | `0.1.4-alpha` | — | **puudub** (juba uusim) |
@@ -263,14 +263,21 @@ DSL-muudatusi ei vaja.
 
 ## 3. TIM
 
+> **Seis 2026-09-07: MIGREERITUD `0.3.0-alpha`** harul `feat/tim-0.3.0-alpha`.
+> Mõlemad Dockerfile'id (CI + release) → `0.3.0-alpha@sha256:2859f115…`.
+> **`tara-mock` on ühilduv** — kontrollitud lähtekoodist + tervikliku OIDC-vooga:
+> discovery-dokument annab `https://` endpointid (`helpers.go:81-94`), reklaamib
+> `client_secret_basic`, token-endpoint ignoreerib klient-autentimist ja
+> `code_verifier`-it, authorize ignoreerib `code_challenge`-parameetreid.
+> `allow_http_discovery` **ei ole vaja**. Täis-Newman roheline + päris TARA-mock
+> login-voog `user_profile: {first_name, last_name}` täidetud (dot-path claim).
+
 ### 3.1 Seis
 
-- **Pinn:** `docker/tim/Dockerfile`: `FROM turnerrainer/tim:0.2.0-alpha.2`
-  (kasutab `docker-compose.yml` + `docker-compose.ci.yml`).
+- **Pinn (enne):** `docker/tim/Dockerfile`: `FROM turnerrainer/tim:0.2.0-alpha.2`;
   `docker/tim/Dockerfile.release`: `turnerrainer/tim:0.2.1-alpha@sha256:9f2bc8e7…`
-  (jagatud release-build, mitte lokaalne/CI).
-- **Uusim:** **`0.3.0-alpha`** (2026-09-06). Vahepealne `0.2.1-alpha`
-  (2026-08-31).
+- **Uus:** `0.3.0-alpha@sha256:2859f11587a8a2ac74972068869fe40ba3892e9640428010390fb718479f2994`
+  (mõlemad). Vahepealne `0.2.1-alpha` sisaldub.
 
 ### 3.2 `0.2.0-alpha.2 → 0.2.1-alpha` — TARA-parandused (ljvis jaoks **vajalikud**)
 
