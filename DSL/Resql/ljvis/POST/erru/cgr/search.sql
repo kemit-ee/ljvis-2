@@ -48,6 +48,8 @@ declaration:
         type: string
       - field: cgr_to
         type: string
+      - field: certificate_number
+        type: string
       - field: response_status_code
         type: string
       - field: handler_name
@@ -65,6 +67,7 @@ WITH latest AS (
     tm_first_name,
     tm_family_name,
     cgr_to,
+    certificate_number,
     member_states,
     handler_personal_code,
     handler_name
@@ -81,6 +84,7 @@ SELECT
   l.tm_first_name,
   l.tm_family_name,
   l.cgr_to,
+  l.certificate_number,
   -- Single-country send: the one member_states entry IS the response outcome.
   -- Broadcast (ZZ): no single outcome — breakdown belongs to the detail view only.
   CASE
@@ -109,8 +113,8 @@ ORDER BY
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'tm_first_name desc'    THEN l.tm_first_name COLLATE "et-EE-x-icu" END DESC,
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'tm_family_name asc'    THEN l.tm_family_name COLLATE "et-EE-x-icu" END ASC,
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'tm_family_name desc'   THEN l.tm_family_name COLLATE "et-EE-x-icu" END DESC,
-  CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'cgr_to asc'            THEN l.cgr_to END ASC,
-  CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'cgr_to desc'           THEN l.cgr_to END DESC,
+  CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'certificate_number asc'  THEN l.certificate_number END ASC,
+  CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'certificate_number desc' THEN l.certificate_number END DESC,
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'status asc'            THEN l.status END ASC,
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'status desc'           THEN l.status END DESC,
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'handler_name asc'      THEN l.handler_name COLLATE "et-EE-x-icu" END ASC,

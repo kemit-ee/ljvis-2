@@ -1567,6 +1567,7 @@
         "tmFirstName": "First name",
         "tmFamilyName": "Family name",
         "cgrTo": "Target member state",
+        "certificateNumber": "Certificate number",
         "status": "Status",
         "handler": "User",
         "handlerFilter": "User (isikukood)"
@@ -1580,8 +1581,8 @@
         "titleInbound": "Check Good Repute (ERRU → MS)",
         "titleNew": "New CGR request (MS → ERRU)",
         "headerBlock": "Request header and parties",
-        "nameBlock": "Transport manager name search (7A)",
-        "certificateBlock": "Certificate search (7B)",
+        "nameBlock": "Transport manager name search",
+        "certificateBlock": "Certificate search",
         "cgrFrom": "Requesting member state",
         "cgrTo": "Target member state",
         "cgrToAll": "All member states (ZZ)",
@@ -1628,7 +1629,7 @@
       },
       "validation": {
         "required": "This field is required",
-        "search_choice_required": "Either the transport manager name search (7A) or the certificate search (7B) must be filled in",
+        "search_choice_required": "Either the transport manager name search or the certificate search must be filled in",
         "name_block_incomplete": "The name search fields (first name, family name, date of birth) must be filled in together",
         "certificate_block_incomplete": "The certificate search fields (number, issue date, country) must be filled in together",
         "invalid_country_code": "Country code must be two letters",

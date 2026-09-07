@@ -239,7 +239,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 <Select
                   id="rsi-driver-licence-country"
                   label={t('erru.rsi.form.driverLicenceCountry')}
-                  options={opts(countries)}
+                  options={[{ value: '', label: '\u00a0' }, ...opts(countries)]}
                   value={selected(
                     countries,
                     formik.values.driverLicenceCountry,
