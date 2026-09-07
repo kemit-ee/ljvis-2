@@ -413,7 +413,7 @@ export function DesktopPage() {
           (LJVIS2-69 "Lokaalne kasutaja"/administraator), per LJVIS2-69's
           documented role model. Plain officers never see this. */}
       {canSeeOrganisation && (
-        <div className={styles.scopeToggle}>
+        <div className="mb-1">
           <ChoiceGroup
             id="dashboard-scope"
             name="dashboard-scope"
@@ -442,7 +442,7 @@ export function DesktopPage() {
       )}
 
       {summaryError && (
-        <div className={styles.errorBanner}>
+        <div className="mb-1">
           <Alert type="danger">
             <Text>{t('dashboard.errors.summaryFailed')}</Text>
             <Button visualType="link" onClick={refetch}>
@@ -453,7 +453,7 @@ export function DesktopPage() {
       )}
 
       {/* Active compound forms table */}
-      <div className={styles.sectionHeader}>
+      <div className={`${styles.sectionHeader} mt-1 mb-1`}>
         <Heading element="h2">{t('dashboard.sections.activeCompound')}</Heading>
       </div>
       <Card>
@@ -479,7 +479,7 @@ export function DesktopPage() {
                   return (
                     <tr
                       key={`${sf.formType}-${sf.formKey}`}
-                      className={overdue ? styles.rowOverdue : styles.subRow}
+                      className={`${styles.subRow}${overdue ? ` ${styles.rowOverdue}` : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         goTo(buildContinueRoute(sf.formType, sf.formKey));
@@ -489,18 +489,25 @@ export function DesktopPage() {
                           their cells line up under the parent columns. The
                           leading cells stay empty; content sits under
                           formNumber / formType / status / action. */}
-                      <td />{/* expander */}
-                      <td />{/* date */}
-                      <td />{/* time */}
-                      <td />{/* vehicle */}
-                      <td />{/* driver */}
-                      <td />{/* company */}
+                      <td />
+                      {/* expander */}
+                      <td />
+                      {/* date */}
+                      <td />
+                      {/* time */}
+                      <td />
+                      {/* vehicle */}
+                      <td />
+                      {/* driver */}
+                      <td />
+                      {/* company */}
                       <td>{sf.formNumber}</td>
                       <td>{formTypeLabel(t, sf.formType)}</td>
                       <td>
                         <FormStatusBadge status={sf.status} overdue={overdue} />
                       </td>
-                      <td />{/* progress */}
+                      <td />
+                      {/* progress */}
                       <td className={styles.subTableAction}>
                         <Button
                           visualType="link"
@@ -526,7 +533,7 @@ export function DesktopPage() {
       </Card>
 
       {/* Active standalone forms table */}
-      <div className={styles.sectionHeader}>
+      <div className={`${styles.sectionHeader} mt-1 mb-1`}>
         <Heading element="h2">
           {t('dashboard.sections.activeStandalone')}
         </Heading>
