@@ -119,13 +119,30 @@ export function DesktopPage() {
         header: t('dashboard.columns.vehicle'),
         cell: (info) => info.getValue() ?? '—',
       }),
-      compoundColumnHelper.accessor('driverName', {
-        header: t('dashboard.columns.driver'),
-        cell: (info) => info.getValue() ?? '—',
-      }),
-      compoundColumnHelper.accessor('companyName', {
-        header: t('dashboard.columns.company'),
-        cell: (info) => info.getValue() ?? '—',
+      compoundColumnHelper.display({
+        id: 'driverCompany',
+        header: t('dashboard.columns.driverCompany'),
+        cell: (info) => {
+          const { driverName, companyName } = info.row.original;
+          const primary = driverName ?? companyName;
+          const secondary = driverName ? companyName : null;
+          if (!primary) return '—';
+          return (
+            <div>
+              <div>{primary}</div>
+              {secondary && (
+                <Text
+                  element="span"
+                  color="secondary"
+                  modifiers="small"
+                  className={styles.formRowKind}
+                >
+                  {secondary}
+                </Text>
+              )}
+            </div>
+          );
+        },
       }),
       compoundColumnHelper.accessor('formNumber', {
         header: t('dashboard.columns.formNumber'),
@@ -470,8 +487,8 @@ export function DesktopPage() {
                       }}
                     >
                       {/* Sub-form rows are real rows of the parent table, so
-                          their cells line up under the parent columns. The 5
-                          leading cells (date/time/vehicle/driver/company) stay
+                          their cells line up under the parent columns. The 4
+                          leading cells (date/time/vehicle/driver+company) stay
                           empty; content sits under formNumber / formType /
                           status; the published column stays empty. */}
                       <td />
@@ -481,9 +498,7 @@ export function DesktopPage() {
                       <td />
                       {/* vehicle */}
                       <td />
-                      {/* driver */}
-                      <td />
-                      {/* company */}
+                      {/* driver + company */}
                       <td>{sf.formNumber}</td>
                       <td>{formTypeLabel(t, sf.formType)}</td>
                       <td>

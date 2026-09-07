@@ -152,11 +152,11 @@
     border-bottom: none;
 }
 
-:global(#dashboard-active-compound) .subRow > td:nth-child(-n + 5) {
+:global(#dashboard-active-compound) .subRow > td:nth-child(-n + 4) {
     border-top: hidden;
 }
 
-:global(#dashboard-active-compound) .subRow > td:nth-child(n + 2):nth-child(-n + 5) {
+:global(#dashboard-active-compound) .subRow > td:nth-child(n + 2):nth-child(-n + 4) {
     border-left: none;
 }
 
