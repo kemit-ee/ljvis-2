@@ -10,6 +10,7 @@
 - [Sisselogimine](user-guide/02-sisselogimine.md)
 - [Menüü](user-guide/03-menyy.md)
 - [Töölaud](user-guide/04-toolaud.md)
+- [Teavitused](user-guide/20-teavitused.md)
 - [Vaate vahetamine](user-guide/19-vaate-vahetamine.md)
 - [Vormid](user-guide/05-vormide-uldine.md)
   - [Välisriigi rikkumine](user-guide/06-vorm-valisrikkumine.md)
