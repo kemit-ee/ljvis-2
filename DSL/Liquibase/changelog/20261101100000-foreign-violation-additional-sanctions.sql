@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261101100000 splitStatements:false
+-- changeset ljvis:20261101100000 ignore:true splitStatements:false
 --
 -- VR-kontrollkaart: lisasanktsioonide JSONB veerg.
 -- RS ettepanek (18.05.2026, rida 10): lisada võimalus märkida mitu erinevat

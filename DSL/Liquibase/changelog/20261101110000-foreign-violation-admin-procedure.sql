@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261101110000 splitStatements:false
+-- changeset ljvis:20261101110000 ignore:true splitStatements:false
 --
 -- VR-kontrollkaart: Haldusmenetlus seoses raskete autoveoalaste rikkumistega.
 -- RS ettepanek (18.05.2026): andmeplokk "Haldusmenetlus..." peab ilmuma

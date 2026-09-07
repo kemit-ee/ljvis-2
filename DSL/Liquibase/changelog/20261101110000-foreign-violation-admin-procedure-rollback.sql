@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261101110000-rollback splitStatements:false
+-- changeset ljvis:20261101110000-rollback ignore:true splitStatements:false
 ALTER TABLE forms.foreign_violation_form
     DROP COLUMN IF EXISTS klim_clarification_date,
     DROP COLUMN IF EXISTS carrier_explanation_date,

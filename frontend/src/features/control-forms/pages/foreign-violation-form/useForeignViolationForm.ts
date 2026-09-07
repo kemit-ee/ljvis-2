@@ -49,40 +49,6 @@ export function useForeignViolationForm(
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
 
-  useEffect(() => {
-    const { companyRegCode, vehicleRegNr, inspectionDate } = formik.values;
-    if (!companyRegCode || !vehicleRegNr || !inspectionDate) {
-      setDuplicateWarning(null);
-      return;
-    }
-    let cancelled = false;
-    checkDuplicateForeignViolationForm({
-      companyRegCode: companyRegCode as string,
-      vehicleRegNr: vehicleRegNr as string,
-      inspectionDate: inspectionDate as string,
-      excludeId: form?.id ?? '',
-    })
-      .then((res) => {
-        if (!cancelled) {
-          setDuplicateWarning(res?.[0] ? { formNumber: res[0].formNumber, status: res[0].status } : null);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setDuplicateWarning(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    formik.values.companyRegCode,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    formik.values.vehicleRegNr,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    formik.values.inspectionDate,
-    form?.id,
-  ]);
-
   const validationSchema = Yup.object({
     reportingCountryCode: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
@@ -248,6 +214,45 @@ export function useForeignViolationForm(
       }
     },
   });
+
+  useEffect(() => {
+    const { companyRegCode, vehicleRegNr, inspectionDate } = formik.values;
+    if (!companyRegCode || !vehicleRegNr || !inspectionDate) {
+      setDuplicateWarning(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      checkDuplicateForeignViolationForm({
+        companyRegCode: companyRegCode as string,
+        vehicleRegNr: vehicleRegNr as string,
+        inspectionDate: inspectionDate as string,
+        excludeId: form?.id ?? '',
+      })
+        .then((res) => {
+          if (!cancelled) {
+            setDuplicateWarning(
+              res?.[0]
+                ? { formNumber: res[0].formNumber, status: res[0].status }
+                : null,
+            );
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setDuplicateWarning(null);
+        });
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    formik.values.companyRegCode,
+    formik.values.vehicleRegNr,
+    formik.values.inspectionDate,
+    form?.id,
+  ]);
 
   const orgOptions = organisations.map((o) => ({
     label: o.name,
