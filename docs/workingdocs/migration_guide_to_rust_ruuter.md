@@ -1121,9 +1121,20 @@ error_upstream:
 
 ---
 
-## Resql versiooni valik: miks jääme `askendest/resql:0.1.0-alpha.5` juurde
+## Resql versiooni valik
 
-> **Otsus (2026-08-26):** `turnerrainer/resql:alpha` testimisel ilmnesid mitmeid kriitilisi ühilduvusprobleme. Kuni need on resolveeritud (kas Resql bugfixide või DSL/SQL massmigratsiooniga), jätkame `askendest/resql:0.1.0-alpha.5`-ga.
+> **Otsus (2026-09-07): MIGREERITUD `turnerrainer/resql:0.2.0-alpha`-le**
+> harul `feat/resql-turnerrainer-0.2.0`. Spike (`docs/workingdocs/resql-0.2.0-spike-findings.md`)
+> mõõtis 2026-09 seisu: neljast augusti blokeerijast **3 lahendatud** (formaadikonversioon
+> mehaaniline; `:param::TYPE` cast säilib nüüd; null-bait kadus stabiilse OID-iga).
+> Ainus reaalne töö = tüübivalideerimine: ID-parameetrid `type: integer`,
+> numbriväljade Ruuter-kutsujad stringivad. Täis-Newman (26 kollektsiooni) roheline.
+> **Allolev augusti analüüs on ajalooline** — kirjeldab miks 2026-08-26 katse
+> revertiti (`a3b8f11`).
+
+### (Ajalooline) 2026-08-26: miks esimene katse revertiti
+
+> `turnerrainer/resql:alpha` (≈0.1.0-alpha.4) testimisel ilmnesid kriitilised ühilduvusprobleemid; jätkati `askendest/resql:0.1.0-alpha.5`-ga kuni `turnerrainer/resql` stabiliseerub (0.2.0-alpha, 2026-09-06).
 
 ### Probleem 1 — DSL formaadimuutus (166 SQL faili)
 
@@ -1231,7 +1242,10 @@ COALESCE(:organisation_id::TEXT, '') = ''
 | 3 | `::TYPE` cast parameetril ei tööta | ~25 SQL faili | 2–4 tundi |
 | 4 | `::TEXT` cast → null bait | ~10 SQL faili | 1–2 tundi |
 
-**Soovitus:** Migratsiooni tasub teha siis, kui `turnerrainer/resql:alpha` saab stabiilsemaks (dokumentatsioon, changelog, bugfixid). Praegu hoiame `askendest/resql:0.1.0-alpha.5`.
+**Lõpptulemus (2026-09-07):** migratsioon tehtud `turnerrainer/resql:0.2.0-alpha`-le.
+Probleem 1: mehaaniline (212 faili, skriptiga). Probleem 2: reaalne aga väike —
+ID-parameetrid `type: integer`, ~24 numbrivälja Ruuter-kutsujat stringivad.
+Probleemid 3 & 4: 0.2.0-s lahendatud (cast säilib; stabiilne OID → null-baiti ei teki).
 
 ---
 

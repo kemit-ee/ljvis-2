@@ -16,7 +16,7 @@ pinnitud, mis on uusim, mis muutub katkendlikult, mida ljvis-2-s muuta.
 | Komponent | ljvis-2 praegu | Uusim **avaldatud** | dev-is (avaldamata) | Katkendlikkuse risk |
 |---|---|---|---|---|
 | **Ruuter** | `turnerrainer/ruuter:0.9.9-rc` (digest, `docker/ruuter*/Dockerfile`) | **`0.9.10-rc`** (= liikuv `:rc`) | `0.9.11-rc` (tag+publish tegemata; README juba viitab) | 0.9.10: **madal**. 0.9.11: **KÕRGE** (H1 template-guardid, H2 WS-guardid) |
-| **Resql** | `askendest/resql:0.1.0-alpha.5` (`docker/resql-ljvis/Dockerfile`) | **`turnerrainer/resql:0.2.0-alpha`** — **org muutus** `askendest` → `turnerrainer` | — | **KESKMINE** (config-vaikeväärtused pöördusid: `allow_datasource_header`, CORS, `/datasources`) |
+| **Resql** | ✅ **migreeritud** `turnerrainer/resql:0.2.0-alpha` (`feat/resql-turnerrainer-0.2.0`; oli `askendest/resql:0.1.0-alpha.5`) | `turnerrainer/resql:0.2.0-alpha` | — | ~~KESKMINE~~ tehtud: 212 SQL `params:` kujule, ID-param `type: integer`, config-vaikeväärtused, Newman roheline |
 | **TIM** | `turnerrainer/tim:0.2.0-alpha.2` (`docker/tim/Dockerfile`); release-Dockerfile juba `0.2.1-alpha` | **`0.3.0-alpha`** | — | **KESKMINE** (OIDC discovery fail-closed plain-HTTP peal; PKCE nüüd saadetakse; token-exchange `client_secret_basic`) |
 | **DataMapper** | `turnerrainer/datamapper:0.1.0-alpha.2` (digest) | **`0.1.3-alpha`** | — | **MADAL** (DSL + HTTP-pind muutumatu; ainult Accept-negotiation + config-`cor​s_origin` boot-fail) |
 | **XTR** | harbor digest = `turnerrainer/xtr:0.1.0-rc.2` (`docker/xtr/Dockerfile`); compose `:rc` | **`0.2.0-rc.1`** (= liikuv `:rc`) | — | **KESKMINE** (SOAP-fault vastuse kuju; `xroad_protocol_version` enum-valideerimine; HTTP no-decompress) |
@@ -187,9 +187,17 @@ midagi seda scrape'ib, katkeb. `RUUTER_ADMIN_ENABLED` jääb seadmata (off).
 
 ## 2. Resql — **org muutus + config-vaikeväärtused**
 
+> **Seis 2026-09-07: MIGREERITUD** harul `feat/resql-turnerrainer-0.2.0`.
+> `askendest/resql:0.1.0-alpha.5` → `turnerrainer/resql:0.2.0-alpha`.
+> 212 SQL-deklaratsiooni teisendatud `params:` kujule; ~125 ID-parameetrit
+> `type: string` → `type: integer` (`:param::BIGINT` cast); numbriväljad, mis
+> lähevad `NULLIF(:x,'')::INTEGER` kaudu, hoiavad `type: string` + Ruuteri
+> kutsujad stringivad väärtuse. Täis-Newman (26 kollektsiooni) roheline.
+> Spike'i leiud: `docs/workingdocs/resql-0.2.0-spike-findings.md`.
+
 ### 2.1 Seis
 
-- **Pinn:** `docker/resql-ljvis/Dockerfile`: `FROM askendest/resql:0.1.0-alpha.5`
+- **Pinn (enne):** `docker/resql-ljvis/Dockerfile`: `FROM askendest/resql:0.1.0-alpha.5`
 - **Uusim:** **`turnerrainer/resql:0.2.0-alpha`** (2026-09-06, cosign-signeeritud,
   Docker Hub + GHCR). **Publisher liikus `askendest` → `turnerrainer`.**
   `askendest/resql:0.1.0-alpha.5` on veel Docker Hub-is olemas, aga
@@ -233,19 +241,23 @@ sidumine `COALESCE(...::BOOLEAN)` konteksti kukub → string `"true"/"false"/""`
 bare objekti — vt `send-postkast.yml` fix) **kehtivad edasi**, seega
 DSL-muudatusi ei vaja.
 
-### 2.4 Teha
+### 2.4 Tehtud (`feat/resql-turnerrainer-0.2.0`)
 
-1. `docker/resql-ljvis/Dockerfile`: `FROM askendest/resql:0.1.0-alpha.5` →
-   `FROM turnerrainer/resql:0.2.0-alpha` (soovi korral digestiga pinn:
-   `docker buildx imagetools inspect turnerrainer/resql:0.2.0-alpha`).
-2. `docker/resql-ljvis/resql.yaml`:
-   - `allow_datasource_header: false` (või kustuta rida)
-   - `cors.allowed_origins: ""` (või jäta `"*"` — töötab)
-3. `find DSL/Resql -type l` → tühi.
-4. Kontrolli `RESQL_DB_PASSWORD` env on olemas kõigis compose-failides
-   (juba on: `docker-compose.yml`, `docker-compose.ci.yml`).
-5. `docker/resql-ljvis/resql.yaml` audit-skript CLAUDE.md-st (kiire kontroll).
-6. E2E roheline.
+1. ✅ `docker/resql-ljvis/Dockerfile`: `FROM turnerrainer/resql:0.2.0-alpha`.
+2. ✅ `docker/resql-ljvis/resql.yaml`: `allow_datasource_header: false`,
+   `cors.allowed_origins: ""`.
+3. ✅ 212 `.sql` deklaratsiooni `declaration:`/`allowlist` → `params:`/`returns:`
+   (`scripts/resql-audit-declarations.py` + `scripts/resql-convert-declarations.py`).
+4. ✅ Tüübivalideerimine (blokeerija 2): ID-parameetrid `:param::BIGINT` castiga
+   → `type: integer` (`coerce_to` võtab nii numbri kui numbrilise stringi).
+   Numbriväljad `NULLIF(:x,'')::INTEGER` → jäävad `type: string`, Ruuteri
+   save/confirm/**publish** DSL-id stringivad (`String(...)`).
+5. ✅ `log/get_logs_verify.sql`: `WITH window` → `WITH chain` (reserv-sõna).
+6. ✅ `user/list_users.sql`: `COALESCE(:organisation_id::TEXT,'')=''` optional-filter
+   → `:organisation_id IS NULL`.
+7. ✅ Blokeerija 3 & 4 (`:param::TYPE` cast, null-bait): 0.2.0-s **lahendatud**
+   (`rewrite_named_params` säilitab castid, stabiilne prepared-statement OID).
+8. ✅ Täis-Newman roheline (26 kollektsiooni, ~1940 assertit).
 
 ---
 
