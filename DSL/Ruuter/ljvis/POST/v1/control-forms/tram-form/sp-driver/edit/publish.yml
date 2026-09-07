@@ -66,9 +66,9 @@ extractCurrentFormData:
     sp_applicability: "${currentFormRes.response.body[0].spApplicability || ''}"
     tachograph_type_code: "${currentFormRes.response.body[0].tachographTypeCode || ''}"
     tachograph_data_not_downloaded: "${currentFormRes.response.body[0].tachographDataNotDownloaded || false}"
-    checked_days_count: "${currentFormRes.response.body[0].checkedDaysCount || 0}"
-    work_days_count: "${currentFormRes.response.body[0].workDaysCount || 0}"
-    other_activity_days_count: "${currentFormRes.response.body[0].otherActivityDaysCount || 0}"
+    checked_days_count: "${currentFormRes.response.body[0].checkedDaysCount != null ? String(currentFormRes.response.body[0].checkedDaysCount) : ''}"
+    work_days_count: "${currentFormRes.response.body[0].workDaysCount != null ? String(currentFormRes.response.body[0].workDaysCount) : ''}"
+    other_activity_days_count: "${currentFormRes.response.body[0].otherActivityDaysCount != null ? String(currentFormRes.response.body[0].otherActivityDaysCount) : ''}"
     violations_561_2006: "${currentFormRes.response.body[0].violations5612006 || '[]'}"
     violations_165_2014: "${currentFormRes.response.body[0].violations1652014 || '[]'}"
     violations_2002_15: "${currentFormRes.response.body[0].violations200215 || '[]'}"
@@ -108,7 +108,6 @@ publishForm:
       proceedingReferenceNumber: ${proceeding_reference_number}
       documentChecks: ${document_checks}
       otherDocuments: ${other_documents}
-      spApplicability: ${sp_applicability}
       tachographTypeCode: ${tachograph_type_code}
       tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
       checkedDaysCount: ${checked_days_count}
@@ -119,9 +118,7 @@ publishForm:
       violations200215: ${violations_2002_15}
       violations5932008: ${violations_593_2008}
       violations20201057: ${violations_2020_1057}
-      massDimensionNonCompliant: ${mass_dimension_non_compliant}
       massDimensionMeasurements: ${mass_dimension_measurements}
-      atpViolationFound: ${atp_violation_found}
       atpViolationDescription: ${atp_violation_description}
       erruPoints: ${erru_points}
       enforcementDecision: ${enforcement_decision}

@@ -1,4 +1,3 @@
-import { useMemo, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ChoiceGroup, StatusBadge } from '@tedi-design-system/react/tedi';
 import type { StatusBadgeColor } from '@tedi-design-system/react/tedi';
@@ -6,7 +5,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import type { ClassifierEntry } from '../../../classifiers/types';
 import type { PartDefectEntry, PartSeverity, PartSummaryEntry, PartSummaryStatus } from '../../types';
-import styles from '../../../erru/components/Rsi/RsiCheckedItemsTable.module.css';
+import styles from '../../../../shared/components/CheckedItemsTable.module.css';
 
 const severityColor = (sev: PartSeverity): StatusBadgeColor => {
   if (sev === 'EOV') return 'danger';
@@ -14,13 +13,16 @@ const severityColor = (sev: PartSeverity): StatusBadgeColor => {
   return 'warning';
 };
 
-/** Extract the trailing number from a classifier code (e.g. "CAA_11" -> 11). */
-const numericSuffix = (code: string): number => {
+/** Trailing number of a classifier code (e.g. "CAA_11" -> 11) — the part's
+ *  official number, used for display. Not a list index: `parts` can have gaps
+ *  (trailer variant excludes CAA_2/3/7/9). */
+const partNumber = (code: string): number => {
   const m = code.match(/(\d+)$/);
   return m ? parseInt(m[1], 10) : 0;
 };
 
 interface PartsSummaryTableProps {
+  /** Already sorted by the parent hook. */
   parts: ClassifierEntry[];
   partsSummary: PartSummaryEntry[];
   onStatusChange: (partCode: string, status: PartSummaryStatus) => void;
@@ -43,31 +45,8 @@ export function PartsSummaryTable({
   const { t } = useTranslation();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
-  const sortedParts = useMemo(
-    () => [...parts].sort((a, b) => numericSuffix(a.code) - numericSuffix(b.code)),
-    [parts],
-  );
-
   const statusOf = (partCode: string): PartSummaryStatus =>
     partsSummary.find((p) => p.partCode === partCode)?.status ?? 'not_checked';
-
-  // Re-clicking an already-selected radio fires no onChange, so clicking
-  // "Ei vasta nõuetele" while already selected wouldn't reopen the defect
-  // modal. Catch that click on the wrapper and re-fire onStatusChange
-  // (handlePartStatusChange reopens the modal for non_compliant).
-  const handleRadioClick = (partCode: string, e: MouseEvent) => {
-    if (disabled) return;
-    const el = e.target as HTMLElement;
-    const input =
-      ((el.closest('label') as HTMLLabelElement | null)?.control as HTMLInputElement | null) ??
-      (el instanceof HTMLInputElement ? el : null);
-    if (
-      input?.id === `part-status-${partCode}-non-compliant` &&
-      statusOf(partCode) === 'non_compliant'
-    ) {
-      onStatusChange(partCode, 'non_compliant');
-    }
-  };
 
   const indexClass = (status: PartSummaryStatus): string => {
     if (status === 'checked') return styles.partIndexChecked;
@@ -76,35 +55,48 @@ export function PartsSummaryTable({
   };
 
   const defectsBlock = (part: ClassifierEntry) => {
-    if (!partsDefects || !defectsByPartKey) return null;
+    const status = statusOf(part.code);
+    if (!partsDefects || !defectsByPartKey || status !== 'non_compliant') return null;
     const defects = partsDefects.filter((d) => d.partCode === part.code);
-    if (defects.length === 0) return null;
     return (
-      <ul className={styles.defectsList}>
-        {defects.map((d) => (
-          <li key={d.defectCode} className={styles.defectItem}>
-            <span className={styles.defectName}>
-              {defectsByPartKey
-                .get(part.classifierValueKey)
-                ?.find((c) => c.code === d.defectCode)?.name ?? d.defectCode}
-            </span>
-            <StatusBadge color={severityColor(d.severity)} variant="bordered">
-              {d.severity}
-            </StatusBadge>
-            {!disabled && onRemoveDefect && (
-              <Button
-                icon="delete"
-                visualType="neutral"
-                color="danger"
-                size="small"
-                onClick={() => onRemoveDefect(part.code, d.defectCode)}
-              >
-                {t('common.delete')}
-              </Button>
-            )}
-          </li>
-        ))}
-      </ul>
+      <>
+        {defects.length > 0 && (
+          <ul className={styles.defectsList}>
+            {defects.map((d) => (
+              <li key={d.defectCode} className={styles.defectItem}>
+                <span className={styles.defectName}>
+                  {defectsByPartKey
+                    .get(part.classifierValueKey)
+                    ?.find((c) => c.code === d.defectCode)?.name ?? d.defectCode}
+                </span>
+                <StatusBadge color={severityColor(d.severity)} variant="bordered">
+                  {d.severity}
+                </StatusBadge>
+                {!disabled && onRemoveDefect && (
+                  <Button
+                    icon="delete"
+                    visualType="neutral"
+                    color="danger"
+                    size="small"
+                    onClick={() => onRemoveDefect(part.code, d.defectCode)}
+                  >
+                    {t('common.delete')}
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {!disabled && (
+          <Button
+            visualType="link"
+            size="small"
+            onClick={() => onStatusChange(part.code, 'non_compliant')}
+          >
+            {t('forms.technical_check.parts.editDefects')}
+          </Button>
+        )}
+      </>
     );
   };
 
@@ -139,7 +131,7 @@ export function PartsSummaryTable({
           </tr>
         </thead>
         <tbody>
-          {sortedParts.map((part, idx) => {
+          {parts.map((part) => {
             const status = statusOf(part.code);
             const rowCls =
               status === 'checked'
@@ -151,26 +143,26 @@ export function PartsSummaryTable({
               <tr key={part.classifierValueKey} className={rowCls}>
                 <td>
                   <span className={styles.partName}>
-                    <span className={`${styles.partIndex} ${indexClass(status)}`}>{idx + 1}</span>
+                    <span className={`${styles.partIndex} ${indexClass(status)}`}>
+                      {partNumber(part.code)}
+                    </span>
                     <span className={styles.partLabel}>{part.name}</span>
                   </span>
                 </td>
                 <td>
-                  <div onClick={(e) => handleRadioClick(part.code, e)}>
-                    <ChoiceGroup
-                      id={`part-status-${part.code}`}
-                      name={`part-status-${part.code}`}
-                      label={t('forms.technical_check.parts.statusColumn')}
-                      hideLabel
-                      inputType="radio"
-                      direction="row"
-                      value={status}
-                      onChange={(val) =>
-                        !disabled && onStatusChange(part.code, val as PartSummaryStatus)
-                      }
-                      items={radioItems(part.code)}
-                    />
-                  </div>
+                  <ChoiceGroup
+                    id={`part-status-${part.code}`}
+                    name={`part-status-${part.code}`}
+                    label={t('forms.technical_check.parts.statusColumn')}
+                    hideLabel
+                    inputType="radio"
+                    direction="row"
+                    value={status}
+                    onChange={(val) =>
+                      !disabled && onStatusChange(part.code, val as PartSummaryStatus)
+                    }
+                    items={radioItems(part.code)}
+                  />
                   {defectsBlock(part)}
                 </td>
               </tr>
@@ -184,7 +176,7 @@ export function PartsSummaryTable({
   /* Tablet / Phone: card grid */
   return (
     <div className={styles.cardList}>
-      {sortedParts.map((part, idx) => {
+      {parts.map((part) => {
         const status = statusOf(part.code);
         const cardCls = [
           styles.partCard,
@@ -198,14 +190,13 @@ export function PartsSummaryTable({
           <div key={part.classifierValueKey} className={cardCls}>
             <div className={styles.cardHeader}>
               <span className={styles.partName}>
-                <span className={`${styles.partIndex} ${indexClass(status)}`}>{idx + 1}</span>
+                <span className={`${styles.partIndex} ${indexClass(status)}`}>
+                  {partNumber(part.code)}
+                </span>
                 <span className={styles.partLabel}>{part.name}</span>
               </span>
             </div>
-            <div
-              className={styles.cardRadios}
-              onClick={(e) => handleRadioClick(part.code, e)}
-            >
+            <div className={styles.cardRadios}>
               <ChoiceGroup
                 id={`part-status-${part.code}`}
                 name={`part-status-${part.code}`}

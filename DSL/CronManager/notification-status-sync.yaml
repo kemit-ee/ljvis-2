@@ -1,0 +1,10 @@
+# LJVIS2-47: Postkast 2.0 ei push'i saatmise lõpptulemust ise (12-1 §"Saatmis-
+# staatuse värskendamine") — see töö küsib iga 5 min lõppstaatuseta ('queued' /
+# 'in_progress') teavituste saatmisoperatsioonide seisu X-tee kaudu ja
+# värskendab notifications.outbound_log staatuseid.
+notification_status_sync:
+  trigger: "0 */5 * * * ?"
+  type: exec
+  command: curl -sf --retry 2 --retry-delay 30 -X POST "${RUUTER_INTERNAL}/ljvis/cron/notification-status-sync" || true
+  allowedEnvs:
+    - RUUTER_INTERNAL

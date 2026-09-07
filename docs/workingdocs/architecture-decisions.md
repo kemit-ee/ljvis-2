@@ -36,7 +36,7 @@ Lisa 2 juhib tähelepanu, et seos kontrollkaardi rea ja 2016/403 rikkumisliigi v
 
 #### Otsus 1 — Rikkumiste klassifikaator: uus 2-tasemeline `ADR_CONTROL_CHECKPOINT`; `DANGEROUS_GOODS_INFRINGEMENTS_NEW` kustutatakse
 
-* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = punkti nimetus (nt „Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „ADR 4.1–4.7").
+* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = `<nr>. <määruse lisa 2 pealkiri>` (nt „17. Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „nt ADR 4.1–4.7"). Pealkirjad ja viited on määruse **lisa 2** sõnastusega joondatud migratsiooniga `20260907120000` (algne seeme `20260903120000` kasutas PDF-i „Kontrollitav valdkond" veergu).
 * **Tase 2 = selle punktiga eelnevalt seostatud 2016/403 I lisa jaotise 9 rikkumisliik.** `parent_key` viitab punktile; `code` = rikkumisliigi number (`1`…`24`); `name` = rikkumisliigi lühikirjeldus; `description` = raskusaste (`MSI` / `VSI` / `SI`). Neid väärtusi kasutab vormil ainult rikkumiskirje väli „Määruse (EL) 2016/403 rikkumisliik" (rippmenüü filtreerimiseks punkti järgi).
 * **Rikkumisliigi „puudub" valik** („Ei ole määruse 2016/403 p 9 rikkumisliik") **ei ole klassifikaatoris** — see on rippmenüü kõva­kood. sentinel (`NONE`), kuna vedaja võib vastutada ka väljaspool jaotist 9.
 * **Many-to-many realiseeritakse duplikaatkirjetena.** Sama rikkumisliik, mis seondub mitme punktiga, sisestatakse iga punkti alla eraldi `classifier_value` kirjena. Eraldi seostabelit **ei tehta**. Lõplik seoste loend: Priit Tuuna ettevalmistatud tabel.
@@ -178,8 +178,14 @@ Lisaks peab süsteem toetama logimist (kes saadeti, millal, mis tulemusega) ning
 
 Valiti **B — WebSocket push + HTTP pull**.
 
-- `DSL/Ruuter/ljvis/WS/inbound/notifications/connect.yml` — WS keep-alive endpoint  
-- `DSL/Ruuter.internal/ljvis/POST/notification/create.yml` — loob in-app teavituse + `ws_send broadcast_prefix: "client:"`  
+- `DSL/Ruuter/ljvis/WS/inbound/notifications/connect.yml` — WS endpoint; autendib
+  iga frame'i (`check-user-authority`) ja märgistab ühenduse `ws_tag`-iga
+  (`perms` sild = kasutaja õigused komadega piiritletult)  
+- `DSL/Ruuter/ljvis/POST/v1/ws-broadcast/send.yml` — sisemine endpoint (`ruuter`-is,
+  sest `WsRegistry` on protsessisisene); `ws_send broadcast_where tag=perms
+  contains=",<required_permission>,"` → signaal AINULT õigustatud ühendustele  
+- `DSL/Ruuter.internal/ljvis/POST/notification/create.yml` — loob in-app teavituse +
+  `http.post [#LJVIS_RUUTER]/v1/ws-broadcast/send` (jagatud saladus päises)  
 - `DSL/Ruuter.internal/ljvis/POST/notification/send-postkast.yml` — Postkast 2.0 saatmine + outbound_log kirje  
 - 7 Ruuter public API endpoint (`/v1/notifications/*`) — dünaamiline id käib
   `?q=` query-paramina (`rest-api-disainijuhend.md` §4.2). Kehaväli ei sobi:
@@ -193,14 +199,32 @@ Valiti **B — WebSocket push + HTTP pull**.
 ### Turvalisus
 
 - Broadcast payload sisaldab ainult signaali (`{type: "notification_update"}`), mitte kasutajaandmeid.  
-- Iga klient teeb oma authenticated HTTP päringu — sessionipõhine filtreerimine toimub serveri poolel (`required_permission` vs kasutaja tegelikud õigused).  
+- Broadcast ise on õiguspõhine (`broadcast_where`): signaal jõuab ainult nende ühendusteni, kelle `perms` sild sisaldab teavituse `required_permission`-it. Sild seatakse iga frame'i peal uuesti, seega tühistatud õigus / aegunud sessioon lakkab signaale saamast ≤ 30 s.  
+- Iga klient teeb siiski oma authenticated HTTP päringu — teine kaitsekiht serveri poolel (`required_permission` vs kasutaja tegelikud õigused).  
+- `ruuter-internal` → `ruuter` sisekutse (`/v1/ws-broadcast/send`) on kaitstud jagatud saladusega (`[#INTERNAL_COMMUNICATION_KEY]` päises), guard `override_ancestors`.  
 - `notification.admin` permission kaitseb outbound-logi vaatamist ja uuesti saatmist (ainult Super Admin Group) —
   guard `DSL/Ruuter/ljvis/{GET,POST}/v1/notifications/outbound-log/.guard.yml`.
 
 ### Piirangud / TODO
 
 - **Postkast 2.0 toodangukredentsiaalid** (`PK_URL`, `PK_TOKEN`) on RIA-lt ootel. `send-postkast.yml` on stub-ga, mis logib kavatsuse ja tagastab mock-`sending_operation_id`. Aktiveerimine: DSL-i kommentaaritud `callPkApi` samm aktiveerida kui credentialid on Kubernetes-es saadaval.  
-- **WS auth**: praegu WS endpoint ei kontrolli sessiooni eraldi — port 8086 on niigi tagapool nginx-i, mis nõuab TIM-sessiooni. Vajadusel lisada `ws_session_check` samm.
+- ~~**WS auth**: praegu WS endpoint ei kontrolli sessiooni eraldi.~~ **Lahendatud** (PR #216 + järg): `connect.yml` autendib iga sissetuleva frame'i `check-user-authority` kaudu; kehtetu → `{type:"unauthorized"}`.
+
+### Uuendus — 2026-09 (PR #216, Ruuter 0.9.9-rc)
+
+Algne disain kasutas `ws_send broadcast_prefix: "client:"` — sisutu signaal *kõigile*
+ühendustele, õiguste kontroll ainult HTTP-pull'il. Konsooli WS-vigade tulva parandades
+(nginx ei proxynud WS-teed; frontend reconnect'is lõputult; push jooksis valest
+protsessist) viidi:
+
+- **broadcast õiguspõhiseks** — Ruuter 0.9.9-rc `ws_tag` + `ws_send broadcast_where`
+  (Ruuter issue #52 / PR turnerrainer/Ruuter#51). `connect.yml` märgistab ühenduse
+  `perms`-sildiga, `send.yml` sihib `contains: ",<required_permission>,"`.
+- **frontend** — üks jagatud WS-singleton kõigile kelluke-tarbijatele; eksp. backoff
+  1s→30s + jitter, lagi 10 katsel → 60 s polling (varem tingimusteta 5 s reconnect).
+- **nginx** — `location = /api/notifications/connect` HTTP/1.1 Upgrade-headeritega.
+- **push** — `ws_send` `ruuter-internal`-ist → `http.post` `ruuter`-i sisemisse
+  `/v1/ws-broadcast/send` (WsRegistry on protsessisisene).
 
 ---
 

@@ -15,6 +15,8 @@ const EMPTY_FILTERS: FormSearchFilters = {
   county: '',
   hasViolation: '',
   status: '',
+  vrReportingCountryCode: '',
+  vrSanctionCode: '',
 };
 
 const DEFAULT_SORT = 'main_date desc';

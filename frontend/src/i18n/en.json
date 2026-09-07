@@ -276,6 +276,56 @@
     "title": "Desktop",
     "addForm": "+ Add"
   },
+  "dashboard": {
+    "scope": {
+      "label": "View",
+      "own": "Mine",
+      "organisation": "Organisation"
+    },
+    "sections": {
+      "compoundBlock": "Compound form",
+      "formsBlock": "Forms",
+      "activeCompound": "Active compound forms",
+      "activeStandalone": "Active forms"
+    },
+    "compound": {
+      "selectSubforms": "Select control form(s):",
+      "selectSubformsHint": "Select at least one control form"
+    },
+    "kind": {
+      "kontrollkaart": "Control card",
+      "protokoll": "Protocol",
+      "vorm": "Form"
+    },
+    "empty": {
+      "activeCompound": "No unfinished compound forms",
+      "activeStandalone": "No unfinished forms"
+    },
+    "columns": {
+      "date": "Date",
+      "time": "Time",
+      "vehicle": "Vehicle",
+      "driverCompany": "Driver / Company",
+      "formNumber": "Form",
+      "formType": "Name",
+      "status": "Status",
+      "published": "Published"
+    },
+    "actions": {
+      "fill": "Fill in",
+      "continue": "Continue",
+      "viewAllSearch": "View all in search →"
+    },
+    "status": {
+      "saved": "Saved",
+      "confirmed": "Confirmed",
+      "published": "Published",
+      "deleted": "Deleted"
+    },
+    "errors": {
+      "summaryFailed": "Failed to load dashboard data."
+    }
+  },
   "forms": {
     "savedNote": "Form has been saved",
     "confirmedNote": "Form has been confirmed",
@@ -431,7 +481,8 @@
         "statusColumn": "Status",
         "notChecked": "Not checked",
         "checked": "Checked",
-        "nonCompliant": "Non-compliant"
+        "nonCompliant": "Non-compliant",
+        "editDefects": "Edit defects"
       },
       "resultsTable": {
         "title": "Detected defects",
@@ -443,7 +494,8 @@
       "defectModal": {
         "select": "Select",
         "noDefects": "This part has no defects",
-        "selectAtLeastOne": "Select at least one defect."
+        "selectAtLeastOne": "Select at least one defect.",
+        "clear": "None"
       },
       "result": {
         "title": "Inspection result",
@@ -547,6 +599,7 @@
       },
       "dangerousGoods": {
         "title": "Transported dangerous goods",
+        "subtitle": "Completed when an infringement is identified",
         "empty": "No dangerous goods added",
         "addRow": "+ Add dangerous good",
         "unNumber": "ÜRO number",
@@ -593,6 +646,7 @@
           "III": "III"
         },
         "adrReference": "Rikutud ADR punkt",
+        "recordNotes": "Notes",
         "participants": "Võimalik vastutav osaleja",
         "participantOptions": {
           "Ci": "Kaubasaatja (Ci)",
@@ -641,7 +695,8 @@
       },
       "notes": {
         "title": "Notes",
-        "counter": "{{count}}/{{max}} characters"
+        "counter": "{{count}}/{{max}} characters",
+        "infringementSummary": "Infringement record notes summary (automatic)"
       },
       "xroad": {
         "title": "Data queried via the data exchange layer (X-tee)",
@@ -664,7 +719,8 @@
         "title": "Pealkiri",
         "addRow": "+ Lisa uus muu rikkumine",
         "remove": "Kustuta muu rikkumine",
-        "empty": "Muid rikkumisi ei ole lisatud"
+        "empty": "Muid rikkumisi ei ole lisatud",
+        "fallbackLabel": "Muu rikkumine {{index}}"
       }
     },
     "compound": {
@@ -760,10 +816,6 @@
     "sp_teammate_form": "Team member driving and rest time inspection form",
     "tram_driver_form": "Transport Administration inspection card",
     "tram_add_driver": "Add driver",
-    "sp_vehicle_tech_form": "Motor vehicle technical compliance inspection form",
-    "sp_trailer_tech_form": "Trailer technical compliance inspection form",
-    "sp_dangerous_goods_form": "Dangerous goods transport inspection form",
-    "sp_transport_suspended_form": "Transport suspended inspection form",
     "foreign_violation": {
       "reportingBasicInfo": "Reporting country and authority",
       "reportingCountry": "Reporting country",
@@ -818,6 +870,20 @@
       "sanctionLiiklemiskeeld": "Prohibition from driving",
       "sanctionSoiduk": "Immobilisation of vehicle",
       "sanctionMuu": "Other",
+      "duplicateWarning": "Warning: a control card with this company, vehicle and inspection date combination already exists ({{formNumber}}). Please check that you are not creating a duplicate.",
+      "addSanction": "+ Add sanction",
+      "additionalSanctions": "Additional sanctions",
+      "adminProc": {
+        "klimDate": "KLIM clarification request date",
+        "carrierDate": "Carrier explanation date",
+        "penaltyUntil": "Penalty valid until",
+        "akvkDate": "Next committee meeting (AKVK)",
+        "commissionDate": "Last committee decision date",
+        "decision": "Decision",
+        "expired": "Expired or processed",
+        "foreignProposal": "Proposal received from foreign authority for carrier inspection",
+        "notifyCarrier": "Notify carrier of violation"
+      },
       "euViolationGroupMsi": "Most serious infringements (MSI)",
       "euViolationMsi101": "MSI101 - Exceeds the maximum driving time of 2 consecutive weeks by 25% or more 112h30 ≤ ...",
       "euViolationMsi102": "MSI102 - Exceeds the daily driving time of 9 hours by 50% or more 13h30 ≤ ...",
@@ -1501,12 +1567,14 @@
         "requestPurpose": "Request purpose",
         "undertakingName": "Transport undertaking name",
         "licenceNumber": "Community licence or certified true copy number",
-        "vehicleNumber": "Vehicle registration number",
+        "vehicleNumber": "Vehicle reg. no.",
         "vehicleCountry": "Vehicle registration country",
+        "vehicleCountryHint": "If vehicle reg. no. is provided, vehicle registration country is mandatory",
         "requestAllVehicles": "Return all managed vehicles",
         "minTwoHint": "At least two of the three search fields must be filled - transport undertaking name, community licence or certified true copy number, vehicle registration number",
-        "send": "Send",
+        "send": "Send request",
         "resend": "Send again",
+        "backToList": "Back to list",
         "readOnly": "read-only",
         "version": "Version {{version}}"
       },
@@ -1565,6 +1633,7 @@
         "tmFirstName": "First name",
         "tmFamilyName": "Family name",
         "cgrTo": "Target member state",
+        "certificateNumber": "Certificate number",
         "status": "Status",
         "handler": "User",
         "handlerFilter": "User (isikukood)"
@@ -1578,8 +1647,8 @@
         "titleInbound": "Check Good Repute (ERRU → MS)",
         "titleNew": "New CGR request (MS → ERRU)",
         "headerBlock": "Request header and parties",
-        "nameBlock": "Transport manager name search (7A)",
-        "certificateBlock": "Certificate search (7B)",
+        "nameBlock": "Transport manager name search",
+        "certificateBlock": "Certificate search",
         "cgrFrom": "Requesting member state",
         "cgrTo": "Target member state",
         "cgrToAll": "All member states (ZZ)",
@@ -1594,7 +1663,8 @@
         "certificateNumber": "Certificate of professional competence number",
         "certificateIssueDate": "Certificate issue date",
         "certificateIssueCountry": "Certificate issuing country",
-        "searchChoiceHint": "If the certificate details are missing, the transport manager details are required (and vice versa).",
+        "searchCertChoiceHint": "If the certificate details are missing, the transport manager details are required.",
+        "searchTransportChoiceHint": "If the transport manager details are missing, the certificate details are required.",
         "copyRequest": "Copy request",
         "readOnly": "read-only",
         "version": "Version {{version}}",
@@ -1625,7 +1695,7 @@
       },
       "validation": {
         "required": "This field is required",
-        "search_choice_required": "Either the transport manager name search (7A) or the certificate search (7B) must be filled in",
+        "search_choice_required": "Either the transport manager name search or the certificate search must be filled in",
         "name_block_incomplete": "The name search fields (first name, family name, date of birth) must be filled in together",
         "certificate_block_incomplete": "The certificate search fields (number, issue date, country) must be filled in together",
         "invalid_country_code": "Country code must be two letters",
@@ -1646,12 +1716,14 @@
         "result": "Result",
         "notChecked": "Not checked",
         "checked": "Checked",
-        "nonCompliant": "Non-compliant"
+        "nonCompliant": "Non-compliant",
+        "editDefects": "Edit defects"
       },
       "defectModal": {
         "noDefects": "This part has no defects",
         "selectAtLeastOne": "Select at least one defect",
-        "select": "Select"
+        "select": "Select",
+        "clear": "None"
       },
       "form": {
         "titleOutgoing": "Roadside inspection message (EST → ERRU)",
@@ -1813,7 +1885,10 @@
         "ackStatusCode": "Acknowledgement status",
         "send": "Send",
         "sendResponse": "Send response",
-        "sendFailed": "Sending failed. The message moved to Error status."
+        "sendFailed": "Sending failed. The message moved to Error status.",
+        "createVr": "Create foreign violation control card",
+        "openVr": "Open foreign violation control card",
+        "createVrFailed": "Creating the VR control card failed"
       },
       "buildModal": {
         "button": "Add NCR message",
@@ -1864,7 +1939,9 @@
       "driver": "Driver (personal code or name)",
       "county": "County",
       "hasViolation": "Violation",
-      "status": "Status"
+      "status": "Status",
+      "vrReportingCountry": "VR: reporting country",
+      "vrSanctionCode": "VR: sanction"
     },
     "columns": {
       "formType": "Form type",
@@ -1908,18 +1985,26 @@
       "sendDate": "Sent date",
       "messageType": "Message type",
       "addressee": "Addressee",
+      "notificationKey": "Notification key",
       "name": "Name",
       "email": "Email",
       "sendingResult": "Send result",
       "status": "Status",
       "sent": "Sent",
-      "sent_error": "Send failed",
+      "statusSending": "Sending",
+      "statusQueued": "Sending (queued)",
+      "statusInProgress": "Sending (in progress)",
+      "statusError": "Error",
       "resend": "Resend",
-      "resendTitle": "Email address",
+      "resendConfirm": "Resend this notification unchanged to the same recipient?",
       "report": "Send report",
       "filterStatus": "Status",
       "filterType": "Message type",
-      "filterDateFrom": "From date"
+      "filterDateFrom": "From date",
+      "filterDateTo": "To date",
+      "filterRecipient": "Recipient",
+      "filterNotificationKey": "Notification key",
+      "emptyResult": "No notifications matched the search."
     },
     "types": {
       "ncr_violation": "NCR serious infringement notice",

@@ -57,6 +57,23 @@ export const publishForeignViolationForm = (id: string) =>
     { id },
   );
 
+export const createVrFormFromNcr = (businessCaseId: string) =>
+  post<{ id: string; formNumber: string; version: number }[]>(
+    `/v1/control-forms/foreign-violation-form/edit/create-from-ncr`,
+    { businessCaseId },
+  );
+
+export const checkDuplicateForeignViolationForm = (params: {
+  companyRegCode?: string;
+  vehicleRegNr?: string;
+  inspectionDate?: string;
+  excludeId?: string;
+}) =>
+  post<{ id: number; formNumber: string; status: string }[]>(
+    `/v1/control-forms/foreign-violation-form/check-duplicate`,
+    params as Record<string, unknown>,
+  );
+
 export const deleteForeignViolationForm = (
   id: string,
   form_number: string,

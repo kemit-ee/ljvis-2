@@ -307,7 +307,7 @@ BEGIN
     'EE/ADR/2022/01187',
     '[{"unNumber":"1863","packagingGroup":"III","quantity":"22000","unitCode":"l"}]'::jsonb,
     false, '["paak"]'::jsonb,
-    '[{"checkpointCode":"P12","inspectionStatus":"C","infringementDetected":true,"records":[{"riskCategory":"II","adrReference":"5.4.1","responsibleParticipants":["C"],"reg2016403Code":"11","reg2016403Severity":"VSI"}]}]'::jsonb,
+    '[{"checkpointCode":"P12","inspectionStatus":"C","infringementDetected":true,"records":[{"riskCategory":"II","adrReference":"5.4.1","responsibleParticipants":["C"],"reg2016403Code":"VSI 856","reg2016403Severity":"VSI"}]}]'::jsonb,
     '[]'::jsonb, false, false,
     'warning', '[]'::jsonb, 'Puudus kõrvaldati kohapeal.', now() - INTERVAL '4 days', v_by
   );

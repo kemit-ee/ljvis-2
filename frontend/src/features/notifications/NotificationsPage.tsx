@@ -12,7 +12,7 @@ export function NotificationsPage() {
   const { hasPermission } = useAuth();
   const { notifications, loading, markRead, markAllRead } = useNotifications();
 
-  const isAdmin = hasPermission(PERMISSIONS.NOTIFICATION_ADMIN);
+  const canViewLog = hasPermission(PERMISSIONS.NOTIFICATION_LIST);
   const unreadCount = notifications.filter((n) => n.isUnread).length;
 
   return (
@@ -26,7 +26,7 @@ export function NotificationsPage() {
           <Tabs>
             <Tabs.List>
               <Tabs.Trigger id="inapp">{t('notifications.tabInApp')}</Tabs.Trigger>
-              {isAdmin && (
+              {canViewLog && (
                 <Tabs.Trigger id="outbound">{t('notifications.tabLog')}</Tabs.Trigger>
               )}
             </Tabs.List>
@@ -62,7 +62,7 @@ export function NotificationsPage() {
               )}
             </Tabs.Content>
 
-            {isAdmin && (
+            {canViewLog && (
               <Tabs.Content id="outbound">
                 <OutboundLogTable />
               </Tabs.Content>

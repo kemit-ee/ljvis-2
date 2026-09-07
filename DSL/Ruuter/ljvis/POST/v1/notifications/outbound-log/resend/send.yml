@@ -1,0 +1,151 @@
+declaration:
+  version: "1.0"
+  description: >-
+    UC-04: ebaõnnestunud Postkast 2.0 teavituse uuesti saatmine, MUUTMATA kujul
+    (analüüs 12-2 §"Uuesti saatmine") — sama adressaat, sama aadress ja samad
+    malli muutujate väärtused, mis on salvestatud ebaõnnestunud katse juures.
+    Kutsub Ruuter.internal send-postkast endpointi original_log_id viitega.
+    APPEND-ONLY: uuesti saatmine loob uue outbound_log rea oma
+    notification_key'ga; algne kirje jääb "Viga" staatusesse muutmata.
+    Outbound-logi id käib ?q= query-paramina (rest-api-disainijuhend §4.2),
+    request body puudub — vastupidiselt vanale UC-04-le pole enam
+    e-posti sisestust (12-2: "kasutab sama adressaati").
+    Nõuab notification.resend õigust (kaitstud resend/.guard kaudu).
+  namespace: notification
+  allowlist:
+    params:
+      - field: q
+        type: string
+
+extractParams:
+  assign:
+    log_id: "${incoming.params.q ?? ''}"
+    actor_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkLogId
+
+checkLogId:
+  switch:
+    - condition: ${log_id === ''}
+      next: returnBadRequest
+  next: loadOriginalLog
+
+loadOriginalLog:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/get_outbound_log"
+    headers:
+      type: json
+    body:
+      id: ${log_id}
+  result: logRes
+  next: checkFound
+
+checkFound:
+  assign:
+    original_log: "${(Array.isArray(logRes.response.body) && logRes.response.body[0]) ? logRes.response.body[0] : null}"
+  next: checkFound2
+
+checkFound2:
+  switch:
+    - condition: ${original_log == null}
+      next: returnNotFound
+  next: checkStatus
+
+# 12-2 §"Uuesti saatmine": uuesti saa­dab AINULT ebaõnnestunud ("Viga") katset.
+# Õnnestunud / saatmisel oleva kirje dubleerimist ei lubata.
+checkStatus:
+  switch:
+    - condition: ${original_log.status !== 'error'}
+      next: returnConflict
+  next: callSendPostkast
+
+callSendPostkast:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: ${original_log.notificationType}
+      recipient_email: ${original_log.recipientAddress}
+      template_variables: ${original_log.templateVariables ?? {}}
+      language: ${original_log.notificationLanguage ?? ''}
+      send_time: ""
+      related_entity_type: ${original_log.relatedEntityType ?? ''}
+      related_entity_id: ${original_log.relatedEntityId ?? ''}
+      original_log_id: ${log_id}
+      created_by: ${actor_code}
+  result: sendRes
+  next: unwrapSendResult
+
+# send-postkast.yml on Ruuter.internal DSL — Ruuteri vaikimisi
+# response.default_wrapper: true mähib selle vastuse {"response": ...} kujule
+# (sama nagu send-postkast.yml enda callPk lugemisel). Loe mõlemat kuju.
+unwrapSendResult:
+  assign:
+    send_result: "${(sendRes.response.body && sendRes.response.body.response) ? sendRes.response.body.response : sendRes.response.body}"
+  next: checkSendResult
+
+# send-postkast tagastab 2xx korral objekti {logId, notificationKey, status}
+# (ka 'error'-staatusega loob ta uue rea — see on korrektne append-only tulem).
+# 400/422 (checkRequired / not_postkast_channel) korral tuleb string-keha ja
+# ROLLI EI LOODUD — sel juhul ei tohi auditisse valesündmust kirjutada ega
+# 200 tagastada.
+checkSendResult:
+  switch:
+    - condition: ${!send_result || typeof send_result !== 'object' || !send_result.notificationKey}
+      next: returnSendFailed
+  next: assignAuditFields
+
+assignAuditFields:
+  assign:
+    new_status: "${send_result?.status ?? ''}"
+    new_key: "${send_result?.notificationKey ?? ''}"
+    audit_description: >-
+      ${('Teavitus ' + original_log.notificationKey + ' saadetud uuesti adressaadile '
+        + original_log.recipientAddress + ', uus katse ' + (send_result.notificationKey || '')
+        + ', eelmise katse vea põhjus \'' + (original_log.failureReason || '')
+        + '\', uus staatus ' + (send_result.status || ''))
+        .replace(/[\r\n\t\\]+/g, ' ').substring(0, 480)}
+  next: logAuditEvent
+
+# 12-2 §7 sündmuse formaat: notification.resend.manual / notification_management.
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "notification.resend.manual"
+    event_category: "notification_management"
+    actor_personal_code: ${actor_code}
+    actor_name: ${actor_name}
+    description: ${audit_description}
+    log_content: "{\"originalLogId\":\"${log_id}\",\"originalNotificationKey\":\"${original_log.notificationKey}\",\"newNotificationKey\":\"${new_key}\"}"
+  result: audit_result
+  next: returnResult
+
+returnResult:
+  return: ${send_result}
+  next: end
+
+returnSendFailed:
+  status: 502
+  return: "resend failed: Postkast 2.0 send did not create a new log entry"
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "logId is required"
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "outbound log entry not found"
+  next: end
+
+returnConflict:
+  status: 409
+  return: "only failed notifications can be resent"
+  next: end

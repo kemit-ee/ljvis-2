@@ -25,6 +25,7 @@ DO $$
                                ('FOREIGN_AUDIT',             'Välisriigis teostatud autoveoalase kontrolli kontrollkaart',             'DASHBOARD_MANUAL_ADD'),
                                ('REPUTATION_NONCOMPLIANCE',  'Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht',         'DASHBOARD_MANUAL_ADD'),
                                ('SP_COMPOUND',               'Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart',             'DASHBOARD_MANUAL_ADD'),
+                               ('TRAM_KONTROLLKAART',        'Transpordiameti kontrollkaart',                                        'DASHBOARD_MANUAL_ADD'),
                                ('ADMIN_PROCEDURE',           'Haldusmenetlus seoses raskete autoveoalaste rikkumistega',              'DASHBOARD_EXCLUDED')
                           ) AS t(code, name, description)
             LOOP

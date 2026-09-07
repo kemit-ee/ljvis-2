@@ -14,6 +14,7 @@ import {
 import { DangerousGoodsTable } from './DangerousGoodsTable';
 import { AdrInfringementsSection } from './AdrInfringementsSection';
 import { AdrOtherInfringementsSection } from './AdrOtherInfringementsSection';
+import { composeInfringementNotes } from './adrRecordUtils';
 import { AddressFields } from '../../components/shared/AddressFields';
 import type { AddressFieldsValue } from '../../components/shared/AddressFields';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -120,6 +121,26 @@ export function AdrFormFields({
       ),
     [getByCode, canEdit],
   );
+
+  const infringementNotesSummary = useMemo(() => {
+    const cpName = new Map(
+      getByCode('ADR_CONTROL_CHECKPOINT')
+        .filter((c) => c.parentKey === null)
+        .map((c) => [c.code, c.name] as const),
+    );
+    return composeInfringementNotes([
+      ...(values.infringements ?? []).map((e) => ({
+        label: cpName.get(e.checkpointCode) ?? e.checkpointCode,
+        records: e.records ?? [],
+      })),
+      ...(values.otherInfringements ?? []).map((e, i) => ({
+        label:
+          (e.title ?? '').trim() ||
+          t('forms.adr.otherInfringements.fallbackLabel', { index: i + 1 }),
+        records: e.records ?? [],
+      })),
+    ]);
+  }, [getByCode, values.infringements, values.otherInfringements, t]);
 
   const citizenshipOptions = COUNTRIES.map((c) => ({
     value: c.value,
@@ -399,6 +420,7 @@ export function AdrFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.adr.dangerousGoods.title')}
           </Heading>
+          <Text className="mb-1">{t('forms.adr.dangerousGoods.subtitle')}</Text>
           <DangerousGoodsTable
             rows={values.dangerousGoods ?? []}
             onAdd={canEdit ? addDangerousGood : () => {}}
@@ -909,6 +931,16 @@ export function AdrFormFields({
                   }
             }
           />
+          {infringementNotesSummary && (
+            <TextArea
+              id={`${idPrefix}infringementNotesSummary`}
+              label={t('forms.adr.notes.infringementSummary')}
+              className="mt-1"
+              value={infringementNotesSummary}
+              maxHeight="8rem"
+              readOnly
+            />
+          )}
         </Card.Content>
       </Card>
 

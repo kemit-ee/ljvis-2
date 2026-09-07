@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -12,7 +12,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import type { ClassifierEntry } from '../../../classifiers/types';
 import type { RsiCheckedItem, RsiDefectSeverity } from '../../types';
-import styles from './RsiCheckedItemsTable.module.css';
+import styles from '../../../../shared/components/CheckedItemsTable.module.css';
 
 const SEVERITIES: RsiDefectSeverity[] = ['VO', 'OV', 'EOV'];
 
@@ -22,8 +22,10 @@ const severityColor = (sev: RsiDefectSeverity): StatusBadgeColor => {
   return 'warning'; // VO
 };
 
-/** Extract the trailing number from a classifier code (e.g. "CAA_11" -> 11). */
-const numericSuffix = (code: string): number => {
+/** Trailing number of a classifier code (e.g. "CAA_11" -> 11) — the part's
+ *  official number, used for display. Not a list index: `parts` has a gap
+ *  (CAA_10 excluded upstream, see useRsiForm.ts). */
+const partNumber = (code: string): number => {
   const m = code.match(/(\d+)$/);
   return m ? parseInt(m[1], 10) : 0;
 };
@@ -35,6 +37,7 @@ const numericSuffix = (code: string): number => {
  * Mirrors control-forms/technical-check-form's PartsSummaryTable + DefectSelectionModal
  * + DefectsResultsTable, adapted to RSI's nested checked_items shape. Uses only
  * native TEDI components (ChoiceGroup, StatusBadge, Modal) and TEDI colour tokens.
+ * `parts` is already numerically sorted by the parent hook.
  */
 export function RsiCheckedItemsTable({
   parts,
@@ -60,12 +63,6 @@ export function RsiCheckedItemsTable({
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const [modalPart, setModalPart] = useState<ClassifierEntry | null>(null);
 
-  const sortedParts = useMemo(
-    () =>
-      [...parts].sort((a, b) => numericSuffix(a.code) - numericSuffix(b.code)),
-    [parts],
-  );
-
   const itemOf = (partCode: string): RsiCheckedItem =>
     items.find((i) => i.partCode === partCode) ?? {
       partCode,
@@ -82,21 +79,6 @@ export function RsiCheckedItemsTable({
       return;
     }
     onStatusChange(part.code, status);
-  };
-
-  const handleRadioClick = (part: ClassifierEntry, e: MouseEvent) => {
-    if (disabled) return;
-    const el = e.target as HTMLElement;
-    const input =
-      ((el.closest('label') as HTMLLabelElement | null)
-        ?.control as HTMLInputElement | null) ??
-      (el instanceof HTMLInputElement ? el : null);
-    if (
-      input?.id === `rsi-part-status-${part.code}-non-compliant` &&
-      itemOf(part.code).status === 'non_compliant'
-    ) {
-      setModalPart(part);
-    }
   };
 
   const indexClass = (status: RsiCheckedItem['status']): string => {
@@ -126,34 +108,67 @@ export function RsiCheckedItemsTable({
     },
   ];
 
-  const defectsBlock = (part: ClassifierEntry, item: RsiCheckedItem) =>
-    item.defects.length > 0 ? (
-      <ul className={styles.defectsList}>
-        {item.defects.map((d) => (
-          <li key={d.defectCode} className={styles.defectItem}>
-            <span className={styles.defectName}>
-              {defectsByPartKey
-                .get(part.classifierValueKey)
-                ?.find((c) => c.code === d.defectCode)?.name ?? d.defectCode}
-            </span>
-            <StatusBadge color={severityColor(d.severity)} variant="bordered">
-              {d.severity}
-            </StatusBadge>
-            {!disabled && (
-              <Button
-                icon="delete"
-                visualType="neutral"
-                color="danger"
-                size="small"
-                onClick={() => onRemoveDefect(part.code, d.defectCode)}
-              >
-                {t('common.delete')}
-              </Button>
-            )}
-          </li>
-        ))}
-      </ul>
-    ) : null;
+  const defectsBlock = (part: ClassifierEntry, item: RsiCheckedItem) => {
+    if (item.status !== 'non_compliant') return null;
+    return (
+      <>
+        {item.defects.length > 0 && (
+          <ul className={styles.defectsList}>
+            {item.defects.map((d) => (
+              <li key={d.defectCode} className={styles.defectItem}>
+                <span className={styles.defectName}>
+                  {defectsByPartKey
+                    .get(part.classifierValueKey)
+                    ?.find((c) => c.code === d.defectCode)?.name ?? d.defectCode}
+                </span>
+                <StatusBadge color={severityColor(d.severity)} variant="bordered">
+                  {d.severity}
+                </StatusBadge>
+                {!disabled && (
+                  <Button
+                    icon="delete"
+                    visualType="neutral"
+                    color="danger"
+                    size="small"
+                    onClick={() => onRemoveDefect(part.code, d.defectCode)}
+                  >
+                    {t('common.delete')}
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {!disabled && (
+          <Button
+            visualType="link"
+            size="small"
+            onClick={() => setModalPart(part)}
+          >
+            {t('erru.rsi.checkedItems.editDefects')}
+          </Button>
+        )}
+      </>
+    );
+  };
+
+  const modal = (
+    <RsiDefectModal
+      open={!!modalPart}
+      part={modalPart}
+      defects={
+        modalPart
+          ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? [])
+          : []
+      }
+      existing={modalPart ? itemOf(modalPart.code).defects : []}
+      onClose={() => setModalPart(null)}
+      onConfirm={(selected) => {
+        if (modalPart) onDefectsChange(modalPart.code, selected);
+        setModalPart(null);
+      }}
+    />
+  );
 
   /* ─── Desktop: classic two-column table ─── */
   if (isDesktop) {
@@ -167,7 +182,7 @@ export function RsiCheckedItemsTable({
             </tr>
           </thead>
           <tbody>
-            {sortedParts.map((part, idx) => {
+            {parts.map((part) => {
               const item = itemOf(part.code);
               const rowCls =
                 item.status === 'checked'
@@ -182,31 +197,26 @@ export function RsiCheckedItemsTable({
                       <span
                         className={`${styles.partIndex} ${indexClass(item.status)}`}
                       >
-                        {idx + 1}
+                        {partNumber(part.code)}
                       </span>
                       <span className={styles.partLabel}>{part.name}</span>
                     </span>
                   </td>
                   <td>
-                    <div onClick={(e) => handleRadioClick(part, e)}>
-                      <ChoiceGroup
-                        id={`rsi-part-status-${part.code}`}
-                        name={`rsi-part-status-${part.code}`}
-                        label={t('erru.rsi.checkedItems.result')}
-                        hideLabel
-                        inputType="radio"
-                        direction="row"
-                        value={item.status}
-                        onChange={(val) =>
-                          !disabled &&
-                          handleStatusChange(
-                            part,
-                            val as RsiCheckedItem['status'],
-                          )
-                        }
-                        items={radioItems(part.code)}
-                      />
-                    </div>
+                    <ChoiceGroup
+                      id={`rsi-part-status-${part.code}`}
+                      name={`rsi-part-status-${part.code}`}
+                      label={t('erru.rsi.checkedItems.result')}
+                      hideLabel
+                      inputType="radio"
+                      direction="row"
+                      value={item.status}
+                      onChange={(val) =>
+                        !disabled &&
+                        handleStatusChange(part, val as RsiCheckedItem['status'])
+                      }
+                      items={radioItems(part.code)}
+                    />
                     {defectsBlock(part, item)}
                   </td>
                 </tr>
@@ -214,22 +224,7 @@ export function RsiCheckedItemsTable({
             })}
           </tbody>
         </table>
-
-        <RsiDefectModal
-          open={!!modalPart}
-          part={modalPart}
-          defects={
-            modalPart
-              ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? [])
-              : []
-          }
-          existing={modalPart ? itemOf(modalPart.code).defects : []}
-          onClose={() => setModalPart(null)}
-          onConfirm={(selected) => {
-            if (modalPart) onDefectsChange(modalPart.code, selected);
-            setModalPart(null);
-          }}
-        />
+        {modal}
       </>
     );
   }
@@ -238,7 +233,7 @@ export function RsiCheckedItemsTable({
   return (
     <>
       <div className={styles.cardList}>
-        {sortedParts.map((part, idx) => {
+        {parts.map((part) => {
           const item = itemOf(part.code);
           const cardCls = [
             styles.partCard,
@@ -255,15 +250,12 @@ export function RsiCheckedItemsTable({
                   <span
                     className={`${styles.partIndex} ${indexClass(item.status)}`}
                   >
-                    {idx + 1}
+                    {partNumber(part.code)}
                   </span>
                   <span className={styles.partLabel}>{part.name}</span>
                 </span>
               </div>
-              <div
-                className={styles.cardRadios}
-                onClick={(e) => handleRadioClick(part, e)}
-              >
+              <div className={styles.cardRadios}>
                 <ChoiceGroup
                   id={`rsi-part-status-${part.code}`}
                   name={`rsi-part-status-${part.code}`}
@@ -284,22 +276,7 @@ export function RsiCheckedItemsTable({
           );
         })}
       </div>
-
-      <RsiDefectModal
-        open={!!modalPart}
-        part={modalPart}
-        defects={
-          modalPart
-            ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? [])
-            : []
-        }
-        existing={modalPart ? itemOf(modalPart.code).defects : []}
-        onClose={() => setModalPart(null)}
-        onConfirm={(selected) => {
-          if (modalPart) onDefectsChange(modalPart.code, selected);
-          setModalPart(null);
-        }}
-      />
+      {modal}
     </>
   );
 }
@@ -366,44 +343,48 @@ function RsiDefectModal({
     onConfirm(selected);
   };
 
+  const title = part
+    ? part.name.charAt(0).toUpperCase() + part.name.slice(1)
+    : '';
+
   return (
     <Modal open={open} onToggle={(next) => !next && onClose()}>
-      <Modal.Content aria-label={part?.name ?? ''}>
-        <Modal.Header title={part?.name ?? ''} />
+      <Modal.Content aria-label={title}>
+        <Modal.Header title={title} />
         <Modal.Body>
           {defects.length === 0 && (
             <Text>{t('erru.rsi.defectModal.noDefects')}</Text>
           )}
-          {defects.map((defect) => {
-            const current = selections[defect.code] || '';
-            return (
-              <div key={defect.code} className="mb-1">
-                <ChoiceGroup
-                  id={`rsi-defect-${defect.code}`}
-                  name={`rsi-defect-${defect.code}`}
-                  label={defect.name}
-                  inputType="checkbox"
-                  direction="row"
-                  value={current ? [current] : []}
-                  onChange={(val) => {
-                    const arr = (
-                      Array.isArray(val) ? val : []
-                    ) as RsiDefectSeverity[];
-                    const added = arr.find((v) => v !== current);
-                    setSelections((prev) => ({
-                      ...prev,
-                      [defect.code]: added ?? '',
-                    }));
-                  }}
-                  items={applicableSeverities(defect).map((sev) => ({
+          {defects.map((defect) => (
+            <div key={defect.code} className="mb-1">
+              <ChoiceGroup
+                id={`rsi-defect-${defect.code}`}
+                name={`rsi-defect-${defect.code}`}
+                label={defect.name}
+                inputType="radio"
+                direction="row"
+                value={selections[defect.code] ?? ''}
+                onChange={(val) =>
+                  setSelections((prev) => ({
+                    ...prev,
+                    [defect.code]: val as RsiDefectSeverity | '',
+                  }))
+                }
+                items={[
+                  ...applicableSeverities(defect).map((sev) => ({
                     id: `rsi-defect-${defect.code}-${sev}`,
                     value: sev,
                     label: sev,
-                  }))}
-                />
-              </div>
-            );
-          })}
+                  })),
+                  {
+                    id: `rsi-defect-${defect.code}-none`,
+                    value: '',
+                    label: t('erru.rsi.defectModal.clear'),
+                  },
+                ]}
+              />
+            </div>
+          ))}
           {showHint && (
             <Text color="danger">
               {t('erru.rsi.defectModal.selectAtLeastOne')}

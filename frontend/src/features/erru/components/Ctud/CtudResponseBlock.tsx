@@ -25,6 +25,10 @@ export function CtudResponseBlock({ request }: { request: CtudRequest }) {
         </Heading>
 
         <DetailRow
+          label={t('erru.ctud.list.id')}
+          value={request.businessCaseId}
+        />
+        <DetailRow
           label={t('erru.ctud.response.statusCode')}
           value={label('CTUD_RESPONSE_STATUS', request.responseStatusCode)}
         />

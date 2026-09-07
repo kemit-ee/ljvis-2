@@ -39,6 +39,9 @@ call newman run "%COL%\driverest-forms.collection.json" -e "%ENV%" --delay-reque
 echo Running collection: labour-inspection.collection.json
 call newman run "%COL%\labour-inspection.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\labour-inspection.html"
 
+echo Running collection: foreign-violation-form.collection.json
+call newman run "%COL%\foreign-violation-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\foreign-violation-form.html"
+
 echo Running collection: erru-ctud.collection.json
 call newman run "%COL%\erru-ctud.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-ctud.html"
 
@@ -71,6 +74,9 @@ call newman run "%COL%\risk-scores.collection.json" -e "%ENV%" -r cli,htmlextra 
 
 echo Running collection: citizen-representation.collection.json
 call newman run "%COL%\citizen-representation.collection.json" -e "%ENV%" -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\citizen-representation.html"
+
+echo Running collection: dashboard.collection.json
+call newman run "%COL%\dashboard.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\dashboard.html"
 
 echo.
 echo All collections passed.

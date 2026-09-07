@@ -46,7 +46,11 @@ extractCurrentState:
     undertaking_name: "${current.response.body[0].transportUndertakingName || ''}"
     licence_number: "${current.response.body[0].communityLicenceNumber || ''}"
     vehicle_number: "${current.response.body[0].vehicleRegistrationNumber || ''}"
+    vehicle_registration_country: "${current.response.body[0].vehicleRegistrationCountry || ''}"
     all_vehicles: "${current.response.body[0].requestAllVehicles ? 'true' : 'false'}"
+    originating_authority: "${current.response.body[0].originatingAuthority || ''}"
+    request_source: "${current.response.body[0].requestSource || ''}"
+    request_purpose: "${current.response.body[0].requestPurpose || ''}"
   next: checkSendable
 
 # Only an outgoing request that is a draft or a previously failed send may be sent.
@@ -101,9 +105,13 @@ callErru:
       businessCaseId: ${business_case_id}
       technicalId: ""
       workflowId: ""
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
       transportUndertakingName: ${undertaking_name}
       communityLicenceNumber: ${licence_number}
       vehicleRegistrationNumber: ${vehicle_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
       requestAllVehicles: ${all_vehicles}
   result: erru_res
   next: checkErruStatus

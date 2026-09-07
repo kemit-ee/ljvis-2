@@ -35,6 +35,7 @@
         "recommendedMeasureCode": "{{this.recommendedMeasureCode}}",
         "recommendedMeasureNotes": "{{this.recommendedMeasureNotes}}",
         "notes": "{{this.notes}}",
+        "additionalSanctionCodes": {{{this.additionalSanctionCodes}}},
         "violations": {{{this.violations}}},
         "dataEntryDate": "{{this.dataEntryDate}}",
         "inspectorFirstName": "{{this.inspectorFirstName}}",
@@ -42,6 +43,16 @@
         "inspectorOrganisationId": "{{this.inspectorOrganisationId}}",
         "inspectorUnit": "{{this.inspectorUnit}}",
         "inspectorProfession": "{{this.inspectorProfession}}",
+        "klimClarificationDate": "{{this.klimClarificationDate}}",
+        "carrierExplanationDate": "{{this.carrierExplanationDate}}",
+        "penaltyValidUntil": "{{this.penaltyValidUntil}}",
+        "penaltyExpiredOrProcessed": {{this.penaltyExpiredOrProcessed}},
+        "akvkNextMeetingDate": "{{this.akvkNextMeetingDate}}",
+        "commissionLastDecisionDate": "{{this.commissionLastDecisionDate}}",
+        "adminProcedureDecision": "{{this.adminProcedureDecision}}",
+        "foreignAuthorityProposal": {{this.foreignAuthorityProposal}},
+        "notifyCarrier": {{this.notifyCarrier}},
+        "erruNcrMessageKey": {{#if this.erruNcrMessageKey}}{{this.erruNcrMessageKey}}{{else}}null{{/if}},
         "status": "{{this.status}}"
 }
 {{/with}}

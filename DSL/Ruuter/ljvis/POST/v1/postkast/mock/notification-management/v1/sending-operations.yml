@@ -1,0 +1,52 @@
+declaration:
+  version: "1.0"
+  description: >-
+    MOCK Postkast 2.0 "Saatmisoperatsioonide päring" — dev ja CI ainult.
+    Vastab kohe FINISHED + createdRecipientCount:1 (edukas saatmine), et
+    cron/notification-status-sync.yml voogu saaks lokaalselt/CI-s täielikult
+    läbi testida ilma päris X-tee ligipääsuta. Skeem valitakse externalId
+    prefiksi järgi, et ka veaharu oleks testitav: kui externalId sisaldab
+    stringi "forceerror", tagastatakse ERROR + resolution.
+  namespace: postkast
+  allowlist:
+    body:
+      - field: externalId
+        type: string
+      - field: page
+        type: integer
+      - field: size
+        type: integer
+
+selectScenario:
+  switch:
+    - condition: ${(incoming.body.externalId || '').indexOf('forceerror') !== -1}
+      next: returnError
+  next: returnFinished
+
+returnFinished:
+  return:
+    content:
+      - id: "mock-op-${incoming.body.externalId}"
+        status: "FINISHED"
+        resolution: ""
+        recipientCount: 1
+        createdRecipientCount: 1
+        operationRestartAllowed: false
+        completedAt: "${new Date().toISOString()}"
+        createdNotifications: ["mock-notif-${incoming.body.externalId}"]
+  status: 200
+  next: end
+
+returnError:
+  return:
+    content:
+      - id: "mock-op-${incoming.body.externalId}"
+        status: "ERROR"
+        resolution: "Mock: adressaadi vastuvõtt ebaõnnestus"
+        recipientCount: 1
+        createdRecipientCount: 0
+        operationRestartAllowed: true
+        completedAt: "${new Date().toISOString()}"
+        createdNotifications: []
+  status: 200
+  next: end

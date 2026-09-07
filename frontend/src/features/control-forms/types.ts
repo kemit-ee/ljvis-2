@@ -74,6 +74,7 @@ export interface ControlForm {
 export interface ForeignViolationForm {
   id?: string;
   formNumber: string;
+  version?: number;
   status?: string;
   reportingCountryCode: string;
   reportingAuthority: string;
@@ -105,11 +106,22 @@ export interface ForeignViolationForm {
   minorViolationsCount?: string;
   sanctionCode: string;
   sanctionNotes?: string;
+  additionalSanctionCodes?: string[];
   violations?: string[];
   recommendedMeasureCode: string;
   recommendedMeasureNotes?: string;
   notes?: string;
   dataEntryDate: string;
+  klimClarificationDate?: string;
+  carrierExplanationDate?: string;
+  penaltyValidUntil?: string;
+  penaltyExpiredOrProcessed?: boolean;
+  akvkNextMeetingDate?: string;
+  commissionLastDecisionDate?: string;
+  adminProcedureDecision?: string;
+  foreignAuthorityProposal?: boolean;
+  notifyCarrier?: boolean;
+  erruNcrMessageKey?: number | null;
   inspectorFirstName: string;
   inspectorLastName: string;
   inspectorOrganisationId: string;
@@ -400,10 +412,12 @@ export type AdrInfringementRecord = {
   riskCategory: '' | AdrRiskCategory;
   adrReference: string;
   responsibleParticipants: AdrParticipant[];
-  /** ADR_CONTROL_CHECKPOINT tase-2 klassifikaatori 2016/403 number | 'NONE' | null (aktiivne ainult kui responsibleParticipants sisaldab 'C'). */
+  /** Ametlik rikkumise kood määruse lisa 2 riskikategooriate tabelist (nt 'VSI 856') | 'NONE' | null (aktiivne ainult kui responsibleParticipants sisaldab 'C'). */
   reg2016403Code: string | null;
   /** Tuletatud reg2016403Code-ist; hoitakse riskCategory-st eraldi. */
   reg2016403Severity: AdrRegSeverity | null;
+  /** Selle rikkumiskirje märkused; koondatakse kontrollkaardi märkuste välja. */
+  notes: string;
 };
 
 /** Üks kontrollkaardi punkt (P12–P27) koos selle all olevate rikkumiskirjetega. */
@@ -454,6 +468,8 @@ export interface AdrForm {
   sealOpenedDate?: string;
   sealInstalledDate?: string;
   notes?: string;
+  /** Kirjutuskaitstud koond kõigi rikkumiskirjete märkustest (tuletatud infringements/otherInfringements väljadest). */
+  infringementNotesSummary?: string;
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
   createdBy?: string;
@@ -519,4 +535,8 @@ export interface FormSearchFilters {
   /** '' = any, 'true' = has violation, 'false' = no violation */
   hasViolation: string;
   status: string;
+  /** VR only - reporting country code, exact match */
+  vrReportingCountryCode: string;
+  /** VR only - applied sanction code, exact match */
+  vrSanctionCode: string;
 }

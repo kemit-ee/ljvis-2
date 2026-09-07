@@ -469,12 +469,32 @@ Migratsioon: `20260828275000-initial-foreign-infringement-classifiers.sql`; rask
 Kolm klassifikaatorit välisriigi rikkumise kontrollvormi jaoks (EL rikkumiste tüübid, veose ja sõitjateveo kabotaažrikkumised). `EU_INFRINGEMENT` katab komisjoni määruse (EL) 2016/403 I lisa kõiki 14 jaotist.
 
 ### ADR kontrollkaardi punktid — ADR_CONTROL_CHECKPOINT
-Migratsioon: `20260903120000-adr-control-checkpoint-classifier.sql` (asendab `DANGEROUS_GOODS_INFRINGEMENTS_NEW`, mis kustutati migratsiooniga `20260903140000`).
+Migratsioonid: `20260903120000-adr-control-checkpoint-classifier.sql` (asendab `DANGEROUS_GOODS_INFRINGEMENTS_NEW`, mis kustutati migratsiooniga `20260903140000`); `20260907120000-adr-checkpoint-titles-maarus-lisa2.sql` (tase-1 pealkirjad ja ADR-viited määruse **lisa 2** sõnastusega joondatud).
 
-2-tasemeline klassifikaator ohtliku veose (ADR) kontrollvormi rikkumiste ploki jaoks (kliimaministri määruse RT I, 16.06.2026, 11 lisa 1):
+2-tasemeline klassifikaator ohtliku veose (ADR) kontrollvormi rikkumiste ploki jaoks (kliimaministri määrus RT I, 16.06.2026, 11):
 
-- **Tase 1** — kontrollkaardi punktid `P12`…`P27` (16 kirjet). `name` = kontrollitav valdkond, `description` = ADR-viide.
-- **Tase 2** — punktiga seotud komisjoni määruse (EL) 2016/403 I lisa jaotise 9 rikkumisliigid (27 kirjet). `code` = `RL<nr>_<Pnn>` (sama rikkumisliik võib olla seotud mitme punktiga → eraldi kirjed), `name` algab 2016/403 numbriga, `description` = raskusaste (`MSI`/`VSI`/`SI`). Allikas: Priit Tuuna seostetabel + määruse lisa 1.
+- **Tase 1** — kontrollkaardi punktid `P12`…`P27` (16 kirjet). `name` = `<nr>. <määruse lisa 2 pealkiri>`, `description` = pealkirja järel sulgudes kuvatav ADR-viide (osal „nt", osal ilma; `P15` ja `P26` puhul on mitu sulgudes rühma → kogu sõnastus `name`-väljal, `description` on tühi). Kuvamine: `heading = description ? "<name> (<description>)" : "<name>"`.
+
+  | code | name | description (ADR-viide) |
+  |---|---|---|
+  | P12 | 12. Veodokumendid | nt ADR 8.1.2.1 (a), 5.4.1, 5.4.2 |
+  | P13 | 13. Kirjalikud juhised | ADR 8.1.2.1 (b), 5.4.3 |
+  | P14 | 14. Sõiduki vastavustunnistus | ADR 8.1.2.2 (a), 9.1.3 |
+  | P15 | 15. Juhi koolitustunnistus (ADR 8.1.2.2 (b)) ja isikut tõendav dokument (ADR 1.10.1.4, 8.1.2.1 (d)) | — |
+  | P16 | 16. Veoks lubatud kaubad | ADR 1.1.2.1 |
+  | P17 | 17. Mahuteid käsitlevad sätted | nt ADR 4.1–4.7 |
+  | P18 | 18. Vedu käsitlevad sätted | nt ADR 7.1–7.4 |
+  | P19 | 19. Segaveose keeld ja koguste piirangud | nt ADR 7.5.2, 7.5.4, 7.5.5 |
+  | P20 | 20. Käitamine ja paigutamine | nt ADR 7.5.7 |
+  | P21 | 21. Pakendi/paagi/mahtlasti märgistus | nt ADR-i 6. osa |
+  | P22 | 22. Pakendite tähistus ja märgistus | nt ADR 3.3–3.5, 4.1.4.1, 5.1, 5.2 |
+  | P23 | 23. Tähised, oranžid tähised, märgistused sõidukitel/paakidel jne | nt ADR 3.4.13, 5.3, 5.5, 7.3, 7.5.11 |
+  | P24 | 24. Sõidukile esitatavad nõuded | ADR-i 9. osa |
+  | P25 | 25. Üld- ja eriseadmed | nt ADR 8.1.4, 8.1.5 |
+  | P26 | 26. Kahe-/mitmepoolsed kokkulepped (nt ADR 1.5.1), riiklikud eeskirjad, pädeva asutuse heakskiit (nt ADR 8.1.2.2 (c)) | — |
+  | P27 | 27. Muud rikkumised | — |
+
+- **Tase 2** — punktiga seotud komisjoni määruse (EL) 2016/403 I lisa jaotise 9 rikkumisliigid (27 kirjet). `code` = `RL<nr>_<Pnn>` (sama rikkumisliik võib olla seotud mitme punktiga → eraldi kirjed; `code` on sisemine, kannab parent-seost). `name` = `<ametlik rikkumise kood> – <määruse lisa 2 kirjeldus>` (nt `VSI 855 – ei ole järgitud ühe veoühikuga veetavate koguste piiranguid…`); `description` = raskusaste (`MSI`/`VSI`/`SI`). Migratsioon `20260907140000` viis nimed 2016/403 rea numbrilt ametlikule koodile (määruse lisa 2 riskikategooriate tabel). Vorm salvestab rikkumiskirje väljale `reg2016403Code` **ametliku koodi** (varem 2016/403 rea number). Allikas: Priit Tuuna seostetabel + määruse lisa 2.
 
 Vormil kasutatakse tase-2 väärtusi ainult rikkumiskirje väljal „Määruse (EL) 2016/403 rikkumisliik". Rippmenüü „puudub" valik on frontendi konstant, mitte klassifikaatoris.
 
@@ -482,6 +502,20 @@ Vormil kasutatakse tase-2 väärtusi ainult rikkumiskirje väljal „Määruse (
 Migratsioon: `20260903130000-adr-quantity-unit-classifier.sql`
 
 1-tasemeline, 8 väärtust: `l`, `kg`, `t`, `m3` („m³"), `tk`, `pakendit`, `ballooni`, `nem_kg` („NEM kg"). Kasutusel ADR-vormi „Veetavate ohtlike kaupade andmed" ploki väljal „Ühik".
+
+### ADR pakendirühm — ADR_PACKING_GROUP
+Migratsioon: `20260907130000-adr-packing-group-classifier.sql`
+
+1-tasemeline, 4 väärtust — ADR-vormi „Veetavate ohtlike kaupade andmed" ploki väli „Pakendirühm" (varem vabatekst):
+
+| code | name |
+|---|---|
+| I | I pakendirühm – väga ohtlik aine |
+| II | II pakendirühm – keskmise ohtlikkusega aine |
+| III | III pakendirühm – madala ohtlikkusega aine |
+| NA | Ei ole määratud |
+
+Rippmenüü esimene **tühi valik** („—") on frontendi konstant (nagu riigi valikul), et ekslikult valitud väärtust saaks tühjendada; klassifikaatoris seda ei ole.
 
 ### Reg 2016/403 I lisa kaardistus
 Ülevaade, milline klassifikaator kannab I lisa iga jaotist: [`rikkumiste-klassifikaatorid-2016-403.md`](rikkumiste-klassifikaatorid-2016-403.md).

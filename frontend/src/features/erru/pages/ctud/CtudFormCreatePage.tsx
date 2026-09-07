@@ -6,17 +6,19 @@ import { CtudRequestFields } from '../../components/Ctud/CtudRequestFields';
 import { useAuth } from '../../../auth/AuthContext';
 
 /**
- * New outgoing CTUD request. The draft is filled in manually — unlike CGR there is no
- * pre-fill from a control form and no "copy request" action. Saving leaves the request
- * in status "Algatatud"; sending happens from the detail view.
+ * New outgoing CTUD request. The draft is created and immediately sent in one step —
+ * unlike the edit view there is no intermediate "Algatatud" draft; the send happens
+ * atomically after a successful create inside useCtudForm (sendAfterCreate option).
  */
 export function CtudFormCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
 
-  const form = useCtudForm(undefined, (id) =>
-    navigate(id ? `/erru/ctud/${id}` : '/erru/ctud', { state: { justSaved: true } }),
+  const form = useCtudForm(
+    undefined,
+    (id) => navigate(id ? `/erru/ctud/${id}` : '/erru/ctud'),
+    { sendAfterCreate: true },
   );
 
   if (!hasAnyPermission(['ctud.create']))
@@ -46,10 +48,10 @@ export function CtudFormCreatePage() {
       <div className="page-actions">
         <div className="page-actions-buttons">
           <Button visualType="secondary" onClick={() => navigate('/erru/ctud')}>
-            {t('common.back')}
+            {t('erru.ctud.form.backToList')}
           </Button>
           <Button type="submit" disabled={form.formik.isSubmitting}>
-            {t('common.save')}
+            {t('erru.ctud.form.send')}
           </Button>
         </div>
       </div>

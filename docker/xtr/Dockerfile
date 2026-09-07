@@ -2,5 +2,6 @@
 # definitions are locked to the same monorepo tag as ruuter and resql.
 # Pinned by digest because :rc is a moving tag. Refresh with:
 #   docker buildx imagetools inspect turnerrainer/xtr:rc
-FROM harbor.kemitaws.ee/dockerhub/turnerrainer/xtr@sha256:61d441d00f7597ab5e17204c9b59568d4845047bd32d5846ecca22a179db6fcf
+# turnerrainer/xtr:0.2.0-rc.1
+FROM harbor.kemitaws.ee/dockerhub/turnerrainer/xtr@sha256:f0e40e2a0b12091cf204d7ee633b29d6e58e90e19501286d7b7dde0ed3b641c2
 COPY DSL/xtr /DSL

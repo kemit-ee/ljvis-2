@@ -286,18 +286,21 @@ export function useTechnicalCheckForm(
       ? prevSummary.map((p) => (p.partCode === partCode ? { ...p, status } : p))
       : [...prevSummary, { partCode, status }];
 
-    if (status !== 'non_compliant') {
-      const previousDefects = v.partsDefects ?? [];
-      const newDefects = previousDefects.filter((d) => d.partCode !== partCode);
-      formik.setValues({
-        ...v,
-        partsSummary: summary,
-        partsDefects: newDefects,
-        ...computeResultChanges(v, previousDefects, newDefects),
-      });
-    } else {
+    // 'non_compliant' normally arrives via the modal flow (applyPartDefects);
+    // if it is set directly, only the summary status changes — defects and the
+    // auto-derived result are left to the modal.
+    if (status === 'non_compliant') {
       formik.setValues({ ...v, partsSummary: summary });
+      return;
     }
+    const previousDefects = v.partsDefects ?? [];
+    const newDefects = previousDefects.filter((d) => d.partCode !== partCode);
+    formik.setValues({
+      ...v,
+      partsSummary: summary,
+      partsDefects: newDefects,
+      ...computeResultChanges(v, previousDefects, newDefects),
+    });
   };
 
   /** Removes a single defect from the results table (LJVIS2-72 §4, UC-11/UC-12).
