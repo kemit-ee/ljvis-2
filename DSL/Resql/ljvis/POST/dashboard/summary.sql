@@ -1,37 +1,33 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    LJVIS2-37 officer dashboard aggregate. Returns unfinished (not fully
-    published) koondvorm cases with their active sub-forms, unfinished
-    standalone forms and a "needs attention" list (deadline / confirmed-not-
-    published) — all scoped to either the caller's own work (scope=own,
-    created_by = :actor_code) or the caller's whole organisation
-    (scope=organisation, inspector_organisation_id / org-scoped standalone
-    forms = :actor_org_id). Deadline rule (LJVIS2-37 AC): expedited
-    (kiirmenetlus) = +15 days from the first snapshot where proceeding_type
-    became 'expedited'; general (üldmenetlus) = +45 days from the koondvorm's
-    control_date. Mirrors the CTE shape of forms.form_search
-    (20260831120000) without touching that shared view.
-  method: post
-  namespace: dashboard
-  allowlist:
-    body:
-      - field: scope
-        type: string
-        description: "'own' or 'organisation'"
-      - field: actor_code
-        type: string
-        description: "auth_user.personalcode of the caller"
-      - field: actor_org_id
-        type: string
-        description: "auth_user.organisationid of the caller"
-  response:
-    fields:
-      - field: section
-        type: string
-      - field: payload
-        type: string
+description: 'LJVIS2-37 officer dashboard aggregate. Returns unfinished (not fully published) koondvorm
+  cases with their active sub-forms, unfinished standalone forms and a "needs attention" list (deadline
+  / confirmed-not- published) — all scoped to either the caller''s own work (scope=own, created_by = :actor_code)
+  or the caller''s whole organisation (scope=organisation, inspector_organisation_id / org-scoped standalone
+  forms = :actor_org_id). Deadline rule (LJVIS2-37 AC): expedited (kiirmenetlus) = +15 days from the first
+  snapshot where proceeding_type became ''expedited''; general (üldmenetlus) = +45 days from the koondvorm''s
+  control_date. Mirrors the CTE shape of forms.form_search (20260831120000) without touching that shared
+  view.'
+namespace: dashboard
+params:
+  scope:
+    type: string
+    required: false
+    description: '''own'' or ''organisation'''
+  actor_code:
+    type: string
+    required: false
+    description: auth_user.personalcode of the caller
+  actor_org_id:
+    type: string
+    required: false
+    description: auth_user.organisationid of the caller
+returns:
+- name: section
+  type: string
+  nullable: true
+- name: payload
+  type: string
+  nullable: true
 */
 WITH lc AS (
     SELECT DISTINCT ON (compound_form_key) *

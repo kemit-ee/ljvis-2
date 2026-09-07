@@ -1,14 +1,10 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get a single classifier by id"
-  method: post
-  namespace: classifier
-  returns: json
-  allowlist:
-    body:
-      - field: id
-        type: number
+description: Get a single classifier by id
+namespace: classifier
+params:
+  id:
+    type: number
+    required: false
 */
 SELECT DISTINCT ON (classifier_key)
     classifier_key   AS id,

@@ -1,19 +1,12 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    Teavitused, mille Postkast 2.0 saatmisoperatsioon pole veel lõppstaatuses
-    (queued/in_progress). Kasutab cron/notification-status-sync.yml, mis
-    pärib iga rea kohta PK 2.0-st saatmisoperatsiooni seisu (X-tee).
-    LIMIT piirab ühe cron-käivituse koormust.
-  method: post
-  accepts: json
-  returns: json
-  namespace: notification
-  allowlist:
-    body:
-      - field: limit
-        type: integer
+description: Teavitused, mille Postkast 2.0 saatmisoperatsioon pole veel lõppstaatuses (queued/in_progress).
+  Kasutab cron/notification-status-sync.yml, mis pärib iga rea kohta PK 2.0-st saatmisoperatsiooni seisu
+  (X-tee). LIMIT piirab ühe cron-käivituse koormust.
+namespace: notification
+params:
+  limit:
+    type: integer
+    required: false
 */
 SELECT
     ol.id,

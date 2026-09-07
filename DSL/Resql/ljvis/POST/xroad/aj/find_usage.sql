@@ -1,39 +1,42 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    AJ findUsage: pärib kasutusteabe kirjeid isikukoodi järgi koos pagination-i
-    ja ajavahemiku filtritega. Tagastab read logtime DESC järjekorras.
-    total_usages on koguhulk (ilma offset/limit mõjuta).
-  method: post
-  namespace: xroad
-  returns: json
-  allowlist:
-    body:
-      - field: user_code
-        type: string
-      - field: period_start
-        type: string
-      - field: period_end
-        type: string
-      - field: offset
-        type: integer
-      - field: limit
-        type: integer
-  response:
-    fields:
-      - field: total_usages
-        type: number
-      - field: logtime
-        type: string
-      - field: action
-        type: string
-      - field: receiver_code
-        type: string
-      - field: receiver_name
-        type: string
-      - field: receiver_system
-        type: string
+description: 'AJ findUsage: pärib kasutusteabe kirjeid isikukoodi järgi koos pagination-i ja ajavahemiku
+  filtritega. Tagastab read logtime DESC järjekorras. total_usages on koguhulk (ilma offset/limit mõjuta).'
+namespace: xroad
+params:
+  user_code:
+    type: string
+    required: false
+  period_start:
+    type: string
+    required: false
+  period_end:
+    type: string
+    required: false
+  offset:
+    type: integer
+    required: false
+  limit:
+    type: integer
+    required: false
+returns:
+- name: total_usages
+  type: number
+  nullable: true
+- name: logtime
+  type: string
+  nullable: true
+- name: action
+  type: string
+  nullable: true
+- name: receiver_code
+  type: string
+  nullable: true
+- name: receiver_name
+  type: string
+  nullable: true
+- name: receiver_system
+  type: string
+  nullable: true
 */
 SELECT
     COUNT(*) OVER ()                                                         AS total_usages,

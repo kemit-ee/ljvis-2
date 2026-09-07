@@ -8,7 +8,7 @@ sql_dir: "/DSL"
 project_datasource_map:
   ljvis: ljvis
 
-allow_datasource_header: true
+allow_datasource_header: false
 
 datasources:
   - name: ljvis
@@ -19,7 +19,7 @@ datasources:
     acquire_timeout_seconds: 5
 
 cors:
-  allowed_origins: "*"
+  allowed_origins: ""
 
 logging:
   level: "info,resql=debug"

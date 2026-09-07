@@ -35,7 +35,7 @@ fetchSummary:
     body:
       scope: "${effective_scope}"
       actor_code: "${auth_user.personalcode ?? ''}"
-      actor_org_id: "${auth_user.organisationid ?? ''}"
+      actor_org_id: "${auth_user.organisationid != null ? String(auth_user.organisationid) : null}"
   result: res
   next: collectSections
 

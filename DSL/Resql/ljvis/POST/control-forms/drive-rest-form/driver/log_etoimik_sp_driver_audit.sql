@@ -1,27 +1,26 @@
 /*
-declaration:
-  version: 0.1
-  description: "Auditisündmus kui e-toimiku cron kirjutas autojuhi alamvormile jõustunud otsuse. found != true on no-op — cron kutsub seda iga kandidaadi kohta tingimusteta (Ruuteri iterate ei saa harusid teha)."
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: found
-        type: string
-        description: "'true'/'1'/'yes' kui otsus kirjutati; muidu no-op."
-      - field: key
-        type: string
-        description: "sp_driver_form_key"
-      - field: sub_form_number
-        type: string
-      - field: driver_personal_code
-        type: string
-  response:
-    fields:
-      - field: event_id
-        type: string
+description: Auditisündmus kui e-toimiku cron kirjutas autojuhi alamvormile jõustunud otsuse. found !=
+  true on no-op — cron kutsub seda iga kandidaadi kohta tingimusteta (Ruuteri iterate ei saa harusid teha).
+namespace: control-forms
+params:
+  found:
+    type: string
+    required: false
+    description: '''true''/''1''/''yes'' kui otsus kirjutati; muidu no-op.'
+  key:
+    type: string
+    required: false
+    description: sp_driver_form_key
+  sub_form_number:
+    type: string
+    required: false
+  driver_personal_code:
+    type: string
+    required: false
+returns:
+- name: event_id
+  type: string
+  nullable: true
 */
 INSERT INTO audit.audit_event (
     event_id,

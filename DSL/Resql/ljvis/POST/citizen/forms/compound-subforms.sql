@@ -1,31 +1,42 @@
 /*
-declaration:
-  version: 0.1
-  description: "Citizen-facing read-only list of every published sub-form (sp_driver, sp_teammate, vehicle_technical, trailer_technical, adr, kv) attached to a compound_form (koondvorm), for the citizen compound-form detail page. Companion to citizen/forms/compound.sql's parent-row fetch — the detail page was showing only the koondvorm's general/company/drivers sections and silently hiding all sub-forms, even when they existed and were published. Ownership/publish-status of the PARENT koondvorm is checked by the calling Ruuter DSL (same as compound.yml) before this query runs; this query itself only takes compound_form_key and only ever returns sub-forms with status='published' (unpublished sub-forms are hidden from citizens even if the parent koondvorm is already published — same principle as citizen/forms/search.sql). Latest snapshot per sub-form is picked via DISTINCT ON. Violations are unified into one JSONB array per row (regulation-tagged for sp_driver/sp_teammate, which otherwise carry 5 separate violation-array columns) so the frontend can render every sub-form type generically."
-  method: post
-  accepts: json
-  returns: json
-  namespace: citizen
-  allowlist:
-    body:
-      - field: compound_form_key
-        type: number
-  response:
-    fields:
-      - field: form_type
-        type: string
-      - field: form_key
-        type: number
-      - field: sub_form_number
-        type: string
-      - field: status
-        type: string
-      - field: result_type
-        type: string
-      - field: violations
-        type: string
-      - field: notes
-        type: string
+description: Citizen-facing read-only list of every published sub-form (sp_driver, sp_teammate, vehicle_technical,
+  trailer_technical, adr, kv) attached to a compound_form (koondvorm), for the citizen compound-form detail
+  page. Companion to citizen/forms/compound.sql's parent-row fetch — the detail page was showing only
+  the koondvorm's general/company/drivers sections and silently hiding all sub-forms, even when they existed
+  and were published. Ownership/publish-status of the PARENT koondvorm is checked by the calling Ruuter
+  DSL (same as compound.yml) before this query runs; this query itself only takes compound_form_key and
+  only ever returns sub-forms with status='published' (unpublished sub-forms are hidden from citizens
+  even if the parent koondvorm is already published — same principle as citizen/forms/search.sql). Latest
+  snapshot per sub-form is picked via DISTINCT ON. Violations are unified into one JSONB array per row
+  (regulation-tagged for sp_driver/sp_teammate, which otherwise carry 5 separate violation-array columns)
+  so the frontend can render every sub-form type generically.
+namespace: citizen
+params:
+  compound_form_key:
+    type: number
+    required: false
+returns:
+- name: form_type
+  type: string
+  nullable: true
+- name: form_key
+  type: number
+  nullable: true
+- name: sub_form_number
+  type: string
+  nullable: true
+- name: status
+  type: string
+  nullable: true
+- name: result_type
+  type: string
+  nullable: true
+- name: violations
+  type: string
+  nullable: true
+- name: notes
+  type: string
+  nullable: true
 */
 WITH lsd AS (
     SELECT DISTINCT ON (sp_driver_form_key) *
