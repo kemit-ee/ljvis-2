@@ -49,7 +49,11 @@ validateInput:
   assign:
     notification_type: "${incoming.body.notification_type ?? ''}"
     recipient_email_raw: "${incoming.body.recipient_email ?? ''}"
-    template_variables: "${incoming.body.template_variables ?? {}}"
+    # STRING kujul (JSON): Rust Resql `type: json` väli võtab JSON-stringi
+    # (nagu vana dev-versioon `JSON.stringify(payload_obj)`), aga BARE tühja
+    # objekti `{}` sidumine `::JSONB` konteksti kukub läbi
+    # ("invalid input syntax for type json"). Siin normaliseerime kohe stringiks.
+    template_variables: "${JSON.stringify(incoming.body.template_variables ?? {})}"
     language: "${incoming.body.language ?? ''}"
     send_time: "${incoming.body.send_time || new Date().toISOString()}"
     related_entity_type: "${incoming.body.related_entity_type ?? ''}"

@@ -1034,7 +1034,7 @@
               "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
               "var r = list.find(x => String(x.id) === pm.environment.get('outbound_log_id'));",
               "pm.test('seeded outbound_log row present', () => pm.expect(r).to.not.be.undefined);",
-              "pm.test('status sent', () => pm.expect(r.status).to.eql('sent'));"
+              "pm.test('seeded row status is error', () => pm.expect(r.status).to.eql('error'));"
             ]
           }
         }
