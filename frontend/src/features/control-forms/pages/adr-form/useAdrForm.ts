@@ -160,6 +160,10 @@ export function useAdrForm(
       sealOpenedDate: form?.sealOpenedDate ?? '',
       sealInstalledDate: form?.sealInstalledDate ?? '',
       notes: form?.notes ?? '',
+      // Tuletatud väli — hoitakse formik-is, et iga salvestustee (sh liitvormi
+      // fallback) saadaks selle Ruuteri allowlist'i jaoks; tegelik väärtus
+      // arvutatakse salvestamisel composeSummaryFor()-iga.
+      infringementNotesSummary: form?.infringementNotesSummary ?? '',
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
     },
