@@ -90,6 +90,11 @@ newman run "$COL/labour-inspection.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/labour-inspection.html"
 
+  newman run "$COL/foreign-violation-form.collection.json" -e "$ENV" \
+    --delay-request 300 \
+    -r cli,htmlextra \
+    --reporter-htmlextra-export "$REPORT_DIR/foreign-violation-form.html"
+
 newman run "$COL/erru-ctud.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \

@@ -1,7 +1,7 @@
 /*
 declaration:
   version: 0.1
-  description: "Update foreign violation form"
+  description: "Update foreign violation form — appends a new snapshot row. form_number and template_version are always read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published) data."
   method: post
   accepts: json
   returns: json
@@ -9,8 +9,6 @@ declaration:
   allowlist:
     body:
       - field: key
-        type: string
-      - field: formNumber
         type: string
       - field: status
         type: string
@@ -102,10 +100,22 @@ declaration:
         type: number
       - field: form_number
         type: string
+      - field: version
+        type: number
 */
+WITH latest AS (
+  SELECT form_number,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         template_version
+  FROM forms.foreign_violation_form
+  WHERE foreign_violation_form_key = :key::BIGINT
+  ORDER BY created_at DESC
+  LIMIT 1
+)
 INSERT INTO forms.foreign_violation_form (
   foreign_violation_form_key,
   form_number,
+  version,
   template_version,
   status,
   reporting_country_code,
@@ -150,10 +160,11 @@ INSERT INTO forms.foreign_violation_form (
   inspector_profession,
   created_by
 )
-VALUES (
+SELECT
   :key::BIGINT,
-  :formNumber,
-  1,
+  latest.form_number,
+  latest.version,
+  latest.template_version,
   :status,
   :reportingCountryCode,
   :reportingAuthority,
@@ -196,5 +207,5 @@ VALUES (
   :inspectorUnit,
   :inspectorProfession,
   :created_by
-)
-RETURNING foreign_violation_form_key AS id, form_number;
+FROM latest
+RETURNING foreign_violation_form_key AS id, form_number, version;

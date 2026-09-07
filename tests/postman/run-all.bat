@@ -39,6 +39,9 @@ call newman run "%COL%\driverest-forms.collection.json" -e "%ENV%" --delay-reque
 echo Running collection: labour-inspection.collection.json
 call newman run "%COL%\labour-inspection.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\labour-inspection.html"
 
+echo Running collection: foreign-violation-form.collection.json
+call newman run "%COL%\foreign-violation-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\foreign-violation-form.html"
+
 echo Running collection: erru-ctud.collection.json
 call newman run "%COL%\erru-ctud.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\erru-ctud.html"
 
