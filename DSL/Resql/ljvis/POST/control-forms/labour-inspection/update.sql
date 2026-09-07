@@ -5,7 +5,7 @@ description: Update labour inspection form (Tööinspektsiooni kontrollakt) — 
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   status:
     type: string

@@ -19,7 +19,7 @@ params:
     required: false
     description: Sorting column and direction
   organisation_id:
-    type: string
+    type: integer
     required: false
     description: Filter by organisation ID (local scope)
 returns:
@@ -101,7 +101,7 @@ SELECT
     (COUNT(*) OVER ())::INTEGER AS total
 FROM latest l
 WHERE
-    (COALESCE(:organisation_id::TEXT, '') = '' OR l.organisation_id::TEXT = :organisation_id::TEXT)
+    (:organisation_id IS NULL OR l.organisation_id = :organisation_id)
     AND (
         COALESCE(:search, '') = ''
         OR l.first_name ILIKE '%' || COALESCE(:search, '') || '%'

@@ -3,7 +3,7 @@ description: Edit classifier name/description — copy latest snapshot with new 
 namespace: classifier
 params:
   classifier_id:
-    type: string
+    type: integer
     required: false
     description: classifier_key of the target classifier
   name:

@@ -31,7 +31,7 @@ returns:
   type: string
   nullable: true
 */
-WITH window AS (
+WITH chain AS (
     SELECT
         event_id,
         prev_row_hash,
@@ -44,7 +44,7 @@ WITH window AS (
 ),
 breach AS (
     SELECT event_id, 'prev_row_hash_mismatch' AS reason
-    FROM window
+    FROM chain
     WHERE expected_prev_hash IS NOT NULL
       AND prev_row_hash <> expected_prev_hash
     ORDER BY event_id
@@ -55,7 +55,7 @@ bounds AS (
         MIN(event_id) AS first_event_id,
         MAX(event_id) AS last_event_id,
         COUNT(*)      AS total_checked
-    FROM window
+    FROM chain
 )
 SELECT
     (NOT EXISTS (SELECT 1 FROM breach))                     AS ok,

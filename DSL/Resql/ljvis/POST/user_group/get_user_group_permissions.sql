@@ -3,7 +3,7 @@ description: Get permissions linked to a user group
 namespace: user_group
 params:
   user_group_id:
-    type: string
+    type: integer
     required: false
     description: User group ID
 returns:

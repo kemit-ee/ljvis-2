@@ -10,7 +10,7 @@ description: 'Apply a CGR lifecycle state transition (LJVIS2-139). Appends exact
 namespace: erru
 params:
   key:
-    type: string
+    type: integer
     required: false
   newStatus:
     type: string

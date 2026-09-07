@@ -18,7 +18,7 @@ params:
     required: false
     description: auth_user.personalcode of the caller
   actor_org_id:
-    type: string
+    type: integer
     required: false
     description: auth_user.organisationid of the caller
 returns:
