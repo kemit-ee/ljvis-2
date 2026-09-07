@@ -3,7 +3,7 @@ description: Get version history snapshots for a TRAM control card (authority = 
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Compound form ID
 returns:

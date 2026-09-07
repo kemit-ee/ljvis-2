@@ -3,7 +3,7 @@ description: Update TRAM control card driver sub-form — insert new snapshot wi
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   compoundFormKey:
     type: number

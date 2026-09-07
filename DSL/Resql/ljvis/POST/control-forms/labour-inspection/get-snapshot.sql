@@ -3,11 +3,11 @@ description: Get a single labour inspection form snapshot by snapshot ID
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Snapshot ID (primary key)
   form_key:
-    type: string
+    type: integer
     required: false
     description: Labour inspection form key
 returns:

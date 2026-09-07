@@ -3,7 +3,7 @@ description: Delete TRAM control card — copy latest snapshot with status=delet
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
   status:
     type: string

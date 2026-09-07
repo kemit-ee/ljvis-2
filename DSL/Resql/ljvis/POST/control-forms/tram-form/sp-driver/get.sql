@@ -3,7 +3,7 @@ description: Get TRAM control card driver sub-form by key
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: sp_driver_form_key
 returns:

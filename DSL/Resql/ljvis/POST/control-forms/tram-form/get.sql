@@ -3,7 +3,7 @@ description: Get TRAM control card compound form by ID (authority = TRAM)
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Compound form key
 returns:

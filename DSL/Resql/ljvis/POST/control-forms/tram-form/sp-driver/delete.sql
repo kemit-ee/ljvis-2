@@ -3,7 +3,7 @@ description: Delete TRAM control card driver sub-form — copy latest snapshot w
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
   status:
     type: string

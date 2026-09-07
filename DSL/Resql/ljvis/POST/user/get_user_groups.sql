@@ -3,7 +3,7 @@ description: Get all user groups assigned to a specific user
 namespace: user
 params:
   user_id:
-    type: string
+    type: integer
     required: false
     description: User ID
 returns:

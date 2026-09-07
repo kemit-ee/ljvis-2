@@ -9,7 +9,7 @@ description: 'Append a new labour_inspection_form snapshot with an entered-into-
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
     description: labour_inspection_form_key
   found:

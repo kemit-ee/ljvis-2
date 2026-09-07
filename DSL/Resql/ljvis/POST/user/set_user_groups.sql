@@ -4,7 +4,7 @@ description: Update user group memberships — copy latest snapshot with modifie
 namespace: user
 params:
   user_account_id:
-    type: string
+    type: integer
     required: false
     description: user_account_key of the target user
   group_ids:

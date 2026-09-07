@@ -3,7 +3,7 @@ description: Delete drive rest form for teammate — copy latest snapshot with s
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
   status:
     type: string

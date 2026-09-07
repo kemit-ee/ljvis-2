@@ -3,11 +3,11 @@ description: Get a single TRAM control card snapshot by snapshot ID (authority =
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Snapshot ID (primary key)
   form_key:
-    type: string
+    type: integer
     required: false
     description: Compound form key
 returns:

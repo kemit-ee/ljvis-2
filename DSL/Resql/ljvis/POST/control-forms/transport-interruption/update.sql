@@ -5,7 +5,7 @@ description: Update transport-interruption sub-form — appends a new snapshot r
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   status:
     type: string

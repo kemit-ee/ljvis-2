@@ -3,7 +3,7 @@ description: Available users for adding to group — active, from linked organis
 namespace: user_group
 params:
   user_group_id:
-    type: string
+    type: integer
     required: false
     description: User group ID to exclude existing members
   organisation_ids:

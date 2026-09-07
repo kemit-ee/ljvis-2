@@ -9,7 +9,7 @@ description: 'Revise an OUTGOING CTUD request draft (LJVIS2-143). Appends a new 
 namespace: erru
 params:
   key:
-    type: string
+    type: integer
     required: false
   ctudTo:
     type: string

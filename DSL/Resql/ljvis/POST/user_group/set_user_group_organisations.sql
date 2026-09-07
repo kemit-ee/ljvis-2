@@ -3,7 +3,7 @@ description: Update user group organisations — apply added and removed org IDs
 namespace: user_group
 params:
   user_group_id:
-    type: string
+    type: integer
     required: false
     description: user_group_key of the target group
   added_organisation_ids:

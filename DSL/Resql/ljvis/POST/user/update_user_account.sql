@@ -4,7 +4,7 @@ description: Update user data — copy latest snapshot with new field values and
 namespace: user
 params:
   user_account_id:
-    type: string
+    type: integer
     required: false
     description: user_account_key of the target user
   personal_code:
@@ -17,7 +17,7 @@ params:
     type: string
     required: false
   organisation_id:
-    type: string
+    type: integer
     required: false
   email:
     type: string

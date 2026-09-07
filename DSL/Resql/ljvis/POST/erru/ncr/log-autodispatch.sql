@@ -9,7 +9,7 @@ description: 'Record one automatic-NCR-dispatch attempt for an SP sub-form (LJVI
 namespace: erru
 params:
   spFormKey:
-    type: string
+    type: integer
     required: false
   spFormType:
     type: string

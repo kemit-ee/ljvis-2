@@ -3,7 +3,7 @@ description: Create a new classifier value — full snapshot INSERT
 namespace: classifier
 params:
   classifier_id:
-    type: string
+    type: integer
     required: false
     description: classifier_key of the owning classifier
   code:

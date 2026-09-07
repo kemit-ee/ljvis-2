@@ -5,7 +5,7 @@ description: Update the X-tee block fields IN PLACE on the latest snapshot row o
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   extraordinaryInspectionDate:
     type: string

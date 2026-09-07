@@ -12,7 +12,7 @@ description: 'Write the extraordinary inspection date found via the hourly yvkeh
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
     description: vehicle_technical_form_key
   extraordinaryInspectionDate:

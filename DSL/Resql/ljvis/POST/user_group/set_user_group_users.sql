@@ -4,7 +4,7 @@ description: Update group membership for multiple users — copy latest snapshot
 namespace: user_group
 params:
   user_group_id:
-    type: string
+    type: integer
     required: false
     description: user_group_key to add or remove
   user_ids:

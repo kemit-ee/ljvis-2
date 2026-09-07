@@ -3,7 +3,7 @@ description: Delete transport-interruption sub-form — copy latest snapshot wit
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
   status:
     type: string

@@ -3,7 +3,7 @@ description: Get the latest active TRAM control card driver sub-form for a compo
 namespace: control-forms
 params:
   compoundFormKey:
-    type: string
+    type: integer
     required: false
 returns:
 - name: id

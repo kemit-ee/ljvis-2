@@ -3,7 +3,7 @@ description: Get user group detail by ID
 namespace: user_group
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: User group ID
   organisation_id:

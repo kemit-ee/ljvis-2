@@ -3,7 +3,7 @@ description: Get a single user by ID with organisation and groups
 namespace: user
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: User UUID
   organisation_id:

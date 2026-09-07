@@ -6,7 +6,7 @@ description: Kirjuta e-toimiku päringu tulemus (jõustunud otsus + menetluse l�
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
     description: sp_driver_form_key
   found:

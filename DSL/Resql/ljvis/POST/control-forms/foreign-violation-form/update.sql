@@ -6,7 +6,7 @@ description: Update foreign violation form — appends a new snapshot row. form_
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   status:
     type: string

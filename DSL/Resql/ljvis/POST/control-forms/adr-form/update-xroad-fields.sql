@@ -4,7 +4,7 @@ description: Update X-tee fields on the latest confirmed ADR sub-form snapshot r
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   enforcementDecision:
     type: string

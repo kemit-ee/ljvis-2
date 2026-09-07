@@ -3,7 +3,7 @@ description: Get version history snapshots for a trailer technical-check form
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Trailer technical form key
 returns:

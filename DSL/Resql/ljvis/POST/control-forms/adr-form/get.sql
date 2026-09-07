@@ -3,7 +3,7 @@ description: Get ADR sub-form by key (latest snapshot)
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
 returns:
 - name: id

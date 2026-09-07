@@ -3,7 +3,7 @@ description: Update drive rest form for driver — insert new snapshot with upda
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   compoundFormKey:
     type: number

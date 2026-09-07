@@ -4,11 +4,11 @@ description: Get a single good repute form snapshot by snapshot ID (for the read
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Snapshot ID (primary key)
   form_key:
-    type: string
+    type: integer
     required: false
     description: Good repute form key
 returns:

@@ -3,7 +3,7 @@ description: Delete vehicle technical-check sub-form — copy latest snapshot wi
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
   status:
     type: string

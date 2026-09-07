@@ -3,7 +3,7 @@ description: Get version history snapshots for a foreign violation form
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Foreign violation form ID
 returns:

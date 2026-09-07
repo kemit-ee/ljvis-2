@@ -3,7 +3,7 @@ description: Get version history snapshots for a TRAM control card driver sub-fo
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: sp_driver_form_key
 returns:

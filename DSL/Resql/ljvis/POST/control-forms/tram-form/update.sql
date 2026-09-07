@@ -3,7 +3,7 @@ description: Update TRAM control card — insert new snapshot (authority = TRAM)
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   formNumber:
     type: string

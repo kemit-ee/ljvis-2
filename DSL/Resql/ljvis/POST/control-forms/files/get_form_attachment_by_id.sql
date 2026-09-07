@@ -3,7 +3,7 @@ description: Get a single active file attachment by ID
 namespace: forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Attachment record ID
 returns:

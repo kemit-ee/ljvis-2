@@ -3,7 +3,7 @@ description: Get transport-interruption sub-form by ID (latest snapshot)
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
 returns:
 - name: id

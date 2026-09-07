@@ -3,11 +3,11 @@ description: Get a single TRAM control card driver sub-form snapshot by snapshot
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: Snapshot ID (primary key)
   form_key:
-    type: string
+    type: integer
     required: false
     description: sp_driver_form_key
 returns:

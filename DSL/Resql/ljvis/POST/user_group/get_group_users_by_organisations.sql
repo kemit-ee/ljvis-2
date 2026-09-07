@@ -3,7 +3,7 @@ description: Get user IDs that belong to a user group and whose organisation is 
 namespace: user_group
 params:
   user_group_id:
-    type: string
+    type: integer
     required: false
     description: user_group_key of the target group
   organisation_ids:

@@ -3,7 +3,7 @@ description: Delete ADR sub-form — copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
   status:
     type: string

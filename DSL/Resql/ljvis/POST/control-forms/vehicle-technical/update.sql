@@ -6,7 +6,7 @@ description: Update vehicle technical-check sub-form — appends a new snapshot 
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   status:
     type: string

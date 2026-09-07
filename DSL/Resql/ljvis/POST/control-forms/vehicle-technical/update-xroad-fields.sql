@@ -6,7 +6,7 @@ description: Update the X-tee block fields (extraordinary_inspection_date, enfor
 namespace: control-forms
 params:
   key:
-    type: string
+    type: integer
     required: false
   extraordinaryInspectionDate:
     type: string

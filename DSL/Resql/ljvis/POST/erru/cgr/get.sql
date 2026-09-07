@@ -6,7 +6,7 @@ description: Read one CGR request by its logical key (LJVIS2-138). Returns the L
 namespace: erru
 params:
   id:
-    type: string
+    type: integer
     required: false
     description: CGR request logical key (cgr_request_key)
 returns:

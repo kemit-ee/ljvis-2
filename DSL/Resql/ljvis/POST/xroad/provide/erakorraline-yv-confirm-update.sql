@@ -7,7 +7,7 @@ description: 'X-tee ErakorralineYVconfirm (v1): uuendab vehicle_technical_form X
 namespace: xroad
 params:
   inspectionId:
-    type: string
+    type: integer
     required: false
   code:
     type: string

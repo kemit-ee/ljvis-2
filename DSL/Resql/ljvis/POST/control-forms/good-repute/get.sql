@@ -3,7 +3,7 @@ description: Get good repute form (hea maine vorm) by key — latest snapshot
 namespace: control-forms
 params:
   id:
-    type: string
+    type: integer
     required: false
 returns:
 - name: id

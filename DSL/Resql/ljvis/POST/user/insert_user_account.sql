@@ -13,7 +13,7 @@ params:
     type: string
     required: false
   organisation_id:
-    type: string
+    type: integer
     required: false
   email:
     type: string
