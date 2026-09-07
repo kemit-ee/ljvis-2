@@ -14,7 +14,11 @@ import type {
 import { confirmAdrForm, saveAdrForm, publishAdrForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
-import { EMPTY_ADR_RECORD, normalizeAdrRecord } from './adrRecordUtils';
+import {
+  EMPTY_ADR_RECORD,
+  normalizeAdrRecord,
+  composeInfringementNotes,
+} from './adrRecordUtils';
 
 const NOTES_MAX_LENGTH = 4000;
 
@@ -95,6 +99,32 @@ export function useAdrForm(
     [getByCode],
   );
 
+  const checkpointNameByCode = useMemo(() => {
+    const m = new Map<string, string>();
+    getByCode('ADR_CONTROL_CHECKPOINT')
+      .filter((c) => c.parentKey === null)
+      .forEach((c) => m.set(c.code, c.name));
+    return m;
+  }, [getByCode]);
+
+  /** Kontrollkaardi märkuste välja kirjutuskaitstud koond kõigi rikkumiskirjete märkustest. */
+  const composeSummaryFor = (vals: {
+    infringements?: AdrCheckpointEntry[];
+    otherInfringements?: AdrOtherInfringementEntry[];
+  }) =>
+    composeInfringementNotes([
+      ...(vals.infringements ?? []).map((e) => ({
+        label: checkpointNameByCode.get(e.checkpointCode) ?? e.checkpointCode,
+        records: e.records ?? [],
+      })),
+      ...(vals.otherInfringements ?? []).map((e, i) => ({
+        label:
+          (e.title ?? '').trim() ||
+          t('forms.adr.otherInfringements.fallbackLabel', { index: i + 1 }),
+        records: e.records ?? [],
+      })),
+    ]);
+
   const validationSchema = createAdrValidationSchema(t);
 
   const formik = useFormik({
@@ -168,6 +198,7 @@ export function useAdrForm(
             : JSON.stringify(values.nextLoadAddress),
           dangerousGoods: JSON.stringify(values.dangerousGoods ?? []),
           containerTypes: JSON.stringify(values.containerTypes ?? []),
+          infringementNotesSummary: composeSummaryFor(values),
           // Puutumata punkte / muid rikkumisi ei persistita.
           infringements: JSON.stringify(
             (values.infringements ?? []).filter((e) => !!e.inspectionStatus),

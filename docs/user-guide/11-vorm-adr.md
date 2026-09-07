@@ -109,6 +109,7 @@ Rikkumiste plokk on struktureeritud **kontrollkaardi punktide 12–27 kaupa** (k
 | Võimalik vastutav osaleja | Mitmene valik: Kaubasaatja (Ci), Vedaja (C), Kaubasaaja (Ce), Laadija (L), Pakendaja (P), Täitja (F), Paagi käitaja (To), Mahalaadija (U) |
 | Määruse (EL) 2016/403 rikkumisliik | Aktiveerub **ainult siis, kui vastutavaks osalejaks on valitud Vedaja (C)**. Valikus selle punktiga seotud rikkumisliigid, iga kirje ees **ametlik rikkumise kood** (nt „VSI 856 – …"), + „Ei ole 2016/403 p 9 rikkumisliik" |
 | 2016/403 raskusaste | Kuvatakse automaatselt valitud rikkumisliigist (MSI / VSI / SI), kasutaja ei muuda |
+| Märkused | Vabatekst selle rikkumiskirje kohta. Kõik rikkumiskirjete märkused koondatakse 10. „Märkused" ploki kirjutuskaitstud koondvälja. |
 
 ### 8a. Muu rikkumine
 
@@ -132,6 +133,7 @@ Plokk „Muu rikkumine" võimaldab lisada n+1 rikkumist, mida kontrollkaardi pun
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | Märkused (`notes`) | Ei | Vaba tekst, max 4000 tähemärki |
+| Rikkumiskirjete märkuste koond (`infringementNotesSummary`) | — | **Kirjutuskaitstud.** Automaatselt koostatud kõigi rikkumiskirjete „Märkused" väljadest, kujul „12. Veodokumendid, Rikkumine 1: tekst; 16. Veoks lubatud kaubad, Rikkumine 1: tekst, Rikkumine 2: tekst". Kuvatakse ainult siis, kui vähemalt üks märkus on täidetud. Salvestatakse vormiga. |
 
 ### 11. X-tee andmed
 

@@ -72,6 +72,8 @@ declaration:
         type: string
       - field: notes
         type: string
+      - field: infringementNotesSummary
+        type: string
       - field: enforcementDecision
         type: string
       - field: proceedingClosureBasis
@@ -108,6 +110,7 @@ SELECT
   seal_opened_date,
   seal_installed_date,
   notes,
+  infringement_notes_summary,
   enforcement_decision,
   proceeding_closure_basis,
   created_by

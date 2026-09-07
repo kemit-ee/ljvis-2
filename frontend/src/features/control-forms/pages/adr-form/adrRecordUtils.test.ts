@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   regNumberFromCode,
   infringementCodeFromName,
+  composeInfringementNotes,
   normalizeAdrRecord,
   EMPTY_ADR_RECORD,
 } from './adrRecordUtils';
@@ -31,6 +32,28 @@ describe('infringementCodeFromName', () => {
   it('tagastab tühja stringi, kui nimi ei alga koodiga', () => {
     expect(infringementCodeFromName('10 – Veoühikus lubatud koguse piirangut')).toBe('');
     expect(infringementCodeFromName('')).toBe('');
+  });
+});
+
+describe('composeInfringementNotes', () => {
+  it('koostab koondteksti kujul "<pealkiri>, Rikkumine <n>: <tekst>; ..."', () => {
+    const out = composeInfringementNotes([
+      { label: '12. Veodokumendid', records: [{ notes: 'puudu' }] },
+      { label: '16. Veoks lubatud kaubad', records: [{ notes: 'a' }, { notes: 'b' }] },
+    ]);
+    expect(out).toBe(
+      '12. Veodokumendid, Rikkumine 1: puudu; 16. Veoks lubatud kaubad, Rikkumine 1: a, Rikkumine 2: b',
+    );
+  });
+  it('jätab välja tühjade märkustega kirjed ja plokid ning säilitab kirjete numeratsiooni', () => {
+    const out = composeInfringementNotes([
+      { label: 'A', records: [{ notes: '' }, { notes: '  ' }] },
+      { label: 'B', records: [{ notes: '' }, { notes: 'teine' }] },
+    ]);
+    expect(out).toBe('B, Rikkumine 2: teine');
+  });
+  it('tagastab tühja stringi, kui ühtki märkust pole', () => {
+    expect(composeInfringementNotes([{ label: 'A', records: [{}] }])).toBe('');
   });
 });
 

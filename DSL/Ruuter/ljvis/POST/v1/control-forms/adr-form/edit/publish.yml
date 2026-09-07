@@ -75,6 +75,7 @@ extractCurrentFormData:
     seal_opened_date: "${currentFormRes.response.body[0].sealOpenedDate || ''}"
     seal_installed_date: "${currentFormRes.response.body[0].sealInstalledDate || ''}"
     notes: "${currentFormRes.response.body[0].notes || ''}"
+    infringement_notes_summary: "${currentFormRes.response.body[0].infringementNotesSummary || ''}"
   next: publishForm
 
 publishForm:
@@ -110,6 +111,7 @@ publishForm:
       sealOpenedDate: ${seal_opened_date}
       sealInstalledDate: ${seal_installed_date}
       notes: ${notes}
+      infringementNotesSummary: ${infringement_notes_summary}
       created_by: ${created_by}
   result: publishRes
   next: buildLogDescription

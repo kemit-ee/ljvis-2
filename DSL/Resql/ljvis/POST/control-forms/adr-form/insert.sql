@@ -60,6 +60,8 @@ declaration:
         type: string
       - field: notes
         type: string
+      - field: infringementNotesSummary
+        type: string
       - field: created_by
         type: string
   response:
@@ -102,6 +104,7 @@ WITH ins AS (
     seal_opened_date,
     seal_installed_date,
     notes,
+    infringement_notes_summary,
     created_by
   )
   VALUES (
@@ -134,6 +137,7 @@ WITH ins AS (
     NULLIF(:sealOpenedDate, '')::DATE,
     NULLIF(:sealInstalledDate, '')::DATE,
     NULLIF(:notes, ''),
+    NULLIF(:infringementNotesSummary, ''),
     :created_by
   )
   RETURNING adr_form_key, sub_form_number, version

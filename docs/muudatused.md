@@ -19,6 +19,18 @@
 
 ---
 
+## 2026-09 — ADR-vorm: rikkumiskirjete märkused ja koondväli
+
+- Iga rikkumiskirje (nii kontrollkaardi punktide all kui „Muu rikkumine" all)
+  saab nüüd **„Märkused"** vabatekstivälja.
+- Ploki **„Märkused"** all kuvatakse **kirjutuskaitstud koondtekst** kõigist
+  rikkumiskirjete märkustest, kujul „12. Veodokumendid, Rikkumine 1: tekst;
+  16. Veoks lubatud kaubad, Rikkumine 1: tekst, Rikkumine 2: tekst". Käsitsi
+  sisestatav „Märkused" väli jääb eraldi puutumata.
+- Koond salvestatakse vormiga (kasutamiseks väljatrükil / X-teel).
+
+---
+
 ## 2026-09 — ADR-vorm: rikkumisliigi valikus ametlik rikkumise kood
 
 - Rikkumiskirje väljal **„Määruse (EL) 2016/403 rikkumisliik"** on iga valiku ees

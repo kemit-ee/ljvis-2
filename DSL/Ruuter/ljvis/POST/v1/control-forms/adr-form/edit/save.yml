@@ -57,6 +57,8 @@ declaration:
         type: string
       - field: notes
         type: string
+      - field: infringementNotesSummary
+        type: string
 
 extractRequestData:
   assign:
@@ -86,6 +88,7 @@ extractRequestData:
     seal_opened_date: "${incoming.body.sealOpenedDate || ''}"
     seal_installed_date: "${incoming.body.sealInstalledDate || ''}"
     notes: "${incoming.body.notes || ''}"
+    infringement_notes_summary: "${incoming.body.infringementNotesSummary || ''}"
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
@@ -138,6 +141,7 @@ insertForm:
       sealOpenedDate: ${seal_opened_date}
       sealInstalledDate: ${seal_installed_date}
       notes: ${notes}
+      infringementNotesSummary: ${infringement_notes_summary}
       created_by: ${created_by}
   result: saveRes
   next: extractInsertResponseData
@@ -248,6 +252,7 @@ updateForm:
       sealOpenedDate: ${seal_opened_date}
       sealInstalledDate: ${seal_installed_date}
       notes: ${notes}
+      infringementNotesSummary: ${infringement_notes_summary}
       created_by: ${created_by}
   result: saveRes
   next: extractUpdateResponseData

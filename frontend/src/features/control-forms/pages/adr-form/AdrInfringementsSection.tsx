@@ -159,6 +159,7 @@ export function AdrInfringementsSection({
                                 responsibleParticipants: [],
                                 reg2016403Code: null,
                                 reg2016403Severity: null,
+                                notes: '',
                               },
                             ]
                           : detected

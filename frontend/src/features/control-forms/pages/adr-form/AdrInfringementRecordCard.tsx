@@ -151,6 +151,15 @@ export function AdrInfringementRecordCard({
           </Text>
         )}
 
+        <TextField
+          id={`${idp}-notes`}
+          label={t('forms.adr.infringements.recordNotes')}
+          className="mb-1"
+          value={record.notes ?? ''}
+          onChange={(v) => (disabled ? undefined : onChange({ notes: v }))}
+          disabled={disabled}
+        />
+
         {!disabled && (
           <Button
             type="button"

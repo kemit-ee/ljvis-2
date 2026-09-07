@@ -644,6 +644,7 @@
           "III": "III"
         },
         "adrReference": "Rikutud ADR punkt",
+        "recordNotes": "Notes",
         "participants": "Võimalik vastutav osaleja",
         "participantOptions": {
           "Ci": "Kaubasaatja (Ci)",
@@ -692,7 +693,8 @@
       },
       "notes": {
         "title": "Notes",
-        "counter": "{{count}}/{{max}} characters"
+        "counter": "{{count}}/{{max}} characters",
+        "infringementSummary": "Infringement record notes summary (automatic)"
       },
       "xroad": {
         "title": "Data queried via the data exchange layer (X-tee)",
@@ -715,7 +717,8 @@
         "title": "Pealkiri",
         "addRow": "+ Lisa uus muu rikkumine",
         "remove": "Kustuta muu rikkumine",
-        "empty": "Muid rikkumisi ei ole lisatud"
+        "empty": "Muid rikkumisi ei ole lisatud",
+        "fallbackLabel": "Muu rikkumine {{index}}"
       }
     },
     "compound": {
