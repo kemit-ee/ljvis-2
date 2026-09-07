@@ -40,16 +40,6 @@ export function useForeignViolationForm(
   const pendingConfirm = useRef(false);
   const pendingPublish = useRef(false);
 
-  const incrementFormNumber = (formNumber: string): string => {
-    const match = formNumber.match(/^(.+\/)([0-9]+)$/);
-    if (match) {
-      return `${match[1]}${parseInt(match[2], 10) + 1}`;
-    }
-    return `${formNumber}/2`;
-  };
-
-  const formNumberString = isEdit && form?.formNumber ? form.formNumber : '';
-
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
@@ -113,6 +103,7 @@ export function useForeignViolationForm(
     initialValues: {
       id: form?.id ?? '',
       formNumber: form?.formNumber ?? '',
+      version: form?.version ?? 1,
       reportingCountryCode: form?.reportingCountryCode ?? '',
       reportingAuthority: form?.reportingAuthority ?? '',
       inspectionCountryCode: form?.inspectionCountryCode ?? '',
@@ -163,13 +154,8 @@ export function useForeignViolationForm(
         const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
         pendingPublish.current = false;
-        const isReconfirmedEdit = !isConfirming && !isPublishing && form?.status === 'confirmed';
-        const nextFormNumber = isReconfirmedEdit
-          ? incrementFormNumber(formNumberString)
-          : formNumberString;
         const trimmedValues = {
           ...values,
-          formNumber: nextFormNumber,
           inspectionDate: toIsoDate(values.inspectionDate),
           inspectionTime: toIsoTime(values.inspectionTime),
           dataEntryDate: toIsoDate(values.dataEntryDate),

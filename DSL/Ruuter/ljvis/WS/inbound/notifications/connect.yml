@@ -10,9 +10,13 @@ declaration:
     sessiooni korral vastab {"type":"ack"}, muidu {"type":"unauthorized"} (frontend
     lõpetab seepeale reconnect'i).
 
+    Iga autenditud frame märgistab ühenduse `ws_tag`-iga: `perms` sild sisaldab
+    kasutaja õigusi komadega piiritletult (`,rsi.read,notification.admin,`).
+
     Push: Ruuter.internal notification/create.yml kutsub peale teavituse loomist
-    POST /v1/ws-broadcast, mis teeb ws_send broadcast_prefix "client:" — sisutu
-    {"type":"notification_update"} signaali kõigile ühendatud frontendidele. WS-üle
+    POST /v1/ws-broadcast/send, mis teeb ws_send broadcast_where tag=perms
+    contains=",<required_permission>," — sisutu {"type":"notification_update"}
+    signaal AINULT nendele ühendustele, kellel on teavituse nõutav õigus. WS-üle
     EI edastata kasutajaandmeid; iga frontend teeb oma autenditud
     GET /v1/notifications/unread-count päringu.
   namespace: notification
@@ -28,8 +32,16 @@ route:
 checkAuth:
   switch:
     - condition: ${u !== "false" && u != null && u.personalcode != null}
-      next: ackOk
+      next: stampPerms
   next: denyAuth
+
+# Märgista ühendus kasutaja õigustega. Eraldajad (`,…,`) võimaldavad
+# broadcast_where `contains: ",<perm>,"` täpset token-sobitust.
+stampPerms:
+  ws_tag:
+    set:
+      perms: "${',' + (u.permissions || []).join(',') + ','}"
+  next: ackOk
 
 ackOk:
   ws_send:

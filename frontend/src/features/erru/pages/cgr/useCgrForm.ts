@@ -52,7 +52,6 @@ export function useCgrForm(
     originatingAuthority: Yup.string()
       .required(required)
       .max(50, t(`${T}.max_length_exceeded`)),
-    requestSource: Yup.string().required(required),
     requestPurpose: Yup.string().required(required),
     tmFirstName: Yup.string().max(100, t(`${T}.max_length_exceeded`)),
     tmFamilyName: Yup.string().max(100, t(`${T}.max_length_exceeded`)),
@@ -110,7 +109,7 @@ export function useCgrForm(
     initialValues: {
       cgrTo: request?.cgrTo === 'ZZ' ? '' : (request?.cgrTo ?? ''),
       originatingAuthority: request?.originatingAuthority ?? '',
-      requestSource: request?.requestSource ?? '',
+      requestSource: request?.requestSource ?? 'CA',
       requestPurpose: request?.requestPurpose ?? '',
       tmFirstName: request?.tmFirstName ?? '',
       tmFamilyName: request?.tmFamilyName ?? '',

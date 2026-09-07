@@ -1,0 +1,529 @@
+{
+  "info": {
+    "name": "LJVIS \u2014 Foreign Violation Form",
+    "_postman_id": "ljvis-foreign-violation-form-v1",
+    "description": "Functional tests for /control-forms/foreign-violation-form endpoints. Covers permission boundaries, backend validation (required fields), version/status lifecycle (saved -> confirmed -> published), locked-after-confirm, the saved-state no-version-bump rule, and the edit_locked-gated re-save of confirmed/published data (officer blocked, admin allowed with version bump). Self-contained: authenticates and creates its own test data.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login \u2014 Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "auth", "dev", "dev-login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login \u2014 No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "auth", "dev", "dev-login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login \u2014 Officer (no edit_locked)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "auth", "dev", "dev-login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_officer}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_officer', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_noperm}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-01\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-01\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 missing reportingCountryCode \u2192 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"reportingCountryCode\": \"\", \"reportingAuthority\": \"Test\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-01\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-01\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('Field is reportingCountryCode', () => pm.expect(body.field).to.eql('reportingCountryCode'));",
+              "pm.test('Code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 missing reportingAuthority \u2192 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-01\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-01\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('Field is reportingAuthority', () => pm.expect(body.field).to.eql('reportingAuthority'));",
+              "pm.test('Code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 missing sanctionCode \u2192 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-01\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-01\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('Field is sanctionCode', () => pm.expect(body.field).to.eql('sanctionCode'));",
+              "pm.test('Code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 recommendedMeasureCode=MUU without notes \u2192 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-01\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"MUU\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-01\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('Field is recommendedMeasureNotes', () => pm.expect(body.field).to.eql('recommendedMeasureNotes'));",
+              "pm.test('Code is required', () => pm.expect(body.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 create (happy path)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('id present', () => pm.expect(row.id).to.not.be.undefined);",
+              "pm.test('form_number has vr- prefix', () => pm.expect(row.form_number || row.formNumber).to.match(/^vr-\\d{4}-\\d{5}$/));",
+              "pm.test('version is 1', () => pm.expect(row.version).to.eql(1));",
+              "pm.environment.set('created_fv_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 re-save while saved (version unchanged)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_fv_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Updated\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version stays 1 (saved-state resave rule)', () => pm.expect(row.version).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/confirm \u2014 no permission \u2192 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_noperm}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_fv_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403 without permission', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/confirm \u2014 happy path (saved -> confirmed, version unchanged)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_fv_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version unchanged by confirm', () => pm.expect(row.version).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 officer (no edit_locked) saves confirmed form \u2192 422 form_locked_after_confirm",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_officer}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_fv_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw = pm.response.json();",
+              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('Code is form_locked_after_confirm', () => pm.expect(body.code).to.eql('form_locked_after_confirm'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 admin (edit_locked) saves confirmed form \u2192 200, version bumps to 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_fv_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Admin\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version bumps to 2 (edit_locked re-save of confirmed form)', () => pm.expect(row.version).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/publish \u2014 happy path (confirmed -> published, version unchanged)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/publish",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "publish"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_fv_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version unchanged by publish', () => pm.expect(row.version).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save \u2014 admin re-saves published form \u2192 200, version bumps to 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "foreign-violation-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_fv_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Published Resave\", \"inspectionCountryCode\": \"\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version bumps to 3 (edit_locked re-save of published form)', () => pm.expect(row.version).to.eql(3));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

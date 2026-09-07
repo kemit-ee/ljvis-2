@@ -276,6 +276,58 @@
     "title": "Desktop",
     "addForm": "+ Add"
   },
+  "dashboard": {
+    "scope": {
+      "label": "View",
+      "own": "Mine",
+      "organisation": "Organisation"
+    },
+    "sections": {
+      "compoundBlock": "Compound form",
+      "formsBlock": "Forms",
+      "activeCompound": "Active compound forms",
+      "activeStandalone": "Active forms"
+    },
+    "compound": {
+      "selectSubforms": "Select control form(s):",
+      "selectSubformsHint": "Select at least one control form"
+    },
+    "kind": {
+      "kontrollkaart": "Control card",
+      "protokoll": "Protocol",
+      "vorm": "Form"
+    },
+    "empty": {
+      "activeCompound": "No unfinished compound forms",
+      "activeStandalone": "No unfinished forms"
+    },
+    "columns": {
+      "date": "Date",
+      "time": "Time",
+      "vehicle": "Vehicle",
+      "driver": "Driver",
+      "company": "Company",
+      "formNumber": "Form",
+      "formType": "Name",
+      "status": "Status",
+      "progress": "Progress"
+    },
+    "actions": {
+      "fill": "Fill in",
+      "continue": "Continue",
+      "toggleExpand": "Show/hide sub-forms",
+      "viewAllSearch": "View all in search →"
+    },
+    "status": {
+      "saved": "Saved",
+      "confirmed": "Confirmed",
+      "published": "Published",
+      "deleted": "Deleted"
+    },
+    "errors": {
+      "summaryFailed": "Failed to load dashboard data."
+    }
+  },
   "forms": {
     "savedNote": "Form has been saved",
     "confirmedNote": "Form has been confirmed",
@@ -760,10 +812,6 @@
     "sp_teammate_form": "Team member driving and rest time inspection form",
     "tram_driver_form": "Transport Administration inspection card",
     "tram_add_driver": "Add driver",
-    "sp_vehicle_tech_form": "Motor vehicle technical compliance inspection form",
-    "sp_trailer_tech_form": "Trailer technical compliance inspection form",
-    "sp_dangerous_goods_form": "Dangerous goods transport inspection form",
-    "sp_transport_suspended_form": "Transport suspended inspection form",
     "foreign_violation": {
       "reportingBasicInfo": "Reporting country and authority",
       "reportingCountry": "Reporting country",
@@ -1567,6 +1615,7 @@
         "tmFirstName": "First name",
         "tmFamilyName": "Family name",
         "cgrTo": "Target member state",
+        "certificateNumber": "Certificate number",
         "status": "Status",
         "handler": "User",
         "handlerFilter": "User (isikukood)"
@@ -1580,8 +1629,8 @@
         "titleInbound": "Check Good Repute (ERRU → MS)",
         "titleNew": "New CGR request (MS → ERRU)",
         "headerBlock": "Request header and parties",
-        "nameBlock": "Transport manager name search (7A)",
-        "certificateBlock": "Certificate search (7B)",
+        "nameBlock": "Transport manager name search",
+        "certificateBlock": "Certificate search",
         "cgrFrom": "Requesting member state",
         "cgrTo": "Target member state",
         "cgrToAll": "All member states (ZZ)",
@@ -1628,7 +1677,7 @@
       },
       "validation": {
         "required": "This field is required",
-        "search_choice_required": "Either the transport manager name search (7A) or the certificate search (7B) must be filled in",
+        "search_choice_required": "Either the transport manager name search or the certificate search must be filled in",
         "name_block_incomplete": "The name search fields (first name, family name, date of birth) must be filled in together",
         "certificate_block_incomplete": "The certificate search fields (number, issue date, country) must be filled in together",
         "invalid_country_code": "Country code must be two letters",

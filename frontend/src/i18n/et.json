@@ -385,6 +385,58 @@
     "title": "Töölaud",
     "addForm": "+ Lisa"
   },
+  "dashboard": {
+    "scope": {
+      "label": "Vaade",
+      "own": "Mina",
+      "organisation": "Organisatsioon"
+    },
+    "sections": {
+      "compoundBlock": "Kompleksvorm",
+      "formsBlock": "Vormid",
+      "activeCompound": "Töös olevad kompleksvormid",
+      "activeStandalone": "Töös olevad vormid"
+    },
+    "compound": {
+      "selectSubforms": "Vali kontrollvorm(id):",
+      "selectSubformsHint": "Vali vähemalt üks kontrollvorm"
+    },
+    "kind": {
+      "kontrollkaart": "Kontrollkaart",
+      "protokoll": "Protokoll",
+      "vorm": "Vorm"
+    },
+    "empty": {
+      "activeCompound": "Pooleliolevaid kompleksvorme ei ole",
+      "activeStandalone": "Pooleliolevaid vorme ei ole"
+    },
+    "columns": {
+      "date": "Kuupäev",
+      "time": "Kellaaeg",
+      "vehicle": "Sõiduk",
+      "driver": "Autojuht",
+      "company": "Ettevõte",
+      "formNumber": "Vorm",
+      "formType": "Nimetus",
+      "status": "Staatus",
+      "progress": "Edenemine"
+    },
+    "actions": {
+      "fill": "Täida",
+      "continue": "Jätka",
+      "toggleExpand": "Näita/peida alamvormid",
+      "viewAllSearch": "Vaata kõiki vorme →"
+    },
+    "status": {
+      "saved": "Salvestatud",
+      "confirmed": "Kinnitatud",
+      "published": "Avalikustatud",
+      "deleted": "Kustutatud"
+    },
+    "errors": {
+      "summaryFailed": "Töölaua andmete laadimine ebaõnnestus."
+    }
+  },
   "forms": {
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
@@ -921,10 +973,6 @@
       "inspectorProfession": "Ametinimetus"
     },
     "admin_procedure_form": "Haldusmenetlus seoses raskete autoveoalaste rikkumistega",
-    "sp_vehicle_tech_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
-    "sp_trailer_tech_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
-    "sp_dangerous_goods_form": "Ohtliku veose veo kontrollvorm",
-    "sp_transport_suspended_form": "Autovedu on katkestatud kontrollvorm",
     "foreign_violation": {
       "reportingBasicInfo": "Teate saatnud riik ja asutus",
       "reportingCountry": "Teate saatnud riik",
@@ -1579,13 +1627,14 @@
       "notFound": "Mainepäringut ei leitud",
       "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
       "list": {
-        "title": "CGR mainepäringud",
+        "title": "Mainepäringud CGR",
         "newRequest": "Uus mainepäring",
         "id": "Päringu number",
         "sentAt": "Saadetud",
         "tmFirstName": "Eesnimi",
         "tmFamilyName": "Perekonnanimi",
         "cgrTo": "Sihtriik",
+        "certificateNumber": "Kutsetunnistuse number",
         "status": "Staatus",
         "handler": "Kasutaja",
         "handlerFilter": "Kasutaja (isikukood)"
@@ -1597,10 +1646,10 @@
       "form": {
         "titleOutgoing": "Mainepäring (MS → ERRU)",
         "titleInbound": "Mainepäring (ERRU → MS)",
-        "titleNew": "Uus mainepäring (MS → ERRU)",
+        "titleNew": "Uus mainepäring CGR (MS → ERRU)",
         "headerBlock": "Päringu päis ja osapooled",
-        "nameBlock": "Veokorraldusjuhi otsing (7A)",
-        "certificateBlock": "Kutsetunnistuse otsing (7B)",
+        "nameBlock": "Veokorraldusjuhi otsing",
+        "certificateBlock": "Kutsetunnistuse otsing",
         "cgrFrom": "Taotlev liikmesriik",
         "cgrTo": "Sihtliikmesriik",
         "cgrToAll": "Kõik riigid (ZZ)",
@@ -1615,7 +1664,7 @@
         "certificateNumber": "Ametialase pädevuse tunnistuse number",
         "certificateIssueDate": "Ametialase pädevuse tunnistuse väljaandmise kuupäev",
         "certificateIssueCountry": "Ametialase pädevuse tunnistuse väljastanud riik",
-        "searchCertChoiceHint": "Kui puuduvad kutseoskuse tunnistuse andmed, siis veokorraldaja andmed on kohustuslikud.",
+        "searchCertChoiceHint": "Kui puuduvad kutseoskuse tunnistuse andmed, siis veokorraldusjuhi andmed on kohustuslikud.",
         "searchTransportChoiceHint": "Kui puuduvad veokorraldaja andmed, siis kutseoskuse tunnistuse andmed on kohustuslikud.",
         "copyRequest": "Kopeeri päring",
         "readOnly": "ainult lugemiseks",
@@ -1647,7 +1696,7 @@
       },
       "validation": {
         "required": "Väli on kohustuslik",
-        "search_choice_required": "Täidetud peab olema veokorraldusjuhi otsing (7A) või kutsetunnistuse otsing (7B)",
+        "search_choice_required": "Täidetud peab olema veokorraldusjuhi otsing või kutsetunnistuse otsing",
         "name_block_incomplete": "Veokorraldusjuhi otsingu väljad (eesnimi, perekonnanimi, sünniaeg) tuleb täita koos",
         "certificate_block_incomplete": "Kutsetunnistuse otsingu väljad (number, väljaandmise kuupäev, riik) tuleb täita koos",
         "invalid_country_code": "Riigi kood peab olema kahetäheline",

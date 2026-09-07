@@ -17,6 +17,8 @@ import type { RsiMessageListItem } from '../../types';
 import { useRsiList } from './useRsiList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import {useMediaQuery} from "../../../../hooks/useMediaQuery.ts";
+import {BREAKPOINTS} from "../../../../constants/constants.ts";
 
 const columnHelper = createColumnHelper<RsiMessageListItem>();
 
@@ -31,6 +33,7 @@ export function RsiListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
 
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['rsi.read']);
   const canCreate = hasAnyPermission(['rsi.create']);
 
@@ -147,7 +150,10 @@ export function RsiListPage() {
           </div>
 
           {/* Filters refresh only on "Otsi" — editing must not auto-refetch. */}
-          <div className="filter-bar">
+          <div
+            className="filter-bar"
+            style={isDesktop ? { width: '80%' } : undefined}
+          >
             <TextField
               id="rsi-filter-id"
               label={t('erru.rsi.list.id')}
@@ -164,7 +170,11 @@ export function RsiListPage() {
               key={`rsi-sent-from-${resetKey}`}
               id="rsi-filter-sent-from"
               label={t('erru.cgr.filters.sentFrom')}
-              selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
+              selected={
+                draftFilters.sentFrom
+                  ? new Date(draftFilters.sentFrom)
+                  : undefined
+              }
               onSelect={(v) => setFilter('sentFrom', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
@@ -173,7 +183,11 @@ export function RsiListPage() {
               key={`rsi-sent-until-${resetKey}`}
               id="rsi-filter-sent-until"
               label={t('erru.cgr.filters.sentUntil')}
-              selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}
+              selected={
+                draftFilters.sentUntil
+                  ? new Date(draftFilters.sentUntil)
+                  : undefined
+              }
               onSelect={(v) => setFilter('sentUntil', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
@@ -181,37 +195,62 @@ export function RsiListPage() {
             <Select
               id="rsi-filter-from"
               label={t('erru.rsi.list.rsiFrom')}
-              options={countryOptions}
-              value={countryOptions.find((o) => o.value === draftFilters.rsiFrom) ?? null}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
+              value={
+                countryOptions.find((o) => o.value === draftFilters.rsiFrom) ??
+                null
+              }
               onChange={(o) =>
-                setFilter('rsiFrom', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'rsiFrom',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <Select
               id="rsi-filter-to"
               label={t('erru.rsi.list.rsiTo')}
-              options={countryOptions}
-              value={countryOptions.find((o) => o.value === draftFilters.rsiTo) ?? null}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
+              value={
+                countryOptions.find((o) => o.value === draftFilters.rsiTo) ??
+                null
+              }
               onChange={(o) =>
-                setFilter('rsiTo', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'rsiTo',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <Select
               id="rsi-filter-status"
               label={t('erru.rsi.list.status')}
-              options={statusOptions}
-              value={statusOptions.find((o) => o.value === draftFilters.status) ?? null}
+              options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
+              value={
+                statusOptions.find((o) => o.value === draftFilters.status) ??
+                null
+              }
               onChange={(o) =>
-                setFilter('status', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'status',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <Select
               id="rsi-filter-direction"
               label={t('erru.rsi.list.direction')}
-              options={directionOptions}
-              value={directionOptions.find((o) => o.value === draftFilters.direction) ?? null}
+              options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
+              value={
+                directionOptions.find(
+                  (o) => o.value === draftFilters.direction,
+                ) ?? null
+              }
               onChange={(o) =>
-                setFilter('direction', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'direction',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <TextField

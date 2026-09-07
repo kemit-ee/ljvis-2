@@ -38,6 +38,12 @@
       "description": "Regular user with no permissions (Mari Tamm)"
     },
     {
+      "key": "pc_officer",
+      "value": "60002020202",
+      "enabled": true,
+      "description": "Regular officer, Officer Group, PPA (seed_test_data.sql) — used for own/org-scope isolation checks against pc_admin"
+    },
+    {
       "key": "cookie_admin",
       "value": "",
       "enabled": true
@@ -267,6 +273,17 @@
     },
     {
       "key": "cookie_citizen",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "pc_officer",
+      "value": "60002020202",
+      "enabled": true,
+      "description": "Regular officer (Mari Tamm) — has *_form.write/read but NOT control_form.edit_locked; used to verify confirmed/published sub-forms cannot be re-saved without edit_locked."
+    },
+    {
+      "key": "cookie_officer",
       "value": "",
       "enabled": true
     }

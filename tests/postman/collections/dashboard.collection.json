@@ -1,0 +1,1964 @@
+{
+  "info": {
+    "name": "LJVIS — Officer Dashboard (LJVIS2-37)",
+    "_postman_id": "ljvis-dashboard-v1",
+    "description": "Functional tests for the officer dashboard (LJVIS2-37): GET /v1/dashboard/summary (activeCompoundForms/activeStandaloneForms/needsAttention, own vs organisation scope gated by control_form.view_unpublished). The LJVIS2-68 '+ Lisa' menu (classifier+permission-driven available form types) is resolved client-side (FORM_TYPE classifier + permissions already loaded in the SPA — see getAvailableFormKeys in frontend/src/features/control-forms/formRoutes.ts), so it has no dedicated backend endpoint to test here. Self-contained: creates its own compound form + sub-form + standalone forms, confirms one, and cleans up at the end.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — Officer (pc_officer)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_officer}}\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Login returns 200\", () => pm.response.to.have.status(200));\nvar body = pm.response.json();\nvar token = typeof body === \"string\" ? body : (body.response || body.token || \"\");\npm.test(\"JWT token received\", () => pm.expect(token).to.not.be.empty);\npm.environment.set(\"cookie_officer\", \"customJwtCookie=\" + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard/summary — unauthenticated → 401",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Unauthenticated 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard/summary — admin, no data yet → 200 with all sections",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var r = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "pm.test('Default scope is own', () => pm.expect(r.scope).to.eql('own'));",
+              "pm.test('All 3 sections present as arrays', () => {",
+              "  pm.expect(r.activeCompoundForms).to.be.an('array');",
+              "  pm.expect(r.activeStandaloneForms).to.be.an('array');",
+              "  pm.expect(r.needsAttention).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create compound form (draft, general proceeding, overdue deadline)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('dash_vehicle_reg', 'DASH' + Date.now() % 100000);",
+              "pm.environment.set('dash_company_name', 'Dashboard Test OU ' + Date.now());",
+              "pm.environment.set('dash_control_date', '2026-01-01');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('id present', () => pm.expect(row.id).to.not.be.undefined);",
+              "pm.environment.set('dash_compound_key', String(row.id));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\",\"formNumber\":\"\",\"status\":\"saved\",\"controlDate\":\"{{dash_control_date}}\",\"controlTime\":\"09:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"{{dash_vehicle_reg}}\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"{{dash_company_name}}\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+        }
+      }
+    },
+    {
+      "name": "[Setup] Create sp-driver sub-form (proceedingType=general → deadline = controlDate+45d)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('id present', () => pm.expect(row.id).to.not.be.undefined);",
+              "pm.environment.set('dash_subform_key', String(row.id));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{dash_compound_key}}, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\", \"selectionStatus\": \"active\", \"transportType\": \"CARGO_TRANSPORT\", \"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null, \"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": \"ok\", \"additionalMeasure\": null, \"proceedingType\": \"general\", \"proceedingReferenceNumber\": \"DASH-CI-1\", \"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null, \"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null, \"workDaysCount\": null, \"otherActivityDaysCount\": null, \"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null, \"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": null, \"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null, \"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null, \"notes\": \"CI dashboard test\"}"
+        }
+      }
+    },
+    {
+      "name": "GET dashboard/summary — draft compound form appears with its sub-form",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var r = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "var match = r.activeCompoundForms.find(c => String(c.compoundFormKey) === pm.environment.get('dash_compound_key'));",
+              "pm.test('Created compound form is in activeCompoundForms (status=saved)', () => {",
+              "  pm.expect(match).to.not.be.undefined;",
+              "  pm.expect(match.status).to.eql('saved');",
+              "  pm.expect(match.vehicleRegNr).to.eql(pm.environment.get('dash_vehicle_reg'));",
+              "});",
+              "pm.test('Sub-form appears nested with correct type/status', () => {",
+              "  pm.expect(match.subForms).to.have.lengthOf(1);",
+              "  pm.expect(match.subForms[0].formType).to.eql('sp_driver');",
+              "  pm.expect(match.subForms[0].status).to.eql('saved');",
+              "  pm.expect(String(match.subForms[0].formKey)).to.eql(pm.environment.get('dash_subform_key'));",
+              "});",
+              "pm.test('Overdue general-proceeding deadline (controlDate+45d, in the past) surfaces in needsAttention', () => {",
+              "  var na = r.needsAttention.find(n => String(n.formKey) === pm.environment.get('dash_subform_key'));",
+              "  pm.expect(na).to.not.be.undefined;",
+              "  pm.expect(na.proceedingType).to.eql('general');",
+              "  pm.expect(na.reason).to.eql('overdue');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Confirm compound form (status → confirmed, still unpublished)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{dash_compound_key}}\",\"status\":\"confirmed\",\"formNumber\":\"\",\"controlDate\":\"{{dash_control_date}}\",\"controlTime\":\"09:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"{{dash_vehicle_reg}}\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"{{dash_company_name}}\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+        }
+      }
+    },
+    {
+      "name": "GET dashboard/summary — confirmed-but-unpublished compound form still active",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var r = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "var match = r.activeCompoundForms.find(c => String(c.compoundFormKey) === pm.environment.get('dash_compound_key'));",
+              "pm.test('Confirmed compound form remains in activeCompoundForms (sub-form not published)', () => {",
+              "  pm.expect(match).to.not.be.undefined;",
+              "  pm.expect(match.status).to.eql('confirmed');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create standalone labour-inspection act (draft)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set('dash_li_company', 'Dashboard LI Test ' + Date.now());"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.environment.set('dash_li_id', String(row.id));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\":\"CI Dashboard Inspector\",\"inspectionDate\":\"2026-06-01\",\"inspectionType\":\"cargo\",\"companyName\":\"{{dash_li_company}}\",\"companyRegCode\":\"19283746\",\"vehicleCount\":\"1\",\"totalDriversCount\":\"1\",\"controlsMatrix\":\"[]\",\"violations\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"\",\"punishedPersonFirstName\":\"\",\"punishedPersonLastName\":\"\",\"proceedingReferenceNumber\":\"\",\"id\":null}"
+        }
+      }
+    },
+    {
+      "name": "GET dashboard/summary — standalone draft act appears in activeStandaloneForms",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var r = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "var match = r.activeStandaloneForms.find(f => String(f.formKey) === pm.environment.get('dash_li_id'));",
+              "pm.test('Draft labour_inspection act is in activeStandaloneForms', () => {",
+              "  pm.expect(match).to.not.be.undefined;",
+              "  pm.expect(match.formType).to.eql('labour_inspection');",
+              "  pm.expect(match.status).to.eql('saved');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard/summary?scope=organisation — no-perm user silently falls back to own",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary?scope=organisation",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ],
+          "query": [
+            {
+              "key": "scope",
+              "value": "organisation"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// User without system access gets 403; registered user without permissions gets 200.\n// Both outcomes are valid depending on environment setup.\nvar status = pm.response.code;\npm.test('Returns 200 or 403 (no higher privilege leak)', () => {\n  pm.expect([200, 403]).to.include(status);\n});\nif (status === 200) {\n  var raw = pm.response.json();\n  var r = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;\n  pm.test('canSeeOrganisation is false and scope silently stays own', () => {\n    pm.expect(r.canSeeOrganisation).to.eql(false);\n    pm.expect(r.scope).to.eql('own');\n  });\n}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard/summary?scope=organisation — admin (control_form.view_unpublished) → organisation honoured",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary?scope=organisation",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ],
+          "query": [
+            {
+              "key": "scope",
+              "value": "organisation"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var r = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "pm.test('canSeeOrganisation true and scope honoured', () => {",
+              "  pm.expect(r.canSeeOrganisation).to.eql(true);",
+              "  pm.expect(r.scope).to.eql('organisation');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET scope=own — officer does not see admin's compound (own-isolation)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", () => pm.response.to.have.status(200));\nvar raw=pm.response.json(); var r=(raw&&\"response\" in raw)?raw.response:raw;\nvar adminKey=parseInt(pm.environment.get(\"dash_compound_key\"));\nvar found=(r.activeCompoundForms||[]).some(f=>f.compoundFormKey===adminKey);\npm.test(\"officer does not see admin compound in scope=own\", ()=>pm.expect(found).to.be.false);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET scope=organisation — officer does NOT see admin's standalone (org-scope regression)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_officer}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary?scope=organisation",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ],
+          "query": [
+            {
+              "key": "scope",
+              "value": "organisation"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", () => pm.response.to.have.status(200));\nvar raw=pm.response.json(); var r=(raw&&\"response\" in raw)?raw.response:raw;\n// Standalone forms (labour_inspection, good_repute) are ALWAYS filtered by\n// created_by=actor after the fix in commit 82e26d09. Officer requests\n// scope=organisation but must NOT see admin's dash_li_id.\npm.test(\"officer org-scope honoured (canSeeOrganisation=true) — else this regression test is a false-safe\", ()=>pm.expect(r.canSeeOrganisation).to.eql(true));\nvar adminLiKey=parseInt(pm.environment.get(\"dash_li_id\"));\nvar found=(r.activeStandaloneForms||[]).some(f=>f.formKey===adminLiKey);\npm.test(\"admin standalone NOT visible to officer via org-scope (regression)\", ()=>pm.expect(found).to.be.false);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET scope=garbage — falls back to own",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary?scope=garbage",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ],
+          "query": [
+            {
+              "key": "scope",
+              "value": "garbage"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", () => pm.response.to.have.status(200));\nvar raw=pm.response.json(); var r=(raw&&\"response\" in raw)?raw.response:raw;\npm.test(\"scope falls back to own on invalid input\", ()=>pm.expect(r.scope).to.eql(\"own\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create TRAM compound form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"formNumber\": \"\", \"status\": \"saved\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"Tallinn\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CITRAM1\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "edit",
+            "save"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar b = pm.response.json();\nvar row = b.response && b.response[0] ? b.response[0] : b[0] || b;\npm.test('TRAM form created', () => pm.expect(row.id).to.be.a('number').and.above(0));\npm.environment.set('tram_dash_key', row.id);\npm.environment.set('tram_dash_formnumber', row.formNumber || row.formnumber || '');\npm.environment.set('tram_dash_status', row.status || 'saved');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard/summary — TRAM compound appears in activeCompoundForms",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar b = pm.response.json();\nvar summary = b.response || b;\nvar activeCompound = summary.activeCompoundForms || [];\nvar tramKey = parseInt(pm.environment.get('tram_dash_key'));\npm.test('TRAM compound form appears in activeCompoundForms',\n  () => pm.expect(activeCompound.some(f => f.compoundFormKey === tramKey)).to.be.true\n);\npm.test('TRAM compound form has tram- form number',\n  () => {\n    var tram = activeCompound.find(f => f.compoundFormKey === tramKey);\n    pm.expect(tram && tram.formNumber || '').to.match(/^tram-/);\n  }\n);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create standalone LI for publish test",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"inspectorName\":\"CI Dashboard Inspector\",\"inspectionDate\":\"2026-06-01\",\"inspectionType\":\"cargo\",\"companyName\":\"{{dash_li_company}}\",\"companyRegCode\":\"19283746\",\"vehicleCount\":\"1\",\"totalDriversCount\":\"1\",\"controlsMatrix\":\"[]\",\"violations\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"\",\"punishedPersonFirstName\":\"\",\"punishedPersonLastName\":\"\",\"proceedingReferenceNumber\":\"\",\"id\":null}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "save"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var u=(raw.response&&raw.response[0])||raw[0]||raw;\npm.test(\"li_pub_id set\", ()=>pm.expect(u.id).to.be.a(\"number\").and.above(0));\npm.environment.set(\"li_pub_id\", u.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Confirm standalone LI (li_pub_id)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":\"{{li_pub_id}}\",\"inspectorName\":\"CI Inspector Publish\",\"inspectionDate\":\"2024-01-01\",\"inspectionType\":\"cargo\",\"companyName\":\"CI Publish Co\",\"companyRegCode\":\"12345678\",\"controlsMatrix\":\"[]\",\"violations\":\"[]\",\"prescriptionComposed\":\"false\",\"vehicleCount\":\"1\",\"totalDriversCount\":\"1\",\"punishedPersonIdCode\":\"\",\"punishedPersonFirstName\":\"\",\"punishedPersonLastName\":\"\",\"proceedingReferenceNumber\":\"\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "confirm"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Publish standalone LI (li_pub_id)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":\"{{li_pub_id}}\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "publish"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard — published standalone gone from activeStandaloneForms",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var r=(raw&&\"response\" in raw)?raw.response:raw;\nvar liId=parseInt(pm.environment.get(\"li_pub_id\"));\nvar found=(r.activeStandaloneForms||[]).some(f=>f.formKey===liId);\npm.test(\"published standalone absent from activeStandaloneForms\", ()=>pm.expect(found).to.be.false);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create compound 'upcoming deadline' (controlDate=today-43d, deadline=today+2d)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\",\"formNumber\":\"\",\"status\":\"saved\",\"controlDate\":\"{{upcoming_ctrl_date}}\",\"controlTime\":\"09:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"{{dash_vehicle_reg}}\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"{{dash_company_name}}\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "save"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar raw=pm.response.json(); var u=(raw.response&&raw.response[0])||raw[0]||raw;\npm.test('upcoming_key set', () => pm.expect(u.id).to.be.a('number').and.above(0));\npm.environment.set('upcoming_key', u.id);\npm.environment.set('upcoming_key_fn', (u.formNumber||u.formnumber||''));"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// controlDate = today-43d → deadline=today+2d → upcoming\nvar d=new Date(); d.setUTCDate(d.getUTCDate()-43);\nvar dd=d.getUTCFullYear()+\"-\"+(\"0\"+(d.getUTCMonth()+1)).slice(-2)+\"-\"+(\"0\"+d.getUTCDate()).slice(-2);\npm.environment.set(\"upcoming_ctrl_date\",dd);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create sub-form for upcoming compound (proceedingType=general)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{upcoming_key}}, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\",\"selectionStatus\": \"active\", \"transportType\": \"CARGO_TRANSPORT\",\"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null,\"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": \"ok\",\"additionalMeasure\": null, \"proceedingType\": \"general\",\"proceedingReferenceNumber\": \"DASH-CI-1\", \"documentChecks\": null,\"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null,\"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null,\"workDaysCount\": null, \"otherActivityDaysCount\": null,\"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null,\"violations5932008\": null, \"violations20201057\": null,\"massDimensionNonCompliant\": null, \"massDimensionMeasurements\": null,\"atpViolationFound\": null, \"atpViolationDescription\": null,\"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null,\"notes\": \"CI dashboard test\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "save"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var u=(raw.response&&raw.response[0])||raw[0]||raw;\npm.environment.set(\"upcoming_sub_key\", u.id||u.sp_driver_form_key);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard — upcoming in needsAttention with reason=upcoming + deadlineAt ≈ controlDate+45d",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var r=(raw&&\"response\" in raw)?raw.response:raw;\nvar uKey=parseInt(pm.environment.get(\"upcoming_key\"));\nvar entries=(r.needsAttention||[]).filter(e=>e.compoundFormKey===uKey);\npm.test(\"upcoming compound in needsAttention\", ()=>pm.expect(entries.length).to.be.above(0));\nif (entries.length>0) {\n  var e=entries[0];\n  pm.test(\"reason is upcoming\", ()=>pm.expect(e.reason).to.eql(\"upcoming\"));\n  var ctrl=new Date(pm.environment.get(\"upcoming_ctrl_date\")+\"T00:00:00Z\");\n  ctrl.setUTCDate(ctrl.getUTCDate()+45);\n  var actual=new Date(e.deadlineAt);\n  var diffDays=Math.abs((actual-ctrl)/86400000);\n  pm.test(\"deadlineAt ≈ controlDate+45d (within 2d tolerance)\", ()=>pm.expect(diffDays).to.be.below(2));\n}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create compound 'far deadline' (controlDate=today-2d, deadline=today+43d)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\",\"formNumber\":\"\",\"status\":\"saved\",\"controlDate\":\"{{far_ctrl_date}}\",\"controlTime\":\"09:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"{{dash_vehicle_reg}}\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"{{dash_company_name}}\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "save"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar raw=pm.response.json(); var u=(raw.response&&raw.response[0])||raw[0]||raw;\npm.test('far_key set', () => pm.expect(u.id).to.be.a('number').and.above(0));\npm.environment.set('far_key', u.id);\npm.environment.set('far_key_fn', (u.formNumber||u.formnumber||''));"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// controlDate=today-2d → deadline=today+43d → far (not in needsAttention)\nvar d=new Date(); d.setUTCDate(d.getUTCDate()-2);\nvar dd=d.getUTCFullYear()+\"-\"+(\"0\"+(d.getUTCMonth()+1)).slice(-2)+\"-\"+(\"0\"+d.getUTCDate()).slice(-2);\npm.environment.set(\"far_ctrl_date\",dd);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create sub-form for far compound (proceedingType=general)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{far_key}}, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\",\"selectionStatus\": \"active\", \"transportType\": \"CARGO_TRANSPORT\",\"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null,\"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": \"ok\",\"additionalMeasure\": null, \"proceedingType\": \"general\",\"proceedingReferenceNumber\": \"DASH-CI-1\", \"documentChecks\": null,\"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null,\"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null,\"workDaysCount\": null, \"otherActivityDaysCount\": null,\"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null,\"violations5932008\": null, \"violations20201057\": null,\"massDimensionNonCompliant\": null, \"massDimensionMeasurements\": null,\"atpViolationFound\": null, \"atpViolationDescription\": null,\"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null,\"notes\": \"CI dashboard test\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "save"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var u=(raw.response&&raw.response[0])||raw[0]||raw;\npm.environment.set(\"far_sub_key\", u.id||u.sp_driver_form_key);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard — far deadline (today+43d > now+3d) NOT in needsAttention",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var r=(raw&&\"response\" in raw)?raw.response:raw;\nvar fKey=parseInt(pm.environment.get(\"far_key\"));\nvar inNA=(r.needsAttention||[]).some(e=>e.compoundFormKey===fKey);\npm.test(\"far compound absent from needsAttention\", ()=>pm.expect(inNA).to.be.false);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create AC9 compound (far-future deadline, will be published)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\",\"formNumber\":\"\",\"status\":\"saved\",\"controlDate\":\"2026-02-01\",\"controlTime\":\"09:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"{{dash_vehicle_reg}}\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"{{dash_company_name}}\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "save"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar raw=pm.response.json(); var u=(raw.response&&raw.response[0])||raw[0]||raw;\npm.test('ac9_key set', () => pm.expect(u.id).to.be.a('number').and.above(0));\npm.environment.set('ac9_key', u.id);\npm.environment.set('ac9_key_fn', (u.formNumber||u.formnumber||''));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create AC9 sub-form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"compoundFormKey\": {{ac9_key}}, \"id\": \"\", \"subFormNumber\": \"\", \"status\":\"saved\",\"selectionStatus\": \"active\", \"transportType\": \"CARGO_TRANSPORT\",\"transportEmptyRun\": null, \"transportNature\": null, \"transportNatureExempt\": null,\"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": \"ok\",\"additionalMeasure\": null, \"proceedingType\": \"general\",\"proceedingReferenceNumber\": \"DASH-CI-1\", \"documentChecks\": null,\"otherDocuments\": null, \"spApplicability\": null, \"tachographTypeCode\": null,\"tachographDataNotDownloaded\": null, \"checkedDaysCount\": null,\"workDaysCount\": null, \"otherActivityDaysCount\": null,\"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null,\"violations5932008\": null, \"violations20201057\": null,\"massDimensionNonCompliant\": null, \"massDimensionMeasurements\": null,\"atpViolationFound\": null, \"atpViolationDescription\": null,\"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null,\"notes\": \"CI dashboard test\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "save"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var u=(raw.response&&raw.response[0])||raw[0]||raw;\npm.environment.set(\"ac9_sub_key\", u.id||u.sp_driver_form_key);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Confirm AC9 sub-form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ac9_sub_key}}\", \"selectionStatus\": \"active\", \"transportType\": \"international\",\"transportEmptyRun\": false, \"transportNature\": \"cargo\", \"transportNatureExempt\": false,\"transportClasses\": null, \"cabotageViolations\": null, \"resultType\": \"ok\",\"additionalMeasure\": null, \"proceedingType\": null, \"proceedingReferenceNumber\": null,\"documentChecks\": null, \"otherDocuments\": null, \"spApplicability\": null,\"tachographTypeCode\": null, \"tachographDataNotDownloaded\": false,\"checkedDaysCount\": 5, \"workDaysCount\": 5, \"otherActivityDaysCount\": 0,\"violations5612006\": null, \"violations1652014\": null, \"violations200215\": null,\"violations5932008\": null, \"violations20201057\": null, \"massDimensionNonCompliant\": false,\"massDimensionMeasurements\": null, \"atpViolationFound\": null, \"atpViolationDescription\": null,\"erruPoints\": null, \"enforcementDecision\": null, \"proceedingClosureBasis\": null,\"notes\": \"CI AC9 confirm\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "confirm"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Publish AC9 sub-form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":\"{{ac9_sub_key}}\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "publish"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard — AC9 compound still active (sub published, compound not yet)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var r=(raw&&\"response\" in raw)?raw.response:raw;\nvar k=parseInt(pm.environment.get(\"ac9_key\"));\npm.test(\"AC9 compound still active (sub published, compound not)\", ()=>pm.expect((r.activeCompoundForms||[]).some(f=>f.compoundFormKey===k)).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Confirm AC9 compound",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ac9_key}}\",\"status\":\"confirmed\",\"formNumber\":\"\",\"controlDate\":\"2026-02-01\",\"controlTime\":\"09:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"Tallinn\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"{{dash_vehicle_reg}}\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[]\",\"companyRegCode\":\"\",\"companyName\":\"{{dash_company_name}}\",\"companyCountryCode\":\"\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[]\",\"inspectorFirstName\":\"\",\"inspectorLastName\":\"\",\"inspectorOrganisationId\":\"\",\"inspectorUnit\":\"\",\"inspectorProfession\":\"\",\"driver1PersonalCodeEe\":\"\",\"driver1PersonalCodeForeign\":\"\",\"driver2PersonalCodeEe\":\"\",\"driver2PersonalCodeForeign\":\"\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "confirm"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Publish AC9 compound",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":\"{{ac9_key}}\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "publish"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard — AC9 compound GONE (all sub-forms + compound published) [AC9 ✓]",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));\nvar raw=pm.response.json(); var r=(raw&&\"response\" in raw)?raw.response:raw;\nvar k=parseInt(pm.environment.get(\"ac9_key\"));\npm.test(\"AC9 compound gone after all published\", ()=>pm.expect((r.activeCompoundForms||[]).some(f=>f.compoundFormKey===k)).to.be.false);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete AC9 compound (published)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{ac9_key}}\", \"form_number\": \"{{ac9_key_fn}}\", \"old_status\": \"published\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Returns 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete published standalone LI",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{li_pub_id}}\", \"old_status\": \"published\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Returns 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete upcoming compound",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":\"{{upcoming_key}}\",\"form_number\":\"\",\"old_status\":\"saved\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "delete"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete far compound",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\":\"{{far_key}}\",\"form_number\":\"\",\"old_status\":\"saved\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "delete"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Returns 200\", ()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete TRAM compound form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{tram_dash_key}}\", \"form_number\": \"{{tram_dash_formnumber}}\", \"old_status\": \"{{tram_dash_status}}\"}"
+        },
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-form",
+            "edit",
+            "delete"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete standalone labour-inspection act",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/labour-inspection/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "labour-inspection",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{dash_li_id}}\", \"old_status\": \"saved\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Cleanup] Delete compound form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "compound-form",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{dash_compound_key}}\", \"form_number\": \"\", \"old_status\": \"confirmed\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET dashboard/summary — deleted compound form no longer active",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/dashboard/summary",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "dashboard",
+            "summary"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var r = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "var keys = r.activeCompoundForms.map(c => String(c.compoundFormKey));",
+              "pm.test('Deleted compound form absent from activeCompoundForms', () => pm.expect(keys).to.not.include(pm.environment.get('dash_compound_key')));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
