@@ -310,12 +310,11 @@
       "formNumber": "Form",
       "formType": "Name",
       "status": "Status",
-      "progress": "Progress"
+      "published": "Published"
     },
     "actions": {
       "fill": "Fill in",
       "continue": "Continue",
-      "toggleExpand": "Show/hide sub-forms",
       "viewAllSearch": "View all in search →"
     },
     "status": {

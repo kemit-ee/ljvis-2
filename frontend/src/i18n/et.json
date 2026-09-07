@@ -419,12 +419,11 @@
       "formNumber": "Vorm",
       "formType": "Nimetus",
       "status": "Staatus",
-      "progress": "Edenemine"
+      "published": "Avalikustatud"
     },
     "actions": {
       "fill": "Täida",
       "continue": "Jätka",
-      "toggleExpand": "Näita/peida alamvormid",
       "viewAllSearch": "Vaata kõiki vorme →"
     },
     "status": {

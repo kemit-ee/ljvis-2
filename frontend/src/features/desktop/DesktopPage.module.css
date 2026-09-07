@@ -62,32 +62,8 @@
     gap: 1rem;
 }
 
-.expandButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: none;
-  border: none;
-  border-radius: 6px;
-  padding: 0;
-  cursor: pointer;
-  color: inherit;
-  transition: background-color 0.15s ease;
-}
-
-.expandButton:hover {
-  background-color: var(--color-bg-subtle, #f0f0f2);
-}
-
-.expandButton:focus-visible {
-  outline: 2px solid var(--color-border-default, #b9bac2);
-  outline-offset: 1px;
-}
-
 /* LJVIS2-37 AC (row 120): overdue kiirmenetlus/üldmenetlus deadlines are
-   shown in red (red text + subtle red fill) in the active-compound / sub-form
+   shown in red (red text) in the active-compound / sub-form
    tables. */
 .rowOverdue {
   cursor: pointer;
@@ -95,7 +71,6 @@
 
 :global(#dashboard-active-compound) .rowOverdue td {
   color: var(--button-main-danger-neutral-text-default, #c00);
-  background: var(--color-bg-danger-subtle, #fdecec);
 }
 
 /* LJVIS2-37: the dashboard tables (TEDI <Table hideCardBorder/>) render as a
@@ -127,6 +102,14 @@
   border: 1px solid var(--color-border-default, #e1e2e5);
   padding: 12px 16px;
   vertical-align: middle;
+}
+
+:global(#dashboard-active-standalone) tbody tr:nth-child(even) {
+  background: var(--color-bg-muted, #f9f9f9);
+}
+
+:global(#dashboard-active-compound) tbody tr.stripeGroup {
+  background: var(--color-bg-muted, #f9f9f9);
 }
 
 /* Mockup: header is white with muted grey labels and a firmer bottom rule
@@ -161,18 +144,24 @@
   cursor: pointer;
 }
 
-.subRow td {
-    background: var(--color-bg-default, #fff);
-}
-
-:global(#dashboard-active-compound) .subRow > td:nth-child(-n + 6) {
+/* Content columns keep a per-row divider (drawn by TEDI's per-row <tr>
+   border). The leading blank columns below are merged into one continuous
+   column instead — see the nth-child rule. */
+:global(#dashboard-active-compound) .subRow > td {
     border-top: none;
     border-bottom: none;
-    border-right: none;
 }
 
-:global(#dashboard-active-compound) .subRow > td:nth-child(n + 2):nth-child(-n + 6) {
+:global(#dashboard-active-compound) .subRow > td:nth-child(-n + 5) {
+    border-top: hidden;
+}
+
+:global(#dashboard-active-compound) .subRow > td:nth-child(n + 2):nth-child(-n + 5) {
     border-left: none;
+}
+
+:global(#dashboard-active-compound) .hasSubs td {
+    border-bottom: none;
 }
 
 .subRow:hover td {
