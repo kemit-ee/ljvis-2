@@ -108,31 +108,6 @@ export function DesktopPage() {
 
   const compoundColumns = useMemo(
     () => [
-      // Mock ("Töölaud avatud tabel"): first column is a blank-header chevron
-      // that expands the row to show its sub-forms.
-      compoundColumnHelper.display({
-        id: 'expander',
-        header: '',
-        size: 32,
-        cell: (info) =>
-          info.row.getCanExpand() ? (
-            <button
-              type="button"
-              className={styles.expandButton}
-              onClick={(e) => {
-                e.stopPropagation();
-                info.row.getToggleExpandedHandler()();
-              }}
-              aria-label={t('dashboard.actions.toggleExpand')}
-            >
-              <Icon
-                name={info.row.getIsExpanded() ? 'expand_less' : 'expand_more'}
-                type="outlined"
-                size={18}
-              />
-            </button>
-          ) : null,
-      }),
       compoundColumnHelper.accessor('controlDate', {
         header: t('dashboard.columns.date'),
         cell: (info) => formatDate(info.getValue()),
@@ -144,13 +119,30 @@ export function DesktopPage() {
         header: t('dashboard.columns.vehicle'),
         cell: (info) => info.getValue() ?? '—',
       }),
-      compoundColumnHelper.accessor('driverName', {
-        header: t('dashboard.columns.driver'),
-        cell: (info) => info.getValue() ?? '—',
-      }),
-      compoundColumnHelper.accessor('companyName', {
-        header: t('dashboard.columns.company'),
-        cell: (info) => info.getValue() ?? '—',
+      compoundColumnHelper.display({
+        id: 'driverCompany',
+        header: t('dashboard.columns.driverCompany'),
+        cell: (info) => {
+          const { driverName, companyName } = info.row.original;
+          const primary = driverName ?? companyName;
+          const secondary = driverName ? companyName : null;
+          if (!primary) return '—';
+          return (
+            <div>
+              <div>{primary}</div>
+              {secondary && (
+                <Text
+                  element="span"
+                  color="secondary"
+                  modifiers="small"
+                  className={styles.formRowKind}
+                >
+                  {secondary}
+                </Text>
+              )}
+            </div>
+          );
+        },
       }),
       compoundColumnHelper.accessor('formNumber', {
         header: t('dashboard.columns.formNumber'),
@@ -165,8 +157,8 @@ export function DesktopPage() {
         cell: (info) => <FormStatusBadge status={info.getValue()} />,
       }),
       compoundColumnHelper.display({
-        id: 'progress',
-        header: t('dashboard.columns.progress'),
+        id: 'published',
+        header: t('dashboard.columns.published'),
         cell: (info) => {
           const subForms = info.row.original.subForms;
           if (subForms.length === 0) return '–';
@@ -250,12 +242,20 @@ export function DesktopPage() {
 
   const compoundRows = useMemo(
     () =>
-      summary.activeCompoundForms.map((c) => ({
-        ...c,
-        rowClassName: overdueCompoundKeys.has(c.compoundFormKey)
-          ? styles.rowOverdue
-          : undefined,
-      })),
+      summary.activeCompoundForms.map((c, index) => {
+        const classes = [];
+        if (overdueCompoundKeys.has(c.compoundFormKey))
+          classes.push(styles.rowOverdue);
+        // Zebra stripe is grouped per compound (parent + all its sub-forms
+        // share one colour) so a whole form is easy to tell from the next,
+        // regardless of how many sub-forms it has. Sub-rows reuse the same
+        // parity via row.index in renderSubComponent.
+        if (index % 2 === 1) classes.push(styles.stripeGroup);
+        // Parent with sub-forms merges into them (drops its bottom border) so
+        // the whole group is one seamless block.
+        if (c.subForms.length > 0) classes.push(styles.hasSubs);
+        return { ...c, rowClassName: classes.join(' ') || undefined };
+      }),
     [summary.activeCompoundForms, overdueCompoundKeys],
   );
 
@@ -465,6 +465,7 @@ export function DesktopPage() {
             isLoading={summaryLoading}
             getRowId={(row) => String(row.compoundFormKey)}
             getRowCanExpand={(row) => row.original.subForms.length > 0}
+            defaultExpanded
             onRowClick={(row) =>
               navigate(
                 `/control-forms${FORM_CONFIG.compound_form.route}/${row.compoundFormKey}`,
@@ -479,18 +480,17 @@ export function DesktopPage() {
                   return (
                     <tr
                       key={`${sf.formType}-${sf.formKey}`}
-                      className={`${styles.subRow}${overdue ? ` ${styles.rowOverdue}` : ''}`}
+                      className={`${styles.subRow}${overdue ? ` ${styles.rowOverdue}` : ''}${row.index % 2 === 1 ? ` ${styles.stripeGroup}` : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         goTo(buildContinueRoute(sf.formType, sf.formKey));
                       }}
                     >
                       {/* Sub-form rows are real rows of the parent table, so
-                          their cells line up under the parent columns. The
-                          leading cells stay empty; content sits under
-                          formNumber / formType / status / action. */}
-                      <td />
-                      {/* expander */}
+                          their cells line up under the parent columns. The 4
+                          leading cells (date/time/vehicle/driver+company) stay
+                          empty; content sits under formNumber / formType /
+                          status; the published column stays empty. */}
                       <td />
                       {/* date */}
                       <td />
@@ -498,16 +498,14 @@ export function DesktopPage() {
                       <td />
                       {/* vehicle */}
                       <td />
-                      {/* driver */}
-                      <td />
-                      {/* company */}
+                      {/* driver + company */}
                       <td>{sf.formNumber}</td>
                       <td>{formTypeLabel(t, sf.formType)}</td>
                       <td>
                         <FormStatusBadge status={sf.status} overdue={overdue} />
                       </td>
                       <td />
-                      {/* progress */}
+                      {/* published */}
                       <td className={styles.subTableAction}>
                         <Button
                           visualType="link"
