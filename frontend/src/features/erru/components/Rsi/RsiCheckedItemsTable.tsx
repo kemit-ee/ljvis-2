@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, ChoiceGroup, Modal, Text } from '@tedi-design-system/react/tedi';
+import {
+  Button,
+  ChoiceGroup,
+  Modal,
+  StatusBadge,
+  Text,
+} from '@tedi-design-system/react/tedi';
+import type { StatusBadgeColor } from '@tedi-design-system/react/tedi';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import type { ClassifierEntry } from '../../../classifiers/types';
@@ -8,6 +15,12 @@ import type { RsiCheckedItem, RsiDefectSeverity } from '../../types';
 import styles from './RsiCheckedItemsTable.module.css';
 
 const SEVERITIES: RsiDefectSeverity[] = ['VO', 'OV', 'EOV'];
+
+const severityColor = (sev: RsiDefectSeverity): StatusBadgeColor => {
+  if (sev === 'EOV') return 'danger';
+  if (sev === 'OV') return 'accent';
+  return 'warning'; // VO
+};
 
 /** Extract the trailing number from a classifier code (e.g. "CAA_11" -> 11). */
 const numericSuffix = (code: string): number => {
@@ -20,9 +33,8 @@ const numericSuffix = (code: string): number => {
  * TECHNICAL_CHECK level-1 part (CAA_10 excluded upstream, see useRsiForm.ts), a
  * three-way radio per row, and a defect-selection modal for "Ei vasta nõuetele".
  * Mirrors control-forms/technical-check-form's PartsSummaryTable + DefectSelectionModal
- * + DefectsResultsTable, adapted to RSI's nested checked_items shape
- * ([{partCode,status,defects:[...]}] instead of separate parts_summary/parts_defects
- * arrays) — there is no auto-derived overall result here, unlike the technical-check form.
+ * + DefectsResultsTable, adapted to RSI's nested checked_items shape. Uses only
+ * native TEDI components (ChoiceGroup, StatusBadge, Modal) and TEDI colour tokens.
  */
 export function RsiCheckedItemsTable({
   parts,
@@ -49,14 +61,22 @@ export function RsiCheckedItemsTable({
   const [modalPart, setModalPart] = useState<ClassifierEntry | null>(null);
 
   const sortedParts = useMemo(
-    () => [...parts].sort((a, b) => numericSuffix(a.code) - numericSuffix(b.code)),
+    () =>
+      [...parts].sort((a, b) => numericSuffix(a.code) - numericSuffix(b.code)),
     [parts],
   );
 
   const itemOf = (partCode: string): RsiCheckedItem =>
-    items.find((i) => i.partCode === partCode) ?? { partCode, status: 'not_checked', defects: [] };
+    items.find((i) => i.partCode === partCode) ?? {
+      partCode,
+      status: 'not_checked',
+      defects: [],
+    };
 
-  const handleStatusChange = (part: ClassifierEntry, status: RsiCheckedItem['status']) => {
+  const handleStatusChange = (
+    part: ClassifierEntry,
+    status: RsiCheckedItem['status'],
+  ) => {
     if (status === 'non_compliant') {
       setModalPart(part);
       return;
@@ -69,9 +89,6 @@ export function RsiCheckedItemsTable({
     if (status === 'non_compliant') return styles.partIndexNonCompliant;
     return '';
   };
-
-  const severityClass = (sev: RsiDefectSeverity): string =>
-    styles[`severity${sev}` as keyof typeof styles] ?? '';
 
   const radioItems = (partCode: string) => [
     {
@@ -104,9 +121,9 @@ export function RsiCheckedItemsTable({
                 .get(part.classifierValueKey)
                 ?.find((c) => c.code === d.defectCode)?.name ?? d.defectCode}
             </span>
-            <span className={`${styles.severityBadge} ${severityClass(d.severity)}`}>
+            <StatusBadge color={severityColor(d.severity)} variant="bordered">
               {d.severity}
-            </span>
+            </StatusBadge>
             {!disabled && (
               <Button
                 icon="delete"
@@ -147,7 +164,9 @@ export function RsiCheckedItemsTable({
                 <tr key={part.classifierValueKey} className={rowCls}>
                   <td>
                     <span className={styles.partName}>
-                      <span className={`${styles.partIndex} ${indexClass(item.status)}`}>
+                      <span
+                        className={`${styles.partIndex} ${indexClass(item.status)}`}
+                      >
                         {idx + 1}
                       </span>
                       <span className={styles.partLabel}>{part.name}</span>
@@ -163,7 +182,11 @@ export function RsiCheckedItemsTable({
                       direction="row"
                       value={item.status}
                       onChange={(val) =>
-                        !disabled && handleStatusChange(part, val as RsiCheckedItem['status'])
+                        !disabled &&
+                        handleStatusChange(
+                          part,
+                          val as RsiCheckedItem['status'],
+                        )
                       }
                       items={radioItems(part.code)}
                     />
@@ -178,7 +201,11 @@ export function RsiCheckedItemsTable({
         <RsiDefectModal
           open={!!modalPart}
           part={modalPart}
-          defects={modalPart ? defectsByPartKey.get(modalPart.classifierValueKey) ?? [] : []}
+          defects={
+            modalPart
+              ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? [])
+              : []
+          }
           existing={modalPart ? itemOf(modalPart.code).defects : []}
           onClose={() => setModalPart(null)}
           onConfirm={(selected) => {
@@ -208,7 +235,9 @@ export function RsiCheckedItemsTable({
             <div key={part.classifierValueKey} className={cardCls}>
               <div className={styles.cardHeader}>
                 <span className={styles.partName}>
-                  <span className={`${styles.partIndex} ${indexClass(item.status)}`}>
+                  <span
+                    className={`${styles.partIndex} ${indexClass(item.status)}`}
+                  >
                     {idx + 1}
                   </span>
                   <span className={styles.partLabel}>{part.name}</span>
@@ -224,7 +253,8 @@ export function RsiCheckedItemsTable({
                   direction="column"
                   value={item.status}
                   onChange={(val) =>
-                    !disabled && handleStatusChange(part, val as RsiCheckedItem['status'])
+                    !disabled &&
+                    handleStatusChange(part, val as RsiCheckedItem['status'])
                   }
                   items={radioItems(part.code)}
                 />
@@ -238,7 +268,11 @@ export function RsiCheckedItemsTable({
       <RsiDefectModal
         open={!!modalPart}
         part={modalPart}
-        defects={modalPart ? defectsByPartKey.get(modalPart.classifierValueKey) ?? [] : []}
+        defects={
+          modalPart
+            ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? [])
+            : []
+        }
         existing={modalPart ? itemOf(modalPart.code).defects : []}
         onClose={() => setModalPart(null)}
         onConfirm={(selected) => {
@@ -251,8 +285,9 @@ export function RsiCheckedItemsTable({
 }
 
 /* ═══════════════════════════════════════════════════════════
-   Defect-selection modal — redesigned with clickable severity
-   chips instead of plain radio buttons, grouped by defect row.
+   Defect-selection modal — one TEDI radio group per defect, with
+   an explicit "Puudub" (none) option so a chosen severity can be
+   cleared. Same pattern as technical-check-form's DefectSelectionModal.
    ═══════════════════════════════════════════════════════════ */
 
 function RsiDefectModal({
@@ -268,40 +303,42 @@ function RsiDefectModal({
   defects: ClassifierEntry[];
   existing: { defectCode: string; severity: RsiDefectSeverity }[];
   onClose: () => void;
-  onConfirm: (selected: { defectCode: string; severity: RsiDefectSeverity }[]) => void;
+  onConfirm: (
+    selected: { defectCode: string; severity: RsiDefectSeverity }[],
+  ) => void;
 }) {
   const { t } = useTranslation();
-  const [selections, setSelections] = useState<Record<string, RsiDefectSeverity | ''>>({});
+  const [selections, setSelections] = useState<
+    Record<string, RsiDefectSeverity | ''>
+  >({});
   const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     const initial: Record<string, RsiDefectSeverity | ''> = {};
     defects.forEach((d) => {
-      initial[d.code] = existing.find((e) => e.defectCode === d.code)?.severity ?? '';
+      initial[d.code] =
+        existing.find((e) => e.defectCode === d.code)?.severity ?? '';
     });
     setSelections(initial);
     setShowHint(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, part?.code]);
 
-  const applicableSeverities = (defect: ClassifierEntry): RsiDefectSeverity[] => {
+  const applicableSeverities = (
+    defect: ClassifierEntry,
+  ): RsiDefectSeverity[] => {
     const list = (defect.description ?? '').split(',').map((s) => s.trim());
     return SEVERITIES.filter((s) => list.includes(s));
-  };
-
-  const toggleSeverity = (defectCode: string, sev: RsiDefectSeverity) => {
-    setSelections((prev) => ({
-      ...prev,
-      [defectCode]: prev[defectCode] === sev ? '' : sev,
-    }));
-    setShowHint(false);
   };
 
   const handleConfirm = () => {
     const selected = Object.entries(selections)
       .filter(([, sev]) => !!sev)
-      .map(([defectCode, sev]) => ({ defectCode, severity: sev as RsiDefectSeverity }));
+      .map(([defectCode, sev]) => ({
+        defectCode,
+        severity: sev as RsiDefectSeverity,
+      }));
     if (selected.length === 0) {
       setShowHint(true);
       return;
@@ -309,69 +346,57 @@ function RsiDefectModal({
     onConfirm(selected);
   };
 
-  const chipClass = (sev: RsiDefectSeverity, isActive: boolean): string => {
-    const base = styles.severityChip;
-    const color = styles[`chip${sev}` as keyof typeof styles] ?? '';
-    const active = isActive ? (styles[`chip${sev}Active` as keyof typeof styles] ?? '') : '';
-    return [base, color, active].filter(Boolean).join(' ');
-  };
-
-  const selectedCount = Object.values(selections).filter(Boolean).length;
-
   return (
     <Modal open={open} onToggle={(next) => !next && onClose()}>
       <Modal.Content aria-label={part?.name ?? ''}>
         <Modal.Header title={part?.name ?? ''} />
         <Modal.Body>
-          <div className={styles.modalBody}>
-            {defects.length === 0 ? (
-              <div className={styles.modalEmptyState}>
-                <span className={styles.modalEmptyIcon}>--</span>
-                <Text>{t('erru.rsi.defectModal.noDefects')}</Text>
+          {defects.length === 0 && (
+            <Text>{t('erru.rsi.defectModal.noDefects')}</Text>
+          )}
+          {defects.map((defect) => {
+            const current = selections[defect.code] || '';
+            return (
+              <div key={defect.code} className="mb-1">
+                <ChoiceGroup
+                  id={`rsi-defect-${defect.code}`}
+                  name={`rsi-defect-${defect.code}`}
+                  label={defect.name}
+                  inputType="checkbox"
+                  direction="row"
+                  value={current ? [current] : []}
+                  onChange={(val) => {
+                    const arr = (
+                      Array.isArray(val) ? val : []
+                    ) as RsiDefectSeverity[];
+                    const added = arr.find((v) => v !== current);
+                    setSelections((prev) => ({
+                      ...prev,
+                      [defect.code]: added ?? '',
+                    }));
+                  }}
+                  items={applicableSeverities(defect).map((sev) => ({
+                    id: `rsi-defect-${defect.code}-${sev}`,
+                    value: sev,
+                    label: sev,
+                  }))}
+                />
               </div>
-            ) : (
-              defects.map((defect) => {
-                const severities = applicableSeverities(defect);
-                const currentSev = selections[defect.code] ?? '';
-
-                return (
-                  <div key={defect.code} className={styles.defectRow}>
-                    <span className={styles.defectRowLabel}>{defect.name}</span>
-                    <div className={styles.severityChips}>
-                      {severities.map((sev) => (
-                        <button
-                          key={sev}
-                          type="button"
-                          className={chipClass(sev, currentSev === sev)}
-                          onClick={() => toggleSeverity(defect.code, sev)}
-                          aria-pressed={currentSev === sev}
-                          aria-label={`${defect.name} — ${sev}`}
-                        >
-                          {sev}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-
-            {defects.length > 0 && (
-              <div className={styles.selectedCount}>
-                {selectedCount}/{defects.length}
-              </div>
-            )}
-
-            {showHint && (
-              <div className={styles.modalHint}>{t('erru.rsi.defectModal.selectAtLeastOne')}</div>
-            )}
-          </div>
+            );
+          })}
+          {showHint && (
+            <Text color="danger">
+              {t('erru.rsi.defectModal.selectAtLeastOne')}
+            </Text>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button visualType="secondary" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={handleConfirm}>{t('erru.rsi.defectModal.select')}</Button>
+          <Button onClick={handleConfirm}>
+            {t('erru.rsi.defectModal.select')}
+          </Button>
         </Modal.Footer>
       </Modal.Content>
     </Modal>
