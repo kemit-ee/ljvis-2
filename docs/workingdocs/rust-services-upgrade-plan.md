@@ -19,7 +19,7 @@ pinnitud, mis on uusim, mis muutub katkendlikult, mida ljvis-2-s muuta.
 | **Resql** | ✅ **migreeritud** `turnerrainer/resql:0.2.0-alpha` (`feat/resql-turnerrainer-0.2.0`; oli `askendest/resql:0.1.0-alpha.5`) | `turnerrainer/resql:0.2.0-alpha` | — | ~~KESKMINE~~ tehtud: 212 SQL `params:` kujule, ID-param `type: integer`, config-vaikeväärtused, Newman roheline |
 | **TIM** | ✅ **migreeritud** `turnerrainer/tim:0.3.0-alpha` (`feat/tim-0.3.0-alpha`; oli `0.2.0-alpha.2`) | `0.3.0-alpha` | — | ~~KESKMINE~~ tehtud: tara-mock ühilduv (https discovery, client_secret_basic, PKCE-taluv), Newman + päris login-voog rohelised |
 | **DataMapper** | ✅ **migreeritud** `turnerrainer/datamapper:0.1.3-alpha` (`feat/datamapper-0.1.3-alpha`; oli `0.1.0-alpha.2`) | `0.1.3-alpha` | — | ~~MADAL~~ tehtud: ainult Dockerfile digesti-bump, Newman roheline |
-| **XTR** | harbor digest = `turnerrainer/xtr:0.1.0-rc.2` (`docker/xtr/Dockerfile`); compose `:rc` | **`0.2.0-rc.1`** (= liikuv `:rc`) | — | **KESKMINE** (SOAP-fault vastuse kuju; `xroad_protocol_version` enum-valideerimine; HTTP no-decompress) |
+| **XTR** | ✅ **migreeritud** `turnerrainer/xtr:0.2.0-rc.1` (`feat/xtr-0.2.0-rc`; oli `0.1.0-rc.2`) | `0.2.0-rc.1` | — | ~~KESKMINE~~ tehtud: ainult Dockerfile digesti-bump, `doctor` 0 BREAK/WEAK, H3 ei kohaldu, Newman roheline |
 | **CronManager** | `turnerrainer/cronmanager:alpha` (= `0.1.4-alpha`) | `0.1.4-alpha` | — | **puudub** (juba uusim) |
 
 **Soovitatav teostusjärjekord:** Resql → DataMapper → Ruuter 0.9.10 → TIM → XTR
@@ -420,12 +420,12 @@ turvakarmistused:
 
 ## 5. XTR — **KESKMINE risk**
 
-### 5.1 Seis
-
-- **Pinn:** `docker/xtr/Dockerfile`: harbor-digest `sha256:61d441d00f75…`
-  = `turnerrainer/xtr:0.1.0-rc.2` (XTR CLAUDE.md kinnitab digesti).
-  `docker-compose.yml` `xtr` teenus: `image: turnerrainer/xtr:rc` (liikuv).
-- **Uusim:** **`0.2.0-rc.1`** (= liikuv `:rc`, avaldatud 2026-09-06).
+> **Seis 2026-09-07: MIGREERITUD `0.2.0-rc.1`** harul `feat/xtr-0.2.0-rc`.
+> Ainult `docker/xtr/Dockerfile` digesti-bump (`61d441d0…` → `f0e40e2a…`).
+> `xtr.yaml` **muutmata** — `doctor` 0 BREAK / 0 WEAK. H3/H2/C1 ei kohaldu
+> (pole WSDL-e / `.meta.yaml`; handlerid ei parsi SOAP-fault `detail` välja,
+> ainult range-check + `JSON.stringify(response.body)` logisse). CI kasutab
+> `docker/xtr-mock` → Newman ei puuduta seda; 10 DSL-i laeb 0.2.0-rc.1-l puhtalt.
 - ljvis kasutab **käsitsi kirjutatud SOAP-envelope DSL-e**
   (`DSL/xtr/*/*.yml` `<soapenv:Envelope>` mallidega) — **WSDL-faile ei ole**.
   Seega WSDL-põhised leiud (H2 sidecar-identiteet, C1 WSDL-URL-guard) **ei
