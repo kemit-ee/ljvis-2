@@ -1,31 +1,31 @@
 /*
-declaration:
-  version: 0.1
-  description: "Kirjuta e-toimiku päringu tulemus (jõustunud otsus + menetluse lõpetamise alus) autojuhi alamvormi UUSIMALE confirmed snapshot-reale KOHAPEAL — ei lisa uut snapshot-i, ei muuda template_version'i. found != true või juba täidetud enforcement_decision on no-op (0 rida) — cron/etoimik-sp-driver-decision-sync.yml kutsub seda iga kandidaadi kohta tingimusteta."
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: key
-        type: string
-        description: "sp_driver_form_key"
-      - field: found
-        type: string
-        description: "'true'/'1'/'yes' kui e-toimik tagastas jõustunud otsuse; muidu no-op."
-      - field: enforcementDecision
-        type: string
-      - field: proceedingClosureBasis
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: subFormNumber
-        type: string
+description: Kirjuta e-toimiku päringu tulemus (jõustunud otsus + menetluse lõpetamise alus) autojuhi
+  alamvormi UUSIMALE confirmed snapshot-reale KOHAPEAL — ei lisa uut snapshot-i, ei muuda template_version'i.
+  found != true või juba täidetud enforcement_decision on no-op (0 rida) — cron/etoimik-sp-driver-decision-sync.yml
+  kutsub seda iga kandidaadi kohta tingimusteta.
+namespace: control-forms
+params:
+  key:
+    type: string
+    required: false
+    description: sp_driver_form_key
+  found:
+    type: string
+    required: false
+    description: '''true''/''1''/''yes'' kui e-toimik tagastas jõustunud otsuse; muidu no-op.'
+  enforcementDecision:
+    type: string
+    required: false
+  proceedingClosureBasis:
+    type: string
+    required: false
+returns:
+- name: id
+  type: number
+  nullable: true
+- name: subFormNumber
+  type: string
+  nullable: true
 */
 UPDATE forms.sp_driver_form t
 SET

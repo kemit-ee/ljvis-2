@@ -1,14 +1,10 @@
 /*
-declaration:
-  version: 0.1
-  description: "Get a single classifier value by classifier_value_id"
-  method: post
-  namespace: classifier
-  returns: json
-  allowlist:
-    body:
-      - field: classifier_value_id
-        type: number
+description: Get a single classifier value by classifier_value_id
+namespace: classifier
+params:
+  classifier_value_id:
+    type: number
+    required: false
 */
 SELECT
     cv.classifier_key       AS classifier_id,

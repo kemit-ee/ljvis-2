@@ -1,31 +1,28 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    Teavituse liigi -> Postkast 2.0 malli kataloogi rida (12-1 §4 "Teavituse
-    liigid ja mallid"). send-postkast.yml kasutab seda selgitamaks kas liik
-    saadetakse Postkast 2.0 kaudu (channel='postkast', active=true) ja mis
-    malli algset tunnust kasutada.
-  method: post
-  accepts: json
-  returns: json
-  namespace: notification
-  allowlist:
-    body:
-      - field: notification_type
-        type: string
-  response:
-    fields:
-      - field: notificationType
-        type: string
-      - field: originalTemplateId
-        type: string
-      - field: channel
-        type: string
-      - field: defaultLanguage
-        type: string
-      - field: active
-        type: boolean
+description: Teavituse liigi -> Postkast 2.0 malli kataloogi rida (12-1 §4 "Teavituse liigid ja mallid").
+  send-postkast.yml kasutab seda selgitamaks kas liik saadetakse Postkast 2.0 kaudu (channel='postkast',
+  active=true) ja mis malli algset tunnust kasutada.
+namespace: notification
+params:
+  notification_type:
+    type: string
+    required: false
+returns:
+- name: notificationType
+  type: string
+  nullable: true
+- name: originalTemplateId
+  type: string
+  nullable: true
+- name: channel
+  type: string
+  nullable: true
+- name: defaultLanguage
+  type: string
+  nullable: true
+- name: active
+  type: boolean
+  nullable: true
 */
 SELECT
     notification_type,
