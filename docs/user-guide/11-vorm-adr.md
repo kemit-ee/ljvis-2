@@ -107,7 +107,7 @@ Rikkumiste plokk on struktureeritud **kontrollkaardi punktide 12–27 kaupa** (k
 | Riskikategooria | `I` / `II` / `III` (üks valik kirje kohta; mitu kategooriat → mitu kirjet) |
 | Rikutud ADR punkt | Kohustuslik vabatekst (nt `4.3.2.2.4`) |
 | Võimalik vastutav osaleja | Mitmene valik: Kaubasaatja (Ci), Vedaja (C), Kaubasaaja (Ce), Laadija (L), Pakendaja (P), Täitja (F), Paagi käitaja (To), Mahalaadija (U) |
-| Määruse (EL) 2016/403 rikkumisliik | Aktiveerub **ainult siis, kui vastutavaks osalejaks on valitud Vedaja (C)**. Valikus selle punktiga seotud rikkumisliigid + „Ei ole 2016/403 p 9 rikkumisliik" |
+| Määruse (EL) 2016/403 rikkumisliik | Aktiveerub **ainult siis, kui vastutavaks osalejaks on valitud Vedaja (C)**. Valikus selle punktiga seotud rikkumisliigid, iga kirje ees **ametlik rikkumise kood** (nt „VSI 856 – …"), + „Ei ole 2016/403 p 9 rikkumisliik" |
 | 2016/403 raskusaste | Kuvatakse automaatselt valitud rikkumisliigist (MSI / VSI / SI), kasutaja ei muuda |
 
 ### 8a. Muu rikkumine

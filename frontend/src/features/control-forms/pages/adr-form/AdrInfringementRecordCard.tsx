@@ -14,7 +14,7 @@ export const PARTICIPANTS: AdrParticipant[] = ['Ci', 'C', 'Ce', 'L', 'P', 'F', '
 export const REG_CODE_NONE = 'NONE';
 
 export interface RegCodeOption {
-  /** 2016/403 rikkumisliigi number ("10") või REG_CODE_NONE. */
+  /** Ametlik rikkumise kood ("VSI 856") või REG_CODE_NONE. */
   value: string;
   label: string;
   severity: string | null;

@@ -15,6 +15,17 @@ export function regNumberFromCode(code: string): string {
 }
 
 /**
+ * ADR_CONTROL_CHECKPOINT tase-2 nime algusest ametlik rikkumise kood
+ * (määruse lisa 2 riskikategooriate tabel), nt
+ * "VSI 856 – veetava aine kohta ..." -> "VSI 856".
+ * Kui nimi ei alga koodiga, tagastatakse tühi string.
+ */
+export function infringementCodeFromName(name: string): string {
+  const m = name.match(/^(MSI|VSI|SI)\s?(\d+)\b/);
+  return m ? `${m[1]} ${m[2]}` : '';
+}
+
+/**
  * "ADR Kontrollkaardi tehniline suunis" p 6 / p 9.11: määruse (EL) 2016/403
  * rikkumisliik täidetakse ainult siis, kui vastutavaks osalejaks on valitud
  * vedaja (C). Kui vedaja eemaldatakse, tühjendatakse liik ja raskusaste.

@@ -494,7 +494,7 @@ Migratsioonid: `20260903120000-adr-control-checkpoint-classifier.sql` (asendab `
   | P26 | 26. Kahe-/mitmepoolsed kokkulepped (nt ADR 1.5.1), riiklikud eeskirjad, pädeva asutuse heakskiit (nt ADR 8.1.2.2 (c)) | — |
   | P27 | 27. Muud rikkumised | — |
 
-- **Tase 2** — punktiga seotud komisjoni määruse (EL) 2016/403 I lisa jaotise 9 rikkumisliigid (27 kirjet). `code` = `RL<nr>_<Pnn>` (sama rikkumisliik võib olla seotud mitme punktiga → eraldi kirjed), `name` algab 2016/403 numbriga, `description` = raskusaste (`MSI`/`VSI`/`SI`). Allikas: Priit Tuuna seostetabel + määruse lisa 2.
+- **Tase 2** — punktiga seotud komisjoni määruse (EL) 2016/403 I lisa jaotise 9 rikkumisliigid (27 kirjet). `code` = `RL<nr>_<Pnn>` (sama rikkumisliik võib olla seotud mitme punktiga → eraldi kirjed; `code` on sisemine, kannab parent-seost). `name` = `<ametlik rikkumise kood> – <määruse lisa 2 kirjeldus>` (nt `VSI 855 – ei ole järgitud ühe veoühikuga veetavate koguste piiranguid…`); `description` = raskusaste (`MSI`/`VSI`/`SI`). Migratsioon `20260907140000` viis nimed 2016/403 rea numbrilt ametlikule koodile (määruse lisa 2 riskikategooriate tabel). Vorm salvestab rikkumiskirje väljale `reg2016403Code` **ametliku koodi** (varem 2016/403 rea number). Allikas: Priit Tuuna seostetabel + määruse lisa 2.
 
 Vormil kasutatakse tase-2 väärtusi ainult rikkumiskirje väljal „Määruse (EL) 2016/403 rikkumisliik". Rippmenüü „puudub" valik on frontendi konstant, mitte klassifikaatoris.
 

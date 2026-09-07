@@ -1047,10 +1047,10 @@
               "  pm.expect(codes).to.include('RL23_P22');",
               "  pm.expect(codes).to.include('RL23_P23');",
               "});",
-              "pm.test('Tase 2 nimi algab 2016/403 numbriga ja lõpeb raskusastmega', () => {",
+              "pm.test('Tase 2 nimi algab ametliku rikkumise koodiga (MSI/VSI/SI nnn), description = raskusaste', () => {",
               "  var rl10 = data.find(v => v.code === 'RL10_P17');",
-              "  pm.expect(rl10.name).to.match(/^10 – /);",
-              "  pm.expect(rl10.name).to.match(/\\(VSI\\)$/);",
+              "  pm.expect(rl10.name).to.match(/^VSI 855 – /);",
+              "  pm.expect(rl10.description).to.eql('VSI');",
               "});"
             ]
           }

@@ -18,7 +18,7 @@ import {
   REG_CODE_NONE,
   type RegCodeOption,
 } from './AdrInfringementRecordCard';
-import { regNumberFromCode } from './adrRecordUtils';
+import { infringementCodeFromName, regNumberFromCode } from './adrRecordUtils';
 
 const INSPECTION_STATUS: Exclude<AdrInspectionStatus, ''>[] = ['C', 'NC', 'NA'];
 
@@ -59,10 +59,10 @@ export function AdrOtherInfringementsSection({
     items
       .filter((i) => i.parentKey !== null)
       .forEach((i) => {
-        const num = regNumberFromCode(i.code);
-        if (seen.has(num)) return;
-        seen.add(num);
-        opts.push({ value: num, label: i.name, severity: i.description ?? null });
+        const code = infringementCodeFromName(i.name) || regNumberFromCode(i.code);
+        if (seen.has(code)) return;
+        seen.add(code);
+        opts.push({ value: code, label: i.name, severity: i.description ?? null });
       });
     opts.sort((a, b) => a.value.localeCompare(b.value, undefined, { numeric: true }));
     opts.push({ value: REG_CODE_NONE, label: t('forms.adr.infringements.regCodeNone'), severity: null });

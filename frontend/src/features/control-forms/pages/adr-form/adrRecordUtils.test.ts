@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { regNumberFromCode, normalizeAdrRecord, EMPTY_ADR_RECORD } from './adrRecordUtils';
+import {
+  regNumberFromCode,
+  infringementCodeFromName,
+  normalizeAdrRecord,
+  EMPTY_ADR_RECORD,
+} from './adrRecordUtils';
 import type { AdrInfringementRecord } from '../../types';
 
 describe('regNumberFromCode', () => {
@@ -14,6 +19,18 @@ describe('regNumberFromCode', () => {
   });
   it('tundmatu kuju tagastatakse muutmata', () => {
     expect(regNumberFromCode('NONE')).toBe('NONE');
+  });
+});
+
+describe('infringementCodeFromName', () => {
+  it('eraldab ametliku koodi nime algusest', () => {
+    expect(infringementCodeFromName('VSI 856 – veetava aine kohta puudub teave')).toBe('VSI 856');
+    expect(infringementCodeFromName('MSI 401 – selliste ohtlike veoste vedu')).toBe('MSI 401');
+    expect(infringementCodeFromName('SI 937 – sõiduki ja/või mahuti etiketid')).toBe('SI 937');
+  });
+  it('tagastab tühja stringi, kui nimi ei alga koodiga', () => {
+    expect(infringementCodeFromName('10 – Veoühikus lubatud koguse piirangut')).toBe('');
+    expect(infringementCodeFromName('')).toBe('');
   });
 });
 

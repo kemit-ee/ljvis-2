@@ -64,7 +64,7 @@ Allikad:
 
 > `P15` ja `P26` sisaldavad mitut sulgudes rühma → kogu sõnastus on `name`-väljal, `description` on tühi. Kuvamine vormil: `heading = description ? "<name> (<description>)" : "<name>"`.
 
-**Tase 2** — iga punkti alla selle punktiga seotud 2016/403 I lisa jaotise 9 rikkumisliigid (allikas: sama PDF). `code` = rikkumisliigi number, `name` = kirjeldus, `description` = raskusaste. Sama liik mitme punkti all = eraldi `classifier_value` kirje (`parent_key` erinev).
+**Tase 2** — iga punkti alla selle punktiga seotud 2016/403 I lisa jaotise 9 rikkumisliigid (allikas: sama PDF). `code` = `RL<nr>_<Pnn>` (sisemine). `name` = `<ametlik rikkumise kood> – <lisa 2 kirjeldus>` (nt `VSI 855 – …`; migratsioon `20260907140000`, varem algas 2016/403 rea numbriga), `description` = raskusaste. Sama liik mitme punkti all = eraldi `classifier_value` kirje (`parent_key` erinev). Vorm salvestab `reg2016403Code` väljale ametliku koodi.
 
 | punkt | 2016/403 rikkumisliigid (nr — raskusaste) |
 |---|---|

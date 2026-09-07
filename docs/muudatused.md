@@ -19,6 +19,16 @@
 
 ---
 
+## 2026-09 — ADR-vorm: rikkumisliigi valikus ametlik rikkumise kood
+
+- Rikkumiskirje väljal **„Määruse (EL) 2016/403 rikkumisliik"** on iga valiku ees
+  nüüd **ametlik rikkumise kood** määruse lisa 2 riskikategooriate tabelist
+  (nt „VSI 856 – veetava aine kohta puudub teave, mis võimaldaks kindlaks teha
+  rikkumise raskusastet"). Varem oli ees seostetabeli sisemine rea number.
+- Vorm salvestab rikkumiskirje juurde nüüd selle ametliku koodi.
+
+---
+
 ## 2026-09 — ADR-vorm: rikkumiste punktide pealkirjad määruse lisa 2 kujule
 
 - ADR kontrollvormi rikkumiste ploki **kontrollkaardi punktide (12–27) pealkirjad**
