@@ -15,7 +15,7 @@ pinnitud, mis on uusim, mis muutub katkendlikult, mida ljvis-2-s muuta.
 
 | Komponent | ljvis-2 praegu | Uusim **avaldatud** | dev-is (avaldamata) | Katkendlikkuse risk |
 |---|---|---|---|---|
-| **Ruuter** | `turnerrainer/ruuter:0.9.9-rc` (digest, `docker/ruuter*/Dockerfile`) | **`0.9.10-rc`** (= liikuv `:rc`) | `0.9.11-rc` (tag+publish tegemata; README juba viitab) | 0.9.10: **madal**. 0.9.11: **KÕRGE** (H1 template-guardid, H2 WS-guardid) |
+| **Ruuter** | ✅ **0.9.10-rc migreeritud** (`feat/ruuter-0.9.10-rc`; oli `0.9.9-rc`) | `0.9.10-rc` | `0.9.11-rc` (tag+publish tegemata; README juba viitab) | 0.9.10: ~~madal~~ tehtud, Newman roheline. 0.9.11: **KÕRGE, OOTEL** (H1 template-guardid, H2 WS-guardid) |
 | **Resql** | ✅ **migreeritud** `turnerrainer/resql:0.2.0-alpha` (`feat/resql-turnerrainer-0.2.0`; oli `askendest/resql:0.1.0-alpha.5`) | `turnerrainer/resql:0.2.0-alpha` | — | ~~KESKMINE~~ tehtud: 212 SQL `params:` kujule, ID-param `type: integer`, config-vaikeväärtused, Newman roheline |
 | **TIM** | `turnerrainer/tim:0.2.0-alpha.2` (`docker/tim/Dockerfile`); release-Dockerfile juba `0.2.1-alpha` | **`0.3.0-alpha`** | — | **KESKMINE** (OIDC discovery fail-closed plain-HTTP peal; PKCE nüüd saadetakse; token-exchange `client_secret_basic`) |
 | **DataMapper** | ✅ **migreeritud** `turnerrainer/datamapper:0.1.3-alpha` (`feat/datamapper-0.1.3-alpha`; oli `0.1.0-alpha.2`) | `0.1.3-alpha` | — | ~~MADAL~~ tehtud: ainult Dockerfile digesti-bump, Newman roheline |
@@ -30,9 +30,16 @@ pinnitud, mis on uusim, mis muutub katkendlikult, mida ljvis-2-s muuta.
 
 ## 1. Ruuter
 
+> **Seis 2026-09-07: 0.9.10-rc MIGREERITUD** harul `feat/ruuter-0.9.10-rc`.
+> Mõlemad Dockerfile'id → `0.9.10-rc@sha256:45c37025…`; #63 tarvis 6 nysiis-kontrolli
+> (`check-transport-manager-good-repute.yml`, `erru/cgr/send.yml`,
+> `Ruuter.internal/erru/cgr/lookup-mtr.yml`) said lisaklausli `|| ...body.length === 0`.
+> Täis-Newman (26 kollektsiooni) roheline.
+> **0.9.11-rc jääb ootele** (§1.4) — konteiner avaldamata + H1/H2 töö tegemata.
+
 ### 1.1 Seis
 
-- **Pinn:** `docker/ruuter/Dockerfile` ja `docker/ruuter-internal/Dockerfile`:
+- **Pinn (enne):** `docker/ruuter/Dockerfile` ja `docker/ruuter-internal/Dockerfile`:
   `FROM turnerrainer/ruuter:0.9.9-rc@sha256:eb251a17…`
 - **Uusim avaldatud:** `0.9.10-rc` (Docker Hub `:0.9.10-rc` ja liikuv `:rc`
   osutavad samale digestile `sha256:45c37025…`, avaldatud 2026-09-04).
