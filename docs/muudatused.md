@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-09 — ADR-vorm: rikkumiste punktide pealkirjad määruse lisa 2 kujule
+
+- ADR kontrollvormi rikkumiste ploki **kontrollkaardi punktide (12–27) pealkirjad**
+  on viidud kliimaministri määruse **lisa 2** sõnastusega täpselt vastavusse.
+- Iga pealkirja ees on nüüd **punkti number** (12–26 ja 27 „Muud rikkumised") ning
+  pealkirja järel **sulgudes samad ADR-viited**, mis on toodud lisas 2 (osal „nt",
+  osal ilma). Näiteks „14. Sõiduki vastavustunnistus (ADR 8.1.2.2 (a), 9.1.3)".
+
+---
+
 ## 2026-09 — Postkast 2.0: saadetud kirjade logi (analüüs 12-2)
 
 - **Saadetud kirjad** tabelis on nüüd **1 rida = 1 saatmiskatse ühele adressaadile**

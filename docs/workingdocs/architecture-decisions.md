@@ -36,7 +36,7 @@ Lisa 2 juhib tähelepanu, et seos kontrollkaardi rea ja 2016/403 rikkumisliigi v
 
 #### Otsus 1 — Rikkumiste klassifikaator: uus 2-tasemeline `ADR_CONTROL_CHECKPOINT`; `DANGEROUS_GOODS_INFRINGEMENTS_NEW` kustutatakse
 
-* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = punkti nimetus (nt „Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „ADR 4.1–4.7").
+* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = `<nr>. <määruse lisa 2 pealkiri>` (nt „17. Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „nt ADR 4.1–4.7"). Pealkirjad ja viited on määruse **lisa 2** sõnastusega joondatud migratsiooniga `20260907120000` (algne seeme `20260903120000` kasutas PDF-i „Kontrollitav valdkond" veergu).
 * **Tase 2 = selle punktiga eelnevalt seostatud 2016/403 I lisa jaotise 9 rikkumisliik.** `parent_key` viitab punktile; `code` = rikkumisliigi number (`1`…`24`); `name` = rikkumisliigi lühikirjeldus; `description` = raskusaste (`MSI` / `VSI` / `SI`). Neid väärtusi kasutab vormil ainult rikkumiskirje väli „Määruse (EL) 2016/403 rikkumisliik" (rippmenüü filtreerimiseks punkti järgi).
 * **Rikkumisliigi „puudub" valik** („Ei ole määruse 2016/403 p 9 rikkumisliik") **ei ole klassifikaatoris** — see on rippmenüü kõva­kood. sentinel (`NONE`), kuna vedaja võib vastutada ka väljaspool jaotist 9.
 * **Many-to-many realiseeritakse duplikaatkirjetena.** Sama rikkumisliik, mis seondub mitme punktiga, sisestatakse iga punkti alla eraldi `classifier_value` kirjena. Eraldi seostabelit **ei tehta**. Lõplik seoste loend: Priit Tuuna ettevalmistatud tabel.

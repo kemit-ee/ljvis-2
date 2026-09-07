@@ -90,7 +90,7 @@ Ridade lisamiseks klõpsake **+ Lisa ohtlik kaup**. Rida saab kustutada prügika
 
 ### 8. Rikkumised
 
-Rikkumiste plokk on struktureeritud **kontrollkaardi punktide 12–27 kaupa** (klassifikaator `ADR_CONTROL_CHECKPOINT`). Iga punkti pealkiri sisaldab valdkonna nime ja sulgudes ADR-viidet.
+Rikkumiste plokk on struktureeritud **kontrollkaardi punktide 12–27 kaupa** (klassifikaator `ADR_CONTROL_CHECKPOINT`). Iga punkti pealkiri järgib kliimaministri määruse **lisa 2** sõnastust: punkti number, valdkonna nimi ning sulgudes viited ADR-i sätetele (nt „12. Veodokumendid (nt ADR 8.1.2.1 (a), 5.4.1, 5.4.2)").
 
 **Punkti tasand:**
 
