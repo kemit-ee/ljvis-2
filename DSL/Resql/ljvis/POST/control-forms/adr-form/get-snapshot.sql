@@ -95,6 +95,9 @@ returns:
 - name: notes
   type: string
   nullable: true
+- name: infringementNotesSummary
+  type: string
+  nullable: true
 - name: enforcementDecision
   type: string
   nullable: true
@@ -134,6 +137,7 @@ SELECT
   seal_opened_date,
   seal_installed_date,
   notes,
+  infringement_notes_summary,
   enforcement_decision,
   proceeding_closure_basis,
   created_by

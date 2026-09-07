@@ -80,6 +80,9 @@ params:
   notes:
     type: string
     required: false
+  infringementNotesSummary:
+    type: string
+    required: false
   created_by:
     type: string
     required: false
@@ -125,6 +128,7 @@ WITH ins AS (
     seal_opened_date,
     seal_installed_date,
     notes,
+    infringement_notes_summary,
     created_by
   )
   VALUES (
@@ -157,6 +161,7 @@ WITH ins AS (
     NULLIF(:sealOpenedDate, '')::DATE,
     NULLIF(:sealInstalledDate, '')::DATE,
     NULLIF(:notes, ''),
+    NULLIF(:infringementNotesSummary, ''),
     :created_by
   )
   RETURNING adr_form_key, sub_form_number, version

@@ -401,10 +401,12 @@ export type AdrInfringementRecord = {
   riskCategory: '' | AdrRiskCategory;
   adrReference: string;
   responsibleParticipants: AdrParticipant[];
-  /** ADR_CONTROL_CHECKPOINT tase-2 klassifikaatori 2016/403 number | 'NONE' | null (aktiivne ainult kui responsibleParticipants sisaldab 'C'). */
+  /** Ametlik rikkumise kood määruse lisa 2 riskikategooriate tabelist (nt 'VSI 856') | 'NONE' | null (aktiivne ainult kui responsibleParticipants sisaldab 'C'). */
   reg2016403Code: string | null;
   /** Tuletatud reg2016403Code-ist; hoitakse riskCategory-st eraldi. */
   reg2016403Severity: AdrRegSeverity | null;
+  /** Selle rikkumiskirje märkused; koondatakse kontrollkaardi märkuste välja. */
+  notes: string;
 };
 
 /** Üks kontrollkaardi punkt (P12–P27) koos selle all olevate rikkumiskirjetega. */
@@ -455,6 +457,8 @@ export interface AdrForm {
   sealOpenedDate?: string;
   sealInstalledDate?: string;
   notes?: string;
+  /** Kirjutuskaitstud koond kõigi rikkumiskirjete märkustest (tuletatud infringements/otherInfringements väljadest). */
+  infringementNotesSummary?: string;
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
   createdBy?: string;

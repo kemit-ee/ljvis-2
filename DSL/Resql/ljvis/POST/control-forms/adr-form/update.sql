@@ -83,6 +83,9 @@ params:
   notes:
     type: string
     required: false
+  infringementNotesSummary:
+    type: string
+    required: false
   created_by:
     type: string
     required: false
@@ -136,6 +139,7 @@ INSERT INTO forms.adr_form (
   seal_opened_date,
   seal_installed_date,
   notes,
+  infringement_notes_summary,
   enforcement_decision,
   proceeding_closure_basis,
   created_by
@@ -170,6 +174,7 @@ SELECT
   NULLIF(:sealOpenedDate, '')::DATE,
   NULLIF(:sealInstalledDate, '')::DATE,
   NULLIF(:notes, ''),
+  NULLIF(:infringementNotesSummary, ''),
   latest.enforcement_decision,
   latest.proceeding_closure_basis,
   :created_by

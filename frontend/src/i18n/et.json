@@ -706,6 +706,7 @@
       },
       "dangerousGoods": {
         "title": "Veetavate ohtlike kaupade andmed",
+        "subtitle": "Täidetakse rikkumise tuvastamise korral",
         "empty": "Ohtlikke kaupu ei ole lisatud",
         "addRow": "+ Lisa ohtlik kaup",
         "unNumber": "ÜRO number",
@@ -752,6 +753,7 @@
           "III": "III"
         },
         "adrReference": "Rikutud ADR punkt",
+        "recordNotes": "Märkused",
         "participants": "Võimalik vastutav osaleja",
         "participantOptions": {
           "Ci": "Kaubasaatja (Ci)",
@@ -800,7 +802,8 @@
       },
       "notes": {
         "title": "Märkused",
-        "counter": "{{count}}/{{max}} tähemärki"
+        "counter": "{{count}}/{{max}} tähemärki",
+        "infringementSummary": "Rikkumiskirjete märkuste koond (automaatne)"
       },
       "xroad": {
         "title": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
@@ -823,7 +826,8 @@
         "title": "Pealkiri",
         "addRow": "+ Lisa uus muu rikkumine",
         "remove": "Kustuta muu rikkumine",
-        "empty": "Muid rikkumisi ei ole lisatud"
+        "empty": "Muid rikkumisi ei ole lisatud",
+        "fallbackLabel": "Muu rikkumine {{index}}"
       }
     },
     "driver_drive_rest_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",

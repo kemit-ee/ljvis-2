@@ -32,9 +32,12 @@ export function AddressFields({
   const { t } = useTranslation();
   const { getChildren } = useClassifiers();
 
+  // Nähtava sildiga ("—") tühi esimene valik, et ekslikult valitud väärtust
+  // saaks tühjendada; sildita rida jäi rippmenüüs peaaegu nähtamatuks.
+  const emptyOption = { value: '', label: '—' };
+
   const countryOptions = [
-    // Tühi esimene valik, et ekslikult valitud riiki saaks tühjendada.
-    { value: '', label: '' },
+    emptyOption,
     ...COUNTRIES.map((c) => ({
       value: c.value,
       label: t(c.labelKey),
@@ -52,8 +55,9 @@ export function AddressFields({
     [value.county, getChildren],
   );
 
-  const countyOptions = counties.map(asOption);
-  const cityOptions = citiesParishes.map(asOption);
+  // Eesti puhul on maakond/linn rippmenüüd — lisa neisse samuti tühi valik.
+  const countyOptions = [emptyOption, ...counties.map(asOption)];
+  const cityOptions = [emptyOption, ...citiesParishes.map(asOption)];
   const isEstonia = value.countryCode === 'EE';
 
   return (
