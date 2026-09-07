@@ -16,24 +16,29 @@ export interface InAppNotification {
 
 export interface OutboundLogEntry {
   id: string;
-  messageType: string;
-  sendDate: string;
-  status: 'sent' | 'sent_error';
+  notificationKey: string | null;
+  notificationType: string;
+  sendDate: string | null;
+  status: 'queued' | 'in_progress' | 'sent' | 'error';
+  recipientAddress: string | null;
+  failureReason: string | null;
   relatedEntityType?: string | null;
   relatedEntityId?: string | null;
   originalLogId?: string | null;
   pkTemplateId?: string | null;
   pkSendingOperationId?: string | null;
-  firstRecipientEmail?: string | null;
-  firstRecipientName?: string | null;
-  firstRecipientCode?: string | null;
+  pkOperationRestartAllowed?: boolean | null;
+  pkCompletedAt?: string | null;
   total?: number;
 }
 
 export interface OutboundLogFilters {
   status?: string;
-  messageType?: string;
+  notificationType?: string;
   dateFrom?: string;
+  dateTo?: string;
+  recipient?: string;
+  notificationKey?: string;
 }
 
 export interface OutboundRecipient {
@@ -60,6 +65,6 @@ export interface MarkAllReadResult {
 
 export interface ResendResult {
   logId: string;
-  pkSendingOperationId: string;
+  notificationKey: string;
   status: string;
 }

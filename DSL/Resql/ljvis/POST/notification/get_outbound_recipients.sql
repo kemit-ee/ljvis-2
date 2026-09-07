@@ -4,7 +4,7 @@ declaration:
   description: >-
     Ühe outbound_log kirje saajate loend (UC-03).
     Eraldi kutse, mitte JOIN list_outbound_log.sql-iga (JOIN keelatud).
-    notification.admin õiguse kontroll on Ruuter DSL-i tasemel.
+    notification.list õiguse kontroll on Ruuter DSL-i tasemel.
   method: post
   accepts: json
   returns: json

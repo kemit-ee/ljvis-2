@@ -1,18 +1,32 @@
 declaration:
-  version: "1.0"
+  version: "2.0"
   description: >-
-    Postkast 2.0 kaudu saadetud kirjade logi (UC-02).
-    Filtrid: status, messageType, dateFrom.
-    Leheküljed: page + pageSize.
-    Nõuab notification.admin õigust (kaitstud outbound-log/.guard kaudu).
+    Postkast 2.0 kaudu saadetud kirjade logi (analüüs 12-2 "Saadetud
+    teavituste nimekirja vaatamine"). Filtrid: status, notificationType,
+    dateFrom/dateTo (saatmise kuupäevavahemik), recipient (adressaat,
+    sisaldab), notificationKey (täpne). Sortimine sortBy/sortDir (vaikimisi
+    sendDate desc). Leheküljed page + pageSize.
+    Nõuab notification.list õigust (kaitstud outbound-log/.guard kaudu).
+    Iga avamine logitakse auditisse (notification.list.view) — vaates
+    kuvatakse isikuandmeid (adressaatide e-posti aadressid), 12-2 §7.
   namespace: notification
   allowlist:
     params:
       - field: status
         type: string
-      - field: messageType
+      - field: notificationType
         type: string
       - field: dateFrom
+        type: string
+      - field: dateTo
+        type: string
+      - field: recipient
+        type: string
+      - field: notificationKey
+        type: string
+      - field: sortBy
+        type: string
+      - field: sortDir
         type: string
       - field: page
         type: number
@@ -22,8 +36,13 @@ declaration:
 extractParams:
   assign:
     status: "${incoming.params.status ?? ''}"
-    message_type: "${incoming.params.messageType ?? ''}"
+    notification_type: "${incoming.params.notificationType ?? ''}"
     date_from: "${incoming.params.dateFrom ?? ''}"
+    date_to: "${incoming.params.dateTo ?? ''}"
+    recipient: "${incoming.params.recipient ?? ''}"
+    notification_key: "${incoming.params.notificationKey ?? ''}"
+    sort_by: "${incoming.params.sortBy ?? 'send_date'}"
+    sort_dir: "${incoming.params.sortDir ?? 'desc'}"
     page: "${incoming.params.page ?? 1}"
     page_size: "${incoming.params.pageSize ?? 20}"
   next: queryLog
@@ -36,27 +55,71 @@ queryLog:
       type: json
     body:
       status: ${status}
-      message_type: ${message_type}
+      notification_type: ${notification_type}
       date_from: ${date_from}
+      date_to: ${date_to}
+      recipient: ${recipient}
+      notification_key: ${notification_key}
+      sort_by: ${sort_by}
+      sort_dir: ${sort_dir}
       page: ${page}
       page_size: ${page_size}
   result: res
-  next: mapResponse
+  next: buildResult
 
-# Mähime read {content, total} kujusse (frontend PagedResponse), sama mustriga
-# nagu erru list-otspunktid (map_rsi_list / map_ctud_list). total tuleb
-# list_outbound_log.sql-i COUNT(*) OVER () veerust, mis on igal real ühesugune.
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_outbound_log_list"
-    headers:
-      type: json
-    body:
-      rows: ${res.response.body}
-  result: mapped
+# Mähime read {content, total} kujusse (frontend PagedResponse). total tuleb
+# list_outbound_log.sql-i COUNT(*) OVER () veerust (igal real ühesugune).
+# NB: EI kasuta DMapperit (varem map_outbound_log_list.handlebars) — see ehitas
+# JSON-i käsitsi ilma escape'imata, seega üksainus failure_reason reavahetuse /
+# kurakaldkriipsuga (nt X-teelt op.resolution) tegi terve vastuse vigaseks
+# JSON-iks ja Ruuter tagastas selle stringina (frontend: 0 rida). Ehitame
+# objekti siin ja puhastame failure_reason üherealiseks (split/join, mitte
+# regex — Ruuteri väljendimootor).
+buildResult:
+  assign:
+    result_obj: >-
+      ${({
+        content: (res.response.body || []).map(function(r){
+          if (r.failureReason != null) {
+            r.failureReason = String(r.failureReason)
+              .split(String.fromCharCode(13)).join(' ')
+              .split(String.fromCharCode(10)).join(' ')
+              .split(String.fromCharCode(9)).join(' ')
+              .split(String.fromCharCode(92)).join('/');
+          }
+          return r;
+        }),
+        total: (res.response.body && res.response.body[0]) ? res.response.body[0].total : 0
+      })}
+  next: buildAuditDescription
+
+# 12-2 §7: iga avamine logitakse, sest vaates kuvatakse adressaatide
+# e-posti aadresse. `description` on audit-tabelis varchar(500), seega hoiame
+# selle lühikese (filter + lehekülg + kirjete arv); kuvatud teavituste
+# tunnused ja adressaadid lähevad täies mahus struktureeritud log_content'i.
+buildAuditDescription:
+  assign:
+    shown_count: "${(res.response.body || []).length}"
+    shown_keys_json: "${JSON.stringify((res.response.body || []).map(function(r){ return r.notificationKey || r.id; }))}"
+    shown_recipients_json: "${JSON.stringify((res.response.body || []).map(function(r){ return r.recipientAddress; }).filter(function(e){ return !!e; }))}"
+    filter_summary: "${'status=' + (status || '-') + ', notificationType=' + (notification_type || '-') + ', dateFrom=' + (date_from || '-') + ', dateTo=' + (date_to || '-') + ', recipient=' + (recipient || '-') + ', notificationKey=' + (notification_key || '-')}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "notification.list.view"
+    event_category: "notification_management"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+    description: "${('Teavituste logi vaadatud, filter ' + filter_summary + ', lehekülg ' + page + ', kuvatud ' + shown_count + ' kirjet, ulatus: kõik asutused').substring(0, 480)}"
+    log_content: "${JSON.stringify({ page: page, pageSize: page_size, sortBy: sort_by, sortDir: sort_dir, filters: { status: status, notificationType: notification_type, dateFrom: date_from, dateTo: date_to, recipient: recipient, notificationKey: notification_key }, shownNotificationKeys: JSON.parse(shown_keys_json), shownRecipients: JSON.parse(shown_recipients_json) })}"
+  result: audit_result
   next: returnResult
 
 returnResult:
-  return: ${mapped.response.body}
+  return: ${result_obj}
   next: end
