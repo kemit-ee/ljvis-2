@@ -186,6 +186,11 @@ export function useForeignViolationForm(
           additionalSanctionCodes: Array.isArray(values.additionalSanctionCodes)
             ? JSON.stringify(values.additionalSanctionCodes)
             : (values.additionalSanctionCodes ?? '[]'),
+          // resql declares these as type:string (NULLIF(:x,'')::BOOLEAN);
+          // a bare boolean is rejected by turnerrainer/resql -> send 'true'/'false'.
+          penaltyExpiredOrProcessed: String(values.penaltyExpiredOrProcessed ?? false),
+          foreignAuthorityProposal: String(values.foreignAuthorityProposal ?? false),
+          notifyCarrier: String(values.notifyCarrier ?? false),
         };
         const payload = {
           ...trimmedValues,
