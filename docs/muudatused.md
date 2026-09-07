@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-09 — ADR-vorm: veetavate ohtlike kaupade plokk ja aadressiväljad
+
+- Väli **„Pakendirühm"** on nüüd vabateksti asemel valik loendist: tühi valik,
+  „I pakendirühm – väga ohtlik aine", „II pakendirühm – keskmise ohtlikkusega
+  aine", „III pakendirühm – madala ohtlikkusega aine", „Ei ole määratud"
+  (klassifikaator `ADR_PACKING_GROUP`).
+
+---
+
 ## 2026-09 — ADR-vorm: rikkumiste punktide pealkirjad määruse lisa 2 kujule
 
 - ADR kontrollvormi rikkumiste ploki **kontrollkaardi punktide (12–27) pealkirjad**

@@ -503,6 +503,20 @@ Migratsioon: `20260903130000-adr-quantity-unit-classifier.sql`
 
 1-tasemeline, 8 väärtust: `l`, `kg`, `t`, `m3` („m³"), `tk`, `pakendit`, `ballooni`, `nem_kg` („NEM kg"). Kasutusel ADR-vormi „Veetavate ohtlike kaupade andmed" ploki väljal „Ühik".
 
+### ADR pakendirühm — ADR_PACKING_GROUP
+Migratsioon: `20260907130000-adr-packing-group-classifier.sql`
+
+1-tasemeline, 4 väärtust — ADR-vormi „Veetavate ohtlike kaupade andmed" ploki väli „Pakendirühm" (varem vabatekst):
+
+| code | name |
+|---|---|
+| I | I pakendirühm – väga ohtlik aine |
+| II | II pakendirühm – keskmise ohtlikkusega aine |
+| III | III pakendirühm – madala ohtlikkusega aine |
+| NA | Ei ole määratud |
+
+Rippmenüü esimene **tühi valik** („—") on frontendi konstant (nagu riigi valikul), et ekslikult valitud väärtust saaks tühjendada; klassifikaatoris seda ei ole.
+
 ### Reg 2016/403 I lisa kaardistus
 Ülevaade, milline klassifikaator kannab I lisa iga jaotist: [`rikkumiste-klassifikaatorid-2016-403.md`](rikkumiste-klassifikaatorid-2016-403.md).
 

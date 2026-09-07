@@ -66,7 +66,7 @@ Tabelisse saab lisada ühe või mitu rida. Igale kaubale täidetakse:
 | Väli | Selgitus |
 |---|---|
 | ÜRO number (`unNumber`) | Ohtliku kauba ÜRO number |
-| Pakendirühm (`packagingGroup`) | Pakkumisrühm |
+| Pakendirühm (`packagingGroup`) | Valik (klassifikaator `ADR_PACKING_GROUP`): tühi valik, „I pakendirühm – väga ohtlik aine", „II pakendirühm – keskmise ohtlikkusega aine", „III pakendirühm – madala ohtlikkusega aine", „Ei ole määratud" |
 | Kogus (`quantity`) | Arvväli |
 | Ühik (`unitCode`) | Valik: l, kg, t, m³, tk, pakendit, ballooni, NEM kg (klassifikaator `ADR_QUANTITY_UNIT`) |
 
