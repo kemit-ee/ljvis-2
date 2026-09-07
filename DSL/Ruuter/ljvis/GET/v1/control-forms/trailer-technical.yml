@@ -13,7 +13,13 @@ get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
-  next: extractRequestData
+  next: checkPermission
+
+checkPermission:
+  switch:
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('trailer_technical_form.read'))}
+      next: extractRequestData
+  next: returnForbidden
 
 extractRequestData:
   assign:
@@ -72,4 +78,9 @@ returnSuccess:
 returnNotFound:
   status: 404
   return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error": "FORBIDDEN"}'
   next: end
