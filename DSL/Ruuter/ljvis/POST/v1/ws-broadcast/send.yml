@@ -2,25 +2,32 @@ declaration:
   version: "1.0"
   description: >-
     SISEMINE endpoint. Ruuter.internal notification/create.yml kutsub selle peale
-    teavituse loomist. Teeb ws_send broadcast_prefix "client:" — sisutu
-    {"type":"notification_update"} signaali KÕIGILE ühendatud frontendidele.
+    teavituse loomist. Teeb ws_send broadcast_where tag=perms
+    contains=",<required_permission>," — sisutu {"type":"notification_update"}
+    signaal AINULT nendele ühendustele, kelle `perms` sild (seatud
+    WS/inbound/notifications/connect.yml `ws_tag`-iga) sisaldab teavituse
+    nõutavat õigust.
 
     Miks eraldi endpoint: WsRegistry on protsessisisene. Kliendid ühenduvad
     `ruuter` containerisse; `ruuter-internal` ei näe neid ühendusi. Seega peab
     broadcast'i tegema `ruuter` ise.
 
     Payload EI sisalda kasutajaandmeid — iga frontend teeb seejärel oma autenditud
-    GET /v1/notifications/unread-count päringu. Sessiooni kehtivust kontrollib
-    WS/inbound/notifications/connect.yml iga frame'i peal.
+    GET /v1/notifications/unread-count päringu. Sessiooni ja õiguste kehtivust
+    kontrollib connect.yml iga frame'i peal (re-auth ≤ 30 s).
   namespace: notification
   allowlist:
     body:
       - field: type
         type: string
+      - field: required_permission
+        type: string
 
 fanout:
   ws_send:
-    broadcast_prefix: "client:"
+    broadcast_where:
+      tag: "perms"
+      contains: "${',' + incoming.body.required_permission + ','}"
     payload:
       type: "notification_update"
   next: returnOk
