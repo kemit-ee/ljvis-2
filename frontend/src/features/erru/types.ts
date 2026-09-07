@@ -303,6 +303,7 @@ export interface CgrRequestListItem {
   tmFirstName: string | null;
   tmFamilyName: string | null;
   cgrTo: string | null;
+  certificateNumber: string | null;
   responseStatusCode: CgrMemberState['statusCode'] | null;
   handlerName: string | null;
 }

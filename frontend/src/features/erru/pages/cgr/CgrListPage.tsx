@@ -17,6 +17,8 @@ import type { CgrRequestListItem } from '../../types';
 import { useCgrList } from './useCgrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { BREAKPOINTS } from '../../../../constants/constants.ts';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 
 const columnHelper = createColumnHelper<CgrRequestListItem>();
 
@@ -31,6 +33,7 @@ export function CgrListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
 
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['cgr.read']);
   const canCreate = hasAnyPermission(['cgr.create']);
 
@@ -52,13 +55,6 @@ export function CgrListPage() {
   const openRequest = useCallback(
     (row: CgrRequestListItem) => navigate(`/erru/cgr/${row.id}`),
     [navigate],
-  );
-
-  /** ZZ is the broadcast marker ("Kõik riigid") — not part of the COUNTRY classifier. */
-  const cgrToLabel = useCallback(
-    (code: string | null | undefined) =>
-      code === 'ZZ' ? t('erru.cgr.form.cgrToAll') : label('COUNTRY', code),
-    [label, t],
   );
 
   const countryOptions = useMemo(() => options('COUNTRY'), [options]);
@@ -100,10 +96,10 @@ export function CgrListPage() {
         enableSorting: true,
         cell: (info) => info.getValue() || '—',
       }),
-      columnHelper.accessor('cgrTo', {
-        header: t('erru.cgr.list.cgrTo'),
+      columnHelper.accessor('certificateNumber', {
+        header: t('erru.cgr.list.certificateNumber'),
         enableSorting: true,
-        cell: (info) => cgrToLabel(info.getValue()),
+        cell: (info) => info.getValue() || '—',
       }),
       // Status merges the lifecycle status with the single-country response outcome.
       // Broadcast requests (cgrTo = ZZ) never carry responseStatusCode here — the
@@ -125,7 +121,7 @@ export function CgrListPage() {
         cell: (info) => info.getValue() || '—',
       }),
     ],
-    [t, openRequest, label, cgrToLabel],
+    [t, openRequest, label],
   );
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -144,7 +140,10 @@ export function CgrListPage() {
           </div>
 
           {/* Filters are applied only on "Otsi" — editing them must not refetch. */}
-          <div className="filter-bar">
+          <div
+            className="filter-bar"
+            style={isDesktop ? { width: '80%' } : undefined}
+          >
             <TextField
               id="cgr-filter-id"
               label={t('erru.cgr.list.id')}
@@ -167,7 +166,11 @@ export function CgrListPage() {
               key={`cgr-sent-from-${resetKey}`}
               id="cgr-filter-sent-from"
               label={t('erru.cgr.filters.sentFrom')}
-              selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
+              selected={
+                draftFilters.sentFrom
+                  ? new Date(draftFilters.sentFrom)
+                  : undefined
+              }
               onSelect={(v) => setFilter('sentFrom', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
@@ -176,7 +179,11 @@ export function CgrListPage() {
               key={`cgr-sent-until-${resetKey}`}
               id="cgr-filter-sent-until"
               label={t('erru.cgr.filters.sentUntil')}
-              selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}
+              selected={
+                draftFilters.sentUntil
+                  ? new Date(draftFilters.sentUntil)
+                  : undefined
+              }
               onSelect={(v) => setFilter('sentUntil', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
@@ -185,18 +192,30 @@ export function CgrListPage() {
               id="cgr-filter-to"
               label={t('erru.cgr.list.cgrTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
-              value={countryOptions.find((o) => o.value === draftFilters.cgrTo) ?? null}
+              value={
+                countryOptions.find((o) => o.value === draftFilters.cgrTo) ??
+                null
+              }
               onChange={(o) =>
-                setFilter('cgrTo', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'cgrTo',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <Select
               id="cgr-filter-status"
               label={t('erru.cgr.list.status')}
               options={statusOptions}
-              value={statusOptions.find((o) => o.value === draftFilters.status) ?? null}
+              value={
+                statusOptions.find((o) => o.value === draftFilters.status) ??
+                null
+              }
               onChange={(o) =>
-                setFilter('status', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'status',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <TextField
