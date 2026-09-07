@@ -18,7 +18,7 @@ pinnitud, mis on uusim, mis muutub katkendlikult, mida ljvis-2-s muuta.
 | **Ruuter** | `turnerrainer/ruuter:0.9.9-rc` (digest, `docker/ruuter*/Dockerfile`) | **`0.9.10-rc`** (= liikuv `:rc`) | `0.9.11-rc` (tag+publish tegemata; README juba viitab) | 0.9.10: **madal**. 0.9.11: **KÕRGE** (H1 template-guardid, H2 WS-guardid) |
 | **Resql** | ✅ **migreeritud** `turnerrainer/resql:0.2.0-alpha` (`feat/resql-turnerrainer-0.2.0`; oli `askendest/resql:0.1.0-alpha.5`) | `turnerrainer/resql:0.2.0-alpha` | — | ~~KESKMINE~~ tehtud: 212 SQL `params:` kujule, ID-param `type: integer`, config-vaikeväärtused, Newman roheline |
 | **TIM** | `turnerrainer/tim:0.2.0-alpha.2` (`docker/tim/Dockerfile`); release-Dockerfile juba `0.2.1-alpha` | **`0.3.0-alpha`** | — | **KESKMINE** (OIDC discovery fail-closed plain-HTTP peal; PKCE nüüd saadetakse; token-exchange `client_secret_basic`) |
-| **DataMapper** | `turnerrainer/datamapper:0.1.0-alpha.2` (digest) | **`0.1.3-alpha`** | — | **MADAL** (DSL + HTTP-pind muutumatu; ainult Accept-negotiation + config-`cor​s_origin` boot-fail) |
+| **DataMapper** | ✅ **migreeritud** `turnerrainer/datamapper:0.1.3-alpha` (`feat/datamapper-0.1.3-alpha`; oli `0.1.0-alpha.2`) | `0.1.3-alpha` | — | ~~MADAL~~ tehtud: ainult Dockerfile digesti-bump, Newman roheline |
 | **XTR** | harbor digest = `turnerrainer/xtr:0.1.0-rc.2` (`docker/xtr/Dockerfile`); compose `:rc` | **`0.2.0-rc.1`** (= liikuv `:rc`) | — | **KESKMINE** (SOAP-fault vastuse kuju; `xroad_protocol_version` enum-valideerimine; HTTP no-decompress) |
 | **CronManager** | `turnerrainer/cronmanager:alpha` (= `0.1.4-alpha`) | `0.1.4-alpha` | — | **puudub** (juba uusim) |
 
@@ -373,11 +373,14 @@ mandaadid, mis PKCE-t nõuavad, hakkavad **nüüd tööle** (positiivne).
 
 ## 4. DataMapper — **MADAL risk**
 
+> **Seis 2026-09-07: MIGREERITUD** harul `feat/datamapper-0.1.3-alpha`.
+> Ainult Dockerfile digesti-bump. Täis-Newman (26 kollektsiooni) roheline.
+
 ### 4.1 Seis
 
-- **Pinn:** `docker/data-mapper/Dockerfile`:
+- **Pinn (enne):** `docker/data-mapper/Dockerfile`:
   `FROM turnerrainer/datamapper:0.1.0-alpha.2@sha256:c02c550b…`
-- **Uusim:** **`0.1.3-alpha`** (2026-09-06).
+- **Uus:** `turnerrainer/datamapper:0.1.3-alpha@sha256:cc73f953…` (2026-09-06).
 
 ### 4.2 `0.1.0-alpha.2 → 0.1.3-alpha`
 
@@ -388,8 +391,8 @@ turvakarmistused:
 |---|---|---|
 | **M2** | Fallback-vastuse `Content-Type` = `text/plain` kui `Accept` ei nimeta eksplitsiitselt `text/html`. `*/*` **ei loe** HTML-opt-in-iks. | ljvis kutsub DMapperit `[#LJVIS_DMAPPER_HBS]/map_*` üle `http.post` `type: json` — Ruuter parsib vastuse JSON-ina sõltumata `Content-Type`-ist. **Mõju puudub.** |
 | **M3** | Vastuse mahupiirang jõustatakse render'i AJAL | Ainult hiid-mallidel. ljvis mallid väiksed. Mõju puudub. |
-| **I1** | Deprekeeritud `cors_origin` config-väli → **boot-fail** | ljvis DMapperil **pole config-faili** (ainult `PORT` env + vaikeväärtused). Mõju puudub. |
-| **L1** | Boot-probe: WARN kui `dsl_path` kirjutatav | ljvis bind-mount `:ro` → puhas. |
+| **I1** | Deprekeeritud `cors_origin` config-väli → **boot-fail** | ljvis-il **on** config-fail (`docker/data-mapper/datamapper.yaml`), aga ainult `port: 3005` + `dsl_path: /app/DSL` — **`cors_origin` puudub**. Mõju puudub. |
+| **L1** | Boot-probe: WARN kui `dsl_path` kirjutatav | ljvis **baked-in** template'id (`COPY --from=prep`), mitte bind-mount → jääb kirjutatavaks, **kosmeetiline WARN** boot-logis. `chmod -R a-w` katse ebaõnnestus (mitte-root user ei oma `/app/DSL/samples`). Eraldi task, kui vaja. |
 | **M1** | Ainult dokumentatsioon | — |
 
 ### 4.3 Teha
