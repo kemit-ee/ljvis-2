@@ -144,7 +144,7 @@ export function GoodReputeFormPage() {
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-    if (!snapshot) return <FormNotFoundView title={t('forms.good_repute.title')} />;
+    if (!snapshot) return <FormNotFoundView title={t('forms.good_repute_form')} />;
     return (
       <div>
         <Button
@@ -158,7 +158,7 @@ export function GoodReputeFormPage() {
           <Heading element="h1">
             {snapshot.formNumber
               ? `${snapshot.formNumber}/${snapshot.version ?? 1}`
-              : t('forms.good_repute.title')}
+              : t('forms.good_repute_form')}
           </Heading>
         </div>
         <GoodReputeFormFields
@@ -200,7 +200,7 @@ export function GoodReputeFormPage() {
 
   if (loading && !form) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (!form) return <FormNotFoundView title={t('forms.good_repute.title')} />;
+  if (!form) return <FormNotFoundView title={t('forms.good_repute_form')} />;
 
   return (
     <div>
@@ -255,7 +255,7 @@ export function GoodReputeFormPage() {
         <Heading element="h1">
           {form.formNumber
             ? `${form.formNumber}/${form.version ?? 1}`
-            : t('forms.good_repute.title')}
+            : t('forms.good_repute_form')}
         </Heading>
       </div>
 

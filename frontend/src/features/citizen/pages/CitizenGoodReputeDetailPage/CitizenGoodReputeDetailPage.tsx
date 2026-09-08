@@ -49,7 +49,7 @@ export function CitizenGoodReputeDetailPage() {
 
   if (loading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !form)
-    return <FormNotFoundView title={t('forms.good_repute.title')} />;
+    return <FormNotFoundView title={t('forms.good_repute_form')} />;
 
   return (
     <div>
@@ -69,7 +69,7 @@ export function CitizenGoodReputeDetailPage() {
 
       <div className="card-main">
         <Heading element="h1">
-          {form.formNumber || t('forms.good_repute.title')}
+          {form.formNumber || t('forms.good_repute_form')}
         </Heading>
       </div>
 

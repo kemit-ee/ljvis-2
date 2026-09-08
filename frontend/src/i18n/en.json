@@ -414,9 +414,7 @@
         }
       }
     },
-    "reputation_noncompliance_form": "Transport manager declared non-compliant with good repute",
     "good_repute": {
-      "title": "Good repute form",
       "driver": {
         "title": "Transport manager data",
         "personalCode": "Personal code",

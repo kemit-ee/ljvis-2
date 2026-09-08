@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-09 — Hea maine vorm: pealkiri ja abitekst
+
+- Vormi pealkiri (nii ametniku kui kodaniku vaates ning „vormi ei leitud"
+  teates) on nüüd sama, mida kasutab töölaud ja menüü: **„Hea maine nõudele
+  mittevastavaks tunnistatud veokorraldusjuht"** senise „Hea maine vorm" asemel.
+- CTUD-päringu abitekst: „…siis veokorraldaja andmed on kohustuslikud" →
+  „…siis **veokorraldusjuhi** andmed on kohustuslikud".
+
+---
+
 ## 2026-09 — VR kontrollkaart: RS ettepanekud
 
 - Ühe sanktsiooni asemel saab nüüd märkida mitu sanktsiooni korraga (lisasanktsioonid lisatakse põhisanktsiooni kõrvale).

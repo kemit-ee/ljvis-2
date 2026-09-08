@@ -52,7 +52,7 @@ export function GoodReputeFormCreatePage() {
     <div>
       <form onSubmit={formik.handleSubmit}>
         <div className="card-main">
-          <Heading element="h1">{t('forms.good_repute.title')}</Heading>
+          <Heading element="h1">{t('forms.good_repute_form')}</Heading>
         </div>
 
         {formError && (
