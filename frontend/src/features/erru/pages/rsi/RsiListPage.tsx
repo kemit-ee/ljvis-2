@@ -17,6 +17,7 @@ import type { RsiMessageListItem } from '../../types';
 import { useRsiList } from './useRsiList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import {useMediaQuery} from "../../../../hooks/useMediaQuery.ts";
 import {BREAKPOINTS} from "../../../../constants/constants.ts";
 
@@ -32,6 +33,7 @@ export function RsiListPage() {
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
+  const { getErruMemberCountries } = useClassifiers();
 
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['rsi.read']);
@@ -57,7 +59,10 @@ export function RsiListPage() {
     [navigate],
   );
 
-  const countryOptions = useMemo(() => options('COUNTRY'), [options]);
+  const countryOptions = useMemo(
+    () => getErruMemberCountries().map((c) => ({ value: c.code, label: c.name })),
+    [getErruMemberCountries],
+  );
   const statusOptions = useMemo(() => options('RSI_REQUEST_STATUS'), [options]);
   const directionOptions = [
     { value: 'outgoing', label: t('erru.rsi.list.directionOutgoing') },

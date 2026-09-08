@@ -25,9 +25,9 @@ export function useCgrForm(
   const { t } = useTranslation();
   const isEdit = !!request?.id;
   const [formError, setFormError] = useState<string | null>(null);
-  const { getByCode } = useClassifiers();
+  const { getByCode, getErruMemberCountries } = useClassifiers();
 
-  const countries = useMemo(() => getByCode('COUNTRY').filter((c) => c.isValid !== false), [getByCode]);
+  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
   const authorities = useMemo(
     () => getByCode('COMPETENT_AUTHORITY').filter((c) => c.isValid !== false),
     [getByCode],

@@ -38,7 +38,7 @@ type Props = {
  */
 export function NcrResponseFields({ form, message, organisations }: Props) {
   const { t } = useTranslation();
-  const { getByCode } = useClassifiers();
+  const { getByCode, getErruMemberCountries } = useClassifiers();
   const { label: classifierLabel } = useClassifierLabel();
   const { formik, updatePenalty } = form;
 
@@ -54,10 +54,7 @@ export function NcrResponseFields({ form, message, organisations }: Props) {
     () => getByCode('NCR_PENALTY_TYPE_IMPOSED_RES').filter((c) => c.isValid !== false),
     [getByCode],
   );
-  const countries = useMemo(
-    () => getByCode('COUNTRY').filter((c) => c.isValid !== false),
-    [getByCode],
-  );
+  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const opts = classifierOptions;

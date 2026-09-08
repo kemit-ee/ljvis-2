@@ -88,9 +88,9 @@ export function useRsiForm(
   const { t } = useTranslation();
   const isEdit = !!message;
   const [formError, setFormError] = useState<string | null>(null);
-  const { getByCode, getChildren } = useClassifiers();
+  const { getByCode, getChildren, getErruMemberCountries } = useClassifiers();
 
-  const countries = useMemo(() => getByCode('COUNTRY').filter((c) => c.isValid !== false), [getByCode]);
+  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
   const vehicleCategories = useMemo(() => getByCode('RSI_VEHICLE_CATEGORY').filter((c) => c.isValid !== false), [getByCode]);
 
   const allParts = useMemo(() => getByCode('TECHNICAL_CHECK').filter((c) => c.isValid !== false), [getByCode]);

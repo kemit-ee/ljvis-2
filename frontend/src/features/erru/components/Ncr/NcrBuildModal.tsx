@@ -27,16 +27,13 @@ interface NcrBuildModalProps {
 export function NcrBuildModal({ spFormKey, spFormType, open, onClose }: NcrBuildModalProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { getByCode } = useClassifiers();
+  const { getByCode, getErruMemberCountries } = useClassifiers();
   const { organisations } = useOrganisations();
 
   // Only currently-valid (non-expired) classifier values may be selected for
   // a new NCR request; already-recorded (possibly since-expired) values are
   // still rendered correctly elsewhere via the unfiltered classifier list.
-  const countries = useMemo(
-    () => getByCode('COUNTRY').filter((c) => c.isValid !== false),
-    [getByCode],
-  );
+  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
   const requestSources = useMemo(
     () => getByCode('NCR_REQUEST_SOURCE').filter((c) => c.isValid !== false),
     [getByCode],
