@@ -49,7 +49,7 @@ services:
     environment:
       - RESQL_DB_PASSWORD=01234
     ports:
-      - 8090:8080
+      - 8090:8090
     volumes:
       - ./DSL/Resql:/DSL
     networks:
@@ -62,8 +62,6 @@ services:
       dockerfile: docker/ruuter/Dockerfile
     depends_on:
       nysiis:
-        condition: service_healthy
-      resql-ljvis:
         condition: service_healthy
     environment:
       - RUST_LOG=ruuter_on_rust::steps::http=debug,info
