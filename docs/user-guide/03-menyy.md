@@ -1,33 +1,35 @@
 # Menüü ja navigatsioon
 
-Põhimenüü asub vasakul küljel. Menüüpunktid sõltuvad Teie õigustest.
+Põhimenüü asub vasakul küljel. Menüüpunktid sõltuvad Teie õigustest. Ülemisel
+tasemel on **Töölaud**, **Teavitused**, **Otsing** ja **Haldus**.
 
 ![Vasakmenüü](images/03-menyy/01-vasakmenyy.png)
 
-Haldustegevused on koondatud **Haldus** rühma alla, mis avaneb sellele klõpsates:
+Haldustegevused on koondatud **Haldus** rühma alla, mis avaneb sellele klõpsates.
+Alammenüüs on **Kasutajad**, **Kasutajagrupid**, **Klassifikaatorid**, **Logid**
+ja **Riskitasemed**:
 
 ![Haldus alammenüü](images/03-menyy/02-haldus-alammenyy.png)
+
+Menüüriba saab kokku voltida ülemises servas oleva noolenupuga; kokkuvolditult
+kuvatakse ainult ikoonid.
 
 ## Menüü struktuur
 
 ```mermaid
 flowchart TD
-    A[🖥️ Töölaud] --> B[⚙️ Haldus]
-    A --> T[🔔 Teavitused]
-    B --> C[👤 Kasutajad]
-    B --> D[👥 Kasutajagrupid]
-    B --> E[📋 Klassifikaatorid]
-    B --> F[📄 Auditilogi]
-    A --> G[📝 Kontrollaktid]
-    G --> H[Välisrikkumine]
-    G --> I[Liitvorm]
-    G --> J[Tööinspektsioon]
-    G --> K[Tehniline kontroll]
-    G --> L[Hea maine]
-    G --> M[ADR]
-    G --> N[Vedude katkestamine]
-    G --> O[Sõidu- ja puhkeaeg]
+    A[Töölaud] --> T[Teavitused]
+    A --> S[Otsing]
+    A --> B[Haldus]
+    B --> C[Kasutajad]
+    B --> D[Kasutajagrupid]
+    B --> E[Klassifikaatorid]
+    B --> F[Logid]
+    B --> R[Riskitasemed]
 ```
+
+Uusi kontrollakte alustatakse **töölaualt** (plokid „Kompleksvorm" ja „Vormid"),
+mitte eraldi menüüpunktist — vt peatükk [Töölaud](04-toolaud.md).
 
 ## Menüüpunktide õigused
 
@@ -35,18 +37,18 @@ flowchart TD
 |---|---|---|
 | Töölaud | — | Avaleht kõigile autenditud kasutajatele |
 | Teavitused | — | Rakendusesisesed teavitused kõigile; „Saadetud kirjad" vahekaart `notification.list` õigusega |
+| Otsing | — | Vormide koondotsing (vt [Vormide vaatamine ja ajalugu](15-vormide-vaatamine-ajalugu.md)) |
 | Kasutajad | `user.list.admin` või `user.list.local` | Kasutajate nimekiri ja haldus |
 | Kasutajagrupid | `user_group.list.admin` või `user_group.list.local` | Gruppide haldus |
 | Klassifikaatorid | `classifier.list` | Klassifikaatorite vaatamine ja muutmine |
-| Auditilogi | `audit.read` | Tegevuste logi |
-| Välisriigis toimunud rikkumise akt | `foreign_violation_form.write` | Vormi täitmine |
-| Liitvorm | `compound_form.write` | Tee kontrolli vorm |
-| Tööinspektsiooni kontrollakt | `labour_inspection_form.write` | Tööinspektsiooni vorm |
-| Tehniline kontroll | `vehicle_technical_form.write` / `trailer_technical_form.write` | Sõiduki/haagise kontroll |
-| Vedude katkestamine | `transport_interruption_form.write` | Katkestamise vorm |
-| ADR | `adr_form.write` | Ohtlike kaupade vorm |
-| Hea maine | `good_repute_form.write` | Hea maine vorm |
-| Sõidu- ja puhkeaeg | `drive_rest_form.write` | Sõidu- ja puhkeaeg |
+| Logid | `audit.read` | Tegevuste (auditi)logi |
+| Riskitasemed | riskihindamise õigus | Ettevõtete riskitasemete loend (vt [Riskihindamine](16-riskihindamine.md)) |
+
+Kontrollakte alustatakse töölaualt, mitte menüüst; nende täitmisõigused on
+vormipõhised (nt `foreign_violation_form.write`, `compound_form.write`,
+`labour_inspection_form.write`, `vehicle_technical_form.write` /
+`trailer_technical_form.write`, `transport_interruption_form.write`,
+`adr_form.write`, `good_repute_form.write`, `drive_rest_form.write`).
 
 ## Menüü käitumine mobiilis
 

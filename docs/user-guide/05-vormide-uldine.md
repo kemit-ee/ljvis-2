@@ -14,40 +14,45 @@ vormidele ühised toimingud; iga vormitüüpi käsitletakse eraldi alampeatükis
 
 ## Vormi elutsükkel
 
+Vorm läbib kolm staatust: **Salvestatud → Kinnitatud → Avalikustatud**.
+
 ```mermaid
 flowchart LR
     A[Uus vorm] --> B[Täida väljad]
-    B --> C{Kohustuslikud väljad täidetud?}
-    C -->|Ei| B
-    C -->|Jah| D[Salvesta mustand]
-    D --> E[Vaata üle]
-    E --> F[Salvesta lõplikult]
-    F --> G[Kinnita]
-    G --> H[Avaldatud]
-    H --> I[Auditilogi kirje]
+    B --> C[Salvesta]
+    C --> D[Salvestatud]
+    D --> B
+    D --> E[Kinnita]
+    E --> F[Kinnitatud]
+    F --> G[Avalikusta]
+    G --> H[Avalikustatud]
 ```
 
 ## Kohustuslikud väljad
 
-Kohustuslikud väljad on tähistatud tärniga `*` või punase tähega. Vormi ei saa lõplikult salvestada enne, kui kõik kohustuslikud väljad on korrektselt täidetud.
+Kohustuslikud väljad on tähistatud punase tärniga `*`. Vormi ei saa kinnitada
+enne, kui kõik kohustuslikud väljad on korrektselt täidetud.
 
-## Salvestamise nupud
+## Nupud
 
 | Nupp | Selgitus |
 |---|---|
-| Salvesta mustand | Salvestab vormi mustandina. Veel ei kinnitata. |
-| Salvesta lõplikult | Valideerib ja salvestab vormi. Nõuab kõigi kohustuslike väljade täitmist. |
-| Kinnita | Muudab vormi avaldatuks. Hiljem muuta ei saa. |
-| Tühista | Tühistab vormi täitmise. |
+| **Salvesta** | Salvestab vormi hetkeseisu. Vorm jääb muudetavaks (staatus *Salvestatud*). Iga salvestus loob uue versiooni. |
+| **Kinnita** | Kinnitab vormi (staatus *Kinnitatud*). Nõuab kõigi kohustuslike väljade täitmist. |
+| **Avalikusta** | Avalikustab kinnitatud vormi (staatus *Avalikustatud*). |
+| **Muuda** | Avab kinnitatud/avalikustatud vormi uuesti redigeerimiseks (vastava õigusega). |
+| **Kustuta** | Kustutab vormi. |
+| **Tühista** / **Tagasi** | Väljub vormilt salvestamata. |
 
 ## Mõisted
 
 | Mõiste | Selgitus |
 |---|---|
-| Mustand | Salvestatud, kuid mitte kinnitatud vorm. Saab muuta. |
-| Avaldatud | Kinnitatud vorm, mida enam muuta ei saa. |
-| Snapshot | Vormi salvestatud seisund ajateljel. Võimaldab vaadata varasemaid versioone. |
-| Vormi number | Unikaalne number, mis antakse vormile salvestamisel. |
+| Salvestatud | Salvestatud, veel kinnitamata vorm. Saab muuta. |
+| Kinnitatud | Kinnitatud vorm. Muutmiseks tuleb see uuesti avada nupuga „Muuda". |
+| Avalikustatud | Avalikustatud vorm. |
+| Versioon (snapshot) | Vormi salvestatud seisund ajateljel. Iga salvestus/kinnitus loob uue versiooni; varasemaid saab vaadata. |
+| Vormi number | Unikaalne number, mis antakse vormile esimesel salvestamisel (nt `VR-2026-3001`). |
 
 ## Vormide otsing
 
