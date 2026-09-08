@@ -84,16 +84,6 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
-    // Riskiskoorid on eraldi ülatasandi menüüpunkt (mitte "Haldus" all).
-    if (hasPermission(PERMISSIONS.RISK_REPORT_LIST)) {
-      items.push({
-        children: t('nav.riskScores'),
-        icon: 'trending_up',
-        to: '/admin/risk-scores',
-        isActive: pathname.startsWith('/admin/risk-scores'),
-      });
-    }
-
     if (
       hasAnyPermission([
         PERMISSIONS.USER_LIST_ADMIN,
@@ -161,6 +151,17 @@ export function useSideNavProps(): UseSideNavPropsResult {
         icon: 'gpp_bad',
         to: '/erru/ncr',
         isActive: pathname.startsWith('/erru/ncr'),
+      });
+    }
+
+    // Riskiskoorid on eraldi ülatasandi menüüpunkt (mitte "Haldus" all), aga
+    // paikneb ülatasandi loendi lõpus, vahetult "Haldus" kohal.
+    if (hasPermission(PERMISSIONS.RISK_REPORT_LIST)) {
+      items.push({
+        children: t('nav.riskScores'),
+        icon: 'trending_up',
+        to: '/admin/risk-scores',
+        isActive: pathname.startsWith('/admin/risk-scores'),
       });
     }
 
