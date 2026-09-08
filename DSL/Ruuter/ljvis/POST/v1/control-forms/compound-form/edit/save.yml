@@ -159,6 +159,8 @@ checkInsertOrUpdate:
 calculateChangedFields:
   template: "templates/form/compound-form/calculate-compound-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     form_id: ${id}
     control_date: ${control_date}
@@ -227,6 +229,8 @@ skip_pc1_validation_insert:
 validate_driver1_personal_code_format_insert:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
@@ -246,6 +250,8 @@ skip_pc2_validation_insert:
 validate_driver2_personal_code_format_insert:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result
@@ -345,6 +351,8 @@ skip_pc1_validation_update:
 validate_driver1_personal_code_format_update:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
@@ -364,6 +372,8 @@ skip_pc2_validation_update:
 validate_driver2_personal_code_format_update:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result

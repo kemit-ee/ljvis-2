@@ -1,0 +1,75 @@
+# templates/ alampuu guard — bypassib projektiülese `ljvis/.guard.yml`.
+#
+# Taust: Ruuter 0.9.11+ (h2ck.me H1) hakkab `template:` sammul jooksutama
+# sihi-DSL-i guarde. `ljvis/.guard.yml` (projektiülene) kutsub ise
+# `template: templates/check-user-authority` → 0.9.11-l kutsuks see
+# rekursiivselt projektiguardi uuesti → LÕPUTU rekursioon → Ruuteri
+# protsessi stack overflow (turnerrainer/Ruuter#79).
+#
+# `override_ancestors: true` võtab projektiguardi `templates/**` alt maha,
+# katkestades rekursiooni. Et `templates/**` HTTP-route'id (nginx `/api/`
+# proxy laseb `/api/templates/**` läbi) ei jääks täiesti autentimata, nõuab
+# see guard kehtivat TARA-sessiooni (TIM `jwt/userinfo` → personalCode) —
+# INLINE, ilma `template:`-ta (muidu sama rekursioon). Kehtib nii ametniku-
+# kui kodaniku-sessioonile (`templates/citizen-*` vajab kodaniku oma —
+# TIM-kontroll läbib mõlemad).
+#
+# Sisemised `template:` kutsed edastavad küpsise
+# (`headers: { cookie: "${incoming.headers.cookie}" }`) — lapse-kontekst
+# saab päised ainult nii.
+#
+# LAHTISED (eraldi järeltöö, madal risk):
+#   1. `templates/form/**/calculate-*-changed-fields`, `templates/user/…`,
+#      `templates/classifier/…` loevad snapshoti ID järgi — praegu piisab
+#      TARA-sessioonist, mitte ametniku-õigustest. Kitsendus:
+#      `templates/form|user|classifier/.guard.yml` ametniku-lookup'iga
+#      (`override_ancestors: true`). Neil pole kodaniku-kutsujaid.
+#   2. `templates/citizen-company-representative` — sama, kodaniku-kutsujad.
+#   Enne 0.9.11-t kaitses kõiki neid projektiguard (ametniku-lookup).
+#
+# 0.9.10-l on see fail INERTNE (H1 tuli 0.9.11-s).
+
+declaration:
+  override_ancestors: true
+
+check_cookie:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: deny_unauthenticated
+  next: get_cookie_info
+
+get_cookie_info:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: tim_res
+  next: check_tim_response
+
+check_tim_response:
+  switch:
+    - condition: ${200 <= tim_res.response.status && tim_res.response.status < 300}
+      next: extract_personal_code
+  next: deny_unauthenticated
+
+extract_personal_code:
+  assign:
+    personal_code: ${tim_res.response.body.userinfo?.claims?.personalCode ?? tim_res.response.body.userinfo?.subject ?? ''}
+  next: check_personal_code
+
+check_personal_code:
+  switch:
+    - condition: ${personal_code != null && personal_code != ''}
+      next: allow
+  next: deny_unauthenticated
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny_unauthenticated:
+  status: 401
+  return: "unauthorized"
+  next: end

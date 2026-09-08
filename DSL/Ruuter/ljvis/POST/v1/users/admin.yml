@@ -46,6 +46,8 @@ extractRequestData:
 validateUser:
   template: "templates/user/validate-user-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     first_name: ${first_name}
     last_name: ${last_name}
@@ -113,6 +115,8 @@ buildAuditLog:
 logAuditEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user.create"
     event_category: "user_management"

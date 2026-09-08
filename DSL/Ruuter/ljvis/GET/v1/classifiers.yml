@@ -70,6 +70,8 @@ conditionalAudit:
 logAuditEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "classifier.list.search"
     event_category: "classifier_management"

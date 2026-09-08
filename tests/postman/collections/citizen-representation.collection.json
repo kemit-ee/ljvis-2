@@ -87,7 +87,7 @@
       ]
     },
     {
-      "name": "[Switch] role=citizen-self WITHOUT registryCode key -> 500 Field missing (documents the Ruuter allowlist gotcha — always send the key; use switchRepresentation() in frontend/src/features/auth/api.ts, never a raw fetch)",
+      "name": "[Switch] role=citizen-self WITHOUT registryCode key -> 400 Field missing (documents the Ruuter allowlist gotcha — always send the key; use switchRepresentation() in frontend/src/features/auth/api.ts, never a raw fetch)",
       "request": {
         "method": "POST",
         "header": [
@@ -122,7 +122,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('500 — Rust Ruuter rejects a request missing ANY declared allowlist body field, even one only semantically required for a different role value', () => pm.response.to.have.status(500));"
+              "pm.test('400 — Rust Ruuter (0.9.12+) rejects a request missing ANY declared allowlist body field with 400 Bad Request (was 500 pre-0.9.12; issue #75)', () => pm.response.to.have.status(400));"
             ]
           }
         }

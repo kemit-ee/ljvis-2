@@ -56,6 +56,8 @@ setClassifierCode:
 calculateChangedFields:
   template: "templates/classifier/calculate-validity-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     classifier_value_id: ${classifier_value_id}
     valid_from: ${valid_from}
@@ -92,6 +94,8 @@ buildAuditContent:
 logAuditEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "classifier_value.update"
     event_category: "classifier_management"

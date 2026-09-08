@@ -81,6 +81,8 @@ checkSearch:
 logSearchEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user.list.search"
     event_category: "user_management"
@@ -122,6 +124,8 @@ setDescriptionAndLogContent:
 logViewEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user.list.view"
     event_category: "user_management"

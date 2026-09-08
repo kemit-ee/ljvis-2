@@ -52,6 +52,8 @@ extractRequestData:
 validateForm:
   template: "templates/form/good-repute/validate-good-repute-form"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personalCode: ${personal_code}
     firstName: ${first_name}
@@ -145,6 +147,8 @@ checkFormNotLocked:
 calculateChangedFields:
   template: "templates/form/good-repute/calculate-good-repute-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     form_id: ${id}
     personal_code: ${personal_code}

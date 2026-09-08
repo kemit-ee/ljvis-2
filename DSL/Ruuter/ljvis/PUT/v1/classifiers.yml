@@ -47,6 +47,8 @@ setClassifierCode:
 calculateChangedFields:
   template: "templates/classifier/calculate-classifier-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     classifier_id: ${id}
     name: ${name}
@@ -57,6 +59,8 @@ calculateChangedFields:
 validateClassifier:
   template: "templates/classifier/validate-classifier-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     name: ${name}
     description: ${description}
@@ -97,6 +101,8 @@ buildAuditContent:
 logAuditEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "classifier.update"
     event_category: "classifier_management"
