@@ -523,9 +523,7 @@
         }
       }
     },
-    "reputation_noncompliance_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
     "good_repute": {
-      "title": "Hea maine vorm",
       "driver": {
         "title": "Veokorraldusjuhi andmed",
         "personalCode": "Isikukood",
@@ -1683,7 +1681,7 @@
         "certificateIssueDate": "Ametialase pädevuse tunnistuse väljaandmise kuupäev",
         "certificateIssueCountry": "Ametialase pädevuse tunnistuse väljastanud riik",
         "searchCertChoiceHint": "Kui puuduvad kutseoskuse tunnistuse andmed, siis veokorraldusjuhi andmed on kohustuslikud.",
-        "searchTransportChoiceHint": "Kui puuduvad veokorraldaja andmed, siis kutseoskuse tunnistuse andmed on kohustuslikud.",
+        "searchTransportChoiceHint": "Kui puuduvad veokorraldusjuhi andmed, siis kutseoskuse tunnistuse andmed on kohustuslikud.",
         "copyRequest": "Kopeeri päring",
         "readOnly": "ainult lugemiseks",
         "version": "Versioon {{version}}",
