@@ -38,7 +38,7 @@ Vorm on jagatud kaartideks. Allpool on iga kaardi väljad. Kui välja juures on 
 | Teatav riik (`reportingCountryCode`) | Jah | Vali riik, kust teade tuli |
 | Teatav asutus (`reportingAuthority`) | Jah | Asutuse nimi, max 600 tähemärki |
 
-### 2. Kontrolli info
+### 2. Kontrolli aeg ja koht
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
@@ -85,12 +85,11 @@ Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liides
 | Esmane registreerimine (`vehicleFirstRegistration`) | Ei | Kuupäev |
 | Keretüüp (`vehicleBodyType`) | Ei | Max 50 tähemärki |
 
-### 6. Ühenduse tegevusloa andmed
+### 6. Ühenduse tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Ühenduse tegevusloa ärakirja number (`licenceCopyNumber`) | Ei | Max 100 tähemärki; nupp **Otsi** kontrollib numbrit registrist |
-| Ühenduse tegevusloa kinnitatud ärakirja number | Ei | Max 100 tähemärki |
+| Number (`licenceCopyNumber`) | Ei | Max 100 tähemärki; nupp **Otsi** kontrollib numbrit registrist |
 
 ### 7. Rikkumise kirjeldus
 
@@ -99,20 +98,20 @@ Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liides
 | Rikkumise kirjeldus (`violationDescription`) | Ei | Vaba tekst |
 | Väiksemate rikkumiste arv (`minorViolationsCount`) | Ei | Arv (0–999) |
 
-### 8. Rakendatud sanktsioon
+### 8. Kontrolli tulemus
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | Rakendatud sanktsioon (`sanctionCode`) | Jah | **Üks** valik (raadionupp): Korras, Hoiatus, Kabotaažveo ajutine keelamine, Trahv, Liiklemiskeeld, Sõiduki kasutamise takistamine, Muu |
 | Lisasanktsioonid (`additionalSanctionCodes`) | Ei | Nupp **„+ Lisa sanktsioon"** avab märkeruutude loendi ülejäänud sanktsioonidega — korraga saab märkida mitu |
-| Sanktsiooni märkused (`sanctionNotes`) | Ei | Vaba tekst |
+| Märkused (`sanctionNotes`) | Ei | Vaba tekst |
 
 ### 9. Soovitatav meede
 
 | Väli | Kohustuslik | Seligitus |
 |---|---|---|
 | Soovitatav meede (`recommendedMeasureCode`) | Jah | Valik: PUUDUVAD, HOIATUS, ÜHENDUSE TEGEVUSLOA PEATAMINE, ÜHENDUSE TEGEVUSLUBA KEHTETUKS, TEGEVUSLOA ARAKIRJADE PEATAMINE, TEGEVUSLUBA KEHTETUKS, JUHITUNNISTUSEST KEELDUMINE, JUHITUNNISTUS KEHTETUKS, MUU |
-| Soovitatava meetme täpsustus (`recommendedMeasureNotes`) | Jah, kui meede on "MUU" | Vaba tekst |
+| Soovitatava meetme täpsustus (`recommendedMeasureNotes`) | Ei | Vaba tekst; kuvatakse, kui meede on „Muu" |
 | Üldised märkused (`recommendedMeasureGeneralNotes`) | Ei | Vaba tekst |
 
 ### 10. Sisestamise kuupäev
@@ -128,7 +127,7 @@ Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liides
 | Eesnimi (`inspectorFirstName`) | Jah | Max 100 tähemärki |
 | Perekonnanimi (`inspectorLastName`) | Jah | Max 100 tähemärki |
 | Asutus (`inspectorOrganisationId`) | Jah | Valik organisatsioonide loendist |
-| Ametikoht (`inspectorProfession`) | Jah | Max 100 tähemärki |
+| Ametinimetus (`inspectorProfession`) | Ei | Max 100 tähemärki; eeltäidetud kasutaja profiilist |
 
 ### 12. EL rikkumiste loend
 
@@ -150,13 +149,22 @@ autoveoalase rikkumise haldusmenetluse käik.
 | Viimase komisjoni otsuse kuupäev (`commissionLastDecisionDate`) | Kuupäev |
 | Otsus (`adminProcedureDecision`) | Vaba tekst |
 | Kehtetu või menetletud (`penaltyExpiredOrProcessed`) | Märkeruut |
-| Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks (`foreignAuthorityProposal`) | Märkeruut |
-| Teavita vedajat rikkumisest (`notifyCarrier`) | Märkeruut — märkides saadetakse vedajale teavitus |
 
-### 14. Failid
+### 14. Kontrolliga seotud failid
 
-Failide plokk kuvatakse pärast esimest salvestamist (kui vormil on number). Vt
-[Failide lisamine](14-failide-lisamine.md).
+Failide plokk („Laadi üles fail") on nähtav kogu aeg. Faile saab lisada alles
+pärast esimest salvestamist. Vt [Failide lisamine](14-failide-lisamine.md).
+
+### 15. Teavitused (pärast avalikustamist)
+
+Kui vorm on **avalikustatud**, kuvatakse kaardi lõpus plokk **„Teavitused"** kahe
+märkeruuduga. Märgi ruut ja klõpsa **Salvesta** — süsteem saadab teavituse.
+**Saadetud teavitust ei saa tühistada** ja märkeruut lukustub.
+
+| Märge | Toiming salvestamisel |
+|---|---|
+| Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks. Edasta teavitus tööinspektorile. (`foreignAuthorityProposal`) | Saadab e-kirja tööinspektorile |
+| Teavita vedajat rikkumisest (`notifyCarrier`) | Saadab veoettevõttele mallipõhise teate Postkast 2.0 kaudu |
 
 ## Vormi salvestamine ja kinnitamine
 
@@ -177,6 +185,7 @@ lisafiltrit: **teatav riik** ja **sanktsioon**.
 ## Nipid
 
 - Kasutage otsingunuppe ettevõtte ja sõiduki andmete automaatseks täitmiseks.
-- Kui sanktsioon või soovitatav meede on „MUU", peate täitma täpsustava tekstivälja.
+- Nime järgi ettevõtte otsingul kantakse üle ka registrikood.
+- Kontrolli kellaaja väljal tekib koolon tunni ja minuti vahele automaatselt.
 - EL rikkumiste raskusastmed (MSI/VSI/SI/MI) mõjutavad ettevõtte riskiskoori.
 - Süsteem hoiatab, kui sama ettevõtte, sõiduki ja kuupäevaga vorm on juba olemas.
