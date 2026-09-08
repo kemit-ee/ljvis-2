@@ -59,9 +59,6 @@ export function RsiFormCreatePage() {
 
       <div className="page-actions">
         <div className="page-actions-buttons">
-          <Button visualType="secondary" onClick={() => navigate('/erru/rsi')}>
-            {t('common.back')}
-          </Button>
           <Button type="submit" disabled={form.formik.isSubmitting}>
             {t('common.save')}
           </Button>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, Text } from '@tedi-design-system/react/tedi';
+import { Heading, Text } from '@tedi-design-system/react/tedi';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -20,8 +20,6 @@ import { getCitizenGoodReputeForm } from '../../api';
 export function CitizenGoodReputeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const location = useLocation();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { getByCode } = useClassifiers();
 
@@ -49,27 +47,13 @@ export function CitizenGoodReputeDetailPage() {
 
   if (loading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !form)
-    return <FormNotFoundView title={t('forms.good_repute.title')} />;
+    return <FormNotFoundView title={t('forms.good_repute_form')} />;
 
   return (
     <div>
-      <Button
-        visualType="link"
-        onClick={() => {
-          if ((location.state as { from?: string })?.from === 'citizen-app') {
-            navigate(-1);
-          } else {
-            navigate('/');
-          }
-        }}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
-
       <div className="card-main">
         <Heading element="h1">
-          {form.formNumber || t('forms.good_repute.title')}
+          {form.formNumber || t('forms.good_repute_form')}
         </Heading>
       </div>
 

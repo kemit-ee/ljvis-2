@@ -90,8 +90,9 @@ sequenceDiagram
 
 ## Administraatori vaade
 
-Ametnikud saavad vaadata kõigi Eesti ettevõtete riskitasemete loendit (**Haldus →
-Riskitasemed**, õigus `risk_report.list`). Loend võimaldab:
+Ametnikud saavad vaadata kõigi Eesti ettevõtete riskiskooride loendit
+(vasakmenüü ülatasandi punkt **Riskiskoorid**, õigus `risk_report.list`).
+Loend võimaldab:
 
 - sorteerida ettevõtete nime järgi
 - filtreerida riskitaseme järgi (Hall, Roheline, Kollane, Punane)

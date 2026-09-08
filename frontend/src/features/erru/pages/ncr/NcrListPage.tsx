@@ -17,6 +17,7 @@ import type { NcrCaseListItem } from '../../types';
 import { useNcrList } from './useNcrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import {useMediaQuery} from "../../../../hooks/useMediaQuery.ts";
 import {BREAKPOINTS} from "../../../../constants/constants.ts";
 
@@ -33,6 +34,7 @@ export function NcrListPage() {
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
+  const { getErruMemberCountries } = useClassifiers();
 
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['ncr.list']);
@@ -58,11 +60,18 @@ export function NcrListPage() {
     [navigate],
   );
 
-  const countryOptions = useMemo(() => options('COUNTRY'), [options]);
+  const countryOptions = useMemo(
+    () => getErruMemberCountries().map((c) => ({ value: c.code, label: c.name })),
+    [getErruMemberCountries],
+  );
   const statusOptions = useMemo(() => options('NCR_REQUEST_STATUS'), [options]);
   const directionOptions = [
     { value: 'outgoing', label: t('erru.ncr.list.directionOutgoing') },
     { value: 'incoming', label: t('erru.ncr.list.directionIncoming') },
+  ];
+  const automaticOptions = [
+    { value: 'true', label: t('common.yes') },
+    { value: 'false', label: t('common.no') },
   ];
 
   // Rows with a serious infringement get a red background via rowClassName (a data-level
@@ -130,6 +139,11 @@ export function NcrListPage() {
         header: t('erru.ncr.list.handler'),
         enableSorting: true,
         cell: (info) => info.getValue() || '—',
+      }),
+      columnHelper.accessor('automatic', {
+        header: t('erru.ncr.list.automatic'),
+        enableSorting: false,
+        cell: (info) => (info.getValue() ? t('common.yes') : t('common.no')),
       }),
     ],
     [t, openCase, label],
@@ -253,6 +267,22 @@ export function NcrListPage() {
               label={t('erru.ncr.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
               onChange={(v) => setFilter('handlerPersonalCode', v)}
+            />
+            <Select
+              id="ncr-filter-automatic"
+              label={t('erru.ncr.list.automatic')}
+              options={[{ value: '', label: ' ' }, ...automaticOptions]}
+              value={
+                automaticOptions.find(
+                  (o) => o.value === draftFilters.automatic,
+                ) ?? null
+              }
+              onChange={(o) =>
+                setFilter(
+                  'automatic',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
+              }
             />
             <div className="filter-actions">
               <Button onClick={applyFilters}>{t('common.search')}</Button>

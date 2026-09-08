@@ -4,7 +4,7 @@ Administraatorid ja volitatud ametnikud saavad vaadata kõigi Eesti ettevõtete 
 
 ## Ligipääs
 
-Menüü → **Haldus → Riskitasemed**
+Vasakmenüü ülatasandi punkt **Riskiskoorid** (varem „Haldus → Riskitasemed").
 
 Õigus: `risk_report.list`
 

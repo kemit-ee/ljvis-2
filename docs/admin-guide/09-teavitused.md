@@ -22,7 +22,7 @@ staatusesse.
 
 | Tegevus | Õigus | Selgitus |
 |---------|-------|----------|
-| Saadetud teavituste nimekiri (`GET /v1/notifications/outbound-log/list`) | `notification.list` | Loetleb ja filtreerib väliskanali saatmiskirjeid. Ilma selle õiguseta vahekaart «Saadetud teavitused» ei ole nähtav. |
+| Saadetud teavituste nimekiri (`GET /v1/notifications/outbound-log/list`) | `notification.list` | Loetleb ja filtreerib väliskanali saatmiskirjeid. Ilma selle õiguseta vahekaart «Saadetud kirjad» ei ole nähtav. |
 | Saatmise raport (`GET /v1/notifications/outbound-log/recipients`) | `notification.list` | Kuvab ühe saatmiskirje adressaadi(te) saatmistulemuse. |
 | Teavituse uuesti saatmine (`POST /v1/notifications/outbound-log/resend/send`) | `notification.resend` | Saadab ebaõnnestunud teavituse muutmata kujul uuesti. |
 
@@ -31,10 +31,9 @@ Varasem koondõigus `notification.admin` on asendatud kahe eraldiseisva
 saatmine). Uuendus lisab mõlemad automaatselt kõikidele kasutajagruppidele,
 kus varem oli `notification.admin`.
 
-Teavituste vaade avaneb menüüst **Haldus → Teavitused**. Rakendusesisesed
-teavitused on vahekaardil «Minu teavitused», väliskanali saatmislogi
-vahekaardil «Saadetud teavitused» (nähtav ainult `notification.list`
-õigusega).
+Teavituste vaade avaneb vasakmenüü ülatasemel olevast punktist **Teavitused**.
+Rakendusesisesed teavitused on vahekaardil «Teavitused», väliskanali saatmislogi
+vahekaardil «Saadetud kirjad» (nähtav ainult `notification.list` õigusega).
 
 ![Teavitused administraatori vaates](images/09-teavitused/01-teavitused.png)
 

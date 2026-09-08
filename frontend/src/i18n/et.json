@@ -284,9 +284,9 @@
     "ctud": "Tegevusloa kontrolli päringud",
     "cgr": "Mainepäringud",
     "search": "Otsing",
-    "rsi": "RSI teated",
-    "ncr": "NCR teated",
-    "riskLevels": "Riskitasemed",
+    "rsi": "Tehnokontrolli teated RSI",
+    "ncr": "Kontrollitulemuse teated NCR",
+    "riskScores": "Riskiskoorid",
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused"
   },
@@ -392,9 +392,9 @@
       "organisation": "Organisatsioon"
     },
     "sections": {
-      "compoundBlock": "Kompleksvorm",
+      "compoundBlock": "Koondvorm",
       "formsBlock": "Vormid",
-      "activeCompound": "Töös olevad kompleksvormid",
+      "activeCompound": "Töös olevad koondvormid",
       "activeStandalone": "Töös olevad vormid"
     },
     "compound": {
@@ -407,7 +407,7 @@
       "vorm": "Vorm"
     },
     "empty": {
-      "activeCompound": "Pooleliolevaid kompleksvorme ei ole",
+      "activeCompound": "Pooleliolevaid koondvorme ei ole",
       "activeStandalone": "Pooleliolevaid vorme ei ole"
     },
     "columns": {
@@ -523,9 +523,7 @@
         }
       }
     },
-    "reputation_noncompliance_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
     "good_repute": {
-      "title": "Hea maine vorm",
       "driver": {
         "title": "Veokorraldusjuhi andmed",
         "personalCode": "Isikukood",
@@ -981,7 +979,7 @@
       "reportingBasicInfo": "Teate saatnud riik ja asutus",
       "reportingCountry": "Teate saatnud riik",
       "reportingAuthority": "Teate saatnud pädeva asutuse nimetus",
-      "inspectionBasicInfo": "Rikkumise avastamise aeg ja koht",
+      "inspectionBasicInfo": "Kontrolli aeg ja koht",
       "inspectionDate": "Kontrolli kuupäev",
       "inspectionTime": "Kontrolli kellaaeg",
       "inspectionAddressLine1": "Asula / Tänav / Maja nr",
@@ -1011,17 +1009,17 @@
       "vehicleVin": "VIN-kood",
       "vehicleFirstRegistration": "Esmane registreerimine",
       "vehicleBodyType": "Keretüüp",
-      "licenceCopyBasicInfo": "Ühenduse tegevusloa ärakirja number",
-      "licenceCopyNumber": "Ühenduse tegevusloa kinnitatud ärakirja number",
+      "licenceCopyBasicInfo": "Ühenduse tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number",
+      "licenceCopyNumber": "Number",
       "violationDescriptionBasicInfo": "Rikkumise kirjeldus",
       "violationDescription": "Rikkumise kirjeldus",
       "violationDescriptionPlaceholder": "Sisestage kirjeldus...",
       "minorViolationsBasicInfo": "Rikkumiste arv",
       "minorViolationsCount": "Kontrolli käigus avastatud kergemate rikkumiste arv",
       "euViolationsBasicInfo": "EL määrusest (EÜ) nr 1071/2009 tuleneva kõige raskema rikkumise avastamine",
-      "sanctionBasicInfo": "Rakendatud sanktsioon",
+      "sanctionBasicInfo": "Kontrolli tulemus",
       "sanctionCode": "Rakendatud sanktsioon",
-      "sanctionNotes": "Sanktsiooni märkused",
+      "sanctionNotes": "Märkused",
       "sanctionKorras": "Korras",
       "sanctionHoiatus": "Hoiatus",
       "sanctionKabotaaz": "Kabotaažveo ajutine keelamine",
@@ -1039,8 +1037,12 @@
         "akvkDate": "Järgmise komisjoni koosolek (AKVK)",
         "commissionDate": "Viimase komisjoni otsuse kuupäev",
         "decision": "Otsus",
-        "expired": "Kehtetu või menetletud",
-        "foreignProposal": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks",
+        "expired": "Kehtetu või menetletud"
+      },
+      "notifications": {
+        "title": "Teavitused",
+        "hint": "Märkige teavitus ja salvestage vorm — süsteem saadab valitud teavituse. Saadetud teavitust ei saa tühistada.",
+        "foreignProposal": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks. Edasta teavitus tööinspektorile.",
         "notifyCarrier": "Teavita vedajat rikkumisest"
       },
       "euViolationGroupMsi": "Kõige raskemad rikkumised (MSI)",
@@ -1220,7 +1222,8 @@
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus",
-      "filesBasicInfo": "Failid",
+      "filesBasicInfo": "Kontrolliga seotud failid",
+      "filesUpload": "Laadi üles fail",
       "filesBoxInfo": "Kukuta failid siia või klõpsa valimiseks",
       "filesHelper": "Lubatud formaadid: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maksimaalne failisuurus 10 MB.",
       "statusSaved": "Salvestatud",
@@ -1520,7 +1523,7 @@
     "logoAlt": "Euroopa Sotsiaalfond"
   },
   "riskScores": {
-    "title": "Riskitasemed",
+    "title": "Riskiskoorid",
     "companyName": "Veoettevõtja",
     "companyRegCode": "Registrikood",
     "riskScore": "Riskiskoor",
@@ -1683,7 +1686,7 @@
         "certificateIssueDate": "Ametialase pädevuse tunnistuse väljaandmise kuupäev",
         "certificateIssueCountry": "Ametialase pädevuse tunnistuse väljastanud riik",
         "searchCertChoiceHint": "Kui puuduvad kutseoskuse tunnistuse andmed, siis veokorraldusjuhi andmed on kohustuslikud.",
-        "searchTransportChoiceHint": "Kui puuduvad veokorraldaja andmed, siis kutseoskuse tunnistuse andmed on kohustuslikud.",
+        "searchTransportChoiceHint": "Kui puuduvad veokorraldusjuhi andmed, siis kutseoskuse tunnistuse andmed on kohustuslikud.",
         "copyRequest": "Kopeeri päring",
         "readOnly": "ainult lugemiseks",
         "version": "Versioon {{version}}",
@@ -1745,9 +1748,11 @@
         "clear": "Puudub"
       },
       "form": {
-        "titleOutgoing": "Tehnokontrolli teade (EST → ERRU)",
-        "titleInbound": "Tehnokontrolli teade (ERRU → EST)",
-        "titleNew": "Uus tehnokontrolli teade",
+        "titleOutgoing": "Tehnokontrolli teade RSI (EST → ERRU)",
+        "titleInbound": "Tehnokontrolli teade RSI (ERRU → EST)",
+        "titleNew": "Uus tehnokontrolli teade RSI",
+        "messageNumber": "Teate number",
+        "messageNumberPending": "määratakse salvestamisel",
         "headerBlock": "Teate andmed",
         "vehicleBlock": "Sõiduki andmed",
         "driverBlock": "Juhi andmed",
@@ -1758,7 +1763,7 @@
         "identificationHolderUndertaking": "Veoettevõtja",
         "identificationHolderOwner": "Omanik",
         "identificationUndertakingName": "Ettevõtja nimi",
-        "identificationCommunityLicenceNumber": "Ettevõtja ühenduse tegevusluba",
+        "identificationCommunityLicenceNumber": "Ettevõtja ühenduse tegevusloa number",
         "identificationOwnerType": "Omaniku liik",
         "identificationOwnerCompany": "Äriühing",
         "identificationOwnerNatural": "Füüsiline isik",
@@ -1819,8 +1824,8 @@
         "send_failed": "Teate saatmine ebaõnnestus"
       },
       "list": {
-        "title": "RSI teated",
-        "newMessage": "Uus tehnokontrolli teade",
+        "title": "Tehnokontrolli teated RSI",
+        "newMessage": "Uus tehnokontrolli teade RSI",
         "id": "Teate number",
         "sentAt": "Saadetud",
         "rsiFrom": "Saatnud riik",
@@ -1837,8 +1842,8 @@
     "ncr": {
       "notFound": "NCR juhtumit ei leitud",
       "form": {
-        "titleOutgoing": "Kontrollitulemuse teade (EST → ERRU)",
-        "titleInbound": "Kontrollitulemuse teade (ERRU → EST)",
+        "titleOutgoing": "Kontrollitulemuse teade NCR (EST → ERRU)",
+        "titleInbound": "Kontrollitulemuse teade NCR (ERRU → EST)",
         "version": "Versioon {{version}}",
         "headerBlock": "Teate päis ja osapooled",
         "checkSummaryBlock": "Kontrolli kokkuvõte",
@@ -1864,7 +1869,7 @@
         "requestSource": "Päringu allikas",
         "requestPurpose": "Päringu eesmärk",
         "transportUndertakingName": "Veoettevõtja nimi",
-        "communityLicenceNumber": "Ühenduse tegevusloa number",
+        "communityLicenceNumber": "Ühenduse tegevusloa või selle kinnitatud ärakirja või tõestatud koopia number",
         "vehicleRegistrationNumber": "Sõiduki registreerimisnumber",
         "vehicleRegistrationCountry": "Sõiduki registreerimiskoha riik",
         "checkResult": "Kontrolli tulemus",
@@ -1910,8 +1915,8 @@
         "createVrFailed": "VR kontrollkaardi loomine ebaõnnestus"
       },
       "buildModal": {
-        "button": "Lisa NCR vorm",
-        "title": "Lisa NCR vorm",
+        "button": "Loo NCR teade",
+        "title": "Loo NCR teade",
         "submit": "Koosta",
         "forbidden": "Teil puudub õigus NCR päringu koostamiseks",
         "notFound": "Kontrollkaarti ei leitud, NCR mustandit ei loodud",
@@ -1927,8 +1932,8 @@
         "imposed_penalty_type_missing": "Määratud karistuse puhul peab olema valitud karistuse liik"
       },
       "list": {
-        "title": "NCR teated",
-        "newMessage": "Uus rikkumisteade",
+        "title": "Kontrollitulemuse teated NCR",
+        "newMessage": "Uus NCR teade",
         "id": "Teate number",
         "sentAt": "Saadetud",
         "sentFrom": "Saadetud alates",
@@ -1941,7 +1946,8 @@
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
         "directionIncoming": "Sissetulev",
-        "handlerFilter": "Menetleja (isikukood)"
+        "handlerFilter": "Menetleja (isikukood)",
+        "automatic": "Automaatne"
       }
     }
   },
@@ -2036,5 +2042,36 @@
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus"
     }
+  },
+  "breadcrumbs": {
+    "userCreate": "Uus kasutaja",
+    "userDetail": "Kasutaja",
+    "userGroupCreate": "Uus kasutajagrupp",
+    "userGroupAddUser": "Kasutajate lisamine",
+    "userGroupDetail": "Kasutajagrupp",
+    "classifierDetail": "Klassifikaator",
+    "classifierValueCreate": "Uus väärtus",
+    "classifierValueEdit": "Väärtus",
+    "logDetail": "Logikirje",
+    "snapshot": "Versioon",
+    "foreignViolationForm": "Väliskontrolli kontrollkaart",
+    "compoundForm": "Koondvorm",
+    "driveRestDriverForm": "Sõidu- ja puhkeaeg (juht)",
+    "driveRestTeammateForm": "Sõidu- ja puhkeaeg (kaassõitja)",
+    "tramDriverForm": "TRAM kontrollkaart",
+    "labourInspectionForm": "Tööinspektsiooni kontrollkaart",
+    "vehicleTechnicalForm": "Sõiduki tehnokontroll",
+    "trailerTechnicalForm": "Haagise tehnokontroll",
+    "transportInterruptionForm": "Autoveo katkestamine",
+    "adrForm": "Ohtlike veoste vedu",
+    "goodReputeForm": "Hea maine nõuetele mittevastavus",
+    "ctudCreate": "Uus tegevusloa kontrolli päring",
+    "ctudDetail": "Tegevusloa kontrolli päring",
+    "cgrCreate": "Uus mainepäring",
+    "cgrDetail": "Mainepäring",
+    "rsiCreate": "Uus RSI teade",
+    "rsiDetail": "RSI teade",
+    "ncrCreate": "Uus NCR teade",
+    "ncrDetail": "NCR teade"
   }
 }

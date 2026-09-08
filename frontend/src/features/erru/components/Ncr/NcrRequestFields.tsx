@@ -8,6 +8,7 @@ import {
   classifierOptions,
   dateFieldError,
   fieldError,
+  infringementOptions,
   nestedDateFieldError,
   nestedFieldError,
   parseIsoDate,
@@ -30,7 +31,7 @@ type NcrRequestFormApi = ReturnType<typeof useNcrRequestForm>;
  */
 export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const { t } = useTranslation();
-  const { getByCode } = useClassifiers();
+  const { getByCode, getErruMemberCountries } = useClassifiers();
   const { organisations } = useOrganisations();
   const {
     formik,
@@ -44,10 +45,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
     removePenaltyRequested,
   } = form;
 
-  const countries = useMemo(
-    () => getByCode('COUNTRY').filter((c) => c.isValid !== false),
-    [getByCode],
-  );
+  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
   const requestSources = useMemo(
     () => getByCode('NCR_REQUEST_SOURCE').filter((c) => c.isValid !== false),
     [getByCode],
@@ -81,6 +79,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const opts = classifierOptions;
+  const infrOpts = infringementOptions;
   const selected = selectedClassifierOption;
   const pick = pickOptionValue;
   const dateValue = parseIsoDate;
@@ -328,12 +327,16 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                       id={`ncr-si-${index}-type`}
                       label={t('erru.ncr.form.infringementType')}
                       required
-                      options={opts(
+                      options={infrOpts(
                         euInfringements.filter((c) =>
                           c.code.startsWith(si.category),
                         ),
                       )}
-                      value={selected(euInfringements, si.infringementType)}
+                      value={
+                        infrOpts(euInfringements).find(
+                          (o) => o.value === si.infringementType,
+                        ) ?? null
+                      }
                       onChange={(o) =>
                         updateSeriousInfringement(index, {
                           infringementType: pick(o),

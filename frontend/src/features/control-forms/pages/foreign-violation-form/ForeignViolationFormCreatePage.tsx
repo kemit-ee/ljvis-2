@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, Text } from '@tedi-design-system/react/tedi';
+import { Heading, Text } from '@tedi-design-system/react/tedi';
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -85,13 +85,7 @@ export function ForeignViolationFormCreatePage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
-            <Button
-              type="button"
-              visualType="secondary"
-              onClick={() => navigate('/')}
-            >
-              {t('common.cancel')}
-            </Button>
+
             <AsyncButton type="button" onClick={() => formik.submitForm()}>
               {t('common.save')}
             </AsyncButton>

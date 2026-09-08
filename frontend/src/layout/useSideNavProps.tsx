@@ -84,6 +84,16 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    // Riskiskoorid on eraldi ülatasandi menüüpunkt (mitte "Haldus" all).
+    if (hasPermission(PERMISSIONS.RISK_REPORT_LIST)) {
+      items.push({
+        children: t('nav.riskScores'),
+        icon: 'trending_up',
+        to: '/admin/risk-scores',
+        isActive: pathname.startsWith('/admin/risk-scores'),
+      });
+    }
+
     if (
       hasAnyPermission([
         PERMISSIONS.USER_LIST_ADMIN,
@@ -162,14 +172,6 @@ export function useSideNavProps(): UseSideNavPropsResult {
         children: t('nav.logs'),
         to: '/logs',
         isActive: pathname.startsWith('/logs'),
-      });
-    }
-
-    if (hasPermission(PERMISSIONS.RISK_REPORT_LIST)) {
-      adminSubItems.push({
-        children: t('nav.riskLevels'),
-        to: '/admin/risk-scores',
-        isActive: pathname.startsWith('/admin/risk-scores'),
       });
     }
 

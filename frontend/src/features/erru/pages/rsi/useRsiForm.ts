@@ -88,9 +88,9 @@ export function useRsiForm(
   const { t } = useTranslation();
   const isEdit = !!message;
   const [formError, setFormError] = useState<string | null>(null);
-  const { getByCode, getChildren } = useClassifiers();
+  const { getByCode, getChildren, getErruMemberCountries } = useClassifiers();
 
-  const countries = useMemo(() => getByCode('COUNTRY').filter((c) => c.isValid !== false), [getByCode]);
+  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
   const vehicleCategories = useMemo(() => getByCode('RSI_VEHICLE_CATEGORY').filter((c) => c.isValid !== false), [getByCode]);
 
   const allParts = useMemo(() => getByCode('TECHNICAL_CHECK').filter((c) => c.isValid !== false), [getByCode]);
@@ -160,7 +160,9 @@ export function useRsiForm(
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      originatingAuthority: message?.originatingAuthority ?? '',
+      // RSI ettepanek 3 + 7: uue teate vaikeväärtused — teate esitanud pädev asutus
+      // = Kliimaministeerium (KLIM), inspektor = Politsei- ja Piirivalveamet.
+      originatingAuthority: message?.originatingAuthority ?? 'KLIM',
       vehicleCategory: message?.vehicleCategory ?? '',
       vehicleRegistrationNumber: message?.vehicleRegistrationNumber ?? '',
       vehicleRegistrationCountry: message?.vehicleRegistrationCountry ?? '',
@@ -177,14 +179,19 @@ export function useRsiForm(
       inspectionTime: message?.inspectionDatetime
         ? message.inspectionDatetime.slice(11, 16)
         : '',
-      inspectionAuthorityOrName: message?.inspectionAuthorityOrName ?? '',
-      // Always 'false' for outgoing EE (LJVIS2-147 §4 "Vastab nõuetele: alati Ei")
-      inspectionPassed: 'false',
-      ptiRequested: message?.ptiRequested != null ? String(message.ptiRequested) : '',
+      inspectionAuthorityOrName:
+        message?.inspectionAuthorityOrName ?? 'Politsei- ja Piirivalveamet',
+      inspectionPassed:
+        message?.inspectionPassed != null
+          ? String(message.inspectionPassed)
+          : 'false',
+      // Märkeruudud (ettepanek 8) — alati kindel olek 'true'/'false'.
+      ptiRequested:
+        message?.ptiRequested != null ? String(message.ptiRequested) : 'false',
       vehicleProhibitionOrRestriction:
         message?.vehicleProhibitionOrRestriction != null
           ? String(message.vehicleProhibitionOrRestriction)
-          : '',
+          : 'false',
       checkedItems: (Array.isArray(message?.checkedItems)
         ? message!.checkedItems
         : parts.map((p) => ({ partCode: p.code, status: 'not_checked', defects: [] }))) as RsiCheckedItem[],
@@ -287,7 +294,7 @@ export function useRsiForm(
               ? `${values.inspectionDate}T${values.inspectionTime}:00`
               : '',
           inspectionAuthorityOrName: values.inspectionAuthorityOrName,
-          inspectionPassed: 'false', // always false for outgoing EE (LJVIS2-147 §4)
+          inspectionPassed: values.inspectionPassed,
           ptiRequested: values.ptiRequested,
           vehicleProhibitionOrRestriction: values.vehicleProhibitionOrRestriction,
           checkedItems: JSON.stringify(values.checkedItems ?? []),
@@ -362,6 +369,7 @@ export function useRsiForm(
     vehicleCategories,
     parts,
     defectsByPartKey,
+    businessCaseId: message?.businessCaseId ?? '',
     driverBlockOpen,
     setDriverBlockOpen,
     identificationBlockOpen,

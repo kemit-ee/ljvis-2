@@ -6,7 +6,7 @@ LJVIS2 (Liiklusjärelvalve infosüsteem 2) on veebipõhine tööriist transpordi
 
 - **Ametnikele**, kes täidavad kontrollakte (nt tee kontroll, tööinspektsioon, tehniline kontroll).
 - **Administraatoritele**, kes haldavad süsteemi kasutajaid, gruppe, õigusi ja klassifikaatoreid.
-- **Ettevõtja esindajatele**, kes soovivad tulevikus vaadata ettevõtte riskitaset.
+- **Ettevõtja esindajatele**, kes vaatavad oma ettevõtte riskitaset ja protokolle.
 
 Ettevõtja esindaja näeb sisselogimisel kodaniku töölauda, kus on koondatud tema ettevõtetega
 seotud kontrollid ja protokollid:
@@ -21,7 +21,8 @@ seotud kontrollid ja protokollid:
 - Kasutajate ja õiguste haldus
 - Klassifikaatorite haldus
 - Auditilogi
-- Planeeritud riskihindamine
+- Riskihindamine
+- ERRU-teated (hea maine, tehnokontroll, kontrollitulemuse teavitused)
 
 ## Süsteemi arhitektuur ühe pilguga
 

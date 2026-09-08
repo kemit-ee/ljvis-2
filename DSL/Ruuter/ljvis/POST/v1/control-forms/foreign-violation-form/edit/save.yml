@@ -414,7 +414,45 @@ updateForm:
       status: ${current_status}
       created_by: ${created_by}
   result: saveRes
+  next: checkForeignProposalNotification
+
+# --- Avalikustatud vormil märgitud teavituste saatmine (LJVIS2 VR ettepanek 10) ---
+# Best-effort: teavituse saatmise viga EI tohi salvestamist 500-tada.
+# "Flip" kontroll: saada ainult siis, kui märge läks nüüd true-ks (DB vana
+# väärtus ei olnud true), et korduv salvestamine ei dubleeriks teavitust.
+checkForeignProposalNotification:
+  switch:
+    - condition: >-
+        ${current_status === 'published'
+          && foreign_authority_proposal === 'true'
+          && !(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].foreignAuthorityProposal === true)}
+      next: sendForeignProposalNotification
   next: extractUpdateResponseData
+
+sendForeignProposalNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_foreign_proposal"
+      recipient_email: "[#LABOUR_INSPECTOR_EMAIL]"
+      language: "et"
+      send_time: ""
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: saveRes.response.body[0].formNumber, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: foreignProposalNotifRes
+  error: extractUpdateResponseData
+  next: extractUpdateResponseData
+
+# 10b: vedaja teavitamine (notifyCarrier) vajab veoettevõtte äriregistri
+# e-posti aadressi (arireg/detailandmed 'sidevahendid') — eraldi töö.
+# Kuni selleni jõuab: märge salvestatakse, kuid Postkast 2.0 teavitust
+# ei saadeta.
 
 extractUpdateResponseData:
   assign:

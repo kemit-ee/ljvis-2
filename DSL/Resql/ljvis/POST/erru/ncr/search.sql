@@ -34,6 +34,9 @@ params:
   handlerPersonalCode:
     type: string
     required: false
+  automatic:
+    type: string
+    required: false
   sorting:
     type: string
     required: false
@@ -77,6 +80,9 @@ returns:
 - name: has_infringement
   type: boolean
   nullable: true
+- name: automatic
+  type: boolean
+  nullable: true
 - name: total
   type: number
   nullable: true
@@ -110,6 +116,12 @@ SELECT
   l.transport_undertaking_name,
   l.handler_name,
   (jsonb_array_length(COALESCE(l.serious_infringements, '[]'::JSONB)) > 0) AS has_infringement,
+  -- "Automaatne" = LJVIS on selle juhtumi ise ERRU-sse välja saatnud (öine
+  -- CronManager autodispatch); build_failed logikirjed ei loe (NCR teadet ei loodud).
+  EXISTS (
+    SELECT 1 FROM erru.ncr_autodispatch_log a
+    WHERE a.business_case_id = l.business_case_id AND a.outcome <> 'build_failed'
+  )                                             AS automatic,
   (COUNT(*) OVER ())::INTEGER                   AS total
 FROM latest l
 WHERE
@@ -122,6 +134,13 @@ WHERE
   AND (COALESCE(:status, '') = '' OR l.status = :status)
   AND (COALESCE(:direction, '') = '' OR l.direction = :direction)
   AND (COALESCE(:handlerPersonalCode, '') = '' OR l.handler_personal_code = :handlerPersonalCode)
+  AND (
+    COALESCE(:automatic, '') = ''
+    OR EXISTS (
+         SELECT 1 FROM erru.ncr_autodispatch_log a
+         WHERE a.business_case_id = l.business_case_id AND a.outcome <> 'build_failed'
+       ) = (:automatic = 'true')
+  )
 ORDER BY
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'business_case_id asc'  THEN l.business_case_id END ASC,
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'business_case_id desc' THEN l.business_case_id END DESC,

@@ -2,20 +2,25 @@
 
 Tehnilise kontrolli vormiga fikseeritakse sõiduki või haagise tehnonõuetele vastavuse kontrolli tulemused. Vormil on kaks varianti: **mootorsõiduki** ja **haagise** kontroll.
 
-## Menüü tee
+## Kust vorm avada
 
-Töölaud → **Kontrollaktid** → **Tehniline kontroll**
+Tehnilise kontrolli vorm on **koondvormi alamvorm** — eraldi seda ei alustata.
+Vorm avaneb koondvormi vahekaardil:
 
-või
+- **uue koondvormi** loomisel: märkige töölaua ploki „Koondvorm" loendis
+  „Mootorsõiduki tehnonõuetele vastavuse kontrollvorm" ja/või „Haagise
+  tehnonõuetele vastavuse kontrollvorm";
+- **olemasoleva koondvormi** vaates: lisage alamvorm koondvormi vahekaartide
+  ribalt.
 
-Liitvorm → **Tehniline kontroll — sõiduk** / **Tehniline kontroll — haagis**
+Haagise kontrollvorme saab koondvormis olla mitu (üks iga haagise kohta).
 
 ## Vormi eesmärk
 
 - Märkida iga kontrollitava osa/sõlme seisund (kontrollitud, ei vasta nõuetele, ei kontrollitud).
 - Fikseerida leitud rikked ja nende raskusastmed.
 - Määrata kontrolli tulemus ning vajadusel menetluste ja rikkumiste andmed.
-- Siduda tulemused liitvormiga.
+- Siduda tulemused koondvormiga.
 
 ## Sõiduki ja haagise variandi erinevus
 
@@ -27,7 +32,7 @@ Liitvorm → **Tehniline kontroll — sõiduk** / **Tehniline kontroll — haagi
 
 ## Vormi osad ja väljad
 
-Alamvorm avaneb liitvormi vahekaardil. Mootorsõiduki variant:
+Alamvorm avaneb koondvormi vahekaardil. Mootorsõiduki variant:
 
 ![Mootorsõiduki tehnonõuetele vastavuse kontrollvorm](images/09-vorm-tehniline-kontroll/01-alamvorm.png)
 

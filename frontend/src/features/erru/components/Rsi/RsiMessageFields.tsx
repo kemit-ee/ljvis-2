@@ -4,12 +4,12 @@ import { BREAKPOINTS } from '../../../../constants/constants';
 import {
   Card,
   ChoiceGroup,
-  DateField,
   Heading,
   Select,
   TextField,
-  TimeField,
 } from '@tedi-design-system/react/tedi';
+import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField';
+import { MaskedTimeField } from '../../../control-forms/components/shared/MaskedTimeField';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import {
   classifierOptions,
@@ -19,6 +19,7 @@ import {
   pickOptionValue,
   selectedClassifierOption,
 } from '../../utils/fieldHelpers';
+import { useOrganisations } from '../../../organisations/hooks';
 import type { useRsiForm } from '../../pages/rsi/useRsiForm';
 import { RsiCheckedItemsTable } from './RsiCheckedItemsTable';
 
@@ -56,6 +57,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
   } = form;
 
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+  const { organisations } = useOrganisations();
 
   const err = (field: string) => fieldError(formik, field);
   const dateErr = (field: string) => dateFieldError(formik, field);
@@ -67,13 +69,30 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
   // Derived rsiTo: country label from vehicleRegistrationCountry (shown as read-only).
   const rsiToLabel = selected(countries, formik.values.vehicleRegistrationCountry)?.label ?? '';
 
-  // Each ChoiceGroup needs its own items array with unique IDs — browsers resolve
-  // <label for="yes"> to the first matching id on the page, so shared ids across
-  // multiple radio groups cause all labels to target the first group's inputs.
-  const yesNo = (prefix: string) => [
-    { id: `${prefix}-yes`, value: 'true', label: t('common.yes') },
-    { id: `${prefix}-no`, value: 'false', label: t('common.no') },
-  ];
+  // RSI ettepanek 8: ühe märkeruuduga "Jah/Ei" väli. Formiki väärtus on string
+  // 'true'/'false'. Märgitud märkeruut = 'true'.
+  const check = (id: string, field: string, label: string) => (
+    <ChoiceGroup
+      id={id}
+      name={id}
+      label=""
+      className="mb-05"
+      inputType="checkbox"
+      value={
+        String(formik.values[field as keyof typeof formik.values]) === 'true'
+          ? ['on']
+          : []
+      }
+      onChange={(v) =>
+        formik.setFieldValue(
+          field,
+          (v as string[]).includes('on') ? 'true' : 'false',
+        )
+      }
+      items={[{ id: `${id}-item`, value: 'on', label }]}
+      {...err(field)}
+    />
+  );
 
   const gridClass =
     isDesktop ? 'form-grid-desktop' : 'form-grid-mobile';
@@ -88,18 +107,28 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
           {/* rsiFrom: always EE — show country name, not code (LJVIS2-147 §4) */}
           <div className={gridClass}>
             <TextField
+              id="rsi-message-number"
+              label={t('erru.rsi.form.messageNumber')}
+              value={form.businessCaseId || t('erru.rsi.form.messageNumberPending')}
+              disabled
+              onChange={() => undefined}
+            />
+            <TextField
               id="rsi-from"
               label={t('erru.rsi.form.rsiFrom')}
               value={selected(countries, 'EE')?.label ?? 'Eesti'}
               disabled
               onChange={() => undefined}
             />
-            <TextField
+            <Select
               id="rsi-originating-authority"
               label={t('erru.rsi.form.originatingAuthority')}
               required
-              value={formik.values.originatingAuthority}
-              onChange={(v) => formik.setFieldValue('originatingAuthority', v)}
+              options={opts(organisations)}
+              value={selected(organisations, formik.values.originatingAuthority)}
+              onChange={(o) =>
+                formik.setFieldValue('originatingAuthority', pick(o))
+              }
               {...err('originatingAuthority')}
             />
             {/* rsiTo: derived from vehicleRegistrationCountry — read-only (LJVIS2-147 §4).
@@ -512,7 +541,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
               onChange={(v) => formik.setFieldValue('inspectionLocation', v)}
               {...err('inspectionLocation')}
             />
-            <DateField
+            <MaskedDateField
               id="rsi-inspection-date"
               label={t('erru.rsi.form.inspectionDate')}
               required
@@ -526,7 +555,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
               monthYearSelectType="grid"
               {...dateErr('inspectionDate')}
             />
-            <TimeField
+            <MaskedTimeField
               id="rsi-inspection-time"
               label={t('erru.rsi.form.inspectionTime')}
               required
@@ -553,50 +582,23 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
           <Heading element="h2" className="mb-1">
             {t('erru.rsi.form.resultsBlock')}
           </Heading>
-          {/* inspectionPassed is always "Ei" for outgoing EE (LJVIS2-147 §4):
-              "Eesti väljaminevatel teadetel on väärtus alati „Ei", sest teavitatakse
-              ainult mittevastavustest." — rendered as disabled. */}
-          <ChoiceGroup
-            id="rsi-inspection-passed"
-            name="rsi-inspection-passed"
-            label={t('erru.rsi.form.inspectionPassed')}
-            className="mb-05"
-            inputType="radio"
-            direction="row"
-            value="false"
-            onChange={() => undefined}
-            items={yesNo('rsi-inspection-passed').map((item) => ({
-              ...item,
-              disabled: true,
-            }))}
-          />
-          <ChoiceGroup
-            id="rsi-pti-requested"
-            name="rsi-pti-requested"
-            label={t('erru.rsi.form.ptiRequested')}
-            className="mb-05"
-            required
-            inputType="radio"
-            direction="row"
-            value={formik.values.ptiRequested}
-            onChange={(v) => formik.setFieldValue('ptiRequested', v)}
-            items={yesNo('rsi-pti-requested')}
-            {...err('ptiRequested')}
-          />
-          <ChoiceGroup
-            id="rsi-vehicle-prohibition"
-            name="rsi-vehicle-prohibition"
-            label={t('erru.rsi.form.vehicleProhibitionOrRestriction')}
-            required
-            inputType="radio"
-            direction="row"
-            value={formik.values.vehicleProhibitionOrRestriction}
-            onChange={(v) =>
-              formik.setFieldValue('vehicleProhibitionOrRestriction', v)
-            }
-            items={yesNo('rsi-vehicle-prohibition')}
-            {...err('vehicleProhibitionOrRestriction')}
-          />
+          {/* RSI ettepanek 8: iga tulemus on üks märkeruut (linnuke). Märgitud =
+              "Jah". Väärtus hoitakse stringina 'true'/'false' (backend ootab seda). */}
+          {check(
+            'rsi-inspection-passed',
+            'inspectionPassed',
+            t('erru.rsi.form.inspectionPassed'),
+          )}
+          {check(
+            'rsi-pti-requested',
+            'ptiRequested',
+            t('erru.rsi.form.ptiRequested'),
+          )}
+          {check(
+            'rsi-vehicle-prohibition',
+            'vehicleProhibitionOrRestriction',
+            t('erru.rsi.form.vehicleProhibitionOrRestriction'),
+          )}
         </Card.Content>
       </Card>
 

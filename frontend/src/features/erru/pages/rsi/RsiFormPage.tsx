@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
 import { useRsiMessageDetail } from './useRsiMessageDetail';
@@ -21,7 +21,7 @@ import { PageActions } from '../../../../shared/components/PageActions';
 export function RsiFormPage() {
   const { t } = useTranslation();
   const { id } = useParams();
-  const navigate = useNavigate();
+
   const location = useLocation();
   const [savedOk, setSavedOk] = useState(
     !!(location.state as { justSaved?: boolean } | null)?.justSaved,
@@ -124,12 +124,6 @@ export function RsiFormPage() {
               </Alert>
             )}
           <PageActions>
-            <Button
-              visualType="secondary"
-              onClick={() => navigate('/erru/rsi')}
-            >
-              {t('common.back')}
-            </Button>
             <Button type="submit" disabled={form.formik.isSubmitting}>
               {t('common.save')}
             </Button>
@@ -288,14 +282,7 @@ export function RsiFormPage() {
               )}
             </Card.Content>
           </Card>
-          <PageActions>
-            <Button
-              visualType="secondary"
-              onClick={() => navigate('/erru/rsi')}
-            >
-              {t('common.back')}
-            </Button>
-          </PageActions>
+
         </>
       )}
     </div>
