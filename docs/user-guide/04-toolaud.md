@@ -31,9 +31,10 @@ kuvab põhivormi andmed ning selle all esinevad alamvormid.
 | **Staatus** | Vormi hetkestaatus (nt Salvestatud, Kinnitatud) |
 | **Avalikustatud** | Mitu alamvormi on avalikustatud (nt `0/2` tähendab 0 avalikustatud 2-st) |
 
-Kõiki veerge (v.a viimane) saab **sorteerida** — klõpsake veeru päisel.
+Kõiki veerge saab **sorteerida** — klõpsake veeru päisel.
 
-Hilinenud tähtajaga read on esile tõstetud **punase tekstiga**.
+Lüliti **Mina / Organisatsioon** võimaldab vaadata ainult enda pooleliolevaid vorme või
+kõigi organisatsiooni ametnike vorme.
 
 ## Kodaniku töölaud
 
