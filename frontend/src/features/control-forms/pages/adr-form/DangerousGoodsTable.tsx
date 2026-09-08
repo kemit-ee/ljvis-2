@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { sanitizeDecimalInput } from '../../../../hooks/stringUtils';
-import { Button, TextField, Card } from '@tedi-design-system/react/tedi';
+import { Button, TextField, Card, Select } from '@tedi-design-system/react/tedi';
 import type { DangerousGoodEntry } from '../../types';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import styles from './AdrFormFields.module.css';
 
 interface DangerousGoodsTableProps {
@@ -31,6 +33,24 @@ export function DangerousGoodsTable({
   onQuantityBlur,
 }: DangerousGoodsTableProps) {
   const { t } = useTranslation();
+  const { getByCode } = useClassifiers();
+  const unitOptions = useMemo(
+    () =>
+      getByCode('ADR_QUANTITY_UNIT')
+        .filter((e) => e.isValid !== false)
+        .map((e) => ({ value: e.code, label: e.name })),
+    [getByCode],
+  );
+  const packingGroupOptions = useMemo(
+    () => [
+      // Tühi esimene valik, et ekslikult valitud pakendirühma saaks tühjendada.
+      { value: '', label: '—' },
+      ...getByCode('ADR_PACKING_GROUP')
+        .filter((e) => e.isValid !== false)
+        .map((e) => ({ value: e.code, label: e.name })),
+    ],
+    [getByCode],
+  );
 
   return (
     <div>
@@ -54,12 +74,19 @@ export function DangerousGoodsTable({
                 input={{ maxLength: 20 }}
                 disabled={disabled}
               />
-              <TextField
+              <Select
                 id={`dangerousGoods-${index}-packagingGroup`}
                 label={t('forms.adr.dangerousGoods.packagingGroup')}
-                value={row.packagingGroup}
-                onChange={(v) => onUpdate(index, { packagingGroup: v })}
-                input={{ maxLength: 10 }}
+                options={packingGroupOptions}
+                value={
+                  packingGroupOptions.find((o) => o.value === row.packagingGroup) ?? null
+                }
+                onChange={(val) =>
+                  onUpdate(index, {
+                    packagingGroup:
+                      val && !Array.isArray(val) ? (val as { value: string }).value : '',
+                  })
+                }
                 disabled={disabled}
               />
               <TextField
@@ -73,11 +100,17 @@ export function DangerousGoodsTable({
                 onChange={(v) => onUpdate(index, { quantity: sanitizeDecimalInput(v) })}
                 disabled={disabled}
               />
-              <TextField
+              <Select
                 id={`dangerousGoods-${index}-unitCode`}
                 label={t('forms.adr.dangerousGoods.unitCode')}
-                value={row.unitCode}
-                onChange={(v) => onUpdate(index, { unitCode: v })}
+                options={unitOptions}
+                value={unitOptions.find((o) => o.value === row.unitCode) ?? null}
+                onChange={(val) =>
+                  onUpdate(index, {
+                    unitCode:
+                      val && !Array.isArray(val) ? (val as { value: string }).value : '',
+                  })
+                }
                 disabled={disabled}
               />
             </div>

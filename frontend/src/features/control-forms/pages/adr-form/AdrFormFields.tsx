@@ -13,6 +13,8 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { DangerousGoodsTable } from './DangerousGoodsTable';
 import { AdrInfringementsSection } from './AdrInfringementsSection';
+import { AdrOtherInfringementsSection } from './AdrOtherInfringementsSection';
+import { composeInfringementNotes } from './adrRecordUtils';
 import { AddressFields } from '../../components/shared/AddressFields';
 import type { AddressFieldsValue } from '../../components/shared/AddressFields';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -23,13 +25,7 @@ import type { useAdrForm } from './useAdrForm';
 import styles from './AdrFormFields.module.css';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
 
-const RESULT_OPTIONS = [
-  'ok',
-  'misdemeanor_proceedings',
-  'warning',
-  'driving_ban_art5',
-  'transport_interruption',
-] as const;
+const RESULT_OPTIONS = ['ok', 'misdemeanor_proceedings', 'warning'] as const;
 
 const PROCEEDING_TYPES = ['expedited', 'general'];
 const CONTAINER_TYPES = ['mahtlast', 'paak', 'pakend', 'memu'];
@@ -55,8 +51,18 @@ interface AdrFormFieldsProps {
   toggleCorrectiveMeasure: ReturnType<
     typeof useAdrForm
   >['toggleCorrectiveMeasure'];
-  setInfringement: ReturnType<typeof useAdrForm>['setInfringement'];
-  getInfringement: ReturnType<typeof useAdrForm>['getInfringement'];
+  toggleContainerType: ReturnType<typeof useAdrForm>['toggleContainerType'];
+  getCheckpoint: ReturnType<typeof useAdrForm>['getCheckpoint'];
+  setCheckpoint: ReturnType<typeof useAdrForm>['setCheckpoint'];
+  addRecord: ReturnType<typeof useAdrForm>['addRecord'];
+  updateRecord: ReturnType<typeof useAdrForm>['updateRecord'];
+  removeRecord: ReturnType<typeof useAdrForm>['removeRecord'];
+  addOtherInfringement: ReturnType<typeof useAdrForm>['addOtherInfringement'];
+  updateOtherInfringement: ReturnType<typeof useAdrForm>['updateOtherInfringement'];
+  removeOtherInfringement: ReturnType<typeof useAdrForm>['removeOtherInfringement'];
+  addOtherRecord: ReturnType<typeof useAdrForm>['addOtherRecord'];
+  updateOtherRecord: ReturnType<typeof useAdrForm>['updateOtherRecord'];
+  removeOtherRecord: ReturnType<typeof useAdrForm>['removeOtherRecord'];
   canEdit: boolean;
   formError?: string | null;
   searchLoading?: boolean;
@@ -78,8 +84,18 @@ export function AdrFormFields({
   updateDangerousGood,
   removeDangerousGood,
   toggleCorrectiveMeasure,
-  setInfringement,
-  getInfringement,
+  toggleContainerType,
+  getCheckpoint,
+  setCheckpoint,
+  addRecord,
+  updateRecord,
+  removeRecord,
+  addOtherInfringement,
+  updateOtherInfringement,
+  removeOtherInfringement,
+  addOtherRecord,
+  updateOtherRecord,
+  removeOtherRecord,
   canEdit,
   formError,
   searchLoading,
@@ -98,10 +114,33 @@ export function AdrFormFields({
   const formNumber = values.subFormNumber
     ? `${values.subFormNumber}/${values.version ?? 1}`
     : undefined;
-  const infringementItems = useMemo(
-    () => getByCode('DANGEROUS_GOODS_INFRINGEMENTS_NEW').filter((c) => !canEdit || c.isValid !== false),
+  const checkpointItems = useMemo(
+    () =>
+      getByCode('ADR_CONTROL_CHECKPOINT').filter(
+        (c) => !canEdit || c.isValid !== false,
+      ),
     [getByCode, canEdit],
   );
+
+  const infringementNotesSummary = useMemo(() => {
+    const cpName = new Map(
+      getByCode('ADR_CONTROL_CHECKPOINT')
+        .filter((c) => c.parentKey === null)
+        .map((c) => [c.code, c.name] as const),
+    );
+    return composeInfringementNotes([
+      ...(values.infringements ?? []).map((e) => ({
+        label: cpName.get(e.checkpointCode) ?? e.checkpointCode,
+        records: e.records ?? [],
+      })),
+      ...(values.otherInfringements ?? []).map((e, i) => ({
+        label:
+          (e.title ?? '').trim() ||
+          t('forms.adr.otherInfringements.fallbackLabel', { index: i + 1 }),
+        records: e.records ?? [],
+      })),
+    ]);
+  }, [getByCode, values.infringements, values.otherInfringements, t]);
 
   const citizenshipOptions = COUNTRIES.map((c) => ({
     value: c.value,
@@ -381,6 +420,7 @@ export function AdrFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.adr.dangerousGoods.title')}
           </Heading>
+          <Text className="mb-1">{t('forms.adr.dangerousGoods.subtitle')}</Text>
           <DangerousGoodsTable
             rows={values.dangerousGoods ?? []}
             onAdd={canEdit ? addDangerousGood : () => {}}
@@ -414,7 +454,6 @@ export function AdrFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.adr.exemption.title')}
           </Heading>
-          <Text className="mb-1">{t('forms.adr.exemption.hint')}</Text>
           <ChoiceGroup
             id={`${idPrefix}exemptionApplied`}
             name={`${idPrefix}exemptionApplied`}
@@ -444,35 +483,49 @@ export function AdrFormFields({
             ]}
           />
           {values.exemptionApplied && (
-            <div
-              className={
-                styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
-              }
-            >
-              <TextField
-                id={`${idPrefix}exemptionAdrProvision`}
-                label={t('forms.adr.exemption.provision')}
-                value={values.exemptionAdrProvision ?? ''}
-                required={canEdit}
+            <>
+              <Text className="mb-1">{t('forms.adr.exemption.provisionIntro')}</Text>
+              <div
+                className={
+                  styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
+                }
+              >
+                <TextField
+                  id={`${idPrefix}exemptionAdrProvision`}
+                  label={t('forms.adr.exemption.provision')}
+                  value={values.exemptionAdrProvision ?? ''}
+                  required={canEdit}
+                  onChange={(v) =>
+                    canEdit
+                      ? formik.setFieldValue('exemptionAdrProvision', v)
+                      : undefined
+                  }
+                  disabled={!canEdit}
+                  input={canEdit ? { maxLength: 200 } : undefined}
+                  {...(canEdit &&
+                  formik.touched.exemptionAdrProvision &&
+                  formik.errors.exemptionAdrProvision
+                    ? {
+                        helper: {
+                          text: formik.errors.exemptionAdrProvision as string,
+                          type: 'error' as const,
+                        },
+                      }
+                    : {})}
+                />
+              </div>
+              <TextArea
+                id={`${idPrefix}exemptionNotes`}
+                label={t('forms.adr.exemption.notes')}
+                className="mt-1"
+                value={values.exemptionNotes ?? ''}
+                maxHeight="8rem"
                 onChange={(v) =>
-                  canEdit
-                    ? formik.setFieldValue('exemptionAdrProvision', v)
-                    : undefined
+                  canEdit ? formik.setFieldValue('exemptionNotes', v) : undefined
                 }
                 disabled={!canEdit}
-                input={canEdit ? { maxLength: 200 } : undefined}
-                {...(canEdit &&
-                formik.touched.exemptionAdrProvision &&
-                formik.errors.exemptionAdrProvision
-                  ? {
-                      helper: {
-                        text: formik.errors.exemptionAdrProvision as string,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
               />
-            </div>
+            </>
           )}
         </Card.Content>
       </Card>
@@ -483,16 +536,24 @@ export function AdrFormFields({
             {t('forms.adr.containerType.title')}
           </Heading>
           <ChoiceGroup
-            id={`${idPrefix}containerType`}
-            name={`${idPrefix}containerType`}
+            id={`${idPrefix}containerTypes`}
+            name={`${idPrefix}containerTypes`}
             label={t('forms.adr.containerType.title')}
             direction="row"
             hideLabel
-            inputType="radio"
-            value={values.containerType ?? ''}
-            onChange={(val) =>
-              canEdit ? formik.setFieldValue('containerType', val) : undefined
-            }
+            inputType="checkbox"
+            value={values.containerTypes ?? []}
+            onChange={(val) => {
+              if (!canEdit) return;
+              const arr = Array.isArray(val) ? val : [];
+              (values.containerTypes ?? []).forEach((code) => {
+                if (!arr.includes(code)) toggleContainerType(code, false);
+              });
+              arr.forEach((code) => {
+                if (!(values.containerTypes ?? []).includes(code))
+                  toggleContainerType(code, true);
+              });
+            }}
             items={CONTAINER_TYPES.map((ct) => ({
               id: `${idPrefix}containerType-${ct}`,
               value: ct,
@@ -508,24 +569,32 @@ export function AdrFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.adr.infringements.title')}
           </Heading>
-          {infringementItems.length === 0 && (
-            <Text>{t('forms.adr.infringements.classifierMissing')}</Text>
-          )}
           <AdrInfringementsSection
-            items={infringementItems}
-            getInfringement={getInfringement}
-            setInfringement={canEdit ? setInfringement : () => {}}
+            items={checkpointItems}
+            getCheckpoint={getCheckpoint}
+            setCheckpoint={setCheckpoint}
+            addRecord={addRecord}
+            updateRecord={updateRecord}
+            removeRecord={removeRecord}
             disabled={!canEdit}
           />
-          <TextArea
-            id={`${idPrefix}otherViolations`}
-            label={t('forms.adr.infringements.otherViolations')}
-            className="mt-1"
-            value={values.otherViolations ?? ''}
-            maxHeight="8rem"
-            onChange={(v) =>
-              canEdit ? formik.setFieldValue('otherViolations', v) : undefined
-            }
+        </Card.Content>
+      </Card>
+
+      <Card className="mb-1">
+        <Card.Content>
+          <Heading element="h3" className="mb-1">
+            {t('forms.adr.otherInfringements.sectionTitle')}
+          </Heading>
+          <AdrOtherInfringementsSection
+            items={checkpointItems}
+            entries={values.otherInfringements ?? []}
+            addOtherInfringement={addOtherInfringement}
+            updateOtherInfringement={updateOtherInfringement}
+            removeOtherInfringement={removeOtherInfringement}
+            addOtherRecord={addOtherRecord}
+            updateOtherRecord={updateOtherRecord}
+            removeOtherRecord={removeOtherRecord}
             disabled={!canEdit}
           />
         </Card.Content>
@@ -560,6 +629,42 @@ export function AdrFormFields({
               disabled: !canEdit,
             }))}
           />
+
+          <ChoiceGroup
+            id={`${idPrefix}additionalMeasures`}
+            name={`${idPrefix}additionalMeasures`}
+            label={t('forms.adr.result.additionalMeasures')}
+            inputType="checkbox"
+            className="mb-1"
+            value={[
+              ...(values.drivingBanApplied ? ['drivingBan'] : []),
+              ...(values.transportInterruptionApplied ? ['transportInterruption'] : []),
+            ]}
+            onChange={(val) => {
+              if (!canEdit) return;
+              const arr = Array.isArray(val) ? val : [];
+              formik.setFieldValue('drivingBanApplied', arr.includes('drivingBan'));
+              formik.setFieldValue(
+                'transportInterruptionApplied',
+                arr.includes('transportInterruption'),
+              );
+            }}
+            items={[
+              {
+                id: `${idPrefix}drivingBanApplied`,
+                value: 'drivingBan',
+                label: t('forms.adr.result.drivingBanApplied'),
+                disabled: !canEdit,
+              },
+              {
+                id: `${idPrefix}transportInterruptionApplied`,
+                value: 'transportInterruption',
+                label: t('forms.adr.result.transportInterruptionApplied'),
+                disabled: !canEdit,
+              },
+            ]}
+          />
+
           {values.resultType !== 'ok' && (
             <>
               {(() => {
@@ -627,7 +732,9 @@ export function AdrFormFields({
                               label=""
                               value={values.proceedingReferenceNumber ?? ''}
                               placeholder={t(
-                                'forms.adr.result.proceedingReferenceNumber',
+                                values.proceedingType === 'general'
+                                  ? 'forms.adr.result.misdemeanourCaseNumber'
+                                  : 'forms.adr.result.proceedingReferenceNumber',
                               )}
                               onChange={(v) =>
                                 canEdit
@@ -824,6 +931,16 @@ export function AdrFormFields({
                   }
             }
           />
+          {infringementNotesSummary && (
+            <TextArea
+              id={`${idPrefix}infringementNotesSummary`}
+              label={t('forms.adr.notes.infringementSummary')}
+              className="mt-1"
+              value={infringementNotesSummary}
+              maxHeight="8rem"
+              readOnly
+            />
+          )}
         </Card.Content>
       </Card>
 

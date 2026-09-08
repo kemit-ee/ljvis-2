@@ -120,7 +120,6 @@ processCandidates:
             found: "${decision.found ? 'true' : 'false'}"
             enforcementDecision: "${decision.enforcementDecision}"
             proceedingClosureBasis: "${decision.proceedingClosureBasis}"
-            created_by: "e-toimik"
         result: applyRes
 
       # update-xroad-fields.sql tagastab 0 rida kui found=false või status<>'confirmed'

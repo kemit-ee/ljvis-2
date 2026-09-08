@@ -13,6 +13,7 @@ Haldustegevused on koondatud **Haldus** rühma alla, mis avaneb sellele klõpsat
 ```mermaid
 flowchart TD
     A[🖥️ Töölaud] --> B[⚙️ Haldus]
+    A --> T[🔔 Teavitused]
     B --> C[👤 Kasutajad]
     B --> D[👥 Kasutajagrupid]
     B --> E[📋 Klassifikaatorid]
@@ -33,6 +34,7 @@ flowchart TD
 | Menüüpunkt | Õigus | Selgitus |
 |---|---|---|
 | Töölaud | — | Avaleht kõigile autenditud kasutajatele |
+| Teavitused | — | Rakendusesisesed teavitused kõigile; „Saadetud kirjad" vahekaart `notification.list` õigusega |
 | Kasutajad | `user.list.admin` või `user.list.local` | Kasutajate nimekiri ja haldus |
 | Kasutajagrupid | `user_group.list.admin` või `user_group.list.local` | Gruppide haldus |
 | Klassifikaatorid | `classifier.list` | Klassifikaatorite vaatamine ja muutmine |

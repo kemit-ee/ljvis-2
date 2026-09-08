@@ -1,25 +1,23 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    Lisab ühe saaja outbound_log kirjele.
-    APPEND-ONLY: uuesti saatmisel lisatakse saajad uue log rea alla.
-  method: post
-  accepts: json
-  returns: json
-  namespace: notification
-  allowlist:
-    body:
-      - field: log_id
-        type: string
-      - field: person_email
-        type: string
-      - field: person_name
-        type: string
-      - field: person_code
-        type: string
-      - field: sending_report
-        type: string
+description: 'Lisab ühe saaja outbound_log kirjele. APPEND-ONLY: uuesti saatmisel lisatakse saajad uue
+  log rea alla.'
+namespace: notification
+params:
+  log_id:
+    type: string
+    required: false
+  person_email:
+    type: string
+    required: false
+  person_name:
+    type: string
+    required: false
+  person_code:
+    type: string
+    required: false
+  sending_report:
+    type: string
+    required: false
 */
 INSERT INTO notifications.outbound_log_recipient (
     log_id,

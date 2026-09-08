@@ -1,18 +1,11 @@
 /*
-declaration:
-  version: 0.1
-  description: >-
-    Ühe outbound_log kirje saajate loend (UC-03).
-    Eraldi kutse, mitte JOIN list_outbound_log.sql-iga (JOIN keelatud).
-    notification.admin õiguse kontroll on Ruuter DSL-i tasemel.
-  method: post
-  accepts: json
-  returns: json
-  namespace: notification
-  allowlist:
-    body:
-      - field: log_id
-        type: string
+description: Ühe outbound_log kirje saajate loend (UC-03). Eraldi kutse, mitte JOIN list_outbound_log.sql-iga
+  (JOIN keelatud). notification.list õiguse kontroll on Ruuter DSL-i tasemel.
+namespace: notification
+params:
+  log_id:
+    type: string
+    required: false
 */
 SELECT
     r.id,

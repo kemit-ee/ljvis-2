@@ -276,6 +276,56 @@
     "title": "Desktop",
     "addForm": "+ Add"
   },
+  "dashboard": {
+    "scope": {
+      "label": "View",
+      "own": "Mine",
+      "organisation": "Organisation"
+    },
+    "sections": {
+      "compoundBlock": "Compound form",
+      "formsBlock": "Forms",
+      "activeCompound": "Active compound forms",
+      "activeStandalone": "Active forms"
+    },
+    "compound": {
+      "selectSubforms": "Select control form(s):",
+      "selectSubformsHint": "Select at least one control form"
+    },
+    "kind": {
+      "kontrollkaart": "Control card",
+      "protokoll": "Protocol",
+      "vorm": "Form"
+    },
+    "empty": {
+      "activeCompound": "No unfinished compound forms",
+      "activeStandalone": "No unfinished forms"
+    },
+    "columns": {
+      "date": "Date",
+      "time": "Time",
+      "vehicle": "Vehicle",
+      "driverCompany": "Driver / Company",
+      "formNumber": "Form",
+      "formType": "Name",
+      "status": "Status",
+      "published": "Published"
+    },
+    "actions": {
+      "fill": "Fill in",
+      "continue": "Continue",
+      "viewAllSearch": "View all in search →"
+    },
+    "status": {
+      "saved": "Saved",
+      "confirmed": "Confirmed",
+      "published": "Published",
+      "deleted": "Deleted"
+    },
+    "errors": {
+      "summaryFailed": "Failed to load dashboard data."
+    }
+  },
   "forms": {
     "savedNote": "Form has been saved",
     "confirmedNote": "Form has been confirmed",
@@ -431,7 +481,8 @@
         "statusColumn": "Status",
         "notChecked": "Not checked",
         "checked": "Checked",
-        "nonCompliant": "Non-compliant"
+        "nonCompliant": "Non-compliant",
+        "editDefects": "Edit defects"
       },
       "resultsTable": {
         "title": "Detected defects",
@@ -443,7 +494,8 @@
       "defectModal": {
         "select": "Select",
         "noDefects": "This part has no defects",
-        "selectAtLeastOne": "Select at least one defect."
+        "selectAtLeastOne": "Select at least one defect.",
+        "clear": "None"
       },
       "result": {
         "title": "Inspection result",
@@ -521,7 +573,7 @@
       "title": "ADR control form (dangerous goods)",
       "sectionTitle": "ADR control form",
       "addNew": "Add ADR control form",
-      "hintOnlyOnViolation": "These fields are filled in only if a violation is found.",
+      "hintOnlyOnViolation": "Täita ainult juhul, kui see on rikkumise puhul asjakohane.",
       "driverAssistant": {
         "title": "Driver's assistant data",
         "personalCode": "Personal code",
@@ -547,9 +599,10 @@
       },
       "dangerousGoods": {
         "title": "Transported dangerous goods",
+        "subtitle": "Completed when an infringement is identified",
         "empty": "No dangerous goods added",
         "addRow": "+ Add dangerous good",
-        "unNumber": "UN number",
+        "unNumber": "ÜRO number",
         "packagingGroup": "Packaging group",
         "quantity": "Quantity",
         "quantityInvalid": "Quantity must not end with a comma or period",
@@ -559,7 +612,9 @@
         "title": "Exemption",
         "hint": "Application of ADR exemptions per ADR provisions.",
         "applied": "Is an exemption applied",
-        "provision": "ADR provision"
+        "provision": "ADR provision",
+        "provisionIntro": "ADR erandi kohaldamine vastavalt ADR sättele:",
+        "notes": "Märkus (direktiivi 2008/68/EÜ erandid)"
       },
       "containerType": {
         "title": "Container type",
@@ -571,18 +626,42 @@
         }
       },
       "infringements": {
-        "title": "Infringements",
-        "classifierMissing": "The infringements checklist classifier has not been configured yet.",
-        "checkStatus": "Result",
+        "title": "Rikkumised",
+        "classifierMissing": "Rikkumiste kontrollnimekirja klassifikaator ei ole veel seadistatud.",
+        "inspectionStatus": "Kontroll",
         "status": {
-          "checked": "Checked (C)",
-          "not_possible": "Not possible to check (NC)",
-          "not_applicable": "Not applicable (NA)"
+          "C": "C – kontrollitud",
+          "NC": "NC – ei ole võimalik kontrollida",
+          "NA": "NA – ei kohaldata"
         },
-        "riskCategory": "Risk category",
-        "adrProvision": "ADR provision",
-        "notes": "Note",
-        "otherViolations": "Other violations"
+        "notCheckedReason": "Põhjus",
+        "infringementDetected": "Rikkumine tuvastatud",
+        "record": "Rikkumine {{n}}",
+        "addRecord": "+ Lisa rikkumine",
+        "removeRecord": "Kustuta rikkumine",
+        "riskCategory": "Riskikategooria (direktiivi 2022/1999 kohane)",
+        "riskCategoryOptions": {
+          "I": "I",
+          "II": "II",
+          "III": "III"
+        },
+        "adrReference": "Rikutud ADR punkt",
+        "recordNotes": "Notes",
+        "participants": "Võimalik vastutav osaleja",
+        "participantOptions": {
+          "Ci": "Kaubasaatja (Ci)",
+          "C": "Vedaja (C)",
+          "Ce": "Kaubasaaja (Ce)",
+          "L": "Laadija (L)",
+          "P": "Pakendaja (P)",
+          "F": "Täitja (F)",
+          "To": "Paagi käitaja (To)",
+          "U": "Mahalaadija (U)"
+        },
+        "regCode": "Määruse (EL) 2016/403 rikkumisliik",
+        "regCodeNone": "Ei ole määruse 2016/403 p 9 rikkumisliik",
+        "regCodeDisabledHint": "2016/403 rikkumisliik määratakse ainult juhul, kui rikkumise eest võib täielikult või osaliselt vastutada vedaja.",
+        "regSeverityAuto": "2016/403 raskusaste: {{severity}} (automaatselt)"
       },
       "result": {
         "title": "Inspection result",
@@ -608,11 +687,16 @@
         },
         "sealOpened": "Seal opened during inspection",
         "sealOpenedDate": "Seal opened date",
-        "sealInstalledDate": "Seal installed date"
+        "sealInstalledDate": "Seal installed date",
+        "additionalMeasures": "Lisameetmed",
+        "drivingBanApplied": "Sõidukeeld (direktiivi (EL) 2022/1999 artikkel 5)",
+        "transportInterruptionApplied": "Autovedu on katkestatud",
+        "misdemeanourCaseNumber": "Väärteoasja number"
       },
       "notes": {
         "title": "Notes",
-        "counter": "{{count}}/{{max}} characters"
+        "counter": "{{count}}/{{max}} characters",
+        "infringementSummary": "Infringement record notes summary (automatic)"
       },
       "xroad": {
         "title": "Data queried via the data exchange layer (X-tee)",
@@ -629,6 +713,14 @@
           "form_locked_after_publish": "This form has been published and can no longer be edited",
           "already_confirmed": "This form has already been confirmed"
         }
+      },
+      "otherInfringements": {
+        "sectionTitle": "Muu rikkumine",
+        "title": "Pealkiri",
+        "addRow": "+ Lisa uus muu rikkumine",
+        "remove": "Kustuta muu rikkumine",
+        "empty": "Muid rikkumisi ei ole lisatud",
+        "fallbackLabel": "Muu rikkumine {{index}}"
       }
     },
     "compound": {
@@ -724,10 +816,6 @@
     "sp_teammate_form": "Team member driving and rest time inspection form",
     "tram_driver_form": "Transport Administration inspection card",
     "tram_add_driver": "Add driver",
-    "sp_vehicle_tech_form": "Motor vehicle technical compliance inspection form",
-    "sp_trailer_tech_form": "Trailer technical compliance inspection form",
-    "sp_dangerous_goods_form": "Dangerous goods transport inspection form",
-    "sp_transport_suspended_form": "Transport suspended inspection form",
     "foreign_violation": {
       "reportingBasicInfo": "Reporting country and authority",
       "reportingCountry": "Reporting country",
@@ -782,6 +870,20 @@
       "sanctionLiiklemiskeeld": "Prohibition from driving",
       "sanctionSoiduk": "Immobilisation of vehicle",
       "sanctionMuu": "Other",
+      "duplicateWarning": "Warning: a control card with this company, vehicle and inspection date combination already exists ({{formNumber}}). Please check that you are not creating a duplicate.",
+      "addSanction": "+ Add sanction",
+      "additionalSanctions": "Additional sanctions",
+      "adminProc": {
+        "klimDate": "KLIM clarification request date",
+        "carrierDate": "Carrier explanation date",
+        "penaltyUntil": "Penalty valid until",
+        "akvkDate": "Next committee meeting (AKVK)",
+        "commissionDate": "Last committee decision date",
+        "decision": "Decision",
+        "expired": "Expired or processed",
+        "foreignProposal": "Proposal received from foreign authority for carrier inspection",
+        "notifyCarrier": "Notify carrier of violation"
+      },
       "euViolationGroupMsi": "Most serious infringements (MSI)",
       "euViolationMsi101": "MSI101 - Exceeds the maximum driving time of 2 consecutive weeks by 25% or more 112h30 ≤ ...",
       "euViolationMsi102": "MSI102 - Exceeds the daily driving time of 9 hours by 50% or more 13h30 ≤ ...",
@@ -1614,12 +1716,14 @@
         "result": "Result",
         "notChecked": "Not checked",
         "checked": "Checked",
-        "nonCompliant": "Non-compliant"
+        "nonCompliant": "Non-compliant",
+        "editDefects": "Edit defects"
       },
       "defectModal": {
         "noDefects": "This part has no defects",
         "selectAtLeastOne": "Select at least one defect",
-        "select": "Select"
+        "select": "Select",
+        "clear": "None"
       },
       "form": {
         "titleOutgoing": "Roadside inspection message (EST → ERRU)",
@@ -1781,7 +1885,10 @@
         "ackStatusCode": "Acknowledgement status",
         "send": "Send",
         "sendResponse": "Send response",
-        "sendFailed": "Sending failed. The message moved to Error status."
+        "sendFailed": "Sending failed. The message moved to Error status.",
+        "createVr": "Create foreign violation control card",
+        "openVr": "Open foreign violation control card",
+        "createVrFailed": "Creating the VR control card failed"
       },
       "buildModal": {
         "button": "Add NCR message",
@@ -1832,7 +1939,9 @@
       "driver": "Driver (personal code or name)",
       "county": "County",
       "hasViolation": "Violation",
-      "status": "Status"
+      "status": "Status",
+      "vrReportingCountry": "VR: reporting country",
+      "vrSanctionCode": "VR: sanction"
     },
     "columns": {
       "formType": "Form type",
@@ -1876,18 +1985,26 @@
       "sendDate": "Sent date",
       "messageType": "Message type",
       "addressee": "Addressee",
+      "notificationKey": "Notification key",
       "name": "Name",
       "email": "Email",
       "sendingResult": "Send result",
       "status": "Status",
       "sent": "Sent",
-      "sent_error": "Send failed",
+      "statusSending": "Sending",
+      "statusQueued": "Sending (queued)",
+      "statusInProgress": "Sending (in progress)",
+      "statusError": "Error",
       "resend": "Resend",
-      "resendTitle": "Email address",
+      "resendConfirm": "Resend this notification unchanged to the same recipient?",
       "report": "Send report",
       "filterStatus": "Status",
       "filterType": "Message type",
-      "filterDateFrom": "From date"
+      "filterDateFrom": "From date",
+      "filterDateTo": "To date",
+      "filterRecipient": "Recipient",
+      "filterNotificationKey": "Notification key",
+      "emptyResult": "No notifications matched the search."
     },
     "types": {
       "ncr_violation": "NCR serious infringement notice",

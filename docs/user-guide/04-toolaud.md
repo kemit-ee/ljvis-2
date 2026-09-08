@@ -10,6 +10,32 @@ näidatud oma põhivormi all taandega.
 
 ![Nupu „+ Lisa" rippmenüü](images/04-toolaud/02-lisa-rippmenyy.png)
 
+## Töös olevad kompleksvormid
+
+Töölaua alumises osas kuvatakse **Töös olevad kompleksvormid** tabel, mis näitab kõiki
+pooleliolevaid kontrolle. Tabel on grupeeritud põhivormide kaupa: iga kompleksvormi rida
+kuvab põhivormi andmed ning selle all esinevad alamvormid.
+
+![Töös olevad kompleksvormid tabel](images/04-toolaud/02-toolaud-tabel.png)
+
+### Tabeli veerud
+
+| Veerg | Sisu |
+|-------|------|
+| **Kuupäev** | Kontrolli toimumise kuupäev |
+| **Kellaaeg** | Kontrolli toimumise kellaaeg |
+| **Sõiduk** | Sõiduki registreerimismärk |
+| **Autojuht / Ettevõte** | Juhi nimi (peamine) ja ettevõte (teisene). Kui juhi nimi puudub, kuvatakse ettevõtte nimi. |
+| **Vorm** | Vormi number |
+| **Nimetus** | Vormi tüübi nimi |
+| **Staatus** | Vormi hetkestaatus (nt Salvestatud, Kinnitatud) |
+| **Avalikustatud** | Mitu alamvormi on avalikustatud (nt `0/2` tähendab 0 avalikustatud 2-st) |
+
+Kõiki veerge saab **sorteerida** — klõpsake veeru päisel.
+
+Lüliti **Mina / Organisatsioon** võimaldab vaadata ainult enda pooleliolevaid vorme või
+kõigi organisatsiooni ametnike vorme.
+
 ## Kodaniku töölaud
 
 Kodaniku vaates kuvatakse **Minu ettevõtted** (esindatavate ettevõtete kontrollid ja
@@ -31,7 +57,7 @@ flowchart LR
 ## Võimalikud komponendid
 
 - **Kiirlingid uute vormide juurde** — näiteks "Uus liitvorm", "Uus välisrikkumise akt".
-- **Viimased tegevused** — nimekiri viimati salvestatud või vaadatud vormidest.
+- **Töös olevad kompleksvormid** — pooleliolevate kontrollide tabel.
 - **Hoiatused ja märkused** — võimalikud tõrked või infomärkused.
 
 ## Töölaud erinevate rollide jaoks

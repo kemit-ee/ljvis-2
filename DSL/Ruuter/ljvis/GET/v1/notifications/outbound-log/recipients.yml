@@ -3,7 +3,7 @@ declaration:
   description: >-
     Ühe Postkast 2.0 saatmiskirje saajate loend (UC-03).
     Eraldi endpoint list.yml-st — saajaid ei JOIN-ita logi endaga.
-    Nõuab notification.admin õigust (kaitstud outbound-log/.guard kaudu).
+    Nõuab notification.list õigust (kaitstud outbound-log/.guard kaudu).
   namespace: notification
   allowlist:
     params:

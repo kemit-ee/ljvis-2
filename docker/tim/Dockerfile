@@ -1,4 +1,4 @@
-FROM turnerrainer/tim:0.2.0-alpha.2
+FROM turnerrainer/tim:0.3.0-alpha@sha256:2859f11587a8a2ac74972068869fe40ba3892e9640428010390fb718479f2994
 
 # TIM generates an RSA key here on first start if the file is missing.
 # In CI/dev the key is mounted via a Docker named volume so it survives

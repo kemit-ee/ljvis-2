@@ -4,6 +4,116 @@
 
 ---
 
+## 2026-09 — VR kontrollkaart: RS ettepanekud
+
+- Ühe sanktsiooni asemel saab nüüd märkida mitu sanktsiooni korraga (lisasanktsioonid lisatakse põhisanktsiooni kõrvale).
+- Lisandus **haldusmenetluse plokk**: KLIM selgitustaotluse kuupäev, vedaja seletus, karistuse kehtivus, AKVK koosolek, komisjoni otsus ja otsuse vabatekst.
+- Süsteem hoiatab, kui sama ettevõtte, sõiduki ja kuupäevaga VR vorm on juba olemas.
+- NCR-teatise vaates saab nüüd otse luua sellele vastava VR kontrollkaardi — vorm täidetakse NCR andmetega eeltäidetult.
+- Vormiotsingus on VR kontrollkaardile lisandunud kaks filtrit: teatav riik ja sanktsioon.
+- Nupu tekst muudetud: „Loo VR kontrollkaart" → „Loo välisriigis toimunud rikkumise kontrollkaart".
+
+---
+
+## 2026-09 — ADR-vorm: veetavate ohtlike kaupade plokk ja aadressiväljad
+
+- Väli **„Pakendirühm"** on nüüd vabateksti asemel valik loendist: tühi valik,
+  „I pakendirühm – väga ohtlik aine", „II pakendirühm – keskmise ohtlikkusega
+  aine", „III pakendirühm – madala ohtlikkusega aine", „Ei ole määratud"
+  (klassifikaator `ADR_PACKING_GROUP`).
+- Ploki **„Veetavate ohtlike kaupade andmed"** pealkirja alla lisati selgitus
+  „Täidetakse rikkumise tuvastamise korral".
+- Aadressiväljade **riigi** rippmenüü esimene tühi valik on nüüd nähtava sildiga
+  („—"), et ekslikult valitud riiki saaks tühjendada. Kui riik on **Eesti**, saab
+  ka **maakonna** ja **linna/valla** valiku tühjaks jätta. (Muudatus kehtib kõigil
+  aadressivälju kasutavatel kontrollvormidel.)
+
+---
+
+## 2026-09 — ADR-vorm: rikkumiskirjete märkused ja koondväli
+
+- Iga rikkumiskirje (nii kontrollkaardi punktide all kui „Muu rikkumine" all)
+  saab nüüd **„Märkused"** vabatekstivälja.
+- Ploki **„Märkused"** all kuvatakse **kirjutuskaitstud koondtekst** kõigist
+  rikkumiskirjete märkustest, kujul „12. Veodokumendid, Rikkumine 1: tekst;
+  16. Veoks lubatud kaubad, Rikkumine 1: tekst, Rikkumine 2: tekst". Käsitsi
+  sisestatav „Märkused" väli jääb eraldi puutumata.
+- Koond salvestatakse vormiga (kasutamiseks väljatrükil / X-teel).
+
+---
+
+## 2026-09 — ADR-vorm: rikkumisliigi valikus ametlik rikkumise kood
+
+- Rikkumiskirje väljal **„Määruse (EL) 2016/403 rikkumisliik"** on iga valiku ees
+  nüüd **ametlik rikkumise kood** määruse lisa 2 riskikategooriate tabelist
+  (nt „VSI 856 – veetava aine kohta puudub teave, mis võimaldaks kindlaks teha
+  rikkumise raskusastet"). Varem oli ees seostetabeli sisemine rea number.
+- Vorm salvestab rikkumiskirje juurde nüüd selle ametliku koodi.
+
+---
+
+## 2026-09 — ADR-vorm: rikkumiste punktide pealkirjad määruse lisa 2 kujule
+
+- ADR kontrollvormi rikkumiste ploki **kontrollkaardi punktide (12–27) pealkirjad**
+  on viidud kliimaministri määruse **lisa 2** sõnastusega täpselt vastavusse.
+- Iga pealkirja ees on nüüd **punkti number** (12–26 ja 27 „Muud rikkumised") ning
+  pealkirja järel **sulgudes samad ADR-viited**, mis on toodud lisas 2 (osal „nt",
+  osal ilma). Näiteks „14. Sõiduki vastavustunnistus (ADR 8.1.2.2 (a), 9.1.3)".
+
+---
+
+## 2026-09 — Postkast 2.0: saadetud kirjade logi (analüüs 12-2)
+
+- **Saadetud kirjad** tabelis on nüüd **1 rida = 1 saatmiskatse ühele adressaadile**
+  (varem 1 rida sai olla mitu saajat). Staatuseid on **4**: „Saatmisel (ootel)",
+  „Saatmisel (töös)" — mõlemad kuvatakse tabelis lihtsalt **„Saatmisel"** —,
+  „Saadetud" ja **„Viga"**. Vea korral kuvatakse ebaõnnestumise põhjus tooltipina
+  staatuse peal.
+- Uus veerg **„Teavituse tunnus"**; „Adressaat" veerg näitab nüüd otse saaja
+  e-posti aadressi.
+- Kõik veerud peale „Tegevused" on **sorditavad**.
+- Uued filtrid: **adressaat** (sisaldab-otsing) ja **teavituse tunnus**
+  (täpne otsing); kuupäevafilter on nüüd **vahemik** (alates/kuni).
+- Kui otsingule ei vasta ükski rida, kuvatakse tekst „Otsingule vastavaid
+  teavitusi ei leitud." tavalise tühja tabeli asemel.
+- **„Saada uuesti"** ei ava enam eraldi vormi uue e-posti sisestamiseks — kinnitusel
+  saadetakse teavitus uuesti täpselt samale adressaadile muutmata kujul.
+- Õigus **notification.admin** on asendatud kahega: **notification.list**
+  (logi nägemine) ja **notification.resend** (uuesti saatmine).
+- Väline saatmine (e-kiri) käib nüüd **X-tee kaudu Postkast 2.0 teenusega**.
+  Saatmise lõppstaatust uuendab taustatöö; kui lõppstaatust ei saabu 24 tunni
+  jooksul, märgitakse teavitus „Veaks".
+- Uus administraatori juhendi peatükk **„Teavitused"** kirjeldab vaadet,
+  õigusi, filtreid ja uuesti saatmist.
+
+---
+
+## 2026-09 — ADR (ohtliku veose) kontrollvorm kliimaministri määruse kujul
+
+- **Rikkumiste plokk** on täielikult ümber tehtud ja järgib nüüd kliimaministri
+  määruse (RT I, 16.06.2026, 11) lisa 1: rikkumised on struktureeritud
+  **kontrollkaardi punktide 12–27** kaupa (pealkiri koos ADR-viitega). Iga punkti
+  all on kontrollimise staatus **C / NC / NA** ning „rikkumine tuvastatud"; iga
+  tuvastatud rikkumine on **eraldi korratav kirje** (riskikategooria I/II/III,
+  rikutud ADR punkt, võimalikud vastutavad osalejad, ning vedaja vastutuse korral
+  määruse (EL) 2016/403 rikkumisliik koos automaatse raskusastmega).
+- Uus plokk **„Muu rikkumine"** — saab lisada n+1 rikkumist, mida punktid 12–27
+  ei kata.
+- **Veetavate ohtlike kaupade** real: „ÜN-number" → **„ÜRO number"**; „Ühik" on
+  nüüd valik loendist (l, kg, t, m³, tk, pakendit, ballooni, NEM kg).
+- **Mahuti tüüp** on mitmene valik (koormas võib olla mitu ohtlikku kaupa eri
+  mahutites).
+- **Erandi kohaldamine**: lisatud „Märkus (direktiivi 2008/68/EÜ erandid)".
+- **Kontrolli tulemus**: sõidukeeld (direktiivi (EL) 2022/1999 artikkel 5) ja
+  autoveo katkestamine on nüüd eraldi lisameetmed, mitte tulemuse valik.
+  Üldmenetluse puhul on viitenumbri väli **„Väärteoasja number"**.
+- **Laadimisaadressid**: riik ei ole enam vaikimisi Eesti; riigivaliku alguses on
+  tühi valik; välisriigi puhul saab maakonna ja linna/valla käsitsi täita.
+- Andmehaldus: uued klassifikaatorid **ADR kontrollkaardi punktid**
+  (`ADR_CONTROL_CHECKPOINT`) ja **ADR koguse ühik** (`ADR_QUANTITY_UNIT`).
+
+---
+
 ## 2026-09 — Kasutus- ja administraatorijuhend ekraanipiltidega
 
 - **Kasutusjuhendi ja administraatorijuhendi peatükid** on nüüd illustreeritud

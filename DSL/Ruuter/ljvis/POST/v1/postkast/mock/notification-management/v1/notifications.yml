@@ -1,0 +1,25 @@
+declaration:
+  version: "1.0"
+  description: >-
+    MOCK Postkast 2.0 "Teavituse loomine" — dev ja CI ainult, tootangus
+    kättesaamatu (PK_NOTIFICATIONS_ENDPOINT osutab seal
+    XROAD_SECURITY_SERVER/GOV/70006317/postkast-le). Stand-in X-tee kaudu
+    ligipääsetava PK 2.0 haldusliidese jaoks, mis pole selles keskkonnas
+    saadaval. Tagastab kohe sendingOperationId, test-determinismi jaoks
+    ei simuleerita IN_PROGRESS ooteaega — sending-operations mock (samas
+    kaustas) vastab FINISHED+createdRecipientCount:1 kohe esimesel päringul.
+  namespace: postkast
+  allowlist:
+    body:
+      - field: originalTemplateId
+        type: string
+      - field: sendTime
+        type: string
+      - field: parameters
+        type: array
+
+returnAccepted:
+  return:
+    sendingOperationId: "${'mock-op-' + (incoming.headers['x-external-id'] || Date.now().toString(36))}"
+  status: 200
+  next: end

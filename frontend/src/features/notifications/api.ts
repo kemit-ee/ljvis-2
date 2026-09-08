@@ -41,19 +41,29 @@ export function markAllNotificationsRead(): Promise<MarkAllReadResult> {
   return post<MarkAllReadResult>('/v1/notifications/mark-all-read', {});
 }
 
-/** UC-02 outbound log — server-paginated, returns `{ content, total }`. */
+/**
+ * UC-02 outbound log — server-paginated, returns `{ content, total }`. `params.sorting`
+ * tuleb usePaginatedList'ist kujul "field_snake_case asc|desc" (buildSortString) — API
+ * ootab neid eraldi sortBy/sortDir parameetritena, seega tükeldame siin.
+ */
 export function fetchOutboundLog(
   params: ListParams,
   filters: OutboundLogFilters = {},
 ): Promise<PagedResponse<OutboundLogEntry>> {
+  const [sortBy, sortDir] = params.sorting.split(' ');
   return get<PagedResponse<OutboundLogEntry>>(
     '/v1/notifications/outbound-log/list',
     {
       page: params.page,
       pageSize: params.pageSize,
+      sortBy,
+      sortDir,
       ...(filters.status ? { status: filters.status } : {}),
-      ...(filters.messageType ? { messageType: filters.messageType } : {}),
+      ...(filters.notificationType ? { notificationType: filters.notificationType } : {}),
       ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
+      ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
+      ...(filters.recipient ? { recipient: filters.recipient } : {}),
+      ...(filters.notificationKey ? { notificationKey: filters.notificationKey } : {}),
     },
   );
 }
@@ -68,15 +78,13 @@ export function fetchOutboundRecipients(
 }
 
 /**
- * UC-04 — resend a failed outbound message. Outbound-log id as `?q=`
- * (rest-api-disainijuhend §4.2), new address in the body.
+ * UC-04 — resend a failed outbound message uuesti muutmata kujul (sama adressaat/malli
+ * muutujad — server loeb need ise). Outbound-log id as `?q=` (rest-api-disainijuhend
+ * §4.2), body puudub täielikult.
  */
-export function resendNotification(
-  logId: string,
-  recipientEmail: string,
-): Promise<ResendResult> {
+export function resendNotification(logId: string): Promise<ResendResult> {
   return post<ResendResult>(
-    `/v1/notifications/outbound-log/resend?q=${encodeURIComponent(logId)}`,
-    { recipientEmail },
+    `/v1/notifications/outbound-log/resend/send?q=${encodeURIComponent(logId)}`,
+    {},
   );
 }

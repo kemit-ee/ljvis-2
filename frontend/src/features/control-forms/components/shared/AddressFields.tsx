@@ -32,10 +32,17 @@ export function AddressFields({
   const { t } = useTranslation();
   const { getChildren } = useClassifiers();
 
-  const countryOptions = COUNTRIES.map((c) => ({
-    value: c.value,
-    label: t(c.labelKey),
-  })).sort((a, b) => a.label.localeCompare(b.label));
+  // Nähtava sildiga ("—") tühi esimene valik, et ekslikult valitud väärtust
+  // saaks tühjendada; sildita rida jäi rippmenüüs peaaegu nähtamatuks.
+  const emptyOption = { value: '', label: '—' };
+
+  const countryOptions = [
+    emptyOption,
+    ...COUNTRIES.map((c) => ({
+      value: c.value,
+      label: t(c.labelKey),
+    })).sort((a, b) => a.label.localeCompare(b.label)),
+  ];
 
   const citiesParishes = useMemo(
     () =>
@@ -48,8 +55,9 @@ export function AddressFields({
     [value.county, getChildren],
   );
 
-  const countyOptions = counties.map(asOption);
-  const cityOptions = citiesParishes.map(asOption);
+  // Eesti puhul on maakond/linn rippmenüüd — lisa neisse samuti tühi valik.
+  const countyOptions = [emptyOption, ...counties.map(asOption)];
+  const cityOptions = [emptyOption, ...citiesParishes.map(asOption)];
   const isEstonia = value.countryCode === 'EE';
 
   return (
@@ -92,8 +100,8 @@ export function AddressFields({
           id="addressCounty"
           label={t('forms.shared.address.county')}
           value={value.county}
-          onChange={(v) => onChange({ ...value, county: v, city: '' })}
-          disabled={true}
+          onChange={(v) => onChange({ ...value, county: v })}
+          disabled={disabled}
           {...(errors?.county
             ? { helper: { text: errors.county, type: 'error' as const } }
             : {})}
@@ -122,7 +130,7 @@ export function AddressFields({
           label={t('forms.shared.address.city')}
           value={value.city}
           onChange={(v) => onChange({ ...value, city: v })}
-          disabled={true}
+          disabled={disabled}
           {...(errors?.city
             ? { helper: { text: errors.city, type: 'error' as const } }
             : {})}

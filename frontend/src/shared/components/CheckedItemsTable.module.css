@@ -1,0 +1,120 @@
+/* "Kontrollitud punkt" block — shared by the RSI RsiCheckedItemsTable and the
+   technical-check PartsSummaryTable. TEDI-native: only TEDI --color-* tokens,
+   no bespoke palette. Status colour cues come from TEDI components
+   (StatusBadge) and the semantic tokens below; there are no hand-picked hex
+   colours. */
+
+/* ── Desktop table ─────────────────────────────────────────────────────── */
+.checkedItemsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.checkedItemsTable th,
+.checkedItemsTable td {
+  border: 1px solid var(--color-border-default, #e1e2e5);
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.checkedItemsTable thead th {
+  background: var(--color-bg-muted, #f9f9f9);
+  color: var(--color-text-subtle, #52535f);
+  font-weight: 600;
+}
+
+/* Subtle status tint. Falls back to `transparent` if the TEDI token is absent,
+   so the worst case is simply no tint (never an off-palette colour). */
+.rowChecked td {
+  background: var(--color-success-highlight, transparent);
+}
+
+.rowNonCompliant td {
+  background: var(--color-danger-highlight, transparent);
+}
+
+/* ── Part name + index badge ───────────────────────────────────────────── */
+.partName {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.partIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-default, #e1e2e5);
+  color: var(--color-text-subtle, #52535f);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.partIndexChecked {
+  border-color: var(--color-success-main, #308653);
+  color: var(--color-success-main, #308653);
+}
+
+.partIndexNonCompliant {
+  border-color: var(--color-danger-main, #c4162a);
+  color: var(--color-danger-main, #c4162a);
+}
+
+.partLabel {
+  color: var(--color-text-default, #1a1a1a);
+}
+
+/* ── Tablet / phone card layout ────────────────────────────────────────── */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.partCard {
+  border: 1px solid var(--color-border-default, #e1e2e5);
+  border-radius: 4px;
+  padding: 12px 16px;
+  background: var(--color-bg-default, #fff);
+}
+
+.cardChecked {
+  background: var(--color-success-highlight, transparent);
+}
+
+.cardNonCompliant {
+  background: var(--color-danger-highlight, transparent);
+}
+
+.cardHeader {
+  margin-bottom: 8px;
+}
+
+.cardRadios {
+  display: flex;
+}
+
+/* ── Selected defects list (under a "Ei vasta nõuetele" part) ──────────── */
+.defectsList {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.defectItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.defectName {
+  color: var(--color-text-default, #1a1a1a);
+}

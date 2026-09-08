@@ -50,3 +50,4 @@ docs/book/
 
 # Genereeritud dokumentatsiooni abifailid (mermaid SVG, Confluence-media)
 build/
+scripts/.resql-audit.json

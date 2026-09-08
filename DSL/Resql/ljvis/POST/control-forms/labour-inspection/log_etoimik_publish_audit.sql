@@ -1,27 +1,30 @@
 /*
-declaration:
-  version: 0.1
-  description: "Audit event for e-toimik's auto-publish of a labour inspection act (LJVIS2-69 §254/§370: publish is system-authored, actor 'E-toimik'). Content mirrors log-labour-inspection-publish.yml (used by the human publish.yml endpoint) but writes directly to audit.audit_event, since that template chain expects a session cookie Ruuter.internal doesn't have. No-op (0 rows) when found=false, mirroring apply_etoimik_decision.sql's guard."
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: found
-        type: string
-        description: "'true'/'1'/'yes' when apply_etoimik_decision.sql actually published the act; anything else is a no-op."
-      - field: key
-        type: string
-        description: "labour_inspection_form_key"
-      - field: form_number
-        type: string
-      - field: punished_person_id_code
-        type: string
-  response:
-    fields:
-      - field: event_id
-        type: string
+description: 'Audit event for e-toimik''s auto-publish of a labour inspection act (LJVIS2-69 §254/§370:
+  publish is system-authored, actor ''E-toimik''). Content mirrors log-labour-inspection-publish.yml (used
+  by the human publish.yml endpoint) but writes directly to audit.audit_event, since that template chain
+  expects a session cookie Ruuter.internal doesn''t have. No-op (0 rows) when found=false, mirroring apply_etoimik_decision.sql''s
+  guard.'
+namespace: control-forms
+params:
+  found:
+    type: string
+    required: false
+    description: '''true''/''1''/''yes'' when apply_etoimik_decision.sql actually published the act; anything
+      else is a no-op.'
+  key:
+    type: string
+    required: false
+    description: labour_inspection_form_key
+  form_number:
+    type: string
+    required: false
+  punished_person_id_code:
+    type: string
+    required: false
+returns:
+- name: event_id
+  type: string
+  nullable: true
 */
 INSERT INTO audit.audit_event (
     event_id,

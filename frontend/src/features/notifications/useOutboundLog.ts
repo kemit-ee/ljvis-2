@@ -4,9 +4,9 @@ import type { OutboundLogEntry, OutboundLogFilters } from './types';
 
 /**
  * UC-02 Postkast 2.0 saadetud kirjade logi — server-poolne leheküljestamine +
- * filtrid (status / messageType / dateFrom). Filtrid rakenduvad alles "Otsi"
- * vajutusel (useFilteredList). Sort on serveris fikseeritud (send_date DESC),
- * seega veergudel sortimist ei lubata.
+ * filtrid (status / notificationType / dateFrom-dateTo / recipient / notificationKey).
+ * Filtrid rakenduvad alles "Otsi" vajutusel (useFilteredList). Sortimine on manuaalne
+ * (kõik veerud peale "Tegevused") — vaikimisi send_date DESC.
  */
 export function useOutboundLog() {
   return useFilteredList<OutboundLogEntry, OutboundLogFilters>(fetchOutboundLog, {
