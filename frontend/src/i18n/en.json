@@ -1143,6 +1143,7 @@
     "otherDocs": {
       "notChecked": "Not checked",
       "compliant": "Compliant",
+      "nonCompliant": "Does not comply",
       "missing": "Missing",
       "addRemark": "Add remark",
       "remarkPlaceholder": "Enter remark..."

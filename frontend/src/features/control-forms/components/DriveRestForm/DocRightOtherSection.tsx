@@ -12,7 +12,7 @@ import type { ClassifierEntry } from '../../../classifiers/types';
 import type { OtherDocument } from '../../types';
 
 type Visibility = 'BOTH' | 'CARGO' | 'PASSENGER';
-type ResultValue = 'EI_KONTROLLITUD' | 'NOUETEKOHANE' | 'PUUDUB';
+type ResultValue = 'EI_KONTROLLITUD' | 'NOUETEKOHANE' | 'EI_VASTA_NOUETELE' | 'PUUDUB';
 
 const CODE_TO_VISIBILITY: Record<string, Visibility> = {
   MOOTORSOIDUKI_LEPING: 'BOTH',
@@ -169,14 +169,17 @@ export function DocRightOtherSection({
     }));
   };
 
+  // Valikud vastavad pabervormile: Nõuetekohane | ei vasta nõuetele | Puudub.
+  // EI_KONTROLLITUD eemaldati eksplitsiitsete valikute hulgast — tühi olek
+  // (pole midagi valitud) tähistab "ei kontrollitud".
   const RESULT_OPTIONS: { value: ResultValue; label: string }[] = [
-    {
-      value: 'EI_KONTROLLITUD',
-      label: t('forms.otherDocs.notChecked'),
-    },
     {
       value: 'NOUETEKOHANE',
       label: t('forms.otherDocs.compliant'),
+    },
+    {
+      value: 'EI_VASTA_NOUETELE',
+      label: t('forms.otherDocs.nonCompliant'),
     },
     { value: 'PUUDUB', label: t('forms.otherDocs.missing') },
   ];
