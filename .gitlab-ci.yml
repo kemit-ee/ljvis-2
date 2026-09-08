@@ -112,6 +112,7 @@ include:
         s3-proxy
         frontend
         tim
+        nysiis
       artifacts: >-
         $CHART_REPOSITORY/resql-ljvis
         $CHART_REPOSITORY/data-mapper
@@ -121,6 +122,7 @@ include:
         $CHART_REPOSITORY/s3-proxy
         $CHART_REPOSITORY/frontend
         $CHART_REPOSITORY/tim
+        $CHART_REPOSITORY/nysiis
       applications: >-
         resql-ljvis-dev
         data-mapper-dev
@@ -130,7 +132,7 @@ include:
         s3-proxy-dev
         frontend-dev
         tim-dev
-      # nysiis lisatakse pärast devops MR feat/nysiis-helm-chart merge'i
+        nysiis-dev
 
 # ---------------------------------------------------------------------------- test
 
@@ -237,7 +239,7 @@ package:charts:
     - "build:resql-ljvis"
     - "build:data-mapper"
     - "build:tim"
-    # build:nysiis lisatakse pärast devops MR feat/nysiis-helm-chart merge'i
+    - "build:nysiis"
   variables:
     # Forward the resolved dotenv value under a different name across the trigger.
     IMAGE_VERSION: $RELEASE_VERSION
