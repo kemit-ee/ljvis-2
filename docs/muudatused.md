@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-11 — Transpordiameti kontrollkaart: sõitjateveo dokumendikontrolli täiendused
+
+- **„Muud dokumendid" osa** (dokumendi/õiguse kontrolli akordion) täiendati seitsme
+  sõitjateveo-spetsiifilise kirjega, mis esinesid PPA pabervormil kuid puudusid
+  digisüsteemist:
+  - Vedaja nimi / kaubamärk sõiduki parempoolsel välisküljel
+  - Liini number ühissõidukil
+  - Liini nimetus ühissõidukil
+  - Vedaja ennetab liiniloa (ATL) andja kinnitatud sõiduplaani
+  - Vedaja ei peatu sõiduplaanis märgitud peatuses
+  - Vedaja teenindab märkimata peatust
+  - Vedaja kasutab mittevastavat sõidukit
+  Kirjed kuvatakse ainult **sõitjateveo** veoliigi korral (nagu liiniveo sõiduplaan
+  ja oma kulul sõitjateveo kirjed).
+- **Vaatamisvaates (kinnitatud/avalikustatud vorm)** peideti nüüd ka Transpordiameti
+  kontrollkaardil sektsioonid „Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass
+  ja mõõtmed" ning „ATP kokkuleppe nõuete kontroll" — need on TRAM-le ebaolulised
+  ja täideti taustprogrammis vaikeväärtustega (varasemalt peitis ainult muutmisvaade).
+
+---
+
 ## 2026-09 — Koondvormi salvestamine ei anna enam „varjatud" viga
 
 - **Koondvormi loomine/muutmine** võis teatud olukorras (nt kui ametniku profiilil
