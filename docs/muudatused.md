@@ -4,7 +4,18 @@
 
 ---
 
-## 2026-09 — Menüü: „Riskiskoorid" järjekord
+## 2026-09 — Koondvormi salvestamine ei anna enam „varjatud" viga
+
+- **Koondvormi loomine/muutmine** võis teatud olukorras (nt kui ametniku profiilil
+  puudus struktuuriüksus) ebaõnnestuda ilma selge veateateta — server tagastas
+  läbipaistmatu tehnilise vea `TypeError: cannot convert 'null' or 'undefined' to
+  object`. Nüüd:
+  - tühjaks jäänud kohustuslikud tekstiväljad (nt inspektori üksus) salvestatakse
+    tühjana, mitte ei blokeeri salvestamist andmebaasi tasandil;
+  - **„Üksus"** väli on koondvormil nüüd kohustuslik (nagu andmebaas eeldab);
+  - kui salvestamine andmebaasi siiski ebaõnnestub, kuvatakse **tegelik veateade**,
+    mitte tehniline tõrge — see kehtib **kõigi kontrollvormide** salvestamisel.
+- Sama parandus rakendati välisriigi rikkumise vormi inspektori-väljadele.
 
 - Menüüpunkt **„Riskiskoorid"** paikneb nüüd vasakmenüü ülatasandi loendi
   **lõpus, vahetult „Haldus" kohal** (varem kohe „Otsingu" järel, ERRU-punktide
