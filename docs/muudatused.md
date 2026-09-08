@@ -4,7 +4,7 @@
 
 ---
 
-## 2026-11 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
+## 2026-09 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
 
 - **Liini number ja liini nimetus** — kõikide liinivedude korral (nii siseriiklik kui
   rahvusvaheline) kuvatakse nüüd autojuhi sõidu- ja puhkeaja alamvormil kaks uut
