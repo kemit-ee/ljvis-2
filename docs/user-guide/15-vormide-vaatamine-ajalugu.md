@@ -9,7 +9,7 @@ Vormi detailvaade koosneb järgmistest osadest:
 - **Põhiandmed** — vormi kõik täidetud väljad kaartide kaupa
 - **Manused** — üleslaaditud failid
 - **Ajalugu** — varasemad salvestatud versioonid (snapshots)
-- **Alamvormid** — liitvormi puhul seotud alamvormid
+- **Alamvormid** — koondvormi puhul seotud alamvormid
 
 ```mermaid
 flowchart TD

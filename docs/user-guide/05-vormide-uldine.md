@@ -4,7 +4,7 @@ Kõik kontrollaktid (vormid) töötavad sarnaselt. Selles peatükis kirjeldataks
 vormidele ühised toimingud; iga vormitüüpi käsitletakse eraldi alampeatükis:
 
 - [Välisriigi rikkumine](06-vorm-valisrikkumine.md)
-- [Liitvorm](07-vorm-liitvorm.md) ja selle alamvormid
+- [Koondvorm](07-vorm-liitvorm.md) ja selle alamvormid
 - [Tööinspektsiooni kontrollakt](08-vorm-tooinspektsioon.md)
 - [Tehniline kontroll](09-vorm-tehniline-kontroll.md)
 - [Autoveo katkestamine](10-vorm-vedude-katkestamine.md)
@@ -59,6 +59,6 @@ enne, kui kõik kohustuslikud väljad on korrektselt täidetud.
 Vormidele pääseb ligi töölaua või menüü kaudu. Iga vormi vaade koosneb:
 
 - põhiandmete kaartidest
-- alamvormide loendist (liitvormi puhul)
+- alamvormide loendist (koondvormi puhul)
 - failide loendist
 - ajaloo/snapshots loendist

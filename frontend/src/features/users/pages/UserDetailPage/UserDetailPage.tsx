@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Button,
   Heading,
   StatusBadge,
   Text,
@@ -23,7 +22,6 @@ import { UserGroupsCard } from '../../components/UserGroups/UserGroupsCard';
 export function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const location = useLocation();
   const [showNewUserAddedAlert, setShowNewUserAddedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
@@ -179,14 +177,6 @@ export function UserDetailPage() {
           {t('users.userGroupEditedNote')}
         </Alert>
       )}
-      <Button
-        visualType="link"
-        onClick={() => navigate('/users')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
-
       <div className="page-header">
         <div className="page-header-title">
           <Heading element="h1">

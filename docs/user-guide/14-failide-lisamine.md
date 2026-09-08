@@ -6,7 +6,7 @@ Kontrollaktidele saab lisada manuseid, näiteks fotosid, tõendeid või dokument
 
 Failide lisamine on saadaval peamistes vormides, kus on vaja tõendada visuaalselt või dokumendiga kontrolli tulemusi. Näiteks:
 
-- liitvorm
+- koondvorm
 - tehniline kontroll
 - ADR
 - tööinspektsioon

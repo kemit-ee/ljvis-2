@@ -11,7 +11,6 @@ import {
   Text,
   ChoiceGroup,
   Alert,
-  TimeField,
   Accordion,
   AccordionItem,
   AccordionItemHeader,
@@ -19,6 +18,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../shared/MaskedDateField';
+import { MaskedTimeField } from '../shared/MaskedTimeField';
 import { CompanyPickerModal } from '../CompanyPickerModal';
 import { EU_VIOLATION_GROUPS } from '../../../../constants/constants';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -62,6 +62,7 @@ interface ForeignViolationFormFieldsProps {
   associatedPersonsLoading?: boolean;
   formType?: string;
   showAdminSection?: boolean;
+  isPublished?: boolean;
 }
 
 const recommendedMeasureOptions = [
@@ -152,6 +153,7 @@ export function ForeignViolationFormFields({
   associatedPersons,
   associatedPersonsLoading,
   showAdminSection,
+  isPublished,
 }: ForeignViolationFormFieldsProps) {
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
@@ -289,7 +291,7 @@ export function ForeignViolationFormFields({
                       : undefined
                 }
               />
-              <TimeField
+              <MaskedTimeField
                 id="inspectionTime"
                 label={t('forms.foreign_violation.inspectionTime')}
                 value={
@@ -953,18 +955,7 @@ export function ForeignViolationFormFields({
                 value={(values.recommendedMeasureNotes as string) ?? ''}
                 onChange={(v) => setFieldValue('recommendedMeasureNotes', v)}
                 className={styles['full-span']}
-                required={!readOnly}
                 disabled={readOnly}
-                {...(!readOnly &&
-                touched.recommendedMeasureNotes &&
-                errors.recommendedMeasureNotes
-                  ? {
-                      helper: {
-                        text: errors.recommendedMeasureNotes as string,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
               />
             </div>
           )}
@@ -1117,19 +1108,8 @@ export function ForeignViolationFormFields({
               id="inspectorProfession"
               label={t('forms.foreign_violation.inspectorProfession')}
               value={(values.inspectorProfession as string) ?? ''}
-              required={!readOnly}
               onChange={(v) => setFieldValue('inspectorProfession', v)}
               disabled={readOnly}
-              {...(!readOnly &&
-              touched.inspectorProfession &&
-              errors.inspectorProfession
-                ? {
-                    helper: {
-                      text: errors.inspectorProfession as string,
-                      type: 'error' as const,
-                    },
-                  }
-                : {})}
             />
           </div>
         </Card.Content>
@@ -1269,28 +1249,16 @@ export function ForeignViolationFormFields({
               name="adminProcCheckboxes"
               inputType="checkbox"
               label=""
-              value={[
-                ...(values.penaltyExpiredOrProcessed ? ['penaltyExpiredOrProcessed'] : []),
-                ...(values.foreignAuthorityProposal ? ['foreignAuthorityProposal'] : []),
-                ...(values.notifyCarrier ? ['notifyCarrier'] : []),
-              ]}
+              value={
+                values.penaltyExpiredOrProcessed
+                  ? ['penaltyExpiredOrProcessed']
+                  : []
+              }
               items={[
                 {
                   id: 'penaltyExpiredOrProcessed',
                   label: t('forms.foreign_violation.adminProc.expired'),
                   value: 'penaltyExpiredOrProcessed',
-                  disabled: readOnly,
-                },
-                {
-                  id: 'foreignAuthorityProposal',
-                  label: t('forms.foreign_violation.adminProc.foreignProposal'),
-                  value: 'foreignAuthorityProposal',
-                  disabled: readOnly,
-                },
-                {
-                  id: 'notifyCarrier',
-                  label: t('forms.foreign_violation.adminProc.notifyCarrier'),
-                  value: 'notifyCarrier',
                   disabled: readOnly,
                 },
               ]}
@@ -1301,14 +1269,6 @@ export function ForeignViolationFormFields({
                     'penaltyExpiredOrProcessed',
                     vals.includes('penaltyExpiredOrProcessed'),
                   );
-                  setFieldValue(
-                    'foreignAuthorityProposal',
-                    vals.includes('foreignAuthorityProposal'),
-                  );
-                  setFieldValue(
-                    'notifyCarrier',
-                    vals.includes('notifyCarrier'),
-                  );
                 }
               }}
             />
@@ -1316,20 +1276,77 @@ export function ForeignViolationFormFields({
         </Card>
       )}
 
-      {values.formNumber && (
+      {isPublished && (
         <Card className="mb-1">
           <Card.Content>
             <Heading element="h3" className="mb-1">
-              {t('forms.shared.files.label')}
+              {t('forms.foreign_violation.notifications.title')}
             </Heading>
-            <FileUploadBlock
-              formPath="foreign-violation-form"
-              formNumber={values.formNumber as string}
-              disabled={readOnly}
+            <Text element="p" className="mb-1">
+              {t('forms.foreign_violation.notifications.hint')}
+            </Text>
+            <ChoiceGroup
+              id="vrNotificationCheckboxes"
+              name="vrNotificationCheckboxes"
+              inputType="checkbox"
+              label=""
+              value={[
+                ...(values.foreignAuthorityProposal
+                  ? ['foreignAuthorityProposal']
+                  : []),
+                ...(values.notifyCarrier ? ['notifyCarrier'] : []),
+              ]}
+              items={[
+                {
+                  id: 'foreignAuthorityProposal',
+                  label: t(
+                    'forms.foreign_violation.notifications.foreignProposal',
+                  ),
+                  value: 'foreignAuthorityProposal',
+                  disabled: readOnly || Boolean(values.foreignAuthorityProposal),
+                },
+                {
+                  id: 'notifyCarrier',
+                  label: t('forms.foreign_violation.notifications.notifyCarrier'),
+                  value: 'notifyCarrier',
+                  disabled: readOnly || Boolean(values.notifyCarrier),
+                },
+              ]}
+              onChange={(val) => {
+                if (!readOnly) {
+                  const vals = Array.isArray(val) ? val : [val];
+                  if (!values.foreignAuthorityProposal) {
+                    setFieldValue(
+                      'foreignAuthorityProposal',
+                      vals.includes('foreignAuthorityProposal'),
+                    );
+                  }
+                  if (!values.notifyCarrier) {
+                    setFieldValue(
+                      'notifyCarrier',
+                      vals.includes('notifyCarrier'),
+                    );
+                  }
+                }
+              }}
             />
           </Card.Content>
         </Card>
       )}
+
+      <Card className="mb-1">
+        <Card.Content>
+          <Heading element="h3" className="mb-1">
+            {t('forms.foreign_violation.filesBasicInfo')}
+          </Heading>
+          <FileUploadBlock
+            formPath="foreign-violation-form"
+            formNumber={values.formNumber as string | undefined}
+            label={t('forms.foreign_violation.filesUpload')}
+            disabled={readOnly}
+          />
+        </Card.Content>
+      </Card>
 
     </div>
   );

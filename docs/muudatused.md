@@ -17,6 +17,28 @@
   (nt „MSI101 – …").
 - Väljanimi „Ühenduse tegevusloa number" → „Ühenduse tegevusloa või selle
   kinnitatud ärakirja või tõestatud koopia number".
+## 2026-09 — Välisriigi rikkumise kontrollkaart: parandused
+
+- Pealkirjad korrastatud: „Rikkumise avastamise aeg ja koht" → **„Kontrolli aeg
+  ja koht"**; „Rakendatud sanktsioon" (ploki pealkiri) → **„Kontrolli tulemus"**;
+  „Sanktsiooni märkused" → **„Märkused"**; loakoopia väli → **„Ühenduse
+  tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number"**.
+- **Kontrolli kellaaeg**: tunni ja minuti vahele tekib nüüd koolon automaatselt.
+- **Veoettevõtja nime järgi otsing**: „Vali" kannab nüüd üle ka registrikoodi.
+- **„Soovitatud meetme täpsustus"** (meede „Muu") ja **„Ametinimetus"** ei ole
+  enam kohustuslikud väljad — see takistas varem vormi salvestamist.
+- **Failide plokk „Kontrolliga seotud failid"** on nüüd nähtav ka enne
+  salvestamist (väljal tekst „Laadi üles fail").
+- Pärast **avalikustamist** kuvatakse kaardi lõpus plokk **„Teavitused"** kahe
+  märkega: „Saabus välisriigi pädeva asutuse ettepanek… Edasta teavitus
+  tööinspektorile" (saadab e-kirja tööinspektorile) ja „Teavita vedajat
+  rikkumisest". Haldusmenetluse plokist need märked eemaldati.
+- Parandatud viga, kus vormi avalikustamine kustutas haldusmenetluse andmed.
+## 2026-09 — Töölaua ploki nimi: „Koondvorm"
+
+- Töölaua vasakpoolne plokk kannab nüüd nime **„Koondvorm"** (varem
+  „Kompleksvorm"); ka „Töös olevad koondvormid" tabel ja tühja loendi tekst.
+  Ühtne termin kogu rakenduses (vorminumbrid `KOOND-…`, kustutamisdialoog jm).
 
 ---
 

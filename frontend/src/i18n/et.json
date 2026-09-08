@@ -392,9 +392,9 @@
       "organisation": "Organisatsioon"
     },
     "sections": {
-      "compoundBlock": "Kompleksvorm",
+      "compoundBlock": "Koondvorm",
       "formsBlock": "Vormid",
-      "activeCompound": "Töös olevad kompleksvormid",
+      "activeCompound": "Töös olevad koondvormid",
       "activeStandalone": "Töös olevad vormid"
     },
     "compound": {
@@ -407,7 +407,7 @@
       "vorm": "Vorm"
     },
     "empty": {
-      "activeCompound": "Pooleliolevaid kompleksvorme ei ole",
+      "activeCompound": "Pooleliolevaid koondvorme ei ole",
       "activeStandalone": "Pooleliolevaid vorme ei ole"
     },
     "columns": {
@@ -979,7 +979,7 @@
       "reportingBasicInfo": "Teate saatnud riik ja asutus",
       "reportingCountry": "Teate saatnud riik",
       "reportingAuthority": "Teate saatnud pädeva asutuse nimetus",
-      "inspectionBasicInfo": "Rikkumise avastamise aeg ja koht",
+      "inspectionBasicInfo": "Kontrolli aeg ja koht",
       "inspectionDate": "Kontrolli kuupäev",
       "inspectionTime": "Kontrolli kellaaeg",
       "inspectionAddressLine1": "Asula / Tänav / Maja nr",
@@ -1009,17 +1009,17 @@
       "vehicleVin": "VIN-kood",
       "vehicleFirstRegistration": "Esmane registreerimine",
       "vehicleBodyType": "Keretüüp",
-      "licenceCopyBasicInfo": "Ühenduse tegevusloa ärakirja number",
-      "licenceCopyNumber": "Ühenduse tegevusloa kinnitatud ärakirja number",
+      "licenceCopyBasicInfo": "Ühenduse tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number",
+      "licenceCopyNumber": "Number",
       "violationDescriptionBasicInfo": "Rikkumise kirjeldus",
       "violationDescription": "Rikkumise kirjeldus",
       "violationDescriptionPlaceholder": "Sisestage kirjeldus...",
       "minorViolationsBasicInfo": "Rikkumiste arv",
       "minorViolationsCount": "Kontrolli käigus avastatud kergemate rikkumiste arv",
       "euViolationsBasicInfo": "EL määrusest (EÜ) nr 1071/2009 tuleneva kõige raskema rikkumise avastamine",
-      "sanctionBasicInfo": "Rakendatud sanktsioon",
+      "sanctionBasicInfo": "Kontrolli tulemus",
       "sanctionCode": "Rakendatud sanktsioon",
-      "sanctionNotes": "Sanktsiooni märkused",
+      "sanctionNotes": "Märkused",
       "sanctionKorras": "Korras",
       "sanctionHoiatus": "Hoiatus",
       "sanctionKabotaaz": "Kabotaažveo ajutine keelamine",
@@ -1037,8 +1037,12 @@
         "akvkDate": "Järgmise komisjoni koosolek (AKVK)",
         "commissionDate": "Viimase komisjoni otsuse kuupäev",
         "decision": "Otsus",
-        "expired": "Kehtetu või menetletud",
-        "foreignProposal": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks",
+        "expired": "Kehtetu või menetletud"
+      },
+      "notifications": {
+        "title": "Teavitused",
+        "hint": "Märkige teavitus ja salvestage vorm — süsteem saadab valitud teavituse. Saadetud teavitust ei saa tühistada.",
+        "foreignProposal": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks. Edasta teavitus tööinspektorile.",
         "notifyCarrier": "Teavita vedajat rikkumisest"
       },
       "euViolationGroupMsi": "Kõige raskemad rikkumised (MSI)",
@@ -1218,7 +1222,8 @@
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus",
-      "filesBasicInfo": "Failid",
+      "filesBasicInfo": "Kontrolliga seotud failid",
+      "filesUpload": "Laadi üles fail",
       "filesBoxInfo": "Kukuta failid siia või klõpsa valimiseks",
       "filesHelper": "Lubatud formaadid: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maksimaalne failisuurus 10 MB.",
       "statusSaved": "Salvestatud",
@@ -2035,5 +2040,36 @@
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus"
     }
+  },
+  "breadcrumbs": {
+    "userCreate": "Uus kasutaja",
+    "userDetail": "Kasutaja",
+    "userGroupCreate": "Uus kasutajagrupp",
+    "userGroupAddUser": "Kasutajate lisamine",
+    "userGroupDetail": "Kasutajagrupp",
+    "classifierDetail": "Klassifikaator",
+    "classifierValueCreate": "Uus väärtus",
+    "classifierValueEdit": "Väärtus",
+    "logDetail": "Logikirje",
+    "snapshot": "Versioon",
+    "foreignViolationForm": "Väliskontrolli kontrollkaart",
+    "compoundForm": "Koondvorm",
+    "driveRestDriverForm": "Sõidu- ja puhkeaeg (juht)",
+    "driveRestTeammateForm": "Sõidu- ja puhkeaeg (kaassõitja)",
+    "tramDriverForm": "TRAM kontrollkaart",
+    "labourInspectionForm": "Tööinspektsiooni kontrollkaart",
+    "vehicleTechnicalForm": "Sõiduki tehnokontroll",
+    "trailerTechnicalForm": "Haagise tehnokontroll",
+    "transportInterruptionForm": "Autoveo katkestamine",
+    "adrForm": "Ohtlike veoste vedu",
+    "goodReputeForm": "Hea maine nõuetele mittevastavus",
+    "ctudCreate": "Uus tegevusloa kontrolli päring",
+    "ctudDetail": "Tegevusloa kontrolli päring",
+    "cgrCreate": "Uus mainepäring",
+    "cgrDetail": "Mainepäring",
+    "rsiCreate": "Uus RSI teade",
+    "rsiDetail": "RSI teade",
+    "ncrCreate": "Uus NCR teade",
+    "ncrDetail": "NCR teade"
   }
 }

@@ -77,6 +77,16 @@ extractCurrentFormData:
     recommended_measure_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].recommendedMeasureCode) || ''}"
     recommended_measure_notes: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].recommendedMeasureNotes) || ''}"
     recommended_measure_general_notes: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].recommendedMeasureGeneralNotes) || ''}"
+    additional_sanction_codes: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].additionalSanctionCodes) || '[]'}"
+    klim_clarification_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].klimClarificationDate) || ''}"
+    carrier_explanation_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].carrierExplanationDate) || ''}"
+    penalty_valid_until: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].penaltyValidUntil) || ''}"
+    penalty_expired_or_processed: "${String((currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].penaltyExpiredOrProcessed) || false)}"
+    akvk_next_meeting_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].akvkNextMeetingDate) || ''}"
+    commission_last_decision_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].commissionLastDecisionDate) || ''}"
+    admin_procedure_decision: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].adminProcedureDecision) || ''}"
+    foreign_authority_proposal: "${String((currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].foreignAuthorityProposal) || false)}"
+    notify_carrier: "${String((currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].notifyCarrier) || false)}"
     violations: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].violations) || '[]'}"
     data_entry_date: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].dataEntryDate) || ''}"
     inspector_first_name: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].inspectorFirstName) || ''}"
@@ -127,6 +137,16 @@ publishForm:
       recommendedMeasureCode: ${recommended_measure_code}
       recommendedMeasureNotes: ${recommended_measure_notes}
       recommendedMeasureGeneralNotes: ${recommended_measure_general_notes}
+      additionalSanctionCodes: ${additional_sanction_codes}
+      klimClarificationDate: ${klim_clarification_date}
+      carrierExplanationDate: ${carrier_explanation_date}
+      penaltyValidUntil: ${penalty_valid_until}
+      penaltyExpiredOrProcessed: ${penalty_expired_or_processed}
+      akvkNextMeetingDate: ${akvk_next_meeting_date}
+      commissionLastDecisionDate: ${commission_last_decision_date}
+      adminProcedureDecision: ${admin_procedure_decision}
+      foreignAuthorityProposal: ${foreign_authority_proposal}
+      notifyCarrier: ${notify_carrier}
       violations: ${violations}
       dataEntryDate: ${data_entry_date}
       inspectorFirstName: ${inspector_first_name}

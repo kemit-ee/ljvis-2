@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -27,7 +27,7 @@ import { DetailRow } from '../../components/shared/DetailRow';
 export function CtudFormPage() {
   const { t } = useTranslation();
   const { id } = useParams();
-  const navigate = useNavigate();
+
   const location = useLocation();
   const [savedOk, setSavedOk] = useState(
     !!(location.state as { justSaved?: boolean } | null)?.justSaved,
@@ -119,12 +119,7 @@ export function CtudFormPage() {
             )}
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button
-                visualType="secondary"
-                onClick={() => navigate('/erru/ctud')}
-              >
-                {t('common.back')}
-              </Button>
+
               <Button type="submit" disabled={form.formik.isSubmitting}>
                 {t('common.save')}
               </Button>
@@ -142,12 +137,7 @@ export function CtudFormPage() {
           <CtudResponseBlock request={request} />
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button
-                visualType="secondary"
-                onClick={() => navigate('/erru/ctud')}
-              >
-                {t('common.back')}
-              </Button>
+
               {sendable && (
                 <Button onClick={handleSend} disabled={isSending}>
                   {t('erru.ctud.form.resend')}

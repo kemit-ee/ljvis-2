@@ -17,6 +17,8 @@ interface FileUploadBlockProps {
   formPath: string;
   formNumber?: string;
   disabled?: boolean;
+  /** Overrides the default `forms.shared.files.label` dropzone label. */
+  label?: string;
 }
 
 function fileToBase64(file: File): Promise<string> {
@@ -35,6 +37,7 @@ export function FileUploadBlock({
   formPath,
   formNumber,
   disabled,
+  label,
 }: FileUploadBlockProps) {
   const { t } = useTranslation();
   const [attachments, setAttachments] = useState<FormAttachment[]>([]);
@@ -94,7 +97,7 @@ export function FileUploadBlock({
     <div className="mb-1">
       <FileUpload
         name={`${formPath}-files`}
-        label={t('forms.shared.files.label')}
+        label={label ?? t('forms.shared.files.label')}
         accept={ALLOWED_ACCEPT}
         maxSize={MAX_SIZE_MB}
         multiple
