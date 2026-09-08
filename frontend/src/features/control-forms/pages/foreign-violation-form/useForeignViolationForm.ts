@@ -151,7 +151,10 @@ export function useForeignViolationForm(
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId:
-        form?.inspectorOrganisationId ?? authUser?.organisationid ?? '',
+        form?.inspectorOrganisationId ??
+        (authUser?.organisationid != null
+          ? String(authUser.organisationid)
+          : ''),
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession:
         form?.inspectorProfession ?? authUser?.jobtitle ?? '',
