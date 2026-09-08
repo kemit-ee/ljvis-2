@@ -1170,7 +1170,7 @@
     "cgr": "Check good repute requests",
     "search": "Search",
     "rsi": "Roadside inspection messages RSI",
-    "ncr": "NCR messages",
+    "ncr": "Notify Check Result messages NCR",
     "riskLevels": "Risk levels",
     "myCompany": "My company",
     "notifications": "Notifications"
@@ -1823,8 +1823,8 @@
     "ncr": {
       "notFound": "NCR case not found",
       "form": {
-        "titleOutgoing": "Notify Check Result message (EST → ERRU)",
-        "titleInbound": "Notify Check Result message (ERRU → EST)",
+        "titleOutgoing": "Notify Check Result message NCR (EST → ERRU)",
+        "titleInbound": "Notify Check Result message NCR (ERRU → EST)",
         "version": "Version {{version}}",
         "headerBlock": "Message header and parties",
         "checkSummaryBlock": "Check summary",
@@ -1850,7 +1850,7 @@
         "requestSource": "Request source",
         "requestPurpose": "Request purpose",
         "transportUndertakingName": "Transport undertaking name",
-        "communityLicenceNumber": "Community licence number",
+        "communityLicenceNumber": "Number of the Community licence, its certified true copy or attested copy",
         "vehicleRegistrationNumber": "Vehicle registration number",
         "vehicleRegistrationCountry": "Vehicle registration country",
         "checkResult": "Check result",
@@ -1896,8 +1896,8 @@
         "createVrFailed": "Creating the VR control card failed"
       },
       "buildModal": {
-        "button": "Add NCR message",
-        "title": "Add NCR message",
+        "button": "Create NCR message",
+        "title": "Create NCR message",
         "submit": "Build",
         "forbidden": "You do not have permission to build an NCR request",
         "notFound": "Control form not found, NCR draft was not created",
@@ -1913,8 +1913,8 @@
         "imposed_penalty_type_missing": "When a penalty is imposed, the penalty type must be selected"
       },
       "list": {
-        "title": "NCR messages",
-        "newMessage": "New infringement notification",
+        "title": "Notify Check Result messages NCR",
+        "newMessage": "New NCR message",
         "id": "Message ID",
         "sentAt": "Sent",
         "sentFrom": "Sent from",
@@ -1927,7 +1927,8 @@
         "direction": "Direction",
         "directionOutgoing": "Outgoing",
         "directionIncoming": "Incoming",
-        "handlerFilter": "Handler (isikukood)"
+        "handlerFilter": "Handler (isikukood)",
+        "automatic": "Automatic"
       }
     }
   },

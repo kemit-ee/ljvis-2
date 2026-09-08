@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-09 — NCR (kontrollitulemuse teated): parandused
+
+- Lehe ja teate pealkiri: **„Kontrollitulemuse teated NCR"** (varem „NCR teated").
+- Uue teate nupp: **„Uus NCR teade"**; kontrollkaardil **„Loo NCR teade"**.
+- Loendisse lisandus veerg **„Automaatne"** (Jah/Ei) ja samanimeline otsingufilter
+  — näitab, kas LJVIS saatis teate ise automaatselt (öine väljasaatmine).
+- Uue teate vaikeväärtused: teate esitav pädev asutus = **Kliimaministeerium**,
+  päringu allikas = **„Pädev asutus"**. Väljasaatmisel teisendatakse asutuse nimi
+  ingliskeelseks ametlikuks nimeks (nt „Ministry of Climate").
+- Raskete rikkumiste valikus ja vaates kuvatakse nüüd **ERRU kood** kirjelduse ees
+  (nt „MSI101 – …").
+- Väljanimi „Ühenduse tegevusloa number" → „Ühenduse tegevusloa või selle
+  kinnitatud ärakirja või tõestatud koopia number".
+
+---
+
 ## 2026-09 — Välisriigi rikkumise kontrollkaart: parandused
 
 - Pealkirjad korrastatud: „Rikkumise avastamise aeg ja koht" → **„Kontrolli aeg
@@ -21,6 +37,9 @@
   tööinspektorile" (saadab e-kirja tööinspektorile) ja „Teavita vedajat
   rikkumisest". Haldusmenetluse plokist need märked eemaldati.
 - Parandatud viga, kus vormi avalikustamine kustutas haldusmenetluse andmed.
+
+---
+
 ## 2026-09 — Töölaua ploki nimi: „Koondvorm"
 
 - Töölaua vasakpoolne plokk kannab nüüd nime **„Koondvorm"** (varem
