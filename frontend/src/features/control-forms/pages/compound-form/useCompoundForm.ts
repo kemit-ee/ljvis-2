@@ -257,6 +257,9 @@ export function useCompoundForm(
     inspectorOrganisationId: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
+    inspectorUnit: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
     inspectorProfession: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
