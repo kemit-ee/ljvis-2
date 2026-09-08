@@ -238,7 +238,7 @@ services:
 
   cronmanager:
     container_name: cronmanager
-    image: turnerrainer/cronmanager:alpha
+    image: turnerrainer/cronmanager:0.1.4-alpha@sha256:429080e890699e11b7330487a04f55596023ef7c5601950716aa3694ceed0a75
     environment:
       - CRONMANAGER_CONFIG=/app/cronmanager.yaml
       # Quartz-cron triggers (DSL/CronManager/*.yaml) run in this timezone.
