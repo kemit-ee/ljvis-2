@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
+import { Heading, Text, Alert } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -52,7 +52,7 @@ export function GoodReputeFormCreatePage() {
     <div>
       <form onSubmit={formik.handleSubmit}>
         <div className="card-main">
-          <Heading element="h1">{t('forms.good_repute.title')}</Heading>
+          <Heading element="h1">{t('forms.good_repute_form')}</Heading>
         </div>
 
         {formError && (
@@ -76,9 +76,7 @@ export function GoodReputeFormCreatePage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
-            <Button type="button" visualType="secondary" onClick={() => navigate('/')}>
-              {t('common.cancel')}
-            </Button>
+
             <AsyncButton type="button" onClick={() => formik.submitForm()}>
               {t('common.save')}
             </AsyncButton>

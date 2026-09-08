@@ -137,13 +137,6 @@ export function LabourInspectionFormPage() {
       return <FormNotFoundView title={t('forms.labour_inspection_form')} />;
     return (
       <div>
-        <Button
-          visualType="link"
-          onClick={() => navigate(`/control-forms/labour-inspection/${id}`)}
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
         <div className="card-main">
           <Heading element="h1">
             {snapshot.formNumber
@@ -222,14 +215,6 @@ export function LabourInspectionFormPage() {
           {t('forms.labour_inspection.unsavedChangesWarning')}
         </Alert>
       )}
-
-      <Button
-        visualType="link"
-        onClick={() => navigate('/')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
 
       <div className="card-main">
         <Heading element="h1">

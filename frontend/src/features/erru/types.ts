@@ -727,6 +727,8 @@ export interface NcrCaseListItem {
   transportUndertakingName: string | null;
   handlerName: string | null;
   hasInfringement: boolean;
+  /** true = LJVIS saatis selle NCR teate ise automaatselt (öine autodispatch). */
+  automatic: boolean;
 }
 
 /** Filters of the NCR case list. All optional, AND-combined (LJVIS2-65 §4 "Filtrid"). */
@@ -739,4 +741,6 @@ export interface NcrListFilters {
   status?: string;
   direction?: string;
   handlerPersonalCode?: string;
+  /** '' = kõik, 'true' = ainult automaatselt saadetud, 'false' = ainult käsitsi loodud. */
+  automatic?: string;
 }

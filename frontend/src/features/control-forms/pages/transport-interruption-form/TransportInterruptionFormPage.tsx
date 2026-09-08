@@ -533,15 +533,6 @@ export function TransportInterruptionFormPage() {
     if (!snapshot) return <FormNotFoundView title={t('forms.transport_interruption.title')} />;
     return (
       <div>
-        <Button
-          visualType="link"
-          onClick={() =>
-            navigate(`/control-forms/transport-interruption/${id}`)
-          }
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
         <TransportInterruptionFormViewCard
           form={snapshot}
           formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
@@ -611,14 +602,6 @@ export function TransportInterruptionFormPage() {
           {t('forms.publishedNote')}
         </Alert>
       )}
-
-      <Button
-        visualType="link"
-        onClick={() => navigate('/')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
 
       {!isDesktop && addFormDropdown}
 

@@ -11,13 +11,15 @@ Sõidu- ja puhkeaja kontrollvormi kasutatakse tee kontrolli käigus juhi või me
 - Jäädvustada ATP kokkuleppe ning sõiduki massi ja mõõtmete rikkumised
 - Salvestada lisamärkused ja failid
 
-## Menüü tee
+## Kust vorm avada
 
-Seda vormit täidetakse liitvormi (tee kontroll) alamvormina:
+Seda vormit täidetakse **koondvormi alamvormina**. Vorm avaneb koondvormi
+vahekaardil:
 
-**Liitvorm → Lisa alamvorm → Autojuhi sõidu- ja puhkeaja kontrollvorm**  
-või  
-**Liitvorm → Lisa alamvorm → Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm**
+- **uue koondvormi** loomisel: märkige töölaua ploki „Koondvorm" loendis „Autojuhi
+  sõidu- ja puhkeaja kontrollvorm" ja/või „Meeskonnaliikme sõidu- ja puhkeaja
+  kontrollvorm";
+- **olemasoleva koondvormi** vaates: lisage alamvorm vahekaartide ribalt.
 
 Olemasolevat vormi saab avada otse URL-ilt:
 
@@ -36,7 +38,7 @@ Olemasolevat vormi saab avada otse URL-ilt:
 
 Vormis on täidetavad kaardid/akkordionid. Tärniga `*` tähistatud väljad on kohustuslikud.
 
-![Autojuhi sõidu- ja puhkeaja kontrollvorm liitvormi vahekaardil](images/13-vorm-soidu-puhkeaeg/01-alamvorm.png)
+![Autojuhi sõidu- ja puhkeaja kontrollvorm koondvormi vahekaardil](images/13-vorm-soidu-puhkeaeg/01-alamvorm.png)
 
 ### 1. Veoliik ja veoklass
 

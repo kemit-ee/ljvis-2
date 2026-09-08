@@ -84,9 +84,6 @@ export function CgrFormCreatePage() {
         )}
 
       <PageActions>
-        <Button visualType="secondary" onClick={() => navigate('/erru/cgr')}>
-          {t('common.back')}
-        </Button>
         <Button type="submit" disabled={form.formik.isSubmitting}>
           {t('common.save')}
         </Button>

@@ -10,6 +10,88 @@
   **telefoninumber** ja **ligipääsu lõppkuupäev** varem kaotsi — väljad
   salvestusid tühjaks, sõltumata sisestusest. Nüüd salvestatakse mõlemad
   õigesti. (Olemasolevate kasutajate muutmisel see viga ei esinenud.)
+## 2026-09 — Menüü: „Riskiskoorid" järjekord
+
+- Menüüpunkt **„Riskiskoorid"** paikneb nüüd vasakmenüü ülatasandi loendi
+  **lõpus, vahetult „Haldus" kohal** (varem kohe „Otsingu" järel, ERRU-punktide
+  ees).
+
+---
+
+## 2026-09 — NCR (kontrollitulemuse teated): parandused
+
+- Lehe ja teate pealkiri: **„Kontrollitulemuse teated NCR"** (varem „NCR teated").
+- Uue teate nupp: **„Uus NCR teade"**; kontrollkaardil **„Loo NCR teade"**.
+- Loendisse lisandus veerg **„Automaatne"** (Jah/Ei) ja samanimeline otsingufilter
+  — näitab, kas LJVIS saatis teate ise automaatselt (öine väljasaatmine).
+- Uue teate vaikeväärtused: teate esitav pädev asutus = **Kliimaministeerium**,
+  päringu allikas = **„Pädev asutus"**. Väljasaatmisel teisendatakse asutuse nimi
+  ingliskeelseks ametlikuks nimeks (nt „Ministry of Climate").
+- Raskete rikkumiste valikus ja vaates kuvatakse nüüd **ERRU kood** kirjelduse ees
+  (nt „MSI101 – …").
+- Väljanimi „Ühenduse tegevusloa number" → „Ühenduse tegevusloa või selle
+  kinnitatud ärakirja või tõestatud koopia number".
+
+---
+
+## 2026-09 — Välisriigi rikkumise kontrollkaart: parandused
+
+- Pealkirjad korrastatud: „Rikkumise avastamise aeg ja koht" → **„Kontrolli aeg
+  ja koht"**; „Rakendatud sanktsioon" (ploki pealkiri) → **„Kontrolli tulemus"**;
+  „Sanktsiooni märkused" → **„Märkused"**; loakoopia väli → **„Ühenduse
+  tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number"**.
+- **Kontrolli kellaaeg**: tunni ja minuti vahele tekib nüüd koolon automaatselt.
+- **Veoettevõtja nime järgi otsing**: „Vali" kannab nüüd üle ka registrikoodi.
+- **„Soovitatud meetme täpsustus"** (meede „Muu") ja **„Ametinimetus"** ei ole
+  enam kohustuslikud väljad — see takistas varem vormi salvestamist.
+- **Failide plokk „Kontrolliga seotud failid"** on nüüd nähtav ka enne
+  salvestamist (väljal tekst „Laadi üles fail").
+- Pärast **avalikustamist** kuvatakse kaardi lõpus plokk **„Teavitused"** kahe
+  märkega: „Saabus välisriigi pädeva asutuse ettepanek… Edasta teavitus
+  tööinspektorile" (saadab e-kirja tööinspektorile) ja „Teavita vedajat
+  rikkumisest". Haldusmenetluse plokist need märked eemaldati.
+- Parandatud viga, kus vormi avalikustamine kustutas haldusmenetluse andmed.
+
+---
+
+## 2026-09 — Töölaua ploki nimi: „Koondvorm"
+
+- Töölaua vasakpoolne plokk kannab nüüd nime **„Koondvorm"** (varem
+  „Kompleksvorm"); ka „Töös olevad koondvormid" tabel ja tühja loendi tekst.
+  Ühtne termin kogu rakenduses (vorminumbrid `KOOND-…`, kustutamisdialoog jm).
+
+---
+
+## 2026-09 — Menüü: „Riskiskoorid" eraldi punktiks
+
+- Menüüpunkt **„Riskitasemed"** on tõstetud „Haldus" alt välja **vasakmenüü
+  ülatasandile** ja ümber nimetatud **„Riskiskoorid"**. Sisu ja õigus
+  (`risk_report.list`) ei muutu.
+## 2026-09 — RSI (tehnokontrolli teated): parandused
+
+- Lehe ja teate pealkiri: **„Tehnokontrolli teated RSI"**; uue teate nupp
+  **„Uus tehnokontrolli teade RSI"**.
+- Uue teate vaikeväärtused: teate esitanud pädev asutus = **Kliimaministeerium**
+  (rippmenüü, varem vaba tekst), inspektor = **„Politsei- ja Piirivalveamet"**.
+  Väljasaatmisel teisendatakse mõlemad ingliskeelseks ametlikuks nimeks.
+- Teate number kuvatakse nüüd ka koostamisvaates („määratakse salvestamisel").
+- **Tehnokontrolli tulemused**: kolm valikut („Vastab nõuetele", „Korraline
+  tehnoülevaatus", „Keelamine või piiramine") on nüüd üksikud märkeruudud
+  (varem Jah/Ei raadionupud).
+- „Kontrollitud punkt" nimedest ja rikkekoodidest eemaldati „CAA_" eesliide.
+- Kuupäeva- ja kellaajaväljal tekivad eraldajad (punktid, koolon) sisestamisel
+  automaatselt.
+- „Ettevõtja ühenduse tegevusluba" → „Ettevõtja ühenduse tegevusloa number".
+
+---
+
+## 2026-09 — Hea maine vorm: pealkiri ja abitekst
+
+- Vormi pealkiri (nii ametniku kui kodaniku vaates ning „vormi ei leitud"
+  teates) on nüüd sama, mida kasutab töölaud ja menüü: **„Hea maine nõudele
+  mittevastavaks tunnistatud veokorraldusjuht"** senise „Hea maine vorm" asemel.
+- CTUD-päringu abitekst: „…siis veokorraldaja andmed on kohustuslikud" →
+  „…siis **veokorraldusjuhi** andmed on kohustuslikud".
 
 ---
 

@@ -580,9 +580,6 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     if (!snapshot) return <FormNotFoundView title={t(titleKey)} />;
     return (
       <div>
-        <Button visualType="link" onClick={() => navigate(-1)} iconLeft="arrow_back">
-          {t('common.back')}
-        </Button>
         <TechnicalCheckFormViewCard scope={variant} form={snapshot} formType={formType} />
       </div>
     );
@@ -639,14 +636,6 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
           {t('forms.publishedNote')}
         </Alert>
       )}
-
-      <Button
-        visualType="link"
-        onClick={() => navigate('/')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
 
       {!isDesktop && addFormDropdown}
 

@@ -197,12 +197,7 @@ export function NcrFormPage() {
             )}
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button
-                visualType="secondary"
-                onClick={() => navigate('/erru/ncr')}
-              >
-                {t('common.back')}
-              </Button>
+
               <Button type="submit" disabled={requestForm.formik.isSubmitting}>
                 {t('common.save')}
               </Button>
@@ -241,12 +236,7 @@ export function NcrFormPage() {
             )}
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button
-                visualType="secondary"
-                onClick={() => navigate('/erru/ncr')}
-              >
-                {t('common.back')}
-              </Button>
+
               <Button type="submit" disabled={responseForm.formik.isSubmitting}>
                 {t('common.save')}
               </Button>
@@ -341,7 +331,11 @@ export function NcrFormPage() {
                         />
                         <DetailRow
                           label={t('erru.ncr.form.infringementType')}
-                          value={si.infringementType}
+                          value={
+                            si.infringementType
+                              ? `${si.infringementType} – ${label('EU_INFRINGEMENT', si.infringementType)}`
+                              : '—'
+                          }
                         />
                         <DetailRow
                           label={t('erru.ncr.form.infringementDate')}
@@ -429,12 +423,7 @@ export function NcrFormPage() {
 
           <div className="page-actions">
             <div className="page-actions-buttons">
-              <Button
-                visualType="secondary"
-                onClick={() => navigate('/erru/ncr')}
-              >
-                {t('common.back')}
-              </Button>
+
               {requestSendable && (
                 <Button type="button" onClick={doSend} disabled={sending}>
                   {t('erru.ncr.form.send')}

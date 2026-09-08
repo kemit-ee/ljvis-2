@@ -2281,65 +2281,71 @@ export function CompoundFormCreatePage() {
         {DRIVE_REST_ROUTES.map((route) => {
           const { tabId, type: tabType } = ROUTE_TO_TAB[route];
           return openTabs.includes(tabId) ? (
-            <Tabs.Content key={tabId} id={tabId} className="p-1">
-              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
-                <DriveRestFormCreatePage
-                  type={tabType}
-                  compoundFormKey={undefined}
-                  initialValidate={validatedTabs.has(tabId)}
-                  onValuesChange={(values) => {
-                    savedFormData.current[tabId] = values;
-                  }}
-                  ref={(ref) => {
-                    formRefs.current[tabId].current = ref;
-                  }}
-                  onSaved={(id) => {
-                    if (id) {
-                      savedDriveRestFormsRef.current = new Set(
-                        savedDriveRestFormsRef.current,
-                      ).add(tabId);
-                      savedSubFormIdsRef.current[tabId] = String(id);
-                    }
-                  }}
-                />
-              </div>
-            </Tabs.Content>
+            <div
+              key={tabId}
+              id={`${tabId}-panel`}
+              role="tabpanel"
+              aria-labelledby={tabId}
+              className="p-1"
+              style={{ display: activeTab === tabId ? 'block' : 'none' }}
+            >
+              <DriveRestFormCreatePage
+                type={tabType}
+                compoundFormKey={undefined}
+                initialValidate={validatedTabs.has(tabId)}
+                onValuesChange={(values) => {
+                  savedFormData.current[tabId] = values;
+                }}
+                ref={(ref) => {
+                  formRefs.current[tabId].current = ref;
+                }}
+                onSaved={(id) => {
+                  if (id) {
+                    savedDriveRestFormsRef.current = new Set(
+                      savedDriveRestFormsRef.current,
+                    ).add(tabId);
+                    savedSubFormIdsRef.current[tabId] = String(id);
+                  }
+                }}
+              />
+            </div>
           ) : null;
         })}
         {(() => {
           const vehicleTabId = ROUTE_TO_TAB['/vehicle-technical'].tabId;
           return openTabs.includes(vehicleTabId) ? (
-            <Tabs.Content key={vehicleTabId} id={vehicleTabId} className="p-1">
-              <div
-                style={{
-                  display: activeTab === vehicleTabId ? 'block' : 'none',
+            <div
+              key={vehicleTabId}
+              id={`${vehicleTabId}-panel`}
+              role="tabpanel"
+              aria-labelledby={vehicleTabId}
+              className="p-1"
+              style={{ display: activeTab === vehicleTabId ? 'block' : 'none' }}
+            >
+              <TechnicalCheckFormCreatePage
+                type="vehicle"
+                compoundFormKey={undefined}
+                initialValidate={validatedTabs.has(vehicleTabId)}
+                onValuesChange={(values) => {
+                  // eslint-disable-next-line react-hooks/immutability
+                  savedFormData.current[vehicleTabId] =
+                    values as Partial<DriveRestForm>;
                 }}
-              >
-                <TechnicalCheckFormCreatePage
-                  type="vehicle"
-                  compoundFormKey={undefined}
-                  initialValidate={validatedTabs.has(vehicleTabId)}
-                  onValuesChange={(values) => {
-                    // eslint-disable-next-line react-hooks/immutability
-                    savedFormData.current[vehicleTabId] =
-                      values as Partial<DriveRestForm>;
-                  }}
-                  ref={(ref) => {
-                    const vehicleRef = formRefs.current[vehicleTabId];
-                    vehicleRef.current = ref as TechnicalCheckFormCreatePageRef;
-                  }}
-                  onSaved={(id) => {
-                    if (id) {
-                      savedDriveRestFormsRef.current = new Set(
-                        savedDriveRestFormsRef.current,
-                      ).add(vehicleTabId);
-                      savedSubFormIdsRef.current[vehicleTabId] = String(id);
-                    }
-                  }}
-                  compoundTrailers={formik.values.trailers}
-                />
-              </div>
-            </Tabs.Content>
+                ref={(ref) => {
+                  const vehicleRef = formRefs.current[vehicleTabId];
+                  vehicleRef.current = ref as TechnicalCheckFormCreatePageRef;
+                }}
+                onSaved={(id) => {
+                  if (id) {
+                    savedDriveRestFormsRef.current = new Set(
+                      savedDriveRestFormsRef.current,
+                    ).add(vehicleTabId);
+                    savedSubFormIdsRef.current[vehicleTabId] = String(id);
+                  }
+                }}
+                compoundTrailers={formik.values.trailers}
+              />
+            </div>
           ) : null;
         })()}
         {openTabs
@@ -2350,112 +2356,123 @@ export function CompoundFormCreatePage() {
             );
             const trailerRegNr = formik.values.trailers[trailerIndex]?.regNr;
             return (
-              <Tabs.Content key={tabId} id={tabId} className="p-1">
-                <div
-                  style={{ display: activeTab === tabId ? 'block' : 'none' }}
-                >
-                  <TechnicalCheckFormCreatePage
-                    type="trailer"
-                    compoundFormKey={undefined}
-                    initialValidate={validatedTabs.has(tabId)}
-                    onValuesChange={(values) => {
-                      savedFormData.current[tabId] =
-                        values as Partial<DriveRestForm>;
-                    }}
-                    ref={(ref) => {
-                      if (!formRefs.current[tabId]) {
-                        formRefs.current[tabId] = React.createRef<FormRef>();
-                      }
-                      formRefs.current[tabId].current =
-                        ref as TechnicalCheckFormCreatePageRef;
-                    }}
-                    onSaved={(id) => {
-                      if (id) {
-                        savedDriveRestFormsRef.current = new Set(
-                          savedDriveRestFormsRef.current,
-                        ).add(tabId);
-                        savedSubFormIdsRef.current[tabId] = String(id);
-                      }
-                    }}
-                    compoundTrailers={formik.values.trailers}
-                    trailerIndex={trailerIndex}
-                    initialData={
-                      trailerRegNr
-                        ? ({
-                            trailerRegNr,
-                          } as Partial<TechnicalCheckForm> as TechnicalCheckForm)
-                        : undefined
+              <div
+                key={tabId}
+                id={`${tabId}-panel`}
+                role="tabpanel"
+                aria-labelledby={tabId}
+                className="p-1"
+                style={{ display: activeTab === tabId ? 'block' : 'none' }}
+              >
+                <TechnicalCheckFormCreatePage
+                  type="trailer"
+                  compoundFormKey={undefined}
+                  initialValidate={validatedTabs.has(tabId)}
+                  onValuesChange={(values) => {
+                    savedFormData.current[tabId] =
+                      values as Partial<DriveRestForm>;
+                  }}
+                  ref={(ref) => {
+                    if (!formRefs.current[tabId]) {
+                      formRefs.current[tabId] = React.createRef<FormRef>();
                     }
-                  />
-                </div>
-              </Tabs.Content>
+                    formRefs.current[tabId].current =
+                      ref as TechnicalCheckFormCreatePageRef;
+                  }}
+                  onSaved={(id) => {
+                    if (id) {
+                      savedDriveRestFormsRef.current = new Set(
+                        savedDriveRestFormsRef.current,
+                      ).add(tabId);
+                      savedSubFormIdsRef.current[tabId] = String(id);
+                    }
+                  }}
+                  compoundTrailers={formik.values.trailers}
+                  trailerIndex={trailerIndex}
+                  initialData={
+                    trailerRegNr
+                      ? ({
+                          trailerRegNr,
+                        } as Partial<TechnicalCheckForm> as TechnicalCheckForm)
+                      : undefined
+                  }
+                />
+              </div>
             );
           })}
         {ADR_ROUTES.map((route) => {
           const { tabId } = ROUTE_TO_TAB[route];
           return openTabs.includes(tabId) ? (
-            <Tabs.Content key={tabId} id={tabId} className="p-1">
-              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
-                <AdrFormCreatePage
-                  compoundFormKey={undefined}
-                  initialValidate={validatedTabs.has(tabId)}
-                  onValuesChange={(values) => {
-                    savedFormData.current[tabId] =
-                      values as Partial<DriveRestForm>;
-                  }}
-                  ref={(ref) => {
-                    formRefs.current[tabId].current =
-                      ref as AdrFormCreatePageRef;
-                  }}
-                  onSaved={(id) => {
-                    if (id) {
-                      savedDriveRestFormsRef.current = new Set(
-                        savedDriveRestFormsRef.current,
-                      ).add(tabId);
-                      savedSubFormIdsRef.current[tabId] = String(id);
-                    }
-                  }}
-                />
-              </div>
-            </Tabs.Content>
+            <div
+              key={tabId}
+              id={`${tabId}-panel`}
+              role="tabpanel"
+              aria-labelledby={tabId}
+              className="p-1"
+              style={{ display: activeTab === tabId ? 'block' : 'none' }}
+            >
+              <AdrFormCreatePage
+                compoundFormKey={undefined}
+                initialValidate={validatedTabs.has(tabId)}
+                onValuesChange={(values) => {
+                  savedFormData.current[tabId] =
+                    values as Partial<DriveRestForm>;
+                }}
+                ref={(ref) => {
+                  formRefs.current[tabId].current =
+                    ref as AdrFormCreatePageRef;
+                }}
+                onSaved={(id) => {
+                  if (id) {
+                    savedDriveRestFormsRef.current = new Set(
+                      savedDriveRestFormsRef.current,
+                    ).add(tabId);
+                    savedSubFormIdsRef.current[tabId] = String(id);
+                  }
+                }}
+              />
+            </div>
           ) : null;
         })}
         {TRANSPORT_INTERRUPTION_ROUTES.map((route) => {
           const { tabId } = ROUTE_TO_TAB[route];
           return openTabs.includes(tabId) ? (
-            <Tabs.Content key={tabId} id={tabId} className="p-1">
-              <div style={{ display: activeTab === tabId ? 'block' : 'none' }}>
-                <TransportInterruptionFormCreatePage
-                  compoundFormKey={undefined}
-                  initialValidate={validatedTabs.has(tabId)}
-                  onValuesChange={(values) => {
-                    savedFormData.current[tabId] =
-                      values as Partial<DriveRestForm>;
-                  }}
-                  ref={(ref) => {
-                    formRefs.current[tabId].current =
-                      ref as TransportInterruptionFormCreatePageRef;
-                  }}
-                  onSaved={(id) => {
-                    if (id) {
-                      savedDriveRestFormsRef.current = new Set(
-                        savedDriveRestFormsRef.current,
-                      ).add(tabId);
-                      savedSubFormIdsRef.current[tabId] = String(id);
-                    }
-                  }}
-                />
-              </div>
-            </Tabs.Content>
+            <div
+              key={tabId}
+              id={`${tabId}-panel`}
+              role="tabpanel"
+              aria-labelledby={tabId}
+              className="p-1"
+              style={{ display: activeTab === tabId ? 'block' : 'none' }}
+            >
+              <TransportInterruptionFormCreatePage
+                compoundFormKey={undefined}
+                initialValidate={validatedTabs.has(tabId)}
+                onValuesChange={(values) => {
+                  savedFormData.current[tabId] =
+                    values as Partial<DriveRestForm>;
+                }}
+                ref={(ref) => {
+                  formRefs.current[tabId].current =
+                    ref as TransportInterruptionFormCreatePageRef;
+                }}
+                onSaved={(id) => {
+                  if (id) {
+                    savedDriveRestFormsRef.current = new Set(
+                      savedDriveRestFormsRef.current,
+                    ).add(tabId);
+                    savedSubFormIdsRef.current[tabId] = String(id);
+                  }
+                }}
+              />
+            </div>
           ) : null;
         })}
       </Tabs>
 
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          <Button visualType="secondary" onClick={() => navigate('/')}>
-            {t('common.back')}
-          </Button>
+
           <Button
             type="submit"
             disabled={openTabs.length < 1}

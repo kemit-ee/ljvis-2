@@ -430,14 +430,6 @@ export function UserGroupDetailPage() {
           </Alert>
         </div>
       )}
-      <Button
-        visualType="link"
-        onClick={() => navigate('/user-groups')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
-
       <div className="page-header">
         <Heading element="h1">{group.name}</Heading>
       </div>

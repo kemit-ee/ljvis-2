@@ -1,3 +1,4 @@
+import { type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, ChoiceGroup, StatusBadge } from '@tedi-design-system/react/tedi';
 import type { StatusBadgeColor } from '@tedi-design-system/react/tedi';
@@ -47,6 +48,24 @@ export function PartsSummaryTable({
 
   const statusOf = (partCode: string): PartSummaryStatus =>
     partsSummary.find((p) => p.partCode === partCode)?.status ?? 'not_checked';
+
+  // Re-clicking an already-selected radio fires no onChange, so clicking
+  // "Ei vasta nõuetele" while it is already selected wouldn't reopen the defect
+  // modal. Catch that click on the wrapper and re-fire onStatusChange
+  // (handlePartStatusChange reopens the modal for non_compliant).
+  const handleRadioClick = (partCode: string, e: MouseEvent) => {
+    if (disabled) return;
+    const el = e.target as HTMLElement;
+    const input =
+      ((el.closest('label') as HTMLLabelElement | null)?.control as HTMLInputElement | null) ??
+      (el instanceof HTMLInputElement ? el : null);
+    if (
+      input?.id === `part-status-${partCode}-non-compliant` &&
+      statusOf(partCode) === 'non_compliant'
+    ) {
+      onStatusChange(partCode, 'non_compliant');
+    }
+  };
 
   const indexClass = (status: PartSummaryStatus): string => {
     if (status === 'checked') return styles.partIndexChecked;
@@ -150,19 +169,21 @@ export function PartsSummaryTable({
                   </span>
                 </td>
                 <td>
-                  <ChoiceGroup
-                    id={`part-status-${part.code}`}
-                    name={`part-status-${part.code}`}
-                    label={t('forms.technical_check.parts.statusColumn')}
-                    hideLabel
-                    inputType="radio"
-                    direction="row"
-                    value={status}
-                    onChange={(val) =>
-                      !disabled && onStatusChange(part.code, val as PartSummaryStatus)
-                    }
-                    items={radioItems(part.code)}
-                  />
+                  <div onClick={(e) => handleRadioClick(part.code, e)}>
+                    <ChoiceGroup
+                      id={`part-status-${part.code}`}
+                      name={`part-status-${part.code}`}
+                      label={t('forms.technical_check.parts.statusColumn')}
+                      hideLabel
+                      inputType="radio"
+                      direction="row"
+                      value={status}
+                      onChange={(val) =>
+                        !disabled && onStatusChange(part.code, val as PartSummaryStatus)
+                      }
+                      items={radioItems(part.code)}
+                    />
+                  </div>
                   {defectsBlock(part)}
                 </td>
               </tr>
@@ -196,7 +217,10 @@ export function PartsSummaryTable({
                 <span className={styles.partLabel}>{part.name}</span>
               </span>
             </div>
-            <div className={styles.cardRadios}>
+            <div
+              className={styles.cardRadios}
+              onClick={(e) => handleRadioClick(part.code, e)}
+            >
               <ChoiceGroup
                 id={`part-status-${part.code}`}
                 name={`part-status-${part.code}`}

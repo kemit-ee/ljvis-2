@@ -65,11 +65,7 @@ export function useForeignViolationForm(
     recommendedMeasureCode: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
-    recommendedMeasureNotes: Yup.string().when('recommendedMeasureCode', {
-      is: 'MUU',
-      then: (schema) => schema.required(t('users.validation.required')),
-      otherwise: (schema) => schema.optional(),
-    }),
+    recommendedMeasureNotes: Yup.string().optional(),
     minorViolationsCount: Yup.string().matches(
       /^\d{0,3}$/,
       t('forms.foreign_violation.validation.minorViolationsCount'),
@@ -86,9 +82,7 @@ export function useForeignViolationForm(
     inspectorOrganisationId: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
-    inspectorProfession: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
+    inspectorProfession: Yup.string().optional(),
     files: Yup.mixed().test(
       'no-invalid-files',
       t('forms.foreign_violation.filesHelper'),
@@ -303,6 +297,8 @@ export function useForeignViolationForm(
       formik.setFieldValue('companyCity', company.city);
       formik.setFieldValue('companyPostalCode', company.postalCode);
       if (company.registryCode) {
+        // Nime järgi otsingul jäi registrikood täitmata — kanna see samuti üle.
+        formik.setFieldValue('companyRegCode', company.registryCode);
         formik.setFieldValue('companyCountryCode', 'EE');
       }
       setAssociatedPersons([]);

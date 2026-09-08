@@ -24,9 +24,9 @@ export function useCtudForm(
   const { t } = useTranslation();
   const isEdit = !!request;
   const [formError, setFormError] = useState<string | null>(null);
-  const { getByCode } = useClassifiers();
+  const { getByCode, getErruMemberCountries } = useClassifiers();
 
-  const countries = useMemo(() => getByCode('COUNTRY').filter((c) => c.isValid !== false), [getByCode]);
+  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
   const authorities = useMemo(() => getByCode('COMPETENT_AUTHORITY').filter((c) => c.isValid !== false), [getByCode]);
   const requestSources = useMemo(() => getByCode('CTUD_REQUEST_SOURCE').filter((c) => c.isValid !== false), [getByCode]);
   const requestPurposes = useMemo(() => getByCode('CTUD_REQUEST_PURPOSE').filter((c) => c.isValid !== false), [getByCode]);

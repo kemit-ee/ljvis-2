@@ -13,6 +13,14 @@ export interface ClassifierOption {
 export const classifierOptions = (list: ClassifierOption[]) =>
   list.map((c) => ({ value: c.code, label: c.name }));
 
+/**
+ * Options for EU_INFRINGEMENT (raske rikkumise liik) — kuvab ERRU koodi
+ * kirjelduse ees, nt "MSI101 – ületatakse …". Kood on oluline iga raske
+ * rikkumise juures (NCR/RSI ettepanek 11).
+ */
+export const infringementOptions = (list: ClassifierOption[]) =>
+  list.map((c) => ({ value: c.code, label: `${c.code} – ${c.name}` }));
+
 /** tedi Select works with option objects, not raw code strings. */
 export const selectedClassifierOption = (list: ClassifierOption[], code: string) =>
   classifierOptions(list).find((o) => o.value === code) ?? null;

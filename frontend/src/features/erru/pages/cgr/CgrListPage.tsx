@@ -17,6 +17,7 @@ import type { CgrRequestListItem } from '../../types';
 import { useCgrList } from './useCgrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 
@@ -32,6 +33,7 @@ export function CgrListPage() {
   const navigate = useNavigate();
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
+  const { getErruMemberCountries } = useClassifiers();
 
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['cgr.read']);
@@ -57,7 +59,10 @@ export function CgrListPage() {
     [navigate],
   );
 
-  const countryOptions = useMemo(() => options('COUNTRY'), [options]);
+  const countryOptions = useMemo(
+    () => getErruMemberCountries().map((c) => ({ value: c.code, label: c.name })),
+    [getErruMemberCountries],
+  );
   const statusOptions = useMemo(() => options('CGR_REQUEST_STATUS'), [options]);
 
   const columns = useMemo(
