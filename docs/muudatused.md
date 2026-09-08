@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-09 — Menüü: „Riskiskoorid" järjekord
+
+- Menüüpunkt **„Riskiskoorid"** paikneb nüüd vasakmenüü ülatasandi loendi
+  **lõpus, vahetult „Haldus" kohal** (varem kohe „Otsingu" järel, ERRU-punktide
+  ees).
+
+---
+
 ## 2026-09 — NCR (kontrollitulemuse teated): parandused
 
 - Lehe ja teate pealkiri: **„Kontrollitulemuse teated NCR"** (varem „NCR teated").
