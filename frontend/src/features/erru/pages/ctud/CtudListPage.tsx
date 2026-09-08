@@ -17,6 +17,8 @@ import type { CtudRequestListItem } from '../../types';
 import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery';
+import { BREAKPOINTS } from '../../../../constants/constants';
 
 const columnHelper = createColumnHelper<CtudRequestListItem>();
 
@@ -26,6 +28,7 @@ export function CtudListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
 
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['ctud.read']);
   const canCreate = hasAnyPermission(['ctud.create']);
 
@@ -147,7 +150,10 @@ export function CtudListPage() {
           </div>
 
           {/* Filters are applied only on "Otsi" — editing them must not refetch. */}
-          <div className="filter-bar">
+          <div
+            className="filter-bar"
+            style={isDesktop ? { width: '80%' } : undefined}
+          >
             <TextField
               id="ctud-filter-id"
               label={t('erru.ctud.list.id')}
@@ -158,7 +164,11 @@ export function CtudListPage() {
               key={`ctud-sent-from-${resetKey}`}
               id="ctud-filter-sent-from"
               label={t('erru.ctud.filters.sentFrom')}
-              selected={draftFilters.sentFrom ? new Date(draftFilters.sentFrom) : undefined}
+              selected={
+                draftFilters.sentFrom
+                  ? new Date(draftFilters.sentFrom)
+                  : undefined
+              }
               onSelect={(v) => setFilter('sentFrom', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
@@ -167,7 +177,11 @@ export function CtudListPage() {
               key={`ctud-sent-until-${resetKey}`}
               id="ctud-filter-sent-until"
               label={t('erru.ctud.filters.sentUntil')}
-              selected={draftFilters.sentUntil ? new Date(draftFilters.sentUntil) : undefined}
+              selected={
+                draftFilters.sentUntil
+                  ? new Date(draftFilters.sentUntil)
+                  : undefined
+              }
               onSelect={(v) => setFilter('sentUntil', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
@@ -175,19 +189,31 @@ export function CtudListPage() {
             <Select
               id="ctud-filter-from"
               label={t('erru.ctud.list.ctudFrom')}
-              options={countryOptions}
-              value={countryOptions.find((o) => o.value === draftFilters.ctudFrom) ?? null}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
+              value={
+                countryOptions.find((o) => o.value === draftFilters.ctudFrom) ??
+                null
+              }
               onChange={(o) =>
-                setFilter('ctudFrom', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'ctudFrom',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <Select
               id="ctud-filter-to"
               label={t('erru.ctud.list.ctudTo')}
-              options={countryOptions}
-              value={countryOptions.find((o) => o.value === draftFilters.ctudTo) ?? null}
+              options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
+              value={
+                countryOptions.find((o) => o.value === draftFilters.ctudTo) ??
+                null
+              }
               onChange={(o) =>
-                setFilter('ctudTo', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'ctudTo',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             {/* These three are OR-combined with each other, server-side. */}
@@ -212,19 +238,32 @@ export function CtudListPage() {
             <Select
               id="ctud-filter-status"
               label={t('erru.ctud.list.status')}
-              options={statusOptions}
-              value={statusOptions.find((o) => o.value === draftFilters.status) ?? null}
+              options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
+              value={
+                statusOptions.find((o) => o.value === draftFilters.status) ??
+                null
+              }
               onChange={(o) =>
-                setFilter('status', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'status',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <Select
               id="ctud-filter-direction"
               label={t('erru.ctud.list.direction')}
-              options={directionOptions}
-              value={directionOptions.find((o) => o.value === draftFilters.direction) ?? null}
+              options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
+              value={
+                directionOptions.find(
+                  (o) => o.value === draftFilters.direction,
+                ) ?? null
+              }
               onChange={(o) =>
-                setFilter('direction', (o as { value?: string } | null)?.value ?? '')
+                setFilter(
+                  'direction',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
               }
             />
             <TextField

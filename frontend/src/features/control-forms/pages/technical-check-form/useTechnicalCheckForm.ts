@@ -208,22 +208,56 @@ export function useTechnicalCheckForm(
     return formik.submitForm();
   };
 
+  /** Pure: given the current form values and the defect change, returns the
+   * result-type / violations updates (auto-escalation / -downgrade, auto MSI302
+   * on driving_ban). Returned as a partial so callers can fold it into ONE
+   * atomic setValues — multiple sequential formik.setFieldValue calls clobber
+   * each other (each reads the same stale values snapshot), which is why the
+   * defect/summary updates were being lost. */
+  const computeResultChanges = (
+    values: typeof formik.values,
+    previousDefects: PartDefectEntry[],
+    newDefects: PartDefectEntry[],
+  ): { resultType?: string; violations?: string[] } => {
+    const changes: { resultType?: string; violations?: string[] } = {};
+    const oldAutoLevel = resultLevel(computeAutoResult(previousDefects));
+    const autoResult = computeAutoResult(newDefects);
+    const autoLevel = resultLevel(autoResult);
+    const currentLevel = resultLevel(values.resultType);
+    const wasTa = values.resultType === 'extraordinary_inspection_ta';
+
+    if (currentLevel < autoLevel || values.resultType === 'ok') {
+      changes.resultType = autoResult;
+    } else if (autoLevel < oldAutoLevel && currentLevel === oldAutoLevel) {
+      changes.resultType = wasTa && autoLevel >= 1 ? 'extraordinary_inspection_ta' : autoResult;
+    }
+
+    const currentViolations = values.violations ?? [];
+    if (autoResult === 'driving_ban' && !currentViolations.includes(DRIVING_BAN_VIOLATION_CODE)) {
+      changes.violations = [...currentViolations, DRIVING_BAN_VIOLATION_CODE];
+    }
+    return changes;
+  };
+
   /** Applies the outcome of the "Ei vasta nõuetele" defect-selection modal for one part. */
   const applyPartDefects = (partCode: string, selected: { defectCode: string; severity: PartSeverity }[]) => {
-    const previousDefects = formik.values.partsDefects ?? [];
+    const v = formik.values;
+    const previousDefects = v.partsDefects ?? [];
     const otherDefects = previousDefects.filter((d) => d.partCode !== partCode);
     const newDefects: PartDefectEntry[] = [
       ...otherDefects,
       ...selected.map((s) => ({ partCode, defectCode: s.defectCode, severity: s.severity })),
     ];
-    formik.setFieldValue('partsDefects', newDefects);
 
-    const summary = (formik.values.partsSummary ?? []).map((p) =>
-      p.partCode === partCode ? { ...p, status: 'non_compliant' as const } : p,
-    );
-    formik.setFieldValue('partsSummary', summary);
+    const prevSummary = v.partsSummary ?? [];
+    const summary = prevSummary.some((p) => p.partCode === partCode)
+      ? prevSummary.map((p) =>
+          p.partCode === partCode ? { ...p, status: 'non_compliant' as const } : p,
+        )
+      : [...prevSummary, { partCode, status: 'non_compliant' as const }];
 
     // Append a note line per newly selected defect (defect removal does not remove the note — LJVIS2-72 §4).
+    let notes = v.notes ?? '';
     if (selected.length > 0) {
       const defectNames = defectsByPartKey.get(
         parts.find((p) => p.code === partCode)?.classifierValueKey ?? -1,
@@ -232,79 +266,65 @@ export function useTechnicalCheckForm(
         const defect = defectNames.find((d) => d.code === s.defectCode);
         return `${defect?.name ?? s.defectCode} – ${s.severity}`;
       });
-      const prevNotes = formik.values.notes ?? '';
-      const combined = [prevNotes, ...noteLines].filter(Boolean).join('\n').slice(0, 2000);
-      formik.setFieldValue('notes', combined);
+      notes = [notes, ...noteLines].filter(Boolean).join('\n').slice(0, 2000);
     }
 
-    recomputeResult(previousDefects, newDefects);
+    // Single atomic update — see computeResultChanges note.
+    formik.setValues({
+      ...v,
+      partsDefects: newDefects,
+      partsSummary: summary,
+      notes,
+      ...computeResultChanges(v, previousDefects, newDefects),
+    });
   };
 
   const setPartStatus = (partCode: string, status: PartSummaryEntry['status']) => {
-    const summary = (formik.values.partsSummary ?? []).map((p) =>
-      p.partCode === partCode ? { ...p, status } : p,
-    );
-    formik.setFieldValue('partsSummary', summary);
-    if (status !== 'non_compliant') {
-      const previousDefects = formik.values.partsDefects ?? [];
-      const newDefects = previousDefects.filter((d) => d.partCode !== partCode);
-      formik.setFieldValue('partsDefects', newDefects);
-      recomputeResult(previousDefects, newDefects);
+    const v = formik.values;
+    const prevSummary = v.partsSummary ?? [];
+    const summary = prevSummary.some((p) => p.partCode === partCode)
+      ? prevSummary.map((p) => (p.partCode === partCode ? { ...p, status } : p))
+      : [...prevSummary, { partCode, status }];
+
+    // 'non_compliant' normally arrives via the modal flow (applyPartDefects);
+    // if it is set directly, only the summary status changes — defects and the
+    // auto-derived result are left to the modal.
+    if (status === 'non_compliant') {
+      formik.setValues({ ...v, partsSummary: summary });
+      return;
     }
+    const previousDefects = v.partsDefects ?? [];
+    const newDefects = previousDefects.filter((d) => d.partCode !== partCode);
+    formik.setValues({
+      ...v,
+      partsSummary: summary,
+      partsDefects: newDefects,
+      ...computeResultChanges(v, previousDefects, newDefects),
+    });
   };
 
   /** Removes a single defect from the results table (LJVIS2-72 §4, UC-11/UC-12).
    * Does NOT remove the corresponding auto-generated "Märkused" line. If the part
    * has no remaining defects afterwards, its summary status reverts to "checked". */
   const removeDefect = (partCode: string, defectCode: string) => {
-    const previousDefects = formik.values.partsDefects ?? [];
+    const v = formik.values;
+    const previousDefects = v.partsDefects ?? [];
     const newDefects = previousDefects.filter(
       (d) => !(d.partCode === partCode && d.defectCode === defectCode),
     );
-    formik.setFieldValue('partsDefects', newDefects);
-
     const partHasRemainingDefects = newDefects.some((d) => d.partCode === partCode);
-    if (!partHasRemainingDefects) {
-      const summary = (formik.values.partsSummary ?? []).map((p) =>
-        p.partCode === partCode ? { ...p, status: 'checked' as const } : p,
-      );
-      formik.setFieldValue('partsSummary', summary);
-    }
+    const summary = partHasRemainingDefects
+      ? v.partsSummary ?? []
+      : (v.partsSummary ?? []).map((p) =>
+          p.partCode === partCode ? { ...p, status: 'checked' as const } : p,
+        );
 
-    recomputeResult(previousDefects, newDefects);
-  };
-
-  const recomputeResult = (previousDefects: PartDefectEntry[], newDefects: PartDefectEntry[]) => {
-    const oldAutoLevel = resultLevel(computeAutoResult(previousDefects));
-    const autoResult = computeAutoResult(newDefects);
-    const autoLevel = resultLevel(autoResult);
-    const currentLevel = resultLevel(formik.values.resultType);
-    const wasTa = formik.values.resultType === 'extraordinary_inspection_ta';
-
-    if (currentLevel < autoLevel || formik.values.resultType === 'ok') {
-      // Escalate — always follows the auto-computed minimum upward.
-      formik.setFieldValue('resultType', autoResult);
-    } else if (autoLevel < oldAutoLevel && currentLevel === oldAutoLevel) {
-      // Defects were removed and the current result was itself auto-derived
-      // (not manually escalated beyond it) — follow the downgrade too
-      // (LJVIS2-72 §4, UC-11: "result resets to Tehniliselt korras
-      // (or to the OV level, if OV are still present)"). Preserve the TA
-      // variant of extraordinary_inspection if it was selected and still applicable.
-      formik.setFieldValue(
-        'resultType',
-        wasTa && autoLevel >= 1 ? 'extraordinary_inspection_ta' : autoResult,
-      );
-    }
-
-    // MSI302 is only ever auto-ADDED here (LJVIS2-72 §4: "MSI302 automaatselt
-    // märgitud" when driving_ban is triggered). Auto-removal is intentionally
-    // not implemented — removing it once set requires control_form.edit_locked
-    // (an administrator, per Eda Rembel's 21.07.2026 13:13 comment) and is done
-    // manually via the violations checklist (see toggleViolation).
-    const currentViolations = formik.values.violations ?? [];
-    if (autoResult === 'driving_ban' && !currentViolations.includes(DRIVING_BAN_VIOLATION_CODE)) {
-      formik.setFieldValue('violations', [...currentViolations, DRIVING_BAN_VIOLATION_CODE]);
-    }
+    formik.setValues({
+      ...v,
+      partsDefects: newDefects,
+      partsSummary: summary,
+      ...computeResultChanges(v, previousDefects, newDefects),
+    });
   };
 
   const setResultType = (resultType: string) => {

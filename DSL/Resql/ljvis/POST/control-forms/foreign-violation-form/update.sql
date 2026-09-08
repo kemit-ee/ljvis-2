@@ -1,111 +1,193 @@
 /*
-declaration:
-  version: 0.1
-  description: "Update foreign violation form"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: key
-        type: string
-      - field: formNumber
-        type: string
-      - field: status
-        type: string
-      - field: reportingCountryCode
-        type: string
-      - field: reportingAuthority
-        type: string
-      - field: inspectionCountryCode
-        type: string
-      - field: inspectionDate
-        type: string
-      - field: inspectionTime
-        type: string
-      - field: inspectionAddressLine1
-        type: string
-      - field: inspectionAddressLine2
-        type: string
-      - field: inspectionRegion
-        type: string
-      - field: inspectionCity
-        type: string
-      - field: companyRegCode
-        type: string
-      - field: companyName
-        type: string
-      - field: companyCountryCode
-        type: string
-      - field: companyAddressLine1
-        type: string
-      - field: companyAddressLine2
-        type: string
-      - field: companyCity
-        type: string
-      - field: companyPostalCode
-        type: string
-      - field: driverFirstName
-        type: string
-      - field: driverLastName
-        type: string
-      - field: vehicleRegNr
-        type: string
-      - field: vehicleMake
-        type: string
-      - field: vehicleModel
-        type: string
-      - field: vehicleCountryCode
-        type: string
-      - field: vehicleVin
-        type: string
-      - field: vehicleFirstRegistration
-        type: string
-      - field: vehicleBodyType
-        type: string
-      - field: licenceCopyNumber
-        type: string
-      - field: violationDescription
-        type: string
-      - field: minorViolationsCount
-        type: string
-      - field: sanctionCode
-        type: string
-      - field: sanctionNotes
-        type: string
-      - field: recommendedMeasureCode
-        type: string
-      - field: recommendedMeasureNotes
-        type: string
-      - field: recommendedMeasureGeneralNotes
-        type: string
-      - field: violations
-        type: string
-      - field: dataEntryDate
-        type: string
-      - field: inspectorFirstName
-        type: string
-      - field: inspectorLastName
-        type: string
-      - field: inspectorOrganisationId
-        type: string
-      - field: inspectorUnit
-        type: string
-      - field: inspectorProfession
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: form_number
-        type: string
+description: Update foreign violation form — appends a new snapshot row. form_number and template_version
+  are always read from the latest snapshot; version is unchanged while the latest snapshot's status is
+  'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published)
+  data.
+namespace: control-forms
+params:
+  key:
+    type: integer
+    required: false
+  status:
+    type: string
+    required: false
+  reportingCountryCode:
+    type: string
+    required: false
+  reportingAuthority:
+    type: string
+    required: false
+  inspectionCountryCode:
+    type: string
+    required: false
+  inspectionDate:
+    type: string
+    required: false
+  inspectionTime:
+    type: string
+    required: false
+  inspectionAddressLine1:
+    type: string
+    required: false
+  inspectionAddressLine2:
+    type: string
+    required: false
+  inspectionRegion:
+    type: string
+    required: false
+  inspectionCity:
+    type: string
+    required: false
+  companyRegCode:
+    type: string
+    required: false
+  companyName:
+    type: string
+    required: false
+  companyCountryCode:
+    type: string
+    required: false
+  companyAddressLine1:
+    type: string
+    required: false
+  companyAddressLine2:
+    type: string
+    required: false
+  companyCity:
+    type: string
+    required: false
+  companyPostalCode:
+    type: string
+    required: false
+  driverFirstName:
+    type: string
+    required: false
+  driverLastName:
+    type: string
+    required: false
+  vehicleRegNr:
+    type: string
+    required: false
+  vehicleMake:
+    type: string
+    required: false
+  vehicleModel:
+    type: string
+    required: false
+  vehicleCountryCode:
+    type: string
+    required: false
+  vehicleVin:
+    type: string
+    required: false
+  vehicleFirstRegistration:
+    type: string
+    required: false
+  vehicleBodyType:
+    type: string
+    required: false
+  licenceCopyNumber:
+    type: string
+    required: false
+  violationDescription:
+    type: string
+    required: false
+  minorViolationsCount:
+    type: string
+    required: false
+  sanctionCode:
+    type: string
+    required: false
+  sanctionNotes:
+    type: string
+    required: false
+  recommendedMeasureCode:
+    type: string
+    required: false
+  recommendedMeasureNotes:
+    type: string
+    required: false
+  recommendedMeasureGeneralNotes:
+    type: string
+    required: false
+  violations:
+    type: string
+    required: false
+  dataEntryDate:
+    type: string
+    required: false
+  inspectorFirstName:
+    type: string
+    required: false
+  inspectorLastName:
+    type: string
+    required: false
+  inspectorOrganisationId:
+    type: string
+    required: false
+  inspectorUnit:
+    type: string
+    required: false
+  inspectorProfession:
+    type: string
+    required: false
+  additionalSanctionCodes:
+    type: string
+    required: false
+  klimClarificationDate:
+    type: string
+    required: false
+  carrierExplanationDate:
+    type: string
+    required: false
+  penaltyValidUntil:
+    type: string
+    required: false
+  penaltyExpiredOrProcessed:
+    type: string
+    required: false
+  akvkNextMeetingDate:
+    type: string
+    required: false
+  commissionLastDecisionDate:
+    type: string
+    required: false
+  adminProcedureDecision:
+    type: string
+    required: false
+  foreignAuthorityProposal:
+    type: string
+    required: false
+  notifyCarrier:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+- name: id
+  type: number
+  nullable: true
+- name: form_number
+  type: string
+  nullable: true
+- name: version
+  type: number
+  nullable: true
 */
+WITH latest AS (
+  SELECT form_number,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         template_version
+  FROM forms.foreign_violation_form
+  WHERE foreign_violation_form_key = :key::BIGINT
+  ORDER BY created_at DESC
+  LIMIT 1
+)
 INSERT INTO forms.foreign_violation_form (
   foreign_violation_form_key,
   form_number,
+  version,
   template_version,
   status,
   reporting_country_code,
@@ -148,12 +230,23 @@ INSERT INTO forms.foreign_violation_form (
   inspector_organisation_id,
   inspector_unit,
   inspector_profession,
+  additional_sanction_codes,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
+  foreign_authority_proposal,
+  notify_carrier,
   created_by
 )
-VALUES (
+SELECT
   :key::BIGINT,
-  :formNumber,
-  1,
+  latest.form_number,
+  latest.version,
+  latest.template_version,
   :status,
   :reportingCountryCode,
   :reportingAuthority,
@@ -195,6 +288,16 @@ VALUES (
   :inspectorOrganisationId,
   :inspectorUnit,
   :inspectorProfession,
+  COALESCE(NULLIF(:additionalSanctionCodes, ''), '[]')::JSONB,
+  NULLIF(:klimClarificationDate, '')::DATE,
+  NULLIF(:carrierExplanationDate, '')::DATE,
+  NULLIF(:penaltyValidUntil, '')::DATE,
+  COALESCE(NULLIF(:penaltyExpiredOrProcessed, ''), 'false')::BOOLEAN,
+  NULLIF(:akvkNextMeetingDate, '')::DATE,
+  NULLIF(:commissionLastDecisionDate, '')::DATE,
+  NULLIF(:adminProcedureDecision, ''),
+  COALESCE(NULLIF(:foreignAuthorityProposal, ''), 'false')::BOOLEAN,
+  COALESCE(NULLIF(:notifyCarrier, ''), 'false')::BOOLEAN,
   :created_by
-)
-RETURNING foreign_violation_form_key AS id, form_number;
+FROM latest
+RETURNING foreign_violation_form_key AS id, form_number, version;

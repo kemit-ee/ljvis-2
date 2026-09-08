@@ -175,6 +175,9 @@ export function TechnicalCheckFormFields({
             partsSummary={values.partsSummary ?? []}
             onStatusChange={handlePartStatusChange}
             disabled={!canEdit}
+            partsDefects={values.partsDefects ?? []}
+            defectsByPartKey={defectsByPartKey}
+            onRemoveDefect={removeDefect}
           />
         </Card.Content>
       </Card>

@@ -75,13 +75,23 @@ export function DefectSelectionModal({
                 direction="row"
                 value={selections[defect.code] ?? ''}
                 onChange={(val) =>
-                  setSelections((prev) => ({ ...prev, [defect.code]: val as PartSeverity }))
+                  setSelections((prev) => ({
+                    ...prev,
+                    [defect.code]: val as PartSeverity | '',
+                  }))
                 }
-                items={applicableSeverities(defect).map((sev) => ({
-                  id: `defect-${defect.code}-${sev}`,
-                  value: sev,
-                  label: sev,
-                }))}
+                items={[
+                  ...applicableSeverities(defect).map((sev) => ({
+                    id: `defect-${defect.code}-${sev}`,
+                    value: sev,
+                    label: sev,
+                  })),
+                  {
+                    id: `defect-${defect.code}-none`,
+                    value: '',
+                    label: t('forms.technical_check.defectModal.clear'),
+                  },
+                ]}
               />
             </div>
           ))}

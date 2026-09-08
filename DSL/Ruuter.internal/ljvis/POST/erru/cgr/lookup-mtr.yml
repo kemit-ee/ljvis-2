@@ -70,7 +70,7 @@ computeNysiisFirst:
 
 checkNysiisFirstOk:
   switch:
-    - condition: ${nysiisFirstRes.response == null || nysiisFirstRes.response.status !== 200 || nysiisFirstRes.response.body == null}
+    - condition: ${nysiisFirstRes.response == null || nysiisFirstRes.response.status !== 200 || nysiisFirstRes.response.body == null || nysiisFirstRes.response.body.length === 0}
       next: returnNysiisError
   next: storeNysiisFirstKey
 
@@ -93,7 +93,7 @@ computeNysiisLast:
 
 checkNysiisLastOk:
   switch:
-    - condition: ${nysiisLastRes.response == null || nysiisLastRes.response.status !== 200 || nysiisLastRes.response.body == null}
+    - condition: ${nysiisLastRes.response == null || nysiisLastRes.response.status !== 200 || nysiisLastRes.response.body == null || nysiisLastRes.response.body.length === 0}
       next: returnNysiisError
   next: storeNysiisLastKeyAndCallXtr
 

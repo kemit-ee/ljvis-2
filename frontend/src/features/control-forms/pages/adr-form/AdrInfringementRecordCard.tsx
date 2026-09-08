@@ -14,7 +14,7 @@ export const PARTICIPANTS: AdrParticipant[] = ['Ci', 'C', 'Ce', 'L', 'P', 'F', '
 export const REG_CODE_NONE = 'NONE';
 
 export interface RegCodeOption {
-  /** 2016/403 rikkumisliigi number ("10") või REG_CODE_NONE. */
+  /** Ametlik rikkumise kood ("VSI 856") või REG_CODE_NONE. */
   value: string;
   label: string;
   severity: string | null;
@@ -150,6 +150,15 @@ export function AdrInfringementRecordCard({
             })}
           </Text>
         )}
+
+        <TextField
+          id={`${idp}-notes`}
+          label={t('forms.adr.infringements.recordNotes')}
+          className="mb-1"
+          value={record.notes ?? ''}
+          onChange={(v) => (disabled ? undefined : onChange({ notes: v }))}
+          disabled={disabled}
+        />
 
         {!disabled && (
           <Button

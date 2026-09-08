@@ -1,0 +1,132 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Taustatöö (analüüs 12-1 §5 /api/v1/internal/notifications/sync-status),
+    käivitatakse CronManager'i poolt iga 5 min
+    (DSL/CronManager/notification-status-sync.yaml). Postkast 2.0 ei push'i
+    saatmise lõpptulemust ise — see töö küsib lõppstaatuseta ('queued' /
+    'in_progress') teavituste saatmisoperatsioonide seisu X-tee kaudu ja
+    värskendab staatuseid (12-1 §"Saatmisstaatuse värskendamine").
+
+    Katsete lagi (12-1 §"Veaolukorrad" — "ükski juhtum ei jää lõputult
+    ootele"): kui saatmiskatse on üle 24h vana VÕI on kontrollitud juba
+    48 korda, sunnitakse staatus 'error'-iks isegi kui PK vastust ei saadud.
+
+    Iterate `do:` blokis ei toimu step-lt-step'ile hüppamist (Rust Ruuteri
+    piirang) — kogu haru-loogika on seetõttu arvutatud järjestikuste assign-
+    sammudega (mitte switch/next), iga rea kohta üks tingimusteta
+    update_outbound_log_status kutse.
+  namespace: notification
+
+queryPending:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/list_pending_status"
+    headers:
+      type: json
+    body:
+      limit: 200
+  result: pendingRes
+  next: iterateRows
+
+iterateRows:
+  iterate:
+    over: "${pendingRes.response.body || []}"
+    as: pendingRow
+    max_items: 200
+    do:
+      - call: http.post
+        args:
+          url: "[#PK_SENDING_OPERATIONS_ENDPOINT]"
+          headers:
+            type: json
+            X-Road-Client: "[#XROAD_INSTANCE]/GOV/70001231/ljvis2"
+          body:
+            externalId: ${pendingRow.notificationKey}
+            page: 0
+            size: 1
+        result: opRes
+      # Sama kahekujuline lugemine mis send-postkast.yml onPkAccepted-is —
+      # dev/CI mock on Ruuteri enda DSL (response.default_wrapper: true
+      # mähib), päris X-tee/PK vastab mähkimata.
+      - assign:
+          op_body: >-
+            ${(opRes.response.body && opRes.response.body.response)
+              ? opRes.response.body.response
+              : opRes.response.body}
+      - assign:
+          op: >-
+            ${(opRes.response.status >= 200 && opRes.response.status < 300
+               && op_body && op_body.content
+               && op_body.content[0]) || null}
+      # X-tee integratsioonilogi — sama nagu send-postkast.yml salvestab
+      # notifications endpoint'i kutse; siin logitakse sending-operations
+      # päring, et kogu Postkast 2.0 X-tee liiklus oleks jälgitav.
+      # NB: iterate `do:` sees ei toimi `error:` hüpe (Rust Ruuteri piirang),
+      # seepärast ilma veaharuta — sama nagu ülal PK-päringul.
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          headers:
+            type: json
+          body:
+            service_code: "pk.notification-management.v1"
+            request_xml: "${'externalId=' + pendingRow.notificationKey}"
+            response_xml: "${JSON.stringify(opRes.response.body)}"
+            duration_ms: 0
+            success: "${opRes.response.status >= 200 && opRes.response.status < 300}"
+            error_message: ""
+            person_identifier: ""
+            source_type: "notification_status_sync"
+            source_record_id: ${pendingRow.id}
+        result: xroadLogRes
+      - assign:
+          op_status: "${op ? op.status : ''}"
+          created_count: "${(op && op.createdRecipientCount != null) ? op.createdRecipientCount : -1}"
+      - assign:
+          is_capped: >-
+            ${((new Date().getTime() - new Date(pendingRow.sendDate).getTime()) > 24 * 60 * 60 * 1000)
+              || (pendingRow.statusCheckCount >= 48)}
+      - assign:
+          mapped_status: >-
+            ${op_status === 'IN_PROGRESS'
+              ? 'in_progress'
+              : (op_status === 'FINISHED' && created_count === 1)
+                ? 'sent'
+                : (op_status === 'ERROR' || (op_status === 'FINISHED' && created_count === 0))
+                  ? 'error'
+                  : (is_capped ? 'error' : pendingRow.status)}
+      # op.resolution tuleb X-teelt / Postkast 2.0-st — võib sisaldada reavahetusi,
+      # tabeldusi, kurakaldkriipse. Puhastame üherealiseks ja lõikame 500 märgini
+      # (failure_reason veeru ja audit-description mahud; ka list.yml puhastab
+      # veel kord lugemisel, aga parem hoida andmebaasis puhtana).
+      - assign:
+          mapped_failure_reason: >-
+            ${(mapped_status === 'error'
+              ? ((op && op.resolution) || 'Lõppstaatust ei saabunud lubatud kontrollikatsete jooksul')
+              : '').replace(/[\r\n\t\\]+/g, ' ').replace(/"/g, "'").substring(0, 500)}
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
+          headers:
+            type: json
+          body:
+            id: ${pendingRow.id}
+            status: ${mapped_status}
+            failure_reason: ${mapped_failure_reason}
+            pk_sending_operation_id: "${(op && op.id) || pendingRow.pkSendingOperationId || ''}"
+            # NB: Rust Resql'i BOOLEAN-parameetri sidumine läheb katki (Postgres
+            # "invalid byte sequence"/"invalid input syntax") kui saadetakse
+            # tõeline JSON boolean COALESCE(...)::BOOLEAN konteksti — string
+            # "true"/"false"/"" + NULLIF(...,'')::BOOLEAN SQL-i pool on ainus
+            # töötav kombinatsioon (vt update_outbound_log_status.sql).
+            pk_operation_restart_allowed: "${op ? String(op.operationRestartAllowed === true) : ''}"
+            pk_completed_at: "${(op && op.completedAt) || ''}"
+            increment_check: true
+        result: updateRes
+  next: returnResult
+
+returnResult:
+  return: '{"status":"ok"}'
+  status: 200
+  next: end

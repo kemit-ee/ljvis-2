@@ -1,8 +1,8 @@
-# Nõutav õigus: notification.admin (Postkast 2.0 saadetud kirjade logi, UC-02).
+# Nõutav õigus: notification.list (Postkast 2.0 saadetud kirjade logi, UC-02).
 # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
 check:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('notification.admin')}
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('notification.list')}
       next: allow
   next: deny
 

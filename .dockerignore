@@ -6,3 +6,9 @@
 # restores the mock endpoints for those environments only (bind mounts are unaffected
 # by .dockerignore).
 DSL/Ruuter/ljvis/POST/v1/erru/mock
+
+# DEV/CI-only mock Postkast 2.0 X-tee teenus (unauthenticated by design, see
+# DSL/Ruuter/ljvis/POST/v1/postkast/mock/.guard.yml). Same rationale as the ERRU
+# mock above: excluded from the build context so it can never ship in a deployed
+# image; local/CI bind-mounts restore it.
+DSL/Ruuter/ljvis/POST/v1/postkast/mock

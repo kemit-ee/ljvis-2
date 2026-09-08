@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import {
   Card,
-  DateField,
   Heading,
   Select,
   TextField,
@@ -17,8 +16,10 @@ import {
   selectedClassifierOption,
 } from '../../utils/fieldHelpers';
 import type { useCgrForm } from '../../pages/cgr/useCgrForm';
+import { DetailRow } from '../shared/DetailRow';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
+import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
 
 type CgrFormApi = ReturnType<typeof useCgrForm>;
 
@@ -28,7 +29,13 @@ type CgrFormApi = ReturnType<typeof useCgrForm>;
  * the `required` prop, per the project's frontend conventions. cgrTo has no `required`
  * prop — an empty selection is a valid broadcast-to-all-states request (LJVIS2-138 §4).
  */
-export function CgrRequestFields({ form }: { form: CgrFormApi }) {
+export function CgrRequestFields({
+  form,
+  businessCaseId,
+}: {
+  form: CgrFormApi;
+  businessCaseId?: string;
+}) {
   const { t } = useTranslation();
   const { formik, countries, authorities, requestSources, requestPurposes } =
     form;
@@ -65,6 +72,12 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
             {t('erru.cgr.form.headerBlock')}
           </Heading>
 
+          {businessCaseId && (
+            <div className="mb-1">
+              <DetailRow label={t('erru.cgr.list.id')} value={businessCaseId} />
+            </div>
+          )}
+
           {/* Estonia is always the issuer of an outgoing request — not editable.
               Shown as the country name, not the raw code (consistent with RSI/NCR). */}
           <div className={gridClass}>
@@ -92,7 +105,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
             <Select
               id="cgr-to"
               label={t('erru.cgr.form.cgrTo')}
-              options={opts(countries)}
+              options={[{ value: '', label: '\u00a0' }, ...opts(countries)]}
               value={selected(countries, formik.values.cgrTo)}
               onChange={(o) => formik.setFieldValue('cgrTo', pick(o))}
               helper={{ text: t('erru.cgr.form.cgrToHint') }}
@@ -102,7 +115,6 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
             <Select
               id="cgr-request-source"
               label={t('erru.cgr.form.requestSource')}
-              required
               options={opts(requestSources)}
               value={selected(requestSources, formik.values.requestSource)}
               onChange={(o) => formik.setFieldValue('requestSource', pick(o))}
@@ -125,7 +137,9 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.cgr.form.nameBlock')}</Heading>
-          <Text className="mb-1">{t('erru.cgr.form.searchChoiceHint')}</Text>
+          <Text className="mb-1">
+            {t('erru.cgr.form.searchCertChoiceHint')}
+          </Text>
           <div className={gridClass}>
             <TextField
               id="cgr-tm-first-name"
@@ -145,7 +159,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
               {...err('tmFamilyName')}
             />
 
-            <DateField
+            <MaskedDateField
               id="cgr-tm-date-of-birth"
               label={t('erru.cgr.form.tmDateOfBirth')}
               required={nameBlockStarted}
@@ -175,7 +189,9 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
       <Card className="mt-05">
         <Card.Content>
           <Heading element="h2">{t('erru.cgr.form.certificateBlock')}</Heading>
-          <Text className="mb-1">{t('erru.cgr.form.searchChoiceHint')}</Text>
+          <Text className="mb-1">
+            {t('erru.cgr.form.searchTransportChoiceHint')}
+          </Text>
           <div className={gridClass}>
             <TextField
               id="cgr-certificate-number"
@@ -186,7 +202,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
               {...err('certificateNumber')}
             />
 
-            <DateField
+            <MaskedDateField
               id="cgr-certificate-issue-date"
               label={t('erru.cgr.form.certificateIssueDate')}
               required={certificateBlockStarted}
@@ -205,7 +221,7 @@ export function CgrRequestFields({ form }: { form: CgrFormApi }) {
               id="cgr-certificate-issue-country"
               label={t('erru.cgr.form.certificateIssueCountry')}
               required={certificateBlockStarted}
-              options={opts(countries)}
+              options={[{ value: '', label: '\u00a0' }, ...opts(countries)]}
               value={selected(countries, formik.values.certificateIssueCountry)}
               onChange={(o) =>
                 formik.setFieldValue('certificateIssueCountry', pick(o))

@@ -1,0 +1,24 @@
+# Permissive guard for the DEV/CI-ONLY mock Postkast 2.0 X-tee endpoint.
+#
+# The parent POST/.guard requires a LJVIS user cookie. The mock stands in for
+# Postkast 2.0's X-tee subsystem (GOV/70006317/postkast), which is unreachable
+# from local/CI docker-compose (XROAD_SECURITY_SERVER is only routable from a
+# deployed environment). send-postkast.yml / cron/notification-status-sync.yml
+# call this exactly the way they call the real X-tee turvaserver in production —
+# server-to-server, no user session — so the mock must be reachable without one.
+#
+# Safe because the mock is unreachable in production: PK_NOTIFICATIONS_ENDPOINT /
+# PK_SENDING_OPERATIONS_ENDPOINT point at XROAD_SECURITY_SERVER there, and nothing
+# else references this path. Same .dockerignore + bind-mount defence-in-depth as
+# DSL/Ruuter/ljvis/POST/v1/erru/mock/.guard.yml.
+#
+# override_ancestors is required: Rust Ruuter stacks ancestor guards, so without
+# this the parent POST/.guard cookie check would still reject the call before
+# this guard's own "allow" is considered.
+declaration:
+  override_ancestors: true
+
+guard_allow_all:
+  return: "success"
+  status: 200
+  next: end

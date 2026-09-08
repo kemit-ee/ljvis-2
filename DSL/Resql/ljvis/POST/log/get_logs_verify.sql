@@ -1,34 +1,37 @@
 /*
-declaration:
-  version: 0.1
-  description: "Walk the audit-log hash chain and verify integrity. Returns ok=true if every row's prev_row_hash matches the previous row's row_hash; ok=false with the first breach location otherwise."
-  method: post
-  namespace: log
-  returns: json
-  allowlist:
-    body:
-      - field: from_event_id
-        type: string
-        description: "Start event_id (inclusive). Empty or null = walk from the genesis row."
-      - field: to_event_id
-        type: string
-        description: "End event_id (inclusive). Empty or null = walk to the current tail."
-  response:
-    fields:
-      - field: ok
-        type: boolean
-      - field: checked
-        type: number
-      - field: first_breach_event_id
-        type: string
-      - field: reason
-        type: string
-      - field: from_event_id
-        type: string
-      - field: to_event_id
-        type: string
+description: Walk the audit-log hash chain and verify integrity. Returns ok=true if every row's prev_row_hash
+  matches the previous row's row_hash; ok=false with the first breach location otherwise.
+namespace: log
+params:
+  from_event_id:
+    type: string
+    required: false
+    description: Start event_id (inclusive). Empty or null = walk from the genesis row.
+  to_event_id:
+    type: string
+    required: false
+    description: End event_id (inclusive). Empty or null = walk to the current tail.
+returns:
+- name: ok
+  type: boolean
+  nullable: true
+- name: checked
+  type: number
+  nullable: true
+- name: first_breach_event_id
+  type: string
+  nullable: true
+- name: reason
+  type: string
+  nullable: true
+- name: from_event_id
+  type: string
+  nullable: true
+- name: to_event_id
+  type: string
+  nullable: true
 */
-WITH window AS (
+WITH chain AS (
     SELECT
         event_id,
         prev_row_hash,
@@ -41,7 +44,7 @@ WITH window AS (
 ),
 breach AS (
     SELECT event_id, 'prev_row_hash_mismatch' AS reason
-    FROM window
+    FROM chain
     WHERE expected_prev_hash IS NOT NULL
       AND prev_row_hash <> expected_prev_hash
     ORDER BY event_id
@@ -52,7 +55,7 @@ bounds AS (
         MIN(event_id) AS first_event_id,
         MAX(event_id) AS last_event_id,
         COUNT(*)      AS total_checked
-    FROM window
+    FROM chain
 )
 SELECT
     (NOT EXISTS (SELECT 1 FROM breach))                     AS ok,

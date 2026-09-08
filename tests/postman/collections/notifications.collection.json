@@ -2,12 +2,12 @@
   "info": {
     "name": "LJVIS \u2014 Notifications (teavituste moodul)",
     "_postman_id": "ljvis-notifications-v1",
-    "description": "Functional tests for the notifications module: in-app notifications (GET /v1/notifications/list, unread-count, POST mark-read, mark-all-read), the Postkast 2.0 outbound send log (outbound-log/list (returns {content,total}), outbound-log/recipients (?q=)) and UC-04 resend. Covers the permission boundary (in-app endpoints need auth only and are filtered by the caller's permissions[]; outbound-log/* and resend/* require notification.admin), idempotency (insert_notification ON CONFLICT DO NOTHING, mark-read / mark-all-read) and the append-only rule (resend appends a new outbound_log row and never mutates the original). Self-contained: authenticates, seeds notifications + an outbound_log row + recipient via Resql, and exercises the internal notification/create orchestrator. PK 2.0 has no CI mock \u2014 send-postkast returns a mock success (documented TODO in the DSL), so resend is exercised at the HTTP layer. Rust Resql returns camelCase field names; assertions match that.",
+    "description": "Functional tests for the notifications module: in-app notifications (GET /v1/notifications/list, unread-count, POST mark-read, mark-all-read), the Postkast 2.0 outbound send log (outbound-log/list (returns {content,total}), outbound-log/recipients (?q=)) and UC-04 resend. Covers the permission boundary (in-app endpoints need auth only and are filtered by the caller's permissions[]; outbound-log/* requires notification.list; resend/send requires notification.resend), idempotency (insert_notification ON CONFLICT DO NOTHING, mark-read / mark-all-read) and the append-only rule (resend appends a new outbound_log row and never mutates the original). Self-contained: authenticates, seeds notifications + an outbound_log row + recipient via Resql, and exercises the internal notification/create orchestrator. PK 2.0 is mocked in dev/CI via DSL/Ruuter/ljvis/POST/v1/postkast/mock (X-tee stand-in), so send-postkast + resend run the full flow. Rust Resql returns camelCase field names; assertions match that.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "[Auth] Login \u2014 Super Admin (has notification.admin)",
+      "name": "[Auth] Login \u2014 Super Admin (has notification.list)",
       "event": [
         {
           "listen": "test",
@@ -50,7 +50,7 @@
       "response": []
     },
     {
-      "name": "[Auth] Login \u2014 Officer (registered, no notification.admin / ncr.read)",
+      "name": "[Auth] Login \u2014 Officer (registered, no notification.list / ncr.read)",
       "event": [
         {
           "listen": "test",
@@ -134,7 +134,7 @@
       "response": []
     },
     {
-      "name": "[Setup] Seed in-app notification B (notification.admin)",
+      "name": "[Setup] Seed in-app notification B (notification.list)",
       "event": [
         {
           "listen": "test",
@@ -166,7 +166,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"type\": \"outbound_failed\", \"required_permission\": \"notification.admin\", \"related_entity_type\": \"outbound_log\", \"related_entity_id\": \"NOTIF-CI-B\", \"title_et\": \"CI teavitus B\", \"body_et\": \"keha B\", \"created_by\": \"newman\"}"
+          "raw": "{\"type\": \"outbound_failed\", \"required_permission\": \"notification.list\", \"related_entity_type\": \"outbound_log\", \"related_entity_id\": \"NOTIF-CI-B\", \"title_et\": \"CI teavitus B\", \"body_et\": \"keha B\", \"created_by\": \"newman\"}"
         }
       },
       "response": []
@@ -873,7 +873,7 @@
       "response": []
     },
     {
-      "name": "[Setup] Seed outbound_log row (sent)",
+      "name": "[Setup] Seed outbound_log row (error)",
       "event": [
         {
           "listen": "test",
@@ -909,7 +909,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"message_type\": \"carrier_violation\", \"status\": \"sent\", \"related_entity_type\": \"ncr\", \"related_entity_id\": \"OUT-CI-1\", \"original_log_id\": \"\", \"pk_template_id\": \"tmpl-ci\", \"pk_sending_operation_id\": \"op-ci-1\", \"payload_json\": \"{}\", \"created_by\": \"newman\"}"
+          "raw": "{\"notification_key\": \"ljvis-ci-{{$timestamp}}\", \"message_type\": \"carrier_violation\", \"status\": \"error\", \"recipient_address\": \"ci@example.test\", \"notification_language\": \"et\", \"template_variables\": \"{}\", \"failure_reason\": \"CI seeded failure\", \"related_entity_type\": \"ncr\", \"related_entity_id\": \"OUT-CI-1\", \"original_log_id\": \"\", \"pk_template_id\": \"tmpl-ci\", \"pk_sending_operation_id\": \"op-ci-1\", \"payload_json\": \"{}\", \"created_by\": \"newman\"}"
         }
       },
       "response": []
@@ -953,14 +953,14 @@
       "response": []
     },
     {
-      "name": "GET /v1/notifications/outbound-log/list \u2014 officer (no notification.admin) \u2192 403",
+      "name": "GET /v1/notifications/outbound-log/list \u2014 officer (no notification.list) \u2192 403",
       "event": [
         {
           "listen": "test",
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('403 without notification.admin', () => pm.response.to.have.status(403));"
+              "pm.test('403 without notification.list', () => pm.response.to.have.status(403));"
             ]
           }
         }
@@ -1029,12 +1029,12 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('200 (admin has notification.admin)', () => pm.response.to.have.status(200));",
+              "pm.test('200 (admin has notification.list)', () => pm.response.to.have.status(200));",
               "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
               "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
               "var r = list.find(x => String(x.id) === pm.environment.get('outbound_log_id'));",
               "pm.test('seeded outbound_log row present', () => pm.expect(r).to.not.be.undefined);",
-              "pm.test('status sent', () => pm.expect(r.status).to.eql('sent'));"
+              "pm.test('seeded row status is error', () => pm.expect(r.status).to.eql('error'));"
             ]
           }
         }
@@ -1243,14 +1243,14 @@
       "response": []
     },
     {
-      "name": "POST /v1/notifications/resend \u2014 officer (no notification.admin) \u2192 403",
+      "name": "POST .../outbound-log/resend/send \u2014 officer (no notification.resend) \u2192 403",
       "event": [
         {
           "listen": "test",
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('403 without notification.admin', () => pm.response.to.have.status(403));"
+              "pm.test('403 without notification.list', () => pm.response.to.have.status(403));"
             ]
           }
         }
@@ -1268,7 +1268,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend?q={{outbound_log_id}}",
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend/send?q={{outbound_log_id}}",
           "host": [
             "{{api_url}}"
           ],
@@ -1277,7 +1277,8 @@
             "v1",
             "notifications",
             "outbound-log",
-            "resend"
+            "resend",
+            "send"
           ],
           "query": [
             {
@@ -1288,7 +1289,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"recipientEmail\": \"ci@example.test\"}"
+          "raw": "{}"
         }
       },
       "response": []
@@ -1319,7 +1320,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend",
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend/send",
           "host": [
             "{{api_url}}"
           ],
@@ -1328,12 +1329,13 @@
             "v1",
             "notifications",
             "outbound-log",
-            "resend"
+            "resend",
+            "send"
           ]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"recipientEmail\": \"ci@example.test\"}"
+          "raw": "{}"
         }
       },
       "response": []
@@ -1367,7 +1369,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend?q={{outbound_log_id}}",
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/resend/send?q={{outbound_log_id}}",
           "host": [
             "{{api_url}}"
           ],
@@ -1376,7 +1378,8 @@
             "v1",
             "notifications",
             "outbound-log",
-            "resend"
+            "resend",
+            "send"
           ],
           "query": [
             {
@@ -1387,7 +1390,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"recipientEmail\": \"ci@example.test\"}"
+          "raw": "{}"
         }
       },
       "response": []
@@ -1405,7 +1408,7 @@
               "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
               "var orig = pm.environment.get('outbound_log_id');",
               "var origRow = list.find(x => String(x.id) === orig);",
-              "pm.test('original row still present and unchanged (append-only)', () => { pm.expect(origRow).to.not.be.undefined; pm.expect(origRow.status).to.eql('sent'); });",
+              "pm.test('original row still present and unchanged (append-only)', () => { pm.expect(origRow).to.not.be.undefined; pm.expect(origRow.status).to.eql('error'); });",
               "pm.test('a resend row referencing the original exists', () => pm.expect(list.some(x => x.originalLogId && String(x.originalLogId) === orig)).to.be.true);"
             ]
           }

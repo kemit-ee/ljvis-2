@@ -94,7 +94,7 @@ computeNysiisFirst:
 
 checkNysiisFirstOk:
   switch:
-    - condition: ${nysiisFirstRes.response == null || nysiisFirstRes.response.status !== 200 || nysiisFirstRes.response.body == null}
+    - condition: ${nysiisFirstRes.response == null || nysiisFirstRes.response.status !== 200 || nysiisFirstRes.response.body == null || nysiisFirstRes.response.body.length === 0}
       next: returnNysiisError
   next: storeNysiisFirstKey
 
@@ -117,7 +117,7 @@ callNysiisFamily:
 
 checkNysiisFamilyOk:
   switch:
-    - condition: ${nysiissFamilyRes.response == null || nysiissFamilyRes.response.status !== 200 || nysiissFamilyRes.response.body == null}
+    - condition: ${nysiissFamilyRes.response == null || nysiissFamilyRes.response.status !== 200 || nysiissFamilyRes.response.body == null || nysiissFamilyRes.response.body.length === 0}
       next: returnNysiisError
   next: storeNysiisKeys
 

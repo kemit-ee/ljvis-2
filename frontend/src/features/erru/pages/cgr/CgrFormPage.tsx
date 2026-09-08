@@ -98,7 +98,7 @@ export function CgrFormPage() {
 
       {editable ? (
         <form onSubmit={form.formik.handleSubmit}>
-          <CgrRequestFields form={form} />
+          <CgrRequestFields form={form} businessCaseId={request.businessCaseId} />
           {form.formError && (
             <Alert
               type="danger"

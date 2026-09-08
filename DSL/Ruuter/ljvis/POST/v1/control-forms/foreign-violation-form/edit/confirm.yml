@@ -7,8 +7,6 @@ declaration:
     body:
       - field: id
         type: string
-      - field: formNumber
-        type: string
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -75,6 +73,26 @@ declaration:
         type: string
       - field: recommendedMeasureGeneralNotes
         type: string
+      - field: additionalSanctionCodes
+        type: string
+      - field: klimClarificationDate
+        type: string
+      - field: carrierExplanationDate
+        type: string
+      - field: penaltyValidUntil
+        type: string
+      - field: penaltyExpiredOrProcessed
+        type: string
+      - field: akvkNextMeetingDate
+        type: string
+      - field: commissionLastDecisionDate
+        type: string
+      - field: adminProcedureDecision
+        type: string
+      - field: foreignAuthorityProposal
+        type: string
+      - field: notifyCarrier
+        type: string
       - field: violations
         type: string
       - field: dataEntryDate
@@ -94,7 +112,6 @@ extractRequestData:
   assign:
     key: "${incoming.body.id}"
     status: "confirmed"
-    form_number: "${incoming.body.formNumber}"
     reporting_country_code: "${incoming.body.reportingCountryCode}"
     reporting_authority: "${incoming.body.reportingAuthority}"
     inspection_country_code: "${incoming.body.inspectionCountryCode}"
@@ -128,6 +145,16 @@ extractRequestData:
     recommended_measure_code: "${incoming.body.recommendedMeasureCode}"
     recommended_measure_notes: "${incoming.body.recommendedMeasureNotes}"
     recommended_measure_general_notes: "${incoming.body.recommendedMeasureGeneralNotes}"
+    additional_sanction_codes: "${incoming.body.additionalSanctionCodes}"
+    klim_clarification_date: "${incoming.body.klimClarificationDate}"
+    carrier_explanation_date: "${incoming.body.carrierExplanationDate}"
+    penalty_valid_until: "${incoming.body.penaltyValidUntil}"
+    penalty_expired_or_processed: "${incoming.body.penaltyExpiredOrProcessed}"
+    akvk_next_meeting_date: "${incoming.body.akvkNextMeetingDate}"
+    commission_last_decision_date: "${incoming.body.commissionLastDecisionDate}"
+    admin_procedure_decision: "${incoming.body.adminProcedureDecision}"
+    foreign_authority_proposal: "${incoming.body.foreignAuthorityProposal}"
+    notify_carrier: "${incoming.body.notifyCarrier}"
     violations: "${incoming.body.violations}"
     data_entry_date: "${incoming.body.dataEntryDate}"
     inspector_first_name: "${incoming.body.inspectorFirstName}"
@@ -138,6 +165,30 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateForm
+
+validateForm:
+  template: "templates/form/foreign-violation/validate-foreign-violation-form"
+  requestType: GET
+  body:
+    reportingCountryCode: ${reporting_country_code}
+    reportingAuthority: ${reporting_authority}
+    inspectionDate: ${inspection_date}
+    sanctionCode: ${sanction_code}
+    recommendedMeasureCode: ${recommended_measure_code}
+    recommendedMeasureNotes: ${recommended_measure_notes}
+    dataEntryDate: ${data_entry_date}
+    inspectorFirstName: ${inspector_first_name}
+    inspectorLastName: ${inspector_last_name}
+    inspectorOrganisationId: ${inspector_organisation_id}
+    inspectorProfession: ${inspector_profession}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
   next: getOldStatus
 
 getOldStatus:
@@ -159,7 +210,6 @@ confirmForm:
       type: json
     body:
       key: ${key}
-      formNumber: ${form_number}
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
@@ -193,6 +243,16 @@ confirmForm:
       recommendedMeasureCode: ${recommended_measure_code}
       recommendedMeasureNotes: ${recommended_measure_notes}
       recommendedMeasureGeneralNotes: ${recommended_measure_general_notes}
+      additionalSanctionCodes: ${additional_sanction_codes}
+      klimClarificationDate: ${klim_clarification_date}
+      carrierExplanationDate: ${carrier_explanation_date}
+      penaltyValidUntil: ${penalty_valid_until}
+      penaltyExpiredOrProcessed: ${penalty_expired_or_processed}
+      akvkNextMeetingDate: ${akvk_next_meeting_date}
+      commissionLastDecisionDate: ${commission_last_decision_date}
+      adminProcedureDecision: ${admin_procedure_decision}
+      foreignAuthorityProposal: ${foreign_authority_proposal}
+      notifyCarrier: ${notify_carrier}
       violations: ${violations}
       dataEntryDate: ${data_entry_date}
       inspectorFirstName: ${inspector_first_name}
@@ -207,7 +267,7 @@ confirmForm:
 
 extractResponseData:
   assign:
-    form_number: "${insertRes.response.body[0].formNumber || ''}"
+    form_number: "${insertRes.response.body[0].formNumber + '/' + insertRes.response.body[0].version}"
     old_status: "${oldFormRes.response.body[0].status || 'saved'}"
     new_status: ${status}
   next: logAuditEvent
@@ -228,4 +288,9 @@ logAuditEvent:
 
 returnSuccess:
   return: ${insertRes.response.body}
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
   next: end

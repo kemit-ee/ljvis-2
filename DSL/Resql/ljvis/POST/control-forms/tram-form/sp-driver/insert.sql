@@ -1,93 +1,111 @@
 /*
-declaration:
-  version: 0.1
-  description: "Insert TRAM control card driver sub-form (shares sp- number series with PPA per ADR-001 otsus 2)"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: spDriverFormKey
-        type: number
-      - field: compoundFormKey
-        type: number
-      - field: subFormNumber
-        type: string
-      - field: templateVersion
-        type: number
-      - field: status
-        type: string
-      - field: selectionStatus
-        type: string
-      - field: transportType
-        type: string
-      - field: transportEmptyRun
-        type: boolean
-      - field: transportNature
-        type: string
-      - field: transportNatureExempt
-        type: boolean
-      - field: transportClasses
-        type: string
-      - field: cabotageViolations
-        type: string
-      - field: resultType
-        type: string
-      - field: additionalMeasure
-        type: string
-      - field: proceedingType
-        type: string
-      - field: proceedingReferenceNumber
-        type: string
-      - field: documentChecks
-        type: string
-      - field: otherDocuments
-        type: string
-      - field: spApplicability
-        type: string
-      - field: tachographTypeCode
-        type: string
-      - field: tachographDataNotDownloaded
-        type: boolean
-      - field: checkedDaysCount
-        type: number
-      - field: workDaysCount
-        type: number
-      - field: otherActivityDaysCount
-        type: number
-      - field: violations5612006
-        type: string
-      - field: violations1652014
-        type: string
-      - field: violations200215
-        type: string
-      - field: violations5932008
-        type: string
-      - field: violations20201057
-        type: string
-      - field: massDimensionNonCompliant
-        type: boolean
-      - field: massDimensionMeasurements
-        type: string
-      - field: atpViolationFound
-        type: string
-      - field: atpViolationDescription
-        type: string
-      - field: erruPoints
-        type: string
-      - field: enforcementDecision
-        type: string
-      - field: proceedingClosureBasis
-        type: string
-      - field: notes
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: subFormNumber
-        type: string
+description: Insert TRAM control card driver sub-form (shares sp- number series with PPA per ADR-001 otsus
+  2)
+namespace: control-forms
+params:
+  compoundFormKey:
+    type: number
+    required: false
+  status:
+    type: string
+    required: false
+  selectionStatus:
+    type: string
+    required: false
+  transportType:
+    type: string
+    required: false
+  transportEmptyRun:
+    type: boolean
+    required: false
+  transportNature:
+    type: string
+    required: false
+  transportNatureExempt:
+    type: boolean
+    required: false
+  transportClasses:
+    type: string
+    required: false
+  cabotageViolations:
+    type: string
+    required: false
+  resultType:
+    type: string
+    required: false
+  additionalMeasure:
+    type: string
+    required: false
+  proceedingType:
+    type: string
+    required: false
+  proceedingReferenceNumber:
+    type: string
+    required: false
+  documentChecks:
+    type: string
+    required: false
+  otherDocuments:
+    type: string
+    required: false
+  tachographTypeCode:
+    type: string
+    required: false
+  tachographDataNotDownloaded:
+    type: boolean
+    required: false
+  checkedDaysCount:
+    type: string
+    required: false
+  workDaysCount:
+    type: string
+    required: false
+  otherActivityDaysCount:
+    type: string
+    required: false
+  violations5612006:
+    type: string
+    required: false
+  violations1652014:
+    type: string
+    required: false
+  violations200215:
+    type: string
+    required: false
+  violations5932008:
+    type: string
+    required: false
+  violations20201057:
+    type: string
+    required: false
+  massDimensionMeasurements:
+    type: string
+    required: false
+  atpViolationDescription:
+    type: string
+    required: false
+  erruPoints:
+    type: string
+    required: false
+  enforcementDecision:
+    type: string
+    required: false
+  proceedingClosureBasis:
+    type: string
+    required: false
+  notes:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+- name: id
+  type: number
+  nullable: true
+- name: subFormNumber
+  type: string
+  nullable: true
 */
 -- IDOR-kaitse: alamvormi saab lisada ainult TRAM-koondvormi külge
 -- (forms.sp_driver_form-il pole authority veergu). Vt ADR-001 otsus 3.

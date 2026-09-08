@@ -1,30 +1,29 @@
 /*
-declaration:
-  version: 0.1
-  description: "Delete foreign violation form — copy latest snapshot with status=deleted"
-  method: post
-  accepts: json
-  returns: json
-  namespace: control-forms
-  allowlist:
-    body:
-      - field: id
-        type: string
-      - field: status
-        type: string
-      - field: created_by
-        type: string
-  response:
-    fields:
-      - field: id
-        type: number
-      - field: form_number
-        type: string
+description: Delete foreign violation form — copy latest snapshot with status=deleted
+namespace: control-forms
+params:
+  id:
+    type: integer
+    required: false
+  status:
+    type: string
+    required: false
+  created_by:
+    type: string
+    required: false
+returns:
+- name: id
+  type: number
+  nullable: true
+- name: form_number
+  type: string
+  nullable: true
 */
 WITH latest AS (
   SELECT DISTINCT ON (foreign_violation_form_key)
     foreign_violation_form_key,
     form_number,
+    version,
     template_version,
     reporting_country_code,
     reporting_authority_name,
@@ -73,6 +72,7 @@ WITH latest AS (
 INSERT INTO forms.foreign_violation_form (
   foreign_violation_form_key,
   form_number,
+  version,
   template_version,
   status,
   reporting_country_code,
@@ -120,6 +120,7 @@ INSERT INTO forms.foreign_violation_form (
 SELECT
   l.foreign_violation_form_key,
   l.form_number,
+  l.version,
   l.template_version,
   :status,
   l.reporting_country_code,
@@ -164,4 +165,4 @@ SELECT
   l.inspector_profession,
   :created_by
 FROM latest l
-RETURNING foreign_violation_form_key AS id, form_number;
+RETURNING foreign_violation_form_key AS id, form_number, version;
