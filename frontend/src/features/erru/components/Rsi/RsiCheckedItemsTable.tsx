@@ -30,6 +30,10 @@ const partNumber = (code: string): number => {
   return m ? parseInt(m[1], 10) : 0;
 };
 
+/** RSI ettepanek 9: eemalda tehnilise ala/rikke nimest või koodist "CAA_" eesliide
+ *  (nt "CAA_1 pidurisüsteem" -> "pidurisüsteem", "CAA_1.1.1" -> "1.1.1"). */
+const stripCaa = (s: string): string => s.replace(/^CAA_[\d.]*\s*/, '');
+
 /**
  * "Kontrollitud punkt" block (LJVIS2-147 §Plokk "Kontrollitud punkt"): one row per
  * TECHNICAL_CHECK level-1 part (CAA_10 excluded upstream, see useRsiForm.ts), a
@@ -119,7 +123,7 @@ export function RsiCheckedItemsTable({
                 <span className={styles.defectName}>
                   {defectsByPartKey
                     .get(part.classifierValueKey)
-                    ?.find((c) => c.code === d.defectCode)?.name ?? d.defectCode}
+                    ?.find((c) => c.code === d.defectCode)?.name ?? stripCaa(d.defectCode)}
                 </span>
                 <StatusBadge color={severityColor(d.severity)} variant="bordered">
                   {d.severity}
@@ -199,7 +203,7 @@ export function RsiCheckedItemsTable({
                       >
                         {partNumber(part.code)}
                       </span>
-                      <span className={styles.partLabel}>{part.name}</span>
+                      <span className={styles.partLabel}>{stripCaa(part.name)}</span>
                     </span>
                   </td>
                   <td>
@@ -252,7 +256,7 @@ export function RsiCheckedItemsTable({
                   >
                     {partNumber(part.code)}
                   </span>
-                  <span className={styles.partLabel}>{part.name}</span>
+                  <span className={styles.partLabel}>{stripCaa(part.name)}</span>
                 </span>
               </div>
               <div className={styles.cardRadios}>
@@ -344,7 +348,7 @@ function RsiDefectModal({
   };
 
   const title = part
-    ? part.name.charAt(0).toUpperCase() + part.name.slice(1)
+    ? stripCaa(part.name).charAt(0).toUpperCase() + stripCaa(part.name).slice(1)
     : '';
 
   return (

@@ -29,6 +29,24 @@
 
 ---
 
+## 2026-09 — RSI (tehnokontrolli teated): parandused
+
+- Lehe ja teate pealkiri: **„Tehnokontrolli teated RSI"**; uue teate nupp
+  **„Uus tehnokontrolli teade RSI"**.
+- Uue teate vaikeväärtused: teate esitanud pädev asutus = **Kliimaministeerium**
+  (rippmenüü, varem vaba tekst), inspektor = **„Politsei- ja Piirivalveamet"**.
+  Väljasaatmisel teisendatakse mõlemad ingliskeelseks ametlikuks nimeks.
+- Teate number kuvatakse nüüd ka koostamisvaates („määratakse salvestamisel").
+- **Tehnokontrolli tulemused**: kolm valikut („Vastab nõuetele", „Korraline
+  tehnoülevaatus", „Keelamine või piiramine") on nüüd üksikud märkeruudud
+  (varem Jah/Ei raadionupud).
+- „Kontrollitud punkt" nimedest ja rikkekoodidest eemaldati „CAA_" eesliide.
+- Kuupäeva- ja kellaajaväljal tekivad eraldajad (punktid, koolon) sisestamisel
+  automaatselt.
+- „Ettevõtja ühenduse tegevusluba" → „Ettevõtja ühenduse tegevusloa number".
+
+---
+
 ## 2026-09 — Hea maine vorm: pealkiri ja abitekst
 
 - Vormi pealkiri (nii ametniku kui kodaniku vaates ning „vormi ei leitud"

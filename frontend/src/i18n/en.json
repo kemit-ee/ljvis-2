@@ -1169,7 +1169,7 @@
     "ctud": "Transport undertaking data requests",
     "cgr": "Check good repute requests",
     "search": "Search",
-    "rsi": "RSI messages",
+    "rsi": "Roadside inspection messages RSI",
     "ncr": "NCR messages",
     "riskLevels": "Risk levels",
     "myCompany": "My company",
@@ -1729,9 +1729,11 @@
         "clear": "None"
       },
       "form": {
-        "titleOutgoing": "Roadside inspection message (EST → ERRU)",
-        "titleInbound": "Roadside inspection message (ERRU → EST)",
-        "titleNew": "New roadside inspection message",
+        "titleOutgoing": "Roadside inspection message RSI (EST → ERRU)",
+        "titleInbound": "Roadside inspection message RSI (ERRU → EST)",
+        "titleNew": "New RSI message",
+        "messageNumber": "Message number",
+        "messageNumberPending": "assigned on save",
         "headerBlock": "Message details",
         "vehicleBlock": "Vehicle details",
         "driverBlock": "Driver details",
@@ -1803,8 +1805,8 @@
         "send_failed": "Sending failed"
       },
       "list": {
-        "title": "RSI messages",
-        "newMessage": "New roadside inspection message",
+        "title": "Roadside inspection messages RSI",
+        "newMessage": "New RSI message",
         "id": "Message ID",
         "sentAt": "Sent",
         "rsiFrom": "Sending country",
