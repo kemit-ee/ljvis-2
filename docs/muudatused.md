@@ -4,7 +4,7 @@
 
 ---
 
-## 2026-11 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
+## 2026-09 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
 
 - **Liini number ja liini nimetus** — kõikide liinivedude korral (nii siseriiklik kui
   rahvusvaheline) kuvatakse nüüd autojuhi sõidu- ja puhkeaja alamvormil kaks uut
@@ -29,7 +29,7 @@
 
 ---
 
-## 2026-11 — Teavituselt navigeerimine seotud vormile
+## 2026-09 — Teavituselt navigeerimine seotud vormile
 
 - **Teavituste loendis** on igal real, millele vastab konkreetne kontrollvorm, nupp
   **„Ava vorm"**. Nupule vajutades avaneb vorm otse ja teavitus märgitakse
@@ -40,7 +40,7 @@
 
 ---
 
-## 2026-11 — Muud dokumendid: „ei vasta nõuetele" valik + lepingukirje tekst
+## 2026-09 — Muud dokumendid: „ei vasta nõuetele" valik + lepingukirje tekst
 
 - **„Muud dokumendid" osa** (dokumendi/õiguse kontrolli akordion): valikud vastavad
   nüüd pabervormiga — **Nõuetekohane | ei vasta nõuetele | Puudub**.
@@ -51,7 +51,7 @@
 
 ---
 
-## 2026-11 — Veaparandus: koondvormi asutuse väli salvestas numbrilise ID
+## 2026-09 — Veaparandus: koondvormi asutuse väli salvestas numbrilise ID
 
 - **Koondvormil ja välisriigi rikkumise vormil** salvestus inspektori asutuse
   väärtus valesti numbrilise ID-na (`"1"`) asemel organisatsiooni koodina
