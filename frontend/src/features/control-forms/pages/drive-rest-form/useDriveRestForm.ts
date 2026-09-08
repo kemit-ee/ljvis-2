@@ -67,7 +67,7 @@ export function serializeDriveRestFormValues(
 ) {
   const filteredOtherDocuments = Array.isArray(values.otherDocuments)
     ? (values.otherDocuments as OtherDocument[]).filter(
-        (doc) => doc.result === 'NOUETEKOHANE' || doc.result === 'PUUDUB'
+        (doc) => doc.result === 'NOUETEKOHANE' || doc.result === 'EI_VASTA_NOUETELE' || doc.result === 'PUUDUB'
       )
     : [];
 
@@ -274,6 +274,8 @@ export function useDriveRestForm(
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
       notes: form?.notes ?? '',
+      liiniNumber: form?.liiniNumber ?? '',
+      liiniNimetus: form?.liiniNimetus ?? '',
     },
     validationSchema,
     onSubmit: async (values) => {

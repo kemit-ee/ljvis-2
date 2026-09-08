@@ -846,6 +846,8 @@
       "transportNatureCommercial": "Tasuline",
       "transportNatureOwn": "Oma kulul",
       "transportNatureExempt": "Tegevusloa nõudest vabastatud vedu",
+      "liiniNumber": "Liini number",
+      "liiniNimetus": "Liini nimetus",
       "cargoClass": "Veoklass",
       "classDomestic": "Riigisisene vedu",
       "classEuEeaCh": "EL või EMP liikmesriikide või Šveitsi vaheline vedu",
@@ -1266,6 +1268,7 @@
     "otherDocs": {
       "notChecked": "Ei kontrollitud",
       "compliant": "Nõuetekohane",
+      "nonCompliant": "ei vasta nõuetele",
       "missing": "Puudub",
       "addRemark": "Lisa märkus",
       "remarkPlaceholder": "Sisestage märkus..."
@@ -2005,6 +2008,7 @@
     "markAllRead": "Märgi kõik loetuks",
     "unread": "Lugemata",
     "read": "Märgi loetuks",
+    "openEntity": "Ava vorm",
     "empty": "Uusi teavitusi ei ole",
     "bellAriaLabel": "Teavitused ({{count}} lugemata)",
     "bellAriaLabelEmpty": "Teavitused",

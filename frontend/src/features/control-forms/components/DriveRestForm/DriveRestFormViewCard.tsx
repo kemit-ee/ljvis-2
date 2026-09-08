@@ -17,6 +17,11 @@ interface DriveRestFormViewCardProps {
   formType: string;
   canPublish?: boolean;
   onPublish?: () => Promise<unknown>;
+  /**
+   * Peidab TRAM-kaardil kolm sektsiooni: sõidu- ja puhkeaeg, mass/mõõtmed,
+   * ATP. Sünkroonis DriveRestFormCreatePage hideDriveRestExtras-ega.
+   */
+  hideDriveRestExtras?: boolean;
 }
 
 export function DriveRestFormViewCard({
@@ -25,6 +30,7 @@ export function DriveRestFormViewCard({
   formType,
   canPublish,
   onPublish,
+  hideDriveRestExtras,
 }: DriveRestFormViewCardProps) {
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
   const { t } = useTranslation();
@@ -83,6 +89,7 @@ export function DriveRestFormViewCard({
           tachographTypes={tachographTypes}
           drivingViolations={drivingViolations}
           massDimensions={massDimensions}
+          hideDriveRestExtras={hideDriveRestExtras}
           readOnly
         />
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
