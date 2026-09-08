@@ -520,7 +520,10 @@ export function useCompoundForm(
   const structureUnits = useMemo(() => {
     const orgCode =
       formik.values.inspectorOrganisationId || authUser?.organisationcode || '';
-    const org = organisations.find((o) => o.code === orgCode);
+    // backward-compat: vana DB-s võib olla numbriline ID string ('1') — leia kood või ID järgi
+    const org = organisations.find(
+      (o) => o.code === orgCode || String(o.id) === orgCode,
+    );
     return getByCode('STRUCTURE_UNIT')
       .filter((e) => e.isValid !== false && (!org || e.description === org.code))
       .map((e) => ({ code: e.code, name: e.name }));
