@@ -15,7 +15,7 @@ pinnitud, mis on uusim, mis muutub katkendlikult, mida ljvis-2-s muuta.
 
 | Komponent | ljvis-2 praegu | Uusim **avaldatud** | dev-is (avaldamata) | Katkendlikkuse risk |
 |---|---|---|---|---|
-| **Ruuter** | ✅ **0.9.10-rc migreeritud** (`feat/ruuter-0.9.10-rc`; oli `0.9.9-rc`) | `0.9.10-rc` | `0.9.11-rc` (tag+publish tegemata; README juba viitab) | 0.9.10: ~~madal~~ tehtud, Newman roheline. 0.9.11: **KÕRGE, OOTEL** (H1 template-guardid, H2 WS-guardid) |
+| **Ruuter** | ✅ **0.9.10-rc migreeritud** (dev; oli `0.9.9-rc`) | **`0.9.12-rc`** (avaldatud 2026-09-08, `sha256:7a9405e2…`; liikuv `:rc` osutab samale) | — | **0.9.10→0.9.12: KÕRGE.** H1 `template:`→guard rekursioon = **Ruuteri protsessi stack overflow** igal autenditud päringul (§1.4, empiiriliselt kinnitatud). H2 WS = juba lahendatud (`WS/.guard.yml`). 0.9.12 lisab `declaration.allowlist` kontrakti-muudatused (§1.5). |
 | **Resql** | ✅ **migreeritud** `turnerrainer/resql:0.2.0-alpha` (`feat/resql-turnerrainer-0.2.0`; oli `askendest/resql:0.1.0-alpha.5`) | `turnerrainer/resql:0.2.0-alpha` | — | ~~KESKMINE~~ tehtud: 212 SQL `params:` kujule, ID-param `type: integer`, config-vaikeväärtused, Newman roheline |
 | **TIM** | ✅ **migreeritud** `turnerrainer/tim:0.3.0-alpha` (`feat/tim-0.3.0-alpha`; oli `0.2.0-alpha.2`) | `0.3.0-alpha` | — | ~~KESKMINE~~ tehtud: tara-mock ühilduv (https discovery, client_secret_basic, PKCE-taluv), Newman + päris login-voog rohelised |
 | **DataMapper** | ✅ **migreeritud** `turnerrainer/datamapper:0.1.3-alpha` (`feat/datamapper-0.1.3-alpha`; oli `0.1.0-alpha.2`) | `0.1.3-alpha` | — | ~~MADAL~~ tehtud: ainult Dockerfile digesti-bump, Newman roheline |
@@ -23,8 +23,13 @@ pinnitud, mis on uusim, mis muutub katkendlikult, mida ljvis-2-s muuta.
 | **CronManager** | `turnerrainer/cronmanager:alpha` (= `0.1.4-alpha`) | `0.1.4-alpha` | — | **puudub** (juba uusim) |
 
 **Soovitatav teostusjärjekord:** Resql → DataMapper → Ruuter 0.9.10 → TIM → XTR
-→ (hiljem, kui avaldatakse) Ruuter 0.9.11. Iga samm eraldi PR + roheline
-`docker-compose.ci.yml` E2E enne järgmist.
+→ *(tehtud)* → **PR #260 merge (allowlist katvus) → Ruuter 0.9.12-rc**. Iga samm
+eraldi PR + roheline `docker-compose.ci.yml` E2E enne järgmist.
+
+> **2026-09-08 uuendus:** 0.9.11-rc jäi vahele — avaldati kohe **0.9.12-rc**
+> (sisaldab 0.9.11 h2ck.me karmistusi + issue #75 `declaration.allowlist`
+> kontrakti-parandusi, mille reporter oli *sviljus*). Vt §1.4 (0.9.11 osa,
+> H1 kriitiline) ja §1.5 (0.9.12 osa).
 
 ---
 
@@ -95,51 +100,80 @@ Viis @angryziber'i leidu. ljvis-i mõju:
 2. Üle vaadata #63 — 3 faili ülal.
 3. `docker compose -f docker-compose.ci.yml -p ljvis-ci up -d --build` → E2E roheline.
 
-### 1.4 `0.9.10-rc → 0.9.11-rc` — **KÕRGE risk** (kui/kui avaldatakse)
+### 1.4 `0.9.10-rc → 0.9.12-rc` — h2ck.me karmistused (0.9.11 osa) — **KÕRGE risk**
 
-Viis h2ck.me karmistust (commit `ecbfe1b`, PR #72). **Mitte upgrade'ida enne
-kui:** (a) konteiner avaldatud ja (b) allolev H1/H2 töö tehtud.
+Viis h2ck.me karmistust (commit `ecbfe1b`, PR #72). Konteiner on nüüd
+avaldatud (0.9.12-rc kannab neid). **H1 on ploki­staja** — tuleb lahendada
+ENNE bump'i.
 
-#### H1 — `template:` samm käivitab nüüd sihi-DSL-i guardid
+#### H1 — `template:` samm käivitab nüüd sihi-DSL-i guardid → **rekursioon, protsessi crash**
 
-ljvis-is on **242 `template:` kutset** ja **projektiülene guard**
-`DSL/Ruuter/ljvis/.guard.yml` (kutsub `templates/check-user-authority`,
-nõuab küpsist). Mallid on `DSL/Ruuter/ljvis/GET/templates/**` all — nende
-kataloogis **oma guardi pole**, seega ainus kattev guard on projektiülene.
+**Empiiriliselt kinnitatud** (2026-09-08, `turnerrainer/ruuter:0.9.12-rc`
+ljvis DSL-iga, isoleeritud konteiner):
 
-0.9.11-l: kui nt `publish.yml` (juba autenditud) teeb
-`template: templates/audit/log-audit-event`, käivitab template-samm
-`ljvis/.guard.yml` **lapse-konteksti vastu**. Laps saab päised ainult
-`template.headers` kaudu.
+```
+GET /ljvis/v1/permissions  +  Cookie: SESSION=…
+ → ljvis/.guard.yml: check_cookie (no_match) → authenticate
+ → authenticate: template: templates/check-user-authority
+ → H1: template-samm kutsub applicable_guards_for("ljvis","GET/templates/check-user-authority")
+ → guard_keys_for_dsl lisab ALATI projektiguardi (pole override'i) → ljvis/.guard.yml uuesti
+ → check_cookie → authenticate → template → … lõputult
+ → thread 'tokio-rt-worker' has overflowed its stack
+ → fatal runtime error: stack overflow, aborting        ← RUUTER SUREB
+```
 
-- **Audit-mallid** (`templates/audit/**`) — enamik **edastab juba**
-  `headers: { cookie: ${incoming.headers.cookie} }` → guard läbib.
-- **Valideerimis-/arvutus-mallid** (`templates/validate/estonian-personal-code`,
-  `templates/form/**/calculate-*-changed-fields`, `templates/form/**/validate-*`)
-  — **EI edasta küpsist** → guard `check_cookie` → 401 → kutsuja `${result}`
-  seotakse 401-ga → **iga vormi save/confirm katki**.
+`applicable_guards_for` → `guard_keys_for_dsl` (`src/dsl/guard_audit.rs`)
+**lisab projektiguardi võtme alati ette**, kui alampuus pole
+`override_ancestors`-guardi. Ruuteris **pole cross-DSL template→guard
+rekursiooni piirajat** (per-step `max_recursions` reset'itakse iga
+`engine.run` sees). Ilma cookie'ta päring lõpetab `check_cookie` juures
+kohe (`deny_unauthenticated` 401) — crash tekib **ainult kehtiva
+sessiooni­küpsisega**, s.t. iga sisse loginud kasutaja iga päring.
 
-**Lahendusvariandid (vali enne 0.9.11-le minekut):**
+Ei piisa varasema plaani "Variant A" (`templates/pure/**` jaotus): projekti­-
+guard kutsub ise `templates/check-user-authority`, mis **ei ole puhas mall**
+(TIM + Resql) → jääks projektiguardi alla → rekursioon säilib.
 
-- **A (soovitatud) — jaga mallid kaheks:**
-  - Puhtad arvutus-/valideerimismallid → `GET/templates/pure/**` +
-    `GET/templates/pure/.guard.yml` `declaration.override_ancestors: true`
-    + allow-all. (Book: `override_ancestors` alampuu bypassib projektiguardi.)
-    Uuenda ~N kutset uuele teele.
-  - Kõrvalmõjuga mallid (`audit/**` — Resql insert; `files/**` — failiops)
-    jäävad projektiguardi alla; **veendu**, et **kõik** nende kutsujad
-    edastavad `template.headers.cookie` (audit-mallidel enamik juba teeb;
-    üle grep'ida).
-- **B — lisa `GET/templates/.guard.yml` `override_ancestors: true` +
-  allow-all.** Kiire, aga muudab **kõik** mallid HTTP-liinil
-  autentimata kättesaadavaks (`GET /ljvis/templates/audit/log-audit-event?…`
-  → audit-kirje võltsimine; `templates/files/**` → failiops). **Ei
-  soovita** ilma malli-HTTP-route'ide blokeerimiseta reverse-proxys.
-- **C — edasta küpsis kõigis 242 kutses.** Kõige kindlam, kõige töömahukam.
+**Lahendus (kinnitatud, kohustuslik):** `override_ancestors: true` guard
+`templates/` alampuu ette — **täpselt nagu olemasolev `WS/.guard.yml`**:
 
-**Enne 0.9.11:** `grep -rE "^\s*template:" DSL/Ruuter*/ljvis` → iga kutse
-juurde kontrolli, kas `headers.cookie` on edastatud; kaardista puhtad vs.
-kõrvalmõjuga mallid.
+```
+DSL/Ruuter/ljvis/GET/templates/.guard.yml
+DSL/Ruuter/ljvis/POST/templates/.guard.yml
+```
+mõlemas:
+```yaml
+declaration:
+  override_ancestors: true
+guard_allow_all:
+  return: "success"
+  status: 200
+  next: end
+```
+
+Testitud: sama päring pärast seda → **1× `check_cookie`, rekursiooni pole,
+protsess elab**, `authenticate` läheb TIM-i (isoleeritud testis 500 kuna TIM
+kättesaamatu — päris stackis 200).
+
+**Turvakaal:** `override_ancestors` allow-all muudab `GET|POST /ljvis/templates/**`
+HTTP-liinil **autentimata kättesaadavaks**. Enamik on kahjutu (`validate/**`,
+`form/**/validate-*`, `form/**/calculate-*`, `classifier/**`, `user/**`,
+`check-user-authority` ise tagastab midagi ainult kehtiva küpsisega). **Kaks
+tundlikku alampuud vajavad oma inline-auth guardi** (mitte `template:` —
+muidu sama rekursioon):
+
+| Alampuu | Oht ilma auth'ita | Meede |
+|---|---|---|
+| `POST/templates/files/**` (`upload`, `delete`) | autentimata failiops | oma `.guard.yml` `override_ancestors: true` + inline TIM `jwt/userinfo` kontroll (kopeeri `check-user-authority` sammud, **ilma** `template:`-ta), kutsujad edastavad `template.headers.cookie` |
+| `POST/templates/audit/**` + `GET/templates/audit/**` | audit-kirje võltsimine | sama muster |
+
+Kutsujate küpsise-edastus: `grep -rE "template:\s*[\"']?templates/(audit\|files)" DSL/Ruuter*/ljvis`
+→ iga kutse peab kandma `headers: { cookie: "${incoming.headers.cookie}" }`
+(audit-mallidel enamik juba teeb — üle kontrollida ja täiendada puuduvad).
+
+> Alternatiiv (kui reverse-proxy blokeerib `/ljvis/templates/**` väljast):
+> lihtne allow-all kõigil `templates/` guardidel, ilma inline-auth'ita.
+> Kontrolli enne, kas frontend-nginx `/api/` proxy laseb `templates/`-teed läbi.
 
 #### H2 — WebSocket-upgrade käivitab nüüd guardi
 
@@ -158,12 +192,13 @@ sünteesitud konteksti vastu (päised + query, **keha puudub**).
   probleem kehtib ka siin — see mall peab olema `pure`-guardi all VÕI
   connect.yml peab küpsise edastama; **edastab juba**: `headers: { cookie:
   ${incoming.headers.cookie} }`).
-- **Kui projektiguard ei tohiks WS-i katta** (nt kui tahame et
-  autentimata WS-upgrade õnnestub ja alles esimene frame autendib —
-  praegune disain): lisa `DSL/Ruuter/ljvis/WS/.guard.yml`
-  `override_ancestors: true` + allow-all. **Praegune connect.yml juba
-  autendib igat frame'i ise** → allow-all WS-guard on siin loogiliselt
-  õige.
+- **✅ JUBA TEHTUD:** `DSL/Ruuter/ljvis/WS/.guard.yml` on olemas
+  (`override_ancestors: true` + allow-all) — lisatud ette 0.9.11 bump'i
+  jaoks. `connect.yml` autendib igat frame'i ise. **connect.yml `route:`
+  samm** kutsub `templates/check-user-authority` **küpsist edastades** →
+  pärast §1.4 `templates/.guard.yml` lisamist ei rekurseeru.
+- Kontrollitud: `ljvis/.guard.yml` ega `check-user-authority` **ei
+  dereferentsi `incoming.body`** → WS-kontekst (kehata) ohutu.
 
 #### H2 lisamõju — `/_/unguarded` loeb nüüd WS-route'e
 
@@ -189,6 +224,41 @@ midagi seda scrape'ib, katkeb. `RUUTER_ADMIN_ENABLED` jääb seadmata (off).
   **või** aktsepteeri "framework logib ja jätkab". ljvis push on sisutu
   signaal (`{"type":"notification_update"}`) → kaotus talutav, `error:`
   haru pole hädavajalik.
+
+---
+
+### 1.5 `0.9.11 → 0.9.12-rc` — `declaration.allowlist` kontrakt (issue #75) — **KESKMINE**
+
+Neli seotud bugi + kaks uut võimalust deklaratsiooni­plokis (commit `223f2a1`,
+PR #76). Reporter: *sviljus*. Korrektselt kujundatud DSL-ile mitte-katkendlik,
+aga muudab käitumist buggy teedel.
+
+| Muudatus | ljvis-i mõju | Meede |
+|---|---|---|
+| **Guardid jooksevad ENNE `allowlist:` strippimist** | Positiivne. `xroad/.guard.yml` + route-tasandi `allowlist.headers` interplay ei riku enam guardi. PR #260 `WS connect` `allowlist.headers: [cookie]` saab kasu. | — |
+| **Puuduv `required: true` väli → `400`, mitte `500`** | Newman **`tests/postman/collections/citizen-representation.collection.json:125`** väidab `pm.response.to.have.status(500)` puuduva allowlist-välja peal → **kukub**. Kollektsioonide kirjeldustes (`erru-rsi`, `citizen-representation`) on "500 Field missing" proosana — ainult see üks assert on reaalne. | Muuda assert `400`-ks; uuenda kirjeldus­tekstid. `grep -rn "status(500)\|code.*500" tests/postman/collections/` |
+| **`required: false` struktuursel `allowlist.body` kirjel nüüd austatakse** | Enne oli iga loetletud väli kohustuslik. Struktuursed kirjed `required: false` / liputa → **muutuvad valikuliseks**. Kui mõni ljvis DSL toetus "loetletud = kohustuslik" implitsiitsele valideerimisele → nõrgeneb vaikselt. Lame `allowed_body: [...]` **muutumatu** (kõik kohustuslikud). | Audit: `grep -rln "required:" DSL/Ruuter*/ljvis/**/*.yml` guardides+handlerites. PR #260 lisab palju `allowlist`-e — needuda selle peale. |
+| **Keha `type:` mismatch → `400`** | Struktuursed kirjed `type: string`/`integer` millele tuleb vale tüüp → `400 Field type mismatch`. ljvis publish.yml-id teevad `String()` konversioone → tõenäoliselt OK, aga üle vaadata struktuursed `type:`-kirjed. | `grep -rn "type: integer\|type: string" DSL/Ruuter*/ljvis/**/POST/**` → veendu et kutsuja saadab õiget tüüpi (SPA saadab enamasti stringe). |
+| **Uus `additive: true`** (allowlist = ainult dokumentatsioon, deklareerimata väljad lähevad läbi; välistav `strict:`-iga) | **Lahendab PR #260 lahtise "xroad/provide pass"** — need loevad pesastatud `type: object` ja WSDL `minOccurs=0` välju. `additive: true` = deklareeri OpenAPI jaoks, ära filtreeri. | PR #260 järelpass: `xroad/provide/*` + `xroad/v2` GET-id → `declaration.additive: true` loetletud väljadega. |
+| **Guardi deklaratsioonid nüüd jõustatud** (`required:`, `required_one_of`, keha `type:` — toorpäringu vastu enne guardi samme) | ljvis-is ~110 `.guard.yml`. Enamikul ainult `override_ancestors: true` (mõjuta) või lihtne `switch`. Kui mõnel on `declaration.allowlist` `required: true` väljaga, mida päring alati ei kanna → uus `400`. | `grep -rl "declaration:" DSL/Ruuter*/ljvis/**/*.guard.yml` → vaata igaüht. |
+| **Uus `allowlist.required_one_of`** (sektsiooni­põhine OR-grupp) | Valikuline. Kasulik nt `auth`-teedel kui on "X VÕI Y" päis. | Ei pea kasutama. |
+
+### 1.6 Koordineerimine PR #260-ga (`allowlist` katvus, pass 1)
+
+PR #260 (OPEN, mergeable) teeb `allowlist`-idest ausa sisendi-kontrakti +
+CI-kontrolli (`scripts/validate-dsl.py` `check_allowlist_coverage`), käsitsi,
+0.9.10 käitumise vastu. 0.9.12 muudab osa sellest **mootori-jõustatuks**
+(`required`/`type`).
+
+**Järjekord: merge #260 ENNE 0.9.12 bump'i.**
+- #260 lisab puuduvad `allowlist` väljad (sh 3 reaalset bugi: `users/admin`
+  `phone`/`accessEnd` jne) → 0.9.12 `required`-semantika kehtib puhtale
+  pinnale.
+- #260 lahtised kohad (`xroad/provide` pass, `strict: true` PR) → 0.9.12
+  annab `additive: true` tööriista `xroad/provide` jaoks; `strict: true`
+  jääb eraldi PR-iks aga `additive:` on nüüd põgenemis­luuk legitiimsetele
+  lisaväljadega route'idele.
+- Pärast #260 merge: `python3 scripts/validate-dsl.py` roheline → siis bump.
 
 ---
 
@@ -494,13 +564,48 @@ turvakarmistused:
 
 ## 8. Riskijärjestus (kõrgeim ees)
 
-1. **Ruuter 0.9.11 H1** — 242 template-kutset, projektiguard. **Ära mine
-   0.9.11-le enne malli-jaotust.** (0.9.11 pole veel avaldatudki.)
-2. **TIM 0.2.1 dot-claim-path** — ilma selleta katkevad TARA nimed päris
-   keskkonnas. TIM 0.3.0 discovery-fail-closed — `tara-mock` peab andma
-   `https://` endpointe.
-3. **Resql org + R1** — `askendest` → `turnerrainer`, `allow_datasource_header:
-   false`.
-4. **XTR H3** — SOAP-fault `detail` kadumine, kui ERRU-handlerid seda parsivad.
-5. **Ruuter 0.9.10 #63** — 3 faili üle vaadata (madal).
-6. **DataMapper** — sisuliselt no-op upgrade.
+1. **Ruuter 0.9.12 H1** — `template:`→projektiguard rekursioon = **Ruuteri
+   protsessi stack overflow igal autenditud päringul** (§1.4, empiiriliselt
+   kinnitatud). **Kohustuslik enne bump'i:** `GET/templates/.guard.yml` +
+   `POST/templates/.guard.yml` (`override_ancestors: true`) + `files/**` ja
+   `audit/**` inline-auth guardid.
+2. **TIM 0.2.1 dot-claim-path** — *(tehtud)*.
+3. **Resql org + R1** — *(tehtud)*.
+4. **XTR H3** — *(tehtud)*.
+5. **Ruuter 0.9.12 §1.5** — Newman `citizen-representation:125` 500→400;
+   `required:false` / `type:` audit; koordineeri PR #260-ga.
+6. **DataMapper** — *(tehtud)*.
+
+## 9. Ruuter 0.9.12-rc bump — teostuse checklist
+
+**Eeltingimus:** PR #260 merged, `validate-dsl.py` roheline.
+
+1. **H1 guardid** (eraldi commit või sama PR algus):
+   - `DSL/Ruuter/ljvis/GET/templates/.guard.yml` + `POST/templates/.guard.yml`
+     (`override_ancestors: true` + allow-all).
+   - `DSL/Ruuter/ljvis/POST/templates/files/.guard.yml` +
+     `POST/templates/audit/.guard.yml` + `GET/templates/audit/.guard.yml`
+     (`override_ancestors: true` + inline TIM `jwt/userinfo` kontroll,
+     kopeeri `check-user-authority` sammud ilma `template:`-ta).
+   - `grep -rE "template:\s*[\"']?templates/(audit|files)" DSL/Ruuter*/ljvis`
+     → lisa puuduvad `headers: { cookie: "${incoming.headers.cookie}" }`.
+2. **§1.5 kohandused:**
+   - `tests/postman/collections/citizen-representation.collection.json` —
+     assert `500` → `400` (rida ~125), kirjeldus­tekst.
+   - Guardi-deklaratsioonide audit (`grep -rl "declaration:" …*.guard.yml`).
+3. **Pinn:** `docker/ruuter/Dockerfile` + `docker/ruuter-internal/Dockerfile`
+   → `0.9.12-rc@sha256:7a9405e2e4ee9ed37b128fdaf77b29d4c8ef0a3a73cb01ce8bec31846f7f5e2e`
+   (kontrolli: `docker buildx imagetools inspect turnerrainer/ruuter:0.9.12-rc`).
+4. **Config:** `ruuter.yaml` / `ruuter-internal.yaml` — muudatust pole
+   (skeem ühildub, vt §1.2). `RUUTER_ADMIN_ENABLED` jääb seadmata.
+5. **Verifitseerimine** (§7 sammud) + eriti:
+   - Login-flow (autenditud päring — H1 crash-test).
+   - Vormi save → confirm → publish (template + guard tee).
+   - WS-teavitused (connect + broadcast).
+   - ERRU send (CGR/RSI/NCR) — `template:` audit-mallid.
+   - `xtr-mock` X-tee provide (kui `additive:` lisatud).
+   - `curl -s localhost:PORT/_/unguarded` — WS-route'id ilmuvad (H2), veendu
+     et `templates/**` ja `WS/**` on override-guardiga kaetud.
+6. **devops:** muudatust pole — image-tag baked CI poolt (`release.yaml` pinn).
+7. `docs/muudatused.md` — ainult kui kasutajale nähtav (H1 crash oli
+   sise-, mitte kasutajanähtav → tõenäoliselt kirjet pole).
