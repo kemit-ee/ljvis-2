@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -83,6 +83,23 @@ export function RsiCheckedItemsTable({
       return;
     }
     onStatusChange(part.code, status);
+  };
+
+  // Re-clicking an already-selected radio fires no onChange, so clicking
+  // "Ei vasta nõuetele" while it is already selected wouldn't reopen the defect
+  // modal. Catch that click on the wrapper and reopen.
+  const handleRadioClick = (part: ClassifierEntry, e: MouseEvent) => {
+    if (disabled) return;
+    const el = e.target as HTMLElement;
+    const input =
+      ((el.closest('label') as HTMLLabelElement | null)?.control as HTMLInputElement | null) ??
+      (el instanceof HTMLInputElement ? el : null);
+    if (
+      input?.id === `rsi-part-status-${part.code}-non-compliant` &&
+      itemOf(part.code).status === 'non_compliant'
+    ) {
+      setModalPart(part);
+    }
   };
 
   const indexClass = (status: RsiCheckedItem['status']): string => {
@@ -207,20 +224,22 @@ export function RsiCheckedItemsTable({
                     </span>
                   </td>
                   <td>
-                    <ChoiceGroup
-                      id={`rsi-part-status-${part.code}`}
-                      name={`rsi-part-status-${part.code}`}
-                      label={t('erru.rsi.checkedItems.result')}
-                      hideLabel
-                      inputType="radio"
-                      direction="row"
-                      value={item.status}
-                      onChange={(val) =>
-                        !disabled &&
-                        handleStatusChange(part, val as RsiCheckedItem['status'])
-                      }
-                      items={radioItems(part.code)}
-                    />
+                    <div onClick={(e) => handleRadioClick(part, e)}>
+                      <ChoiceGroup
+                        id={`rsi-part-status-${part.code}`}
+                        name={`rsi-part-status-${part.code}`}
+                        label={t('erru.rsi.checkedItems.result')}
+                        hideLabel
+                        inputType="radio"
+                        direction="row"
+                        value={item.status}
+                        onChange={(val) =>
+                          !disabled &&
+                          handleStatusChange(part, val as RsiCheckedItem['status'])
+                        }
+                        items={radioItems(part.code)}
+                      />
+                    </div>
                     {defectsBlock(part, item)}
                   </td>
                 </tr>
@@ -259,7 +278,10 @@ export function RsiCheckedItemsTable({
                   <span className={styles.partLabel}>{stripCaa(part.name)}</span>
                 </span>
               </div>
-              <div className={styles.cardRadios}>
+              <div
+                className={styles.cardRadios}
+                onClick={(e) => handleRadioClick(part, e)}
+              >
                 <ChoiceGroup
                   id={`rsi-part-status-${part.code}`}
                   name={`rsi-part-status-${part.code}`}
@@ -359,36 +381,34 @@ function RsiDefectModal({
           {defects.length === 0 && (
             <Text>{t('erru.rsi.defectModal.noDefects')}</Text>
           )}
-          {defects.map((defect) => (
-            <div key={defect.code} className="mb-1">
-              <ChoiceGroup
-                id={`rsi-defect-${defect.code}`}
-                name={`rsi-defect-${defect.code}`}
-                label={defect.name}
-                inputType="radio"
-                direction="row"
-                value={selections[defect.code] ?? ''}
-                onChange={(val) =>
-                  setSelections((prev) => ({
-                    ...prev,
-                    [defect.code]: val as RsiDefectSeverity | '',
-                  }))
-                }
-                items={[
-                  ...applicableSeverities(defect).map((sev) => ({
+          {defects.map((defect) => {
+            const current = selections[defect.code] ?? '';
+            return (
+              <div key={defect.code} className="mb-1">
+                <ChoiceGroup
+                  id={`rsi-defect-${defect.code}`}
+                  name={`rsi-defect-${defect.code}`}
+                  label={defect.name}
+                  // Checkbox look, single-select: picking a severity replaces the
+                  // previous one, clicking the selected box again clears it — so
+                  // no separate "clear" option is needed.
+                  inputType="checkbox"
+                  direction="row"
+                  value={current ? [current] : []}
+                  onChange={(val) => {
+                    const arr = (Array.isArray(val) ? val : []) as RsiDefectSeverity[];
+                    const added = arr.find((v) => v !== current);
+                    setSelections((prev) => ({ ...prev, [defect.code]: added ?? '' }));
+                  }}
+                  items={applicableSeverities(defect).map((sev) => ({
                     id: `rsi-defect-${defect.code}-${sev}`,
                     value: sev,
                     label: sev,
-                  })),
-                  {
-                    id: `rsi-defect-${defect.code}-none`,
-                    value: '',
-                    label: t('erru.rsi.defectModal.clear'),
-                  },
-                ]}
-              />
-            </div>
-          ))}
+                  }))}
+                />
+              </div>
+            );
+          })}
           {showHint && (
             <Text color="danger">
               {t('erru.rsi.defectModal.selectAtLeastOne')}
