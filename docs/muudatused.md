@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-11 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
+
+- **Liini number ja liini nimetus** — kõikide liinivedude korral (nii siseriiklik kui
+  rahvusvaheline) kuvatakse nüüd autojuhi sõidu- ja puhkeaja alamvormil kaks uut
+  tekstivälja: „Liini number" ja „Liini nimetus". Väljad on nähtavad ainult siis,
+  kui veoliigiks on valitud **Sõitjatevedu**. Kehtib nii PPA kui Transpordiameti
+  kontrollkaardil.
+- **„Muud dokumendid" osa** (dokumendi/õiguse kontrolli akordion) täiendati seitsme
+  sõitjateveo-spetsiifilise kirjega, mis esinesid PPA pabervormil kuid puudusid
+  digisüsteemist:
+  - Vedaja nimi / kaubamärk sõiduki parempoolsel välisküljel
+  - Liini number ühissõidukil
+  - Liini nimetus ühissõidukil
+  - Vedaja ennetab liiniloa (ATL) andja kinnitatud sõiduplaani
+  - Vedaja ei peatu sõiduplaanis märgitud peatuses
+  - Vedaja teenindab märkimata peatust
+  - Vedaja kasutab mittevastavat sõidukit
+  Kirjed kuvatakse ainult **sõitjateveo** veoliigi korral.
+- **Vaatamisvaates (kinnitatud/avalikustatud vorm)** peideti nüüd ka Transpordiameti
+  kontrollkaardil sektsioonid „Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass
+  ja mõõtmed" ning „ATP kokkuleppe nõuete kontroll" — need on TRAM-le ebaolulised
+  ja täideti taustprogrammis vaikeväärtustega (varasemalt peitis ainult muutmisvaade).
+
+---
+
 ## 2026-09 — Kasutaja loomine: telefon ja ligipääsu lõpp salvestatakse
 
 - Uue kasutaja (nii asutuse- kui kohaliku administraatori) loomisel läksid

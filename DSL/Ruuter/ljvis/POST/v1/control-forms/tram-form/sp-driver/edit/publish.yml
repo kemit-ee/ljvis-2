@@ -165,10 +165,10 @@ createWeightViolationNotification:
     body:
       type: "weight_violation"
       required_permission: "rsi.read"
-      related_entity_type: "sp_driver_form"
-      related_entity_id: ${id}
+      related_entity_type: "tram_form"
+      related_entity_id: ${compound_form_key}
       title_et: "Kaalumise/mõõtmise rikkumine — SP-kaart (TRAM) avalikustatud"
-      body_et: "${'Koondvormi võti: ' + compound_form_key}"
+      body_et: "${'Alamvormi võti: ' + id}"
       created_by: ${actor_personal_code}
   result: notifRes
   error: returnSuccess
