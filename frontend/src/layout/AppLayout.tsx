@@ -4,6 +4,8 @@ import { Layout } from '@tedi-design-system/react/community';
 import { useHeaderProps } from './useHeaderProps';
 import { useFooterProps } from './useFooterProps';
 import { useSideNavProps } from './useSideNavProps';
+import { useBreadcrumbs } from './breadcrumbs/useBreadcrumbs';
+import { AppBreadcrumbs } from './breadcrumbs/AppBreadcrumbs';
 import { EnvironmentRibbon } from '../components/EnvironmentRibbon/EnvironmentRibbon';
 import styles from './AppLayout.module.css';
 
@@ -31,6 +33,7 @@ export function AppLayout() {
 
   const headerProps = useHeaderProps();
   const footerProps = useFooterProps();
+  const breadcrumbsProps = useBreadcrumbs();
 
   return (
     <>
@@ -49,6 +52,11 @@ export function AppLayout() {
             <main
               className={styles[isDesktop ? 'main-desktop' : 'main-mobile']}
             >
+              {breadcrumbsProps && (
+                <div className={styles['breadcrumb-bar']}>
+                  <AppBreadcrumbs crumbs={breadcrumbsProps} />
+                </div>
+              )}
               <Outlet />
             </main>
           </div>

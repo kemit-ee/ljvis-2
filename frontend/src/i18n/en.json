@@ -2013,5 +2013,36 @@
       "labor_kabotage": "Cabotage inspection notification",
       "labor_foreign_proposal": "Foreign country proposal notification"
     }
+  },
+  "breadcrumbs": {
+    "userCreate": "New user",
+    "userDetail": "User",
+    "userGroupCreate": "New user group",
+    "userGroupAddUser": "Add users",
+    "userGroupDetail": "User group",
+    "classifierDetail": "Classifier",
+    "classifierValueCreate": "New value",
+    "classifierValueEdit": "Value",
+    "logDetail": "Log entry",
+    "snapshot": "Version",
+    "foreignViolationForm": "Foreign violation control form",
+    "compoundForm": "Compound form",
+    "driveRestDriverForm": "Driving/rest time (driver)",
+    "driveRestTeammateForm": "Driving/rest time (teammate)",
+    "tramDriverForm": "TRAM control form",
+    "labourInspectionForm": "Labour inspection control form",
+    "vehicleTechnicalForm": "Vehicle technical check",
+    "trailerTechnicalForm": "Trailer technical check",
+    "transportInterruptionForm": "Transport interruption",
+    "adrForm": "Dangerous goods transport",
+    "goodReputeForm": "Good repute non-compliance",
+    "ctudCreate": "New transport undertaking data request",
+    "ctudDetail": "Transport undertaking data request",
+    "cgrCreate": "New good repute request",
+    "cgrDetail": "Good repute request",
+    "rsiCreate": "New RSI message",
+    "rsiDetail": "RSI message",
+    "ncrCreate": "New NCR message",
+    "ncrDetail": "NCR message"
   }
 }

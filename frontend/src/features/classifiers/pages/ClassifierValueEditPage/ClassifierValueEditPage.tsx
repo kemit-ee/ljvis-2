@@ -1,7 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Button,
   Heading,
   Text,
   Row,
@@ -50,14 +49,6 @@ export function ClassifierValueEditPage() {
 
   return (
     <div>
-      <Button
-        visualType="link"
-        onClick={() => navigate(`/classifiers/${id}`)}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
-
       <div className="page-header">
         <div className="page-header-title">
           <Heading element="h1">{t('classifiers.editClassifierValue')}</Heading>

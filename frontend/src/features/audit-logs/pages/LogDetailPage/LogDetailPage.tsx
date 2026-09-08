@@ -1,7 +1,6 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Button,
   Heading,
   Text,
   Row,
@@ -34,7 +33,6 @@ function Field({
 export function LogDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const forbidden =
     !hasPermission('audit.read') && !hasPermission('audit.read.local');
@@ -47,14 +45,6 @@ export function LogDetailPage() {
 
   return (
     <div>
-      <Button
-        visualType="link"
-        onClick={() => navigate('/logs')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
-
       <div className="page-header">
         <div className="page-header-title">
           <Heading element="h1">{t('logs.dataTitle')}</Heading>

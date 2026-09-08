@@ -156,14 +156,6 @@ export function UserGroupAddUserPage() {
   return (
     <ModalProvider>
       <div>
-        <Button
-          visualType="link"
-          onClick={() => navigate(`/user-groups/${id}`)}
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
-
         <Heading className="page-header" element="h1">
           {group.name}
         </Heading>

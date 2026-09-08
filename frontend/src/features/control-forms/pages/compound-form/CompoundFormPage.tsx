@@ -557,13 +557,6 @@ export function CompoundFormPage() {
     if (!snapshot) return <Text>{t('common.error')}</Text>;
     return (
       <div>
-        <Button
-          visualType="link"
-          onClick={() => navigate(`/control-forms/compound/${id}`)}
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
         <CompoundFormViewCard
           form={snapshot}
           isDesktop={isDesktop}
@@ -711,13 +704,6 @@ export function CompoundFormPage() {
             {t('forms.publishedNote')}
           </Alert>
         )}
-        <Button
-          visualType="link"
-          onClick={() => navigate('/')}
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
         {isEditActive ? (
           <CompoundFormEditCard {...editCardProps} />
         ) : (
@@ -800,14 +786,6 @@ export function CompoundFormPage() {
           {t('forms.publishedNote')}
         </Alert>
       )}
-
-      <Button
-        visualType="link"
-        onClick={() => navigate('/')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
 
       {!isDesktop && addFormDropdown}
 
