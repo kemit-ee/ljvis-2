@@ -610,13 +610,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
       <div>
         {entryType === 'driver' ? (
           <div>
-            <Button
-              visualType="link"
-              onClick={() => navigate(`/control-forms/sp-driver/${id}`)}
-              iconLeft="arrow_back"
-            >
-              {t('common.back')}
-            </Button>
             <DriveRestFormViewCard
               scope="driver"
               form={snapshot}
@@ -625,13 +618,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           </div>
         ) : (
           <div>
-            <Button
-              visualType="link"
-              onClick={() => navigate(`/control-forms/sp-teammate/${id}`)}
-              iconLeft="arrow_back"
-            >
-              {t('common.back')}
-            </Button>
             <DriveRestFormViewCard
               scope="teammate"
               form={snapshot}
@@ -704,14 +690,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
           {t('forms.publishedNote')}
         </Alert>
       )}
-
-      <Button
-        visualType="link"
-        onClick={() => navigate('/')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
 
       {!isDesktop && addFormDropdown}
 

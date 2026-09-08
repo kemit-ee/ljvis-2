@@ -2036,5 +2036,36 @@
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus"
     }
+  },
+  "breadcrumbs": {
+    "userCreate": "Uus kasutaja",
+    "userDetail": "Kasutaja",
+    "userGroupCreate": "Uus kasutajagrupp",
+    "userGroupAddUser": "Kasutajate lisamine",
+    "userGroupDetail": "Kasutajagrupp",
+    "classifierDetail": "Klassifikaator",
+    "classifierValueCreate": "Uus väärtus",
+    "classifierValueEdit": "Väärtus",
+    "logDetail": "Logikirje",
+    "snapshot": "Versioon",
+    "foreignViolationForm": "Väliskontrolli kontrollkaart",
+    "compoundForm": "Koondvorm",
+    "driveRestDriverForm": "Sõidu- ja puhkeaeg (juht)",
+    "driveRestTeammateForm": "Sõidu- ja puhkeaeg (kaassõitja)",
+    "tramDriverForm": "TRAM kontrollkaart",
+    "labourInspectionForm": "Tööinspektsiooni kontrollkaart",
+    "vehicleTechnicalForm": "Sõiduki tehnokontroll",
+    "trailerTechnicalForm": "Haagise tehnokontroll",
+    "transportInterruptionForm": "Autoveo katkestamine",
+    "adrForm": "Ohtlike veoste vedu",
+    "goodReputeForm": "Hea maine nõuetele mittevastavus",
+    "ctudCreate": "Uus tegevusloa kontrolli päring",
+    "ctudDetail": "Tegevusloa kontrolli päring",
+    "cgrCreate": "Uus mainepäring",
+    "cgrDetail": "Mainepäring",
+    "rsiCreate": "Uus RSI teade",
+    "rsiDetail": "RSI teade",
+    "ncrCreate": "Uus NCR teade",
+    "ncrDetail": "NCR teade"
   }
 }

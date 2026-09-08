@@ -534,9 +534,6 @@ export function AdrFormPage() {
     if (!snapshot) return <FormNotFoundView title={t('forms.adr.title')} />;
     return (
       <div>
-        <Button visualType="link" onClick={() => navigate(`/control-forms/adr/${id}`)} iconLeft="arrow_back">
-          {t('common.back')}
-        </Button>
         <AdrFormViewCard
           form={snapshot}
           formType={FORM_TYPE.ADR}
@@ -606,14 +603,6 @@ export function AdrFormPage() {
           {t('forms.publishedNote')}
         </Alert>
       )}
-
-      <Button
-        visualType="link"
-        onClick={() => navigate('/')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
 
       {!isDesktop && addFormDropdown}
 

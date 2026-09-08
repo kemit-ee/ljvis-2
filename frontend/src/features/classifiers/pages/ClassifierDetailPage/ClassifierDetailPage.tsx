@@ -184,14 +184,6 @@ export function ClassifierDetailPage() {
           message={alertMessage}
         />
       )}
-      <Button
-        visualType="link"
-        onClick={() => navigate('/classifiers')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
-
       <div className="page-header">
         <div className={styles['page-header-title']}>
           <Heading element="h1">{classifier.code}</Heading>

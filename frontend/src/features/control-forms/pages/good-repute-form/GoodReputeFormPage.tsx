@@ -147,13 +147,6 @@ export function GoodReputeFormPage() {
     if (!snapshot) return <FormNotFoundView title={t('forms.good_repute.title')} />;
     return (
       <div>
-        <Button
-          visualType="link"
-          onClick={() => navigate(`/control-forms/good-repute/${id}`)}
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
         <div className="card-main">
           <Heading element="h1">
             {snapshot.formNumber
@@ -242,14 +235,6 @@ export function GoodReputeFormPage() {
           {formError}
         </Alert>
       )}
-
-      <Button
-        visualType="link"
-        onClick={() => navigate('/')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
 
       <div className="card-main">
         <Heading element="h1">

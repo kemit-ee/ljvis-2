@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
+import { Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import type { CompoundForm } from '../../../control-forms/types';
 import { getCitizenCompoundForm, getCitizenCompoundSubForms } from '../../api';
@@ -36,8 +36,6 @@ function Field({
 export function CitizenCompoundDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const [form, setForm] = useState<CompoundForm | null>(null);
   const [subForms, setSubForms] = useState<CitizenSubForm[]>([]);
@@ -66,26 +64,6 @@ export function CitizenCompoundDetailPage() {
 
   return (
     <div>
-      <Button
-        visualType="link"
-        onClick={() => {
-          // Reachable from both the dashboard (MyProtocolsTable/
-          // CompanyControlsTable) and /my-companies (CompanyFormsListPage) —
-          // both entry points pass state.from so we return to wherever the
-          // citizen actually came from, not a hardcoded page. Direct URL/
-          // bookmark access has no such state, so fall back to the
-          // dashboard.
-          if ((location.state as { from?: string })?.from === 'citizen-app') {
-            navigate(-1);
-          } else {
-            navigate('/');
-          }
-        }}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
-
       <div className="card-main">
         <Heading element="h1">
           {form.formNumber || t('forms.compound_form')}

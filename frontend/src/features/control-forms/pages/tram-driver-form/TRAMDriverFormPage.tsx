@@ -234,13 +234,6 @@ export function TRAMDriverFormPage() {
     if (!snapshot) return <Text>{t('common.error')}</Text>;
     return (
       <div>
-        <Button
-          visualType="link"
-          onClick={() => navigate(`/control-forms/tram-driver/${id}`)}
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
         <CompoundFormViewCard
           form={snapshot}
           isDesktop={isDesktop}
@@ -336,9 +329,6 @@ export function TRAMDriverFormPage() {
     return (
       <div>
         {alerts}
-        <Button visualType="link" onClick={() => navigate('/')} iconLeft="arrow_back">
-          {t('common.back')}
-        </Button>
         <CompoundFormEditCard {...editCardProps} />
         <div className="page-actions mt-1">
           <div className="page-actions-buttons">
@@ -370,9 +360,6 @@ export function TRAMDriverFormPage() {
   return (
     <div style={{ maxWidth: containerWidth }}>
       {alerts}
-      <Button visualType="link" onClick={() => navigate('/')} iconLeft="arrow_back">
-        {t('common.back')}
-      </Button>
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.tram_driver_form')} overflowMode="scroll">
