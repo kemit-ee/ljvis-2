@@ -122,11 +122,28 @@ const shots = [
   {
     name: 'user-guide/toolaud',
     run: async (page) => {
+      // Töölaua ülaosa — "Kompleksvorm" + "Vormid" plokid (LJVIS2-37).
       await gotoShot(page, '/', 'user-guide/images/04-toolaud/01-toolaud.png');
-      await page.getByRole('button', { name: /Lisa/i }).first().click().catch(() => {});
-      await sleep(500);
-      await shoot(page, 'user-guide/images/04-toolaud/02-lisa-rippmenyy.png');
-      await page.keyboard.press('Escape').catch(() => {});
+      // Keri "Töös olevad kompleksvormid" tabelini.
+      await page.evaluate(() => {
+        const h = [...document.querySelectorAll('h1,h2,h3')].find((e) =>
+          /Töös olevad kompleksvormid/i.test(e.textContent || ''));
+        (h ?? document.body).scrollIntoView({ block: 'start' });
+      });
+      await sleep(700);
+      await page.screenshot({
+        path: resolve(DOCS, 'user-guide/images/04-toolaud/02-toolaud-tabel.png'),
+      });
+      console.log('  ✓', 'user-guide/images/04-toolaud/02-toolaud-tabel.png');
+    },
+  },
+  {
+    name: 'user-guide/teavitused',
+    run: async (page) => {
+      await gotoShot(page, '/notifications', 'user-guide/images/20-teavitused/01-teavitused.png');
+      await page.getByRole('tab', { name: /Saadetud kirjad/i }).click({ timeout: 5000 }).catch(() => {});
+      await sleep(900);
+      await shoot(page, 'user-guide/images/20-teavitused/02-saadetud-kirjad.png');
     },
   },
   {
