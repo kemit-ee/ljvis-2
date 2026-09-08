@@ -65,8 +65,10 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      originatingAuthority: message?.originatingAuthority ?? '',
-      requestSource: message?.requestSource ?? '',
+      // Uue teate vaikeväärtused: teate esitav pädev asutus = Kliimaministeerium (KLIM),
+      // päringu allikas = "Pädev asutus" (CA). Vt NCR ettepanekud p7, p8.
+      originatingAuthority: message?.originatingAuthority ?? 'KLIM',
+      requestSource: message?.requestSource ?? 'CA',
       requestPurpose: message?.requestPurpose ?? '',
       ncrTo: message?.ncrTo ?? '',
       transportUndertakingName: message?.transportUndertakingName ?? '',
