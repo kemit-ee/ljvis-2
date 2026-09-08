@@ -285,7 +285,7 @@
     "cgr": "Mainepäringud",
     "search": "Otsing",
     "rsi": "RSI teated",
-    "ncr": "NCR teated",
+    "ncr": "Kontrollitulemuse teated NCR",
     "riskLevels": "Riskitasemed",
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused"
@@ -1840,8 +1840,8 @@
     "ncr": {
       "notFound": "NCR juhtumit ei leitud",
       "form": {
-        "titleOutgoing": "Kontrollitulemuse teade (EST → ERRU)",
-        "titleInbound": "Kontrollitulemuse teade (ERRU → EST)",
+        "titleOutgoing": "Kontrollitulemuse teade NCR (EST → ERRU)",
+        "titleInbound": "Kontrollitulemuse teade NCR (ERRU → EST)",
         "version": "Versioon {{version}}",
         "headerBlock": "Teate päis ja osapooled",
         "checkSummaryBlock": "Kontrolli kokkuvõte",
@@ -1867,7 +1867,7 @@
         "requestSource": "Päringu allikas",
         "requestPurpose": "Päringu eesmärk",
         "transportUndertakingName": "Veoettevõtja nimi",
-        "communityLicenceNumber": "Ühenduse tegevusloa number",
+        "communityLicenceNumber": "Ühenduse tegevusloa või selle kinnitatud ärakirja või tõestatud koopia number",
         "vehicleRegistrationNumber": "Sõiduki registreerimisnumber",
         "vehicleRegistrationCountry": "Sõiduki registreerimiskoha riik",
         "checkResult": "Kontrolli tulemus",
@@ -1913,8 +1913,8 @@
         "createVrFailed": "VR kontrollkaardi loomine ebaõnnestus"
       },
       "buildModal": {
-        "button": "Lisa NCR vorm",
-        "title": "Lisa NCR vorm",
+        "button": "Loo NCR teade",
+        "title": "Loo NCR teade",
         "submit": "Koosta",
         "forbidden": "Teil puudub õigus NCR päringu koostamiseks",
         "notFound": "Kontrollkaarti ei leitud, NCR mustandit ei loodud",
@@ -1930,8 +1930,8 @@
         "imposed_penalty_type_missing": "Määratud karistuse puhul peab olema valitud karistuse liik"
       },
       "list": {
-        "title": "NCR teated",
-        "newMessage": "Uus rikkumisteade",
+        "title": "Kontrollitulemuse teated NCR",
+        "newMessage": "Uus NCR teade",
         "id": "Teate number",
         "sentAt": "Saadetud",
         "sentFrom": "Saadetud alates",
@@ -1944,7 +1944,8 @@
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
         "directionIncoming": "Sissetulev",
-        "handlerFilter": "Menetleja (isikukood)"
+        "handlerFilter": "Menetleja (isikukood)",
+        "automatic": "Automaatne"
       }
     }
   },

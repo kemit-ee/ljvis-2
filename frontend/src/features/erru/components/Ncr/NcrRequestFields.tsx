@@ -8,6 +8,7 @@ import {
   classifierOptions,
   dateFieldError,
   fieldError,
+  infringementOptions,
   nestedDateFieldError,
   nestedFieldError,
   parseIsoDate,
@@ -78,6 +79,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const opts = classifierOptions;
+  const infrOpts = infringementOptions;
   const selected = selectedClassifierOption;
   const pick = pickOptionValue;
   const dateValue = parseIsoDate;
@@ -325,12 +327,16 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
                       id={`ncr-si-${index}-type`}
                       label={t('erru.ncr.form.infringementType')}
                       required
-                      options={opts(
+                      options={infrOpts(
                         euInfringements.filter((c) =>
                           c.code.startsWith(si.category),
                         ),
                       )}
-                      value={selected(euInfringements, si.infringementType)}
+                      value={
+                        infrOpts(euInfringements).find(
+                          (o) => o.value === si.infringementType,
+                        ) ?? null
+                      }
                       onChange={(o) =>
                         updateSeriousInfringement(index, {
                           infringementType: pick(o),

@@ -25,6 +25,8 @@ declaration:
         type: string
       - field: handlerPersonalCode
         type: string
+      - field: automatic
+        type: string
       - field: sorting
         type: string
       - field: pageSize
@@ -42,6 +44,7 @@ extractRequestData:
     status: "${incoming.params.status || ''}"
     direction: "${incoming.params.direction || ''}"
     handler_personal_code: "${incoming.params.handlerPersonalCode || ''}"
+    automatic: "${incoming.params.automatic || ''}"
     sorting: "${incoming.params.sorting || 'sent_at desc'}"
     page: "${incoming.params.page || '1'}"
     page_size: "${incoming.params.pageSize || '20'}"
@@ -64,6 +67,7 @@ searchCases:
       status: ${status}
       direction: ${direction}
       handlerPersonalCode: ${handler_personal_code}
+      automatic: ${automatic}
       sorting: ${sorting}
       page: ${page}
       page_size: ${page_size}
