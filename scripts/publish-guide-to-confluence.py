@@ -32,6 +32,7 @@ BASE = os.environ.get("CONFLUENCE_BASE", "https://wiki.kemit.ee")
 SPACE = os.environ.get("CONFLUENCE_SPACE", "LIA")
 TOKEN = os.environ.get("CONFLUENCE_TOKEN", "")
 DRY_RUN = "--dry-run" in sys.argv
+FORCE_IMAGES = "--force-images" in sys.argv
 
 REPO = Path(__file__).resolve().parent.parent
 DOCS = REPO / "docs"
@@ -134,7 +135,16 @@ def existing_attachments(page_id):
     if DRY_RUN or str(page_id).startswith("DRY-"):
         return set()
     r = api("GET", f"/rest/api/content/{page_id}/child/attachment?limit=200")
-    return {a["title"] for a in r.get("results", [])}
+    return {a["title"]: a["id"] for a in r.get("results", [])}
+
+
+def delete_attachment(att_id):
+    if DRY_RUN:
+        return
+    try:
+        api("DELETE", f"/rest/api/content/{att_id}")
+    except Exception:
+        pass
 
 
 def upload_attachment(page_id, file_path, name):
@@ -375,10 +385,16 @@ def main():
         have = existing_attachments(pid)
         for name, f in attachments:
             if name in have:
-                continue
+                if FORCE_IMAGES:
+                    print(f"    ~ uuenda manus {name}")
+                    delete_attachment(have[name])
+                    del have[name]
+                    time.sleep(0.1)
+                else:
+                    continue
             print(f"    + manus {name}")
             upload_attachment(pid, f, name)
-            have.add(name)
+            have[name] = None
             time.sleep(0.2)
         if attachments and not DRY_RUN:
             upsert_page(p["title"], body, parent_id)
