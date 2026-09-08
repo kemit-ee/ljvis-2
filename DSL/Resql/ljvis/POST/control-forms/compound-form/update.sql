@@ -5,9 +5,6 @@ params:
   key:
     type: integer
     required: false
-  formNumber:
-    type: string
-    required: false
   status:
     type: string
     required: false
@@ -138,9 +135,14 @@ returns:
 - name: formNumber
   type: string
   nullable: true
+- name: version
+  type: number
+  nullable: true
 */
 WITH latest AS (
-  SELECT form_number, template_version, control_year
+  SELECT form_number,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         template_version, control_year
   FROM forms.compound_form
   WHERE compound_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -150,6 +152,7 @@ INSERT INTO forms.compound_form (
   compound_form_key,
   form_number,
   control_year,
+  version,
   template_version,
   status,
   control_date,
@@ -195,8 +198,9 @@ INSERT INTO forms.compound_form (
 )
 SELECT
   :key::BIGINT,
-  :formNumber,
+  l.form_number,
   l.control_year,
+  l.version,
   l.template_version,
   :status,
   :controlDate::DATE,
@@ -240,4 +244,4 @@ SELECT
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
   :created_by
 FROM latest l
-RETURNING compound_form_key AS id, form_number AS "formNumber";
+RETURNING compound_form_key AS id, form_number, version;

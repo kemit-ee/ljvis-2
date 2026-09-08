@@ -219,7 +219,7 @@ export function TRAMDriverFormPage() {
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
-      await deleteTramForm(id, form.formNumber, form.status ?? '');
+      await deleteTramForm(id, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);

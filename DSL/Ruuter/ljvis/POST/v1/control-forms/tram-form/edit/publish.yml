@@ -35,7 +35,6 @@ checkFound:
 
 extractCurrentFormData:
   assign:
-    form_number: "${currentFormRes.response.body[0].formNumber || ''}"
     control_date: "${currentFormRes.response.body[0].controlDate || ''}"
     control_time: "${currentFormRes.response.body[0].controlTime || ''}"
     control_country_code: "${currentFormRes.response.body[0].controlCountryCode || ''}"
@@ -85,7 +84,6 @@ publishForm:
       type: json
     body:
       key: ${id}
-      formNumber: ${form_number}
       status: published
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -133,6 +131,7 @@ publishForm:
 buildLogDescription:
   assign:
     compound_form_key: "${publishRes.response.body[0].id || ''}"
+    form_number: "${publishRes.response.body[0].formNumber + '/' + publishRes.response.body[0].version}"
     description: "Koondvorm avalikustatud, vormi võti=${id}, vormi number=${form_number}"
   next: logAuditEvent
 

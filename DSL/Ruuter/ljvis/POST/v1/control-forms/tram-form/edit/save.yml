@@ -332,6 +332,7 @@ insertForm:
 extractInsertResponseData:
   assign:
     compound_form_key: "${saveRes.response.body[0].id || ''}"
+    form_number: "${saveRes.response.body[0].formNumber + '/' + saveRes.response.body[0].version}"
   next: logAuditEventInsert
 
 logAuditEventInsert:
@@ -404,7 +405,6 @@ updateForm:
       type: json
     body:
       key: ${id}
-      formNumber: ${form_number}
       status: saved
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -452,6 +452,7 @@ updateForm:
 extractUpdateResponseData:
   assign:
     compound_form_key: "${saveRes.response.body[0].id || ''}"
+    form_number: "${saveRes.response.body[0].formNumber + '/' + saveRes.response.body[0].version}"
   next: logAuditEventUpdate
 
 logAuditEventUpdate:

@@ -129,11 +129,18 @@ returns:
 - name: id
   type: number
   nullable: true
+- name: formNumber
+  type: string
+  nullable: true
+- name: version
+  type: number
+  nullable: true
 */
 INSERT INTO forms.compound_form (
   compound_form_key,
   form_number,
   control_year,
+  version,
   template_version,
   status,
   control_date,
@@ -179,8 +186,9 @@ INSERT INTO forms.compound_form (
 )
 VALUES (
   nextval('forms.seq_compound_form_key'),
-  'koond-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_compound_form_key')::text, 5, '0') || '/1',
+  'koond-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_compound_form_key')::text, 5, '0'),
   EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER,
+  1,
   1,
   :status,
   :controlDate::DATE,
@@ -197,7 +205,7 @@ VALUES (
   NULLIF(:roadTaxNotes, ''),
   :inspectorFirstName,
   :inspectorLastName,
-  :inspectorOrganisationId,
+  :inspectorOrganisationId::TEXT,
   :inspectorUnit,
   :inspectorProfession,
   :vehicleRegNr,
@@ -224,4 +232,4 @@ VALUES (
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
   :created_by
 )
-RETURNING compound_form_key AS id;
+RETURNING compound_form_key AS id, form_number, version;

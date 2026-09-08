@@ -2545,9 +2545,7 @@ export function CompoundFormCreatePage() {
                       isDynamicTrailerTab);
                   if (tabDef) {
                     if (isAdrTab) {
-                      const raw = savedFormData.current[
-                        tabId
-                      ] as Partial<AdrForm>;
+                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<AdrForm>;
                       const isBlank = (obj: Record<string, unknown>) =>
                         Object.values(obj).every((v) => v == null || v === '');
                       const values = {
@@ -2600,9 +2598,7 @@ export function CompoundFormCreatePage() {
                       }
                     } else if (isTechnicalCheck) {
                       const variant = tabDef.type as TechnicalCheckVariant;
-                      const raw = savedFormData.current[
-                        tabId
-                      ] as Partial<TechnicalCheckForm>;
+                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<TechnicalCheckForm>;
                       const values = {
                         ...raw,
                         compoundFormKey: id,
@@ -2623,9 +2619,7 @@ export function CompoundFormCreatePage() {
                         );
                       }
                     } else if (isTransportInterruptionTab) {
-                      const raw = savedFormData.current[
-                        tabId
-                      ] as Partial<TransportInterruptionForm>;
+                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<TransportInterruptionForm>;
                       const payload = {
                         ...raw,
                         compoundFormKey: id,

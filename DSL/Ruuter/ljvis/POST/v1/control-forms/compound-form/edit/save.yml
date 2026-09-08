@@ -7,8 +7,6 @@ declaration:
     body:
       - field: id
         type: string
-      - field: formNumber
-        type: string
       - field: status
         type: string
       - field: controlDate
@@ -101,7 +99,6 @@ declaration:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    form_number: "${incoming.body.formNumber}"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
     control_country_code: "${incoming.body.controlCountryCode}"
@@ -313,6 +310,7 @@ insertForm:
 extractInsertResponseData:
   assign:
     compound_form_key: "${saveRes.response.body[0].id || ''}"
+    form_number: "${saveRes.response.body[0].formNumber + '/' + saveRes.response.body[0].version}"
   next: logAuditEventInsert
 
 logAuditEventInsert:
@@ -385,7 +383,6 @@ updateForm:
       type: json
     body:
       key: ${id}
-      formNumber: ${form_number}
       status: saved
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -433,6 +430,7 @@ updateForm:
 extractUpdateResponseData:
   assign:
     compound_form_key: "${saveRes.response.body[0].id || ''}"
+    form_number: "${saveRes.response.body[0].formNumber + '/' + saveRes.response.body[0].version}"
   next: logAuditEventUpdate
 
 logAuditEventUpdate:
