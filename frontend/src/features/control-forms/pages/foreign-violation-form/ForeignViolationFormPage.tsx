@@ -264,6 +264,7 @@ export function ForeignViolationFormPage() {
           associatedPersonsLoading={associatedPersonsLoading}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
           showAdminSection={isAdmin}
+          isPublished={form?.status === 'published'}
         />
 
         {id && (

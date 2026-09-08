@@ -321,7 +321,7 @@
       ]
     },
     {
-      "name": "POST foreign-violation-form/edit/save — recommendedMeasureCode=MUU without notes → 422 required",
+      "name": "POST foreign-violation-form/edit/save — recommendedMeasureCode=MUU without notes → 200 (not required)",
       "request": {
         "method": "POST",
         "header": [
@@ -358,11 +358,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
-              "var raw = pm.response.json();",
-              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "pm.test('Field is recommendedMeasureNotes', () => pm.expect(body.field).to.eql('recommendedMeasureNotes'));",
-              "pm.test('Code is required', () => pm.expect(body.code).to.eql('required'));"
+              "pm.test('Returns 200 (recommendedMeasureNotes no longer required for MUU)', () => pm.response.to.have.status(200));"
             ]
           }
         }
