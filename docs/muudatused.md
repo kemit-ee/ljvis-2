@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-09 — NCR (kontrollitulemuse teated): parandused
+
+- Lehe ja teate pealkiri: **„Kontrollitulemuse teated NCR"** (varem „NCR teated").
+- Uue teate nupp: **„Uus NCR teade"**; kontrollkaardil **„Loo NCR teade"**.
+- Loendisse lisandus veerg **„Automaatne"** (Jah/Ei) ja samanimeline otsingufilter
+  — näitab, kas LJVIS saatis teate ise automaatselt (öine väljasaatmine).
+- Uue teate vaikeväärtused: teate esitav pädev asutus = **Kliimaministeerium**,
+  päringu allikas = **„Pädev asutus"**. Väljasaatmisel teisendatakse asutuse nimi
+  ingliskeelseks ametlikuks nimeks (nt „Ministry of Climate").
+- Raskete rikkumiste valikus ja vaates kuvatakse nüüd **ERRU kood** kirjelduse ees
+  (nt „MSI101 – …").
+- Väljanimi „Ühenduse tegevusloa number" → „Ühenduse tegevusloa või selle
+  kinnitatud ärakirja või tõestatud koopia number".
+
+---
+
 ## 2026-09 — Hea maine vorm: pealkiri ja abitekst
 
 - Vormi pealkiri (nii ametniku kui kodaniku vaates ning „vormi ei leitud"

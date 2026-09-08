@@ -341,7 +341,11 @@ export function NcrFormPage() {
                         />
                         <DetailRow
                           label={t('erru.ncr.form.infringementType')}
-                          value={si.infringementType}
+                          value={
+                            si.infringementType
+                              ? `${si.infringementType} – ${label('EU_INFRINGEMENT', si.infringementType)}`
+                              : '—'
+                          }
                         />
                         <DetailRow
                           label={t('erru.ncr.form.infringementDate')}
