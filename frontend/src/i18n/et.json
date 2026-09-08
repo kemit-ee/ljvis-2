@@ -2008,6 +2008,7 @@
     "markAllRead": "Märgi kõik loetuks",
     "unread": "Lugemata",
     "read": "Märgi loetuks",
+    "openEntity": "Ava vorm",
     "empty": "Uusi teavitusi ei ole",
     "bellAriaLabel": "Teavitused ({{count}} lugemata)",
     "bellAriaLabelEmpty": "Teavitused",

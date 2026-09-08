@@ -1987,6 +1987,7 @@
     "markAllRead": "Mark all as read",
     "unread": "Unread",
     "read": "Mark as read",
+    "openEntity": "Open form",
     "empty": "No new notifications",
     "bellAriaLabel": "Notifications ({{count}} unread)",
     "bellAriaLabelEmpty": "Notifications",
