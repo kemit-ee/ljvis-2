@@ -82,7 +82,14 @@ insertForm:
       personApplications: ${person_applications}
       created_by: ${created_by}
   result: saveRes
+  next: checkInsertSaved
+
+checkInsertSaved:
+  switch:
+    - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300 || saveRes.response.body == null || saveRes.response.body.length == null || saveRes.response.body.length === 0}
+      next: returnResqlSaveError
   next: extractInsertResponseData
+
 
 extractInsertResponseData:
   assign:
@@ -176,7 +183,14 @@ updateForm:
       personApplications: ${person_applications}
       created_by: ${created_by}
   result: saveRes
+  next: checkUpdateSaved
+
+checkUpdateSaved:
+  switch:
+    - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300 || saveRes.response.body == null || saveRes.response.body.length == null || saveRes.response.body.length === 0}
+      next: returnResqlSaveError
   next: extractUpdateResponseData
+
 
 extractUpdateResponseData:
   assign:
@@ -225,6 +239,11 @@ logAuditEventUpdate:
     actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
+
+returnResqlSaveError:
+  status: 500
+  return: "${(saveRes.response != null && saveRes.response.body) || {type: 'RESQL_ERROR', code: 'save_failed', message: 'Vormi salvestamine andmebaasi ebaõnnestus'}}"
+  next: end
 
 returnSuccess:
   return: ${saveRes.response.body}

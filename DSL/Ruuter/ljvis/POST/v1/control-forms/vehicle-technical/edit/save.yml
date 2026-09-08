@@ -96,7 +96,7 @@ insertForm:
       notes: ${notes}
       created_by: ${created_by}
   result: saveRes
-  next: logSave
+  next: checkSaved
 
 getCurrentFormForStatus:
   call: http.post
@@ -145,6 +145,12 @@ updateForm:
       notes: ${notes}
       created_by: ${created_by}
   result: saveRes
+  next: checkSaved
+
+checkSaved:
+  switch:
+    - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300 || saveRes.response.body == null || saveRes.response.body.length == null || saveRes.response.body.length === 0}
+      next: returnResqlSaveError
   next: logSave
 
 logSave:
@@ -173,6 +179,11 @@ logAuditEvent:
     log_content: "{\"subFormKey\":${sub_form_key},\"compoundFormKey\":${compound_key_for_log},\"subFormNumber\":\"${sub_form_number}\",\"resultType\":\"${result_type}\"}"
   result: audit_result
   next: returnSuccess
+
+returnResqlSaveError:
+  status: 500
+  return: "${(saveRes.response != null && saveRes.response.body) || {type: 'RESQL_ERROR', code: 'save_failed', message: 'Vormi salvestamine andmebaasi ebaõnnestus'}}"
+  next: end
 
 returnSuccess:
   return: ${saveRes.response.body}

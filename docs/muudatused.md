@@ -4,7 +4,43 @@
 
 ---
 
-## 2026-09 — Menüü: „Riskiskoorid" järjekord
+## 2026-11 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
+
+- **Liini number ja liini nimetus** — kõikide liinivedude korral (nii siseriiklik kui
+  rahvusvaheline) kuvatakse nüüd autojuhi sõidu- ja puhkeaja alamvormil kaks uut
+  tekstivälja: „Liini number" ja „Liini nimetus". Väljad on nähtavad ainult siis,
+  kui veoliigiks on valitud **Sõitjatevedu**. Kehtib nii PPA kui Transpordiameti
+  kontrollkaardil.
+- **„Muud dokumendid" osa** (dokumendi/õiguse kontrolli akordion) täiendati seitsme
+  sõitjateveo-spetsiifilise kirjega, mis esinesid PPA pabervormil kuid puudusid
+  digisüsteemist:
+  - Vedaja nimi / kaubamärk sõiduki parempoolsel välisküljel
+  - Liini number ühissõidukil
+  - Liini nimetus ühissõidukil
+  - Vedaja ennetab liiniloa (ATL) andja kinnitatud sõiduplaani
+  - Vedaja ei peatu sõiduplaanis märgitud peatuses
+  - Vedaja teenindab märkimata peatust
+  - Vedaja kasutab mittevastavat sõidukit
+  Kirjed kuvatakse ainult **sõitjateveo** veoliigi korral.
+- **Vaatamisvaates (kinnitatud/avalikustatud vorm)** peideti nüüd ka Transpordiameti
+  kontrollkaardil sektsioonid „Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass
+  ja mõõtmed" ning „ATP kokkuleppe nõuete kontroll" — need on TRAM-le ebaolulised
+  ja täideti taustprogrammis vaikeväärtustega (varasemalt peitis ainult muutmisvaade).
+
+---
+
+## 2026-09 — Koondvormi salvestamine ei anna enam „varjatud" viga
+
+- **Koondvormi loomine/muutmine** võis teatud olukorras (nt kui ametniku profiilil
+  puudus struktuuriüksus) ebaõnnestuda ilma selge veateateta — server tagastas
+  läbipaistmatu tehnilise vea `TypeError: cannot convert 'null' or 'undefined' to
+  object`. Nüüd:
+  - tühjaks jäänud kohustuslikud tekstiväljad (nt inspektori üksus) salvestatakse
+    tühjana, mitte ei blokeeri salvestamist andmebaasi tasandil;
+  - **„Üksus"** väli on koondvormil nüüd kohustuslik (nagu andmebaas eeldab);
+  - kui salvestamine andmebaasi siiski ebaõnnestub, kuvatakse **tegelik veateade**,
+    mitte tehniline tõrge — see kehtib **kõigi kontrollvormide** salvestamisel.
+- Sama parandus rakendati välisriigi rikkumise vormi inspektori-väljadele.
 
 - Menüüpunkt **„Riskiskoorid"** paikneb nüüd vasakmenüü ülatasandi loendi
   **lõpus, vahetult „Haldus" kohal** (varem kohe „Otsingu" järel, ERRU-punktide

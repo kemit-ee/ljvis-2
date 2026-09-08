@@ -95,6 +95,12 @@ params:
   notes:
     type: string
     required: false
+  liiniNumber:
+    type: string
+    required: false
+  liiniNimetus:
+    type: string
+    required: false
   created_by:
     type: string
     required: false
@@ -144,6 +150,8 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   enforcement_decision,
                                   proceeding_closure_basis,
                                   notes,
+                                  liini_number,
+                                  liini_nimetus,
                                   created_by)
 VALUES (nextval('forms.seq_sp_teammate_form_key'),
         :compoundFormKey::BIGINT,
@@ -181,4 +189,6 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         NULLIF(:enforcementDecision, ''),
         NULLIF(:proceedingClosureBasis, ''),
         NULLIF(:notes, ''),
+        NULLIF(:liiniNumber, ''),
+        NULLIF(:liiniNimetus, ''),
         :created_by) RETURNING sp_teammate_form_key AS id, sub_form_number, version;

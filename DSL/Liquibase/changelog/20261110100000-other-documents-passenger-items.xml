@@ -3,7 +3,7 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
-    <changeSet id="20261109100001" author="ljvis">
-        <sqlFile path="changelog/20261109100001-notification-test-fixtures.sql" splitStatements="false" />
+    <changeSet id="20261110100000" author="ljvis">
+        <sqlFile path="changelog/20261110100000-other-documents-passenger-items.sql" splitStatements="false" />
     </changeSet>
 </databaseChangeLog>

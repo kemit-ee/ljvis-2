@@ -400,6 +400,7 @@ export function TRAMDriverFormPage() {
               scope="driver"
               form={driverForm}
               formType={TRAM_DRIVER_FORM_TYPE}
+              hideDriveRestExtras
               canPublish={
                 hasPermission('tram_driver_form.write') &&
                 driverForm.status === 'confirmed'
