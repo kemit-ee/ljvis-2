@@ -66,7 +66,7 @@ export const BREADCRUMB_ROUTES: BreadcrumbRouteEntry[] = [
   { pattern: '/logs', labelKey: 'nav.logs', parent: '/' },
 
   // Admin / misc
-  { pattern: '/admin/risk-scores', labelKey: 'nav.riskLevels', parent: '/' },
+  { pattern: '/admin/risk-scores', labelKey: 'nav.riskScores', parent: '/' },
   { pattern: '/notifications', labelKey: 'nav.notifications', parent: '/' },
 
   // Control forms — foreign violation

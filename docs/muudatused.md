@@ -29,6 +29,14 @@
 
 ---
 
+## 2026-09 — Menüü: „Riskiskoorid" eraldi punktiks
+
+- Menüüpunkt **„Riskitasemed"** on tõstetud „Haldus" alt välja **vasakmenüü
+  ülatasandile** ja ümber nimetatud **„Riskiskoorid"**. Sisu ja õigus
+  (`risk_report.list`) ei muutu.
+
+---
+
 ## 2026-09 — Hea maine vorm: pealkiri ja abitekst
 
 - Vormi pealkiri (nii ametniku kui kodaniku vaates ning „vormi ei leitud"

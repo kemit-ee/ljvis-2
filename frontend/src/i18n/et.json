@@ -286,7 +286,7 @@
     "search": "Otsing",
     "rsi": "RSI teated",
     "ncr": "NCR teated",
-    "riskLevels": "Riskitasemed",
+    "riskScores": "Riskiskoorid",
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused"
   },
@@ -1523,7 +1523,7 @@
     "logoAlt": "Euroopa Sotsiaalfond"
   },
   "riskScores": {
-    "title": "Riskitasemed",
+    "title": "Riskiskoorid",
     "companyName": "Veoettevõtja",
     "companyRegCode": "Registrikood",
     "riskScore": "Riskiskoor",

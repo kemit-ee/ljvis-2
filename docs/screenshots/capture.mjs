@@ -122,19 +122,35 @@ const shots = [
   {
     name: 'user-guide/toolaud',
     run: async (page) => {
-      // Töölaua ülaosa — "Kompleksvorm" + "Vormid" plokid (LJVIS2-37).
+      // Töölaua ülaosa — "Koondvorm" + "Vormid" plokid (LJVIS2-37).
       await gotoShot(page, '/', 'user-guide/images/04-toolaud/01-toolaud.png');
-      // Keri "Töös olevad kompleksvormid" tabelini.
-      await page.evaluate(() => {
-        const h = [...document.querySelectorAll('h1,h2,h3')].find((e) =>
-          /Töös olevad kompleksvormid/i.test(e.textContent || ''));
-        (h ?? document.body).scrollIntoView({ block: 'start' });
-      });
-      await sleep(700);
+      const scrollToHeading = async (re) => {
+        await page.evaluate((src) => {
+          const rx = new RegExp(src, 'i');
+          const h = [...document.querySelectorAll('h1,h2,h3')].find((e) =>
+            rx.test(e.textContent || ''));
+          (h ?? document.body).scrollIntoView({ block: 'start' });
+        }, re);
+        await sleep(700);
+      };
+      // "Töös olevad koondvormid" tabel (grupeeritud koondvormi kaupa).
+      await scrollToHeading('Töös olevad koondvormid');
       await page.screenshot({
         path: resolve(DOCS, 'user-guide/images/04-toolaud/02-toolaud-tabel.png'),
       });
       console.log('  ✓', 'user-guide/images/04-toolaud/02-toolaud-tabel.png');
+      // "Töös olevad vormid" tabel (iseseisvad vormid).
+      await scrollToHeading('Töös olevad vormid');
+      await page.screenshot({
+        path: resolve(
+          DOCS,
+          'user-guide/images/04-toolaud/04-toolaud-vormid-tabel.png',
+        ),
+      });
+      console.log(
+        '  ✓',
+        'user-guide/images/04-toolaud/04-toolaud-vormid-tabel.png',
+      );
     },
   },
   {
