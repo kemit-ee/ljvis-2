@@ -2453,9 +2453,7 @@ export function CompoundFormCreatePage() {
 
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          <Button visualType="secondary" onClick={() => navigate('/')}>
-            {t('common.back')}
-          </Button>
+
           <Button
             type="submit"
             disabled={openTabs.length < 1}
