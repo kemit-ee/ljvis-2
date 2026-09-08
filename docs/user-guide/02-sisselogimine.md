@@ -12,7 +12,7 @@ Lingile **Kuva rohkem** klõpsates avaneb süsteemi täpsem kirjeldus:
 
 1. Avage LJVIS2 veebiaadress.
 2. Valige oma rolli järgi nupp:
-   - **Kodanikule** — ettevõtja esindajale (tulevikus riskitaseme vaatamiseks).
+   - **Kodanikule** — ettevõtja esindajale (riskitaseme ja protokollide vaatamiseks).
    - **Ametnikule** — transpordiametnikule.
 3. Teid suunatakse TARA autentimiskeskkonda.
 4. Sisestage isikukood ja autentige end (Smart-ID, Mobiil-ID või ID-kaart).
@@ -46,7 +46,7 @@ Pärast sisselogimist määrab süsteem, millised menüüpunktid kuvatakse. See 
 | Üldadministraator | `user.list.admin`, `user_group.list.admin`, `classifier.list`, `audit.read` | Kõik |
 | Organisatsiooni admin | `user.list.local`, `user_group.list.local` | Oma organisatsioon |
 | Ametnik | `foreign_violation_form.write` jms | Kontrollaktide täitmine |
-| Ettevõtja esindaja | — (riskivaade) | Oma ettevõtte andmed |
+| Ettevõtja esindaja | — (kodaniku vaade) | Oma ettevõtte riskitase ja protokollid |
 
 Kui Teil on nii ametniku konto kui ka kodaniku õigused, saate pärast sisselogimist vaadet
 vahetada — vt peatükk [Vaate vahetamine](19-vaate-vahetamine.md).

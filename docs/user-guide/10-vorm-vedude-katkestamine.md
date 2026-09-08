@@ -1,6 +1,6 @@
 # Autoveo katkestamise kontrollvorm
 
-Autoveo katkestamise kontrollvormi kasutatakse tee kontrolli käigus autoveo katkestamise fakti ja selle aluste registreerimiseks. Vorm salvestatakse liitvormi (koondvormi) alamvormina.
+Autoveo katkestamise kontrollvormi kasutatakse tee kontrolli käigus autoveo katkestamise fakti ja selle aluste registreerimiseks. Vorm salvestatakse koondvormi (koondvormi) alamvormina.
 
 ## Vormi eesmärk
 
@@ -9,17 +9,19 @@ Autoveo katkestamise kontrollvormi kasutatakse tee kontrolli käigus autoveo kat
 - Määrata katkestamise lõppemise tingimus
 - Fikseerida isiku taotlused
 
-## Menüü tee
+## Kust vorm avada
 
-**Liitvorm** → **Autoveo katkestamise kontrollvorm** → **Lisa autoveo katkestamise kontrollvorm**
+Autoveo katkestamise vorm on **koondvormi alamvorm**. Vorm avaneb koondvormi
+vahekaardil:
 
-või
-
-**Töölaud** → **Liitvorm (tee kontroll)** → alamvormide sektsioonis **Autoveo katkestamine**
+- **uue koondvormi** loomisel: märkige töölaua ploki „Koondvorm" loendis „Autoveo
+  katkestamine";
+- **olemasoleva koondvormi** vaates: lisage alamvorm koondvormi vahekaartide
+  ribalt (nupp „Lisa autoveo katkestamise kontrollvorm").
 
 ## Vormi osad ja väljad
 
-![Autoveo katkestamise kontrollvorm liitvormi vahekaardil](images/10-vorm-vedude-katkestamine/01-alamvorm.png)
+![Autoveo katkestamise kontrollvorm koondvormi vahekaardil](images/10-vorm-vedude-katkestamine/01-alamvorm.png)
 
 ### 1. Päis
 
@@ -68,9 +70,9 @@ Vormi React-komponentides (`TransportInterruptionFormPage.tsx`) pole ühtegi vä
 
 Täielikuks salvestamiseks ja kinnitamiseks peavad kõik vormi täitmiseks vajalikud andmed siiski olemas olema.
 
-## Seos liitvormiga
+## Seos koondvormiga
 
-Autoveo katkestamise vorm on **alamvorm**, mis on seotud ühe konkreetse liitvormi (`compoundFormKey`) ID-ga. Vormile pääseb ligi liitvormi vaates klõpsates lingil `Lisa autoveo katkestamise kontrollvorm` või otse lingil `/control-forms/transport-interruption/:id`.
+Autoveo katkestamise vorm on **alamvorm**, mis on seotud ühe konkreetse koondvormi (`compoundFormKey`) ID-ga. Vormile pääseb ligi koondvormi vaates klõpsates lingil `Lisa autoveo katkestamise kontrollvorm` või otse lingil `/control-forms/transport-interruption/:id`.
 
 Iga katkestamise vorm saab oma alamnumbri ja versiooni (`subFormNumber/version`), mis kuvatakse ka päises.
 

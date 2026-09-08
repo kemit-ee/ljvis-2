@@ -41,9 +41,7 @@ export function ForeignViolationFormPage() {
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
-  const { form, loading, refetch } = useFormDetail(
-    snapshotId ? undefined : id,
-  );
+  const { form, loading, refetch } = useFormDetail(snapshotId ? undefined : id);
   const [snapshot, setSnapshot] = useState<
     import('../../types').ForeignViolationForm | null
   >(null);
@@ -66,7 +64,8 @@ export function ForeignViolationFormPage() {
 
   const isAdmin = useIsAdmin();
 
-  const canEdit = isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
+  const canEdit =
+    isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
   const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
     (isAdmin || hasPermission('foreign_violation_form.write')) &&
@@ -149,13 +148,6 @@ export function ForeignViolationFormPage() {
     if (!snapshot) return <Text>{t('common.error')}</Text>;
     return (
       <div>
-        <Button
-          visualType="link"
-          onClick={() => navigate(`/control-forms/foreign-violation/${id}`)}
-          iconLeft="arrow_back"
-        >
-          {t('common.back')}
-        </Button>
         <div className="card-main">
           <Heading element="h1">
             {snapshot.formNumber
@@ -231,25 +223,12 @@ export function ForeignViolationFormPage() {
       )}
 
       {isEditActive && duplicateWarning && (
-        <Alert
-          icon="warning"
-          className="mb-1"
-          type="warning"
-          size="small"
-        >
+        <Alert icon="warning" className="mb-1" type="warning" size="small">
           {t('forms.foreign_violation.duplicateWarning', {
             formNumber: duplicateWarning.formNumber,
           })}
         </Alert>
       )}
-
-      <Button
-        visualType="link"
-        onClick={() => navigate('/')}
-        iconLeft="arrow_back"
-      >
-        {t('common.back')}
-      </Button>
 
       <div className="card-main">
         <Heading element="h1">

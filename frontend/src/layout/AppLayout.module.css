@@ -8,6 +8,10 @@
   z-index: 111;
 }
 
+.breadcrumb-bar {
+  padding-bottom: 1rem;
+}
+
 .content-desktop {
   display: flex;
   min-height: 100%;

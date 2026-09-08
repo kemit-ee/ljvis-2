@@ -21,6 +21,11 @@
   tööinspektorile" (saadab e-kirja tööinspektorile) ja „Teavita vedajat
   rikkumisest". Haldusmenetluse plokist need märked eemaldati.
 - Parandatud viga, kus vormi avalikustamine kustutas haldusmenetluse andmed.
+## 2026-09 — Töölaua ploki nimi: „Koondvorm"
+
+- Töölaua vasakpoolne plokk kannab nüüd nime **„Koondvorm"** (varem
+  „Kompleksvorm"); ka „Töös olevad koondvormid" tabel ja tühja loendi tekst.
+  Ühtne termin kogu rakenduses (vorminumbrid `KOOND-…`, kustutamisdialoog jm).
 
 ---
 
