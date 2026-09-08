@@ -284,7 +284,7 @@
     "ctud": "Tegevusloa kontrolli päringud",
     "cgr": "Mainepäringud",
     "search": "Otsing",
-    "rsi": "RSI teated",
+    "rsi": "Tehnokontrolli teated RSI",
     "ncr": "Kontrollitulemuse teated NCR",
     "riskLevels": "Riskitasemed",
     "myCompany": "Minu ettevõte",
@@ -1748,9 +1748,11 @@
         "clear": "Puudub"
       },
       "form": {
-        "titleOutgoing": "Tehnokontrolli teade (EST → ERRU)",
-        "titleInbound": "Tehnokontrolli teade (ERRU → EST)",
-        "titleNew": "Uus tehnokontrolli teade",
+        "titleOutgoing": "Tehnokontrolli teade RSI (EST → ERRU)",
+        "titleInbound": "Tehnokontrolli teade RSI (ERRU → EST)",
+        "titleNew": "Uus tehnokontrolli teade RSI",
+        "messageNumber": "Teate number",
+        "messageNumberPending": "määratakse salvestamisel",
         "headerBlock": "Teate andmed",
         "vehicleBlock": "Sõiduki andmed",
         "driverBlock": "Juhi andmed",
@@ -1761,7 +1763,7 @@
         "identificationHolderUndertaking": "Veoettevõtja",
         "identificationHolderOwner": "Omanik",
         "identificationUndertakingName": "Ettevõtja nimi",
-        "identificationCommunityLicenceNumber": "Ettevõtja ühenduse tegevusluba",
+        "identificationCommunityLicenceNumber": "Ettevõtja ühenduse tegevusloa number",
         "identificationOwnerType": "Omaniku liik",
         "identificationOwnerCompany": "Äriühing",
         "identificationOwnerNatural": "Füüsiline isik",
@@ -1822,8 +1824,8 @@
         "send_failed": "Teate saatmine ebaõnnestus"
       },
       "list": {
-        "title": "RSI teated",
-        "newMessage": "Uus tehnokontrolli teade",
+        "title": "Tehnokontrolli teated RSI",
+        "newMessage": "Uus tehnokontrolli teade RSI",
         "id": "Teate number",
         "sentAt": "Saadetud",
         "rsiFrom": "Saatnud riik",

@@ -17,6 +17,9 @@
   (nt „MSI101 – …").
 - Väljanimi „Ühenduse tegevusloa number" → „Ühenduse tegevusloa või selle
   kinnitatud ärakirja või tõestatud koopia number".
+
+---
+
 ## 2026-09 — Välisriigi rikkumise kontrollkaart: parandused
 
 - Pealkirjad korrastatud: „Rikkumise avastamise aeg ja koht" → **„Kontrolli aeg
@@ -34,11 +37,32 @@
   tööinspektorile" (saadab e-kirja tööinspektorile) ja „Teavita vedajat
   rikkumisest". Haldusmenetluse plokist need märked eemaldati.
 - Parandatud viga, kus vormi avalikustamine kustutas haldusmenetluse andmed.
+
+---
+
 ## 2026-09 — Töölaua ploki nimi: „Koondvorm"
 
 - Töölaua vasakpoolne plokk kannab nüüd nime **„Koondvorm"** (varem
   „Kompleksvorm"); ka „Töös olevad koondvormid" tabel ja tühja loendi tekst.
   Ühtne termin kogu rakenduses (vorminumbrid `KOOND-…`, kustutamisdialoog jm).
+
+---
+
+## 2026-09 — RSI (tehnokontrolli teated): parandused
+
+- Lehe ja teate pealkiri: **„Tehnokontrolli teated RSI"**; uue teate nupp
+  **„Uus tehnokontrolli teade RSI"**.
+- Uue teate vaikeväärtused: teate esitanud pädev asutus = **Kliimaministeerium**
+  (rippmenüü, varem vaba tekst), inspektor = **„Politsei- ja Piirivalveamet"**.
+  Väljasaatmisel teisendatakse mõlemad ingliskeelseks ametlikuks nimeks.
+- Teate number kuvatakse nüüd ka koostamisvaates („määratakse salvestamisel").
+- **Tehnokontrolli tulemused**: kolm valikut („Vastab nõuetele", „Korraline
+  tehnoülevaatus", „Keelamine või piiramine") on nüüd üksikud märkeruudud
+  (varem Jah/Ei raadionupud).
+- „Kontrollitud punkt" nimedest ja rikkekoodidest eemaldati „CAA_" eesliide.
+- Kuupäeva- ja kellaajaväljal tekivad eraldajad (punktid, koolon) sisestamisel
+  automaatselt.
+- „Ettevõtja ühenduse tegevusluba" → „Ettevõtja ühenduse tegevusloa number".
 
 ---
 
