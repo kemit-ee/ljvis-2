@@ -151,10 +151,7 @@ export function useForeignViolationForm(
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId:
-        form?.inspectorOrganisationId ??
-        (authUser?.organisationid != null
-          ? String(authUser.organisationid)
-          : ''),
+        form?.inspectorOrganisationId ?? authUser?.organisationcode ?? '',
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession:
         form?.inspectorProfession ?? authUser?.jobtitle ?? '',
@@ -258,18 +255,17 @@ export function useForeignViolationForm(
 
   const orgOptions = organisations.map((o) => ({
     label: o.name,
-    value: String(o.id),
+    value: o.code,
   }));
 
   const structureUnits = useMemo(() => {
-    const orgId =
-      formik.values.inspectorOrganisationId ||
-      String(authUser?.organisationid ?? '');
-    const org = organisations.find((o) => String(o.id) === String(orgId));
+    const orgCode =
+      formik.values.inspectorOrganisationId || authUser?.organisationcode || '';
+    const org = organisations.find((o) => o.code === orgCode);
     return getByCode('STRUCTURE_UNIT')
       .filter((e) => !org || e.description === org.code)
       .map((e) => ({ code: e.code, name: e.name }));
-  }, [getByCode, organisations, formik.values.inspectorOrganisationId, authUser?.organisationid]);
+  }, [getByCode, organisations, formik.values.inspectorOrganisationId, authUser?.organisationcode]);
 
   const handleOrgChange = (
     val:

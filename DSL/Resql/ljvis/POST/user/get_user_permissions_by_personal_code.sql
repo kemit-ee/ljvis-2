@@ -25,6 +25,9 @@ returns:
 - name: organisationname
   type: string
   nullable: true
+- name: organisationcode
+  type: string
+  nullable: true
 - name: email
   type: string
   nullable: true
@@ -73,6 +76,7 @@ SELECT
     u.personal_code AS personalcode,
     u.organisation_id AS organisationid,
     u.organisation_name AS organisationname,
+    (SELECT code FROM users.organisation WHERE id = u.organisation_id) AS organisationcode,
     u.structural_unit AS structuralunit,
     u.job_title AS jobtitle,
     u.email,
