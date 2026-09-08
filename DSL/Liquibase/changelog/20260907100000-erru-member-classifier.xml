@@ -4,7 +4,7 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
 http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
     <changeSet id="20260907100000" author="ljvis">
-        <sqlFile path="changelog/20260907100000-erru-member-classifier-description.sql" splitStatements="false" />
+        <sqlFile path="changelog/20260907100000-erru-member-classifier.sql" splitStatements="false" />
         <rollback>
             <sqlFile path="changelog/20260907100000-rollback.sql" splitStatements="false" />
         </rollback>

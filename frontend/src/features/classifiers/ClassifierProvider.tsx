@@ -105,9 +105,8 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
       values
         .filter(
           (v) =>
-            v.classifierCode === 'COUNTRY' &&
-            v.isValid !== false &&
-            v.description === 'ERRU_MEMBER',
+            v.classifierCode === 'ERRU_MEMBER' &&
+            v.isValid !== false,
         )
         .sort((a, b) => a.name.localeCompare(b.name)),
     [values],

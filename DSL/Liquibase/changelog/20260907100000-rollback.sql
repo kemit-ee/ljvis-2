@@ -2,21 +2,13 @@
 -- changeset ljvis:20260907100000-rollback ignore:true
 
 DO $$
-DECLARE
-    v_country_key BIGINT;
+DECLARE v_key BIGINT;
 BEGIN
-    SELECT c.classifier_key INTO v_country_key
-    FROM classifier.classifier c
-    WHERE c.code = 'COUNTRY';
-
-    IF NOT FOUND THEN
-        RETURN;
-    END IF;
-
-    UPDATE classifier.classifier_value
-    SET description = NULL
-    WHERE classifier_key = v_country_key
-      AND code IN ('AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR',
-                   'DE','GR','HU','IE','IT','LV','LT','LU','MT','NL',
-                   'PL','PT','RO','SK','SI','ES','SE');
+FOR v_key IN
+SELECT classifier_key FROM classifier.classifier
+WHERE code IN ('ERRU_MEMBER')
+    LOOP
+DELETE FROM classifier.classifier_value WHERE classifier_key = v_key;
+DELETE FROM classifier.classifier WHERE classifier_key = v_key;
+END LOOP;
 END $$;
