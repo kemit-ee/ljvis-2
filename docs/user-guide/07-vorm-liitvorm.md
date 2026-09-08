@@ -1,6 +1,6 @@
-# Liitvorm (tee kontroll)
+# Koondvorm (tee kontroll)
 
-Liitvorm on peamine tee kontrolli akt. Iga liitvorm võib sisaldada mitut alamvormi: sõidu- ja puhkeaeg, tehniline kontroll, ADR, hea maine, vedude katkestamine.
+Koondvorm on peamine tee kontrolli akt. Iga koondvorm võib sisaldada mitut alamvormi: sõidu- ja puhkeaeg, tehniline kontroll, ADR, hea maine, vedude katkestamine.
 
 ## Vormi eesmärk
 
@@ -8,19 +8,26 @@ Liitvorm on peamine tee kontrolli akt. Iga liitvorm võib sisaldada mitut alamvo
 - Siduda kontrolliga juhid, kaasreisijad ja tehnilised alamkontrollid
 - Anda alus riskihindamiseks ja statistikaks
 
-## Menüü tee
+## Kust vorm avada
 
-Töölaud → **Liitvorm** → Täida vorm
+**Töölaud → plokk „Koondvorm"**:
 
-või
+1. Kaardi „Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart" all on
+   loend **„Vali kontrollvorm(id)"** — märkige, millised alamvormid soovite kohe
+   koondvormi juurde luua (autojuhi/meeskonnaliikme sõidu- ja puhkeaeg,
+   mootorsõiduki/haagise tehnokontroll, ohtliku veose kontroll, autoveo
+   katkestamine). Kuvatakse ainult need, mille loomiseks on Teil õigus.
+2. Klõpsake **„Täida →"**. Enne tuleb valida vähemalt üks alamvorm.
 
-Menüü → Kontrollaktid → **Liitvorm**
+Koondvorm avaneb **Üldosa** vahekaardil; märgitud alamvormid on kohe eraldi
+vahekaartidena avatud. Olemasoleva koondvormi saab avada aadressilt
+`/control-forms/compound/:id`.
 
 ## Vormi osad ja kohustuslikud väljad
 
 Vorm koosneb **Üldosast** ja alamvormide vahekaartidest. Uue vormi loomisel avaneb Üldosa:
 
-![Liitvormi loomisvaade](images/07-vorm-liitvorm/01-loomisvaade.png)
+![Koondvormi loomisvaade](images/07-vorm-liitvorm/01-loomisvaade.png)
 
 ### 1. Kontrolli asukoht ja aeg
 
@@ -56,7 +63,7 @@ Ettevõtte andmeid saab otsida registrikoodi või nime järgi X-tee liidese kaud
 
 ### 4. Juhtide info
 
-Liitvormil peab olema vähemalt üks juht.
+Koondvormil peab olema vähemalt üks juht.
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
@@ -80,7 +87,7 @@ Kaasreisija andmed on valikulised, kuid soovitatavad, kui sõidukis oli kaasreis
 
 ### 7. Haagiste info
 
-Liitvormil võib lisada ühe või mitu haagist. Haagiste puhul on täidetavad:
+Koondvormil võib lisada ühe või mitu haagist. Haagiste puhul on täidetavad:
 
 - Haagise riik
 - Haagise kategooria
@@ -89,11 +96,11 @@ Liitvormil võib lisada ühe või mitu haagist. Haagiste puhul on täidetavad:
 
 ## Alamvormide lisamine
 
-Pärast liitvormi salvestamist saab sellele lisada alamvorme:
+Pärast koondvormi salvestamist saab sellele lisada alamvorme:
 
 ```mermaid
 flowchart TD
-    A[Liitvorm] --> B[Sõidu- ja puhkeaeg]
+    A[Koondvorm] --> B[Sõidu- ja puhkeaeg]
     A --> C[Tehniline kontroll — sõiduk]
     A --> D[Tehniline kontroll — haagis]
     A --> E[ADR]
@@ -101,22 +108,26 @@ flowchart TD
     A --> G[Vedude katkestamine]
 ```
 
-Iga alamvorm salvestatakse eraldi, kuid on seotud liitvormi ID-ga. Salvestatud liitvormi
+Iga alamvorm salvestatakse eraldi, kuid on seotud koondvormi ID-ga. Salvestatud koondvormi
 vaates on Üldosa ja iga alamvorm eraldi vahekaardil:
 
-![Liitvormi detailvaade vahekaartidega](images/07-vorm-liitvorm/02-detailvaade.png)
+![Koondvormi detailvaade vahekaartidega](images/07-vorm-liitvorm/02-detailvaade.png)
 
-## Vormi salvestamine ja kinnitamine
+## Vormi salvestamine, kinnitamine ja avalikustamine
 
-1. Täitke kõik kohustuslikud väljad.
-2. Klõpsake **Salvesta mustand** — vorm salvestatakse mustandina.
-3. Kontrollige andmed.
-4. Klõpsake **Kinnita** — vorm muutub avaldatuks.
+Koondvorm ja iga alamvorm läbivad olekud **Salvestatud → Kinnitatud →
+Avalikustatud**.
 
-Avaldatud vormi ei saa enam muuta. Paranduste tegemiseks tuleb luua uus vorm või pöörduda administraatori poole.
+1. Täitke kohustuslikud väljad ja klõpsake **Salvesta** (staatus *Salvestatud*).
+2. Kontrollige andmed ja klõpsake **Kinnita** (nõuab kõigi kohustuslike väljade
+   täitmist; kõik avatud alamvormid kinnitatakse koos).
+3. Klõpsake **Avalikusta**.
+
+Kinnitatud/avalikustatud vormi saab uuesti avada nupuga **Muuda** (vastava
+õigusega); iga muudatus tõstab versiooninumbrit.
 
 ## Nipid
 
 - Tee ja kilomeeter seatakse kontrolli toimumuskoha järgi.
 - Ettevõtte otsing töötab kõige täpsemini Eesti registrikoodiga (8 numbrit).
-- Kõik alamvormid peavad olema seotud liitvormiga enne kinnitamist.
+- Kõik alamvormid peavad olema seotud koondvormiga enne kinnitamist.

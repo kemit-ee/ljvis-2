@@ -10,13 +10,12 @@ Tööinspektsiooni kontrollkaarti kasutatakse tööinspektsiooni kontrolli andme
 - Salvestada karistatud isiku ja väärteomenetluse andmed.
 - Lisada kontrolli käigus tuvastatud rikkumised klassifikaatorist.
 
-## Menüü tee
+## Kust vorm avada
 
-Töölaud → **Tööinspektsiooni kontrollkaart** → Täida vorm
+**Töölaud → plokk „Vormid" → kaart „Tööinspektsiooni kontrollkaart" → „Täida →"**
 
-või
-
-Menüü → Kontrollaktid → **Tööinspektsiooni kontrollkaart**
+Vorm nõuab õigust `labour_inspection_form.write`. Olemasoleva vormi saab avada
+aadressilt `/control-forms/labour-inspection/:id`.
 
 ## Vormi osad ja väljad
 
@@ -73,7 +72,7 @@ Rikkumisi saab lisada nupuga **Lisa rikkumine**. Avanevas valikus saab valida ri
 ## Vormi salvestamine ja kinnitamine
 
 1. Täitke kõik kohustuslikud väljad.
-2. Klõpsake **Salvesta** — vorm salvestatakse mustandina.
+2. Klõpsake **Salvesta** — vorm salvestatakse (staatus Salvestatud).
 3. Kontrollige andmed.
 4. Klõpsake **Kinnita** — vorm muutub lõplikuks.
 

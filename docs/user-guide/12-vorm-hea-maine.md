@@ -9,11 +9,13 @@ Hea maine vormi (ametlik nimetus: *Hea maine nõudele mittevastavaks tunnistatud
 - Määrata veokorraldusjuhi sobivus (`Sobib` või `Sobimatu`)
 - Tuvastada sobimatuse kehtivusaeg, kui see on asjakohane
 
-## Menüü tee
+## Kust vorm avada
 
-Töölaud → **+ Lisa** → **Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht**
+**Töölaud → plokk „Vormid" → kaart „Hea maine nõudele mittevastavaks tunnistatud
+veokorraldusjuht" → „Täida →"**
 
-Või otse URL-ilt: `/control-forms/good-repute/new`
+Vorm nõuab õigust `good_repute_form.write`. Olemasoleva vormi saab avada
+aadressilt `/control-forms/good-repute/:id`.
 
 ## Vormi osad ja väljad
 

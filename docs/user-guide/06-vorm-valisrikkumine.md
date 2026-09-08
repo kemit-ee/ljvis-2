@@ -1,21 +1,29 @@
 # Välisriigis toimunud rikkumise akt
 
-Välisriigis toimunud rikkumise akti kasutatakse siis, kui välisriigi ametiasutus edastab Eesti transpordiametile teate liiklusrikkumisest, mille on toime pannud Eesti vedaja või tema juht välisriigis.
+Ametlik nimetus töölaual ja loendites: **Välisriigis teostatud autoveoalase
+kontrolli kontrollkaart**. Vormi kasutatakse siis, kui välisriigi pädev asutus
+edastab Transpordiametile teate liiklusrikkumisest, mille on välisriigis toime
+pannud Eesti vedaja või tema juht.
 
 ## Vormi eesmärk
 
 - Dokumenteerida välisriigis tuvastatud rikkumine
-- Määrata sanktsioon ja soovitatav meede
+- Määrata üks või mitu sanktsiooni ja soovitatav meede
 - Salvestada rikkumise detailid (sõiduk, juht, ettevõte)
-- Edastada andmed hilisemaks statistikaks ja riskihindamiseks
+- Pidada haldusmenetluse käiku (KLIM, AKVK, komisjoni otsus)
+- Edastada andmed statistikaks ja riskihindamiseks
 
-## Menüü tee
+## Kust vorm avada
 
-Töölaud → **Välisriigis toimunud rikkumise akt** → Täida vorm
+**Töölaud → plokk „Vormid" → kaart „Välisriigis teostatud autoveoalase kontrolli
+kontrollkaart" → nupp „Täida →"**
 
-või
+Vorm nõuab õigust `foreign_violation_form.write`. Olemasoleva vormi saab avada
+otse aadressilt `/control-forms/foreign-violation/:id`.
 
-Menüü → Kontrollaktid → **Välisriigis toimunud rikkumise akt**
+Vormi saab ka **eeltäita ERRU NCR-teatisest** (`NotifyCheckResult`): NCR-teatise
+vaates nupp „Loo VR kontrollkaart" avab uue vormi, kuhu on üle kantud teatise
+ettevõtte-, sõiduki- ja rikkumisandmed.
 
 ## Vormi osad ja kohustuslikud väljad
 
@@ -77,11 +85,12 @@ Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liides
 | Esmane registreerimine (`vehicleFirstRegistration`) | Ei | Kuupäev |
 | Keretüüp (`vehicleBodyType`) | Ei | Max 50 tähemärki |
 
-### 6. Loadokoopia info
+### 6. Ühenduse tegevusloa andmed
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Loadokoopia number (`licenceCopyNumber`) | Ei | Max 100 tähemärki |
+| Ühenduse tegevusloa ärakirja number (`licenceCopyNumber`) | Ei | Max 100 tähemärki; nupp **Otsi** kontrollib numbrit registrist |
+| Ühenduse tegevusloa kinnitatud ärakirja number | Ei | Max 100 tähemärki |
 
 ### 7. Rikkumise kirjeldus
 
@@ -90,11 +99,12 @@ Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liides
 | Rikkumise kirjeldus (`violationDescription`) | Ei | Vaba tekst |
 | Väiksemate rikkumiste arv (`minorViolationsCount`) | Ei | Arv (0–999) |
 
-### 8. Sanktsioon
+### 8. Rakendatud sanktsioon
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Sanktsioon (`sanctionCode`) | Jah | Valik: KORRAS, HOIATUS, KABOTAAŽVEO AJUTINE KEELAMINE, TRAHV, LIIKLEMISKEELD, SÕIDUKI KASUTAMISE TAKISTAMINE, MUU |
+| Rakendatud sanktsioon (`sanctionCode`) | Jah | **Üks** valik (raadionupp): Korras, Hoiatus, Kabotaažveo ajutine keelamine, Trahv, Liiklemiskeeld, Sõiduki kasutamise takistamine, Muu |
+| Lisasanktsioonid (`additionalSanctionCodes`) | Ei | Nupp **„+ Lisa sanktsioon"** avab märkeruutude loendi ülejäänud sanktsioonidega — korraga saab märkida mitu |
 | Sanktsiooni märkused (`sanctionNotes`) | Ei | Vaba tekst |
 
 ### 9. Soovitatav meede
@@ -122,24 +132,51 @@ Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liides
 
 ### 12. EL rikkumiste loend
 
-Lahtri klõpsates avaneb EL määruse rikkumiste loend, mis on jagatud rühmadesse MSI, VSI, SI, MI. Valida saab mitme rikkumise. Need väärtused ei ole vormi täitmiseks kohustuslikud, kuid on olulised riskihindamiseks.
+Akordioni avades kuvatakse EL määruse rikkumiste loend, mis on jagatud rühmadesse
+MSI, VSI, SI, MI. Valida saab mitu rikkumist (märkeruudud). Need väärtused ei ole
+vormi täitmiseks kohustuslikud, kuid on olulised riskihindamiseks.
 
-## Vormi salvestamine
+### 13. Haldusmenetlus
 
-Pärast kõigi kohustuslike väljade täitmist saate vormi salvestada. Vormi elutsükkel:
+See plokk on nähtav **ainult administraatorile**. Siia märgitakse raske
+autoveoalase rikkumise haldusmenetluse käik.
 
-```mermaid
-flowchart LR
-    A[Täida vorm] --> B[Salvesta mustand]
-    B --> C[Valideeri]
-    C -->|Vead| A
-    C -->|Korras| D[Salvesta lõplikult]
-    D --> E[Kinnita]
-    E --> F[Avaldatud]
-```
+| Väli | Selgitus |
+|---|---|
+| KLIM selgitustaotluse kuupäev (`klimClarificationDate`) | Kuupäev |
+| Vedaja seletuse kuupäev (`carrierExplanationDate`) | Kuupäev |
+| Karistus kehtib kuni (`penaltyValidUntil`) | Kuupäev |
+| Järgmise komisjoni koosolek (AKVK) (`akvkNextMeetingDate`) | Kuupäev |
+| Viimase komisjoni otsuse kuupäev (`commissionLastDecisionDate`) | Kuupäev |
+| Otsus (`adminProcedureDecision`) | Vaba tekst |
+| Kehtetu või menetletud (`penaltyExpiredOrProcessed`) | Märkeruut |
+| Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks (`foreignAuthorityProposal`) | Märkeruut |
+| Teavita vedajat rikkumisest (`notifyCarrier`) | Märkeruut — märkides saadetakse vedajale teavitus |
+
+### 14. Failid
+
+Failide plokk kuvatakse pärast esimest salvestamist (kui vormil on number). Vt
+[Failide lisamine](14-failide-lisamine.md).
+
+## Vormi salvestamine ja kinnitamine
+
+Vorm läbib kolm olekut: **Salvestatud → Kinnitatud → Avalikustatud**.
+
+1. Täitke kohustuslikud väljad ja klõpsake **Salvesta** (staatus *Salvestatud*).
+2. Klõpsake **Kinnita** — nõuab kõigi kohustuslike väljade täitmist.
+3. Klõpsake **Avalikusta**.
+
+Kinnitatud/avalikustatud vormi saab administraator uuesti avada nupuga **Muuda**;
+iga muudatus tõstab versiooninumbrit.
+
+## Otsing
+
+Vormiotsingus (menüü **Otsing**) on välisriigi rikkumise kontrollkaardil kaks
+lisafiltrit: **teatav riik** ja **sanktsioon**.
 
 ## Nipid
 
 - Kasutage otsingunuppe ettevõtte ja sõiduki andmete automaatseks täitmiseks.
-- Kui sanktsioon või soovitatav meede on "MUU", peate kindlasti täitma täpsustava tekstivälja.
-- EL rikkumiste raskusastmed (MSI/VSI/SI/MI) mõjutavad tulevikus ettevõtte riskiskoori.
+- Kui sanktsioon või soovitatav meede on „MUU", peate täitma täpsustava tekstivälja.
+- EL rikkumiste raskusastmed (MSI/VSI/SI/MI) mõjutavad ettevõtte riskiskoori.
+- Süsteem hoiatab, kui sama ettevõtte, sõiduki ja kuupäevaga vorm on juba olemas.
