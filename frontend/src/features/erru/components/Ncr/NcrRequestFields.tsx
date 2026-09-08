@@ -30,7 +30,7 @@ type NcrRequestFormApi = ReturnType<typeof useNcrRequestForm>;
  */
 export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
   const { t } = useTranslation();
-  const { getByCode } = useClassifiers();
+  const { getByCode, getErruMemberCountries } = useClassifiers();
   const { organisations } = useOrganisations();
   const {
     formik,
@@ -44,10 +44,7 @@ export function NcrRequestFields({ form }: { form: NcrRequestFormApi }) {
     removePenaltyRequested,
   } = form;
 
-  const countries = useMemo(
-    () => getByCode('COUNTRY').filter((c) => c.isValid !== false),
-    [getByCode],
-  );
+  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
   const requestSources = useMemo(
     () => getByCode('NCR_REQUEST_SOURCE').filter((c) => c.isValid !== false),
     [getByCode],

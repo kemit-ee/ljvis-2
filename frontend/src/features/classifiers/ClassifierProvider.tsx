@@ -27,6 +27,8 @@ interface ClassifierContextValue {
     classifierCode: string,
     parentKey: number | null,
   ) => ClassifierEntry[];
+  /** Valid COUNTRY entries that are EU ERRU member states, sorted alphabetically by name. */
+  getErruMemberCountries: () => ClassifierEntry[];
   refetch: () => Promise<void>;
 }
 
@@ -36,6 +38,7 @@ const ClassifierContext = createContext<ClassifierContextValue>({
   getByCode: () => [],
   getValue: () => undefined,
   getChildren: () => [],
+  getErruMemberCountries: () => [],
   refetch: async () => {},
 });
 
@@ -97,6 +100,18 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
     [values],
   );
 
+  const getErruMemberCountries = useCallback(
+    () =>
+      values
+        .filter(
+          (v) =>
+            v.classifierCode === 'ERRU_MEMBER' &&
+            v.isValid !== false,
+        )
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [values],
+  );
+
   const contextValue = useMemo(
     () => ({
       values,
@@ -104,9 +119,10 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
       getByCode,
       getValue,
       getChildren,
+      getErruMemberCountries,
       refetch: fetchValues,
     }),
-    [values, loading, getByCode, getValue, getChildren, fetchValues],
+    [values, loading, getByCode, getValue, getChildren, getErruMemberCountries, fetchValues],
   );
 
   return (
