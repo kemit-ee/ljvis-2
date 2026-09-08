@@ -26,6 +26,8 @@ declaration:
 
     Called by CronManager hourly (DSL/CronManager/yvkehtivus-sync.yaml).
   namespace: cron
+  allowlist:
+    body: []
 
 fetchCandidates:
   call: http.post

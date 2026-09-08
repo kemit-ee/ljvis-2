@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-09 — Kasutaja loomine: telefon ja ligipääsu lõpp salvestatakse
+
+- Uue kasutaja (nii asutuse- kui kohaliku administraatori) loomisel läksid
+  **telefoninumber** ja **ligipääsu lõppkuupäev** varem kaotsi — väljad
+  salvestusid tühjaks, sõltumata sisestusest. Nüüd salvestatakse mõlemad
+  õigesti. (Olemasolevate kasutajate muutmisel see viga ei esinenud.)
+
+---
+
 ## 2026-09 — VR kontrollkaart: RS ettepanekud
 
 - Ühe sanktsiooni asemel saab nüüd märkida mitu sanktsiooni korraga (lisasanktsioonid lisatakse põhisanktsiooni kõrvale).

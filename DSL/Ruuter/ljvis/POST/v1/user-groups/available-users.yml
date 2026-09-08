@@ -14,6 +14,12 @@ declaration:
       - field: userGroupId
         type: string
         description: "Filter by user group"
+      - field: sorting
+        type: string
+      - field: search
+        type: string
+      - field: organisationIds
+        type: string
 
 extractRequestData:
   assign:
