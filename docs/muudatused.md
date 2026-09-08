@@ -48,6 +48,11 @@
 
 ---
 
+## 2026-09 — Menüü: „Riskiskoorid" eraldi punktiks
+
+- Menüüpunkt **„Riskitasemed"** on tõstetud „Haldus" alt välja **vasakmenüü
+  ülatasandile** ja ümber nimetatud **„Riskiskoorid"**. Sisu ja õigus
+  (`risk_report.list`) ei muutu.
 ## 2026-09 — RSI (tehnokontrolli teated): parandused
 
 - Lehe ja teate pealkiri: **„Tehnokontrolli teated RSI"**; uue teate nupp

@@ -1171,7 +1171,7 @@
     "search": "Search",
     "rsi": "Roadside inspection messages RSI",
     "ncr": "Notify Check Result messages NCR",
-    "riskLevels": "Risk levels",
+    "riskScores": "Risk scores",
     "myCompany": "My company",
     "notifications": "Notifications"
   },
@@ -1504,7 +1504,7 @@
     "logoAlt": "COMING"
   },
   "riskScores": {
-    "title": "Risk levels",
+    "title": "Risk scores",
     "companyName": "Transport undertaking",
     "companyRegCode": "Registry code",
     "riskScore": "Risk score",
