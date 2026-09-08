@@ -9,7 +9,7 @@ veeru väärtusega `TRAM`. Vt arhitektuuriotsust ADR-001.
 
 ## Vormi eesmärk
 
-- Registreerida Transpordiameti teostatud tee kontroll ilma eraldi liitvormita
+- Registreerida Transpordiameti teostatud tee kontroll ilma eraldi koondvormita
 - Dokumenteerida kontrollikoht, sõiduk, vedaja ja kontrolli teostanud ametiisik
 - Täita autojuhi sõidu- ja puhkeaja alamvorm (dokumendid/õigused, rikkumised,
   kontrolli tulemus, menetluse liik)
@@ -22,19 +22,17 @@ veeru väärtusega `TRAM`. Vt arhitektuuriotsust ADR-001.
 - PPA-õigustega kasutaja ei näe TRAM-vorme ja vastupidi — ka otsingus kuvatakse
   ainult oma asutuse vorme
 
-## Menüü tee
+## Kust vorm avada
 
-**Töölaud → Transpordiameti kontrollkaart**
+**Töölaud → plokk „Vormid" → kaart „Transpordiameti kontrollkaart" → „Täida →"**
 
-Olemasolevat vormi saab avada otse URL-ilt:
-
-- `/control-forms/tram-driver/:id`
+Olemasolevat vormi saab avada otse URL-ilt `/control-forms/tram-driver/:id`.
 
 ## Vormi ülesehitus
 
 ![Transpordiameti kontrollkaardi loomisvaade](images/18-vorm-tram-kontrollkaart/01-loomisvaade.png)
 
-Vormil on üldosa (identne PPA liitvormi üldosaga) ja üks alamvorm — autojuhi tab.
+Vormil on üldosa (identne PPA koondvormi üldosaga) ja üks alamvorm — autojuhi tab.
 Kaasreisija / meeskonnaliikme, tehnoülevaatuse, ADR ja veo katkestamise alamvorme
 TRAM-kaardil ei ole.
 

@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-09 — Töölaua ploki nimi: „Koondvorm"
+
+- Töölaua vasakpoolne plokk kannab nüüd nime **„Koondvorm"** (varem
+  „Kompleksvorm"); ka „Töös olevad koondvormid" tabel ja tühja loendi tekst.
+  Ühtne termin kogu rakenduses (vorminumbrid `KOOND-…`, kustutamisdialoog jm).
+
+---
+
 ## 2026-09 — Hea maine vorm: pealkiri ja abitekst
 
 - Vormi pealkiri (nii ametniku kui kodaniku vaates ning „vormi ei leitud"

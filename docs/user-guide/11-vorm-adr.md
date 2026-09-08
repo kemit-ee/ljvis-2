@@ -10,17 +10,18 @@ ADR kontrollvormi kasutatakse ohtliku veose kontrolli tulemuste dokumenteerimise
 - Fikseerida rikkumised ja kontrolli tulemused
 - Edastada vajadusel andmed X-tee kaudu
 
-## Menüü tee
+## Kust vorm avada
 
-Liitvormis: **Liitvorm** → **Lisa ADR kontrollvorm**
+ADR kontrollvorm on **koondvormi alamvorm**. Vorm avaneb koondvormi vahekaardil:
 
-või
-
-Menüü → Kontrollaktid → **ADR kontrollvorm**
+- **uue koondvormi** loomisel: märkige töölaua ploki „Koondvorm" loendis „ADR
+  kontrollvorm (ohtlik veos)";
+- **olemasoleva koondvormi** vaates: lisage alamvorm vahekaartide ribalt (nupp
+  „Lisa ADR kontrollvorm").
 
 ## Vormi osad ja kohustuslikud väljad
 
-![ADR kontrollvorm liitvormi vahekaardil](images/11-vorm-adr/01-alamvorm.png)
+![ADR kontrollvorm koondvormi vahekaardil](images/11-vorm-adr/01-alamvorm.png)
 
 Vorm on jagatud kaartideks. Kui välja juures on täht `*`, on see kohustuslik.
 
@@ -147,7 +148,7 @@ Kuvatakse pärast kinnitamist. Muudetav ainult õigusega `control_form.edit_lock
 ## Vormi salvestamine ja kinnitamine
 
 1. Täitke kõik kohustuslikud väljad.
-2. Klõpsake **Salvesta** — vorm salvestatakse mustandina.
+2. Klõpsake **Salvesta** — vorm salvestatakse (staatus Salvestatud).
 3. Klõpsake **Kinnita** — vorm muutub lõplikult salvestatuks ja nähtavaks X-tee andmete sisestamiseks.
 
 Pärast kinnitamist ei saa vormi tavaliselt enam muuta. Paranduste tegemiseks on vaja administraatori õigust `control_form.edit_locked`.

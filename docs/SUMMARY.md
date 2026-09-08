@@ -14,7 +14,7 @@
 - [Vaate vahetamine](user-guide/19-vaate-vahetamine.md)
 - [Vormid](user-guide/05-vormide-uldine.md)
   - [Välisriigi rikkumine](user-guide/06-vorm-valisrikkumine.md)
-  - [Liitvorm](user-guide/07-vorm-liitvorm.md)
+  - [Koondvorm](user-guide/07-vorm-liitvorm.md)
     - [Transpordiameti kontrollkaart](user-guide/18-vorm-tram-kontrollkaart.md)
   - [Tööinspektsiooni kontrollakt](user-guide/08-vorm-tooinspektsioon.md)
   - [Tehniline kontroll](user-guide/09-vorm-tehniline-kontroll.md)

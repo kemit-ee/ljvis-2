@@ -392,9 +392,9 @@
       "organisation": "Organisatsioon"
     },
     "sections": {
-      "compoundBlock": "Kompleksvorm",
+      "compoundBlock": "Koondvorm",
       "formsBlock": "Vormid",
-      "activeCompound": "Töös olevad kompleksvormid",
+      "activeCompound": "Töös olevad koondvormid",
       "activeStandalone": "Töös olevad vormid"
     },
     "compound": {
@@ -407,7 +407,7 @@
       "vorm": "Vorm"
     },
     "empty": {
-      "activeCompound": "Pooleliolevaid kompleksvorme ei ole",
+      "activeCompound": "Pooleliolevaid koondvorme ei ole",
       "activeStandalone": "Pooleliolevaid vorme ei ole"
     },
     "columns": {

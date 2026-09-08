@@ -64,7 +64,7 @@ Koodi ja nimetuse muutmine võib mõjutada vormides juba sisestatud andmeid, see
 |---|---|
 | Riigid | Vormide riigi valikud |
 | Maakonnad | Aadressi- ja kontrolliandmed |
-| Teed | Liitvormi tee valikud |
+| Teed | Koondvormi tee valikud |
 | Rikkumiste koodid | EL määruse rikkumised |
 | Sanktsioonid | Sanktsioonide valikud |
 | Ametikohad | Inspektorite ametikohad |
