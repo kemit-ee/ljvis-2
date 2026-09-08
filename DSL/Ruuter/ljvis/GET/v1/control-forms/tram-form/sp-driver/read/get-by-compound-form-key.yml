@@ -6,7 +6,6 @@ declaration:
   allowlist:
     params:
       - field: compoundFormKey
-        type: number
 
 getForm:
   call: http.post

@@ -15,7 +15,6 @@ declaration:
       - field: companyName
         type: string
       - field: maxResults
-        type: integer
 
 validate:
   switch:

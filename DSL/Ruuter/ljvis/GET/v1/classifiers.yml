@@ -9,10 +9,8 @@ declaration:
         type: string
         description: "Search by classifier code or name"
       - field: page
-        type: number
         description: "Page number"
       - field: pageSize
-        type: number
         description: "Page size"
       - field: sorting
         type: string

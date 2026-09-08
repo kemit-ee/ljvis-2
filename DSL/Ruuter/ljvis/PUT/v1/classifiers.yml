@@ -6,7 +6,6 @@ declaration:
   allowlist:
     body:
       - field: id
-        type: number
       - field: name
         type: string
       - field: description
