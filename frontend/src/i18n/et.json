@@ -846,6 +846,8 @@
       "transportNatureCommercial": "Tasuline",
       "transportNatureOwn": "Oma kulul",
       "transportNatureExempt": "Tegevusloa nõudest vabastatud vedu",
+      "liiniNumber": "Liini number",
+      "liiniNimetus": "Liini nimetus",
       "cargoClass": "Veoklass",
       "classDomestic": "Riigisisene vedu",
       "classEuEeaCh": "EL või EMP liikmesriikide või Šveitsi vaheline vedu",

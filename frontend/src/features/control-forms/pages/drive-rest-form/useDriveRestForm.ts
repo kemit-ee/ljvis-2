@@ -274,6 +274,8 @@ export function useDriveRestForm(
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
       notes: form?.notes ?? '',
+      liiniNumber: form?.liiniNumber ?? '',
+      liiniNimetus: form?.liiniNimetus ?? '',
     },
     validationSchema,
     onSubmit: async (values) => {

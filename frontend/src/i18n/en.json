@@ -1086,6 +1086,8 @@
       "transportNatureCommercial": "For hire or reward",
       "transportNatureOwn": "Own account",
       "transportNatureExempt": "Transport exempt from licensing requirement",
+      "liiniNumber": "Line number",
+      "liiniNimetus": "Line name",
       "cargoClass": "Cargo class",
       "controlResult": "Inspection result",
       "controlResultLabel": "Inspection result",

@@ -4,8 +4,13 @@
 
 ---
 
-## 2026-11 — Transpordiameti kontrollkaart: sõitjateveo dokumendikontrolli täiendused
+## 2026-11 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
 
+- **Liini number ja liini nimetus** — kõikide liinivedude korral (nii siseriiklik kui
+  rahvusvaheline) kuvatakse nüüd autojuhi sõidu- ja puhkeaja alamvormil kaks uut
+  tekstivälja: „Liini number" ja „Liini nimetus". Väljad on nähtavad ainult siis,
+  kui veoliigiks on valitud **Sõitjatevedu**. Kehtib nii PPA kui Transpordiameti
+  kontrollkaardil.
 - **„Muud dokumendid" osa** (dokumendi/õiguse kontrolli akordion) täiendati seitsme
   sõitjateveo-spetsiifilise kirjega, mis esinesid PPA pabervormil kuid puudusid
   digisüsteemist:
@@ -16,8 +21,7 @@
   - Vedaja ei peatu sõiduplaanis märgitud peatuses
   - Vedaja teenindab märkimata peatust
   - Vedaja kasutab mittevastavat sõidukit
-  Kirjed kuvatakse ainult **sõitjateveo** veoliigi korral (nagu liiniveo sõiduplaan
-  ja oma kulul sõitjateveo kirjed).
+  Kirjed kuvatakse ainult **sõitjateveo** veoliigi korral.
 - **Vaatamisvaates (kinnitatud/avalikustatud vorm)** peideti nüüd ka Transpordiameti
   kontrollkaardil sektsioonid „Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass
   ja mõõtmed" ning „ATP kokkuleppe nõuete kontroll" — need on TRAM-le ebaolulised

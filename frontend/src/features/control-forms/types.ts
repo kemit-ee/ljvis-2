@@ -234,6 +234,8 @@ export interface DriveRestForm {
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
   notes?: string;
+  liiniNumber?: string;
+  liiniNimetus?: string;
 }
 
 export type TransportClass = {

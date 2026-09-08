@@ -101,6 +101,12 @@ params:
   notes:
     type: string
     required: false
+  liiniNumber:
+    type: string
+    required: false
+  liiniNimetus:
+    type: string
+    required: false
   created_by:
     type: string
     required: false
@@ -157,6 +163,8 @@ INSERT INTO forms.sp_driver_form (sp_driver_form_key,
                                   enforcement_decision,
                                   proceeding_closure_basis,
                                   notes,
+                                  liini_number,
+                                  liini_nimetus,
                                   created_by)
 SELECT
         :key::BIGINT,
@@ -196,6 +204,8 @@ SELECT
         COALESCE(NULLIF(:enforcementDecision, ''), l.enforcement_decision),
         COALESCE(NULLIF(:proceedingClosureBasis, ''), l.proceeding_closure_basis),
         NULLIF(:notes, ''),
+        NULLIF(:liiniNumber, ''),
+        NULLIF(:liiniNimetus, ''),
         :created_by
 FROM latest l
 RETURNING sp_driver_form_key AS id, sub_form_number;
