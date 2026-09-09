@@ -252,4 +252,4 @@ SELECT
   COALESCE(:driverNotApplicable::BOOLEAN, FALSE),
   :created_by
 FROM latest l
-RETURNING compound_form_key AS id, form_number AS "formNumber", version;
+RETURNING compound_form_key AS id, form_number, version;

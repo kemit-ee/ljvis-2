@@ -36,6 +36,9 @@ call newman run "%COL%\classifiers.collection.json" -e "%ENV%" -r cli,htmlextra 
 echo Running collection: compound-form.collection.json
 call newman run "%COL%\compound-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\compound-form.html"
 
+echo Running collection: tram-form.collection.json
+call newman run "%COL%\tram-form.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\tram-form.html"
+
 echo Running collection: driverest-forms.collection.json
 call newman run "%COL%\driverest-forms.collection.json" -e "%ENV%" --delay-request 300 -r cli,htmlextra --reporter-htmlextra-export "%REPORT_DIR%\driverest-forms.html"
 
