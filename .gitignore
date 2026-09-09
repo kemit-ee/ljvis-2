@@ -52,3 +52,6 @@ docs/book/
 build/
 scripts/.resql-audit.json
 /docs/screenshots/node_modules
+
+# Ruuter dsl-lint / dsl-test binaries, built in CI (see .github/workflows/ci.yml)
+.ruuter-tools/
