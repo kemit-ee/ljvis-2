@@ -236,7 +236,14 @@ WITH latest AS (
          control_year,
          enforcement_decision,
          proceeding_closure_basis,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version
+         -- Publishing bumps /V (confirmed -> published). Otherwise: repeat saves
+         -- and the saved -> confirmed transition keep the version; only re-saving
+         -- already-locked data (status unchanged, not 'saved') bumps.
+         CASE
+           WHEN :status = 'published' AND status <> 'published' THEN version + 1
+           WHEN status = 'saved' OR :status <> status THEN version
+           ELSE version + 1
+         END AS version
   FROM forms.tram_control_card
   WHERE tram_control_card_key = :key::BIGINT
   ORDER BY created_at DESC
