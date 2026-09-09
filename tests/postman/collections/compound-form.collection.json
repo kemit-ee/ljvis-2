@@ -1,0 +1,364 @@
+{
+  "info": {
+    "name": "LJVIS — Compound Form (koondvorm)",
+    "_postman_id": "ljvis-compound-form-v1",
+    "description": "Functional tests for /control-forms/compound-form/** endpoints. Covers permission boundaries, the full status lifecycle (saved -> confirmed -> published), the saved-state no-version-bump rule, admin re-save of a confirmed form (version bump), admin re-save of a published form with new data (regression test for bug where old data was persisted instead of new values), and GET by id. Self-contained: authenticates and creates its own test data.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "auth", "dev", "dev-login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "auth", "dev", "dev-login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var token = typeof body === 'string' ? body : (body.response || body.token || '');",
+              "pm.test('JWT token received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST compound-form/edit/save — no permission → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_noperm}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"status\": \"saved\", \"controlDate\": \"2026-01-15\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CI001EE\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"A_2012\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 without compound_form.write', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST compound-form/edit/save — create (happy path) → 200, koond- number, version 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"\", \"status\": \"saved\", \"controlDate\": \"2026-01-15\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CI001EE\", \"vehicleMake\": \"DAF\", \"vehicleModel\": \"XF\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"A_2012\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('id present', () => pm.expect(row.id).to.be.a('number').and.above(0));",
+              "pm.test('form number has koond- prefix', () => pm.expect(String(row.formNumber || row.form_number || '')).to.match(/^koond-\\d{4}-\\d+$/));",
+              "pm.test('version is 1', () => pm.expect(row.version).to.eql(1));",
+              "pm.environment.set('created_cf_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET compound-form?q= → 200, status saved",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form?q={{created_cf_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form"],
+          "query": [{ "key": "q", "value": "{{created_cf_id}}" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var f = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "pm.test('status is saved', () => pm.expect(f.status).to.eql('saved'));",
+              "pm.test('vehicleRegNr matches', () => pm.expect(f.vehicleRegNr).to.eql('CI001EE'));",
+              "pm.test('address matches', () => pm.expect(f.address).to.eql('Testi tee 1'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST compound-form/edit/save — re-save while saved → version stays 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_cf_id}}\", \"status\": \"saved\", \"controlDate\": \"2026-01-15\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1 Updated\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CI001EE\", \"vehicleMake\": \"DAF\", \"vehicleModel\": \"XF\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"A_2012\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version stays 1 (saved-state resave rule)', () => pm.expect(row.version).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST compound-form/edit/confirm — happy path (saved -> confirmed) → 200, version unchanged",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/confirm",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "confirm"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_cf_id}}\", \"status\": \"confirmed\", \"controlDate\": \"2026-01-15\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1 Updated\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CI001EE\", \"vehicleMake\": \"DAF\", \"vehicleModel\": \"XF\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"A_2012\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version unchanged by confirm', () => pm.expect(row.version).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST compound-form/edit/save — admin re-saves confirmed form → 200, version bumps to 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_cf_id}}\", \"status\": \"confirmed\", \"controlDate\": \"2026-01-15\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1 Admin Edit\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CI001EE\", \"vehicleMake\": \"DAF\", \"vehicleModel\": \"XF\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"A_2012\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version bumps to 2 (edit_locked re-save of confirmed form)', () => pm.expect(row.version).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST compound-form/edit/publish — happy path (confirmed -> published) → 200, version unchanged",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/publish",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "publish"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_cf_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version unchanged by publish', () => pm.expect(row.version).to.eql(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST compound-form/edit/save — admin re-saves published form → 200, status published, version bumps to 3, new data persisted",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form/edit/save",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form", "edit", "save"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{created_cf_id}}\", \"status\": \"published\", \"controlDate\": \"2026-01-15\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1 Published Resave\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CI001EE\", \"vehicleMake\": \"DAF\", \"vehicleModel\": \"XF 106\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"A_2012\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version bumps to 3 (edit_locked re-save of published form)', () => pm.expect(row.version).to.eql(3));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET compound-form?q= after published resave → status published, new data persisted",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "{{cookie_admin}}" }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/compound-form?q={{created_cf_id}}",
+          "host": ["{{api_url}}"],
+          "path": ["ljvis", "v1", "control-forms", "compound-form"],
+          "query": [{ "key": "q", "value": "{{created_cf_id}}" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var f = (raw && typeof raw === 'object' && 'response' in raw) ? raw.response : raw;",
+              "pm.test('status is still published (regression: was being saved with old data)', () => pm.expect(f.status).to.eql('published'));",
+              "pm.test('address updated to new value (regression: was returning old data)', () => pm.expect(f.address).to.eql('Testi tee 1 Published Resave'));",
+              "pm.test('vehicleModel updated to new value', () => pm.expect(f.vehicleModel).to.eql('XF 106'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

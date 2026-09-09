@@ -7,8 +7,6 @@ declaration:
     body:
       - field: id
         type: string
-      - field: formNumber
-        type: string
       - field: controlDate
         type: string
       - field: controlTime
@@ -101,7 +99,6 @@ declaration:
 extractRequestData:
   assign:
     key: "${incoming.body.id}"
-    form_number: "${incoming.body.formNumber}"
     status: "confirmed"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
@@ -147,6 +144,8 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit}"
     inspector_profession: "${incoming.body.inspectorProfession}"
     created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: check_driver1_personal_code_not_empty
 
 check_driver1_personal_code_not_empty:
@@ -203,7 +202,6 @@ confirmForm:
       type: json
     body:
       key: ${key}
-      formNumber: ${form_number}
       status: ${status}
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -280,7 +278,7 @@ logAjDriver1:
 checkDriver2AjLog:
   switch:
     - condition: "${driver2_personal_code_ee == null || driver2_personal_code_ee == ''}"
-      next: returnSuccess
+      next: buildLogDescription
   next: logAjDriver2
 
 logAjDriver2:
@@ -296,6 +294,26 @@ logAjDriver2:
       receiver_name: ""
       receiver_system: "ljvis2"
   result: ajLog2Result
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "Koondvorm kinnitatud, koondvormi võti=${compound_form_key}, koondvormi number=${(confirmRes.response.body[0].formNumber)}/${(confirmRes.response.body[0].version)}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.compound_form.confirm"
+    event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: ${description}
+    log_content: "{\"compoundFormKey\":${compound_form_key}}"
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:

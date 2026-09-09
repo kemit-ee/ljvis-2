@@ -135,6 +135,7 @@ export function CompoundFormCreatePage() {
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
   const [trailerTabIndices, setTrailerTabIndices] = useState<Set<number>>(new Set());
+  const [showValidationError, setShowValidationError] = useState(false);
 
   const removeTab = (tabId: string) => {
     setOpenTabs((prev) => prev.filter((t) => t !== tabId));
@@ -493,6 +494,11 @@ export function CompoundFormCreatePage() {
         maxWidth: containerWidth,
       }}
     >
+      {showValidationError && (
+        <Alert icon="error" className="mb-1" type="danger" size="small">
+          {t('forms.validationErrorNote')}
+        </Alert>
+      )}
       <div className="card-main">
         <Heading element="h1">{headingLabel}</Heading>
         {!isDesktop && addFormDropdown}
@@ -2558,8 +2564,16 @@ export function CompoundFormCreatePage() {
 
               // Step 2: If validation fails, block saving and show errors
               if (!isValid) {
+                setShowValidationError(true);
+                // Kui üldosa (tab-1) valideerimise viga, lülitu tab-1-le — kasutaja näeb välja viga
+                const compoundHasErrors = Object.keys(await formik.validateForm()).length > 0;
+                if (compoundHasErrors && activeTab !== 'tab-1') {
+                  setActiveTab('tab-1');
+                }
+                window.scrollTo(0, 0);
                 return;
               }
+              setShowValidationError(false);
 
               // Step 3: Save compound form
               formik.handleSubmit();
@@ -2621,9 +2635,7 @@ export function CompoundFormCreatePage() {
                       isDynamicTrailerTab);
                   if (tabDef) {
                     if (isAdrTab) {
-                      const raw = savedFormData.current[
-                        tabId
-                      ] as Partial<AdrForm>;
+                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<AdrForm>;
                       const isBlank = (obj: Record<string, unknown>) =>
                         Object.values(obj).every((v) => v == null || v === '');
                       const values = {
@@ -2676,9 +2688,7 @@ export function CompoundFormCreatePage() {
                       }
                     } else if (isTechnicalCheck) {
                       const variant = tabDef.type as TechnicalCheckVariant;
-                      const raw = savedFormData.current[
-                        tabId
-                      ] as Partial<TechnicalCheckForm>;
+                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<TechnicalCheckForm>;
                       const values = {
                         ...raw,
                         compoundFormKey: id,
@@ -2699,9 +2709,7 @@ export function CompoundFormCreatePage() {
                         );
                       }
                     } else if (isTransportInterruptionTab) {
-                      const raw = savedFormData.current[
-                        tabId
-                      ] as Partial<TransportInterruptionForm>;
+                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<TransportInterruptionForm>;
                       const payload = {
                         ...raw,
                         compoundFormKey: id,

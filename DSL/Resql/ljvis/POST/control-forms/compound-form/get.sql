@@ -136,10 +136,14 @@ returns:
 - name: created_by
   type: string
   nullable: true
+- name: version
+  type: number
+  nullable: true
 */
 SELECT
   compound_form_key AS id,
   form_number,
+  version,
   status,
   control_date,
   control_time::TEXT AS control_time,

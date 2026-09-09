@@ -112,12 +112,10 @@ export const publishCompoundForm = (id: string) =>
 
 export const deleteCompoundForm = (
   id: string,
-  form_number: string,
   old_status: string,
 ) =>
   post<CompoundForm[]>(`/v1/control-forms/compound-form/edit/delete`, {
     id,
-    form_number,
     old_status,
   });
 
@@ -169,12 +167,10 @@ export const publishTramForm = (id: string) =>
 
 export const deleteTramForm = (
   id: string,
-  form_number: string,
   old_status: string,
 ) =>
   post<CompoundForm[]>(`/v1/control-forms/tram-form/edit/delete`, {
     id,
-    form_number,
     old_status,
   });
 

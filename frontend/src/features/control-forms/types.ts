@@ -152,6 +152,7 @@ export type Driver = {
 
 export interface CompoundForm {
   id?: string;
+  version?: number;
   formNumber: string;
   status?: string;
   controlCountryCode?: string;

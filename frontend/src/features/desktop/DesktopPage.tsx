@@ -320,6 +320,7 @@ export function DesktopPage() {
                     </div>
                     <Button
                       visualType="link"
+                      color={compoundFillDisabled ? "text" : "default"}
                       iconRight="arrow_forward"
                       disabled={compoundFillDisabled}
                       onClick={fillCompoundForm}

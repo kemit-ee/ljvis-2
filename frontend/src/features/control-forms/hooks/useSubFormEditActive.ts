@@ -316,7 +316,7 @@ export function useDeleteAllSubForms({ driver, teammate, vehicle, trailers, adr,
       await deleteTransportInterruptionForm(String(transportInterruption.form.id), transportInterruption.form.status ?? '').catch(console.error);
     }
     if (compoundForm?.id && compoundForm.formNumber) {
-      await deleteCompoundForm(String(compoundForm.id), compoundForm.formNumber, compoundForm.status ?? '').catch(console.error);
+      await deleteCompoundForm(String(compoundForm.id), compoundForm.status ?? '').catch(console.error);
     }
     navigate('/');
   }, [driver, teammate, vehicle, trailers, adr, transportInterruption, compoundForm, navigate]);

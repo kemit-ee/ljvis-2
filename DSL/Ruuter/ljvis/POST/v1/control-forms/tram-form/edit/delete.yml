@@ -7,15 +7,12 @@ declaration:
     body:
       - field: id
         type: string
-      - field: form_number
-        type: string
       - field: old_status
         type: string
 
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    form_number: "${incoming.body.form_number}"
     old_status: "${incoming.body.old_status}"
     status: "deleted"
     created_by: "${u.personalcode || ''}"
@@ -42,7 +39,7 @@ logAuditEvent:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    form_number: ${form_number}
+    form_number: "${deleteRes.response.body[0].formNumber + '/' + deleteRes.response.body[0].version}"
     old_status: ${old_status}
     actor_name: ${actor_name}
     actor_personal_code: ${actor_personal_code}
