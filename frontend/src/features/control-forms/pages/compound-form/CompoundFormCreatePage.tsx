@@ -976,6 +976,7 @@ export function CompoundFormCreatePage() {
                             id="vehicleFirstRegistration"
                             label={t('forms.compound.vehicleFirstRegistration')}
                             monthYearSelectType="grid"
+                            disableFuture
                             selected={
                               formik.values.vehicleFirstRegistration
                                 ? new Date(
@@ -1325,6 +1326,7 @@ export function CompoundFormCreatePage() {
                                         label={t(
                                           'forms.compound.trailerFirstRegistration',
                                         )}
+                                        disableFuture
                                         monthYearSelectType="grid"
                                         selected={
                                           trailer.firstRegistration
@@ -1353,7 +1355,9 @@ export function CompoundFormCreatePage() {
                                         'forms.compound.trailerCategory',
                                       )}
                                       inputType="radio"
-                                      direction={radioRowsFit ? 'row' : 'column'}
+                                      direction={
+                                        radioRowsFit ? 'row' : 'column'
+                                      }
                                       value={trailer.categoryCode}
                                       onChange={(val) => {
                                         const u = [...formik.values.trailers];
@@ -1468,15 +1472,19 @@ export function CompoundFormCreatePage() {
                                       <Button
                                         type="button"
                                         visualType="secondary"
-                                        onClick={() =>
+                                        onClick={() => {
                                           formik.setFieldValue(
                                             'trailers',
                                             formik.values.trailers.filter(
                                               (_: Trailer, i: number) =>
                                                 i !== index,
                                             ),
-                                          )
-                                        }
+                                          );
+                                          const tabId = `tab-trailer-technical-${index}`;
+                                          if (openTabs.includes(tabId)) {
+                                            removeTab(tabId);
+                                          }
+                                        }}
                                       >
                                         {t('forms.compound.removeTrailer')}
                                       </Button>
@@ -1668,8 +1676,7 @@ export function CompoundFormCreatePage() {
                                     }))
                                     .find(
                                       (o) =>
-                                        o.value ===
-                                        formik.values.companyCounty,
+                                        o.value === formik.values.companyCounty,
                                     ) ?? null
                                 }
                                 onChange={(val) => {
@@ -1925,10 +1932,9 @@ export function CompoundFormCreatePage() {
                               }
                             : {})}
                         />
-                        <div
-                          className={`${styles['select-row']} ${styles['full-span']}`}
-                        >
-                          <div className={styles['select-wrapper']}>
+
+                        <div className="select-row">
+                          <div className="select-wrapper" >
                             <TextField
                               id="personalCodeEe"
                               label={t('forms.compound.driverPersonalCodeEe')}
@@ -1968,37 +1974,38 @@ export function CompoundFormCreatePage() {
                           >
                             {t('forms.compound.driverPersonSearchButton')}
                           </Button>
-                          <div className={styles['select-wrapper']}>
-                            <TextField
-                              id="driverPersonalCodeForeign"
-                              label={t(
-                                'forms.compound.driverPersonalCodeForeign',
-                              )}
-                              value={
-                                formik.values.drivers[0]?.personalCodeForeign ??
-                                ''
-                              }
-                              input={{ maxLength: 50 }}
-                              onChange={(v) => {
-                                const u = [...formik.values.drivers];
-                                u[0] = { ...u[0], personalCodeForeign: v };
-                                formik.setFieldValue('drivers', u);
-                              }}
-                              {...((formik.touched.drivers as DriverTouched)?.[0]
-                                ?.personalCodeForeign &&
-                              (formik.errors.drivers as DriverErrors)?.[0]
-                                ?.personalCodeForeign
-                                ? {
-                                    helper: {
-                                      text: (
-                                        formik.errors.drivers as DriverErrors
-                                      )?.[0]?.personalCodeForeign,
-                                      type: 'error' as const,
-                                    },
-                                  }
-                                : {})}
-                            />
-                          </div>
+                        </div>
+                        {isDesktop && <div></div>}
+                        <div className={styles['select-wrapper']}>
+                          <TextField
+                            id="driverPersonalCodeForeign"
+                            label={t(
+                              'forms.compound.driverPersonalCodeForeign',
+                            )}
+                            value={
+                              formik.values.drivers[0]?.personalCodeForeign ??
+                              ''
+                            }
+                            input={{ maxLength: 50 }}
+                            onChange={(v) => {
+                              const u = [...formik.values.drivers];
+                              u[0] = { ...u[0], personalCodeForeign: v };
+                              formik.setFieldValue('drivers', u);
+                            }}
+                            {...((formik.touched.drivers as DriverTouched)?.[0]
+                              ?.personalCodeForeign &&
+                            (formik.errors.drivers as DriverErrors)?.[0]
+                              ?.personalCodeForeign
+                              ? {
+                                  helper: {
+                                    text: (
+                                      formik.errors.drivers as DriverErrors
+                                    )?.[0]?.personalCodeForeign,
+                                    type: 'error' as const,
+                                  },
+                                }
+                              : {})}
+                          />
                         </div>
                         <Select
                           id="driverCitizenshipCode"
@@ -2036,6 +2043,7 @@ export function CompoundFormCreatePage() {
                             id="driverBirthDate"
                             label={t('forms.compound.driverBirthDate')}
                             monthYearSelectType="grid"
+                            disableFuture
                             selected={
                               formik.values.drivers[0]?.birthDate
                                 ? new Date(formik.values.drivers[0].birthDate)
@@ -2197,6 +2205,7 @@ export function CompoundFormCreatePage() {
                               id="driver2BirthDate"
                               label={t('forms.compound.driverBirthDate')}
                               monthYearSelectType="grid"
+                              disableFuture
                               selected={
                                 formik.values.drivers[1]?.birthDate
                                   ? new Date(formik.values.drivers[1].birthDate)
@@ -2368,7 +2377,7 @@ export function CompoundFormCreatePage() {
               id={`${tabId}-panel`}
               role="tabpanel"
               aria-labelledby={tabId}
-              className="p-1"
+              className={`p-1 ${styles['tab-panel-bg']}`}
               style={{ display: activeTab === tabId ? 'block' : 'none' }}
             >
               <DriveRestFormCreatePage
@@ -2401,7 +2410,7 @@ export function CompoundFormCreatePage() {
               id={`${vehicleTabId}-panel`}
               role="tabpanel"
               aria-labelledby={vehicleTabId}
-              className="p-1"
+              className={`p-1 ${styles['tab-panel-bg']}`}
               style={{ display: activeTab === vehicleTabId ? 'block' : 'none' }}
             >
               <TechnicalCheckFormCreatePage
@@ -2443,7 +2452,7 @@ export function CompoundFormCreatePage() {
                 id={`${tabId}-panel`}
                 role="tabpanel"
                 aria-labelledby={tabId}
-                className="p-1"
+                className={`p-1 ${styles['tab-panel-bg']}`}
                 style={{ display: activeTab === tabId ? 'block' : 'none' }}
               >
                 <TechnicalCheckFormCreatePage
@@ -2490,7 +2499,7 @@ export function CompoundFormCreatePage() {
               id={`${tabId}-panel`}
               role="tabpanel"
               aria-labelledby={tabId}
-              className="p-1"
+              className={`p-1 ${styles['tab-panel-bg']}`}
               style={{ display: activeTab === tabId ? 'block' : 'none' }}
             >
               <AdrFormCreatePage
@@ -2501,8 +2510,7 @@ export function CompoundFormCreatePage() {
                     values as Partial<DriveRestForm>;
                 }}
                 ref={(ref) => {
-                  formRefs.current[tabId].current =
-                    ref as AdrFormCreatePageRef;
+                  formRefs.current[tabId].current = ref as AdrFormCreatePageRef;
                 }}
                 onSaved={(id) => {
                   if (id) {
@@ -2524,7 +2532,7 @@ export function CompoundFormCreatePage() {
               id={`${tabId}-panel`}
               role="tabpanel"
               aria-labelledby={tabId}
-              className="p-1"
+              className={`p-1 ${styles['tab-panel-bg']}`}
               style={{ display: activeTab === tabId ? 'block' : 'none' }}
             >
               <TransportInterruptionFormCreatePage
@@ -2554,7 +2562,6 @@ export function CompoundFormCreatePage() {
 
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-
           <Button
             type="submit"
             disabled={openTabs.length < 1}
@@ -2566,7 +2573,8 @@ export function CompoundFormCreatePage() {
               if (!isValid) {
                 setShowValidationError(true);
                 // Kui üldosa (tab-1) valideerimise viga, lülitu tab-1-le — kasutaja näeb välja viga
-                const compoundHasErrors = Object.keys(await formik.validateForm()).length > 0;
+                const compoundHasErrors =
+                  Object.keys(await formik.validateForm()).length > 0;
                 if (compoundHasErrors && activeTab !== 'tab-1') {
                   setActiveTab('tab-1');
                 }
@@ -2635,7 +2643,8 @@ export function CompoundFormCreatePage() {
                       isDynamicTrailerTab);
                   if (tabDef) {
                     if (isAdrTab) {
-                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<AdrForm>;
+                      const raw = (savedFormData.current[tabId] ??
+                        {}) as Partial<AdrForm>;
                       const isBlank = (obj: Record<string, unknown>) =>
                         Object.values(obj).every((v) => v == null || v === '');
                       const values = {
@@ -2688,7 +2697,8 @@ export function CompoundFormCreatePage() {
                       }
                     } else if (isTechnicalCheck) {
                       const variant = tabDef.type as TechnicalCheckVariant;
-                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<TechnicalCheckForm>;
+                      const raw = (savedFormData.current[tabId] ??
+                        {}) as Partial<TechnicalCheckForm>;
                       const values = {
                         ...raw,
                         compoundFormKey: id,
@@ -2709,7 +2719,8 @@ export function CompoundFormCreatePage() {
                         );
                       }
                     } else if (isTransportInterruptionTab) {
-                      const raw = (savedFormData.current[tabId] ?? {}) as Partial<TransportInterruptionForm>;
+                      const raw = (savedFormData.current[tabId] ??
+                        {}) as Partial<TransportInterruptionForm>;
                       const payload = {
                         ...raw,
                         compoundFormKey: id,

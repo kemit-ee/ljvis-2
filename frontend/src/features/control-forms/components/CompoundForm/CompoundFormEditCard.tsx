@@ -613,6 +613,7 @@ export function CompoundFormEditCard({
                       id="vehicleFirstRegistration"
                       label={t('forms.compound.vehicleFirstRegistration')}
                       monthYearSelectType="grid"
+                      disableFuture
                       selected={
                         formik.values.vehicleFirstRegistration
                           ? new Date(formik.values.vehicleFirstRegistration)
@@ -931,6 +932,7 @@ export function CompoundFormEditCard({
                                 'forms.compound.trailerFirstRegistration',
                               )}
                               monthYearSelectType="grid"
+                              disableFuture
                               selected={
                                 trailer.firstRegistration
                                   ? new Date(trailer.firstRegistration)
@@ -1552,7 +1554,8 @@ export function CompoundFormEditCard({
                         {t('forms.compound.driverPersonSearchButton')}
                       </Button>
                     </div>
-                    {/* Välismaa isikukood — grid-veerg 2, perekonnanime all */}
+                    {isDesktop && <div></div>}
+                    {/* Välismaa isikukood — järgmine rida, veerg 1 */}
                     <TextField
                       id={`driverPersonalCodeForeign_${index}`}
                       label={t('forms.compound.driverPersonalCodeForeign')}
@@ -1614,6 +1617,7 @@ export function CompoundFormEditCard({
                         id={`driverBirthDate_${index}`}
                         label={t('forms.compound.driverBirthDate')}
                         monthYearSelectType="grid"
+                        disableFuture
                         selected={
                           formik.values.drivers[index]?.birthDate
                             ? new Date(formik.values.drivers[index].birthDate)
