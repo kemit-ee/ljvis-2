@@ -45,7 +45,7 @@ import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage
 import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-repute-form/GoodReputeFormCreatePage';
 import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
 import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
-import { TRAMDriverFormPage } from './features/control-forms/pages/tram-driver-form/TRAMDriverFormPage';
+import { TramControlCardPage } from './features/control-forms/pages/tram-control-card/TramControlCardPage';
 import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
 import { CompanyFormsListPage } from './features/citizen/pages/CompanyFormsListPage/CompanyFormsListPage';
 import { CitizenDashboardPage } from './features/citizen/pages/CitizenDashboardPage/CitizenDashboardPage';
@@ -171,16 +171,21 @@ function AppRoutes() {
             element={<DriveRestFormPage entryType="driver" />}
           />
           <Route
-            path="/control-forms/tram-driver/new"
-            element={<TRAMDriverFormPage />}
+            path="/control-forms/tram-control-card/new"
+            element={<TramControlCardPage />}
           />
           <Route
-            path="/control-forms/tram-driver/:id"
-            element={<TRAMDriverFormPage />}
+            path="/control-forms/tram-control-card/:id"
+            element={<TramControlCardPage />}
           />
           <Route
-            path="/control-forms/tram-driver/:id/:snapshotId"
-            element={<TRAMDriverFormPage />}
+            path="/control-forms/tram-control-card/:id/:snapshotId"
+            element={<TramControlCardPage />}
+          />
+          {/* ADR-002: vana marsruut → suuna uuele */}
+          <Route
+            path="/control-forms/tram-driver/:id?/:snapshotId?"
+            element={<Navigate to="/control-forms" replace />}
           />
           <Route
             path="/control-forms/sp-teammate/:id"

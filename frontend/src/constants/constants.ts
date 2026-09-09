@@ -13,8 +13,7 @@ export const FORM_TYPE = {
   TRAILER_TECHNICAL_CHECK: 'trailer-technical',
   ADR: 'adr-form',
   TRANSPORT_INTERRUPTION: 'transport-interruption',
-  TRAM_COMPOUND: 'tram-form',
-  TRAM_DRIVER: 'tram-form/sp-driver',
+  TRAM_CONTROL_CARD: 'tram-card',
 } as const;
 
 export const ALL_FORM_TABS: {
@@ -34,6 +33,7 @@ export const FORM_ROUTE: Record<string, string> = {
   [FORM_TYPE.LABOUR_INSPECTION]: 'labour-inspection',
   [FORM_TYPE.DRIVER]: 'sp-driver',
   [FORM_TYPE.TEAMMATE]: 'sp-teammate',
+  [FORM_TYPE.TRAM_CONTROL_CARD]: 'tram-control-card',
 };
 
 export const PERMISSIONS = {

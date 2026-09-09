@@ -1281,6 +1281,11 @@
     },
     "restCheck": {
       "blockTitle": "Sõidu- ja puhkeaja nõuete täitmine"
+    },
+    "tram_control_card_form": "Transpordiameti kontrollkaart",
+    "tram_control_card": {
+      "driverControlTitle": "Sõidukijuhi kontrolli tulemus",
+      "proceedingNone": "Menetlust ei alustatud"
     }
   },
   "structureUnits": {
@@ -2001,8 +2006,7 @@
       "trailerTechnical": "Tehnonõuetele vastavus (haagis)",
       "adr": "Ohtlik veos (ADR)",
       "kv": "Autoveo katkestamine",
-      "tramCompound": "Transpordiameti kontrollkaart",
-      "tramDriver": "Transpordiameti kontrollkaart (autojuht)"
+      "tramControlCard": "Transpordiameti kontrollkaart"
     },
     "status": {
       "saved": "Salvestatud",
@@ -2085,6 +2089,7 @@
     "rsiCreate": "Uus RSI teade",
     "rsiDetail": "RSI teade",
     "ncrCreate": "Uus NCR teade",
-    "ncrDetail": "NCR teade"
+    "ncrDetail": "NCR teade",
+    "tramControlCard": "Transpordiameti kontrollkaart"
   }
 }

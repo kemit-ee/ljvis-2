@@ -144,102 +144,43 @@ export const downloadFormFile = (formPath: string, id: string) =>
   });
 
 // ── TRAM (Transpordiamet) kontrollkaart ──────────────────────────────────
-// Jagab compound_form + sp_driver_form tabeleid PPA vormiga, eristub
-// authority='TRAM' järgi. Eraldi endpointid + guardid (tram_driver_form.*).
+// ADR-002: üks eraldiseisev olem forms.tram_control_card, oma guarditud
+// endpointid (tram_driver_form.write/read). GET-id käivad läbi
+// map_tram_control_card DMapperi → CompoundForm-kujuline objekt.
+// Funktsiooninimed jäävad *TramForm — useCompoundForm impordib neid.
 
 export const getTramForm = (id: number) =>
-  get<CompoundForm>(`/v1/control-forms/tram-form/get`, { q: String(id) });
+  get<CompoundForm>(`/v1/control-forms/tram-card/get`, { q: String(id) });
 
 export const saveTramForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
-    `/v1/control-forms/tram-form/edit/save`,
+    `/v1/control-forms/tram-card/edit/save`,
     data as unknown as Record<string, unknown>,
   );
 
 export const confirmTramForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
-    `/v1/control-forms/tram-form/edit/confirm`,
+    `/v1/control-forms/tram-card/edit/confirm`,
     data as unknown as Record<string, unknown>,
   );
 
 export const publishTramForm = (id: string) =>
-  post<CompoundForm[]>(`/v1/control-forms/tram-form/edit/publish`, { id });
+  post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/publish`, { id });
 
-export const deleteTramForm = (
-  id: string,
-  old_status: string,
-) =>
-  post<CompoundForm[]>(`/v1/control-forms/tram-form/edit/delete`, {
+export const deleteTramForm = (id: string, old_status: string) =>
+  post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/delete`, {
     id,
     old_status,
   });
 
 export const getTramFormSnapshot = (id: string, formKey: string) =>
-  post<CompoundForm[]>(`/v1/control-forms/tram-form/read/get-snapshot`, {
+  post<CompoundForm>(`/v1/control-forms/tram-card/read/get-snapshot`, {
     id,
     formKey,
   });
 
 export const getTramFormSnapshots = (id: string) =>
-  get<FormSnapshot[]>(`/v1/control-forms/tram-form/get-snapshots`, { id });
-
-export const getTramDriverForm = (id: number) =>
-  get<DriveRestForm>(`/v1/control-forms/tram-form/sp-driver/get`, {
-    q: String(id),
-  });
-
-export const getTramDriverFormByCompoundFormKey = (
-  compoundFormKey: number,
-): Promise<DriveRestForm | null> =>
-  get<DriveRestForm | null>(
-    `/v1/control-forms/tram-form/sp-driver/read/get-by-compound-form-key`,
-    { compoundFormKey: String(compoundFormKey) },
-  )
-    .then((res) => (res?.status === 'deleted' ? null : res))
-    .catch((err: ApiError) => {
-      if (err?.status === 300) return null;
-      throw err;
-    });
-
-export const saveTramDriverForm = (data: DriveRestForm) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/tram-form/sp-driver/edit/save`,
-    data as unknown as Record<string, unknown>,
-  );
-
-export const confirmTramDriverForm = (data: DriveRestForm) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/tram-form/sp-driver/edit/confirm`,
-    data as unknown as Record<string, unknown>,
-  );
-
-export const publishTramDriverForm = (id: string) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/tram-form/sp-driver/edit/publish`,
-    { id },
-  );
-
-export const deleteTramDriverForm = (
-  id: string,
-  form_number: string,
-  old_status: string,
-) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/tram-form/sp-driver/edit/delete`,
-    { id, form_number, old_status },
-  );
-
-export const getTramDriverFormSnapshot = (id: string, formKey: string) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/tram-form/sp-driver/read/get-snapshot`,
-    { id, formKey },
-  );
-
-export const getTramDriverFormSnapshots = (id: string) =>
-  get<FormSnapshot[]>(
-    `/v1/control-forms/tram-form/sp-driver/read/get-snapshots`,
-    { id },
-  );
+  get<FormSnapshot[]>(`/v1/control-forms/tram-card/get-snapshots`, { id });
 
 export const getForeignViolationFormSnapshot = (id: string, formKey: string) =>
   post<ForeignViolationForm[]>(

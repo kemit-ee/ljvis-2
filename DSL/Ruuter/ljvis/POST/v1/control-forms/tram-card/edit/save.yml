@@ -25,7 +25,7 @@ declaration:
         type: string
       - field: address
         type: string
-      - field: roadType
+      - field: road_type
         type: string
       - field: roadTaxStatus
         type: string
@@ -63,7 +63,7 @@ declaration:
         type: string
       - field: companyCity
         type: string
-      - field: companyAddress
+      - field: companyAddressLine1
         type: string
       - field: companyPostalCode
         type: string
@@ -86,7 +86,6 @@ declaration:
       - field: drivers
         type: string
       - field: driverNotApplicable
-        type: string
       - field: transportType
         type: string
       - field: transportEmptyRun
@@ -156,7 +155,7 @@ extractRequestData:
     road_other: "${incoming.body.roadOther || ''}"
     kilometer: "${incoming.body.kilometer || ''}"
     address: "${incoming.body.address || ''}"
-    road_type: "${incoming.body.roadType || ''}"
+    road_type: "${incoming.body.road_type || ''}"
     road_tax_status: "${incoming.body.roadTaxStatus || ''}"
     road_tax_notes: "${incoming.body.roadTaxNotes || ''}"
     vehicle_reg_nr: "${incoming.body.vehicleRegNr || ''}"
@@ -175,7 +174,7 @@ extractRequestData:
     company_country_code: "${incoming.body.companyCountryCode || ''}"
     company_county: "${incoming.body.companyCounty || ''}"
     company_city: "${incoming.body.companyCity || ''}"
-    company_address: "${incoming.body.companyAddress || ''}"
+    company_address: "${incoming.body.companyAddressLine1 || ''}"
     company_postal_code: "${incoming.body.companyPostalCode || ''}"
     company_owner_first_name: "${incoming.body.companyOwnerFirstName || ''}"
     company_owner_last_name: "${incoming.body.companyOwnerLastName || ''}"
@@ -186,11 +185,11 @@ extractRequestData:
     inspector_unit: "${incoming.body.inspectorUnit || ''}"
     inspector_profession: "${incoming.body.inspectorProfession || ''}"
     drivers: "${incoming.body.drivers || '[]'}"
-    driver_not_applicable: "${incoming.body.driverNotApplicable || 'false'}"
+    driver_not_applicable: "${String(incoming.body.driverNotApplicable == null ? 'false' : incoming.body.driverNotApplicable)}"
     transport_type: "${incoming.body.transportType || ''}"
-    transport_empty_run: "${incoming.body.transportEmptyRun || 'false'}"
+    transport_empty_run: "${String(incoming.body.transportEmptyRun == null ? 'false' : incoming.body.transportEmptyRun)}"
     transport_nature: "${incoming.body.transportNature || ''}"
-    transport_nature_exempt: "${incoming.body.transportNatureExempt || 'false'}"
+    transport_nature_exempt: "${String(incoming.body.transportNatureExempt == null ? 'false' : incoming.body.transportNatureExempt)}"
     transport_classes: "${incoming.body.transportClasses || '[]'}"
     cabotage_violations: "${incoming.body.cabotageViolations || '[]'}"
     result_type: "${incoming.body.resultType || ''}"
@@ -201,7 +200,7 @@ extractRequestData:
     other_documents: "${incoming.body.otherDocuments || '[]'}"
     sp_applicability: "${incoming.body.spApplicability || ''}"
     tachograph_type_code: "${incoming.body.tachographTypeCode || ''}"
-    tachograph_data_not_downloaded: "${incoming.body.tachographDataNotDownloaded || 'false'}"
+    tachograph_data_not_downloaded: "${String(incoming.body.tachographDataNotDownloaded == null ? 'false' : incoming.body.tachographDataNotDownloaded)}"
     checked_days_count: "${incoming.body.checkedDaysCount || ''}"
     work_days_count: "${incoming.body.workDaysCount || ''}"
     other_activity_days_count: "${incoming.body.otherActivityDaysCount || ''}"
@@ -263,7 +262,7 @@ insertForm:
       roadOther: ${road_other}
       kilometer: ${kilometer}
       address: ${address}
-      roadType: ${road_type}
+      road_type: ${road_type}
       roadTaxStatus: ${road_tax_status}
       roadTaxNotes: ${road_tax_notes}
       vehicleRegNr: ${vehicle_reg_nr}
@@ -282,7 +281,7 @@ insertForm:
       companyCountryCode: ${company_country_code}
       companyCounty: ${company_county}
       companyCity: ${company_city}
-      companyAddress: ${company_address}
+      companyAddressLine1: ${company_address}
       companyPostalCode: ${company_postal_code}
       companyOwnerFirstName: ${company_owner_first_name}
       companyOwnerLastName: ${company_owner_last_name}
@@ -372,7 +371,7 @@ updateForm:
       roadOther: ${road_other}
       kilometer: ${kilometer}
       address: ${address}
-      roadType: ${road_type}
+      road_type: ${road_type}
       roadTaxStatus: ${road_tax_status}
       roadTaxNotes: ${road_tax_notes}
       vehicleRegNr: ${vehicle_reg_nr}
@@ -391,7 +390,7 @@ updateForm:
       companyCountryCode: ${company_country_code}
       companyCounty: ${company_county}
       companyCity: ${company_city}
-      companyAddress: ${company_address}
+      companyAddressLine1: ${company_address}
       companyPostalCode: ${company_postal_code}
       companyOwnerFirstName: ${company_owner_first_name}
       companyOwnerLastName: ${company_owner_last_name}

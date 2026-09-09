@@ -1,7 +1,6 @@
 import { test, expect } from '../support/fixtures';
 import {
   fillGeneralPart,
-  fillInspector,
   expectSaved,
   TRAM_DRIVER_IDS,
 } from '../pages/CompoundGeneralPart';
@@ -12,12 +11,14 @@ import {
 } from '../support/tedi';
 
 /**
- * TRAM (Transpordiameti) kontrollkaart — `/control-forms/tram-driver/new`.
- * Kasutab jagatud `CompoundFormEditCard`-i (juhi väljade id-d `_0` sufiksiga).
- * Sisaldab PR #280 muudatuste (P1–P6) regressioonteste.
+ * Transpordiameti (TRAM) kontrollkaart — ADR-002: üks olem, üks vorm, üks
+ * elutsükkel (`/control-forms/tram-control-card/new`). Kasutab jagatud
+ * `CompoundFormEditCard`-i (juhi väljade id-d `_0` sufiksiga) + eraldi
+ * „Sõidukijuhi andmed" sektsiooni (varem eraldi vahekaart/alamvorm).
  */
 
-const NEW = '/control-forms/tram-driver/new';
+const NEW = '/control-forms/tram-control-card/new';
+const ROUTE_PREFIX = '/control-forms/tram-control-card';
 
 test.describe('TRAM kontrollkaart — validatsioon', () => {
   test('tühja vormi esitamisel kuvatakse kohustuslike väljade vead', async ({
@@ -48,12 +49,12 @@ test.describe('TRAM kontrollkaart — validatsioon', () => {
     });
 
     await test.step('URL ei muutunud', async () => {
-      await expect(page).toHaveURL(/\/control-forms\/tram-driver\/new/);
+      await expect(page).toHaveURL(/\/control-forms\/tram-control-card\/new/);
     });
   });
 });
 
-test.describe('TRAM kontrollkaart — P6: "Ei ole asjakohane"', () => {
+test.describe('TRAM kontrollkaart — "Ei ole asjakohane"', () => {
   test('märkeruut eemaldab juhi nime kohustuslikkuse (sünniaeg jääb)', async ({
     page,
   }) => {
@@ -109,11 +110,11 @@ test.describe('TRAM kontrollkaart — P6: "Ei ole asjakohane"', () => {
       driver: { ids: TRAM_DRIVER_IDS, birthDate: '01011990' },
     });
     await page.getByRole('button', { name: 'Salvesta' }).click();
-    await expectSaved(page, '/control-forms/tram-driver');
+    await expectSaved(page, ROUTE_PREFIX);
   });
 });
 
-test.describe('TRAM kontrollkaart — P5: juhi väljade järjekord + RR-otsing', () => {
+test.describe('TRAM kontrollkaart — juhi väljade järjekord + RR-otsing', () => {
   test('väljade DOM-järjekord: eesnimi → perekonnanimi → Eesti isikukood → nupp → välisriigi isikukood', async ({
     page,
   }) => {
@@ -131,14 +132,16 @@ test.describe('TRAM kontrollkaart — P5: juhi väljade järjekord + RR-otsing',
       ys.push(b!.y);
     }
     for (let i = 1; i < ys.length; i++) {
-      expect(ys[i], `${ids[i]} peab olema ${ids[i - 1]} järel`).toBeGreaterThanOrEqual(
-        ys[i - 1] - 5,
-      );
+      expect(
+        ys[i],
+        `${ids[i]} peab olema ${ids[i - 1]} järel`,
+      ).toBeGreaterThanOrEqual(ys[i - 1] - 5);
     }
-    // "Otsi rahvastikuregistrist" nupp asub Eesti ja välisriigi isikukoodi vahel
     const btn = page.getByRole('button', { name: 'Otsi rahvastikuregistrist' });
     const btnBox = await btn.boundingBox();
-    const eeBox = await page.locator(`#${TRAM_DRIVER_IDS.personalCodeEe}`).boundingBox();
+    const eeBox = await page
+      .locator(`#${TRAM_DRIVER_IDS.personalCodeEe}`)
+      .boundingBox();
     expect(btnBox && eeBox).toBeTruthy();
   });
 
@@ -151,7 +154,9 @@ test.describe('TRAM kontrollkaart — P5: juhi väljade järjekord + RR-otsing',
       if (r.url().includes('/xroad/rr/isikud')) rrCalled = true;
     });
     await page.locator(`#${TRAM_DRIVER_IDS.personalCodeEe}`).fill('123');
-    await page.getByRole('button', { name: 'Otsi rahvastikuregistrist' }).click();
+    await page
+      .getByRole('button', { name: 'Otsi rahvastikuregistrist' })
+      .click();
     await expect(
       page.getByText(/isikukood on korrektne|päring ebaõnnestus/i).first(),
     ).toBeVisible({ timeout: 10_000 });
@@ -159,12 +164,26 @@ test.describe('TRAM kontrollkaart — P5: juhi väljade järjekord + RR-otsing',
   });
 });
 
-test.describe('TRAM kontrollkaart — P1: autojuhi alamvorm alati nähtav', () => {
-  test('pärast salvestamist on autojuhi vahekaart kohe nähtav + e-toimiku kaart', async ({
+test.describe('TRAM kontrollkaart — üks vorm, üks elutsükkel (ADR-002)', () => {
+  test('sõidukijuhi sektsioon on samal vormil (ei ole eraldi vahekaart)', async ({
     page,
   }) => {
+    await page.goto(NEW);
+    await expect(
+      page.getByRole('heading', { name: 'Sõidukijuhi andmed' }),
+    ).toBeVisible();
+    // vana kahe-vahekaardi mudel on kadunud
+    await expect(
+      page.getByRole('tab', { name: /Autojuhi sõidu- ja puhkeaja/i }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: /Lisa autojuht/i }),
+    ).toHaveCount(0);
+  });
+
+  test('Salvesta → Kinnita → Avalikusta', async ({ page }) => {
     const reg = `TR${Date.now() % 100000}`;
-    await test.step('loo ja salvesta TRAM kaart', async () => {
+    await test.step('loo + salvesta', async () => {
       await page.goto(NEW);
       await checkChoiceById(page, 'driverNotApplicable');
       await fillGeneralPart(page, {
@@ -178,31 +197,26 @@ test.describe('TRAM kontrollkaart — P1: autojuhi alamvorm alati nähtav', () =
         driver: { ids: TRAM_DRIVER_IDS, birthDate: '02021992' },
       });
       await page.getByRole('button', { name: 'Salvesta' }).click();
-      await expectSaved(page, '/control-forms/tram-driver');
+      await expectSaved(page, ROUTE_PREFIX);
     });
 
-    await test.step('autojuhi vahekaart on kohe olemas ilma "Lisa autojuht" nuputa', async () => {
-      await expect(
-        page.getByRole('tab', { name: /Autojuhi sõidu- ja puhkeaja/i }),
-      ).toBeVisible({ timeout: 10_000 });
-      await expect(
-        page.getByRole('button', { name: /Lisa autojuht/i }),
-      ).toHaveCount(0);
+    await test.step('Kinnita', async () => {
+      await page.getByRole('button', { name: 'Kinnita' }).click();
+      await expect(page.getByText(/Kinnitatud/i).first()).toBeVisible({
+        timeout: 10_000,
+      });
     });
 
-    await test.step('autojuhi vahekaardil saab alamvormi kohe täitma hakata', async () => {
-      await page
-        .getByRole('tab', { name: /Autojuhi sõidu- ja puhkeaja/i })
-        .click();
-      // Alamvormi sisu (nt veoliigi valik) on nähtav ilma eraldi avamiseta.
-      await expect(page.getByText(/Veo liik|Kontrolli tulemus|Veoliik/i).first()).toBeVisible({
+    await test.step('Avalikusta', async () => {
+      await page.getByRole('button', { name: 'Avalikusta' }).click();
+      await expect(page.getByText(/Avaldatud|Avalikustatud/i).first()).toBeVisible({
         timeout: 10_000,
       });
     });
   });
 });
 
-test.describe('TRAM kontrollkaart — P3: haagise pealkiri', () => {
+test.describe('TRAM kontrollkaart — haagise pealkiri', () => {
   test('haagise pealkiri on "Haagis 1" ilma trellita', async ({ page }) => {
     await page.goto(NEW);
     await page.getByRole('button', { name: 'Lisa haagis' }).click();
