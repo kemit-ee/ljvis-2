@@ -227,6 +227,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: status
+  type: string
+  nullable: true
 */
 WITH latest AS (
   SELECT form_number,
@@ -395,4 +398,4 @@ SELECT
   latest.proceeding_closure_basis,
   :created_by
 FROM latest
-RETURNING tram_control_card_key AS id, form_number, version;
+RETURNING tram_control_card_key AS id, form_number, version, status;
