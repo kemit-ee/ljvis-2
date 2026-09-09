@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,6 +17,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE, ALL_FORM_TABS } from '../../../../constants/constants';
 import {
   deleteCompoundForm,
+  deleteTechnicalCheckForm,
   getCompoundFormSnapshot,
   getDriveRestFormByCompoundFormKey,
   saveDriveRestForm,
@@ -107,6 +108,16 @@ export function CompoundFormPage() {
   const [openTabs, setOpenTabs] = useState<string[]>([]);
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
+
+  type PendingTrailerDeletion = { idx: number; subFormId: string; subFormNumber: string; status: string };
+  const pendingTrailerDeletions = useRef<PendingTrailerDeletion[]>([]);
+
+  const flushPendingTrailerDeletions = async () => {
+    const pending = pendingTrailerDeletions.current.splice(0);
+    for (const { subFormId, subFormNumber, status } of pending) {
+      await deleteTechnicalCheckForm('trailer', subFormId, subFormNumber, status).catch(console.error);
+    }
+  };
 
   const driver = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_driver_form' });
   const teammate = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({ permPrefix: 'sp_teammate_form' });
@@ -404,7 +415,6 @@ export function CompoundFormPage() {
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,
-    triggerSaveWithCurrentStatus,
   } = useCompoundForm(
     form ?? undefined,
     handleEditSaved,
@@ -438,10 +448,13 @@ export function CompoundFormPage() {
     setOpenTabs,
     setActiveTab,
     checkAndAutoConfirm: checkAndAutoConfirmCompound,
-    navigateAfterRemove: () => navigate(`/control-forms/compound/${id}`),
+    navigateAfterRemove: () => { navigate(`/control-forms/compound/${id}`); window.scrollTo(0, 0); },
     onEditActiveChange: setIsEditActive,
     onTrailerRemoved: (index: number) => formik.setFieldValue('trailers', formik.values.trailers.filter((_: Trailer, i: number) => i !== index)),
-    onTrailerRemovedSave: () => triggerSaveWithCurrentStatus(),
+    onTrailerRemovedSave: undefined,
+    onTrailerDeletionDeferred: (idx, subFormId, subFormNumber, status) => {
+      pendingTrailerDeletions.current.push({ idx, subFormId, subFormNumber, status });
+    },
   });
 
   const anyEditActive = isEditActive || driver.editActive || teammate.editActive || vehicle.editActive || trailers.some((t) => t.editActive) || adr.editActive || transportInterruption.editActive;
@@ -638,14 +651,14 @@ export function CompoundFormPage() {
     handleVehicleSearch,
     handleTrailerSearch,
     handleMtrSearch,
-    onCancel: () => { formik.resetForm(); setIsEditActive(false); },
+    onCancel: () => { formik.resetForm(); setIsEditActive(false); pendingTrailerDeletions.current = []; },
     onConfirm: triggerConfirm,
     onDelete: handleDelete,
     formType: FORM_TYPE.COMPOUND,
     versionsRefreshKey,
     trailerFormRegNrs: trailers.map((t, i) => openTabs.includes(`tab-trailer-technical-check-${i}`) ? (t.form?.trailerRegNr ?? formik.values.trailers[i]?.regNr ?? '') : null),
-    onAddTrailerControlForm: (index: number) => handleAddTab(`tab-trailer-technical-check-${index}`),
-    onEditTrailerControlForm: (index: number) => setActiveTab(`tab-trailer-technical-check-${index}`),
+    onAddTrailerControlForm: (index: number) => { handleAddTab(`tab-trailer-technical-check-${index}`); window.scrollTo(0, 0); },
+    onEditTrailerControlForm: (index: number) => { setActiveTab(`tab-trailer-technical-check-${index}`); window.scrollTo(0, 0); },
     onRemoveTrailer: (index: number) => handleRemoveTrailerFromCompound(`tab-trailer-technical-check-${index}` as Parameters<typeof handleRemove>[0]),
   };
 
@@ -1276,13 +1289,14 @@ export function CompoundFormPage() {
               onClick={() => {
                 formik.resetForm();
                 handleCancelAllEdits();
+                pendingTrailerDeletions.current = [];
               }}
             >
               {t('common.cancel')}
             </Button>
           )}
           {anyEditActive && (
-            <AsyncButton type="button" onClick={handleSaveAll}>
+            <AsyncButton type="button" onClick={async () => { await flushPendingTrailerDeletions(); await handleSaveAll(); }}>
               {t('common.save')}
             </AsyncButton>
           )}
