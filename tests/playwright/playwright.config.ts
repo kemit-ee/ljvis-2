@@ -74,7 +74,13 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: `npm run dev -- --port ${DEV_PORT} --strictPort`,
+    // Vaikimisi `vite dev` (kiire lokaalne iteratsioon, soe server).
+    // `run.sh` / CI ehitavad frontendi ja seavad LJVIS_PW_CMD=preview —
+    // staatiline build väldib TRAM-lehe külmkompileerimise ajapiiranguid.
+    command:
+      process.env.LJVIS_PW_CMD === 'preview'
+        ? `npm run preview -- --port ${DEV_PORT} --strictPort`
+        : `npm run dev -- --port ${DEV_PORT} --strictPort`,
     cwd: FRONTEND_DIR,
     url: BASE_URL,
     reuseExistingServer: !isCI,

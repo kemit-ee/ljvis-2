@@ -101,6 +101,52 @@ export default class TulemusReporter implements Reporter {
 
   onEnd(result: FullResult): void {
     this.writeSummary(result);
+    this.printConsoleSummary(result);
+  }
+
+  /**
+   * Prindib kokkuvõtte + ebaõnnestunud sammud otse väljundisse (terminal / CI
+   * log) — nii on „mis untsu läks" nähtav ilma faile avamata.
+   */
+  private printConsoleSummary(result: FullResult): void {
+    const c = this.counts;
+    const bar = '─'.repeat(72);
+    const out: string[] = ['', bar];
+
+    if (!this.failures.length) {
+      out.push(`✅  Playwright: kõik ${c.total} testi läbisid.`);
+    } else {
+      out.push(
+        `❌  Playwright: ${c.failed}/${c.total} testi kukkus läbi` +
+          (c.flaky ? ` (${c.flaky} flaky)` : '') +
+          '.',
+      );
+      out.push('');
+      for (const f of this.failures) {
+        const specFile = f.test.location.file.split('/').slice(-1)[0];
+        const failingStep = f.steps.find((s) => !s.ok);
+        const err = (f.result.error?.message ?? f.result.errors?.[0]?.message ?? '')
+          .replace(/\[[0-9;]*m/g, '')
+          .split('\n')
+          .slice(0, 4)
+          .join('\n      ');
+        out.push(`  ✗ ${f.test.title}`);
+        out.push(`     ${specFile}:${f.test.location.line}`);
+        if (failingStep) out.push(`     ebaõnnestunud samm: ${failingStep.title}`);
+        if (err) out.push(`     ${err}`);
+        out.push('');
+      }
+    }
+
+    out.push(`Kokkuvõte:   tests/playwright/tulemus/KOKKUVÕTE.md`);
+    if (this.failures.length) {
+      out.push(`Sammud+pildid: tests/playwright/tulemus/<test>/kirjeldus.md`);
+    }
+    out.push(`HTML-raport: npx playwright show-report tests/playwright/tulemus/html-raport`);
+    out.push(bar, '');
+
+    // eslint-disable-next-line no-console
+    process.stdout.write(out.join('\n'));
   }
 
   // ── artefaktid ─────────────────────────────────────────────────────────
@@ -253,8 +299,9 @@ export default class TulemusReporter implements Reporter {
     lines.push('');
     lines.push('HTML-raport: `npx playwright show-report tests/playwright/tulemus/html-raport`');
     lines.push('');
-    lines.push('Tulemuste versioonihaldusse viimine (soovi korral):');
-    lines.push('`git add tests/playwright/tulemus && git commit -m "test(playwright): jooksu tulemus"`');
+    lines.push(
+      '_`tulemus/` on `.gitignore`\'s — CI laeb selle artefaktina `playwright-tulemus`._',
+    );
     lines.push('');
 
     if (!existsSync(TULEMUS_DIR)) mkdirSync(TULEMUS_DIR, { recursive: true });

@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite';
+import type { ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 import checker from 'vite-plugin-checker';
 
@@ -13,6 +14,45 @@ export default defineConfig(({ mode }) => {
   const proxyTim = env.VITE_PROXY_TIM || 'http://localhost:8085';
   const proxyTara = env.VITE_PROXY_TARA || 'https://localhost:8888';
 
+  const proxy: Record<string, ProxyOptions> = {
+    '/api': {
+      target: proxyApi,
+      changeOrigin: true,
+      ws: true, // teavituste WebSocket (/api/notifications/connect)
+      rewrite: useMock
+        ? (path) => path.replace(/^\/api(.+?)(\?.*)?$/, '/ljvis$1/mock$2')
+        : (path) => path.replace(/^\/api/, '/ljvis'),
+    },
+    '/tim': {
+      target: proxyTim,
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/tim/, ''),
+      configure: (proxy) => {
+        proxy.on('proxyRes', (proxyRes) => {
+          const sc = proxyRes.headers['set-cookie'];
+          if (sc) {
+            proxyRes.headers['set-cookie'] = sc.map((c: string) =>
+              c.replace(/SameSite=None/i, 'SameSite=Lax'),
+            );
+          }
+        });
+      },
+    },
+    '/tara': {
+      target: proxyTara,
+      changeOrigin: true,
+      secure: false,
+      rewrite: (path) => path.replace(/^\/tara/, ''),
+    },
+    // TARA-Mock's HTML uses <base href="/"> so form posts to "back"
+    // resolve as /back relative to the root.
+    '/back': {
+      target: proxyTara,
+      changeOrigin: true,
+      secure: false,
+    },
+  };
+
   return {
     plugins: [
       react(),
@@ -23,44 +63,13 @@ export default defineConfig(({ mode }) => {
     ],
     server: {
       port: 3001,
-      proxy: {
-        '/api': {
-          target: proxyApi,
-          changeOrigin: true,
-          ws: true, // teavituste WebSocket (/api/notifications/connect)
-          rewrite: useMock
-            ? (path) => path.replace(/^\/api(.+?)(\?.*)?$/, '/ljvis$1/mock$2')
-            : (path) => path.replace(/^\/api/, '/ljvis'),
-        },
-        '/tim': {
-          target: proxyTim,
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/tim/, ''),
-          configure: (proxy) => {
-            proxy.on('proxyRes', (proxyRes) => {
-              const sc = proxyRes.headers['set-cookie'];
-              if (sc) {
-                proxyRes.headers['set-cookie'] = sc.map((c: string) =>
-                  c.replace(/SameSite=None/i, 'SameSite=Lax'),
-                );
-              }
-            });
-          },
-        },
-        '/tara': {
-          target: proxyTara,
-          changeOrigin: true,
-          secure: false,
-          rewrite: (path) => path.replace(/^\/tara/, ''),
-        },
-        // TARA-Mock's HTML uses <base href="/"> so form posts to "back"
-        // resolve as /back relative to the root.
-        '/back': {
-          target: proxyTara,
-          changeOrigin: true,
-          secure: false,
-        },
-      },
+      proxy,
+    },
+    // Playwright'i CI-testid kasutavad ehitatud varianti (`vite preview`) —
+    // külmkompileerimist ei toimu, TRAM-lehe raske sõltuvusgraaf laadib kohe.
+    preview: {
+      port: 3001,
+      proxy,
     },
   };
 });

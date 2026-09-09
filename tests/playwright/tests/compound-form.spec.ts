@@ -38,13 +38,14 @@ test.describe('Koondvorm — validatsioon', () => {
     });
 
     await test.step('kohustuslike väljade vead on nähtavad', async () => {
+      // Inspektori plokk on kasutajaandmetest eeltäidetud — kontrollime
+      // ainult kindlasti tühje välju.
       await expectFieldError(page, 'controlDate');
       await expectFieldError(page, 'controlTime');
       await expectFieldError(page, 'vehicleRegNr');
       await expectFieldError(page, 'vehicleCountryCode');
       await expectFieldError(page, 'vehicleCategoryCode');
       await expectFieldError(page, 'address'); // aadress-või-maantee reegel
-      await expectFieldError(page, 'inspectorOrganisation');
     });
 
     await test.step('vormi ei salvestatud (URL ei muutunud)', async () => {

@@ -103,7 +103,10 @@ export async function expectSaved(
   page: Page,
   routePrefix: string,
 ): Promise<string> {
-  const re = new RegExp(`${routePrefix.replace(/\//g, '\\/')}\\/(\\d+)`);
+  // Escape kõik regex-metamärgid (ka `\`), et routePrefix'i saaks ohutult
+  // RegExp'i sisse panna.
+  const esc = routePrefix.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+  const re = new RegExp(`${esc}/(\\d+)`);
   await expect
     .poll(() => page.url(), {
       timeout: 25_000,

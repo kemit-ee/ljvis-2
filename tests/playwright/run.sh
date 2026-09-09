@@ -44,10 +44,12 @@ for f in seed_classifiers.sql seed_extra.sql; do
   fi
 done
 
-echo "==> ERRU send-toe kontroll…"
-if curl -sf -X OPTIONS http://localhost:9086/ljvis/v1/erru/ctud >/dev/null 2>&1; then
-  export LJVIS_ERRU_SEND=1
-fi
+echo "==> Ehitan frontendi (staatiline build → vite preview)…"
+export VITE_PROXY_API=http://localhost:9086
+export VITE_PROXY_TIM=http://localhost:9085
+export VITE_PROXY_TARA=https://localhost:9888
+( cd "$REPO_ROOT/frontend" && npm run build )
+export LJVIS_PW_CMD=preview
 
 echo "==> Käivitan Playwright'i…"
 set +e

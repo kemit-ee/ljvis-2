@@ -28,9 +28,12 @@ bash tests/playwright/run.sh
 Nõuab: Docker, Node 20+, `psql` (PostgreSQL klient). Skript:
 1. tõstab üles `docker-compose.ci.yml` pinu (`-p ljvis-pw`),
 2. lisab `tests/bootstrap/seed_classifiers.sql` + `seed_extra.sql`,
-3. käivitab Playwright'i (mis stardib frontendi vite-dev serveri pordil **3101**,
-   suunatuna CI-stack'i Ruuterile `:9086` / TIM-ile `:9085` / tara-mock'ile `:9888`),
-4. teeb teardowni (`KEEP_STACK=1` jätab pinu püsti).
+3. **ehitab frontendi** (`npm run build`) ja käivitab `vite preview` serveri
+   pordil **3101**, suunatuna CI-stack'i Ruuterile `:9086` / TIM-ile `:9085` /
+   tara-mock'ile `:9888` — staatiline build väldib külmkompileerimise
+   ajapiiranguid (TRAM-lehe raske sõltuvusgraaf),
+4. käivitab Playwright'i,
+5. teeb teardowni (`KEEP_STACK=1` jätab pinu püsti).
 
 Playwright'i argumendid saab edasi anda: `bash tests/playwright/run.sh --grep TRAM`.
 
@@ -40,29 +43,33 @@ Playwright'i argumendid saab edasi anda: `bash tests/playwright/run.sh --grep TR
 cd tests/playwright
 npm ci
 npx playwright install chromium
-# Vaikeväärtused eeldavad docker-compose.ci.yml porte (9086/9085/9888):
+# Vaikeväärtused eeldavad docker-compose.ci.yml porte (9086/9085/9888).
+# Vaikimisi `vite dev` (kiire lokaalne iteratsioon):
 npx playwright test
+# Staatilise buildi vastu (nagu CI-s — ehita frontend eelnevalt):
+#   cd ../../frontend && VITE_PROXY_API=http://localhost:9086 npm run build
+LJVIS_PW_CMD=preview npx playwright test
 ```
 
 Muude portide vastu: `LJVIS_API_URL`, `LJVIS_TIM_URL`, `LJVIS_TARA_URL`,
 `LJVIS_DEV_PORT`, `LJVIS_BASE_URL`.
 
-## Tulemused (`tulemus/`)
+## Tulemused (`tulemus/` — jooksu-artefaktid, **ei lähe git'i**)
 
-- **`KOKKUVÕTE.md`** — viimase jooksu kokkuvõte (kokku/läbis/kukkus, ebaõnnestunud
+Kogu `tulemus/` sisu on `.gitignore`'s (ainult `.gitkeep` hoiab kausta). CI laeb
+selle artefaktina **`playwright-tulemus`**.
+
+- **Konsool** — reporter prindib jooksu lõpus kokkuvõtte + iga ebaõnnestunud
+  testi failiviite, ebaõnnestunud sammu ja veateate otse väljundisse.
+- **`KOKKUVÕTE.md`** — viimase jooksu ülevaade (kokku/läbis/kukkus + ebaõnnestunud
   testide loend). Alati olemas.
 - **`<projekt>__<spec>__<test>/kirjeldus.md`** + **`ekraanipilt-*.png`** — tekib
   ainult ebaõnnestunud testide kohta: nummerdatud sammuloend ✅/❌, ebaõnnestunud
-  samm, veateade + URL, ekraanipilt.
-- **`html-raport/`** — täielik Playwright HTML-raport (`.gitignore`'s, CI laeb
-  artefaktina). Vaata: `npx playwright show-report tests/playwright/tulemus/html-raport`.
+  samm, veateade + stack + lehe URL, ekraanipildid.
+- **`html-raport/`** — täielik Playwright HTML-raport. Vaata:
+  `npx playwright show-report tests/playwright/tulemus/html-raport`.
 
-`tulemus/` puhastatakse iga jooksu alguses. Tulemuste versioonihaldusse viimine on
-**käsitsi** — kui soovid ebaõnnestumise git'i jäädvustada:
-
-```bash
-git add tests/playwright/tulemus && git commit -m "test(playwright): jooksu tulemus"
-```
+`tulemus/` puhastatakse iga jooksu alguses.
 
 ## Autentimine
 
