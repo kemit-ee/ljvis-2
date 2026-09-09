@@ -798,6 +798,7 @@
       "driverPersonalCodeForeign": "Foreign personal code",
       "driverPersonSearchButton": "Search population register",
       "driverPersonSearchError": "Population register query failed. Check that the Estonian personal code is valid.",
+      "driverNotApplicable": "Not applicable",
       "driverBirthDate": "Date of birth",
       "addDriver": "Add second driver",
       "removeDriver": "Remove driver",

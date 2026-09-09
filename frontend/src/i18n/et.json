@@ -968,6 +968,7 @@
       "driverPersonalCodeForeign": "Välisriigi isikukood",
       "driverPersonSearchButton": "Otsi rahvastikuregistrist",
       "driverPersonSearchError": "Rahvastikuregistri päring ebaõnnestus. Kontrolli, et Eesti isikukood on korrektne.",
+      "driverNotApplicable": "Ei ole asjakohane",
       "driverBirthDate": "Sünniaeg",
       "addDriver": "Lisa teine juht",
       "removeDriver": "Eemalda juht",

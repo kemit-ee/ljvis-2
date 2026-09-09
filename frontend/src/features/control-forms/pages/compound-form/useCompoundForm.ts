@@ -298,10 +298,13 @@ export function useCompoundForm(
     drivers: Yup.array().test('drivers-validation', '', function (drivers) {
       if (!drivers) return true;
       const req = t('forms.foreign_violation.validation.required');
+      // TRAM „Ei ole asjakohane" — autojuhi ees-/perekonnanime ei nõuta.
+      const driverNameNotRequired =
+        (this.parent as CompoundForm)?.driverNotApplicable === true;
       const errors: Yup.ValidationError[] = [];
       drivers.forEach((driver: Driver, index: number) => {
         if (index === 0) {
-          if (!driver?.firstName)
+          if (!driverNameNotRequired && !driver?.firstName)
             errors.push(
               new Yup.ValidationError(
                 req,
@@ -309,7 +312,7 @@ export function useCompoundForm(
                 `drivers[${index}].firstName`,
               ),
             );
-          if (!driver?.lastName)
+          if (!driverNameNotRequired && !driver?.lastName)
             errors.push(
               new Yup.ValidationError(
                 req,
@@ -405,6 +408,7 @@ export function useCompoundForm(
         : typeof form?.drivers === 'string'
           ? JSON.parse(form.drivers)
           : [emptyDriver()]) as Driver[],
+      driverNotApplicable: form?.driverNotApplicable ?? false,
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId:

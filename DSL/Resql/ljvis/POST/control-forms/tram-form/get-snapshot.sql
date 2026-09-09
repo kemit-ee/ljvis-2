@@ -122,6 +122,9 @@ returns:
 - name: drivers
   type: string
   nullable: true
+- name: driverNotApplicable
+  type: boolean
+  nullable: true
 - name: inspector_first_name
   type: string
   nullable: true
@@ -179,6 +182,7 @@ SELECT
   company_owner_last_name,
   company_activity_licence_copy_number,
   drivers::text AS drivers,
+  driver_not_applicable,
   inspector_first_name,
   inspector_last_name,
   inspector_organisation_id,

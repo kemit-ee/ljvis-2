@@ -9,6 +9,7 @@ import {
   Select,
   Alert,
   ChoiceGroup,
+  Checkbox,
   TextArea,
   Tooltip,
   InfoButton,
@@ -64,6 +65,7 @@ interface CompoundFormValues {
   companyOwnerLastName: string;
   companyActivityLicenceCopyNumber: string;
   drivers: Driver[];
+  driverNotApplicable: boolean;
   inspectorFirstName: string;
   inspectorLastName: string;
   inspectorOrganisationId: string;
@@ -1387,6 +1389,22 @@ export function CompoundFormEditCard({
                       ? `${t('forms.compound.driver')} ${index + 1}`
                       : t('forms.compound.driver')}
                   </Heading>
+                  {authority === 'TRAM' && index === 0 && (
+                    <Checkbox
+                      id="driverNotApplicable"
+                      name="driverNotApplicable"
+                      value="driverNotApplicable"
+                      className="mb-1"
+                      label={t('forms.compound.driverNotApplicable')}
+                      checked={formik.values.driverNotApplicable ?? false}
+                      onChange={() =>
+                        formik.setFieldValue(
+                          'driverNotApplicable',
+                          !formik.values.driverNotApplicable,
+                        )
+                      }
+                    />
+                  )}
                   {driverSearchError === index && (
                     <Alert
                       type="danger"
@@ -1418,7 +1436,7 @@ export function CompoundFormEditCard({
                         u[index] = { ...u[index], firstName: v };
                         formik.setFieldValue('drivers', u);
                       }}
-                      required={index === 0}
+                      required={index === 0 && !formik.values.driverNotApplicable}
                       {...((formik.errors.drivers as DriverErrors[])?.[index]
                         ?.firstName
                         ? {
@@ -1441,7 +1459,7 @@ export function CompoundFormEditCard({
                         u[index] = { ...u[index], lastName: v };
                         formik.setFieldValue('drivers', u);
                       }}
-                      required={index === 0}
+                      required={index === 0 && !formik.values.driverNotApplicable}
                       {...((formik.errors.drivers as DriverErrors[])?.[index]
                         ?.lastName
                         ? {
