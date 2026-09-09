@@ -35,14 +35,19 @@ wait_for resql-ljvis http://localhost:9087/healthz
 wait_for ruuter     http://localhost:9086/health
 wait_for tim        http://localhost:9085/health
 
-echo "==> Lisan klassifikaatorite ja lisaandmete seemned…"
+echo "==> Lisan klassifikaatorite seemned…"
 export PGPASSWORD=01234
-for f in seed_classifiers.sql seed_extra.sql; do
-  if [ -f "$REPO_ROOT/tests/bootstrap/$f" ]; then
-    psql -h localhost -p 5433 -U ljvis -d ljvis_db -q -f "$REPO_ROOT/tests/bootstrap/$f" \
-      && echo "    $f OK" || echo "    $f — hoiatus (võib olla juba seeditud)"
-  fi
-done
+# NB: seed_extra.sql SIHILIKULT välja jäetud — see teeb Super Admin grupile
+# uue permissions-snapshot'i, kus PUUDUVAD tram_driver_form.* ja ERRU õigused,
+# ning tõstab kasutaja KLIM-i alla → TRAM/ERRU lehed muutuksid keelatuks.
+# seed_classifiers.sql annab kõik dropdown'ide jaoks vajaliku (STRUCTURE_UNIT,
+# VEHICLE_CATEGORY, EU_INFRINGEMENT jne), muutmata kasutajaid/gruppe.
+if [ -f "$REPO_ROOT/tests/bootstrap/seed_classifiers.sql" ]; then
+  psql -h localhost -p 5433 -U ljvis -d ljvis_db -q \
+    -f "$REPO_ROOT/tests/bootstrap/seed_classifiers.sql" \
+    && echo "    seed_classifiers.sql OK" \
+    || echo "    seed_classifiers.sql — hoiatus (võib olla juba seeditud)"
+fi
 
 echo "==> Ehitan frontendi (staatiline build → vite preview)…"
 export VITE_PROXY_API=http://localhost:9086

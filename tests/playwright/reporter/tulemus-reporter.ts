@@ -56,7 +56,8 @@ export default class TulemusReporter implements Reporter {
   private counts = { passed: 0, failed: 0, skipped: 0, flaky: 0, total: 0 };
   private startedAt = Date.now();
 
-  onBegin(_config: FullConfig, _suite: Suite): void {
+  onBegin(_config: FullConfig, suite: Suite): void {
+    this.rootSuite = suite;
     this.startedAt = Date.now();
     mkdirSync(TULEMUS_DIR, { recursive: true });
     for (const entry of readdirSync(TULEMUS_DIR)) {
@@ -65,9 +66,10 @@ export default class TulemusReporter implements Reporter {
     }
   }
 
-  onStepEnd(test: TestCase, _result: TestResult, step: TestStep): void {
+  onStepEnd(test: TestCase, result: TestResult, step: TestStep): void {
     if (step.category !== 'test.step' && step.category !== 'expect') return;
-    const arr = this.stepsByTest.get(test.id) ?? [];
+    const key = `${test.id}#${result.retry}`;
+    const arr = this.stepsByTest.get(key) ?? [];
     arr.push({
       title: step.title,
       category: step.category,
@@ -75,31 +77,37 @@ export default class TulemusReporter implements Reporter {
       ok: !step.error,
       error: step.error?.message,
     });
-    this.stepsByTest.set(test.id, arr);
+    this.stepsByTest.set(key, arr);
   }
 
-  onTestEnd(test: TestCase, result: TestResult): void {
-    // `setup` projekti testid kokkuvõttesse ei arvesta.
-    const isSetup = test.parent.project()?.name === 'setup';
-
-    if (!isSetup) {
-      this.counts.total += 1;
-      if (result.status === 'passed' && result.retry > 0) this.counts.flaky += 1;
-      if (result.status === 'passed') this.counts.passed += 1;
-      else if (result.status === 'skipped') this.counts.skipped += 1;
-      else this.counts.failed += 1;
-    }
-
-    const failed =
-      result.status === 'failed' || result.status === 'timedOut';
-    if (!failed) return;
-
-    const steps = this.stepsByTest.get(test.id) ?? [];
-    this.failures.push({ test, result, steps });
-    this.writeFailureDir(test, result, steps);
-  }
+  private rootSuite?: Suite;
 
   onEnd(result: FullResult): void {
+    // Loenda tulemused testide LÕPP-otsuse (`test.outcome()`) järgi — nii ei
+    // topeltloenda retry'd.
+    for (const test of this.rootSuite?.allTests() ?? []) {
+      if (test.parent.project()?.name === 'setup') continue;
+      this.counts.total += 1;
+      switch (test.outcome()) {
+        case 'expected':
+          this.counts.passed += 1;
+          break;
+        case 'flaky':
+          this.counts.passed += 1;
+          this.counts.flaky += 1;
+          break;
+        case 'skipped':
+          this.counts.skipped += 1;
+          break;
+        default: {
+          this.counts.failed += 1;
+          const last = test.results[test.results.length - 1];
+          const steps = this.stepsByTest.get(`${test.id}#${last.retry}`) ?? [];
+          this.failures.push({ test, result: last, steps });
+          this.writeFailureDir(test, last, steps);
+        }
+      }
+    }
     this.writeSummary(result);
     this.printConsoleSummary(result);
   }
