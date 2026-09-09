@@ -118,12 +118,12 @@ interface CompoundFormEditCardProps {
   setTrailerSearchError: (v: number | null) => void;
   mtrSearchError: string | null;
   setMtrSearchError: (v: string | null) => void;
-  driverSearchError: number | null;
-  setDriverSearchError: (v: number | null) => void;
-  driverSearchNotFound: number | null;
-  setDriverSearchNotFound: (v: number | null) => void;
-  driverSearchLoading: number | null;
-  handleDriverPersonSearch: (index: number) => void;
+  driverSearchError?: number | null;
+  setDriverSearchError?: (v: number | null) => void;
+  driverSearchNotFound?: number | null;
+  setDriverSearchNotFound?: (v: number | null) => void;
+  driverSearchLoading?: number | null;
+  handleDriverPersonSearch?: (index: number) => void;
   /** TRAM kontrollkaardil kuvatakse „Ei ole asjakohane" märkeruut (P6). */
   authority?: FormAuthority;
   handleOrgChange: (
@@ -175,12 +175,12 @@ export function CompoundFormEditCard({
   setTrailerSearchError,
   mtrSearchError,
   setMtrSearchError,
-  driverSearchError,
-  setDriverSearchError,
-  driverSearchNotFound,
-  setDriverSearchNotFound,
-  driverSearchLoading,
-  handleDriverPersonSearch,
+  driverSearchError = null,
+  setDriverSearchError = () => {},
+  driverSearchNotFound = null,
+  setDriverSearchNotFound = () => {},
+  driverSearchLoading = null,
+  handleDriverPersonSearch = () => {},
   authority = 'PPA',
   handleOrgChange,
   handleStructuralUnitChange,
