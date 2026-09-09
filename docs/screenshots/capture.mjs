@@ -189,7 +189,39 @@ const shots = [
   { name: 'user-guide/vorm-liitvorm', run: (p) => gotoShot(p, '/control-forms/compound/new', 'user-guide/images/07-vorm-liitvorm/01-loomisvaade.png') },
   { name: 'user-guide/vorm-tooinspektsioon', run: (p) => gotoShot(p, '/control-forms/labour-inspection/new', 'user-guide/images/08-vorm-tooinspektsioon/01-loomisvaade.png') },
   { name: 'user-guide/vorm-hea-maine', run: (p) => gotoShot(p, '/control-forms/good-repute/new', 'user-guide/images/12-vorm-hea-maine/01-loomisvaade.png') },
-  { name: 'user-guide/vorm-tram-kontrollkaart', run: (p) => gotoShot(p, '/control-forms/tram-driver/new', 'user-guide/images/18-vorm-tram-kontrollkaart/01-loomisvaade.png') },
+  {
+    name: 'user-guide/vorm-tram-kontrollkaart',
+    run: async (page) => {
+      // 01 — loomisvaade (tühi üldosa, enne salvestamist)
+      await gotoShot(page, '/control-forms/tram-driver/new', 'user-guide/images/18-vorm-tram-kontrollkaart/01-loomisvaade.png');
+
+      // 02 — üldosa detail: sõiduki kategooria + vedaja plokk (fixture 95006001)
+      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/02-uldosa.png');
+
+      // 03 — autojuhi vahekaart alati avatud (fixture 95006001)
+      await page.getByRole('tab', { name: /Autojuhi andmed|Sõidukijuhi/i }).click({ timeout: 6000 }).catch(() => {});
+      await sleep(800);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/03-autojuhi-vahekaart.png');
+
+      // 04 — „Ei ole asjakohane" märkeruut (loomisvaade, üldosa salvestatud)
+      // Näitame loomisvaates välja, kust märkeruut asub — scroll juhi andmete plokki
+      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      await page.getByRole('tab', { name: /Autojuhi andmed|Sõidukijuhi/i }).click({ timeout: 6000 }).catch(() => {});
+      await sleep(600);
+      const checkbox = page.locator('input[type=checkbox]').filter({ hasText: '' }).first();
+      await checkbox.scrollIntoViewIfNeeded().catch(() => {});
+      await sleep(400);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/04-ei-ole-asjakohane.png');
+
+      // 05 — e-toimiku päring (nähtav kui proceedingReferenceNumber täidetud; fixture kuvab kaarti)
+      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/05-etoimik.png');
+    },
+  },
 
   // --- Liitvorm ja alamvormid (näidisvormid 95002001..95002005, vt
   //     DSL/Liquibase/test/20260903100000-user-guide-fixture-forms.sql) ---
