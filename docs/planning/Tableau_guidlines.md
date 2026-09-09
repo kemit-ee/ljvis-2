@@ -88,147 +88,41 @@ vanema `compound_form`'i seisust.
 
 ---
 
-## 3. Valmis "latest" vaated — käivita see esimesena
+## 3. Valmis vaated `tableau` skeemis — need on **juba olemas**
 
-Kõige kiirem tee Tableau'ni: loo andmebaasi **eraldi `tableau` skeem**, kuhu paned
-"viimane seis" vaated. Tableau ühendub ainult nende vastu ja terve snapshot-loogika
-on peidetud.
+> **ADR-009 (10.09.2026):** `tableau` skeem koos vaadetega on nüüd **andmebaasis
+> Liquibase-migratsioonina** (`DSL/Liquibase/changelog/*tableau*`). Vana käsitsi
+> kopeeri-kleebi lähenemine (mis triivis skeemimuudatustega) on asendatud. Sina ei
+> pea midagi jooksutama — vaated on primaaril ja replikal olemas.
 
-> Käivitab DBA / DevOps read-replica peal (või primaaril, kui replikat pole).
-> Vaated on kerged — päris töö tehakse päringu ajal. Kaalu `MATERIALIZED VIEW`
-> + öist `REFRESH`-i, kui jõudlus kannatab (vt [§10](#10-tableau-spetsiifilised-soovitused)).
+**Materialiseeritud** vaated (analüütika jaoks ajalugu ei loe → salvestatakse
+füüsiliselt ainult aktiivne seis, mis on kõvasti indekseeritud → kiire).
+Öine värskendus `tableau.refresh_all()` kell **03:00** (CronManager, pärast
+e-Toimiku ja riskiskoori öiseid töid) — Tableau kasutab niikuinii öist
+Extract-refresh'i.
 
-```sql
-CREATE SCHEMA IF NOT EXISTS tableau;
-COMMENT ON SCHEMA tableau IS 'Ainult-lugemiseks analüütikavaated (Tableau). Iga vaade = viimane snapshot iga loogilise võtme kohta. Vt docs/planning/Tableau_guidlines.md';
+| Vaade | Sisu |
+|---|---|
+| `tableau.form_overview` | Üks rida per kontrollvorm (kõik tüübid). `authority` = PPA / TRAM, `is_published`, maakonna nimi, asutuse nimi, `has_violation`. **Dashboardide alusvaade.** |
+| `tableau.classifier_value_current` | Koodide → nimede tõlge. `classifier_code`, `value_code`, `value_name`, `parent_value_name`, `is_valid`. JOIN: `forms.*.<x>_code = value_code` VÕI `forms.*.<x>` (nt `county`) `= classifier_value_key::text`. |
+| `tableau.ehak` | EHAK haldusüksused lamedaks (maakond ↔ linn/vald). |
+| `tableau.organisation` | Asutus id → nimi/kood (`users` skeemi grant'i pole vaja — matview on turvapiir). |
 
--- ── forms: koondvorm (kontrollijuhtum) ────────────────────────────────
-CREATE OR REPLACE VIEW tableau.compound_form_current AS
-SELECT DISTINCT ON (compound_form_key) *
-FROM forms.compound_form
-WHERE status <> 'deleted'
-ORDER BY compound_form_key, created_at DESC;
+**Tuleb (PR2):** `tableau.<olem>_current` (üks per olem, kõik veerud + `_name`
+tulbad), fakt-vaated `tableau.violation_line` / `driver_line` / `trailer_line` /
+`document_check_line` (JSONB lahti võetud). Kuni siis: JSONB-väljade jaoks kasuta
+[§7](#7-jsonb-väljade-lahtivõtmine) retsepte otse `forms.*` peal.
 
--- ── forms: SP alamvormid ─────────────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.sp_driver_form_current AS
-SELECT DISTINCT ON (sp_driver_form_key) *
-FROM forms.sp_driver_form
-ORDER BY sp_driver_form_key, created_at DESC;
+**PII:** isikukoodid on kõigis `tableau` vaadetes pseudonümiseeritud
+(`left(md5(...),12)`), sünnikuupäev → aasta, isikunimed jäävad. `driver_search`
+(sisaldab isikukoode) **ei ole** eksporditud — `tableau.form_overview` pakub
+`driver_search_names` (ainult nimed). Vt [§8](#8-isikuandmed-pii--hoiatus).
 
-CREATE OR REPLACE VIEW tableau.sp_teammate_form_current AS
-SELECT DISTINCT ON (sp_teammate_form_key) *
-FROM forms.sp_teammate_form
-ORDER BY sp_teammate_form_key, created_at DESC;
+**Ühendus:** DevOps annab `tableau_ro` rollile `LOGIN` + parooli. Roll näeb
+`SELECT`-i **ainult** `tableau` skeemis.
 
--- ── forms: tehnovormid ───────────────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.vehicle_technical_form_current AS
-SELECT DISTINCT ON (vehicle_technical_form_key) *
-FROM forms.vehicle_technical_form
-ORDER BY vehicle_technical_form_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.trailer_technical_form_current AS
-SELECT DISTINCT ON (trailer_technical_form_key) *
-FROM forms.trailer_technical_form
-ORDER BY trailer_technical_form_key, created_at DESC;
-
--- ── forms: ADR (ohtlik veos) ─────────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.adr_form_current AS
-SELECT DISTINCT ON (adr_form_key) *
-FROM forms.adr_form
-ORDER BY adr_form_key, created_at DESC;
--- ADR JSONB-detailide lame-vaated (LATERAL): tableau.adr_dangerous_good (§11)
--- ja tableau.adr_infringement_record (§7.1) — loo need samas skeemis.
-
--- ── forms: autoveo katkestamine ──────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.kv_form_current AS
-SELECT DISTINCT ON (kv_form_key) *
-FROM forms.kv_form
-ORDER BY kv_form_key, created_at DESC;
-
--- ── forms: eraldiseisvad vormid ──────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.foreign_violation_form_current AS
-SELECT DISTINCT ON (foreign_violation_form_key) *
-FROM forms.foreign_violation_form
-WHERE status <> 'deleted'
-ORDER BY foreign_violation_form_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.labour_inspection_form_current AS
-SELECT DISTINCT ON (labour_inspection_form_key) *
-FROM forms.labour_inspection_form
-WHERE status <> 'deleted'
-ORDER BY labour_inspection_form_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.good_repute_form_current AS
-SELECT DISTINCT ON (good_repute_form_key) *
-FROM forms.good_repute_form
-WHERE status <> 'deleted'
-ORDER BY good_repute_form_key, created_at DESC;
-
--- ── risk: ettevõtte riskiskoor ───────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.company_risk_score_current AS
-SELECT DISTINCT ON (company_reg_code) *
-FROM risk.company_risk_score
-ORDER BY company_reg_code, created_at DESC;
-
--- ── erru: sõnumipered ────────────────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.erru_ctud_request_current AS
-SELECT DISTINCT ON (ctud_request_key) *
-FROM erru.ctud_request
-ORDER BY ctud_request_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.erru_cgr_request_current AS
-SELECT DISTINCT ON (cgr_request_key) *
-FROM erru.cgr_request
-ORDER BY cgr_request_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.erru_rsi_message_current AS
-SELECT DISTINCT ON (rsi_message_key) *
-FROM erru.rsi_message
-ORDER BY rsi_message_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.erru_ncr_message_current AS
-SELECT DISTINCT ON (ncr_message_key) *
-FROM erru.ncr_message
-ORDER BY ncr_message_key, created_at DESC;
-
--- ── classifier: lame lahtivolditud klassifikaator ────────────────────
-CREATE OR REPLACE VIEW tableau.classifier_value_current AS
-SELECT
-    c.code   AS classifier_code,
-    c.name   AS classifier_name,
-    cv.classifier_value_key,
-    cv.code  AS value_code,
-    cv.name  AS value_name,
-    cv.parent_key,
-    cv.valid_from,
-    cv.valid_until,
-    (cv.valid_from <= CURRENT_DATE
-      AND (cv.valid_until IS NULL OR cv.valid_until > CURRENT_DATE)) AS is_valid
-FROM (
-    SELECT DISTINCT ON (classifier_value_key) *
-    FROM classifier.classifier_value
-    ORDER BY classifier_value_key, created_at DESC
-) cv
-JOIN (
-    SELECT DISTINCT ON (classifier_key) *
-    FROM classifier.classifier
-    ORDER BY classifier_key, created_at DESC
-) c ON c.classifier_key = cv.classifier_key;
-
--- ── forms.form_search — juba olemas, ristvormi otsinguvaade ───────────
--- forms.form_search projitseerib iga vormitüübi viimase mittekustutatud
--- snapshot'i ühisele veerukomplektile (form_type, form_number, status,
--- main_date, county, vehicle_reg_nr, company_reg_code, company_name,
--- driver_search, inspector_org_id, inspector_name, has_violation, ...).
--- form_type väärtused: compound, sp_driver, sp_teammate, vehicle_technical,
--- trailer_technical, adr, kv (PPA koondvorm + alamvormid); foreign_violation,
--- labour_inspection, good_repute, tram_control_card (eraldiseisvad).
--- Anna Tableau'le SELECT ka sellele: GRANT SELECT ON forms.form_search TO <tableau_role>;
-
-GRANT USAGE ON SCHEMA tableau TO <tableau_role>;
-GRANT SELECT ON ALL TABLES IN SCHEMA tableau TO <tableau_role>;
-ALTER DEFAULT PRIVILEGES IN SCHEMA tableau GRANT SELECT ON TABLES TO <tableau_role>;
-```
+> Kui vajad täpselt seda mida `tableau.*_current` veel ei kata (PR2 tulekul),
+> anna ka `GRANT SELECT ON forms.form_search TO tableau_ro` ja päri sealt otse.
 
 **Ajaloo/trendi analüüsiks** (nt "kui palju vorme oli mustandis igal kuul") ühenda
 otse toortabeli külge — seal on kõik snapshot-read alles.

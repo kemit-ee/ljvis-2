@@ -1,0 +1,26 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Öine batch (ADR-009): värskendab kõik tableau skeemi materialiseeritud
+    analüütikavaated (tableau.refresh_all). Kutsub CronManager 03:00
+    Europe/Tallinn (DSL/CronManager/tableau-matview-refresh.yaml), pärast
+    e-Toimiku ja riskiskoori öiseid cron'e.
+  namespace: cron
+  allowlist:
+    body: []
+
+refresh:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/tableau/refresh_matviews"
+    headers:
+      type: json
+    body: {}
+  result: res
+  next: returnSummary
+
+returnSummary:
+  status: 200
+  return: "${({ refreshed: (res.response.body && res.response.body[0] && res.response.body[0].refreshed) || 0 })}"
+  next: end

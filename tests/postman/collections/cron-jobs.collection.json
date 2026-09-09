@@ -2431,6 +2431,71 @@
    ]
   },
   {
+   "name": "[tableau] cron/tableau-matview-refresh — refreshes all materialized views",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{internal_api_url}}/ljvis/cron/tableau-matview-refresh",
+     "host": [
+      "{{internal_api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "cron",
+      "tableau-matview-refresh"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('200', () => pm.response.to.have.status(200));",
+       "const b = pm.response.json(); const r = b.response || b;",
+       "pm.test('refreshed >= 4 matviews', () => pm.expect(Number(r.refreshed)).to.be.at.least(4));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[tableau] ruuter-internal still alive after refresh",
+   "request": {
+    "method": "GET",
+    "header": [],
+    "url": {
+     "raw": "{{internal_api_url}}/health",
+     "host": [
+      "{{internal_api_url}}"
+     ],
+     "path": [
+      "health"
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('alive', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+      ]
+     }
+    }
+   ]
+  },
+  {
    "name": "[NCR autodispatch] select-autodispatch-candidates — published KORRAS foreign-vehicle sub-form is a candidate",
    "request": {
     "method": "POST",
