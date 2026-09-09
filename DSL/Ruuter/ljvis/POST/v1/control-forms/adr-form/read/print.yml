@@ -89,7 +89,7 @@ checkCompoundForm:
 renderBlank:
   call: http.post
   args:
-    url: "[#LJVIS_PDF_CREATOR]/v1/render"
+    url: "http://pdf-creator:3020/v1/render"
     headers:
       type: json
     body:
@@ -103,7 +103,7 @@ renderBlank:
 renderFilled:
   call: http.post
   args:
-    url: "[#LJVIS_PDF_CREATOR]/v1/render"
+    url: "http://pdf-creator:3020/v1/render"
     headers:
       type: json
     body:
