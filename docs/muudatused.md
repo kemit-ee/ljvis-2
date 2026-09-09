@@ -19,6 +19,22 @@
 - Päringu kopeerimisel säilivad päringu eesmärk, pädev asutus ja päringu allikas.
 
 ### ADR kontrollkaardi PDF-prindi tugi
+## 2026-09 — Transpordiameti kontrollkaart: üks vorm, üks elutsükkel
+
+- **TRAM kontrollkaart** on nüüd **üks vorm**: üldosa ja sõidukijuhi andmed on
+  samal keritaval lehel, ilma eraldi vahekaardi ja alamvormita. Uue kaardi puhul
+  ei pea enam üldosa esmalt salvestama, et juhi sektsioon avaneks.
+- **Üks vorminumber** `tram-AAAA-NNNNN/versioon` (varasema kahe numbri asemel).
+- **Elutsükkel Salvestatud → Kinnitatud → Avaldatud** on nüüd ühe nupurea taga.
+  Avalikustada saab ainult kinnitatud kaardilt.
+- **Automaatne avalikustamine e-Toimikust:** kui kaardil on menetluse viitenumber
+  ja Eesti isikukoodiga juht, avalikustab öine sünkroon kaardi automaatselt, kui
+  e-Toimikust tuleb jõustunud karistus. Karistuseta lõpetatud menetluse korral
+  avalikustab inspektor käsitsi.
+- Marsruut muutus: `/control-forms/tram-driver/…` → `/control-forms/tram-control-card/…`
+  (vana link suunab kontrollvormide otsingusse).
+
+## 2026-09 — ADR kontrollkaardi PDF-prindi tugi
 
 - **ADR kontrollkaardil** ilmub vaatamis- ja avalikustamisvaates nupp **„Prindi"**
   rippmenüüga:

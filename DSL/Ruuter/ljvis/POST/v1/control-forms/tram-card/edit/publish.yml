@@ -62,7 +62,7 @@ extractCurrentFormFields:
     road_other: "${cur.roadOther != null ? String(cur.roadOther) : ''}"
     kilometer: "${cur.kilometer != null ? String(cur.kilometer) : ''}"
     address: "${cur.address != null ? String(cur.address) : ''}"
-    road_type: "${cur.roadType != null ? String(cur.roadType) : ''}"
+    road_type: "${cur.road_type != null ? String(cur.road_type) : ''}"
     road_tax_status: "${cur.roadTaxStatus != null ? String(cur.roadTaxStatus) : ''}"
     road_tax_notes: "${cur.roadTaxNotes != null ? String(cur.roadTaxNotes) : ''}"
     vehicle_reg_nr: "${cur.vehicleRegNr != null ? String(cur.vehicleRegNr) : ''}"
@@ -81,7 +81,7 @@ extractCurrentFormFields:
     company_country_code: "${cur.companyCountryCode != null ? String(cur.companyCountryCode) : ''}"
     company_county: "${cur.companyCounty != null ? String(cur.companyCounty) : ''}"
     company_city: "${cur.companyCity != null ? String(cur.companyCity) : ''}"
-    company_address: "${cur.companyAddress != null ? String(cur.companyAddress) : ''}"
+    company_address: "${cur.companyAddressLine1 != null ? String(cur.companyAddressLine1) : ''}"
     company_postal_code: "${cur.companyPostalCode != null ? String(cur.companyPostalCode) : ''}"
     company_owner_first_name: "${cur.companyOwnerFirstName != null ? String(cur.companyOwnerFirstName) : ''}"
     company_owner_last_name: "${cur.companyOwnerLastName != null ? String(cur.companyOwnerLastName) : ''}"
@@ -141,7 +141,7 @@ publishForm:
       roadOther: ${road_other}
       kilometer: ${kilometer}
       address: ${address}
-      roadType: ${road_type}
+      road_type: ${road_type}
       roadTaxStatus: ${road_tax_status}
       roadTaxNotes: ${road_tax_notes}
       vehicleRegNr: ${vehicle_reg_nr}
@@ -160,7 +160,7 @@ publishForm:
       companyCountryCode: ${company_country_code}
       companyCounty: ${company_county}
       companyCity: ${company_city}
-      companyAddress: ${company_address}
+      companyAddressLine1: ${company_address}
       companyPostalCode: ${company_postal_code}
       companyOwnerFirstName: ${company_owner_first_name}
       companyOwnerLastName: ${company_owner_last_name}

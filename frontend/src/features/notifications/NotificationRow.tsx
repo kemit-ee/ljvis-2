@@ -23,7 +23,8 @@ function getEntityUrl(
     case 'drive_rest_driver_form':   return `/control-forms/sp-driver/${id}`;
     case 'drive_rest_teammate_form': return `/control-forms/sp-teammate/${id}`;
     case 'compound_form':            return `/control-forms/compound/${id}`;
-    case 'tram_form':                return `/control-forms/tram-driver/${id}`;
+    case 'tram_form':                return `/control-forms/tram-control-card/${id}`;
+    case 'tram_control_card':        return `/control-forms/tram-control-card/${id}`;
     case 'vehicle_technical':        return `/control-forms/vehicle-technical/${id}`;
     case 'trailer_technical':        return `/control-forms/trailer-technical/${id}`;
     case 'foreign_violation_form':   return `/control-forms/foreign-violation/${id}`;

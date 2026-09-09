@@ -749,7 +749,7 @@
       ]
     },
     {
-      "name": "[Setup] Create TRAM compound form",
+      "name": "[Setup] Create TRAM control card",
       "request": {
         "method": "POST",
         "header": [
@@ -764,10 +764,10 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"\", \"formNumber\": \"\", \"status\": \"saved\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"Tallinn\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"Testi tee 1\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"CITRAM1\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"driverNotApplicable\": false, \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"driver1PersonalCodeEe\": \"\", \"driver1PersonalCodeForeign\": \"\", \"driver2PersonalCodeEe\": \"\", \"driver2PersonalCodeForeign\": \"\"}"
+          "raw": "{\"id\": \"\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"city\": \"Tallinn\", \"address\": \"Testi tee 1\", \"vehicleRegNr\": \"CITRAMDASH\", \"vehicleCountryCode\": \"EE\", \"trailers\": \"[]\", \"drivers\": \"[]\", \"driverNotApplicable\": \"true\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"resultType\": \"ok\", \"proceedingType\": \"none\", \"notes\": \"CI dashboard tram card\"}"
         },
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/edit/save",
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save",
           "host": [
             "{{api_url}}"
           ],
@@ -775,7 +775,7 @@
             "ljvis",
             "v1",
             "control-forms",
-            "tram-form",
+            "tram-card",
             "edit",
             "save"
           ]
@@ -787,14 +787,19 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar b = pm.response.json();\nvar row = b.response && b.response[0] ? b.response[0] : b[0] || b;\npm.test('TRAM form created', () => pm.expect(row.id).to.be.a('number').and.above(0));\npm.environment.set('tram_dash_key', row.id);\npm.environment.set('tram_dash_formnumber', row.formNumber || row.formnumber || '');\npm.environment.set('tram_dash_status', row.status || 'saved');"
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var row = b.response && b.response[0] ? b.response[0] : (b[0] || b);",
+              "pm.test('TRAM card created', () => pm.expect(row.id).to.be.a('number').and.above(0));",
+              "pm.environment.set('tram_dash_key', row.id);",
+              "pm.environment.set('tram_dash_status', row.status || 'saved');"
             ]
           }
         }
       ]
     },
     {
-      "name": "GET dashboard/summary — TRAM compound appears in activeCompoundForms",
+      "name": "GET dashboard/summary — TRAM control card appears in activeStandaloneForms",
       "request": {
         "method": "GET",
         "header": [
@@ -822,7 +827,17 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Returns 200', () => pm.response.to.have.status(200));\nvar b = pm.response.json();\nvar summary = b.response || b;\nvar activeCompound = summary.activeCompoundForms || [];\nvar tramKey = parseInt(pm.environment.get('tram_dash_key'));\npm.test('TRAM compound form appears in activeCompoundForms',\n  () => pm.expect(activeCompound.some(f => f.compoundFormKey === tramKey)).to.be.true\n);\npm.test('TRAM compound form has tram- form number',\n  () => {\n    var tram = activeCompound.find(f => f.compoundFormKey === tramKey);\n    pm.expect(tram && tram.formNumber || '').to.match(/^tram-/);\n  }\n);"
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var summary = b.response || b;",
+              "var standalone = summary.activeStandaloneForms || [];",
+              "var tramKey = parseInt(pm.environment.get('tram_dash_key'));",
+              "pm.test('TRAM card appears in activeStandaloneForms',",
+              "  () => pm.expect(standalone.some(f => f.formKey === tramKey && f.formType === 'tram_control_card')).to.be.true);",
+              "pm.test('TRAM card has tram- form number', () => {",
+              "  var tram = standalone.find(f => f.formKey === tramKey);",
+              "  pm.expect((tram && tram.formNumber) || '').to.match(/^tram-/);",
+              "});"
             ]
           }
         }
@@ -1790,7 +1805,7 @@
       ]
     },
     {
-      "name": "[Cleanup] Delete TRAM compound form",
+      "name": "[Cleanup] Delete TRAM control card",
       "request": {
         "method": "POST",
         "header": [
@@ -1805,10 +1820,10 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{tram_dash_key}}\", \"form_number\": \"{{tram_dash_formnumber}}\", \"old_status\": \"{{tram_dash_status}}\"}"
+          "raw": "{\"id\": \"{{tram_dash_key}}\", \"old_status\": \"{{tram_dash_status}}\"}"
         },
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-form/edit/delete",
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/delete",
           "host": [
             "{{api_url}}"
           ],
@@ -1816,7 +1831,7 @@
             "ljvis",
             "v1",
             "control-forms",
-            "tram-form",
+            "tram-card",
             "edit",
             "delete"
           ]
