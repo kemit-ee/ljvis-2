@@ -125,20 +125,20 @@ export const BREADCRUMB_ROUTES: BreadcrumbRouteEntry[] = [
     parent: '/',
   },
 
-  // Control forms — TRAM driver
+  // Control forms — TRAM control card (ADR-002)
   {
-    pattern: '/control-forms/tram-driver/new',
-    labelKey: 'breadcrumbs.tramDriverForm',
+    pattern: '/control-forms/tram-control-card/new',
+    labelKey: 'breadcrumbs.tramControlCard',
     parent: '/',
   },
   {
-    pattern: '/control-forms/tram-driver/:id/:snapshotId',
+    pattern: '/control-forms/tram-control-card/:id/:snapshotId',
     labelKey: 'breadcrumbs.snapshot',
-    parent: '/control-forms/tram-driver/:id',
+    parent: '/control-forms/tram-control-card/:id',
   },
   {
-    pattern: '/control-forms/tram-driver/:id',
-    labelKey: 'breadcrumbs.tramDriverForm',
+    pattern: '/control-forms/tram-control-card/:id',
+    labelKey: 'breadcrumbs.tramControlCard',
     parent: '/',
   },
 

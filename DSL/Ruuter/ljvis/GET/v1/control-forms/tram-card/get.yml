@@ -43,7 +43,7 @@ checkShouldLog:
   switch:
     - condition: ${actor_personal_code != res.response.body[0].createdBy}
       next: logAuditEvent
-  next: returnSuccess
+  next: mapResponse
 
 logAuditEvent:
   template: "templates/audit/log-audit-event"
@@ -58,10 +58,21 @@ logAuditEvent:
     description: "TRAM kontrollkaart vaadatud, number=${res.response.body[0].formNumber}/${res.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${id},\"formNumber\":\"${res.response.body[0].formNumber}\"}"
   result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_tram_control_card"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${res.response.body}
+  return: ${mapped.response.body}
   next: end
 
 returnNotFound:

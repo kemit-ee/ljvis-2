@@ -37,7 +37,7 @@ params:
   address:
     type: string
     required: false
-  roadType:
+  road_type:
     type: string
     required: false
   roadTaxStatus:
@@ -94,7 +94,7 @@ params:
   companyCity:
     type: string
     required: false
-  companyAddress:
+  companyAddressLine1:
     type: string
     required: false
   companyPostalCode:
@@ -342,7 +342,7 @@ SELECT
   NULLIF(:roadOther, ''),
   NULLIF(:kilometer, '')::INTEGER,
   NULLIF(:address, ''),
-  NULLIF(:roadType, ''),
+  NULLIF(:road_type, ''),
   NULLIF(:roadTaxStatus, ''),
   NULLIF(:roadTaxNotes, ''),
   NULLIF(:vehicleRegNr, ''),
@@ -361,7 +361,7 @@ SELECT
   NULLIF(:companyCountryCode, ''),
   NULLIF(:companyCounty, ''),
   NULLIF(:companyCity, ''),
-  NULLIF(:companyAddress, ''),
+  NULLIF(:companyAddressLine1, ''),
   NULLIF(:companyPostalCode, ''),
   NULLIF(:companyOwnerFirstName, ''),
   NULLIF(:companyOwnerLastName, ''),
