@@ -764,7 +764,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"city\": \"Tallinn\", \"address\": \"Testi tee 1\", \"vehicleRegNr\": \"CITRAMDASH\", \"vehicleCountryCode\": \"EE\", \"trailers\": \"[]\", \"drivers\": \"[]\", \"driverNotApplicable\": \"false\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"resultType\": \"ok\", \"proceedingType\": \"none\", \"notes\": \"CI dashboard tram card\"}"
+          "raw": "{\"id\": \"\", \"controlDate\": \"2026-02-01\", \"controlTime\": \"09:30\", \"controlCountryCode\": \"EE\", \"city\": \"Tallinn\", \"address\": \"Testi tee 1\", \"vehicleRegNr\": \"CITRAMDASH\", \"vehicleCountryCode\": \"EE\", \"trailers\": \"[]\", \"drivers\": \"[]\", \"driverNotApplicable\": \"true\", \"inspectorFirstName\": \"CI\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"resultType\": \"ok\", \"proceedingType\": \"none\", \"notes\": \"CI dashboard tram card\"}"
         },
         "url": {
           "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save",
