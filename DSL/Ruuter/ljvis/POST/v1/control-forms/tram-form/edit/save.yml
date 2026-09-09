@@ -79,6 +79,8 @@ declaration:
         type: string
       - field: drivers
         type: string
+      - field: driverNotApplicable
+        type: boolean
       - field: inspectorFirstName
         type: string
       - field: inspectorLastName
@@ -136,6 +138,7 @@ extractRequestData:
     company_owner_last_name: "${incoming.body.companyOwnerLastName}"
     company_activity_licence_copy_number: "${incoming.body.companyActivityLicenceCopyNumber}"
     drivers: "${incoming.body.drivers}"
+    driver_not_applicable: "${incoming.body.driverNotApplicable || false}"
     driver1_personal_code_ee: "${incoming.body.driver1PersonalCodeEe}"
     driver1_personal_code_foreign: "${incoming.body.driver1PersonalCodeForeign}"
     driver2_personal_code_ee: "${incoming.body.driver2PersonalCodeEe}"
@@ -320,6 +323,7 @@ insertForm:
       companyOwnerLastName: ${company_owner_last_name}
       companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
       drivers: ${drivers}
+      driverNotApplicable: ${driver_not_applicable}
       inspectorFirstName: ${inspector_first_name}
       inspectorLastName: ${inspector_last_name}
       inspectorOrganisationId: ${inspector_organisation_id}
@@ -447,6 +451,7 @@ updateForm:
       companyOwnerLastName: ${company_owner_last_name}
       companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
       drivers: ${drivers}
+      driverNotApplicable: ${driver_not_applicable}
       inspectorFirstName: ${inspector_first_name}
       inspectorLastName: ${inspector_last_name}
       inspectorOrganisationId: ${inspector_organisation_id}

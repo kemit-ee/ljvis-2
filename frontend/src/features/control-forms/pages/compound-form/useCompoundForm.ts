@@ -21,7 +21,11 @@ import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 import { useVehicleSearch } from '../../../xroad/hooks/useVehicleSearch';
-import { searchVehicleByRegNr, searchMtrSoidukikaart } from '../../../xroad/api';
+import {
+  searchVehicleByRegNr,
+  searchMtrSoidukikaart,
+  searchPersonByCode,
+} from '../../../xroad/api';
 import type { XRoadVehicle } from '../../../xroad/types';
 import { FORM_CONFIG, getAvailableFormKeys } from "../../formRoutes.ts";
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
@@ -146,6 +150,15 @@ export function useCompoundForm(
   // the MTR search has several distinct outcomes, not a single generic
   // "not found" message.
   const [mtrSearchError, setMtrSearchError] = useState<string | null>(null);
+  // Per-index (drivers is an array) rahvastikuregistri otsing — hoiab
+  // vea/„ei leitud"/laadimise oleku juhi indeksi kaupa.
+  const [driverSearchError, setDriverSearchError] = useState<number | null>(null);
+  const [driverSearchNotFound, setDriverSearchNotFound] = useState<
+    number | null
+  >(null);
+  const [driverSearchLoading, setDriverSearchLoading] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
@@ -285,10 +298,13 @@ export function useCompoundForm(
     drivers: Yup.array().test('drivers-validation', '', function (drivers) {
       if (!drivers) return true;
       const req = t('forms.foreign_violation.validation.required');
+      // TRAM „Ei ole asjakohane" — autojuhi ees-/perekonnanime ei nõuta.
+      const driverNameNotRequired =
+        (this.parent as CompoundForm)?.driverNotApplicable === true;
       const errors: Yup.ValidationError[] = [];
       drivers.forEach((driver: Driver, index: number) => {
         if (index === 0) {
-          if (!driver?.firstName)
+          if (!driverNameNotRequired && !driver?.firstName)
             errors.push(
               new Yup.ValidationError(
                 req,
@@ -296,7 +312,7 @@ export function useCompoundForm(
                 `drivers[${index}].firstName`,
               ),
             );
-          if (!driver?.lastName)
+          if (!driverNameNotRequired && !driver?.lastName)
             errors.push(
               new Yup.ValidationError(
                 req,
@@ -392,6 +408,7 @@ export function useCompoundForm(
         : typeof form?.drivers === 'string'
           ? JSON.parse(form.drivers)
           : [emptyDriver()]) as Driver[],
+      driverNotApplicable: form?.driverNotApplicable ?? false,
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId:
@@ -611,8 +628,12 @@ export function useCompoundForm(
 
   const {
     searchByRegCode,
+    searchByName,
     error: companySearchError,
     setError: setCompanySearchError,
+    pickerResults: companyPickerResults,
+    handleCompanyPicked: onCompanyPicked,
+    closePicker: closeCompanyPicker,
   } = useCompanySearch({
     onCompanyFound: (company) => {
       const { countyKey, cityKey } = resolveEhakByText(company.city);
@@ -622,10 +643,22 @@ export function useCompoundForm(
       formik.setFieldValue('companyCity', cityKey);
       formik.setFieldValue('companyPostalCode', company.postalCode);
       formik.setFieldValue('companyCountryCode', 'EE');
+      if (company.registryCode) {
+        // Nime järgi otsingul jäi registrikood täitmata — kanna see samuti üle.
+        formik.setFieldValue('companyRegCode', company.registryCode);
+      }
     },
   });
 
-  const handleCompanySearch = () => searchByRegCode(formik.values.companyRegCode);
+  // Üks nupp: kui registrikood on täidetud, otsi selle järgi; muidu nime järgi.
+  const handleCompanySearch = () => {
+    if (formik.values.companyRegCode?.trim()) {
+      searchByRegCode(formik.values.companyRegCode);
+    } else {
+      searchByName(formik.values.companyName);
+    }
+  };
+  const handleCompanyNameSearch = () => searchByName(formik.values.companyName);
 
   const applyVehicleToForm = (vehicle: XRoadVehicle) => {
     const { categoryCode, categoryOther } = mapVehicleCategory(vehicle.categoryCode);
@@ -684,6 +717,42 @@ export function useCompoundForm(
       formik.setFieldValue('trailers', updated);
     } catch {
       setTrailerSearchError(index);
+    }
+  };
+
+  // "Otsi rahvastikuregistrist" — juhi Eesti isikukoodi järgi RR päring,
+  // täidab ees-/perekonnanime, kodakondsuse ja sünniaja. Per-index (drivers
+  // on massiiv), seega sama muster nagu handleTrailerSearch.
+  const EE_PERSONAL_CODE_REGEX = /^[1-6][0-9]{10}$/;
+  const handleDriverPersonSearch = async (index: number) => {
+    setDriverSearchError(null);
+    setDriverSearchNotFound(null);
+    const code = formik.values.drivers[index]?.personalCodeEe?.trim();
+    if (!code || !EE_PERSONAL_CODE_REGEX.test(code)) {
+      setDriverSearchError(index);
+      return;
+    }
+    setDriverSearchLoading(index);
+    try {
+      const person = await searchPersonByCode(code);
+      if (!person) {
+        setDriverSearchNotFound(index);
+        return;
+      }
+      const updated = [...formik.values.drivers];
+      updated[index] = {
+        ...updated[index],
+        firstName: person.firstName || updated[index]?.firstName || '',
+        lastName: person.lastName || updated[index]?.lastName || '',
+        citizenshipCode:
+          person.citizenshipCode || updated[index]?.citizenshipCode || '',
+        birthDate: person.dateOfBirth || updated[index]?.birthDate || '',
+      };
+      formik.setFieldValue('drivers', updated);
+    } catch {
+      setDriverSearchError(index);
+    } finally {
+      setDriverSearchLoading(null);
     }
   };
 
@@ -771,10 +840,20 @@ export function useCompoundForm(
     setTrailerSearchError,
     mtrSearchError,
     setMtrSearchError,
+    driverSearchError,
+    setDriverSearchError,
+    driverSearchNotFound,
+    setDriverSearchNotFound,
+    driverSearchLoading,
     handleCompanySearch,
+    handleCompanyNameSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
     handleVehicleSearch,
     handleTrailerSearch,
     handleMtrSearch,
+    handleDriverPersonSearch,
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,

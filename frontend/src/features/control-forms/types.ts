@@ -188,6 +188,8 @@ export interface CompoundForm {
   companyOwnerLastName?: string;
   companyActivityLicenceCopyNumber?: string;
   drivers?: Driver[];
+  /** TRAM kontrollkaart: „Ei ole asjakohane" — autojuhi nimi ei ole kohustuslik. */
+  driverNotApplicable?: boolean;
   inspectorFirstName?: string;
   inspectorLastName?: string;
   inspectorOrganisationId?: string;
