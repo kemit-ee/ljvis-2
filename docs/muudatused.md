@@ -4,7 +4,104 @@
 
 ---
 
-## 2026-09 — Menüü: „Riskiskoorid" järjekord
+## 2026-09 — Transpordiameti kontrollkaardi täiendused
+
+Transpordiameti (TRAM) ettepanekute põhjal:
+
+- **Autojuhi alamvorm alati nähtav** — olemasoleval TRAM kontrollkaardil kuvatakse
+  autojuhi andmete vahekaart nüüd kohe, ilma et peaks „Lisa autojuht" nuppu
+  vajutama. Autojuht ei ole endiselt kohustuslik.
+- **E-toimiku karistuse kvalifikatsioonid** — TRAM kontrollkaardile lisati
+  kirjutuskaitstud e-toimiku päringu kaart (sama, mis PPA koondvormil).
+- **„Ei ole asjakohane" märkeruut** — „Sõidukijuhi andmed" pealkirja all; märgituna
+  ei ole autojuhi ees- ja perekonnanimi enam kohustuslikud (ainult TRAM).
+- **Sõidukijuhi andmeväljad** — uus järjekord (eesnimi, perekonnanimi, Eesti
+  isikukood, „Otsi rahvastikuregistrist" nupp, välisriigi isikukood, kodakondsus,
+  sünniaeg); isikukoodi väljad kitsamad. RR-otsing täidab nime, kodakondsuse ja
+  sünniaja. Kehtib nii PPA kui TRAM kontrollkaardil.
+- **Äriregistri otsing ettevõtte nime järgi** — lisaks registrikoodi järgi
+  otsingule saab nüüd otsida ka ettevõtte nime järgi; mitme vaste korral kuvatakse
+  valikuaken. Kehtib nii PPA kui TRAM kontrollkaardil.
+- **Mootorsõiduki kategooria paigutus** — „(e) M2" ja „(f) M3" mahuvad ühele reale,
+  „Muu" tekstiväli kuvatakse vahetult „Muu" valiku järel.
+- **Haagise pealkiri** — „Haagis #1/#2/#3" asemel „Haagis 1/2/3".
+
+---
+
+## 2026-09 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
+
+- **Liini number ja liini nimetus** — kõikide liinivedude korral (nii siseriiklik kui
+  rahvusvaheline) kuvatakse nüüd autojuhi sõidu- ja puhkeaja alamvormil kaks uut
+  tekstivälja: „Liini number" ja „Liini nimetus". Väljad on nähtavad ainult siis,
+  kui veoliigiks on valitud **Sõitjatevedu**. Kehtib nii PPA kui Transpordiameti
+  kontrollkaardil.
+- **„Muud dokumendid" osa** (dokumendi/õiguse kontrolli akordion) täiendati seitsme
+  sõitjateveo-spetsiifilise kirjega, mis esinesid PPA pabervormil kuid puudusid
+  digisüsteemist:
+  - Vedaja nimi / kaubamärk sõiduki parempoolsel välisküljel
+  - Liini number ühissõidukil
+  - Liini nimetus ühissõidukil
+  - Vedaja ennetab liiniloa (ATL) andja kinnitatud sõiduplaani
+  - Vedaja ei peatu sõiduplaanis märgitud peatuses
+  - Vedaja teenindab märkimata peatust
+  - Vedaja kasutab mittevastavat sõidukit
+  Kirjed kuvatakse ainult **sõitjateveo** veoliigi korral.
+- **Vaatamisvaates (kinnitatud/avalikustatud vorm)** peideti nüüd ka Transpordiameti
+  kontrollkaardil sektsioonid „Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass
+  ja mõõtmed" ning „ATP kokkuleppe nõuete kontroll" — need on TRAM-le ebaolulised
+  ja täideti taustprogrammis vaikeväärtustega (varasemalt peitis ainult muutmisvaade).
+
+---
+
+## 2026-09 — Teavituselt navigeerimine seotud vormile
+
+- **Teavituste loendis** on igal real, millele vastab konkreetne kontrollvorm, nupp
+  **„Ava vorm"**. Nupule vajutades avaneb vorm otse ja teavitus märgitakse
+  automaatselt **loetuks**.
+- Toetatud vormi tüübid: autojuhi sõidu-/puhkeaeg (PPA ja TRAM), liitvorm,
+  välisriigi rikkumine, sõiduki tehnoülevaatus, haagise tehnoülevaatus, autoveo
+  katkestamine, hea maine, tööinspektsioon, ADR, NCR, RSI, CTUD, CGR.
+
+---
+
+## 2026-09 — Muud dokumendid: „ei vasta nõuetele" valik + lepingukirje tekst
+
+- **„Muud dokumendid" osa** (dokumendi/õiguse kontrolli akordion): valikud vastavad
+  nüüd pabervormiga — **Nõuetekohane | ei vasta nõuetele | Puudub**.
+  Varasem „Ei kontrollitud" on asendatud „ei vasta nõuetele" valikuga.
+- **„Sõidukijuhi tööleping"** kirje täistekst on uuendatud:
+  _„Sõidukijuhi tööleping või sellest lepingust osapoolte kinnitatud väljavõte"_
+  (eemaldati viide TÖR-registripäringule riigisisesel veoseveol).
+
+---
+
+## 2026-09 — Veaparandus: koondvormi asutuse väli salvestas numbrilise ID
+
+- **Koondvormil ja välisriigi rikkumise vormil** salvestus inspektori asutuse
+  väärtus valesti numbrilise ID-na (`"1"`) asemel organisatsiooni koodina
+  (`"PPA"`). Selle tõttu: asutuse rippmenüü ei näidanud salvestatud valikut
+  õigesti; struktuuriüksuste filter ei töötanud PPA kasutajal.
+- **PPA kasutajal** ebaõnnestus uue vormi salvestamine veateatega
+  `InvalidParameterTypeException: expected string, got number` — ametniku
+  asutuse identifikaator jõudis serverisse arvuna.
+- Parandus: autentimisteenuse vastus sisaldab nüüd asutuse **koodi**
+  (`organisationcode`); asutuse valik salvestab alati koodi; olemasolevad
+  andmebaasi kirjed konverteeritakse migratsiooniga automaatselt.
+
+---
+
+## 2026-09 — Koondvormi salvestamine ei anna enam „varjatud" viga
+
+- **Koondvormi loomine/muutmine** võis teatud olukorras (nt kui ametniku profiilil
+  puudus struktuuriüksus) ebaõnnestuda ilma selge veateateta — server tagastas
+  läbipaistmatu tehnilise vea `TypeError: cannot convert 'null' or 'undefined' to
+  object`. Nüüd:
+  - tühjaks jäänud kohustuslikud tekstiväljad (nt inspektori üksus) salvestatakse
+    tühjana, mitte ei blokeeri salvestamist andmebaasi tasandil;
+  - **„Üksus"** väli on koondvormil nüüd kohustuslik (nagu andmebaas eeldab);
+  - kui salvestamine andmebaasi siiski ebaõnnestub, kuvatakse **tegelik veateade**,
+    mitte tehniline tõrge — see kehtib **kõigi kontrollvormide** salvestamisel.
+- Sama parandus rakendati välisriigi rikkumise vormi inspektori-väljadele.
 
 - Menüüpunkt **„Riskiskoorid"** paikneb nüüd vasakmenüü ülatasandi loendi
   **lõpus, vahetult „Haldus" kohal** (varem kohe „Otsingu" järel, ERRU-punktide

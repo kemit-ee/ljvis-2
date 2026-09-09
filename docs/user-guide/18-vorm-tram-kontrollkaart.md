@@ -1,72 +1,124 @@
 # Transpordiameti kontrollkaart
 
 Transpordiameti (TRAM) kontrollkaart on liiklusinspektsiooni käigus täidetav
-kontrollkaart, mis on funktsionaalselt sarnane PPA autojuhi sõidu- ja puhkeaja
-vormiga, kuid sisaldab väiksemat väljade komplekti. ERRU mõistes on tegemist sama
-andmetüübiga — andmed salvestuvad samadesse tabelitesse (`forms.compound_form` +
-`forms.sp_driver_form`), kuid TRAM-vormid eristatakse `compound_form.authority`
-veeru väärtusega `TRAM`. Vt arhitektuuriotsust ADR-001.
+kontrollkaart autojuhi sõidu- ja puhkeaja ning muude dokumentide kontrollimiseks.
+ERRU mõistes on tegemist sama andmetüübiga mis PPA koondvorm — andmed salvestuvad
+samadesse tabelitesse (`forms.compound_form` + `forms.sp_driver_form`), kuid TRAM
+kontrollkaardid eristatakse `compound_form.authority = 'TRAM'` väärtusega.
+Vt arhitektuuriotsust ADR-001.
 
-## Vormi eesmärk
+## Juurdepääs ja õigused
 
-- Registreerida Transpordiameti teostatud tee kontroll ilma eraldi koondvormita
-- Dokumenteerida kontrollikoht, sõiduk, vedaja ja kontrolli teostanud ametiisik
-- Täita autojuhi sõidu- ja puhkeaja alamvorm (dokumendid/õigused, rikkumised,
-  kontrolli tulemus, menetluse liik)
+| Õigus | Kirjeldus |
+|---|---|
+| `tram_driver_form.write` | Vormi loomine ja muutmine |
+| `tram_driver_form.read` | Vormi vaatamine |
 
-## Juurdepääs
+Õigused määratakse kasutajate halduses Transpordiameti kasutajagruppidele. PPA-õigustega
+kasutaja ei näe TRAM-vorme ega TRAM-vorme otsingus ja vastupidi.
 
-- Vormi **loomiseks** on vaja õigust `tram_driver_form.write`
-- Vormi **vaatamiseks** on vaja õigust `tram_driver_form.read`
-- Õigused määratakse kasutajate halduses Transpordiameti kasutajagruppidele
-- PPA-õigustega kasutaja ei näe TRAM-vorme ja vastupidi — ka otsingus kuvatakse
-  ainult oma asutuse vorme
+## Vormi avamine
 
-## Kust vorm avada
+**Töölaud → „Transpordiameti kontrollkaart" → „Täida →"**
 
-**Töölaud → plokk „Vormid" → kaart „Transpordiameti kontrollkaart" → „Täida →"**
-
-Olemasolevat vormi saab avada otse URL-ilt `/control-forms/tram-driver/:id`.
+Olemasolevaid vorme saab avada otsingust või otse URL-ilt `/control-forms/tram-driver/:id`.
 
 ## Vormi ülesehitus
 
 ![Transpordiameti kontrollkaardi loomisvaade](images/18-vorm-tram-kontrollkaart/01-loomisvaade.png)
 
-Vormil on üldosa (identne PPA koondvormi üldosaga) ja üks alamvorm — autojuhi tab.
-Kaasreisija / meeskonnaliikme, tehnoülevaatuse, ADR ja veo katkestamise alamvorme
-TRAM-kaardil ei ole.
+Vorm koosneb kahest osast: **üldosa** (kontrollikoht, sõiduk, vedaja, ametiisik) ja
+**autojuhi alamvorm** (sõidu- ja puhkeaeg, dokumendid, rikkumised, kontrolli tulemus).
+PPA koondvormi alamvorme (tehnoülevaatus, ADR, veo katkestamine, kaassõitja) TRAM-kaardil
+ei ole.
 
-### Üldosa väljad
+### Üldosa
+
+![Üldosa väljadetail](images/18-vorm-tram-kontrollkaart/02-uldosa.png)
 
 | Plokk | Väljad |
 |---|---|
-| Kontrollikoht | kontrolli kuupäev ja kellaaeg, riik, maakond, tee/kilomeeter või aadress |
-| Sõiduk | registreerimismärk, mark, mudel, VIN, kategooria, läbisõit, haagised |
-| Vedaja | registrikood, nimi, aadress, tegevusloa koopia number |
-| Ametiisik | eesnimi, perekonnanimi, asutus, struktuuriüksus, ametinimetus (eeltäidetud kasutaja profiilist) |
+| **Kontrollikoht** | Kuupäev, kellaaeg, riik, maakond, linn/vald, tee / kilomeeter / aadress |
+| **Sõiduk** | Registreerimismärk, mark, mudel, VIN, kategooria, läbisõit, haagised |
+| **Vedaja** | Registrikood, nimi, riik, maakond, linn, aadress, sihtnumber, tegevusloa koopia number |
+| **Ametiisik** | Eesnimi, perekonnanimi, asutus, struktuuriüksus, ametinimetus (eeltäidetud kasutaja profiilist) |
 
-### Autojuht
+#### Sõiduki kategooria valik
 
-**Autojuht ei ole kohustuslik väli** — kontroll võib toimuda ka ilma sõidukit
-peatamata, seega saab vormi salvestada ka ilma juhi andmeteta.
+Mootorsõiduki kategooria on täislaiuses väljal, nii et kõik kategooriad — sh `(e) M2` ja
+`(f) M3` — mahuvad ühele reale. „Muu" tekstiväli ilmub vahetult „Muu" valiku järel.
+
+#### Haagised
+
+Haagised kuvatakse tähistega **Haagis 1**, **Haagis 2**, **Haagis 3**.
+
+#### Vedaja otsing äriregistrist
+
+Vedaja andmeid saab täita automaatselt äriregistri X-tee päringuga:
+- **Peanupp** proovib esmalt registrikoodi järgi; kui registrikoodi pole täidetud, otsib nime järgi.
+- **„Otsi nime järgi"** nupp vedaja nimevälja kõrval käivitab otse nimeotsingu.
+- Mitme vaste korral avaneb **valikuaken** — vali sobiv ettevõte loendist, registrikood
+  kantakse üle automaatselt.
+
+### Sõidukijuhi andmed
+
+![Autojuhi alamvormi vahekaart](images/18-vorm-tram-kontrollkaart/03-autojuhi-vahekaart.png)
+
+Olemasoleval kaardil on autojuhi alamvormi vahekaart alati avatud — eraldi „Lisa autojuht"
+nuppu ei ole.
+
+> **Uue kaardi puhul** ilmub autojuhi vahekaart pärast üldosa esmakordset salvestamist,
+> kuna alamvorm vajab salvestatud üldosa võtit (`compoundFormKey`).
+
+#### „Ei ole asjakohane" märkeruut (ainult TRAM)
+
+![Ei ole asjakohane märkeruut](images/18-vorm-tram-kontrollkaart/04-ei-ole-asjakohane.png)
+
+„Sõidukijuhi andmed" pealkirja all on märkeruut **„Ei ole asjakohane"**.
+Märgituna ei ole autojuhi ees- ja perekonnanimi kohustuslikud — kasutatakse juhul,
+kui kontroll toimub ilma juhti peatamata ja juhi andmeid ei ole võimalik tuvastada.
+
+#### Sõidukijuhi andmeväljade järjekord
+
+| Väli | Märkus |
+|---|---|
+| Eesnimi | |
+| Perekonnanimi | |
+| Eesti isikukood | Kitsamal väljal |
+| „Otsi rahvastikuregistrist" | Täidab nime, kodakondsuse ja sünniaja automaatselt |
+| Välisriigi isikukood | Kitsamal väljal |
+| Kodakondsus | |
+| Sünniaeg | |
+
+#### E-toimiku kvalifikatsioonide päring
+
+![E-toimiku kaart](images/18-vorm-tram-kontrollkaart/05-etoimik.png)
+
+Kui autojuhi alamvormil on täidetud menetluse viitenumber, kuvatakse vormi ülaosas
+kirjutuskaitstud **e-toimiku päringu kaart**, mis näitab juhiga seotud karistuse
+kvalifikatsioone (sama komponent, mida kasutab PPA koondvorm). Andmeid ei salvestata
+kaardile — kaart on informatiivne.
 
 ## Vorminumber
 
-TRAM-kaartidel on eraldiseisev jooksev number, sõltumatu `koond-` seeriast:
+TRAM-kaartidel on eraldiseisev jooksev number, sõltumatu PPA `koond-` seeriast:
 
 ```
 tram-AAAA-NNNNN/versioon
 ```
 
-näiteks `tram-2026-00001/1`.
+Näiteks `tram-2026-00001/1`.
 
 ## Elutsükkel
 
-Vorm läbib samad olekud nagu PPA vormid: **salvestatud → kinnitatud →
-avaldatud**. Kinnitatud vormi muutmisel suureneb versiooninumber.
+Vorm läbib samad olekud mis PPA vormid:
 
-## 2. faas
+**Salvestatud → Kinnitatud → Avaldatud**
 
-Järgmises etapis peidetakse kolm üldjuhul ebavajalikku sektsiooni („Sõidu- ja
-puhkeaja nõuete täitmine", „Sõiduki mass ja mõõtmed", „ATP kokkuleppe nõuete
-kontroll") ja täidetakse need salvestamisel vaikeväärtustega.
+Kinnitatud vormi muutmisel suureneb versiooninumber.
+
+## Vaatamisvaade
+
+Avalikustatud vormi vaatamisvaates on peidetud kolm autoveoga mitte seotud sektsiooni
+(„Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass ja mõõtmed", „ATP kokkuleppe
+nõuete kontroll") — need täideti salvestamisel vaikeväärtustega.

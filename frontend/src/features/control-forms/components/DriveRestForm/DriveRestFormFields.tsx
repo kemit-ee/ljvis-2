@@ -314,6 +314,33 @@ export function DriveRestFormFields({
                   },
                 ])}
               />
+              {/* Liini number ja nimetus — nähtav ainult sõitjateveo korral */}
+              {formik.values.transportType === 'Sõitjatevedu' && (
+                <>
+                  <TextField
+                    id="liiniNumber"
+                    label={t('forms.sp_form.liiniNumber')}
+                    name="liiniNumber"
+                    className="mt-1"
+                    value={formik.values.liiniNumber ?? ''}
+                    onChange={(val) =>
+                      formik.setFieldValue('liiniNumber', val as string)
+                    }
+                    disabled={readOnly}
+                  />
+                  <TextField
+                    id="liiniNimetus"
+                    label={t('forms.sp_form.liiniNimetus')}
+                    name="liiniNimetus"
+                    className="mt-1"
+                    value={formik.values.liiniNimetus ?? ''}
+                    onChange={(val) =>
+                      formik.setFieldValue('liiniNimetus', val as string)
+                    }
+                    disabled={readOnly}
+                  />
+                </>
+              )}
             </Card.Content>
           </Card>
         </Col>

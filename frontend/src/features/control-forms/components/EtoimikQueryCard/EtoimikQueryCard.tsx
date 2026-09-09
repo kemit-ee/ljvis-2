@@ -48,7 +48,13 @@ export function EtoimikQueryCard({
   const [result, setResult] = useState<EtoimikCase | null | undefined>(undefined);
 
   // View-only action — no dedicated permission (LJVIS2-56 §3).
-  if (!hasPermission('compound_form.read')) return null;
+  // TRAM kontrollkaardi kasutajatel on `tram_driver_form.read`, mitte
+  // `compound_form.read`.
+  if (
+    !hasPermission('compound_form.read') &&
+    !hasPermission('tram_driver_form.read')
+  )
+    return null;
   // Nothing to query against yet — hide entirely rather than show broken empty selects.
   if (referenceNumberOptions.length === 0) return null;
 

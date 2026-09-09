@@ -70,6 +70,7 @@ extractCurrentFormData:
     company_owner_last_name: "${currentFormRes.response.body[0].companyOwnerLastName || ''}"
     company_activity_licence_copy_number: "${currentFormRes.response.body[0].companyActivityLicenceCopyNumber || ''}"
     drivers: "${currentFormRes.response.body[0].drivers || '[]'}"
+    driver_not_applicable: "${currentFormRes.response.body[0].driverNotApplicable || false}"
     inspector_first_name: "${currentFormRes.response.body[0].inspectorFirstName || ''}"
     inspector_last_name: "${currentFormRes.response.body[0].inspectorLastName || ''}"
     inspector_organisation_id: "${currentFormRes.response.body[0].inspectorOrganisationId || ''}"
@@ -121,6 +122,7 @@ publishForm:
       companyOwnerLastName: ${company_owner_last_name}
       companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
       drivers: ${drivers}
+      driverNotApplicable: ${driver_not_applicable}
       inspectorFirstName: ${inspector_first_name}
       inspectorLastName: ${inspector_last_name}
       inspectorOrganisationId: ${inspector_organisation_id}
