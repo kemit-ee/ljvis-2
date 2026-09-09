@@ -112,12 +112,12 @@ returns:
   type: string
   nullable: true
 - name: notes
+  type: string
+  nullable: true
 - name: liiniNumber
   type: string
   nullable: true
 - name: liiniNimetus
-  type: string
-  nullable: true
   type: string
   nullable: true
 - name: createdBy

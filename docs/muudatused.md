@@ -4,7 +4,7 @@
 
 ---
 
-## 2026-11 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
+## 2026-09 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
 
 - **Liini number ja liini nimetus** — kõikide liinivedude korral (nii siseriiklik kui
   rahvusvaheline) kuvatakse nüüd autojuhi sõidu- ja puhkeaja alamvormil kaks uut
@@ -26,6 +26,43 @@
   kontrollkaardil sektsioonid „Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass
   ja mõõtmed" ning „ATP kokkuleppe nõuete kontroll" — need on TRAM-le ebaolulised
   ja täideti taustprogrammis vaikeväärtustega (varasemalt peitis ainult muutmisvaade).
+
+---
+
+## 2026-09 — Teavituselt navigeerimine seotud vormile
+
+- **Teavituste loendis** on igal real, millele vastab konkreetne kontrollvorm, nupp
+  **„Ava vorm"**. Nupule vajutades avaneb vorm otse ja teavitus märgitakse
+  automaatselt **loetuks**.
+- Toetatud vormi tüübid: autojuhi sõidu-/puhkeaeg (PPA ja TRAM), liitvorm,
+  välisriigi rikkumine, sõiduki tehnoülevaatus, haagise tehnoülevaatus, autoveo
+  katkestamine, hea maine, tööinspektsioon, ADR, NCR, RSI, CTUD, CGR.
+
+---
+
+## 2026-09 — Muud dokumendid: „ei vasta nõuetele" valik + lepingukirje tekst
+
+- **„Muud dokumendid" osa** (dokumendi/õiguse kontrolli akordion): valikud vastavad
+  nüüd pabervormiga — **Nõuetekohane | ei vasta nõuetele | Puudub**.
+  Varasem „Ei kontrollitud" on asendatud „ei vasta nõuetele" valikuga.
+- **„Sõidukijuhi tööleping"** kirje täistekst on uuendatud:
+  _„Sõidukijuhi tööleping või sellest lepingust osapoolte kinnitatud väljavõte"_
+  (eemaldati viide TÖR-registripäringule riigisisesel veoseveol).
+
+---
+
+## 2026-09 — Veaparandus: koondvormi asutuse väli salvestas numbrilise ID
+
+- **Koondvormil ja välisriigi rikkumise vormil** salvestus inspektori asutuse
+  väärtus valesti numbrilise ID-na (`"1"`) asemel organisatsiooni koodina
+  (`"PPA"`). Selle tõttu: asutuse rippmenüü ei näidanud salvestatud valikut
+  õigesti; struktuuriüksuste filter ei töötanud PPA kasutajal.
+- **PPA kasutajal** ebaõnnestus uue vormi salvestamine veateatega
+  `InvalidParameterTypeException: expected string, got number` — ametniku
+  asutuse identifikaator jõudis serverisse arvuna.
+- Parandus: autentimisteenuse vastus sisaldab nüüd asutuse **koodi**
+  (`organisationcode`); asutuse valik salvestab alati koodi; olemasolevad
+  andmebaasi kirjed konverteeritakse migratsiooniga automaatselt.
 
 ---
 
