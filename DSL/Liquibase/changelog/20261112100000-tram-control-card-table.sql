@@ -106,7 +106,7 @@ COMMENT ON TABLE  forms.tram_control_card IS 'INSERT-only snapshot of a Transpor
 COMMENT ON COLUMN forms.tram_control_card.id IS 'Per-row physical primary key.';
 COMMENT ON COLUMN forms.tram_control_card.tram_control_card_key IS 'Stable logical identity of the card (from forms.seq_tram_control_card_key). All snapshot rows of one card share this value. NOT unique.';
 COMMENT ON COLUMN forms.tram_control_card.form_number IS 'Card number core, format tram-AAAA-NNNNN. Logically immutable across all snapshots; displayed joined with version as tram-AAAA-NNNNN/V — never stores the /V suffix itself.';
-COMMENT ON COLUMN forms.tram_control_card.version IS 'Display version (the /V suffix). Starts at 1; bumped by 1 only when re-saving already-locked (confirmed/published) data or on publish. Guarded by uq_tcc_form_number_version.';
+COMMENT ON COLUMN forms.tram_control_card.version IS 'Display version (the /V suffix). Starts at 1; bumped by 1 only when re-saving already-locked (confirmed/published) data or on publish.';
 COMMENT ON COLUMN forms.tram_control_card.status IS 'Lifecycle status: saved, confirmed, published, deleted. deleted is a final soft-delete (hidden from search/view, kept for audit).';
 COMMENT ON COLUMN forms.tram_control_card.drivers IS 'JSONB array of driver identities: [{"firstName","lastName","personalCodeEe","personalCodeForeign","citizenship","birthDate"}]. When driver_not_applicable is true this may be empty or carry only birthDate.';
 COMMENT ON COLUMN forms.tram_control_card.driver_not_applicable IS 'Inspector checkbox "Ei ole asjakohane" — makes driver first/last name optional (validated at orchestration layer).';
@@ -135,8 +135,7 @@ ALTER TABLE forms.tram_control_card
     ADD CONSTRAINT chk_tcc_vehicle_mileage_non_negative CHECK (vehicle_mileage IS NULL OR vehicle_mileage >= 0),
     ADD CONSTRAINT chk_tcc_control_date_not_future CHECK (control_date <= CURRENT_DATE);
 
-CREATE UNIQUE INDEX uq_tcc_form_number_version
-    ON forms.tram_control_card (form_number, version)
-    WHERE status <> 'deleted';
-
-COMMENT ON INDEX forms.uq_tcc_form_number_version IS 'Guards against duplicate (form_number, version) pairs among non-deleted snapshots. Deleted tombstones are excluded since delete reuses the version of the snapshot it soft-deletes.';
+-- NB: no unique index on (form_number, version). Repeat saves while status='saved'
+-- legitimately reuse the same (form_number, version) pair (canonical "Koondvormi
+-- elutsükkel" rule), and delete reuses the version it tombstones — same reason
+-- labour_inspection_form and good_repute_form carry no such index.
