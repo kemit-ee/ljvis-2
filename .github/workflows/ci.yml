@@ -377,6 +377,62 @@ jobs:
       - name: Build
         run: npm run build
 
+  # ── UI Tests (Playwright) ───────────────────────────────────────────────────
+  # Brauseripõhised kontrollvormide testid. Tõstab ise üles docker-compose.ci.yml
+  # pinu (tests/playwright/run.sh) ja käivitab frontendi vite-dev serveri selle
+  # vastu. Esialgu MITTE blokeeriv (continue-on-error + väljas quality-gate'ist)
+  # kuni stabiilne.
+  ui-tests:
+    name: UI Tests
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install psql
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install Playwright deps
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+        working-directory: tests/playwright
+
+      - name: Run UI tests
+        run: bash tests/playwright/run.sh
+
+      - name: Show CI stack logs on failure
+        if: failure()
+        run: |
+          docker compose -f docker-compose.ci.yml -p ljvis-pw logs ruuter --tail=50 || true
+          docker compose -f docker-compose.ci.yml -p ljvis-pw logs tim --tail=30 || true
+          docker compose -f docker-compose.ci.yml -p ljvis-pw logs resql-ljvis --tail=30 || true
+
+      - name: Tear down CI stack
+        if: always()
+        run: docker compose -f docker-compose.ci.yml -p ljvis-pw down -v || true
+
+      - name: Upload Playwright results
+        if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-tulemus
+          path: tests/playwright/tulemus/
+          retention-days: 14
+
   # ── Quality Gate ────────────────────────────────────────────────────────────
   # Aggregates every required check. Add new jobs to `needs:` here as they
   # are introduced. Treats `skipped` as passing (allows disabling individual

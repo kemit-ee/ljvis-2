@@ -52,3 +52,14 @@ docs/book/
 build/
 scripts/.resql-audit.json
 /docs/screenshots/node_modules
+
+# Playwright UI-testid
+/tests/playwright/node_modules
+/tests/playwright/tulemus/html-raport/
+/tests/playwright/tulemus/.pw-artifacts/
+/tests/playwright/tulemus/.auth/
+/tests/playwright/tulemus/**/trace.zip
+
+# Playwright vaikimisi test-results (kui käivitatakse vale kaustast)
+/test-results/
+/tests/playwright/test-results/
