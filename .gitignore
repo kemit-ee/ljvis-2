@@ -33,7 +33,7 @@ AGENTS.md
 .actrc
 
 .ai
-.devin
+.devin/config.local.json
 
 # Task/test documentation (local only)
 TASK-*.md
