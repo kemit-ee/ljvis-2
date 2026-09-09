@@ -787,7 +787,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"userGroupId\": \"{{created_group_id}}\", \"page\": 1, \"pageSize\": 20}"
+          "raw": "{\"userGroupId\": \"{{created_group_id}}\", \"page\": 1, \"pageSize\": 20, \"sorting\": \"first_name asc\", \"search\": \"\", \"organisationIds\": \"\"}"
         }
       },
       "event": [

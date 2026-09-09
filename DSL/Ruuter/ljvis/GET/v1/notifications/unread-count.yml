@@ -5,6 +5,8 @@ declaration:
     Kasutatakse kelluke-badge'i arvu kuvamiseks päises ja nav-menüüs.
     Kaitstud GET/v1/.guard (autentimine) kaudu.
   namespace: notification
+  allowlist:
+    params: []
 
 fetchCount:
   assign:

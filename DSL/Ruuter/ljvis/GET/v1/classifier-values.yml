@@ -3,6 +3,8 @@ declaration:
   version: "1.0"
   description: "List of all classifier values"
   namespace: classifier-values
+  allowlist:
+    params: []
 
 getClassifierValues:
   call: http.post

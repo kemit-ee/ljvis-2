@@ -3,6 +3,8 @@ declaration:
   version: "1.0"
   description: "List all roads"
   namespace: roads
+  allowlist:
+    params: []
 
 getRoads:
   call: http.post

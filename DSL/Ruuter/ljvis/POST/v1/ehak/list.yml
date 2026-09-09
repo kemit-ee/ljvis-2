@@ -6,7 +6,6 @@ declaration:
   allowlist:
     body:
       - field: parentId
-        type: number
         description: "Filter by county ID"
 
 extractRequestData:

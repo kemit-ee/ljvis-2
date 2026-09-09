@@ -9,10 +9,8 @@ declaration:
         type: string
         description: "Search by name or personal code"
       - field: page
-        type: number
         description: "Page number"
       - field: pageSize
-        type: number
         description: "Page size"
       - field: sorting
         type: string
@@ -81,6 +79,8 @@ checkSearch:
 logSearchEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user.list.search"
     event_category: "user_management"
@@ -122,6 +122,8 @@ setDescriptionAndLogContent:
 logViewEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user.list.view"
     event_category: "user_management"

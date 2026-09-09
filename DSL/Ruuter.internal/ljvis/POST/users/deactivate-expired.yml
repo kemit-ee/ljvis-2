@@ -10,6 +10,8 @@ declaration:
     deactivated (no-op otherwise). Called by CronManager
     (DSL/CronManager/deactivate-expired-users.yaml).
   namespace: users
+  allowlist:
+    body: []
 
 extractRequestData:
   assign:

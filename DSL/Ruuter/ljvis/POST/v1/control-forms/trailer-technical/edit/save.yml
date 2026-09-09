@@ -8,7 +8,6 @@ declaration:
       - field: id
         type: string
       - field: compoundFormKey
-        type: number
       - field: partsSummary
         type: string
       - field: partsDefects
@@ -16,17 +15,11 @@ declaration:
       - field: resultType
         type: string
       - field: resultTransportInterruption
-        type: boolean
       - field: eraYvMntRegnr
-        type: boolean
       - field: eraYvMntVintin
-        type: boolean
       - field: eraYvMntAxles
-        type: boolean
       - field: eraYvMntPlaces
-        type: boolean
       - field: eraYvMntRebuilt
-        type: boolean
       - field: proceedingType
         type: string
       - field: proceedingReferenceNumber

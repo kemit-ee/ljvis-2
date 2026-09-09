@@ -9,16 +9,13 @@ declaration:
         type: string
         description: "Search by group name or organisation name"
       - field: page
-        type: number
         description: "Page number"
       - field: pageSize
-        type: number
         description: "Page size"
       - field: sorting
         type: string
         description: "Sorting"
       - field: logSearch
-        type: boolean
         description: "Whether to log this as a user-initiated search"
 
 get_user_context:
@@ -78,6 +75,8 @@ checkSearch:
 logSearchEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user_group.list.search"
     event_category: "user_management"

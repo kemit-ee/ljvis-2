@@ -9,10 +9,8 @@ declaration:
         type: string
         description: "Search by event type, description or actor name"
       - field: page
-        type: number
         description: "Page number"
       - field: pageSize
-        type: number
         description: "Page size"
       - field: sorting
         type: string

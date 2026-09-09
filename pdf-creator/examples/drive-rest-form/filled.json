@@ -1,0 +1,109 @@
+{
+  "compoundForm": {
+    "id": "1001",
+    "formNumber": "NÄIDIS-KOOND-2026-001",
+    "controlCountryCode": "EE",
+    "county": "Harjumaa",
+    "city": "Saue vald",
+    "address": "Näidise kontrollplats",
+    "controlDate": "2026-09-09",
+    "controlTime": "10:35:00",
+    "vehicleCountryCode": "EE",
+    "vehicleRegNr": "123ABC",
+    "trailers": [
+      {
+        "countryCode": "EE",
+        "regNr": "456DEF",
+        "make": "Näidishaagis",
+        "model": "Proov",
+        "categoryCode": "D_2012",
+        "vin": "TRAILERTEST001"
+      }
+    ],
+    "companyName": "Näidisvedu OÜ (väljamõeldud)",
+    "companyRegCode": "00000000",
+    "companyCountryCode": "EE",
+    "companyCity": "Tallinn",
+    "companyAddressLine1": "Näidise tee 1",
+    "drivers": [
+      {
+        "firstName": "Mari",
+        "lastName": "Näidis",
+        "citizenshipCode": "EE",
+        "birthDate": "1990-01-01"
+      }
+    ],
+    "inspectorFirstName": "Jüri",
+    "inspectorLastName": "Proov",
+    "inspectorOrganisationId": "DEMO",
+    "inspectorProfession": "Kontrollija",
+    "vehicleVin": "TESTVIN0000000001",
+    "vehicleCategoryCode": "B_2012",
+    "vehicleMileage": "125000",
+    "vehicleMake": "Näidismark",
+    "vehicleModel": "Proovimudel",
+    "companyActivityLicenceCopyNumber": "NÄIDIS-123"
+  },
+  "labels": {
+    "countries": {
+      "EE": "Eesti"
+    },
+    "organisations": {
+      "DEMO": "Näidisasutus"
+    }
+  },
+  "driveRestForm": {
+    "id": "5001",
+    "compoundFormKey": 1001,
+    "subFormNumber": "NÄIDIS-SP-001",
+    "version": 1,
+    "status": "published",
+    "transportType": "Veosevedu",
+    "transportNature": "Tasuline",
+    "transportClasses": [
+      {
+        "classCode": "DEMO",
+        "className": "Näidisvedu"
+      }
+    ],
+    "documentChecks": [
+      {
+        "documentCode": "JUHILUBA",
+        "documentName": "Juhiluba",
+        "violationCode": "NÄIDIS",
+        "severityCode": "SI"
+      }
+    ],
+    "otherDocuments": [
+      {
+        "documentCode": "VEOSE_DOKUMENDID",
+        "documentName": "Veodokument",
+        "result": "NOUETEKOHANE",
+        "notes": ""
+      }
+    ],
+    "spApplicability": "RAKENDATAKSE",
+    "tachographTypeCode": "DIGITAL",
+    "checkedDaysCount": "56",
+    "workDaysCount": "40",
+    "otherActivityDaysCount": "16",
+    "violations5612006": [
+      {
+        "violationCode": "SI901",
+        "severityCode": "SI",
+        "isDetected": "true"
+      }
+    ],
+    "massDimensionMeasurements": [
+      {
+        "measurementType": "Mass (kg)",
+        "actualValue": "18000",
+        "allowedValue": "18000",
+        "excessValue": "0",
+        "axleNumber": ""
+      }
+    ],
+    "resultType": "warning",
+    "notes": "SÜNTEETILISED NÄIDISANDMED — ei kajasta tegelikku kontrolli."
+  }
+}

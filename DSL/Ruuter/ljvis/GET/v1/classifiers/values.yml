@@ -11,10 +11,8 @@ declaration:
       - field: search
         type: string
       - field: page
-        type: number
         description: "Page number"
       - field: pageSize
-        type: number
         description: "Items per page"
       - field: sorting
         type: string

@@ -47,6 +47,8 @@ buildAuditLog:
 logAuditEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user.view"
     event_category: "user_management"

@@ -38,10 +38,8 @@ declaration:
         type: string
         description: "Required when scope=company — 8-digit Estonian company registry code."
       - field: page
-        type: number
         description: "Page number (1-based)"
       - field: page_size
-        type: number
         description: "Rows per page"
       - field: sorting
         type: string

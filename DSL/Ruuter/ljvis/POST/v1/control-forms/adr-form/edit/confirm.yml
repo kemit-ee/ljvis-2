@@ -24,7 +24,6 @@ declaration:
       - field: dangerousGoods
         type: string
       - field: exemptionApplied
-        type: boolean
       - field: exemptionAdrProvision
         type: string
       - field: exemptionNotes
@@ -36,9 +35,7 @@ declaration:
       - field: otherInfringements
         type: string
       - field: drivingBanApplied
-        type: boolean
       - field: transportInterruptionApplied
-        type: boolean
       - field: resultType
         type: string
       - field: proceedingType
@@ -48,7 +45,6 @@ declaration:
       - field: correctiveMeasures
         type: string
       - field: sealOpened
-        type: boolean
       - field: sealOpenedDate
         type: string
       - field: sealInstalledDate

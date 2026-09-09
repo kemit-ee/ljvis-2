@@ -3,6 +3,8 @@ declaration:
   version: "1.0"
   description: "List all trailer categories"
   namespace: trailer-categories
+  allowlist:
+    params: []
 
 getTrailerCategories:
   call: http.post

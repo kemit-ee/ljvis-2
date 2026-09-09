@@ -1,0 +1,58 @@
+[
+  {
+    "code": "MOOTORSOIDUKI_LEPING",
+    "name": "Mootorsõiduki kasutusleping (kui andmed ei ole kantud MTR-i)"
+  },
+  {
+    "code": "SOIDUKIJUHI_TOO_LEPING",
+    "name": "Mootorsõidukijuhi töö- või võlaõiguslik leping või sellest lepingust osapoolte kinnitatud väljavõte"
+  },
+  {
+    "code": "VEOSE_DOKUMENDID",
+    "name": "Veodokument"
+  },
+  {
+    "code": "SUUREMOOTMELISE_VEOSE_ERILUBA",
+    "name": "Raske- või suurveose eriluba"
+  },
+  {
+    "code": "LIINIVEO_SOIDUPLAAN",
+    "name": "Liiniveo sõiduplaan"
+  },
+  {
+    "code": "OMAKULUL_VEOSEVEO_VASTAVUS",
+    "name": "Oma kulul veoseveol nõuetele vastavuse tõendavad dokumendid"
+  },
+  {
+    "code": "OMAKULUL_SOITJATEVEO_VASTAVUS",
+    "name": "Oma kulul sõitjateveol nõuetele vastavuse tõendavad dokumendid (nt sertifikaat)"
+  },
+  {
+    "code": "SOIDUKI_VEDAJA_NIMI",
+    "name": "Sõiduki parempoolsel välisküljel peab olema nähtav vedaja nimi või kaubamärgiseaduse § 5 tähenduses õiguskaitset omav vedajale kuuluv või talle lepingu alusel kasutada antud kaubamärk"
+  },
+  {
+    "code": "LIINI_NUMBER",
+    "name": "Liiniveo kasutataval ühissõidukil peab nähtaval kohal olema ka liini number"
+  },
+  {
+    "code": "LIINI_NIMETUS",
+    "name": "Liiniveo kasutataval ühissõidukil peab nähtaval kohal olema liini nimetus"
+  },
+  {
+    "code": "ATL_SOIDUPLAAN_ENNETAB",
+    "name": "Vedaja ennetab liiniloa (ATL) andja kinnitatud sõiduplaani"
+  },
+  {
+    "code": "ATL_PEATUS_PUUDUMINE",
+    "name": "Vedaja ei peatu liiniloa (ATL) andja kinnitatud sõiduplaanis märgitud peatuses"
+  },
+  {
+    "code": "ATL_VALE_PEATUS",
+    "name": "Vedaja teenindab peatust, mis ei ole märgitud liiniloa (ATL) andja kinnitatud sõiduplaanis"
+  },
+  {
+    "code": "ATL_VALE_SOIDUK",
+    "name": "Vedaja ei kasuta veotingimustes ettenähtud omadustele vastavat sõidukit"
+  }
+]

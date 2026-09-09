@@ -70,6 +70,8 @@ return_invalid_id:
 validateUser:
   template: "templates/user/validate-user-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     first_name: ${first_name}
     last_name: ${last_name}
@@ -90,6 +92,8 @@ checkUser:
 calculateChangedFields:
   template: "templates/user/calculate-user-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     user_account_id: ${user_account_id}
     first_name: ${first_name}
@@ -176,6 +180,8 @@ buildAuditContent:
 logAuditEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user.update"
     event_category: "user_management"

@@ -1,0 +1,261 @@
+{
+  "compoundForm": {
+    "id": "1001",
+    "formNumber": "NÄIDIS-KOOND-2026-001",
+    "controlCountryCode": "EE",
+    "county": "Harjumaa",
+    "city": "Saue vald",
+    "address": "Näidise kontrollplats",
+    "controlDate": "2026-09-09",
+    "controlTime": "10:35:00",
+    "vehicleCountryCode": "EE",
+    "vehicleRegNr": "123ABC",
+    "trailers": [
+      {
+        "countryCode": "EE",
+        "regNr": "456DEF"
+      }
+    ],
+    "companyName": "Näidisvedu OÜ (väljamõeldud)",
+    "companyRegCode": "00000000",
+    "companyCountryCode": "EE",
+    "companyCity": "Tallinn",
+    "companyAddressLine1": "Näidise tee 1",
+    "drivers": [
+      {
+        "firstName": "Mari",
+        "lastName": "Näidis"
+      }
+    ],
+    "inspectorFirstName": "Jüri",
+    "inspectorLastName": "Proov",
+    "inspectorOrganisationId": "DEMO",
+    "inspectorProfession": "Kontrollija"
+  },
+  "adrForm": {
+    "id": "2001",
+    "compoundFormKey": 1001,
+    "subFormNumber": "NÄIDIS-ADR-2026-001",
+    "version": 1,
+    "driverAdrCertificateNumber": "NÄIDIS-001",
+    "lastLoadAddress": {
+      "countryCode": "EE",
+      "city": "Tallinn",
+      "street": "Näidise tee 1"
+    },
+    "lastLoadDate": "2026-09-09",
+    "nextLoadAddress": {
+      "countryCode": "EE",
+      "city": "Tartu",
+      "street": "Proovi tänav 2"
+    },
+    "dangerousGoods": [
+      {
+        "unNumber": "1203",
+        "packagingGroup": "II",
+        "quantity": "1000",
+        "unitCode": "l"
+      }
+    ],
+    "exemptionApplied": false,
+    "containerTypes": [
+      "paak"
+    ],
+    "infringements": [
+      {
+        "checkpointCode": "P12",
+        "inspectionStatus": "C",
+        "infringementDetected": false,
+        "records": []
+      },
+      {
+        "checkpointCode": "P13",
+        "inspectionStatus": "C",
+        "infringementDetected": true,
+        "records": [
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          },
+          {
+            "riskCategory": "II",
+            "adrReference": "5.4.3",
+            "responsibleParticipants": [
+              "C"
+            ],
+            "notes": "VIIMANE-RIKKUMINE-123"
+          }
+        ]
+      },
+      {
+        "checkpointCode": "P14",
+        "inspectionStatus": "NC",
+        "notCheckedReason": "Näidis: dokumenti polnud võimalik kontrollida.",
+        "records": []
+      },
+      {
+        "checkpointCode": "P15",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P16",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P17",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P18",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P19",
+        "inspectionStatus": "NA",
+        "records": []
+      },
+      {
+        "checkpointCode": "P20",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P21",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P22",
+        "inspectionStatus": "NA",
+        "records": []
+      },
+      {
+        "checkpointCode": "P23",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P24",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P25",
+        "inspectionStatus": "C",
+        "records": []
+      },
+      {
+        "checkpointCode": "P26",
+        "inspectionStatus": "NA",
+        "records": []
+      }
+    ],
+    "resultType": "warning",
+    "drivingBanApplied": false,
+    "transportInterruptionApplied": false,
+    "correctiveMeasures": [
+      "on_spot"
+    ],
+    "notes": "Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ. Pikk märkus õäöü ja ŠŽ.  LÕPUMÄRK-987",
+    "sealOpenedDate": "2026-09-09",
+    "sealInstalledDate": "2026-09-09",
+    "status": "published"
+  },
+  "labels": {
+    "countries": {
+      "EE": "Eesti"
+    },
+    "organisations": {
+      "DEMO": "Näidisasutus"
+    }
+  },
+  "printOptions": null
+}

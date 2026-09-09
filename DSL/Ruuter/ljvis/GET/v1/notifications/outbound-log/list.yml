@@ -29,9 +29,7 @@ declaration:
       - field: sortDir
         type: string
       - field: page
-        type: number
       - field: pageSize
-        type: number
 
 extractParams:
   assign:

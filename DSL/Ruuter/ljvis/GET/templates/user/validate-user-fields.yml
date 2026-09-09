@@ -67,6 +67,8 @@ check_access_start:
 validate_personal_code_format:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${incoming.body.personal_code}
   result: pc_result
@@ -81,6 +83,8 @@ check_personal_code_format:
 validate_email_format:
   template: "templates/validate/email"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     email: ${incoming.body.email}
   result: email_result

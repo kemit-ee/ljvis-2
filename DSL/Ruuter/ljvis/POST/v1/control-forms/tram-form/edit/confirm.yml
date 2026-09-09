@@ -78,7 +78,6 @@ declaration:
       - field: drivers
         type: string
       - field: driverNotApplicable
-        type: boolean
       - field: inspectorFirstName
         type: string
       - field: inspectorLastName
@@ -183,6 +182,8 @@ skip_pc1_validation:
 validate_driver1_personal_code_format:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
@@ -202,6 +203,8 @@ skip_pc2_validation:
 validate_driver2_personal_code_format:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result

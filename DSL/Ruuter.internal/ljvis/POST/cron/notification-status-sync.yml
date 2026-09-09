@@ -17,6 +17,8 @@ declaration:
     sammudega (mitte switch/next), iga rea kohta üks tingimusteta
     update_outbound_log_status kutse.
   namespace: notification
+  allowlist:
+    body: []
 
 queryPending:
   call: http.post

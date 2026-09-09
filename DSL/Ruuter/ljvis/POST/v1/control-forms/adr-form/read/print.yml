@@ -1,0 +1,157 @@
+declaration:
+  version: "1.0"
+  description: "Generate a filled or blank ADR control card PDF"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: blank
+        type: boolean
+      - field: snapshotId
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    blank: ${incoming.body.blank === true}
+    snapshot_id: "${incoming.body.snapshotId || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkCurrentForm
+
+checkCurrentForm:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+    - condition: ${snapshot_id !== ''}
+      next: getSnapshot
+  next: useCurrentForm
+
+getSnapshot:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/get-snapshot"
+    headers:
+      type: json
+    body:
+      id: ${snapshot_id}
+      form_key: ${id}
+  result: snapshotRes
+  next: checkSnapshot
+
+checkSnapshot:
+  switch:
+    - condition: ${snapshotRes.response.body == null || snapshotRes.response.body.length !== 1}
+      next: returnNotFound
+  next: useSnapshot
+
+useSnapshot:
+  assign:
+    adr_form: ${snapshotRes.response.body[0]}
+  next: getCompoundForm
+
+useCurrentForm:
+  assign:
+    adr_form: ${currentFormRes.response.body[0]}
+  next: getCompoundForm
+
+getCompoundForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${currentFormRes.response.body[0].compoundFormKey}
+  result: compoundFormRes
+  next: checkCompoundForm
+
+checkCompoundForm:
+  switch:
+    - condition: ${compoundFormRes.response.body == null || compoundFormRes.response.body.length !== 1}
+      next: returnNotFound
+    - condition: ${blank}
+      next: renderBlank
+  next: renderFilled
+
+renderBlank:
+  call: http.post
+  args:
+    url: "[#LJVIS_PDF_CREATOR]/v1/render"
+    headers:
+      type: json
+    body:
+      templateCode: "adr-form"
+      blank: true
+      fields: {}
+      output: "base64"
+  result: pdfRes
+  next: checkPdfResult
+
+renderFilled:
+  call: http.post
+  args:
+    url: "[#LJVIS_PDF_CREATOR]/v1/render"
+    headers:
+      type: json
+    body:
+      templateCode: "adr-form"
+      blank: false
+      fields:
+        compoundForm: ${compoundFormRes.response.body[0]}
+        adrForm: ${adr_form}
+      output: "base64"
+  result: pdfRes
+  next: checkPdfResult
+
+checkPdfResult:
+  switch:
+    - condition: ${pdfRes.response == null || pdfRes.response.status < 200 || pdfRes.response.status >= 300 || pdfRes.response.body == null}
+      next: returnRenderError
+  next: buildLogDescription
+
+buildLogDescription:
+  assign:
+    description: "ADR kontrollkaart trükitud, alamvormi võti=${id}, koondvormi võti=${currentFormRes.response.body[0].compoundFormKey}, tühi=${blank}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.adr.print"
+    event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: ${description}
+    log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${currentFormRes.response.body[0].compoundFormKey},\"blank\":${blank}}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${pdfRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error":"NOT_FOUND"}'
+  next: end
+
+returnRenderError:
+  status: 502
+  return: '{"error":"PDF_RENDER_FAILED"}'
+  next: end

@@ -56,6 +56,8 @@ checkIdPresent:
 validateRequest:
   template: "templates/erru/cgr/validate-cgr-request"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     cgrTo: ${cgr_to}
     originatingAuthority: ${originating_authority}

@@ -1,0 +1,31 @@
+{% extends 'shared/base.html.j2' %}{% block body %}
+{% if template != 'technical-back' %}
+<div class="source">Majandus- ja kommunikatsiooniministri 15. detsembri 2011. a määrus nr 114<br>„Politseiametniku poolt liiklusjärelevalve käigus sõiduki<br>tehnonõuetele vastavuse kontrollimise ulatus ja kord“<br>{% if template == 'technical-ok' %}Lisa 6 (muudetud sõnastuses){% else %}Lisa 1 (07.09.2022 määruse nr 68 sõnastuses){% endif %}</div>
+<h1>{{ title }}</h1><div class="number">{{ number }}</div>
+{% if template == 'technical-ok' %}<p class="center">Vastavalt liiklusseaduse § 196² lõike 1 punktile 8</p>{% endif %}
+<table><tr><td colspan="2">{{ field('1. Kontrolli koht (1)',fields.place) }}</td></tr><tr><td>{{ field('2. Kuupäev',fields.date) }}</td><td>{{ field('3. Kellaaeg',fields.time) }}</td></tr><tr><td>{{ field('4. Registreerimismärk',fields.reg) }}</td><td>{{ field('Riigi tunnusmärk',fields.country) }}</td></tr>
+{% if template != 'technical-ok' %}<tr><td>{{ field('5. Valmistajatehase tähis (VIN-kood)',fields.vin) }}</td><td>{{ field('Mark ja kaubanduslik nimetus (mudel)',fields.vehicle) }}</td></tr>{% endif %}
+<tr><td colspan="2">{{ '5.' if template == 'technical-ok' else '6.' }} Kategooria (2)<div class="value">{{ category_choices() }}</div></td></tr>
+{% if template != 'technical-ok' %}<tr><td colspan="2">{{ field('7. Läbisõidumõõdiku näit',fields.mileage) }}</td></tr>{% endif %}
+<tr><td colspan="2">{{ field(('6.' if template == 'technical-ok' else '8.') + ' Vedaja nimi ja äriregistri kood',fields.company) }}{% if template != 'technical-ok' %}{{ field('Aadress ja riik',fields.companyAddress) }}{{ field('Ühenduse tegevusloa kinnitatud ärakirja number (4)',fields.licence) }}{% endif %}</td></tr>
+{% if template != 'technical-ok' %}<tr><td style="width:25%">{{ field('9. Juhi kodakondsus',fields.citizenship) }}</td><td>{{ field('10. Juhi ees- ja perekonnanimi ning isikukood / sünniaeg',fields.driver) }}</td></tr>{% endif %}</table>
+{% if template == 'technical-ok' %}<table><tr><td>7. Kontrolli tulemus: kontrollitud osadel või sõlmedel rikkeid või puudusi ei avastatud</td></tr></table>
+<table><tr><td class="signature">{{ field('8. Kontrollija (4)',fields.inspector) }}</td><td class="signature">Juhi allkiri</td></tr></table>
+<p class="small">(1) Asula/tänava või maantee/parkla, linna/valla ja maakonna nimetus.<br>(2) Mootorsõiduki ja selle haagise kategooria kooskõlas direktiivi 2007/46/EÜ II lisaga.<br>(3) Istekohtade arv, k.a juhikoht (registreerimistunnistuse punkt S.1).<br>(4) Ees- ja perekonnanimi, ametinimetus, -asutus ja allkiri.</p>
+<div class="newpage">{{ appeal() }}</div>
+{% else %}<h2>11. Kontrollitavate osade ja sõlmede loetelu</h2>
+<table class="small"><thead><tr><th style="width:64%">Osa või sõlm</th><th>Kontrollitud (5)</th><th>Ei kontrollitud</th><th>Ei vasta nõuetele</th></tr></thead><tbody>{% for p in parts %}<tr><td>{{ p.name }}</td>{% for state in ['checked','not_checked','non_compliant'] %}<td class="center">{{ box(p.status == state) }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+<h2>Kontrolli tulemus</h2><table><tr><td>{{ box(f.get('resultType') == 'driving_ban') }} Sõidukeeld (7)<br>{{ box(f.get('resultType') == 'extraordinary_inspection') }} Suunatud erakorralisele ülevaatusele (8)<br>{{ box(f.get('resultType') == 'extraordinary_inspection_ta') }} Suunatud erakorralisele ülevaatusele (liiklusregistri andmete täpsustamine Transpordiametis) (8)<br>{{ registry_changes }}{% if transport_interruption %}<br>Autovedu on katkestatud.{% endif %}</td></tr><tr><td>12. Avastatud rikke või puuduse kirjeldus, märkused ja teave lisatud failide kohta<div class="notes">{{ fields.notes }}{% if defects %}
+Rikete täpne loetelu: vt kontrollkaardi lisa.{% endif %}{% if fields.proceeding %}
+{{ fields.proceeding }}{% endif %}{% if violations %}
+Rikkumised: {{ violations|join('; ') }}{% endif %}</div></td></tr></table>
+<table><tr><td class="signature">{{ field('13. Kontrollija (6)',fields.inspector) }}</td><td>Juhi allkiri</td></tr></table>
+<p class="small">(1) Asula/tänava või maantee/parkla, linna/valla ja maakonna nimetus. (2) Kategooria vastavalt näidisvormis viidatud määrustele nr 42 ja nr 39. (3) Istekohtade arv, k.a juhikoht. (4) Täidetakse olemasolu korral. (5) Asjaomases rühmas on kontrollitud vähemalt ühte direktiivi 2014/47/EL II lisas loetletud detaili. (6) Ees- ja perekonnanimi, ametinimetus, -asutus ja allkiri. (7) LS § 91 lg 2 p 5. (8) LS § 196² lg 1 p 9.</p>{{ appeal() }}
+{% endif %}{% endif %}
+{% if template in ['technical','technical-back'] %}
+{% for columns in defect_pages %}<section class="{% if template == 'technical' or not loop.first %}newpage{% endif %}"><h1>Kontrollitavate detailide loetelu</h1><div class="number">{{ number }} · {{ fields.reg }}</div>
+<table class="columns"><tr>{% for column in columns %}<td><table class="defect-table"><thead><tr><th style="width:70%">Detail</th><th>VO</th><th>OV</th><th>EOV</th></tr></thead><tbody>{% for d in column %}<tr><td>{{ d.name }}</td>{% for sev in ['VO','OV','EOV'] %}<td class="center">{{ box(sev in d.selections) }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></td>{% endfor %}</tr></table>
+</section>{% endfor %}
+<p class="small">VO — väheoluline rike või puudus. OV — oluline rike või puudus. EOV — ohtlik rike või puudus.</p>
+<table><tr><td class="signature">{{ field('Kontrollija ees- ja perekonnanimi ning allkiri',fields.inspector) }}</td><td class="signature">Sõidukijuhi allkiri</td></tr></table>
+{% endif %}{% endblock %}

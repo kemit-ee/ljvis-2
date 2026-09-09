@@ -1,0 +1,42 @@
+[
+  {
+    "code": "JUHTIMIS_OIGUS",
+    "name": "Juhtimisõigus/juhiluba"
+  },
+  {
+    "code": "MOOTORSOIDUKI_TU",
+    "name": "Mootorsõiduki tehnoülevaatus"
+  },
+  {
+    "code": "HAAGISE_TU",
+    "name": "Haagise tehnoülevaatus"
+  },
+  {
+    "code": "TEGEVUSLUBA",
+    "name": "Ühenduse tegevusluba"
+  },
+  {
+    "code": "TEGEVUSLOA_ARAKIRI",
+    "name": "Ühenduse tegevusloa kinnitatud ärakiri või tõestatud koopia"
+  },
+  {
+    "code": "VEOLUBA",
+    "name": "Välisriigi vedaja veoluba"
+  },
+  {
+    "code": "JUHITUNNISTUS",
+    "name": "Juhitunnistus (EL määruse 1072/2009 art 5)"
+  },
+  {
+    "code": "AMETIKOOLITUS",
+    "name": "Mootorsõidukijuhi ameti- ja täienduskoolituse läbimine"
+  },
+  {
+    "code": "LIINILUBA",
+    "name": "Liiniluba sõitjateveol"
+  },
+  {
+    "code": "JUHUVEO_SOIDULEHT",
+    "name": "Juhuveo kontrolldokumendi sõiduleht"
+  }
+]

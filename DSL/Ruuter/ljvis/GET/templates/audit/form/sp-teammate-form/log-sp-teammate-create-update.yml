@@ -9,9 +9,7 @@ declaration:
         type: string
     body:
       - field: sp_teammate_form_key
-        type: number
       - field: compound_form_key
-        type: number
       - field: sub_form_number
         type: string
       - field: result_type

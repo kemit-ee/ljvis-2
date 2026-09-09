@@ -1,0 +1,698 @@
+[
+  {
+    "code": "MI",
+    "name": "Ületatakse ööpäevast 9 tunni pikkust sõiduaega, kui sõiduaega ei ole lubatud pikendada 10 tunnini",
+    "threshold": "9h < ... < 10h",
+    "severity": "MI",
+    "article": "Artikli 6 lõige 1",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "SI901",
+    "name": "Ületatakse ööpäevast 9 tunni pikkust sõiduaega, kui sõiduaega ei ole lubatud pikendada 10 tunnini",
+    "threshold": "10h ≤ ... < 11h",
+    "severity": "SI",
+    "article": "Artikli 6 lõige 1",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "VSI800",
+    "name": "Ületatakse ööpäevast 9 tunni pikkust sõiduaega, kui sõiduaega ei ole lubatud pikendada 10 tunnini",
+    "threshold": "11h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikli 6 lõige 1",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "MSI102",
+    "name": "Ületatakse ööpäevast 9 tunni pikkust sõiduaega 50 % või rohkem",
+    "threshold": "13h30 ≤ ...",
+    "severity": "MSI",
+    "article": "Artikli 6 lõige 1",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "MI",
+    "name": "Ületatakse ööpäevast 10 tunni pikkust sõiduaega, kui sõiduaega on lubatud pikendada",
+    "threshold": "10h < ... < 11h",
+    "severity": "MI",
+    "article": "Artikli 6 lõige 1",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "SI902",
+    "name": "Ületatakse ööpäevast 10 tunni pikkust sõiduaega, kui sõiduaega on lubatud pikendada",
+    "threshold": "11h ≤ ... < 12h",
+    "severity": "SI",
+    "article": "Artikli 6 lõige 1",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "VSI801",
+    "name": "Ületatakse ööpäevast 10 tunni pikkust sõiduaega, kui sõiduaega on lubatud pikendada",
+    "threshold": "12h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikli 6 lõige 1",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "MSI103",
+    "name": "Ületatakse ööpäevast 10 tunni pikkust sõiduaega 50 % või rohkem",
+    "threshold": "15h ≤ ...",
+    "severity": "MSI",
+    "article": "Artikli 6 lõige 1",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "MI",
+    "name": "Ületatakse iganädalast sõiduaega",
+    "threshold": "56h < ... < 60h",
+    "severity": "MI",
+    "article": "Artikli 6 lõige 2",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "SI903",
+    "name": "Ületatakse iganädalast sõiduaega",
+    "threshold": "60h ≤ ... < 65h",
+    "severity": "SI",
+    "article": "Artikli 6 lõige 2",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "VSI802",
+    "name": "Ületatakse iganädalast sõiduaega",
+    "threshold": "65h ≤ ... < 70h",
+    "severity": "VSI",
+    "article": "Artikli 6 lõige 2",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "MSI104",
+    "name": "Ületatakse nädalast sõiduaega 25% või rohkem",
+    "threshold": "70h ≤ ...",
+    "severity": "MSI",
+    "article": "Artikli 6 lõige 2",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "MI",
+    "name": "Ületatakse kahe järjestikuse nädala maksimaalset sõiduaega",
+    "threshold": "90h < ... < 100h",
+    "severity": "MI",
+    "article": "Artikli 6 lõige 3",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "SI904",
+    "name": "Ületatakse kahe järjestikuse nädala maksimaalset sõiduaega",
+    "threshold": "100h ≤ ... < 105h",
+    "severity": "SI",
+    "article": "Artikli 6 lõige 3",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "VSI803",
+    "name": "Ületatakse kahe järjestikuse nädala maksimaalset sõiduaega",
+    "threshold": "105h ≤ ... < 112h30",
+    "severity": "VSI",
+    "article": "Artikli 6 lõige 3",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "MSI101",
+    "name": "Ületatakse kahe järjestikuse nädala maksimaalset sõiduaega 25 % või rohkem",
+    "threshold": "112h30 ≤ ...",
+    "severity": "MSI",
+    "article": "Artikli 6 lõige 3",
+    "group": "SOIDUAJAD"
+  },
+  {
+    "code": "MI",
+    "name": "Ületatakse katkematut 4,5 tunni pikkust sõiduaega enne vaheaja tegemist",
+    "threshold": "4h30 < ... < 5h",
+    "severity": "MI",
+    "article": "Artikkel 7",
+    "group": "VAHEAJAD_561"
+  },
+  {
+    "code": "SI905",
+    "name": "Ületatakse katkematut 4,5 tunni pikkust sõiduaega enne vaheaja tegemist",
+    "threshold": "5h ≤ ... < 6h",
+    "severity": "SI",
+    "article": "Artikkel 7",
+    "group": "VAHEAJAD_561"
+  },
+  {
+    "code": "VSI804",
+    "name": "Ületatakse katkematut 4,5 tunni pikkust sõiduaega enne vaheaja tegemist",
+    "threshold": "6h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikkel 7",
+    "group": "VAHEAJAD_561"
+  },
+  {
+    "code": "MI",
+    "name": "Ebapiisav ööpäevane puhkeperiood alla 11 tunni, kui vähendatud ööpäevane puhkeperiood ei ole lubatud",
+    "threshold": "10h ≤ ... < 11h",
+    "severity": "MI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "SI906",
+    "name": "Ebapiisav ööpäevane puhkeperiood alla 11 tunni, kui vähendatud ööpäevane puhkeperiood ei ole lubatud",
+    "threshold": "8h30 ≤ ... < 10h",
+    "severity": "SI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "VSI805",
+    "name": "Ebapiisav ööpäevane puhkeperiood alla 11 tunni, kui vähendatud ööpäevane puhkeperiood ei ole lubatud",
+    "threshold": "... < 8h30",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "MI",
+    "name": "Ebapiisav vähendatud ööpäevane puhkeperiood alla 9 tunni, kui vähendamine on lubatud",
+    "threshold": "8h ≤ ... < 9h",
+    "severity": "MI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "SI907",
+    "name": "Ebapiisav vähendatud ööpäevane puhkeperiood alla 9 tunni, kui vähendamine on lubatud",
+    "threshold": "7h ≤ ... < 8h",
+    "severity": "SI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "VSI806",
+    "name": "Ebapiisav vähendatud ööpäevane puhkeperiood alla 9 tunni, kui vähendamine on lubatud",
+    "threshold": "... < 7h",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "MI",
+    "name": "Ebapiisav kahte ossa jaotatud ööpäevane puhkeperiood alla 3 + 9 tunni",
+    "threshold": "3h + [8h ≤ ... < 9h]",
+    "severity": "MI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "SI908",
+    "name": "Ebapiisav kahte ossa jaotatud ööpäevane puhkeperiood alla 3 + 9 tunni",
+    "threshold": "3h + [7h ≤ ... < 8h]",
+    "severity": "SI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "VSI807",
+    "name": "Ebapiisav kahte ossa jaotatud ööpäevane puhkeperiood alla 3 + 9 tunni",
+    "threshold": "3h + [... < 7h]",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 2",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "MI",
+    "name": "Ebapiisav ööpäevane puhkeperiood alla 9 tunni mitme juhiga veo puhul",
+    "threshold": "8h ≤ ... < 9h",
+    "severity": "MI",
+    "article": "Artikli 8 lõige 5",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "SI909",
+    "name": "Ebapiisav ööpäevane puhkeperiood alla 9 tunni mitme juhiga veo puhul",
+    "threshold": "7h ≤ ... < 8h",
+    "severity": "SI",
+    "article": "Artikli 8 lõige 5",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "VSI808",
+    "name": "Ebapiisav ööpäevane puhkeperiood alla 9 tunni mitme juhiga veo puhul",
+    "threshold": "... < 7h",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 5",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "MI",
+    "name": "Ebapiisav vähendatud iganädalane puhkeperiood alla 24 tunni",
+    "threshold": "22h ≤ ... < 24h",
+    "severity": "MI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "SI910",
+    "name": "Ebapiisav vähendatud iganädalane puhkeperiood alla 24 tunni",
+    "threshold": "20h ≤ ... < 22h",
+    "severity": "SI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "VSI809",
+    "name": "Ebapiisav vähendatud iganädalane puhkeperiood alla 24 tunni",
+    "threshold": "... < 20h",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "MI",
+    "name": "Ebapiisav iganädalane puhkeperiood alla 45 tunni, kui vähendatud iganädalane puhkeperiood ei ole lubatud",
+    "threshold": "42h ≤ ... < 45h",
+    "severity": "MI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "SI911",
+    "name": "Ebapiisav iganädalane puhkeperiood alla 45 tunni, kui vähendatud iganädalane puhkeperiood ei ole lubatud",
+    "threshold": "36h ≤ ... < 42h",
+    "severity": "SI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "VSI810",
+    "name": "Ebapiisav iganädalane puhkeperiood alla 45 tunni, kui vähendatud iganädalane puhkeperiood ei ole lubatud",
+    "threshold": "... < 36h",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "MI",
+    "name": "Ületatakse 6 järjestikust 24-tunnist perioodi pärast eelmist iganädalast puhkeaega",
+    "threshold": "... < 3h",
+    "severity": "MI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "SI912",
+    "name": "Ületatakse 6 järjestikust 24-tunnist perioodi pärast eelmist iganädalast puhkeaega",
+    "threshold": "3h ≤ ... < 12h",
+    "severity": "SI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "VSI811",
+    "name": "Ületatakse 6 järjestikust 24-tunnist perioodi pärast eelmist iganädalast puhkeaega",
+    "threshold": "12h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 6",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "MI",
+    "name": "Ületatakse 12 järjestikust 24-tunnist perioodi pärast eelmist regulaarset iganädalast puhkeperioodi",
+    "threshold": "... < 3h",
+    "severity": "MI",
+    "article": "Artikli 8 lõike 6 punkt a",
+    "group": "PAEVA_12_ERAND"
+  },
+  {
+    "code": "SI913",
+    "name": "Ületatakse 12 järjestikust 24-tunnist perioodi pärast eelmist regulaarset iganädalast puhkeperioodi",
+    "threshold": "3h ≤ ... < 12h",
+    "severity": "SI",
+    "article": "Artikli 8 lõike 6 punkt a",
+    "group": "PAEVA_12_ERAND"
+  },
+  {
+    "code": "VSI812",
+    "name": "Ületatakse 12 järjestikust 24-tunnist perioodi pärast eelmist regulaarset iganädalast puhkeperioodi",
+    "threshold": "12h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikli 8 lõike 6 punkt a",
+    "group": "PAEVA_12_ERAND"
+  },
+  {
+    "code": "MI",
+    "name": "Iganädalane puhkeperiood pärast 12 järjestikust 24-tunnist perioodi",
+    "threshold": "67h < ... < 69h",
+    "severity": "MI",
+    "article": "Artikli 8 lõike 6 punkt a b) ii)",
+    "group": "PAEVA_12_ERAND"
+  },
+  {
+    "code": "SI914",
+    "name": "Iganädalane puhkeperiood pärast 12 järjestikust 24-tunnist perioodi",
+    "threshold": "65h < ... ≤ 67h",
+    "severity": "SI",
+    "article": "Artikli 8 lõike 6 punkt a b) ii)",
+    "group": "PAEVA_12_ERAND"
+  },
+  {
+    "code": "VSI813",
+    "name": "Iganädalane puhkeperiood pärast 12 järjestikust 24-tunnist perioodi",
+    "threshold": "... ≤ 65h",
+    "severity": "VSI",
+    "article": "Artikli 8 lõike 6 punkt a b) ii)",
+    "group": "PAEVA_12_ERAND"
+  },
+  {
+    "code": "SI915",
+    "name": "Sõiduperiood 22:00-06:00 rohkem kui 3 tundi enne vaheaega, kui sõidukis ei ole mitut juhit",
+    "threshold": "3h < ... < 4,5h",
+    "severity": "SI",
+    "article": "Artikli 8 lõike 6 punkt a d)",
+    "group": "PAEVA_12_ERAND"
+  },
+  {
+    "code": "VSI814",
+    "name": "Sõiduperiood 22:00-06:00 rohkem kui 3 tundi enne vaheaega, kui sõidukis ei ole mitut juhit",
+    "threshold": "4,5h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikli 8 lõike 6 punkt a d)",
+    "group": "PAEVA_12_ERAND"
+  },
+  {
+    "code": "VSI815",
+    "name": "Palga/tasu sidumine läbisõidetud vahemaaga, kohaletoimetamise kiirusega või edasitoimetatud kauba kogusega",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 10 lõige 1",
+    "group": "TOOKORRALDUS"
+  },
+  {
+    "code": "VSI816",
+    "name": "Juhi töö puuduv või ebarahuldav korraldus, juhile antud ebapiisavad või puuduvad juhised, mis võimaldaksid tal seadust järgida",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 10 lõige 2",
+    "group": "TOOKORRALDUS"
+  },
+  {
+    "code": "VSI818",
+    "name": "Juhil on ja/või juht kasutab rohkem kui üht tema enda juhikaarti",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikkel 27",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "MSI601",
+    "name": "Juht kasutab sõitmisel võltsitud juhikaarti (loetakse samaväärseks sellega, et juhil puudub juhikaart)",
+    "threshold": "MSI",
+    "severity": "MSI",
+    "article": "Artikkel 27",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "MSI602",
+    "name": "Juht kasutab sõitmisel juhikaarti, mis ei ole tema oma (loetakse samaväärseks sellega, et juhil puudub juhikaart)",
+    "threshold": "MSI",
+    "severity": "MSI",
+    "article": "Artikkel 27",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "MSI603",
+    "name": "Juht kasutab sõitmisel juhikaarti, mis on saadud valeandmete ja/või võltsitud dokumentide alusel (loetakse samaväärseks sellega, et juhil puudub juhikaart)",
+    "threshold": "MSI",
+    "severity": "MSI",
+    "article": "Artikkel 27",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI819",
+    "name": "Sõidumeerik ei toimi korrektselt (nt sõidumeerikut ei ole nõuetekohaselt kontrollitud, kalibreeritud ega plommitud)",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 32 lõige 1",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI820",
+    "name": "Sõidumeerikut ei ole nõuetekohaselt kasutatud (nt tahtlik, sundimata või sunnitud kuritarvitamine, õige kasutamise juhiste puudumine jne)",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 32 lõige 1 ja artikli 33 lõige 1",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "MSI205",
+    "name": "Salvestuslehtedele kantud andmete või sõidumeerikule ja/või juhikaardile salvestatud ja sealt alla laaditud andmete võltsimine, varjamine, esitamise takistamine või hävitamine",
+    "threshold": "MSI",
+    "severity": "MSI",
+    "article": "Artikli 32 lõige 3",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI821",
+    "name": "Ettevõtja ei säilita salvestuslehti, väljatrükke ega allalaaditud andmeid",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 33 lõige 2",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI822",
+    "name": "Salvestatud ja talletatud andmed ei ole kättesaadavad vähemalt üks aasta",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 33 lõige 2",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI823",
+    "name": "Salvestuslehtede/juhikaardi mittenõuetekohane kasutamine",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 34 lõige 1",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI824",
+    "name": "Ilma loata eemaldatakse salvestuslehed või juhikaart nii, et see mõjutab asjaomaste andmete salvestamist",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 34 lõige 1",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI825",
+    "name": "Salvestuslehte või juhikaarti kasutatakse ettenähtud perioodist kauem ning andmed lähevad kaotsi",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 34 lõige 1a",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI826",
+    "name": "Kasutatakse määrdunud või kahjustatud salvestuslehti või juhikaarti ning andmed ei ole loetavad",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 34 lõige 2",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI827",
+    "name": "Andmeid ei sisestata käsitsi, kui see on nõutav",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 34 lõige 3",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "SI916",
+    "name": "Ei kasutata õiget salvestuslehte või juhikaarti õiges avas (mitme juhiga veo puhul)",
+    "threshold": "SI",
+    "severity": "SI",
+    "article": "Artikli 34 lõige 4",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI828",
+    "name": "Lülitite mittenõuetekohane kasutamine",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 34 lõige 5",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "VSI835",
+    "name": "Juht ei märgi kogu nõutavat teavet nende perioodide kohta, mida enam ei registreerita, sest sõidumeerik ei ole töökorras või ei tööta korralikult",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 37 lõige 2",
+    "group": "RIKKED"
+  },
+  {
+    "code": "SI917",
+    "name": "Ületatakse maksimaalset iganädalast 48 tunni pikkust tööaega, kui on kasutatud ära võimalused pikendada tööaega 60 tunnini",
+    "threshold": "56h ≤ ... < 60h",
+    "severity": "SI",
+    "article": "Artikkel 4",
+    "group": "MAKS_TOOAEG"
+  },
+  {
+    "code": "VSI836",
+    "name": "Ületatakse maksimaalset iganädalast 48 tunni pikkust tööaega, kui on kasutatud ära võimalused pikendada tööaega 60 tunnini",
+    "threshold": "60h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikkel 4",
+    "group": "MAKS_TOOAEG"
+  },
+  {
+    "code": "SI918",
+    "name": "Ületatakse maksimaalset nädalast 60 tunni pikkust tööaega, kui ei ole tehtud erandit artikli 8 alusel",
+    "threshold": "65h ≤ ... < 70h",
+    "severity": "SI",
+    "article": "Artikkel 4",
+    "group": "MAKS_TOOAEG"
+  },
+  {
+    "code": "VSI837",
+    "name": "Ületatakse maksimaalset nädalast 60 tunni pikkust tööaega, kui ei ole tehtud erandit artikli 8 alusel",
+    "threshold": "70h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikkel 4",
+    "group": "MAKS_TOOAEG"
+  },
+  {
+    "code": "SI919",
+    "name": "Mittepiisav kohustuslik vaheaeg, kui tööaeg jääb 6 ja 9 tunni vahele",
+    "threshold": "10min < ... ≤ 20min",
+    "severity": "SI",
+    "article": "Artikli 5 lõige 1",
+    "group": "VAHEAJAD_TOOAEG"
+  },
+  {
+    "code": "VSI838",
+    "name": "Mittepiisav kohustuslik vaheaeg, kui tööaeg jääb 6 ja 9 tunni vahele",
+    "threshold": "≤ 10min",
+    "severity": "VSI",
+    "article": "Artikli 5 lõige 1",
+    "group": "VAHEAJAD_TOOAEG"
+  },
+  {
+    "code": "SI920",
+    "name": "Mittepiisav kohustuslik vaheaeg, kui tööaeg ületab 9 tundi",
+    "threshold": "20min < ... ≤ 30min",
+    "severity": "SI",
+    "article": "Artikli 5 lõige 1",
+    "group": "VAHEAJAD_TOOAEG"
+  },
+  {
+    "code": "VSI839",
+    "name": "Mittepiisav kohustuslik vaheaeg, kui tööaeg ületab 9 tundi",
+    "threshold": "≤ 20min",
+    "severity": "VSI",
+    "article": "Artikli 5 lõige 1",
+    "group": "VAHEAJAD_TOOAEG"
+  },
+  {
+    "code": "SI921",
+    "name": "Päevane tööaeg 24h vahemikus, kui tehakse öötööd, kui puuduvad erandid vastavalt artiklile 8",
+    "threshold": "11h ≤ ... < 13h",
+    "severity": "SI",
+    "article": "Artikli 7 lõige 1",
+    "group": "OOTOO"
+  },
+  {
+    "code": "VSI840",
+    "name": "Päevane tööaeg 24h vahemikus, kui tehakse öötööd, kui puuduvad erandid vastavalt artiklile 8",
+    "threshold": "13h ≤ ...",
+    "severity": "VSI",
+    "article": "Artikli 7 lõige 1",
+    "group": "OOTOO"
+  },
+  {
+    "code": "VSI841",
+    "name": "Tööandjad võltsivad andmeid tööaja kohta või keelduvad kontrolliametnikule andmeid esitamast",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "KARS § 279 või § 280",
+    "group": "SALVESTUSED"
+  },
+  {
+    "code": "VSI842",
+    "name": "Juhid kui töötajad/füüsilisest isikust ettevõtjad võltsivad andmeid või keelduvad kontrolliametnikule andmeid esitamast",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "KARS § 279 või § 280",
+    "group": "SALVESTUSED"
+  },
+  {
+    "code": "MI",
+    "name": "Lepinguliste võlasuhete suhtes kohaldatava õiguse rikkumine",
+    "threshold": "MI",
+    "severity": "MI",
+    "article": "Rooma I määrus",
+    "group": "ROOMA_I"
+  },
+  {
+    "code": "MI",
+    "name": "Mittetäielik teave lähetusdeklaratsioonil",
+    "threshold": "MI",
+    "severity": "MI",
+    "article": "Artikli 1 lõike 11 punkt a",
+    "group": "LAHETAMINE"
+  },
+  {
+    "code": "MI",
+    "name": "Liikmesriigile, kuhu juht lähetatakse, ei esitata hiljemalt lähetuse alguses lähetusdeklaratsiooni",
+    "threshold": "MI",
+    "severity": "MI",
+    "article": "Artikli 1 lõike 11 punkt a",
+    "group": "LAHETAMINE"
+  },
+  {
+    "code": "MI",
+    "name": "Juhil on võltsitud lähetusdeklaratsioon",
+    "threshold": "MI",
+    "severity": "MI",
+    "article": "Artikli 1 lõike 11 punkt b",
+    "group": "LAHETAMINE"
+  },
+  {
+    "code": "MI",
+    "name": "Juhil ei ole võimalik esitada kehtivat lähetusdeklaratsiooni",
+    "threshold": "MI",
+    "severity": "MI",
+    "article": "Artikli 1 lõike 11 punkt b",
+    "group": "LAHETAMINE"
+  },
+  {
+    "code": "MI",
+    "name": "Juhi käsutusse ei anta kehtivat lähetusdeklaratsiooni",
+    "threshold": "MI",
+    "severity": "MI",
+    "article": "Artikli 1 lõike 11 punkt b",
+    "group": "LAHETAMINE"
+  },
+  {
+    "code": "MI",
+    "name": "Taotletud dokumendid jäetakse lähetuse sihtliikmesriigile esitamata kaheksa nädala jooksul alates taotluse esitamise kuupäevast",
+    "threshold": "MI",
+    "severity": "MI",
+    "article": "Artikli 1 lõike 11 punkt c",
+    "group": "LAHETAMINE"
+  },
+  {
+    "code": "MI",
+    "name": "Autoveoettevõtja ei ajakohasta lähetusdeklaratsioone siseturu infosüsteemi avalikus liideses",
+    "threshold": "MI",
+    "severity": "MI",
+    "article": "Artikli 1 lõige 12",
+    "group": "LAHETAMINE"
+  }
+]

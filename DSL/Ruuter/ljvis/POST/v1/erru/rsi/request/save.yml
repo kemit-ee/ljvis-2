@@ -80,6 +80,8 @@ extractRequestData:
 validateRequest:
   template: "templates/erru/rsi/validate-rsi-message"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     originatingAuthority: ${originating_authority}
     vehicleRegistrationNumber: ${vehicle_registration_number}

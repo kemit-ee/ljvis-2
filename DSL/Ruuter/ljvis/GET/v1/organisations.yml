@@ -3,6 +3,8 @@ declaration:
   version: "1.0"
   description: "List all organisations"
   namespace: organisations
+  allowlist:
+    params: []
 
 getOrganisations:
   call: http.post

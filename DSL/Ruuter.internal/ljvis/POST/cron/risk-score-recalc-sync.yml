@@ -18,6 +18,8 @@ declaration:
 
     Called by CronManager nightly (DSL/CronManager/risk-score-recalc.yaml).
   namespace: cron
+  allowlist:
+    body: []
 
 fetchCompanies:
   call: http.post

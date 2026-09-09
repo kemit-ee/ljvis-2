@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="et">
+<head><meta charset="utf-8"><title>ADR kontrollkaart{% if form_number %} — {{ form_number }}{% endif %}</title>
+<style>
+@page { size: A4; margin: 13mm 12mm 14mm; @bottom-right { content: counter(page) " / " counter(pages); font: 8pt serif; } }
+* { box-sizing: border-box; }
+body { margin: 0; color: #000; font-family: "Times New Roman", "Liberation Serif", serif; font-size: 8pt; line-height: 1.12; }
+.source { text-align: right; font-size: 8pt; margin: 0 0 4mm; }
+h1 { font-size: 12pt; text-align: center; margin: 0 0 3mm; }
+.number { font-size: 8pt; font-weight: normal; }
+table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+td, th { border: .6pt solid #000; padding: 1mm; vertical-align: middle; overflow-wrap: anywhere; }
+th { font-weight: bold; text-align: left; }
+.general td { height: 6mm; }
+.general .label { width: 52%; }
+.section { font-weight: bold; background: #eee; padding: .6mm 1mm; }
+.box { display: inline-block; width: 2.4mm; height: 2.4mm; border: .6pt solid #000; vertical-align: -.25mm; margin: 0 .6mm 0 1mm; text-align: center; font-family: sans-serif; font-size: 7pt; line-height: 2.2mm; }
+.checklist { font-size: 7.5pt; }
+.checklist td { height: 5.2mm; padding: .6mm; }
+.checklist td.section { height: 3mm; padding: .4mm .6mm; }
+.checklist .status { text-align: center; }
+.checklist .box { margin: 0; }
+.checklist th { text-align: center; font-size: 7pt; }
+.value { white-space: pre-line; }
+.result td { height: 7mm; }
+.notes td { height: 13mm; vertical-align: top; }
+.footer-signature td { height: 11mm; vertical-align: top; }
+.legend { break-before: page; font-size: 10pt; line-height: 1.35; }
+.legend p { margin: 0 0 3mm; }
+h2 { font-size: 11pt; margin-top: 6mm; }
+.appendix { break-before: page; font-size: 10pt; line-height: 1.3; }
+.appendix h3 { font-size: 10pt; break-after: avoid; margin-bottom: 2mm; }
+.appendix .text { white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 5mm; }
+tr { break-inside: avoid; }
+thead { display: table-header-group; }
+@media screen { body { max-width: 186mm; margin: 16px auto; padding: 10mm; box-shadow: 0 0 5px #aaa; } .legend, .appendix { margin-top: 25mm; border-top: 1px dashed #888; padding-top: 10mm; } }
+</style></head>
+<body>
+{% macro box(checked=false) -%}<span class="box">{% if checked %}×{% endif %}</span>{%- endmacro %}
+<div class="source">Majandus- ja taristuministri 18.09.2018. a määrus nr 53<br>„Ohtliku veose autoveo tingimused ja kord ning<br>riikliku järelevalve korralduslikud nõuded”<br>Lisa 2<br>(taristuministri 08.06.2026 määruse nr 40 sõnastuses)</div>
+<h1>Teeäärse kontrollimise kontrollkaart{% if form_number %}<br><span class="number">{{ form_number }}</span>{% endif %}</h1>
+<table class="general">
+<tr><td style="width:56%">1. Kontrollimise koht ja riik<br><span class="value">{{ fields['1'] }}</span></td><td style="width:24%">2. Kuupäev<br>{{ fields['2'] }}</td><td>3. Aeg<br>{{ fields['3'] }}</td></tr>
+</table>
+<div class="section">Andmed sõiduki/veose kohta</div>
+<table class="general">
+{% for number, title in [
+('4', 'Sõiduki(d) registreerinud riigi (riikide) tunnus(ed) ja sõiduki(te) registreerimisnumber (-numbrid)'),
+('5', 'Vedu teostav ettevõtja / aadress'),
+('6', 'Juhi (juhtide) / juhiabi nimi / tema (nende) loa number (-numbrid) (1) (ADR 8.2, kui see on asjakohane)'),
+('7', 'Viimane aadress ja peale- või mahalaadimise kuupäev (1)'),
+('8', 'Järgmise peale- või mahalaadimise aadress (1)'),
+('9', 'Ohtlike kaupade ÜRO number (numbrid), pakendirühm ja kogus, kui täheldatakse rikkumisi (2)')
+] %}<tr><td class="label">{{ number }}. {{ title }}</td><td class="value">{{ fields[number] }}</td></tr>{% endfor %}
+<tr><td class="label">10. Kas kohaldatakse erandit? Kui jah, siis millist? (3)</td><td>{{ box(exemption is sameas false) }} ei {{ box(exemption is sameas true) }} jah &nbsp; ADR-i punkt {{ fields['10'] }}</td></tr>
+<tr><td class="label">11. Mahutid</td><td>{% for code, title in [('mahtlast','mahtlast'),('paak','paak'),('pakend','pakend'),('memu','MEMU')] %}{{ box(code in containers) }} {{ title }} {% endfor %}</td></tr>
+</table>
+<table class="checklist">
+<colgroup><col style="width:52%"><col style="width:5%"><col style="width:5%"><col style="width:5%"><col style="width:12%"><col style="width:21%"></colgroup>
+<thead><tr><th rowspan="2">Kontrollitav valdkond</th><th colspan="3">Kontrolli staatus (4)</th><th>Rikkumine</th><th rowspan="2">ADR-i punkt + osaleja(d) (6)</th></tr><tr><th>C</th><th>NC</th><th>NA</th><th>Riskikategooria (5)</th></tr></thead>
+<tbody>{% for row in rows %}{% if row.group %}<tr><td colspan="6" class="section">{{ row.group }}</td></tr>{% endif %}
+<tr><td>{{ row.title }}</td>{% for status in ['C','NC','NA'] %}<td class="status">{{ box(row.status == status) }}</td>{% endfor %}<td>{{ row.risk }}</td><td>{{ row.reference }}</td></tr>{% endfor %}</tbody>
+</table>
+<div class="section">Tulemus</div>
+<table class="result">
+<tr><td style="width:52%">28. Parandusmeetmed:<br>{% for code,title in [('on_spot','kohapealsed'),('before_journey_end','enne reisi lõppu'),('at_premises','valdustes')] %}{{ title }} {{ box(code in measures) }} {% endfor %}</td><td>Meetme liik: ametlik aruanne/akt {{ box(official is sameas true) }} hoiatus {{ box(warning) }}<br>edasisõidu keelamine (art 5) (8) {{ box(ban) }}</td></tr>
+<tr class="notes"><td colspan="2">29. Märkused (7)<br><span class="value">{{ fields['29'] }}</span></td></tr>
+</table>
+<table class="result"><tr><td style="width:52%">30. Pitser rikutud/paigaldatud?</td><td>Rikutud kuupäeval<br>{{ fields['30a'] }}</td><td>Paigaldatud kuupäeval<br>{{ fields['30b'] }}</td></tr></table>
+<table class="footer-signature"><tr><td>31. Kontrolli tegev asutus / ametnik / volitatud isik<br><span class="value">{{ fields['31'] }}</span></td></tr></table>
+<section class="legend">
+<p>(1) Täita ainult juhul, kui see on rikkumise puhul asjakohane.</p>
+<p>(2) Täiendused lisada lahtrisse „Märkused“.</p>
+<p>(3) Viitab kõikidele direktiivi 2008/68/EÜ kohastele eranditele.</p>
+<p>(4) Kontrolli staatus: C = kontrollitud, NC = ei ole võimalik kontrollida, NA = ei kohaldata.</p>
+<p>(5) Registreeritud rikkumise riskikategooria, mis määratakse käesoleva määruse § 2 lõigete 2¹–8 kohaselt.</p>
+<p>(6) Täita, kui on tuvastatud rikkumine. Täpsustada võimaliku vastutava osaleja kategooriat ADR 1.4 kohaselt: Ci = kaubasaatja, C = vedaja, Ce = kaubasaaja, L = laadija, P = pakendaja, F = täitja, To = paagi käitaja, U = mahalaadija. Osaleja kategooria nimetamine kontrollkaardil ei mõjuta mingil viisil süütuse presumptsiooni.</p>
+<p>(7) Märkida veetavate ohtlike kaupade ÜRO number, pakendirühm (PG) ja kogus rikkumiste avastamise korral, juhtide rikkumised, parandusmeetmed ja muud märkused.</p>
+<p>(8) Viitab direktiivi (EL) 2022/1999 artiklile 5.</p>
+<h2>Haldusakti edasikaebamine</h2>
+<p>Käesoleva haldusakti peale võib esitada vaide Politsei- ja Piirivalveameti peadirektorile haldusmenetluse seaduses sätestatud korras ja tähtajal või kaebuse halduskohtule halduskohtumenetluse seadustikus sätestatud korras ja tähtajal.</p>
+</section>
+{% if appendix %}<section class="appendix"><h1>Kontrollkaardi lisa <span class="number">{{ form_number }}</span></h1>{% for item in appendix %}<h3>{{ item.title }}</h3><div class="text">{{ item.text }}</div>{% endfor %}</section>{% endif %}
+</body></html>

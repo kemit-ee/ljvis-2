@@ -53,6 +53,8 @@ extractRequestData:
 validateForm:
   template: "templates/form/good-repute/validate-good-repute-form"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personalCode: ${personal_code}
     firstName: ${first_name}

@@ -96,6 +96,8 @@ checkOwnership:
 checkCompanyRepresentative:
   template: "templates/citizen-company-representative"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${personal_code}
     registry_code: ${row.companyRegCode}

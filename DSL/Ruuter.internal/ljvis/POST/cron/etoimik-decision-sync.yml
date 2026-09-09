@@ -9,6 +9,8 @@ declaration:
     Called by CronManager at 01:00 Europe/Tallinn
     (DSL/CronManager/etoimik-decision-sync.yaml).
   namespace: cron
+  allowlist:
+    body: []
 
 fetchCandidates:
   call: http.post

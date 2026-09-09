@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="et">
+<head><meta charset="utf-8"><title>ADR kontrollkaart</title>
+<style>
+@page { size: A4; margin: 13mm 12mm 14mm; @bottom-right { content: counter(page) " / " counter(pages); font: 8pt serif; } }
+* { box-sizing: border-box; }
+body { margin: 0; color: #000; font-family: "Times New Roman", "Liberation Serif", serif; font-size: 8pt; line-height: 1.12; }
+.source { text-align: right; font-size: 8pt; margin: 0 0 4mm; }
+h1 { font-size: 12pt; text-align: center; margin: 0 0 3mm; }
+.number { font-size: 8pt; font-weight: normal; }
+table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+td, th { border: .6pt solid #000; padding: 1mm; vertical-align: middle; overflow-wrap: anywhere; }
+th { font-weight: bold; text-align: left; }
+.general td { height: 6mm; }
+.general .label { width: 52%; }
+.section { font-weight: bold; background: #eee; padding: .6mm 1mm; }
+.box { display: inline-block; width: 2.4mm; height: 2.4mm; border: .6pt solid #000; vertical-align: -.25mm; margin: 0 .6mm 0 1mm; text-align: center; font-family: sans-serif; font-size: 7pt; line-height: 2.2mm; }
+.checklist { font-size: 7.5pt; }
+.checklist td { height: 5.2mm; padding: .6mm; }
+.checklist td.section { height: 3mm; padding: .4mm .6mm; }
+.checklist .status { text-align: center; }
+.checklist .box { margin: 0; }
+.checklist th { text-align: center; font-size: 7pt; }
+.value { white-space: pre-line; }
+.result td { height: 7mm; }
+.notes td { height: 13mm; vertical-align: top; }
+.footer-signature td { height: 11mm; vertical-align: top; }
+.legend { break-before: page; font-size: 10pt; line-height: 1.35; }
+.legend p { margin: 0 0 3mm; }
+h2 { font-size: 11pt; margin-top: 6mm; }
+.appendix { break-before: page; font-size: 10pt; line-height: 1.3; }
+.appendix h3 { font-size: 10pt; break-after: avoid; margin-bottom: 2mm; }
+.appendix .text { white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 5mm; }
+tr { break-inside: avoid; }
+thead { display: table-header-group; }
+@media screen { body { max-width: 186mm; margin: 16px auto; padding: 10mm; box-shadow: 0 0 5px #aaa; } .legend, .appendix { margin-top: 25mm; border-top: 1px dashed #888; padding-top: 10mm; } }
+</style></head>
+<body>
+
+<div class="source">Majandus- ja taristuministri 18.09.2018. a määrus nr 53<br>„Ohtliku veose autoveo tingimused ja kord ning<br>riikliku järelevalve korralduslikud nõuded”<br>Lisa 2<br>(taristuministri 08.06.2026 määruse nr 40 sõnastuses)</div>
+<h1>Teeäärse kontrollimise kontrollkaart</h1>
+<table class="general">
+<tr><td style="width:56%">1. Kontrollimise koht ja riik<br><span class="value"></span></td><td style="width:24%">2. Kuupäev<br></td><td>3. Aeg<br></td></tr>
+</table>
+<div class="section">Andmed sõiduki/veose kohta</div>
+<table class="general">
+<tr><td class="label">4. Sõiduki(d) registreerinud riigi (riikide) tunnus(ed) ja sõiduki(te) registreerimisnumber (-numbrid)</td><td class="value"></td></tr><tr><td class="label">5. Vedu teostav ettevõtja / aadress</td><td class="value"></td></tr><tr><td class="label">6. Juhi (juhtide) / juhiabi nimi / tema (nende) loa number (-numbrid) (1) (ADR 8.2, kui see on asjakohane)</td><td class="value"></td></tr><tr><td class="label">7. Viimane aadress ja peale- või mahalaadimise kuupäev (1)</td><td class="value"></td></tr><tr><td class="label">8. Järgmise peale- või mahalaadimise aadress (1)</td><td class="value"></td></tr><tr><td class="label">9. Ohtlike kaupade ÜRO number (numbrid), pakendirühm ja kogus, kui täheldatakse rikkumisi (2)</td><td class="value"></td></tr>
+<tr><td class="label">10. Kas kohaldatakse erandit? Kui jah, siis millist? (3)</td><td><span class="box"></span> ei <span class="box"></span> jah &nbsp; ADR-i punkt </td></tr>
+<tr><td class="label">11. Mahutid</td><td><span class="box"></span> mahtlast <span class="box"></span> paak <span class="box"></span> pakend <span class="box"></span> MEMU </td></tr>
+</table>
+<table class="checklist">
+<colgroup><col style="width:52%"><col style="width:5%"><col style="width:5%"><col style="width:5%"><col style="width:12%"><col style="width:21%"></colgroup>
+<thead><tr><th rowspan="2">Kontrollitav valdkond</th><th colspan="3">Kontrolli staatus (4)</th><th>Rikkumine</th><th rowspan="2">ADR-i punkt + osaleja(d) (6)</th></tr><tr><th>C</th><th>NC</th><th>NA</th><th>Riskikategooria (5)</th></tr></thead>
+<tbody><tr><td colspan="6" class="section">Dokumendid</td></tr>
+<tr><td>12. Veodokumendid (nt ADR 8.1.2.1 (a), 5.4.1, 5.4.2)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>13. Kirjalikud juhised (ADR 8.1.2.1 (b), 5.4.3)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>14. Sõiduki vastavustunnistus (ADR 8.1.2.2 (a), 9.1.3)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>15. Juhi koolitustunnistus (ADR 8.1.2.2 (b)) ja isikut tõendav dokument (ADR 1.10.1.4, 8.1.2.1 (d))</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr><tr><td colspan="6" class="section">Vedu</td></tr>
+<tr><td>16. Veoks lubatud kaubad (ADR 1.1.2.1)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>17. Mahuteid käsitlevad sätted (nt ADR 4.1–4.7)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>18. Vedu käsitlevad sätted (nt ADR 7.1–7.4)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>19. Segaveose keeld ja koguste piirangud (nt ADR 7.5.2, 7.5.4, 7.5.5)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>20. Käitamine ja paigutamine (nt ADR 7.5.7)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>21. Pakendi/paagi/mahtlasti märgistus (nt ADR-i 6. osa)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>22. Pakendite tähistus ja märgistus (nt ADR 3.3–3.5, 4.1.4.1, 5.1, 5.2)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>23. Tähised, oranžid tähised, märgistused sõidukitel/paakidel jne (nt ADR 3.4.13, 5.3, 5.5, 7.3, 7.5.11)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>24. Sõidukile esitatavad nõuded (ADR-i 9. osa)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr><tr><td colspan="6" class="section">Sõiduki varustus</td></tr>
+<tr><td>25. Üld- ja eriseadmed (nt ADR 8.1.4, 8.1.5)</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr><tr><td colspan="6" class="section">Muu</td></tr>
+<tr><td>26. Kahe-/mitmepoolsed kokkulepped (nt ADR 1.5.1), riiklikud eeskirjad, pädeva asutuse heakskiit (nt ADR 8.1.2.2 (c))</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr>
+<tr><td>27. Muud rikkumised</td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td class="status"><span class="box"></span></td><td></td><td></td></tr></tbody>
+</table>
+<div class="section">Tulemus</div>
+<table class="result">
+<tr><td style="width:52%">28. Parandusmeetmed:<br>kohapealsed <span class="box"></span> enne reisi lõppu <span class="box"></span> valdustes <span class="box"></span> </td><td>Meetme liik: ametlik aruanne/akt <span class="box"></span> hoiatus <span class="box"></span><br>edasisõidu keelamine (art 5) (8) <span class="box"></span></td></tr>
+<tr class="notes"><td colspan="2">29. Märkused (7)<br><span class="value"></span></td></tr>
+</table>
+<table class="result"><tr><td style="width:52%">30. Pitser rikutud/paigaldatud?</td><td>Rikutud kuupäeval<br></td><td>Paigaldatud kuupäeval<br></td></tr></table>
+<table class="footer-signature"><tr><td>31. Kontrolli tegev asutus / ametnik / volitatud isik<br><span class="value"></span></td></tr></table>
+<section class="legend">
+<p>(1) Täita ainult juhul, kui see on rikkumise puhul asjakohane.</p>
+<p>(2) Täiendused lisada lahtrisse „Märkused“.</p>
+<p>(3) Viitab kõikidele direktiivi 2008/68/EÜ kohastele eranditele.</p>
+<p>(4) Kontrolli staatus: C = kontrollitud, NC = ei ole võimalik kontrollida, NA = ei kohaldata.</p>
+<p>(5) Registreeritud rikkumise riskikategooria, mis määratakse käesoleva määruse § 2 lõigete 2¹–8 kohaselt.</p>
+<p>(6) Täita, kui on tuvastatud rikkumine. Täpsustada võimaliku vastutava osaleja kategooriat ADR 1.4 kohaselt: Ci = kaubasaatja, C = vedaja, Ce = kaubasaaja, L = laadija, P = pakendaja, F = täitja, To = paagi käitaja, U = mahalaadija. Osaleja kategooria nimetamine kontrollkaardil ei mõjuta mingil viisil süütuse presumptsiooni.</p>
+<p>(7) Märkida veetavate ohtlike kaupade ÜRO number, pakendirühm (PG) ja kogus rikkumiste avastamise korral, juhtide rikkumised, parandusmeetmed ja muud märkused.</p>
+<p>(8) Viitab direktiivi (EL) 2022/1999 artiklile 5.</p>
+<h2>Haldusakti edasikaebamine</h2>
+<p>Käesoleva haldusakti peale võib esitada vaide Politsei- ja Piirivalveameti peadirektorile haldusmenetluse seaduses sätestatud korras ja tähtajal või kaebuse halduskohtule halduskohtumenetluse seadustikus sätestatud korras ja tähtajal.</p>
+</section>
+
+</body></html>

@@ -702,6 +702,35 @@ flowchart LR
     G2 -->|fail| R2[403 Forbidden]
 ```
 
+### `declaration.allowlist` kui sisendi-kontrakt (turvapiir)
+
+`declaration.allowlist` ei ole ainult OpenAPI-metaandmed — Ruuter **filtreerib
+päringu keha / query / päised deklareeritud väljade hulgani ENNE kui DSL neid
+näeb** (`src/router/mod.rs`, „Audit finding 10"). Deklareerimata väli visatakse
+vaikselt ära → DSL näeb `undefined`, `?? ''` vaikeväärtus võidab → sisend kaob
+ilma veata.
+
+**Java-parity `checkFields` — oluline lõks:**
+
+- **POST/PUT:** *iga* `allowlist.body` väli peab päringus **olema** (võti,
+  mitte tingimata mitte-null), muidu `500 Field missing: X`. `required: true`
+  lipp EI mõjuta seda — see on ainult OpenAPI jaoks. → osalise uuenduse
+  DSL-ides peab kutsuja saatma kõik deklareeritud väljad (nt tühja stringina).
+- **GET:** kasuta ainult **`allowlist.params`** (filtreerib query).
+  **Ära** deklareeri GET-il `allowlist.body` — siis kohustuslikkuse-kontrolli
+  ei ole ja valikulised query-parameetrid töötavad.
+- Sisendita handler → tühi `allowlist: { params: [] }` (GET) või
+  `{ body: [] }` (POST) dokumenteerib „sisendit pole".
+
+**`declaration.strict: true`** — tundmatu päringuvõti → `400 Bad Request`
+(muidu vaikne filtreerimine). `traceparent` on alati lubatud;
+`pathParams` säilib path-param DSL-idel.
+
+**CI-kaitse:** `scripts/validate-dsl.py` kontrollib et iga
+`incoming.body/params.X`, mida handler loeb, on deklareeritud allowlist'is.
+X-tee provider-pind (`xroad/provide/*`, pesastatud `type: object`,
+`minOccurs=0`) on ajutiselt `ALLOWLIST_COVERAGE_SKIP` all — eraldi pass.
+
 ### Guard override — `declaration.override_ancestors: true`
 
 Konkreetne endpoint võib asendada kõik esivanemad guardid:

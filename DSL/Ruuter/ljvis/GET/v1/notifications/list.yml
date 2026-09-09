@@ -10,9 +10,7 @@ declaration:
   allowlist:
     params:
       - field: page
-        type: number
       - field: pageSize
-        type: number
 
 fetchUnreadList:
   assign:

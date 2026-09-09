@@ -1,0 +1,82 @@
+[
+  {
+    "code": "P12",
+    "title": "12. Veodokumendid (nt ADR 8.1.2.1 (a), 5.4.1, 5.4.2)",
+    "group": "Dokumendid"
+  },
+  {
+    "code": "P13",
+    "title": "13. Kirjalikud juhised (ADR 8.1.2.1 (b), 5.4.3)",
+    "group": ""
+  },
+  {
+    "code": "P14",
+    "title": "14. Sõiduki vastavustunnistus (ADR 8.1.2.2 (a), 9.1.3)",
+    "group": ""
+  },
+  {
+    "code": "P15",
+    "title": "15. Juhi koolitustunnistus (ADR 8.1.2.2 (b)) ja isikut tõendav dokument (ADR 1.10.1.4, 8.1.2.1 (d))",
+    "group": ""
+  },
+  {
+    "code": "P16",
+    "title": "16. Veoks lubatud kaubad (ADR 1.1.2.1)",
+    "group": "Vedu"
+  },
+  {
+    "code": "P17",
+    "title": "17. Mahuteid käsitlevad sätted (nt ADR 4.1–4.7)",
+    "group": ""
+  },
+  {
+    "code": "P18",
+    "title": "18. Vedu käsitlevad sätted (nt ADR 7.1–7.4)",
+    "group": ""
+  },
+  {
+    "code": "P19",
+    "title": "19. Segaveose keeld ja koguste piirangud (nt ADR 7.5.2, 7.5.4, 7.5.5)",
+    "group": ""
+  },
+  {
+    "code": "P20",
+    "title": "20. Käitamine ja paigutamine (nt ADR 7.5.7)",
+    "group": ""
+  },
+  {
+    "code": "P21",
+    "title": "21. Pakendi/paagi/mahtlasti märgistus (nt ADR-i 6. osa)",
+    "group": ""
+  },
+  {
+    "code": "P22",
+    "title": "22. Pakendite tähistus ja märgistus (nt ADR 3.3–3.5, 4.1.4.1, 5.1, 5.2)",
+    "group": ""
+  },
+  {
+    "code": "P23",
+    "title": "23. Tähised, oranžid tähised, märgistused sõidukitel/paakidel jne (nt ADR 3.4.13, 5.3, 5.5, 7.3, 7.5.11)",
+    "group": ""
+  },
+  {
+    "code": "P24",
+    "title": "24. Sõidukile esitatavad nõuded (ADR-i 9. osa)",
+    "group": ""
+  },
+  {
+    "code": "P25",
+    "title": "25. Üld- ja eriseadmed (nt ADR 8.1.4, 8.1.5)",
+    "group": "Sõiduki varustus"
+  },
+  {
+    "code": "P26",
+    "title": "26. Kahe-/mitmepoolsed kokkulepped (nt ADR 1.5.1), riiklikud eeskirjad, pädeva asutuse heakskiit (nt ADR 8.1.2.2 (c))",
+    "group": "Muu"
+  },
+  {
+    "code": "P27",
+    "title": "27. Muud rikkumised",
+    "group": ""
+  }
+]
