@@ -270,9 +270,9 @@ export function useCompoundForm(
     inspectorOrganisationId: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
-    inspectorUnit: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
+    // inspectorUnit pole UI-s required-ks märgitud — osa asutusi (nt TRAM) ei kasuta
+    // struktuuriüksuse klassifikaatoreid; väli on soovitatav aga ei blokeeri salvestamist
+    inspectorUnit: Yup.string(),
     inspectorProfession: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
@@ -412,7 +412,10 @@ export function useCompoundForm(
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId:
-        form?.inspectorOrganisationId ?? authUser?.organisationcode ?? '',
+        form?.inspectorOrganisationId ??
+        authUser?.organisationcode ??
+        // TRAM vormi puhul vaikimisi 'TRAM' kui kasutaja org pole profiilis täidetud
+        (authority === 'TRAM' ? 'TRAM' : ''),
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession:
         form?.inspectorProfession ?? authUser?.jobtitle ?? '',

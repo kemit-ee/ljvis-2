@@ -439,6 +439,7 @@
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
     "publishedNote": "Vorm on avaldatud",
+    "validationErrorNote": "Palun täitke kõik kohustuslikud väljad enne salvestamist.",
     "versions": {
       "title": "Versioonid",
       "version": "Versioon",
