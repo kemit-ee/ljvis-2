@@ -443,8 +443,11 @@ export function useCompoundForm(
           if (isConfirming || isReconfirmedEdit) {
             await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
-          } else if (isPublishing || isRepublishedEdit) {
+          } else if (isPublishing) {
             await api.publish(values.id);
+            onPublished?.();
+          } else if (isRepublishedEdit) {
+            await api.save(trimmedValues as unknown as CompoundForm);
             onPublished?.();
           }
           else {

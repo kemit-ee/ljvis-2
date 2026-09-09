@@ -99,6 +99,7 @@ declaration:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
+    status: "${incoming.body.status}"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
     control_country_code: "${incoming.body.controlCountryCode}"
@@ -383,7 +384,7 @@ updateForm:
       type: json
     body:
       key: ${id}
-      status: saved
+      status: ${status}
       controlDate: ${control_date}
       controlTime: ${control_time}
       controlCountryCode: ${control_country_code}
