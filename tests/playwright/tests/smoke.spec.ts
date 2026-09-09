@@ -32,7 +32,7 @@ test.describe('Sessioon ja armatuurlaud', () => {
 
 const CREATE_ROUTES: { nimi: string; route: string; marker: RegExp }[] = [
   { nimi: 'Koondvorm', route: '/control-forms/compound/new', marker: /Kontrolli koht|Üldosa|Mootorsõiduk/ },
-  { nimi: 'TRAM kontrollkaart', route: '/control-forms/tram-driver/new', marker: /Kontrolli koht|Mootorsõiduk|Sõidukijuhi andmed/ },
+  { nimi: 'TRAM kontrollkaart', route: '/control-forms/tram-control-card/new', marker: /Kontrolli koht|Mootorsõiduk|Sõidukijuhi andmed/ },
   { nimi: 'Välisriigi rikkumine', route: '/control-forms/foreign-violation/new', marker: /rikkumi|Kontrolli|andmed/i },
   { nimi: 'Tööinspektsioon', route: '/control-forms/labour-inspection/new', marker: /inspektsioon|Kontroll|akt/i },
   { nimi: 'Hea maine', route: '/control-forms/good-repute/new', marker: /maine|Isikuandmed|Tunnistus/i },
