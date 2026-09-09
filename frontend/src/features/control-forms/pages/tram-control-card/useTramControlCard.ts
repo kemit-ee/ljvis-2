@@ -90,6 +90,14 @@ export const emptyTrailer = (): Trailer => ({
   categoryOther: '',
 });
 
+// Sõidukijuhi kontrolli sisu JSONB-väljade parse/serialize (sama muster mis
+// useDriveRestForm serializeDriveRestFormValues).
+const parseArr = (v: unknown): unknown[] =>
+  Array.isArray(v) ? v : typeof v === 'string' && v ? JSON.parse(v) : [];
+const jstr = (v: unknown): string =>
+  Array.isArray(v) ? JSON.stringify(v) : typeof v === 'string' ? v : '[]';
+
+
 export function useTramControlCard(
   form: TramControlCard | undefined,
   onSaved: (id?: string) => void,
@@ -178,6 +186,40 @@ export function useTramControlCard(
     [getByCode],
   );
 
+  // ── Sõidukijuhi kontrolli sisu klassifikaatorid (samad mis useDriveRestForm) ──
+  const cargoCabotageViolations = useMemo(
+    () => getByCode('CARGO_CABOTAGE_VIOLATION').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const passengerCabotageViolations = useMemo(
+    () => getByCode('PASSENGER_CABOTAGE_VIOLATION').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const transportClassItems = useMemo(
+    () => getByCode('TRANSPORT_CLASS').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const docRightChecks = useMemo(
+    () => getByCode('DOC_RIGHT_CHECK').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const docRightOtherDocs = useMemo(
+    () => getByCode('OTHER_DOCUMENTS').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const tachographTypes = useMemo(
+    () => getByCode('TACHOGRAPH_TYPES').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const drivingViolations = useMemo(
+    () => getByCode('DRIVING_VIOLATION').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const massDimensions = useMemo(
+    () => getByCode('MASS_DIMENSION').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+
   const validationSchema = Yup.object({
     address: Yup.string().max(
       300,
@@ -249,7 +291,17 @@ export function useTramControlCard(
     inspectorProfession: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
-    proceedingReferenceNumber: Yup.string().when('proceedingType', {
+    transportType: Yup.string().when('driverNotApplicable', {
+      is: (v: boolean) => !v,
+      then: (schema) => schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    resultType: Yup.string().when('driverNotApplicable', {
+      is: (v: boolean) => !v,
+      then: (schema) => schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+        proceedingReferenceNumber: Yup.string().when('proceedingType', {
       is: (v: string) => !!v && v !== 'none',
       then: (schema) =>
         schema.required(t('forms.foreign_violation.validation.required')),
@@ -408,6 +460,34 @@ export function useTramControlCard(
       notes: form?.notes ?? '',
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
+      transportEmptyRun: form?.transportEmptyRun ?? false,
+      transportNature: form?.transportNature ?? '',
+      transportNatureExempt: form?.transportNatureExempt ?? false,
+      transportClasses: parseArr(form?.transportClasses),
+      cabotageViolations: parseArr(form?.cabotageViolations),
+      documentChecks: parseArr(form?.documentChecks),
+      otherDocuments: parseArr(form?.otherDocuments),
+      spApplicability: form?.spApplicability ?? 'not_checked',
+      tachographTypeCode: form?.tachographTypeCode ?? '',
+      tachographDataNotDownloaded: form?.tachographDataNotDownloaded ?? false,
+      checkedDaysCount: form?.checkedDaysCount ?? '',
+      workDaysCount: form?.workDaysCount ?? '',
+      otherActivityDaysCount: form?.otherActivityDaysCount ?? '',
+      violations5612006: parseArr(form?.violations5612006),
+      violations1652014: parseArr(form?.violations1652014),
+      violations200215: parseArr(form?.violations200215),
+      violations5932008: parseArr(form?.violations5932008),
+      violations20201057: parseArr(form?.violations20201057),
+      erruPoints: parseArr(form?.erruPoints),
+      liiniNumber: form?.liiniNumber ?? '',
+      liiniNimetus: form?.liiniNimetus ?? '',
+      files: parseArr(form?.files),
+      // DriveRestFormFields ootab neid ka hideDriveRestExtras režiimis
+      massDimensionNonCompliant: false,
+      massDimensionMeasurements: [] as unknown[],
+      atpViolationFound: 'false',
+      atpViolationDescription: '',
+      selectionStatus: 'active',
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -460,6 +540,20 @@ export function useTramControlCard(
           driver1PersonalCodeForeign: driver1?.personalCodeForeign || '',
           driver2PersonalCodeEe: driver2?.personalCodeEe || '',
           driver2PersonalCodeForeign: driver2?.personalCodeForeign || '',
+          transportEmptyRun: String(values.transportEmptyRun),
+          transportNatureExempt: String(values.transportNatureExempt),
+          tachographDataNotDownloaded: String(values.tachographDataNotDownloaded),
+          transportClasses: jstr(values.transportClasses),
+          cabotageViolations: jstr(values.cabotageViolations),
+          documentChecks: jstr(values.documentChecks),
+          otherDocuments: jstr(values.otherDocuments),
+          violations5612006: jstr(values.violations5612006),
+          violations1652014: jstr(values.violations1652014),
+          violations200215: jstr(values.violations200215),
+          violations5932008: jstr(values.violations5932008),
+          violations20201057: jstr(values.violations20201057),
+          erruPoints: jstr(values.erruPoints),
+          files: jstr(values.files),
         };
         if (values.id) {
           if (isConfirming || isReconfirmedEdit) {
@@ -818,6 +912,14 @@ export function useTramControlCard(
 
   return {
     formik,
+    cargoCabotageViolations,
+    passengerCabotageViolations,
+    transportClassItems,
+    docRightChecks,
+    docRightOtherDocs,
+    tachographTypes,
+    drivingViolations,
+    massDimensions,
     structureUnits,
     orgOptions,
     roads,

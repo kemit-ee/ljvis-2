@@ -8,7 +8,9 @@
 
 - **TRAM kontrollkaart** on nüüd **üks vorm**: üldosa ja sõidukijuhi andmed on
   samal keritaval lehel, ilma eraldi vahekaardi ja alamvormita. Uue kaardi puhul
-  ei pea enam üldosa esmalt salvestama, et juhi sektsioon avaneks.
+  ei pea enam üldosa esmalt salvestama, et juhi sektsioon avaneks. Sõidukijuhi
+  sektsioonis on täies mahus veoliik, dokumendi-/õiguse kontroll, rikkumised
+  (EL määruste kaupa), kabotaaž, ERRU punktid ja kontrolli tulemus / menetlus.
 - **Üks vorminumber** `tram-AAAA-NNNNN/versioon` (varasema kahe numbri asemel).
 - **Elutsükkel Salvestatud → Kinnitatud → Avaldatud** on nüüd ühe nupurea taga.
   Avalikustada saab ainult kinnitatud kaardilt.

@@ -202,16 +202,11 @@ export interface CompoundForm {
  * ADR-002: TRAM kontrollkaart on üks olem — üldosa (CompoundForm-kujuline) +
  * sõidukijuhi kontrolli sisu ühel vormil.
  */
-export interface TramControlCard extends CompoundForm {
+export interface TramControlCard
+  extends CompoundForm,
+    Partial<DriveRestForm> {
   controlYear?: number;
-  transportType?: string;
-  resultType?: string;
-  proceedingType?: string;
-  proceedingReferenceNumber?: string;
-  additionalMeasure?: string;
-  notes?: string;
-  liiniNumber?: string;
-  liiniNimetus?: string;
+  files?: unknown[] | string;
   /** Ainult öine e-Toimiku sünkroon kirjutab. Kirjutuskaitstud. */
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
