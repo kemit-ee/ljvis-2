@@ -270,6 +270,8 @@ export function TramControlCardPage() {
         formik={formik as never}
         isDesktop={isDesktop}
         hideDriveRestExtras
+        filesFormType="tram-control-card-form"
+        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
         readOnly
         transportClassItems={transportClassItems}
         cargoCabotageViolations={cargoCabotageViolations}
@@ -367,6 +369,8 @@ export function TramControlCardPage() {
         formik={formik as never}
         isDesktop={isDesktop}
         hideDriveRestExtras
+        filesFormType="tram-control-card-form"
+        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
         readOnly={false}
         transportClassItems={transportClassItems}
         cargoCabotageViolations={cargoCabotageViolations}
@@ -393,6 +397,8 @@ export function TramControlCardPage() {
         formik={formik as never}
         isDesktop={isDesktop}
         hideDriveRestExtras
+        filesFormType="tram-control-card-form"
+        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
         readOnly
         transportClassItems={transportClassItems}
         cargoCabotageViolations={cargoCabotageViolations}
