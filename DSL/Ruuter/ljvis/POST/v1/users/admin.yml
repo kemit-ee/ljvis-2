@@ -21,6 +21,10 @@ declaration:
         type: string
       - field: accessStart
         type: string
+      - field: phone
+        type: string
+      - field: accessEnd
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja

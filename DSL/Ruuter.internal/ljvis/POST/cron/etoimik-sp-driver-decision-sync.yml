@@ -10,6 +10,8 @@ declaration:
     avalikusta, ei bumbi versiooni. Kutsub CronManager 01:30 Europe/Tallinn
     (DSL/CronManager/etoimik-sp-driver-decision-sync.yaml).
   namespace: cron
+  allowlist:
+    body: []
 
 fetchCandidates:
   call: http.post

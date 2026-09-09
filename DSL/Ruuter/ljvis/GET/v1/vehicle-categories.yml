@@ -3,6 +3,8 @@ declaration:
   version: "1.0"
   description: "List of all vehicle categories"
   namespace: vehicle-categories
+  allowlist:
+    params: []
 
 getVehicleCategories:
   call: http.post

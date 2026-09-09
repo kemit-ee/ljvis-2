@@ -20,6 +20,10 @@ declaration:
     EI edastata kasutajaandmeid; iga frontend teeb oma autenditud
     GET /v1/notifications/unread-count päringu.
   namespace: notification
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
 
 route:
   template: "templates/check-user-authority"

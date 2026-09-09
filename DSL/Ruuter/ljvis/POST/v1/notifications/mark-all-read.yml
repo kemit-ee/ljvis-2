@@ -6,6 +6,8 @@ declaration:
     eraldi INSERT ON CONFLICT DO NOTHING (idempotentne).
     Kaitstud POST/.guard (autentimine) kaudu.
   namespace: notification
+  allowlist:
+    body: []
 
 extractContext:
   assign:
