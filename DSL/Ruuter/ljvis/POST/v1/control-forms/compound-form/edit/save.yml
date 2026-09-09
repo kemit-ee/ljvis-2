@@ -7,8 +7,6 @@ declaration:
     body:
       - field: id
         type: string
-      - field: formNumber
-        type: string
       - field: status
         type: string
       - field: controlDate
@@ -101,7 +99,7 @@ declaration:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
-    form_number: "${incoming.body.formNumber}"
+    status: "${incoming.body.status}"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
     control_country_code: "${incoming.body.controlCountryCode}"
@@ -159,6 +157,8 @@ checkInsertOrUpdate:
 calculateChangedFields:
   template: "templates/form/compound-form/calculate-compound-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     form_id: ${id}
     control_date: ${control_date}
@@ -227,6 +227,8 @@ skip_pc1_validation_insert:
 validate_driver1_personal_code_format_insert:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
@@ -246,6 +248,8 @@ skip_pc2_validation_insert:
 validate_driver2_personal_code_format_insert:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result
@@ -319,6 +323,7 @@ checkInsertSaved:
 extractInsertResponseData:
   assign:
     compound_form_key: "${saveRes.response.body[0].id || ''}"
+    form_number: "${saveRes.response.body[0].formNumber + '/' + saveRes.response.body[0].version}"
   next: logAuditEventInsert
 
 logAuditEventInsert:
@@ -351,6 +356,8 @@ skip_pc1_validation_update:
 validate_driver1_personal_code_format_update:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
@@ -370,6 +377,8 @@ skip_pc2_validation_update:
 validate_driver2_personal_code_format_update:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result
@@ -391,8 +400,7 @@ updateForm:
       type: json
     body:
       key: ${id}
-      formNumber: ${form_number}
-      status: saved
+      status: ${status}
       controlDate: ${control_date}
       controlTime: ${control_time}
       controlCountryCode: ${control_country_code}
@@ -445,6 +453,7 @@ checkUpdateSaved:
 extractUpdateResponseData:
   assign:
     compound_form_key: "${saveRes.response.body[0].id || ''}"
+    form_number: "${saveRes.response.body[0].formNumber + '/' + saveRes.response.body[0].version}"
   next: logAuditEventUpdate
 
 logAuditEventUpdate:

@@ -312,5 +312,47 @@ BEGIN
     'warning', '[]'::jsonb, 'Puudus kõrvaldati kohapeal.', now() - INTERVAL '4 days', v_by
   );
 
-  RAISE NOTICE 'Kasutusjuhendi näidisvormid loodud (95002001..95002005).';
+  -- ================================================================
+  -- F6 — 95006001  tram-2026-6001/1  KINNITATUD  (TRAM kasutusjuhendi pilt)
+  --   -> sp_driver alamvorm täidetud
+  -- ================================================================
+  INSERT INTO forms.compound_form (
+    id, compound_form_key, form_number, control_year, template_version, status,
+    authority,
+    control_date, control_time, control_country_code, county, city, road, kilometer, road_type,
+    road_tax_status,
+    inspector_first_name, inspector_last_name, inspector_organisation_id, inspector_unit, inspector_profession,
+    vehicle_reg_nr, vehicle_make, vehicle_model, vehicle_country_code, vehicle_vin,
+    vehicle_first_registration, vehicle_body_type, vehicle_category_code, vehicle_mileage,
+    trailers, company_reg_code, company_name, company_country_code, company_county, company_city,
+    company_address, company_postal_code, company_activity_licence_copy_number,
+    drivers, created_at, created_by
+  ) VALUES (
+    nextval('forms.compound_form_id_seq'), 95006001, 'tram-2026-6001/1', 2026, 1, 'confirmed',
+    'TRAM',
+    CURRENT_DATE - 3, '10:15', 'EE', '37', '198', 'Pärnu maantee', 42, 'Riigimaantee',
+    'Ei kohaldu',
+    'Tiina', 'Mägi', 'TRAM', 'Lääne regioon', 'Inspektor',
+    '456DEF', 'MAN', 'TGX 18.460', 'EE', 'WMAN000000M123456',
+    DATE '2020-06-01', 'Sadulveduk', 'N3', 215000,
+    '[]'::jsonb, '11223344', 'OÜ Pärnu Kaup', 'EE', 'Pärnu maakond', 'Pärnu',
+    'Sadama 5', '80010', 'EE-CL-112233-02',
+    '[{"personalCodeEe":"48802102740","personalCodeForeign":"","firstName":"Jüri","lastName":"Tamm","citizenshipCode":"EE","birthDate":"1988-02-10"}]'::jsonb,
+    now() - INTERVAL '3 days', v_by
+  );
+
+  INSERT INTO forms.sp_driver_form (
+    sp_driver_form_key, compound_form_key, sub_form_number, template_version, status, selection_status,
+    transport_type, result_type, proceeding_type, sp_applicability,
+    tachograph_type_code, checked_days_count, work_days_count, other_activity_days_count,
+    document_checks, violations_561_2006, notes, created_at, created_by
+  ) VALUES (
+    95106001, 95006001, 'sp-2026-95106001/1', 1, 'confirmed', 'active',
+    'Veosevedu', 'ok', 'none', 'RAKENDATAKSE',
+    'digital', 21, 18, 2,
+    '[{"documentCode":"DRIVER_CARD","status":"OK"},{"documentCode":"DRIVING_LICENCE","status":"OK"}]'::jsonb,
+    '[]'::jsonb, 'Rikkumisi ei tuvastatud.', now() - INTERVAL '3 days', v_by
+  );
+
+  RAISE NOTICE 'Kasutusjuhendi näidisvormid loodud (95002001..95002005, 95006001 TRAM).';
 END $$;

@@ -5,9 +5,6 @@ params:
   key:
     type: integer
     required: false
-  formNumber:
-    type: string
-    required: false
   status:
     type: string
     required: false
@@ -113,6 +110,9 @@ params:
   drivers:
     type: string
     required: false
+  driverNotApplicable:
+    type: boolean
+    required: false
   inspectorFirstName:
     type: string
     required: false
@@ -138,9 +138,14 @@ returns:
 - name: formNumber
   type: string
   nullable: true
+- name: version
+  type: number
+  nullable: true
 */
 WITH latest AS (
-  SELECT form_number, template_version, control_year
+  SELECT form_number,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         template_version, control_year
   FROM forms.compound_form
   WHERE compound_form_key = :key::BIGINT
     AND authority = 'TRAM'
@@ -152,6 +157,7 @@ INSERT INTO forms.compound_form (
   authority,
   form_number,
   control_year,
+  version,
   template_version,
   status,
   control_date,
@@ -193,13 +199,15 @@ INSERT INTO forms.compound_form (
   company_owner_last_name,
   company_activity_licence_copy_number,
   drivers,
+  driver_not_applicable,
   created_by
 )
 SELECT
   :key::BIGINT,
   'TRAM',
-  :formNumber,
+  l.form_number,
   l.control_year,
+  l.version,
   l.template_version,
   :status,
   :controlDate::DATE,
@@ -241,6 +249,7 @@ SELECT
   NULLIF(:companyOwnerLastName, ''),
   NULLIF(:companyActivityLicenceCopyNumber, ''),
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
+  COALESCE(:driverNotApplicable::BOOLEAN, FALSE),
   :created_by
 FROM latest l
-RETURNING compound_form_key AS id, form_number AS "formNumber";
+RETURNING compound_form_key AS id, form_number, version;

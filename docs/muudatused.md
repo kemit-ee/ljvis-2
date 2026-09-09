@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-09 — Transpordiameti kontrollkaardi täiendused
+
+Transpordiameti (TRAM) ettepanekute põhjal:
+
+- **Autojuhi alamvorm alati nähtav** — olemasoleval TRAM kontrollkaardil kuvatakse
+  autojuhi andmete vahekaart nüüd kohe, ilma et peaks „Lisa autojuht" nuppu
+  vajutama. Autojuht ei ole endiselt kohustuslik.
+- **E-toimiku karistuse kvalifikatsioonid** — TRAM kontrollkaardile lisati
+  kirjutuskaitstud e-toimiku päringu kaart (sama, mis PPA koondvormil).
+- **„Ei ole asjakohane" märkeruut** — „Sõidukijuhi andmed" pealkirja all; märgituna
+  ei ole autojuhi ees- ja perekonnanimi enam kohustuslikud (ainult TRAM).
+- **Sõidukijuhi andmeväljad** — uus järjekord (eesnimi, perekonnanimi, Eesti
+  isikukood, „Otsi rahvastikuregistrist" nupp, välisriigi isikukood, kodakondsus,
+  sünniaeg); isikukoodi väljad kitsamad. RR-otsing täidab nime, kodakondsuse ja
+  sünniaja. Kehtib nii PPA kui TRAM kontrollkaardil.
+- **Äriregistri otsing ettevõtte nime järgi** — lisaks registrikoodi järgi
+  otsingule saab nüüd otsida ka ettevõtte nime järgi; mitme vaste korral kuvatakse
+  valikuaken. Kehtib nii PPA kui TRAM kontrollkaardil.
+- **Mootorsõiduki kategooria paigutus** — „(e) M2" ja „(f) M3" mahuvad ühele reale,
+  „Muu" tekstiväli kuvatakse vahetult „Muu" valiku järel.
+- **Haagise pealkiri** — „Haagis #1/#2/#3" asemel „Haagis 1/2/3".
+
+---
+
 ## 2026-09 — Sõitjateveo liinivedu: liini number ja nimetus + dokumendikontrolli täiendused
 
 - **Liini number ja liini nimetus** — kõikide liinivedude korral (nii siseriiklik kui

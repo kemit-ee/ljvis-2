@@ -152,6 +152,7 @@ export type Driver = {
 
 export interface CompoundForm {
   id?: string;
+  version?: number;
   formNumber: string;
   status?: string;
   controlCountryCode?: string;
@@ -188,6 +189,8 @@ export interface CompoundForm {
   companyOwnerLastName?: string;
   companyActivityLicenceCopyNumber?: string;
   drivers?: Driver[];
+  /** TRAM kontrollkaart: „Ei ole asjakohane" — autojuhi nimi ei ole kohustuslik. */
+  driverNotApplicable?: boolean;
   inspectorFirstName?: string;
   inspectorLastName?: string;
   inspectorOrganisationId?: string;

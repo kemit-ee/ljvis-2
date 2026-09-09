@@ -107,6 +107,9 @@ params:
   drivers:
     type: string
     required: false
+  driverNotApplicable:
+    type: boolean
+    required: false
   inspectorFirstName:
     type: string
     required: false
@@ -132,12 +135,16 @@ returns:
 - name: formNumber
   type: string
   nullable: true
+- name: version
+  type: number
+  nullable: true
 */
 INSERT INTO forms.compound_form (
   compound_form_key,
   authority,
   form_number,
   control_year,
+  version,
   template_version,
   status,
   control_date,
@@ -179,13 +186,15 @@ INSERT INTO forms.compound_form (
   company_owner_last_name,
   company_activity_licence_copy_number,
   drivers,
+  driver_not_applicable,
   created_by
 )
 VALUES (
   nextval('forms.seq_compound_form_key'),
   'TRAM',
-  'tram-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(nextval('forms.seq_tram_compound_form_key')::text, 5, '0') || '/1',
+  'tram-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(nextval('forms.seq_tram_compound_form_key')::text, 5, '0'),
   EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER,
+  1,
   1,
   :status,
   :controlDate::DATE,
@@ -227,6 +236,7 @@ VALUES (
   NULLIF(:companyOwnerLastName, ''),
   NULLIF(:companyActivityLicenceCopyNumber, ''),
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
+  COALESCE(:driverNotApplicable::BOOLEAN, FALSE),
   :created_by
 )
-RETURNING compound_form_key AS id, form_number AS "formNumber";
+RETURNING compound_form_key AS id, form_number, version;

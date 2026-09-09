@@ -77,6 +77,7 @@ declaration:
         type: string
       - field: drivers
         type: string
+      - field: driverNotApplicable
       - field: inspectorFirstName
         type: string
       - field: inspectorLastName
@@ -101,7 +102,6 @@ declaration:
 extractRequestData:
   assign:
     key: "${incoming.body.id}"
-    form_number: "${incoming.body.formNumber}"
     status: "confirmed"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
@@ -137,6 +137,7 @@ extractRequestData:
     company_owner_last_name: "${incoming.body.companyOwnerLastName}"
     company_activity_licence_copy_number: "${incoming.body.companyActivityLicenceCopyNumber}"
     drivers: "${incoming.body.drivers}"
+    driver_not_applicable: "${incoming.body.driverNotApplicable || false}"
     driver1_personal_code_ee: "${incoming.body.driver1PersonalCodeEe}"
     driver1_personal_code_foreign: "${incoming.body.driver1PersonalCodeForeign}"
     driver2_personal_code_ee: "${incoming.body.driver2PersonalCodeEe}"
@@ -181,6 +182,8 @@ skip_pc1_validation:
 validate_driver1_personal_code_format:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver1_personal_code_ee}
   result: pc1_result
@@ -200,6 +203,8 @@ skip_pc2_validation:
 validate_driver2_personal_code_format:
   template: "templates/validate/estonian-personal-code"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     personal_code: ${driver2_personal_code_ee}
   result: pc2_result
@@ -221,8 +226,7 @@ confirmForm:
       type: json
     body:
       key: ${key}
-      formNumber: ${form_number}
-      status: ${status}
+      status: confirmed
       controlDate: ${control_date}
       controlTime: ${control_time}
       controlCountryCode: ${control_country_code}
@@ -257,6 +261,7 @@ confirmForm:
       companyOwnerLastName: ${company_owner_last_name}
       companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
       drivers: ${drivers}
+      driverNotApplicable: ${driver_not_applicable}
       inspectorFirstName: ${inspector_first_name}
       inspectorLastName: ${inspector_last_name}
       inspectorOrganisationId: ${inspector_organisation_id}

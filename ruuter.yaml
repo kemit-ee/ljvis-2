@@ -16,6 +16,9 @@ incoming_requests:
 internal_requests:
   disabled: false
   block_private_networks: false
+  # [] = kõik outbound URL-id lubatud (block_private_networks: false lokaalselt).
+  # K8s-s genereerib Helm chart allowed_urls täislisti (resql, tim, data-mapper jne +
+  # xroad.securityServer kui see on devops values-s seatud).
   allowed_urls: []
   allowed_ips: []
 

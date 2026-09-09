@@ -483,6 +483,8 @@ checkTrailers:
 addTrailers:
   template: "templates/form/compound-form/calculate-compound-trailer-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     old_trailers: ${old_trailers}
     new_trailers: ${new_trailers}
@@ -504,6 +506,8 @@ checkDrivers:
 addDrivers:
   template: "templates/form/compound-form/calculate-compound-driver-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     old_drivers: ${old_drivers}
     new_drivers: ${new_drivers}

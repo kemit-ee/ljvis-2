@@ -15,7 +15,6 @@ declaration:
       - field: companyName
         type: string
       - field: maxResults
-        type: integer
 
 validate:
   switch:
@@ -37,8 +36,8 @@ returnInvalidParam:
 
 assignParams:
   assign:
-    reg_code: "${incoming.body.registryCode || ''}"
-    company_name: "${incoming.body.companyName || ''}"
+    reg_code: "${incoming.body.registryCode == null ? '' : String(incoming.body.registryCode)}"
+    company_name: "${incoming.body.companyName == null ? '' : String(incoming.body.companyName)}"
     max_results: "${incoming.body.maxResults || 10}"
     start_time: "${new Date().getTime()}"
   next: callXtr
@@ -50,8 +49,8 @@ callXtr:
     headers:
       type: json
     body:
-      reg_code: ${reg_code}
-      company_name: ${company_name}
+      reg_code: "${reg_code}"
+      company_name: "${company_name}"
       max_results: ${max_results}
   result: xtrResponse
   next: checkXtrStatus

@@ -387,10 +387,20 @@ export function CompoundFormPage() {
     setTrailerSearchError,
     mtrSearchError,
     setMtrSearchError,
+    driverSearchError,
+    setDriverSearchError,
+    driverSearchNotFound,
+    setDriverSearchNotFound,
+    driverSearchLoading,
     handleCompanySearch,
+    handleCompanyNameSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
     handleVehicleSearch,
     handleTrailerSearch,
     handleMtrSearch,
+    handleDriverPersonSearch,
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,
@@ -540,7 +550,7 @@ export function CompoundFormPage() {
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
-      await deleteCompoundForm(id, form.formNumber, form.status ?? '');
+      await deleteCompoundForm(id, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);
@@ -610,11 +620,21 @@ export function CompoundFormPage() {
     setTrailerSearchError,
     mtrSearchError,
     setMtrSearchError,
+    driverSearchError,
+    setDriverSearchError,
+    driverSearchNotFound,
+    setDriverSearchNotFound,
+    driverSearchLoading,
+    handleDriverPersonSearch,
     handleOrgChange,
     handleStructuralUnitChange,
     handleCountyChange,
     handleCompanyCountyChange,
     handleCompanySearch,
+    handleCompanyNameSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
     handleVehicleSearch,
     handleTrailerSearch,
     handleMtrSearch,
