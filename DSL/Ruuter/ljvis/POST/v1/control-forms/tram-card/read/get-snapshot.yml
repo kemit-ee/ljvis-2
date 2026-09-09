@@ -28,8 +28,19 @@ getSnapshot:
       id: ${id}
       form_key: ${form_key}
   result: res
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_tram_control_card"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${res.response.body}
+  return: ${mapped.response.body}
   next: end
