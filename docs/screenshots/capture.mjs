@@ -200,19 +200,18 @@ const shots = [
       await settle(page, 1200);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/02-uldosa.png');
 
-      // 03 — autojuhi vahekaart alati avatud (fixture 95006001)
-      await page.getByRole('tab', { name: /Autojuhi andmed|Sõidukijuhi/i }).click({ timeout: 6000 }).catch(() => {});
-      await sleep(800);
+      // 03 — autojuhi vahekaart (fixture 95006001, tab: "Autojuhi sõidu- ja puhkeaja kontrollvorm")
+      await page.getByRole('tab', { name: /sõidu.*puhkeaja|puhkeaja.*kontrollvorm/i }).click({ timeout: 6000 }).catch(() => {});
+      await sleep(1000);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/03-autojuhi-vahekaart.png');
 
-      // 04 — „Ei ole asjakohane" märkeruut (loomisvaade, üldosa salvestatud)
-      // Näitame loomisvaates välja, kust märkeruut asub — scroll juhi andmete plokki
+      // 04 — „Ei ole asjakohane" märkeruut (autojuhi tab, scroll märkeruuduni)
       await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
       await settle(page, 1200);
-      await page.getByRole('tab', { name: /Autojuhi andmed|Sõidukijuhi/i }).click({ timeout: 6000 }).catch(() => {});
-      await sleep(600);
-      const checkbox = page.locator('input[type=checkbox]').filter({ hasText: '' }).first();
-      await checkbox.scrollIntoViewIfNeeded().catch(() => {});
+      await page.getByRole('tab', { name: /sõidu.*puhkeaja|puhkeaja.*kontrollvorm/i }).click({ timeout: 6000 }).catch(() => {});
+      await sleep(800);
+      const notApplicable = page.locator('label').filter({ hasText: /Ei ole asjakohane/i }).first();
+      await notApplicable.scrollIntoViewIfNeeded().catch(() => {});
       await sleep(400);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/04-ei-ole-asjakohane.png');
 
