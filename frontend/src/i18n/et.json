@@ -921,7 +921,7 @@
       "roadTaxNotes": "Märkus",
       "trailer": "Haagis",
       "addTrailer": "Lisa haagis",
-      "trailerNumber": "Haagis #{{number}}",
+      "trailerNumber": "Haagis {{number}}",
       "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
       "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
       "removeTrailer": "Eemalda haagis",

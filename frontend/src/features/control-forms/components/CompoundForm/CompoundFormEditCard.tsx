@@ -593,62 +593,64 @@ export function CompoundFormEditCard({
                       placeholder={t('common.dateFieldPlaceholder')}
                     />
                   </div>
-                  <ChoiceGroup
-                    id="vehicleCategoryCode"
-                    name="vehicleCategoryCode"
-                    label={t('forms.compound.vehicleCategory')}
-                    inputType="radio"
-                    value={formik.values.vehicleCategoryCode}
-                    onChange={(val) =>
-                      formik.setFieldValue('vehicleCategoryCode', val)
-                    }
-                    items={vehicleCategories.map((c) => ({
-                      id: `vehicleCat-${c.code}`,
-                      value: c.code,
-                      label: c.name,
-                      colProps: {
-                        width: vehicleCategoryColWidth(c.code, radioRowsFit),
-                      },
-                    }))}
-                    required
-                    {...(formik.touched.vehicleCategoryCode &&
-                    formik.errors.vehicleCategoryCode
-                      ? {
-                          helper: {
-                            text: formik.errors.vehicleCategoryCode as string,
-                            type: 'error' as const,
-                          },
-                        }
-                      : {})}
-                  />
-                  {formik.values.vehicleCategoryCode ===
-                  OTHER.VEHICLE_CATEGORY ? (
-                    <TextField
-                      id="vehicleCategoryOther"
-                      label={t('forms.compound.vehicleCategoryOther')}
-                      value={formik.values.vehicleCategoryOther}
-                      input={{ maxLength: 100 }}
-                      onChange={(v) =>
-                        formik.setFieldValue(
-                          'vehicleCategoryOther',
-                          v.toUpperCase(),
-                        )
+                  <div className={styles['full-span']}>
+                    <ChoiceGroup
+                      id="vehicleCategoryCode"
+                      name="vehicleCategoryCode"
+                      label={t('forms.compound.vehicleCategory')}
+                      inputType="radio"
+                      value={formik.values.vehicleCategoryCode}
+                      onChange={(val) =>
+                        formik.setFieldValue('vehicleCategoryCode', val)
                       }
+                      items={vehicleCategories.map((c) => ({
+                        id: `vehicleCat-${c.code}`,
+                        value: c.code,
+                        label: c.name,
+                        colProps: {
+                          width: vehicleCategoryColWidth(c.code, radioRowsFit),
+                        },
+                      }))}
                       required
-                      {...(formik.touched.vehicleCategoryOther &&
-                      formik.errors.vehicleCategoryOther
+                      {...(formik.touched.vehicleCategoryCode &&
+                      formik.errors.vehicleCategoryCode
                         ? {
                             helper: {
                               text: formik.errors
-                                .vehicleCategoryOther as string,
+                                .vehicleCategoryCode as string,
                               type: 'error' as const,
                             },
                           }
                         : {})}
                     />
-                  ) : (
-                    <div />
-                  )}
+                    {formik.values.vehicleCategoryCode ===
+                      OTHER.VEHICLE_CATEGORY && (
+                      <TextField
+                        id="vehicleCategoryOther"
+                        className="mt-1"
+                        label={t('forms.compound.vehicleCategoryOther')}
+                        value={formik.values.vehicleCategoryOther}
+                        input={{ maxLength: 100 }}
+                        onChange={(v) =>
+                          formik.setFieldValue(
+                            'vehicleCategoryOther',
+                            v.toUpperCase(),
+                          )
+                        }
+                        required
+                        {...(formik.touched.vehicleCategoryOther &&
+                        formik.errors.vehicleCategoryOther
+                          ? {
+                              helper: {
+                                text: formik.errors
+                                  .vehicleCategoryOther as string,
+                                type: 'error' as const,
+                              },
+                            }
+                          : {})}
+                      />
+                    )}
+                  </div>
                   <TextField
                     id="vehicleMileage"
                     label={t('forms.compound.vehicleMileage')}

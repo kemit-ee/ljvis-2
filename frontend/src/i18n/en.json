@@ -751,7 +751,7 @@
       "roadTaxNotes": "Notes",
       "trailer": "Trailer",
       "addTrailer": "Add trailer",
-      "trailerNumber": "Trailer #{{number}}",
+      "trailerNumber": "Trailer {{number}}",
       "addTrailerControlForm": "Add trailer control form",
       "editTrailerControlForm": "Edit trailer control form",
       "removeTrailer": "Remove trailer",
