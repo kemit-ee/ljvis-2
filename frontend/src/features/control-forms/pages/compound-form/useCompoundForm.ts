@@ -121,7 +121,6 @@ export function useCompoundForm(
           confirm: confirmCompoundForm,
           publish: publishCompoundForm,
         };
-  const isEdit = !!form;
   const pendingConfirm = useRef(false);
   const pendingPublish = useRef(false);
   const pendingForceSaved = useRef(false);
@@ -131,16 +130,6 @@ export function useCompoundForm(
     subFormsAllConfirmedOrPublishedRef.current = subFormsAllConfirmedOrPublished;
   });
   const { getByCode, getChildren } = useClassifiers();
-
-  const incrementFormNumber = (formNumber: string): string => {
-    const match = formNumber.match(/^(.+\/)([0-9]+)$/);
-    if (match) {
-      return `${match[1]}${parseInt(match[2], 10) + 1}`;
-    }
-    return `${formNumber}/2`;
-  };
-
-  const formNumberString = isEdit && form?.formNumber ? form.formNumber : '';
 
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
@@ -270,9 +259,9 @@ export function useCompoundForm(
     inspectorOrganisationId: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
-    inspectorUnit: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
+    // inspectorUnit pole UI-s required-ks märgitud — osa asutusi (nt TRAM) ei kasuta
+    // struktuuriüksuse klassifikaatoreid; väli on soovitatav aga ei blokeeri salvestamist
+    inspectorUnit: Yup.string(),
     inspectorProfession: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
@@ -364,6 +353,7 @@ export function useCompoundForm(
     enableReinitialize: true,
     initialValues: {
       id: form?.id ?? '',
+      version: form?.version ?? 1,
       formNumber: form?.formNumber ?? '',
       controlCountryCode: form?.controlCountryCode ?? 'EE',
       address: form?.address ?? '',
@@ -412,7 +402,10 @@ export function useCompoundForm(
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId:
-        form?.inspectorOrganisationId ?? authUser?.organisationcode ?? '',
+        form?.inspectorOrganisationId ??
+        authUser?.organisationcode ??
+        // TRAM vormi puhul vaikimisi 'TRAM' kui kasutaja org pole profiilis täidetud
+        (authority === 'TRAM' ? 'TRAM' : ''),
       inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
       inspectorProfession:
         form?.inspectorProfession ?? authUser?.jobtitle ?? '',
@@ -442,15 +435,12 @@ export function useCompoundForm(
             : isRepublishedEdit
               ? 'published'
               : 'saved';
-        const nextFormNumber = (isReconfirmedEdit || isRepublishedEdit)
-          ? incrementFormNumber(formNumberString)
-          : formNumberString;
         const driver1 = values.drivers[0];
         const driver2 = values.drivers[1];
         const trimmedValues = {
           ...values,
+          id: form?.id ?? '',
           status: nextStatus,
-          formNumber: nextFormNumber,
           controlDate: toIsoDate(values.controlDate),
           controlTime: toIsoTime(values.controlTime),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
@@ -476,8 +466,11 @@ export function useCompoundForm(
           if (isConfirming || isReconfirmedEdit) {
             await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
-          } else if (isPublishing || isRepublishedEdit) {
+          } else if (isPublishing) {
             await api.publish(values.id);
+            onPublished?.();
+          } else if (isRepublishedEdit) {
+            await api.save(trimmedValues as unknown as CompoundForm);
             onPublished?.();
           }
           else {
@@ -508,6 +501,25 @@ export function useCompoundForm(
       }
     },
   });
+
+  // Fallback: kui authUser.organisationcode puudub (vana DSL deploy või null org),
+  // leia organisatsiooni kood organisationid järgi kui organisatsioonide loend on laetud.
+  // (peab olema pärast `formik` deklaratsiooni — kasutab formik.values / setFieldValue)
+  useEffect(() => {
+    if (
+      !formik.values.inspectorOrganisationId &&
+      authUser?.organisationid &&
+      organisations.length > 0
+    ) {
+      const org = organisations.find(
+        (o) => String(o.id) === String(authUser.organisationid),
+      );
+      if (org) {
+        formik.setFieldValue('inspectorOrganisationId', org.code);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organisations, authUser?.organisationid]);
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;

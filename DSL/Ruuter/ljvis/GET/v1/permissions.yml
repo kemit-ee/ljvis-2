@@ -3,6 +3,8 @@ declaration:
   version: "1.0"
   description: "List all permissions (fixed set)"
   namespace: permissions
+  allowlist:
+    params: []
 
 getPermissions:
   call: http.post

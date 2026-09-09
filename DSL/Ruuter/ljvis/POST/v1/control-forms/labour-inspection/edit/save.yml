@@ -61,6 +61,8 @@ extractRequestData:
 validateForm:
   template: "templates/form/labour-inspection/validate-labour-inspection-form"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     inspectorName: ${inspector_name}
     inspectionDate: ${inspection_date}
@@ -154,6 +156,8 @@ checkFormNotLocked:
 calculateChangedFields:
   template: "templates/form/labour-inspection/calculate-labour-inspection-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     formId: ${id}
     inspectorName: ${inspector_name}

@@ -8,7 +8,6 @@ declaration:
       - field: id
         type: string
       - field: compoundFormKey
-        type: number
       - field: headerText
         type: string
       - field: residenceCountry

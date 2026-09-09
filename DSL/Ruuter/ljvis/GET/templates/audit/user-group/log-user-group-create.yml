@@ -15,7 +15,6 @@ declaration:
       - field: organisation_ids
         type: string
       - field: selected_org_count
-        type: number
       - field: permission_ids
         type: string
 

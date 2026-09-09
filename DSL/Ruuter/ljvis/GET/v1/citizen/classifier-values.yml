@@ -12,6 +12,8 @@ declaration:
     Guarded by GET/v1/citizen/.guard (templates/citizen-authority) — reuses
     the existing override_ancestors set up for the citizen namespace.
   namespace: citizen
+  allowlist:
+    params: []
 
 getClassifierValues:
   call: http.post

@@ -33,7 +33,7 @@ AGENTS.md
 .actrc
 
 .ai
-.devin
+.devin/config.local.json
 
 # Task/test documentation (local only)
 TASK-*.md
@@ -52,6 +52,9 @@ docs/book/
 build/
 scripts/.resql-audit.json
 /docs/screenshots/node_modules
+
+# Ruuter dsl-lint / dsl-test binaries, built in CI (see .github/workflows/ci.yml)
+.ruuter-tools/
 
 # Playwright UI-testid
 /tests/playwright/node_modules

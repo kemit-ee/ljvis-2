@@ -148,6 +148,101 @@ def check_declaration(parsed: dict[str, dict]) -> list[str]:
     return errors
 
 
+INCOMING_FIELD_RE = re.compile(r"incoming\.(?:body|params)\.([A-Za-z_]\w*)")
+
+# HTTP handlers whose declaration.allowlist is knowingly still incomplete — an
+# input-allowlist pass for the X-Road provider surface is tracked separately
+# (nested `type: object` fields + XTR-mock verification of minOccurs=0 elements).
+ALLOWLIST_COVERAGE_SKIP = {
+    "DSL/Ruuter.internal/ljvis/POST/xroad/provide/erakorraline-yv-confirm.yml",
+    "DSL/Ruuter.internal/ljvis/POST/xroad/provide/erakorraline-yv-query.yml",
+    "DSL/Ruuter.internal/ljvis/POST/xroad/provide/isiku-ettevote-kontrollid.yml",
+    "DSL/Ruuter.internal/ljvis/POST/xroad/provide/isiku-kontroll.yml",
+    "DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection.yml",
+    "DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection-v3.yml",
+    "DSL/Ruuter.internal/ljvis/GET/xroad/v2/findUsage.yml",
+    "DSL/Ruuter.internal/ljvis/GET/xroad/v2/usagePeriod.yml",
+}
+
+
+def _declared_request_fields(decl: dict) -> tuple[set[str], bool]:
+    """(declared body+params field names, whether any allowlist section exists)."""
+    fields: set[str] = set()
+    has_allowlist = False
+    allowlist = decl.get("allowlist")
+    if isinstance(allowlist, dict):
+        for section in ("body", "params", "headers"):
+            entries = allowlist.get(section)
+            if entries is not None:
+                has_allowlist = True
+            for entry in entries or []:
+                fields.add(entry["field"] if isinstance(entry, dict) else entry)
+    for legacy in ("allowed_body", "allowed_params", "allowed_header"):
+        entries = decl.get(legacy)
+        if entries is not None:
+            has_allowlist = True
+        for entry in entries or []:
+            fields.add(entry)
+    return fields, has_allowlist
+
+
+def _iter_strings(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for v in value.values():
+            yield from _iter_strings(v)
+    elif isinstance(value, list):
+        for v in value:
+            yield from _iter_strings(v)
+
+
+def check_allowlist_coverage(parsed: dict[str, dict]) -> list[str]:
+    """Every `incoming.body.X` / `incoming.params.X` a handler reads must be in
+    its `declaration.allowlist`.
+
+    Ruuter filters the request body/query down to the declared allowlist BEFORE
+    the DSL runs (src/router/mod.rs, "Audit finding 10"). A field the DSL reads
+    but does not declare is silently stripped — the DSL sees `undefined` and its
+    `?? ''` fallback wins, so the input is lost with no error. The allowlist is
+    the request-input contract; this check keeps it honest.
+    """
+    errors: list[str] = []
+    for path, data in parsed.items():
+        if (
+            "/templates/" in path
+            or "/mock/" in path
+            or path.endswith("mock.yml")
+            or ".guard" in path
+            or path in ALLOWLIST_COVERAGE_SKIP
+        ):
+            continue
+        decl = data.get("declaration")
+        if not isinstance(decl, dict):
+            errors.append(f"{path}: HTTP handler has no declaration block")
+            continue
+        declared, has_allowlist = _declared_request_fields(decl)
+        reads: set[str] = set()
+        for step_name, body in data.items():
+            if step_name == "declaration":
+                continue
+            for s in _iter_strings(body):
+                reads.update(INCOMING_FIELD_RE.findall(s))
+        if not reads:
+            continue
+        if not has_allowlist:
+            errors.append(
+                f"{path}: reads {sorted(reads)} but declares no allowlist"
+            )
+            continue
+        missing = sorted(reads - declared)
+        if missing:
+            errors.append(
+                f"{path}: reads {missing} not in declaration.allowlist"
+            )
+    return errors
+
+
 def check_assign_blocks(parsed: dict[str, dict]) -> list[str]:
     """One key of an `assign` block reading another key of the same block.
 
@@ -211,6 +306,7 @@ def main() -> int:
     parse_errors, parsed = check_parses(paths)
     flow_errors = check_flow(parsed) if not parse_errors else []
     decl_errors = check_declaration(parsed) if not parse_errors else []
+    allowlist_errors = check_allowlist_coverage(parsed) if not parse_errors else []
     assign_warnings = check_assign_blocks(parsed) if not parse_errors else []
     sql_errors, sql_total = check_sql_non_empty()
 
@@ -238,6 +334,14 @@ def main() -> int:
             print(f"        {error}")
     elif not parse_errors:
         print(f"OK    {len(parsed)} declaration blocks: no `call`, version is a string")
+
+    if allowlist_errors:
+        failed = True
+        print(f"FAIL  declaration.allowlist input coverage ({len(allowlist_errors)})")
+        for error in allowlist_errors:
+            print(f"        {error}")
+    elif not parse_errors:
+        print(f"OK    {len(parsed)} handlers: every incoming.body/params read is in the allowlist")
 
     if assign_warnings:
         print(f"WARN  assign block evaluation order ({len(assign_warnings)}) — does not fail the build")

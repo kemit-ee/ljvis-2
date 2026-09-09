@@ -550,7 +550,7 @@ export function CompoundFormPage() {
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
-      await deleteCompoundForm(id, form.formNumber, form.status ?? '');
+      await deleteCompoundForm(id, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);

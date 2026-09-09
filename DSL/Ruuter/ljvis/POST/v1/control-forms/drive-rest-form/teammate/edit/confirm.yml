@@ -12,11 +12,9 @@ declaration:
       - field: transportType
         type: string
       - field: transportEmptyRun
-        type: boolean
       - field: transportNature
         type: string
       - field: transportNatureExempt
-        type: boolean
       - field: transportClasses
         type: string
       - field: resultType
@@ -36,13 +34,9 @@ declaration:
       - field: tachographTypeCode
         type: string
       - field: tachographDataNotDownloaded
-        type: boolean
       - field: checkedDaysCount
-        type: number
       - field: workDaysCount
-        type: number
       - field: otherActivityDaysCount
-        type: number
       - field: violations5612006
         type: string
       - field: violations1652014

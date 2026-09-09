@@ -90,6 +90,15 @@ Transpordiameti (TRAM) ettepanekute põhjal:
 
 ---
 
+## 2026-09 — Kasutaja loomine: telefon ja ligipääsu lõpp salvestatakse
+
+- Uue kasutaja (nii asutuse- kui kohaliku administraatori) loomisel läksid
+  **telefoninumber** ja **ligipääsu lõppkuupäev** varem kaotsi — väljad
+  salvestusid tühjaks, sõltumata sisestusest. Nüüd salvestatakse mõlemad
+  õigesti. (Olemasolevate kasutajate muutmisel see viga ei esinenud.)
+
+---
+
 ## 2026-09 — Koondvormi salvestamine ei anna enam „varjatud" viga
 
 - **Koondvormi loomine/muutmine** võis teatud olukorras (nt kui ametniku profiilil
@@ -102,6 +111,10 @@ Transpordiameti (TRAM) ettepanekute põhjal:
   - kui salvestamine andmebaasi siiski ebaõnnestub, kuvatakse **tegelik veateade**,
     mitte tehniline tõrge — see kehtib **kõigi kontrollvormide** salvestamisel.
 - Sama parandus rakendati välisriigi rikkumise vormi inspektori-väljadele.
+
+---
+
+## 2026-09 — Menüü: „Riskiskoorid" järjekord
 
 - Menüüpunkt **„Riskiskoorid"** paikneb nüüd vasakmenüü ülatasandi loendi
   **lõpus, vahetult „Haldus" kohal** (varem kohe „Otsingu" järel, ERRU-punktide

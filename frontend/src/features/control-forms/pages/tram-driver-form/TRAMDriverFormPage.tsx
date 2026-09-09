@@ -236,7 +236,7 @@ export function TRAMDriverFormPage() {
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
-      await deleteTramForm(id, form.formNumber, form.status ?? '');
+      await deleteTramForm(id, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);
@@ -366,6 +366,11 @@ export function TRAMDriverFormPage() {
           {t('forms.publishedNote')}
         </Alert>
       )}
+      {formik.submitCount > 0 && !formik.isValid && !formik.isSubmitting && (
+        <Alert icon="error" className="mb-1" type="danger" size="small">
+          {t('forms.validationErrorNote')}
+        </Alert>
+      )}
     </>
   );
 
@@ -378,7 +383,7 @@ export function TRAMDriverFormPage() {
         <CompoundFormEditCard {...editCardProps} />
         <div className="page-actions mt-1">
           <div className="page-actions-buttons">
-            <Button type="button" onClick={() => formik.handleSubmit()}>
+            <Button type="button" onClick={() => { formik.handleSubmit(); window.scrollTo(0, 0); }}>
               {t('common.save')}
             </Button>
             {canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
@@ -508,7 +513,7 @@ export function TRAMDriverFormPage() {
             <Button
               type="button"
               onClick={() => {
-                if (isEditActive) formik.handleSubmit();
+                if (isEditActive) { formik.handleSubmit(); window.scrollTo(0, 0); }
                 if (driver.editActive) driver.editCardRef.current?.save();
               }}
             >
