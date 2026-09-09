@@ -12,6 +12,7 @@ export interface AuthUser {
   personalcode: string;
   organisationid: string | null;
   organisationname: string | null;
+  organisationcode?: string | null;
   structuralunit?: string;
   jobtitle?: string;
   email?: string;
