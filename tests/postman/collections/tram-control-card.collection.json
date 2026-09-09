@@ -978,6 +978,112 @@
       ]
     },
     {
+      "name": "[search] published card visible as form_type=tram_control_card",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?page=1&pageSize=50&formType=tram_control_card",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "50"
+            },
+            {
+              "key": "formType",
+              "value": "tram_control_card"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json(); var rows = b.response || b;",
+              "pm.test('rows present', () => pm.expect(rows.length).to.be.above(0));",
+              "pm.test('every row is tram_control_card', () => pm.expect(rows.every(r => String(r.formType||'') === 'tram_control_card')).to.be.true);",
+              "pm.test('a tram- numbered card is present', () => pm.expect(rows.some(r => String(r.formNumber||'').match(/^tram-/))).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[search] no-perm user -> 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_noperm_tcc}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/search/list?page=1&pageSize=10",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "search",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "pageSize",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('403 without any read permission', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "edit/delete -> 200 tombstone",
       "request": {
         "method": "POST",
