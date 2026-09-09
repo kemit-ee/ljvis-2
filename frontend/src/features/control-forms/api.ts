@@ -521,7 +521,7 @@ export const printAdrForm = (
 ) =>
   post<PdfRenderResponse>(
     `/v1/control-forms/adr-form/read/print`,
-    { id, blank, snapshotId: snapshotId ?? null },
+    { id, blank, snapshotId: snapshotId ?? '' },
   );
 
 export const saveAdrFormXroadFields = (data: {

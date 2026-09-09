@@ -67,12 +67,12 @@ def build_context(template, payload=None, blank=False):
       'proceeding':joined(PROCEEDINGS.get(f.get('proceedingType'),f.get('proceedingType')),f.get('proceedingReferenceNumber')),
       'notes':short('Märkused',f.get('notes'),500),
     }
-    variant='technical-ok' if is_technical and not blank and f.get('resultType')=='ok' else 'technical'
-    data=dict(template=variant,title='KOMMERTSSÕIDUKI KONTROLLIAKT' if variant=='technical-ok' else TITLES[template],blank=blank,fields=fields,f=f,appendix=appendix,warnings=warnings,number=joined(f.get('subFormNumber'),'v'+str(f['version']) if f.get('version') else ''),categories=CATEGORIES)
+    layout='roadworthy-act' if is_technical and not blank and f.get('resultType')=='ok' else 'control-card'
+    data=dict(layout=layout,title='KOMMERTSSÕIDUKI KONTROLLIAKT' if layout=='roadworthy-act' else TITLES[template],blank=blank,fields=fields,f=f,appendix=appendix,warnings=warnings,number=joined(f.get('subFormNumber'),'v'+str(f['version']) if f.get('version') else ''),categories=CATEGORIES)
     if is_technical:
         summary=structured(f.get('partsSummary'),list);defects=structured(f.get('partsDefects'),list)
-        if variant=='technical-ok' and (defects or any(r.get('status')=='non_compliant' for r in summary)):
-            raise ValueError('technical-ok requires resultType=ok and no recorded defects or non-compliant parts')
+        if layout=='roadworthy-act' and (defects or any(r.get('status')=='non_compliant' for r in summary)):
+            raise ValueError('Roadworthy act requires no recorded defects or non-compliant parts')
         states={}
         for row in summary:
             if row.get('status') not in ('checked','not_checked','non_compliant'):raise ValueError('Invalid partsSummary status')
