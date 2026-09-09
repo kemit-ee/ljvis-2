@@ -13,7 +13,7 @@ ja siis eemalda kommentaar sellelt realt
 ```dockerfile
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh /service/tara-mock-server
 ```
-
+ 
 Ava ljvis-2\docker\tim\Dockerfile fail. Kommenteeri välja järgmine rida:
 
 ```dockerfile 
