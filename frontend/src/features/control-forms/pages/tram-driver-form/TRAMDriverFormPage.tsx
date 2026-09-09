@@ -367,7 +367,7 @@ export function TRAMDriverFormPage() {
         </Alert>
       )}
       {formik.submitCount > 0 && !formik.isValid && !formik.isSubmitting && (
-        <Alert icon="error" className="mb-1" type="error" size="small">
+        <Alert icon="error" className="mb-1" type="danger" size="small">
           {t('forms.validationErrorNote')}
         </Alert>
       )}

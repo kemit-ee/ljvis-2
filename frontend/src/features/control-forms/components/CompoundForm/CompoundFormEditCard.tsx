@@ -256,7 +256,7 @@ export function CompoundFormEditCard({
                   {t('forms.compound.controlPlaceBasicInfo')}
                 </Heading>
                 {formik.touched.address && formik.errors.address && !formik.values.address && !formik.values.road && (
-                  <Alert type="error" size="small" className="mb-1" icon="error">
+                  <Alert type="danger" size="small" className="mb-1" icon="error">
                     {t('forms.compound.addressOrRoadRequired')}
                   </Alert>
                 )}
