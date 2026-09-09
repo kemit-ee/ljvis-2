@@ -5,8 +5,9 @@ roll ja organisatsioon (nt „Super Admin · Politsei- ja Piirivalveamet").
 
 ![Ametniku töölaud](images/04-toolaud/01-toolaud.png)
 
-Ametniku töölaud koosneb kahest uue kontrolli alustamise plokist ja nende all
-olevast pooleliolevate kontrollide tabelist.
+Ametniku töölaud koosneb kahest uue kontrolli alustamise plokist (**Koondvorm**
+ja **Vormid**) ning nende all olevast **kahest pooleliolevate kontrollide
+tabelist** — „Töös olevad koondvormid" ja „Töös olevad vormid".
 
 ## Koondvorm
 
@@ -38,16 +39,21 @@ Iga kaardi nupp **„Täida →"** avab vastava tühja vormi.
 
 > Kui Teie õigused katavad ainult ühe ploki vorme, kuvatakse ainult see plokk.
 
+## Mina / Organisatsioon
+
+Mõlema tabeli kohal on lüliti **Mina / Organisatsioon**, mis valib, kas
+kuvatakse ainult Teie enda pooleliolevad vormid või kõigi Teie organisatsiooni
+ametnike omad. Lüliti „Organisatsioon" on nähtav ainult vastava õigusega
+kasutajatele.
+
 ## Töös olevad koondvormid
 
-Plokkide all on tabel **Töös olevad koondvormid**, mis koondab kõik
-pooleliolevad kontrollid. Read on **grupeeritud koondvormi kaupa**: iga
-koondvormi esimene rida kannab põhivormi andmeid ning selle alla on taandega
-loetletud alamvormid.
+Esimene tabel **Töös olevad koondvormid** koondab kõik pooleliolevad
+koondkontrollid. Read on **grupeeritud koondvormi kaupa**: iga koondvormi
+esimene rida kannab põhivormi (üldosa) andmeid ning selle alla on **taandega**
+loetletud selle koondvormi alamvormid.
 
 ![Töös olevad koondvormid](images/04-toolaud/02-toolaud-tabel.png)
-
-### Tabeli veerud
 
 | Veerg | Sisu |
 |---|---|
@@ -56,20 +62,36 @@ loetletud alamvormid.
 | **Sõiduk** | Sõiduki registreerimismärk |
 | **Autojuht / Ettevõte** | Juhi nimi; kui see puudub, ettevõtte nimi |
 | **Vorm** | Vormi number koos versiooniga (nt `KOOND-2026-4003/1`) |
-| **Nimetus** | Vormi tüübi nimi |
+| **Nimetus** | Vormi tüübi nimi (koondvorm või alamvormi liik) |
 | **Staatus** | Vormi hetkeseis (*Salvestatud*, *Kinnitatud*, *Avalikustatud*) |
 | **Avalikustatud** | Koondvormi real: mitu alamvormi on avalikustatud (nt `0/2`) |
 
 Iga rea lõpus on link **„Jätka →"**, mis avab vormi täitmiseks/vaatamiseks.
-Veerge **Kuupäev**, **Kellaaeg**, **Sõiduk**, **Vorm** ja **Staatus** saab
-sorteerida veeru päisele klõpsates. Tähtaja ületanud kontrollide read on esile
-tõstetud.
 
-### Mina / Organisatsioon
+## Töös olevad vormid
 
-Tabeli kohal olev lüliti **Mina / Organisatsioon** valib, kas kuvatakse ainult
-Teie enda pooleliolevad koondvormid või kõigi Teie organisatsiooni ametnike
-omad. Lüliti „Organisatsioon" on nähtav ainult vastava õigusega kasutajatele.
+Teine tabel **Töös olevad vormid** loetleb pooleliolevad **iseseisvad** vormid
+(need, mida täidetakse koondvormist eraldi — tööinspektsiooni kontrollkaart,
+välisriigi rikkumise kontrollkaart, hea maine vorm, Transpordiameti
+kontrollkaart). Ühtegi grupeeringut siin ei ole — iga rida on üks vorm.
+
+![Töös olevad vormid](images/04-toolaud/04-toolaud-vormid-tabel.png)
+
+| Veerg | Sisu |
+|---|---|
+| **Kuupäev** | Kontrolli / sisestamise kuupäev |
+| **Kellaaeg** | Kontrolli kellaaeg |
+| **Sõiduk** | Sõiduki registreerimismärk (kui vorm seda sisaldab) |
+| **Vorm** | Vormi number koos versiooniga |
+| **Nimetus** | Vormi tüübi nimi |
+| **Staatus** | Vormi hetkeseis |
+
+Rea lõpus on link **„Jätka →"**. Tabeli all olev link **„Vaata kõiki vorme →"**
+avab vormide koondotsingu.
+
+Mõlemat tabelit saab **sorteerida** veeru päisele klõpsates. **Tähtaja ületanud**
+kontrollide read on punaselt esile tõstetud. Kui pooleliolevaid vorme ei ole,
+kuvatakse tabeli asemel vastav teade.
 
 ## Kodaniku töölaud
 
@@ -87,7 +109,9 @@ flowchart LR
     A[Töölaud] --> B["Koondvorm: vali alamvormid + Täida"]
     A --> C["Vormid: vali tüüp + Täida"]
     A --> D["Töös olevad koondvormid: Jätka"]
+    A --> F["Töös olevad vormid: Jätka"]
     B --> E[Täida ja salvesta vorm]
     C --> E
     D --> E
+    F --> E
 ```

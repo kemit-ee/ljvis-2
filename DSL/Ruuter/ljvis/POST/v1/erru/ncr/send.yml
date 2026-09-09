@@ -57,6 +57,19 @@ checkSendableState:
       next: returnNotSendable
     - condition: ${current.status !== 'initiated' && current.status !== 'error'}
       next: returnNotSendable
+  next: mapOriginatingAuthority
+
+# NCR ettepanek 7: väljaminevas teates teisendatakse teate esitav pädev asutus
+# ingliskeelseks ametlikuks nimeks (salvestatud on org-kood, nt "KLIM").
+mapOriginatingAuthority:
+  assign:
+    originating_authority_out: >-
+      ${current.originatingAuthority === 'KLIM' ? 'Ministry of Climate'
+        : current.originatingAuthority === 'PPA' ? 'Estonian Police and Border Guard Board'
+        : current.originatingAuthority === 'TRAM' ? 'Estonian Transport Administration'
+        : current.originatingAuthority === 'TI' ? 'Estonian Labour Inspectorate'
+        : current.originatingAuthority === 'MTA' ? 'Estonian Tax and Customs Board'
+        : current.originatingAuthority}
   next: callErru
 
 callErru:
@@ -68,7 +81,7 @@ callErru:
     body:
       ncrTo: ${current.ncrTo}
       businessCaseId: ${business_case_id}
-      originatingAuthority: ${current.originatingAuthority}
+      originatingAuthority: ${originating_authority_out}
       transportUndertakingName: ${current.transportUndertakingName}
       communityLicenceNumber: ${current.communityLicenceNumber}
       vehicleRegistrationNumber: ${current.vehicleRegistrationNumber}

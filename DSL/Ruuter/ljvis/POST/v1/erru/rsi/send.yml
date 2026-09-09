@@ -94,6 +94,23 @@ prepareOutbound:
 convertCheckedItems:
   assign:
     erru_checked_items: "${JSON.stringify(checked_items_array.filter(function(i){return i.partCode !== 'CAA_10';}).map(function(i){ var itemTypeMap = {'CAA_11': 20}; var n = itemTypeMap[i.partCode] !== undefined ? itemTypeMap[i.partCode] : parseInt((i.partCode||'').replace('CAA_',''),10); var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; var defects = (i.defects||[]).map(function(d){return {defectCode:d.defectCode,severity:sevMap[d.severity]||d.severity};}); return {itemType:n,infringementStatus:i.status==='non_compliant'?'infringement':'none',defects:defects};}))}"
+  next: mapAuthorities
+
+# RSI ettepanek 7: teate esitanud pädev asutus (org-kood) ja inspektor
+# teisendatakse väljaminevas teates ingliskeelseks ametlikuks nimeks.
+mapAuthorities:
+  assign:
+    originating_authority_out: >-
+      ${originating_authority === 'KLIM' ? 'Ministry of Climate'
+        : originating_authority === 'PPA' ? 'Estonian Police and Border Guard Board'
+        : originating_authority === 'TRAM' ? 'Estonian Transport Administration'
+        : originating_authority === 'TI' ? 'Estonian Labour Inspectorate'
+        : originating_authority === 'MTA' ? 'Estonian Tax and Customs Board'
+        : originating_authority}
+    inspection_authority_out: >-
+      ${inspection_authority_or_name === 'Politsei- ja Piirivalveamet'
+        ? 'Estonian Police and Border Guard Board'
+        : inspection_authority_or_name}
   next: callErru
 
 callErru:
@@ -107,7 +124,7 @@ callErru:
       businessCaseId: ${business_case_id}
       technicalId: ""
       workflowId: ""
-      originatingAuthority: ${originating_authority}
+      originatingAuthority: ${originating_authority_out}
       requestSource: ${request_source}
       requestPurpose: ${request_purpose}
       vehicleRegistrationNumber: ${vehicle_registration_number}
@@ -116,7 +133,7 @@ callErru:
       vehicleIdentificationNumber: ${vehicle_identification_number}
       inspectionLocation: ${inspection_location}
       inspectionDatetime: ${inspection_datetime}
-      inspectionAuthorityOrName: ${inspection_authority_or_name}
+      inspectionAuthorityOrName: ${inspection_authority_out}
       inspectionPassed: ${inspection_passed}
       ptiRequested: ${pti_requested}
       vehicleProhibitionOrRestriction: ${vehicle_prohibition}

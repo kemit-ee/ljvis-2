@@ -284,9 +284,9 @@
     "ctud": "Tegevusloa kontrolli päringud",
     "cgr": "Mainepäringud",
     "search": "Otsing",
-    "rsi": "RSI teated",
-    "ncr": "NCR teated",
-    "riskLevels": "Riskitasemed",
+    "rsi": "Tehnokontrolli teated RSI",
+    "ncr": "Kontrollitulemuse teated NCR",
+    "riskScores": "Riskiskoorid",
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused"
   },
@@ -846,6 +846,8 @@
       "transportNatureCommercial": "Tasuline",
       "transportNatureOwn": "Oma kulul",
       "transportNatureExempt": "Tegevusloa nõudest vabastatud vedu",
+      "liiniNumber": "Liini number",
+      "liiniNimetus": "Liini nimetus",
       "cargoClass": "Veoklass",
       "classDomestic": "Riigisisene vedu",
       "classEuEeaCh": "EL või EMP liikmesriikide või Šveitsi vaheline vedu",
@@ -919,7 +921,7 @@
       "roadTaxNotes": "Märkus",
       "trailer": "Haagis",
       "addTrailer": "Lisa haagis",
-      "trailerNumber": "Haagis #{{number}}",
+      "trailerNumber": "Haagis {{number}}",
       "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
       "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
       "removeTrailer": "Eemalda haagis",
@@ -939,6 +941,7 @@
       "companyRegCode": "Eesti ettevõtte registrikood",
       "companyName": "Ettevõtte nimi",
       "companySearchButton": "Otsi ettevõtet äriregistrist",
+      "companyNameSearchButton": "Otsi nime järgi",
       "companyCountryCode": "Riik",
       "companyCounty": "Maakond",
       "companyCity": "Linn / Vald",
@@ -964,6 +967,9 @@
       "driverLastName": "Perekonnanimi",
       "driverCitizenshipCode": "Kodakondsus",
       "driverPersonalCodeForeign": "Välisriigi isikukood",
+      "driverPersonSearchButton": "Otsi rahvastikuregistrist",
+      "driverPersonSearchError": "Rahvastikuregistri päring ebaõnnestus. Kontrolli, et Eesti isikukood on korrektne.",
+      "driverNotApplicable": "Ei ole asjakohane",
       "driverBirthDate": "Sünniaeg",
       "addDriver": "Lisa teine juht",
       "removeDriver": "Eemalda juht",
@@ -1266,6 +1272,7 @@
     "otherDocs": {
       "notChecked": "Ei kontrollitud",
       "compliant": "Nõuetekohane",
+      "nonCompliant": "ei vasta nõuetele",
       "missing": "Puudub",
       "addRemark": "Lisa märkus",
       "remarkPlaceholder": "Sisestage märkus..."
@@ -1523,7 +1530,7 @@
     "logoAlt": "Euroopa Sotsiaalfond"
   },
   "riskScores": {
-    "title": "Riskitasemed",
+    "title": "Riskiskoorid",
     "companyName": "Veoettevõtja",
     "companyRegCode": "Registrikood",
     "riskScore": "Riskiskoor",
@@ -1748,9 +1755,11 @@
         "clear": "Puudub"
       },
       "form": {
-        "titleOutgoing": "Tehnokontrolli teade (EST → ERRU)",
-        "titleInbound": "Tehnokontrolli teade (ERRU → EST)",
-        "titleNew": "Uus tehnokontrolli teade",
+        "titleOutgoing": "Tehnokontrolli teade RSI (EST → ERRU)",
+        "titleInbound": "Tehnokontrolli teade RSI (ERRU → EST)",
+        "titleNew": "Uus tehnokontrolli teade RSI",
+        "messageNumber": "Teate number",
+        "messageNumberPending": "määratakse salvestamisel",
         "headerBlock": "Teate andmed",
         "vehicleBlock": "Sõiduki andmed",
         "driverBlock": "Juhi andmed",
@@ -1761,7 +1770,7 @@
         "identificationHolderUndertaking": "Veoettevõtja",
         "identificationHolderOwner": "Omanik",
         "identificationUndertakingName": "Ettevõtja nimi",
-        "identificationCommunityLicenceNumber": "Ettevõtja ühenduse tegevusluba",
+        "identificationCommunityLicenceNumber": "Ettevõtja ühenduse tegevusloa number",
         "identificationOwnerType": "Omaniku liik",
         "identificationOwnerCompany": "Äriühing",
         "identificationOwnerNatural": "Füüsiline isik",
@@ -1822,8 +1831,8 @@
         "send_failed": "Teate saatmine ebaõnnestus"
       },
       "list": {
-        "title": "RSI teated",
-        "newMessage": "Uus tehnokontrolli teade",
+        "title": "Tehnokontrolli teated RSI",
+        "newMessage": "Uus tehnokontrolli teade RSI",
         "id": "Teate number",
         "sentAt": "Saadetud",
         "rsiFrom": "Saatnud riik",
@@ -1840,8 +1849,8 @@
     "ncr": {
       "notFound": "NCR juhtumit ei leitud",
       "form": {
-        "titleOutgoing": "Kontrollitulemuse teade (EST → ERRU)",
-        "titleInbound": "Kontrollitulemuse teade (ERRU → EST)",
+        "titleOutgoing": "Kontrollitulemuse teade NCR (EST → ERRU)",
+        "titleInbound": "Kontrollitulemuse teade NCR (ERRU → EST)",
         "version": "Versioon {{version}}",
         "headerBlock": "Teate päis ja osapooled",
         "checkSummaryBlock": "Kontrolli kokkuvõte",
@@ -1867,7 +1876,7 @@
         "requestSource": "Päringu allikas",
         "requestPurpose": "Päringu eesmärk",
         "transportUndertakingName": "Veoettevõtja nimi",
-        "communityLicenceNumber": "Ühenduse tegevusloa number",
+        "communityLicenceNumber": "Ühenduse tegevusloa või selle kinnitatud ärakirja või tõestatud koopia number",
         "vehicleRegistrationNumber": "Sõiduki registreerimisnumber",
         "vehicleRegistrationCountry": "Sõiduki registreerimiskoha riik",
         "checkResult": "Kontrolli tulemus",
@@ -1913,8 +1922,8 @@
         "createVrFailed": "VR kontrollkaardi loomine ebaõnnestus"
       },
       "buildModal": {
-        "button": "Lisa NCR vorm",
-        "title": "Lisa NCR vorm",
+        "button": "Loo NCR teade",
+        "title": "Loo NCR teade",
         "submit": "Koosta",
         "forbidden": "Teil puudub õigus NCR päringu koostamiseks",
         "notFound": "Kontrollkaarti ei leitud, NCR mustandit ei loodud",
@@ -1930,8 +1939,8 @@
         "imposed_penalty_type_missing": "Määratud karistuse puhul peab olema valitud karistuse liik"
       },
       "list": {
-        "title": "NCR teated",
-        "newMessage": "Uus rikkumisteade",
+        "title": "Kontrollitulemuse teated NCR",
+        "newMessage": "Uus NCR teade",
         "id": "Teate number",
         "sentAt": "Saadetud",
         "sentFrom": "Saadetud alates",
@@ -1944,7 +1953,8 @@
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
         "directionIncoming": "Sissetulev",
-        "handlerFilter": "Menetleja (isikukood)"
+        "handlerFilter": "Menetleja (isikukood)",
+        "automatic": "Automaatne"
       }
     }
   },
@@ -2002,6 +2012,7 @@
     "markAllRead": "Märgi kõik loetuks",
     "unread": "Lugemata",
     "read": "Märgi loetuks",
+    "openEntity": "Ava vorm",
     "empty": "Uusi teavitusi ei ole",
     "bellAriaLabel": "Teavitused ({{count}} lugemata)",
     "bellAriaLabelEmpty": "Teavitused",

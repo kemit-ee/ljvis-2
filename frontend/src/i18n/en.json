@@ -751,7 +751,7 @@
       "roadTaxNotes": "Notes",
       "trailer": "Trailer",
       "addTrailer": "Add trailer",
-      "trailerNumber": "Trailer #{{number}}",
+      "trailerNumber": "Trailer {{number}}",
       "addTrailerControlForm": "Add trailer control form",
       "editTrailerControlForm": "Edit trailer control form",
       "removeTrailer": "Remove trailer",
@@ -771,6 +771,7 @@
       "companyRegCode": "Estonian company registration code",
       "companyName": "Company name",
       "companySearchButton": "Search business registry",
+      "companyNameSearchButton": "Search by name",
       "companyCountryCode": "Country",
       "companyCounty": "County",
       "companyCity": "City / Municipality",
@@ -796,6 +797,9 @@
       "driverLastName": "Last name",
       "driverCitizenshipCode": "Citizenship",
       "driverPersonalCodeForeign": "Foreign personal code",
+      "driverPersonSearchButton": "Search population register",
+      "driverPersonSearchError": "Population register query failed. Check that the Estonian personal code is valid.",
+      "driverNotApplicable": "Not applicable",
       "driverBirthDate": "Date of birth",
       "addDriver": "Add second driver",
       "removeDriver": "Remove driver",
@@ -1086,6 +1090,8 @@
       "transportNatureCommercial": "For hire or reward",
       "transportNatureOwn": "Own account",
       "transportNatureExempt": "Transport exempt from licensing requirement",
+      "liiniNumber": "Line number",
+      "liiniNimetus": "Line name",
       "cargoClass": "Cargo class",
       "controlResult": "Inspection result",
       "controlResultLabel": "Inspection result",
@@ -1141,6 +1147,7 @@
     "otherDocs": {
       "notChecked": "Not checked",
       "compliant": "Compliant",
+      "nonCompliant": "Does not comply",
       "missing": "Missing",
       "addRemark": "Add remark",
       "remarkPlaceholder": "Enter remark..."
@@ -1169,9 +1176,9 @@
     "ctud": "Transport undertaking data requests",
     "cgr": "Check good repute requests",
     "search": "Search",
-    "rsi": "RSI messages",
-    "ncr": "NCR messages",
-    "riskLevels": "Risk levels",
+    "rsi": "Roadside inspection messages RSI",
+    "ncr": "Notify Check Result messages NCR",
+    "riskScores": "Risk scores",
     "myCompany": "My company",
     "notifications": "Notifications"
   },
@@ -1504,7 +1511,7 @@
     "logoAlt": "COMING"
   },
   "riskScores": {
-    "title": "Risk levels",
+    "title": "Risk scores",
     "companyName": "Transport undertaking",
     "companyRegCode": "Registry code",
     "riskScore": "Risk score",
@@ -1729,9 +1736,11 @@
         "clear": "None"
       },
       "form": {
-        "titleOutgoing": "Roadside inspection message (EST → ERRU)",
-        "titleInbound": "Roadside inspection message (ERRU → EST)",
-        "titleNew": "New roadside inspection message",
+        "titleOutgoing": "Roadside inspection message RSI (EST → ERRU)",
+        "titleInbound": "Roadside inspection message RSI (ERRU → EST)",
+        "titleNew": "New RSI message",
+        "messageNumber": "Message number",
+        "messageNumberPending": "assigned on save",
         "headerBlock": "Message details",
         "vehicleBlock": "Vehicle details",
         "driverBlock": "Driver details",
@@ -1803,8 +1812,8 @@
         "send_failed": "Sending failed"
       },
       "list": {
-        "title": "RSI messages",
-        "newMessage": "New roadside inspection message",
+        "title": "Roadside inspection messages RSI",
+        "newMessage": "New RSI message",
         "id": "Message ID",
         "sentAt": "Sent",
         "rsiFrom": "Sending country",
@@ -1821,8 +1830,8 @@
     "ncr": {
       "notFound": "NCR case not found",
       "form": {
-        "titleOutgoing": "Notify Check Result message (EST → ERRU)",
-        "titleInbound": "Notify Check Result message (ERRU → EST)",
+        "titleOutgoing": "Notify Check Result message NCR (EST → ERRU)",
+        "titleInbound": "Notify Check Result message NCR (ERRU → EST)",
         "version": "Version {{version}}",
         "headerBlock": "Message header and parties",
         "checkSummaryBlock": "Check summary",
@@ -1848,7 +1857,7 @@
         "requestSource": "Request source",
         "requestPurpose": "Request purpose",
         "transportUndertakingName": "Transport undertaking name",
-        "communityLicenceNumber": "Community licence number",
+        "communityLicenceNumber": "Number of the Community licence, its certified true copy or attested copy",
         "vehicleRegistrationNumber": "Vehicle registration number",
         "vehicleRegistrationCountry": "Vehicle registration country",
         "checkResult": "Check result",
@@ -1894,8 +1903,8 @@
         "createVrFailed": "Creating the VR control card failed"
       },
       "buildModal": {
-        "button": "Add NCR message",
-        "title": "Add NCR message",
+        "button": "Create NCR message",
+        "title": "Create NCR message",
         "submit": "Build",
         "forbidden": "You do not have permission to build an NCR request",
         "notFound": "Control form not found, NCR draft was not created",
@@ -1911,8 +1920,8 @@
         "imposed_penalty_type_missing": "When a penalty is imposed, the penalty type must be selected"
       },
       "list": {
-        "title": "NCR messages",
-        "newMessage": "New infringement notification",
+        "title": "Notify Check Result messages NCR",
+        "newMessage": "New NCR message",
         "id": "Message ID",
         "sentAt": "Sent",
         "sentFrom": "Sent from",
@@ -1925,7 +1934,8 @@
         "direction": "Direction",
         "directionOutgoing": "Outgoing",
         "directionIncoming": "Incoming",
-        "handlerFilter": "Handler (isikukood)"
+        "handlerFilter": "Handler (isikukood)",
+        "automatic": "Automatic"
       }
     }
   },
@@ -1981,6 +1991,7 @@
     "markAllRead": "Mark all as read",
     "unread": "Unread",
     "read": "Mark as read",
+    "openEntity": "Open form",
     "empty": "No new notifications",
     "bellAriaLabel": "Notifications ({{count}} unread)",
     "bellAriaLabelEmpty": "Notifications",

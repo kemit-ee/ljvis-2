@@ -122,6 +122,12 @@ returns:
 - name: notes
   type: string
   nullable: true
+- name: liiniNumber
+  type: string
+  nullable: true
+- name: liiniNimetus
+  type: string
+  nullable: true
 - name: createdBy
   type: string
   nullable: true
@@ -164,6 +170,8 @@ SELECT
   enforcement_decision,
   proceeding_closure_basis,
   notes,
+  liini_number AS "liiniNumber",
+  liini_nimetus AS "liiniNimetus",
   created_by
 FROM forms.sp_teammate_form
 WHERE id = :id::BIGINT

@@ -306,6 +306,12 @@ insertForm:
       inspectorProfession: ${inspector_profession}
       created_by: ${created_by}
   result: saveRes
+  next: checkInsertSaved
+
+checkInsertSaved:
+  switch:
+    - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300 || saveRes.response.body == null || saveRes.response.body.length == null || saveRes.response.body.length === 0}
+      next: returnResqlSaveError
   next: extractInsertResponseData
 
 extractInsertResponseData:
@@ -426,6 +432,12 @@ updateForm:
       inspectorProfession: ${inspector_profession}
       created_by: ${created_by}
   result: saveRes
+  next: checkUpdateSaved
+
+checkUpdateSaved:
+  switch:
+    - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300 || saveRes.response.body == null || saveRes.response.body.length == null || saveRes.response.body.length === 0}
+      next: returnResqlSaveError
   next: extractUpdateResponseData
 
 extractUpdateResponseData:
@@ -452,6 +464,11 @@ logAuditEventUpdate:
 
 returnSuccess:
   return: ${saveRes.response.body}
+  next: end
+
+returnResqlSaveError:
+  status: 500
+  return: "${(saveRes.response != null && saveRes.response.body) || {type: 'RESQL_ERROR', code: 'save_failed', message: 'Vormi salvestamine andmebaasi ebaõnnestus'}}"
   next: end
 
 propagate_pc1_error:

@@ -12,7 +12,8 @@
             "ncrTo": {{#if this.ncrTo}}"{{this.ncrTo}}"{{else}}null{{/if}},
             "transportUndertakingName": {{#if this.transportUndertakingName}}"{{this.transportUndertakingName}}"{{else}}null{{/if}},
             "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}},
-            "hasInfringement": {{this.hasInfringement}}
+            "hasInfringement": {{this.hasInfringement}},
+            "automatic": {{this.automatic}}
         }{{#unless @last}},{{/unless}}
         {{/each}}
     ],

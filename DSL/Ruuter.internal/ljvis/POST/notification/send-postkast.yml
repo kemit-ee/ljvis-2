@@ -132,7 +132,7 @@ resolveTemplateId2:
   next: checkTemplateIdResolved
 
 # Kaitse: kui notification_template_mapping.original_template_id on tühi JA
-# liigil pole [#PK_TEMPLATE_*] tagavarakonstanti (nt uus liik lisati kataloogi
+# liigil pole PK_TEMPLATE_* tagavarakonstanti (nt uus liik lisati kataloogi
 # andmetega, aga see tagavara-switch unustati uuendada), ei tohi X-tee kutset
 # tühja originalTemplateId'ga saata — logi kohe veaga selle asemel.
 checkTemplateIdResolved:

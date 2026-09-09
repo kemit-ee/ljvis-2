@@ -122,19 +122,35 @@ const shots = [
   {
     name: 'user-guide/toolaud',
     run: async (page) => {
-      // Töölaua ülaosa — "Kompleksvorm" + "Vormid" plokid (LJVIS2-37).
+      // Töölaua ülaosa — "Koondvorm" + "Vormid" plokid (LJVIS2-37).
       await gotoShot(page, '/', 'user-guide/images/04-toolaud/01-toolaud.png');
-      // Keri "Töös olevad kompleksvormid" tabelini.
-      await page.evaluate(() => {
-        const h = [...document.querySelectorAll('h1,h2,h3')].find((e) =>
-          /Töös olevad kompleksvormid/i.test(e.textContent || ''));
-        (h ?? document.body).scrollIntoView({ block: 'start' });
-      });
-      await sleep(700);
+      const scrollToHeading = async (re) => {
+        await page.evaluate((src) => {
+          const rx = new RegExp(src, 'i');
+          const h = [...document.querySelectorAll('h1,h2,h3')].find((e) =>
+            rx.test(e.textContent || ''));
+          (h ?? document.body).scrollIntoView({ block: 'start' });
+        }, re);
+        await sleep(700);
+      };
+      // "Töös olevad koondvormid" tabel (grupeeritud koondvormi kaupa).
+      await scrollToHeading('Töös olevad koondvormid');
       await page.screenshot({
         path: resolve(DOCS, 'user-guide/images/04-toolaud/02-toolaud-tabel.png'),
       });
       console.log('  ✓', 'user-guide/images/04-toolaud/02-toolaud-tabel.png');
+      // "Töös olevad vormid" tabel (iseseisvad vormid).
+      await scrollToHeading('Töös olevad vormid');
+      await page.screenshot({
+        path: resolve(
+          DOCS,
+          'user-guide/images/04-toolaud/04-toolaud-vormid-tabel.png',
+        ),
+      });
+      console.log(
+        '  ✓',
+        'user-guide/images/04-toolaud/04-toolaud-vormid-tabel.png',
+      );
     },
   },
   {
@@ -173,7 +189,38 @@ const shots = [
   { name: 'user-guide/vorm-liitvorm', run: (p) => gotoShot(p, '/control-forms/compound/new', 'user-guide/images/07-vorm-liitvorm/01-loomisvaade.png') },
   { name: 'user-guide/vorm-tooinspektsioon', run: (p) => gotoShot(p, '/control-forms/labour-inspection/new', 'user-guide/images/08-vorm-tooinspektsioon/01-loomisvaade.png') },
   { name: 'user-guide/vorm-hea-maine', run: (p) => gotoShot(p, '/control-forms/good-repute/new', 'user-guide/images/12-vorm-hea-maine/01-loomisvaade.png') },
-  { name: 'user-guide/vorm-tram-kontrollkaart', run: (p) => gotoShot(p, '/control-forms/tram-driver/new', 'user-guide/images/18-vorm-tram-kontrollkaart/01-loomisvaade.png') },
+  {
+    name: 'user-guide/vorm-tram-kontrollkaart',
+    run: async (page) => {
+      // 01 — loomisvaade (tühi üldosa, enne salvestamist)
+      await gotoShot(page, '/control-forms/tram-driver/new', 'user-guide/images/18-vorm-tram-kontrollkaart/01-loomisvaade.png');
+
+      // 02 — üldosa detail: sõiduki kategooria + vedaja plokk (fixture 95006001)
+      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/02-uldosa.png');
+
+      // 03 — autojuhi vahekaart (fixture 95006001, tab: "Autojuhi sõidu- ja puhkeaja kontrollvorm")
+      await page.getByRole('tab', { name: /sõidu.*puhkeaja|puhkeaja.*kontrollvorm/i }).click({ timeout: 6000 }).catch(() => {});
+      await sleep(1000);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/03-autojuhi-vahekaart.png');
+
+      // 04 — „Ei ole asjakohane" märkeruut (autojuhi tab, scroll märkeruuduni)
+      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      await page.getByRole('tab', { name: /sõidu.*puhkeaja|puhkeaja.*kontrollvorm/i }).click({ timeout: 6000 }).catch(() => {});
+      await sleep(800);
+      const notApplicable = page.locator('label').filter({ hasText: /Ei ole asjakohane/i }).first();
+      await notApplicable.scrollIntoViewIfNeeded().catch(() => {});
+      await sleep(400);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/04-ei-ole-asjakohane.png');
+
+      // 05 — e-toimiku päring (nähtav kui proceedingReferenceNumber täidetud; fixture kuvab kaarti)
+      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/05-etoimik.png');
+    },
+  },
 
   // --- Liitvorm ja alamvormid (näidisvormid 95002001..95002005, vt
   //     DSL/Liquibase/test/20260903100000-user-guide-fixture-forms.sql) ---
