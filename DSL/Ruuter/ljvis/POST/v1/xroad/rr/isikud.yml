@@ -48,7 +48,7 @@ assignParams:
 callRr:
   call: http.post
   args:
-    url: "https://[#XROAD_SECURITY_SERVER]/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
+    url: "[#XROAD_SECURITY_SERVER]/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
     headers:
       type: json
       X-Road-Client: "[#XROAD_INSTANCE]/GOV/70001231/ljvis2"

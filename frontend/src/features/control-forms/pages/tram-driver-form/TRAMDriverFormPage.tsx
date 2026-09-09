@@ -236,7 +236,7 @@ export function TRAMDriverFormPage() {
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
-      await deleteTramForm(id, form.formNumber, form.status ?? '');
+      await deleteTramForm(id, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
       console.error('Delete failed', e);
@@ -367,7 +367,7 @@ export function TRAMDriverFormPage() {
         </Alert>
       )}
       {formik.submitCount > 0 && !formik.isValid && !formik.isSubmitting && (
-        <Alert icon="error" className="mb-1" type="error" size="small">
+        <Alert icon="error" className="mb-1" type="danger" size="small">
           {t('forms.validationErrorNote')}
         </Alert>
       )}
