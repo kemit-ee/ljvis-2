@@ -121,7 +121,6 @@ export function useCompoundForm(
           confirm: confirmCompoundForm,
           publish: publishCompoundForm,
         };
-  const isEdit = !!form;
   const pendingConfirm = useRef(false);
   const pendingPublish = useRef(false);
   const pendingForceSaved = useRef(false);
@@ -131,16 +130,6 @@ export function useCompoundForm(
     subFormsAllConfirmedOrPublishedRef.current = subFormsAllConfirmedOrPublished;
   });
   const { getByCode, getChildren } = useClassifiers();
-
-  const incrementFormNumber = (formNumber: string): string => {
-    const match = formNumber.match(/^(.+\/)([0-9]+)$/);
-    if (match) {
-      return `${match[1]}${parseInt(match[2], 10) + 1}`;
-    }
-    return `${formNumber}/2`;
-  };
-
-  const formNumberString = isEdit && form?.formNumber ? form.formNumber : '';
 
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
@@ -382,6 +371,7 @@ export function useCompoundForm(
     enableReinitialize: true,
     initialValues: {
       id: form?.id ?? '',
+      version: form?.version ?? 1,
       formNumber: form?.formNumber ?? '',
       controlCountryCode: form?.controlCountryCode ?? 'EE',
       address: form?.address ?? '',
@@ -463,15 +453,12 @@ export function useCompoundForm(
             : isRepublishedEdit
               ? 'published'
               : 'saved';
-        const nextFormNumber = (isReconfirmedEdit || isRepublishedEdit)
-          ? incrementFormNumber(formNumberString)
-          : formNumberString;
         const driver1 = values.drivers[0];
         const driver2 = values.drivers[1];
         const trimmedValues = {
           ...values,
+          id: form?.id ?? '',
           status: nextStatus,
-          formNumber: nextFormNumber,
           controlDate: toIsoDate(values.controlDate),
           controlTime: toIsoTime(values.controlTime),
           vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
@@ -497,8 +484,11 @@ export function useCompoundForm(
           if (isConfirming || isReconfirmedEdit) {
             await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
-          } else if (isPublishing || isRepublishedEdit) {
+          } else if (isPublishing) {
             await api.publish(values.id);
+            onPublished?.();
+          } else if (isRepublishedEdit) {
+            await api.save(trimmedValues as unknown as CompoundForm);
             onPublished?.();
           }
           else {

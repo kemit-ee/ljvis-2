@@ -32,6 +32,7 @@ import React from 'react';
 
 interface CompoundFormValues {
   id: string;
+  version: number;
   formNumber: string;
   controlCountryCode: string;
   address: string;
