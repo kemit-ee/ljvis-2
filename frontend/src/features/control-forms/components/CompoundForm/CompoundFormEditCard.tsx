@@ -1509,9 +1509,8 @@ export function CompoundFormEditCard({
                           }
                         : {})}
                     />
-                    <div
-                      className={`${styles['select-row']} ${styles['full-span']}`}
-                    >
+                    {/* EE isikukood + Otsi-nupp — grid-veerg 1, eesnime all */}
+                    <div className={styles['select-row']}>
                       <div className={styles['select-wrapper']}>
                         <TextField
                           id={`driverPersonalCodeEe_${index}`}
@@ -1552,37 +1551,35 @@ export function CompoundFormEditCard({
                       >
                         {t('forms.compound.driverPersonSearchButton')}
                       </Button>
-                      <div className={styles['select-wrapper']}>
-                        <TextField
-                          id={`driverPersonalCodeForeign_${index}`}
-                          label={t('forms.compound.driverPersonalCodeForeign')}
-                          value={
-                            formik.values.drivers[index]?.personalCodeForeign ??
-                            ''
-                          }
-                          input={{ maxLength: 50 }}
-                          onChange={(v) => {
-                            const u = [...formik.values.drivers];
-                            u[index] = {
-                              ...u[index],
-                              personalCodeForeign: v,
-                            };
-                            formik.setFieldValue('drivers', u);
-                          }}
-                          {...((formik.errors.drivers as DriverErrors[])?.[index]
-                            ?.personalCodeForeign
-                            ? {
-                                helper: {
-                                  text: (
-                                    formik.errors.drivers as DriverErrors[]
-                                  )[index].personalCodeForeign,
-                                  type: 'error' as const,
-                                },
-                              }
-                            : {})}
-                        />
-                      </div>
                     </div>
+                    {/* Välismaa isikukood — grid-veerg 2, perekonnanime all */}
+                    <TextField
+                      id={`driverPersonalCodeForeign_${index}`}
+                      label={t('forms.compound.driverPersonalCodeForeign')}
+                      value={
+                        formik.values.drivers[index]?.personalCodeForeign ?? ''
+                      }
+                      input={{ maxLength: 50 }}
+                      onChange={(v) => {
+                        const u = [...formik.values.drivers];
+                        u[index] = {
+                          ...u[index],
+                          personalCodeForeign: v,
+                        };
+                        formik.setFieldValue('drivers', u);
+                      }}
+                      {...((formik.errors.drivers as DriverErrors[])?.[index]
+                        ?.personalCodeForeign
+                        ? {
+                            helper: {
+                              text: (
+                                formik.errors.drivers as DriverErrors[]
+                              )[index].personalCodeForeign,
+                              type: 'error' as const,
+                            },
+                          }
+                        : {})}
+                    />
                     <Select
                       id={`driverCitizenshipCode_${index}`}
                       label={t('forms.compound.driverCitizenshipCode')}
