@@ -50,7 +50,7 @@ assignParams:
 callRr:
   call: http.post
   args:
-    url: "https://urien.ml.ee/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
+    url: "https://xteeproxy.kemit.ee/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
     headers:
       type: json
       X-Road-Client: "[#XROAD_INSTANCE]/GOV/70001231/ljvis2"
