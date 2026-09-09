@@ -1,0 +1,42 @@
+declaration:
+
+  version: "1.0"
+  description: "Upload a file attachment for a TRAM control card"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: formNumber
+        type: string
+      - field: fileName
+        type: string
+      - field: fileBase64
+        type: string
+      - field: mimetype
+        type: string
+
+get_user_context:
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  assign:
+    auth_user: ${auth_user}
+  next: uploadFile
+
+uploadFile:
+  template: "templates/files/upload"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "tram-control-card-form"
+    form_number: ${incoming.body.formNumber}
+    file_name: ${incoming.body.fileName}
+    file_base64: ${incoming.body.fileBase64}
+    mimetype: ${incoming.body.mimetype}
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  result: uploadResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${uploadResult}
+  status: 200
+  next: end

@@ -1,0 +1,36 @@
+# LJVIS (Liiklusjärelevalve infosüsteem) — autorid
+#
+# Koostatud versioonihalduse ajaloo põhjal, järjestatud panuse (commit'ide
+# arvu) järgi. Git-aliased on ühte kirjesse liidetud. Uue kaastöötaja
+# lisamiseks tee muudatus koos oma esimese panusega.
+
+
+## Tellija — Kliimaministeeriumi Infotehnoloogiakeskus (KEMIT)
+
+Rainer Türner <rainer.turner@gmail.com>
+  — base architecture; Rust platform tooling (Ruuter, ReSQL, DMapper);
+    security, audit log & hash chain; permissions matrix; architecture
+    decision records
+Ermo Mägi <ermo.magi@kemit.ee>
+  — CI/CD; delivery & release manifests; security scanning (Trivy,
+    Dependency-Track)
+Kristjan Lilleoja <kristjan.lilleoja@kemit.ee>
+  — base infrastructure architecture diagram
+
+
+## Täitja — arenduspartner (Askend Estonia OÜ)
+
+Sten Viljus <sten.viljus@askend.com>
+  — architecture; ReSQL SQL layer; Ruuter DSL; specification diagrams and
+    epics; end-to-end test suite (Newman + Playwright)
+Siim Türk <siim.turk@askend.com>
+  — control forms (compound form + sub-forms); ERRU messages (CTUD, CGR,
+    RSI, NCR); form versioning; classifier handling
+Alexey Filippov <alexey.filippov@askend.com>
+  — X-Road integrations (business register, vehicle register, population
+    register, MTR); dashboard; risk scoring; cron manager; citizen view;
+    TEDI design system
+Julia Djomina <julia.djomina@askend.com>
+  — testing and UI bugfixing; local development environment guide
+Kaiko Kell <kaiko.kell@askend.com>
+  — use-case documentation

@@ -70,6 +70,8 @@ include:
     inputs: { name: tim, image_path: tim/images, dockerfile: docker/tim/Dockerfile.release, version: $RELEASE_VERSION, arch: arm64 }
   - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
     inputs: { name: nysiis, image_path: nysiis/images, dockerfile: docker/nysiis/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
+    inputs: { name: pdf-creator, image_path: pdf-creator/images, dockerfile: docker/pdf-creator/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
 
   - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
     inputs: { name: ruuter, service_code: $SERVICECODE, project: $SERVICECODE, image_path: ruuter/images, version: $RELEASE_VERSION, arch: arm64 }
@@ -94,6 +96,8 @@ include:
     inputs: { name: tim, service_code: $SERVICECODE, project: $SERVICECODE, image_path: tim/images, version: $RELEASE_VERSION, arch: arm64 }
   - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
     inputs: { name: nysiis, service_code: $SERVICECODE, project: $SERVICECODE, image_path: nysiis/images, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
+    inputs: { name: pdf-creator, service_code: $SERVICECODE, project: $SERVICECODE, image_path: pdf-creator/images, version: $RELEASE_VERSION, arch: arm64 }
 
   - component: gitlab.kemitaws.ee/platform-internal/ci-components/release-pin@6.6.0
     inputs:
@@ -113,6 +117,7 @@ include:
         frontend
         tim
         nysiis
+        pdf-creator
       artifacts: >-
         $CHART_REPOSITORY/resql-ljvis
         $CHART_REPOSITORY/data-mapper
@@ -123,6 +128,7 @@ include:
         $CHART_REPOSITORY/frontend
         $CHART_REPOSITORY/tim
         $CHART_REPOSITORY/nysiis
+        $CHART_REPOSITORY/pdf-creator
       applications: >-
         resql-ljvis-dev
         data-mapper-dev
@@ -133,6 +139,7 @@ include:
         frontend-dev
         tim-dev
         nysiis-dev
+        pdf-creator-dev
 
 # ---------------------------------------------------------------------------- test
 
@@ -219,6 +226,8 @@ secret_detection:
 "sbom:tim":              { extends: .protected-refs, needs: ["release:version", "build:tim"] }
 "build:nysiis":          { extends: .protected-refs }
 "sbom:nysiis":           { extends: .protected-refs, needs: ["release:version", "build:nysiis"] }
+"build:pdf-creator":     { extends: .protected-refs }
+"sbom:pdf-creator":      { extends: .protected-refs, needs: ["release:version", "build:pdf-creator"] }
 
 # strategy: depend keeps the source release red when any of eight package jobs fails.
 package:charts:

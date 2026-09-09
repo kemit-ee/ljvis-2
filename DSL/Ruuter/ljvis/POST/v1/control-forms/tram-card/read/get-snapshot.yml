@@ -1,0 +1,35 @@
+declaration:
+
+  version: "1.0"
+  description: "Get a single version-history snapshot of a TRAM control card. Guarded by tram_driver_form.read."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+        description: "Snapshot ID (primary key)"
+      - field: formKey
+        type: string
+        description: "tram_control_card_key"
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    form_key: "${incoming.body.formKey}"
+  next: getSnapshot
+
+getSnapshot:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-card/get-snapshot"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      form_key: ${form_key}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

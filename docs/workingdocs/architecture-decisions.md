@@ -369,6 +369,10 @@ Sool on osa isikukoodi räsimise mehhanismist mis tagab, et auditilõpis ei ole 
 
 ## ADR-001 — TRAM kontrollkaardi andmemudel
 
+> **⚠️ Asendatud ADR-002-ga (12.11.2026).** Alljärgnev kirjeldab esialgset
+> kahe olemi mudelit (`compound_form` authority='TRAM' + `sp_driver_form`).
+> TRAM kontrollkaart on nüüd üks eraldiseisev olem — vt [ADR-002](#adr-002--tram-kontrollkaart--üks-olem-üks-elutsükkel).
+
 **Otsustaja:** Sten Viljus  
 **Kuupäev:** 28.08.2026  
 **Seotud funktsioon:** Transpordiameti (TRAM) autojuhi kontrollkaart
@@ -427,3 +431,95 @@ Täielik eraldatus endpoint'i tasemel tagab, et TRAM ja PPA õigused ei põimu. 
 **Horisontaalne juurdepääsukaitse (IDOR):** kuna `forms.sp_driver_form` tabelil ei ole `authority` veergu, kontrollivad kõik `tram-form/sp-driver/*` päringud (lugemine ja kirjutamine) alamvormi kuuluvust TRAM-koondvormi külge:
 `... AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')`.
 Nii ei saa TRAM-õigustega kasutaja PPA autojuhi alamvormi `sp_driver_form_key` kaudu lugeda ega muuta. Versiooniajaloo (`get-snapshots`) lekke vältimiseks on TRAM-il oma guarditud endpointid `GET .../tram-form/get-snapshots` ja `.../tram-form/sp-driver/read/get-snapshots` — üldist `control-forms/get-snapshots` endpointi TRAM ei kasuta.
+
+---
+
+## ADR-002 — TRAM kontrollkaart: üks olem, üks elutsükkel
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 12.11.2026
+**Seotud funktsioon:** Transpordiameti (TRAM) kontrollkaart — põhimõtteline refaktooring
+**Asendab:** ADR-001
+
+### Kontekst
+
+ADR-001 mudelis on TRAM kontrollkaart kaks sõltumatut snapshot-olemit:
+`forms.compound_form` (authority='TRAM', üldosa) + 0–1 `forms.sp_driver_form`
+(juhi kontrolli sisu), seotud `compound_form_key` kaudu. Igal olemil on oma
+elutsükkel, oma nähtav vorminumber (`tram-AAAA-NNNNN` vs `sp-AAAA-NNNNN/1`), oma
+versiooniajalugu, oma Ruuteri endpoint'id ja Resql-failid. Kasutajaliideses
+tähendab see kahte vahekaarti, kus juhi-vahekaart tekib alles pärast üldosa
+esmakordset salvestust (alamvormi INSERT vajab olemasolevat `compound_form_key`).
+
+See kahe olemi mudel oli PPA koondvormi (mitu erinevat alamvormi tüüpi ühe
+kontrolljuhtumi all) taaskasutuse artefakt. TRAM kontrollkaardil **ei ole kunagi
+teisi alamvorme** peale ühe juhi-sektsiooni (vt `docs/user-guide/18-vorm-tram-kontrollkaart.md`).
+Kahe olemi mudel tekitas seetõttu ainult keerukust: kahekordne elutsükkel,
+kahekordne number, IDOR-kaitse `EXISTS(... authority='TRAM')` igas alamvormi
+päringus, „alamvorm tekib pärast salvestust" UX-lõks.
+
+### Otsus 1 — üks tabel `forms.tram_control_card`
+
+TRAM kontrollkaart on **üks INSERT-only snapshot-olem** — üks tabel, mis sisaldab
+kogu üldosa, juhi identiteedi (`drivers` JSONB + `driver_not_applicable`), juhi
+kontrolli sisu ja e-Toimiku otsuse väljad. Praegune seis =
+`DISTINCT ON (tram_control_card_key) ORDER BY tram_control_card_key, created_at DESC`.
+
+`forms.compound_form` authority='TRAM' ja sellega seotud `forms.sp_driver_form`
+jäävad **ainult PPA jaoks** (authority='PPA'). Vanad `tram-form/**` endpoint'id
+ja Resql-failid eemaldatakse (PR2).
+
+**PPA multimodaalsuse mõisted, mida TRAM ei kasuta ja mis kaovad uuest tabelist:**
+`mass_dimension_*`, `atp_violation_*` (TRAM vaade peidab ja täidab vaikeväärtustega),
+`sub_form_number` (üks number nüüd), `selection_status` (üks olem — „juhita" juhu
+katab `driver_not_applicable`), `template_version`.
+
+### Otsus 2 — üks number, üks elutsükkel
+
+Üks nähtav number `tram-AAAA-NNNNN/V` (sekventsid `forms.seq_tram_control_card_key`
++ `forms.seq_tram_control_card_number`). Üks elutsükkel: **Salvestatud →
+Kinnitatud → Avaldatud** (+ `deleted` pöördumatu pehme kustutus). `publish` on
+lubatud ainult olekust `confirmed` (422 `already_published` / `not_confirmed`) —
+erinevalt vanast `tram-form/edit/publish.yml`-ist, mis avalikustas pimesi.
+
+Erinevalt `labour-inspection`-ist **ei ole `confirm`-il rikkumiste väravat**:
+TRAM inspektor võib rikkumistega kaardi kinnitada ja siis kas avalikustada käsitsi
+või oodata e-Toimiku otsust.
+
+### Otsus 3 — auto-avalikustamine asendab „kirjuta kohapeal"
+
+Vana `etoimik-sp-driver-decision-sync` cron kirjutas TRAM `sp_driver_form` ridadele
+`enforcement_decision` / `proceeding_closure_basis` **kohapeale** (ilma uue
+snapshot'ita, ilma avalikustamiseta). Uus TRAM-i cron
+(`etoimik-tram-decision-sync`, PR3) järgib `labour-inspection` mustrit: kui
+e-Toimikust tuleb **jõustunud karistus** (süüdistuspunkt mille `SulgemiseKP`
+täidetud ja `LahendKL` olemas), lisatakse uus `published` snapshot
+(`version+1`, `created_by='e-toimik'`). „Menetlus lõpetatud, karistust ei
+määratud" → inspektor avalikustab käsitsi. PPA `sp_driver_form` „kirjuta
+kohapeal" käitumine jääb PPA jaoks muutmata.
+
+### Otsus 4 — õigused ja guardid muutumata
+
+Õigused jäävad `tram_driver_form.write` / `tram_driver_form.read` (juba
+kasutajagruppidele määratud, klassifikaator `TRAM_KONTROLLKAART` seotud) —
+ümbernimetamine oleks puhas risk ilma kasuta. Uued endpoint'id
+(`v1/control-forms/tram-card/**`) on eraldi guarditud; üldist
+`control-forms/get-snapshots` endpointi TRAM endiselt ei kasuta.
+
+### Otsus 5 — puhas algus, migratsiooni ei tehta
+
+TRAM on arendusjärgus, toodangu-andmeid ei ole. Andmemigratsiooni changeset'i,
+`migration_map` tabelit ega vana-võtme ümbersuunamist ei tehta. dev/test
+andmed visatakse maha, `forms.tram_control_card` algab tühjalt.
+
+### Tagajärjed
+
+- **+** Üks vorm, üks number, üks elutsükkel; „alamvorm tekib pärast salvestust"
+  UX-lõks kaob; IDOR-kaitset pole enam vaja (olem on iseenesest TRAM).
+- **+** `forms.form_search` TRAM-harud lihtsustuvad (kaks `tram_compound` /
+  `tram_driver` tüüpi → üks `tram_control_card`).
+- **−** `compound_form` / `sp_driver_form` jäävad kandma ainult PPA andmeid —
+  vaja lisada `WHERE authority='PPA'` filtrid PPA-harudele (PR2).
+- **−** Tableau aruandlus vajab uuendust (`form_type='tram_control_card'` loeb
+  `forms.tram_control_card` otse); kustutatud `mass_dimension_*` / `atp_*`
+  veerud dokumenteeritud Tableau omanikule.

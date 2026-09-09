@@ -1,0 +1,64 @@
+declaration:
+
+  version: "1.0"
+  description: "Single source of truth for TRAM control card (Transpordiameti kontrollkaart) field validation — shared by edit/save.yml, edit/confirm.yml and edit/publish.yml. Mirrors the frontend Yup schema and the forms.tram_control_card CHECK constraints. Returns '{\"valid\":true}' when all checks pass, otherwise the VALIDATION_ERROR shape the callers forward to the client as-is."
+  namespace: service
+  allowlist:
+    body:
+      - field: controlDate
+        type: string
+      - field: drivers
+        type: string
+      - field: driverNotApplicable
+        type: string
+      - field: proceedingType
+        type: string
+      - field: proceedingReferenceNumber
+        type: string
+
+extractFields:
+  assign:
+    control_date: "${incoming.body.controlDate || ''}"
+    driver_not_applicable: "${(incoming.body.driverNotApplicable || 'false') === 'true' || (incoming.body.driverNotApplicable || '') === '1'}"
+    drivers: "${JSON.parse(incoming.body.drivers || '[]')}"
+    proceeding_type: "${incoming.body.proceedingType || 'none'}"
+    proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
+  next: computeDriverFlags
+
+computeDriverFlags:
+  assign:
+    first_driver_name_missing: "${!driver_not_applicable && (drivers.length === 0 || !((drivers[0].firstName || '').trim()) || !((drivers[0].lastName || '').trim()))}"
+    proceeding_ref_missing: "${proceeding_type !== 'none' && !proceeding_reference_number.trim()}"
+  next: validate
+
+validate:
+  switch:
+    - condition: ${!control_date || control_date.trim() === ''}
+      next: returnControlDateRequiredError
+    - condition: ${new Date(control_date) > new Date()}
+      next: returnControlDateFutureError
+    - condition: ${first_driver_name_missing}
+      next: returnDriverNameRequiredError
+    - condition: ${proceeding_ref_missing}
+      next: returnProceedingRefRequiredError
+  next: returnValid
+
+returnValid:
+  return: '{"valid":true}'
+  next: end
+
+returnControlDateRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"controlDate","code":"required"}'
+  next: end
+
+returnControlDateFutureError:
+  return: '{"type":"VALIDATION_ERROR","field":"controlDate","code":"future_date_not_allowed"}'
+  next: end
+
+returnDriverNameRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"drivers[0].firstName","code":"required"}'
+  next: end
+
+returnProceedingRefRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"required"}'
+  next: end
