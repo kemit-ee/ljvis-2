@@ -220,6 +220,9 @@ JOIN (
 -- snapshot'i ühisele veerukomplektile (form_type, form_number, status,
 -- main_date, county, vehicle_reg_nr, company_reg_code, company_name,
 -- driver_search, inspector_org_id, inspector_name, has_violation, ...).
+-- form_type väärtused: compound, sp_driver, sp_teammate, vehicle_technical,
+-- trailer_technical, adr, kv (PPA koondvorm + alamvormid); foreign_violation,
+-- labour_inspection, good_repute, tram_control_card (eraldiseisvad).
 -- Anna Tableau'le SELECT ka sellele: GRANT SELECT ON forms.form_search TO <tableau_role>;
 
 GRANT USAGE ON SCHEMA tableau TO <tableau_role>;
@@ -271,12 +274,19 @@ Eraldiseisvad vormid (vanemat pole):
    foreign_violation_form   (välisriigi rikkumise andmevorm)
    labour_inspection_form   (Tööinspektsiooni kontrollvorm)
    good_repute_form         (hea maine vorm)
+   tram_control_card        (Transpordiameti kontrollkaart — üldosa + juhi kontroll ühel real, ADR-002)
 ```
 
-> **`authority`** veerg `compound_form`'is: `PPA` (vaikimisi) või `TRAM`
-> (Transpordiamet). Sama tabel teenindab mõlemat asutust; eristamiseks kasuta seda
-> veergu. `forms.form_search` vaade toodab `form_type` väärtused `compound` vs
-> `tram_compound`, `sp_driver` vs `tram_driver`.
+> **ADR-002 (11.2026):** Transpordiameti (TRAM) kontrollkaart on nüüd **eraldi
+> tabel `forms.tram_control_card`** (üks olem — üldosa + sõidukijuhi kontrolli
+> sisu ühel real). `forms.compound_form` ja `forms.sp_driver_form` sisaldavad
+> nüüd **ainult PPA** ridu (`authority = 'PPA'`), `authority` veerg on jäänud
+> ühilduvuse pärast. `forms.form_search` vaade toodab TRAM ridade jaoks ühe
+> `form_type` väärtuse **`tram_control_card`** (varasemad `tram_compound` /
+> `tram_driver` on kadunud).
+>
+> `forms.tram_control_card` **ei sisalda** PPA-multimodaalseid `mass_dimension_*`
+> ega `atp_violation_*` veerge. Vt jaotist 5.4.
 
 ### 5.2 `forms.compound_form` — võtmeveerud
 
@@ -318,6 +328,51 @@ Autojuhi/kaassõitja sõidu- ja puhkeaja kontrollkaart.
 > rikkumiseks `result_type NOT IN ('ok','KORRAS','HOIATUS')` **VÕI** `additional_measure IS NOT NULL`.
 > Puhas `KORRAS`/`HOIATUS` ilma lisameetmeta **ei** loe rikkumiseks. Frontend ei
 > salvesta kunagi väärtust `ok` — see on ainult defaultväärtus.
+>
+> NB: `sp_driver_form` / `sp_teammate_form` sisaldavad **ainult PPA** ridu.
+> Transpordiameti juhi kontroll on `forms.tram_control_card` (jaotis 5.3a).
+
+### 5.3a `forms.tram_control_card` — Transpordiameti kontrollkaart (ADR-002)
+
+Üks eraldiseisev INSERT-only snapshot-tabel: üldosa (kontrollikoht, sõiduk,
+vedaja, ametiisik) + sõidukijuhi kontrolli sisu **ühel real**. Vanem `compound_form`'i
+ei ole. Praegune seis = `DISTINCT ON (tram_control_card_key) ORDER BY tram_control_card_key, created_at DESC`.
+
+| Veer | Tüüp | Tähendus |
+|---|---|---|
+| `tram_control_card_key` | BIGINT | Loogiline identiteet (grupeeri selle järgi) |
+| `form_number` | VARCHAR | `tram-AAAA-NNNNN` (üks number — eraldi `sp-` numbrit ei ole) |
+| `version` | INTEGER | Kuvatav versioon; avalikustamine +1 |
+| `status` | VARCHAR | `saved` / `confirmed` / `published` / `deleted` |
+| `control_year` | INTEGER | Kontrolli aasta |
+| `control_date`, `control_time` | DATE/TIME | Kontrolli aeg |
+| `control_country_code`, `county`, `city`, `road` | VARCHAR | Kontrolli asukoht |
+| `vehicle_reg_nr`, `vehicle_make`, `vehicle_model`, `vehicle_category_code` | VARCHAR | Sõiduk |
+| `trailers` | JSONB | Haagiste massiiv |
+| `company_reg_code`, `company_name`, `company_country_code`, `company_county` | VARCHAR | Vedaja |
+| `inspector_first_name`, `inspector_last_name`, `inspector_organisation_id` | VARCHAR | Kontrollija (**PII**) |
+| `drivers` | JSONB | Juhtide massiiv — **camelCase** võtmed (`personalCodeEe`, `firstName`, …), erinevalt `compound_form.drivers` snake_case'ist. Sisaldab isikukoode (**PII**) |
+| `driver_not_applicable` | BOOLEAN | „Ei ole asjakohane" — juhita kontroll |
+| `transport_type`, `result_type`, `additional_measure`, `proceeding_type`, `proceeding_reference_number` | VARCHAR | Juhi kontrolli tulemus / menetlus |
+| `violations_561_2006`, `violations_165_2014`, `violations_2002_15`, `violations_593_2008`, `violations_2020_1057`, `erru_points` | JSONB | Rikkumised (sama kuju mis `sp_driver_form`) |
+| `enforcement_decision`, `proceeding_closure_basis` | TEXT | e-Toimiku jõustunud otsus — kirjutab **ainult öine cron** (`created_by = 'e-toimik'`), mis lisab automaatselt avalikustatud snapshot'i |
+| `created_at`, `created_by` | TIMESTAMPTZ / VARCHAR | Audit |
+
+**Ei sisalda** (erinevalt `sp_driver_form`'ist): `mass_dimension_non_compliant`,
+`mass_dimension_measurements`, `atp_violation_found`, `atp_violation_description`,
+`sub_form_number`, `selection_status`, `template_version`.
+
+`forms.form_search` väljastab need read `form_type = 'tram_control_card'`.
+`has_violation` reegel on sama mis `sp_driver`'il.
+
+Soovituslik Tableau vaade:
+```sql
+CREATE OR REPLACE VIEW tableau.tram_control_card_current AS
+SELECT DISTINCT ON (tram_control_card_key) *
+FROM forms.tram_control_card
+WHERE status <> 'deleted'
+ORDER BY tram_control_card_key, created_at DESC;
+```
 
 ### 5.4 `forms.vehicle_technical_form` / `trailer_technical_form` — võtmeveerud
 
