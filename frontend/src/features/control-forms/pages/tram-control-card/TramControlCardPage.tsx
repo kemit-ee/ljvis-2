@@ -8,7 +8,7 @@ import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { BREAKPOINTS } from '../../../../constants/constants';
-import { getTramFormSnapshot } from '../../api';
+import { getTramFormSnapshot, deleteTramForm } from '../../api';
 import type { TramControlCard, Driver } from '../../types';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
@@ -165,7 +165,6 @@ export function TramControlCardPage() {
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
-      const { deleteTramForm } = await import('../../api');
       await deleteTramForm(id, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
