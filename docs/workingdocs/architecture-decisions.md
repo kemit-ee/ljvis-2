@@ -5,6 +5,59 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-008 — PDF-genereerimine: eraldi mikroteenus Ruuteri taga X-Internal autentimisega
+
+**Otsustaja:** Sten Viljus, Rainer Turner
+**Kuupäev:** 09.09.2026
+**Seotud:** LJVIS2 printimise funktsioon; Ruuteri siseteenuse autentimismuster (vt ADR-006 `X-Internal-Service-Token`)
+
+### Kontekst
+
+Kontrollkaartide (koondvorm, TRAM, välisriigi rikkumine jt) trükkimiseks on vaja genereerida PDF-fail. Printimiskäsk tuleb kasutajalt veebibrauseri kaudu; PDF peab sisaldama vormi ametliku kuju koos kõigi alamvormide andmetega.
+
+Põhiküsimused on:
+* **Kus genereeritakse PDF?** Ruuteri DSL-is pole sobivat HTML→PDF teisendajat; frontendilähedane lahendus (brauseri print / Puppeteer kliendis) on raskesti kontrollitav, sõltub kliendi keskkonnast ja ei taga ühtset väljanägemist.
+* **Kuidas hallatakse malle?** Pabervormid erinevad vormi tüübi järgi (PPA koondvorm vs TRAM kontrollkaart vs välisriigi rikkumine jne); mallid peavad olema muudetavad ilma koodi deploy'ta.
+* **Kuidas autentida Ruuteri ja PDF-teenuse vaheline suhtlus?** Teenus ei ole avalik — ainult Ruuter tohib seda kutsuda.
+
+### Otsus
+
+#### Otsus 1 — Eraldi `pdf-generator` mikroteenus
+
+Luuakse eraldi mikroteenus **`pdf-generator`**, mille ainukeseks vastutuseks on PDF-ide genereerimine. Ruuter kutsub seda siselähedase HTTP-päringuga; kasutaja saab valmis PDF-i Ruuteri kaudu vastusena.
+
+Teenus saab sisendiks:
+* `formNumber` — vormi number (nt `ppa-2026-00042`)
+* `formType` — vormi tüüp (nt `compound_form`, `tram_form`, `foreign_violation_form`)
+
+Teenuse tööjärjekord:
+1. Võtab `formType` järgi vastavuse **malliga** (hallatavad mallid, vt Otsus 2).
+2. Pärib Ruuterilt vormi andmed (snapshot-API kaudu, autentides samuti `X-Internal-Service-Token` päisega).
+3. Ühendab andmed malliga ja genereerib PDF-i (HTML→PDF teisendus).
+4. Tagastab valmis PDF-i (`application/pdf`) Ruuterile, kes edastab selle kasutajale.
+
+#### Otsus 2 — Hallatavad mallid
+
+PDF-i väljanägemist juhivad **mallid** (nt Handlebars / Jinja2 / HTML+CSS failid), mida saab muuta ilma koodimuudatuseta (nt salvestatud andmebaasis või failisüsteemis konfiguratsiooni osana). Iga vormi tüüp (`formType`) vastab ühele mallile; malli valik on konfigureeritav.
+
+#### Otsus 3 — Ruuteri ja `pdf-generator` vaheline autentimine: `X-Internal-Service-Token`
+
+Ruuteri ja `pdf-generator` vaheline ühendus kasutab **sama siseteenuse autentimismustrit** mis on kehtestatud ADR-006-s:
+* Ruuter lisab päisesse `X-Internal-Service-Token: <konfiguratsioonist loetav saladus>`.
+* `pdf-generator` kontrollib tokeni olemasolu ja kehtivust enne iga päringu töötlemist.
+* `pdf-generator` ei ole välisvõrgust ligipääsetav — ainult Docker Compose sisevõrgust.
+
+### Põhjendus
+
+| Variant | Hinnang |
+|---------|---------|
+| **Brauseri print (window.print)** | Väljund sõltub brauseri seadetest ja CSS-i print-laadistikust; ei anna ühtset A4-vormi; päised/jalused ei ole kontrollitavad. Tagasi lükatud. |
+| **Puppeteer/Playwright kliendis** | Vajab Node.js headless Chrome'i kliendi masinas; ei sobi serveripoolseks lahenduseks. Tagasi lükatud. |
+| **PDF genereerimine Ruuteri DSL-is** | Ruuter on HTTP-marsruuter, mitte dokumendimootor; DSL ei toeta HTML→PDF teisendust. Tagasi lükatud. |
+| **Eraldi `pdf-generator` mikroteenus** | Selge ühtne vastutus; mallid hallatavad sõltumatult; sisevõrk + `X-Internal-Service-Token` tagab turvalisuse; mustrit kasutatakse juba ADR-006 teavitusteenuses. **Valitud.** |
+
+---
+
 ## ADR-007 — ADR (ohtliku veose) kontrollvormi vastavusseviimine kliimaministri määrusega; rikkumiste klassifikaatori restruktureerimine
 
 **Otsustaja:** Sten Viljus
