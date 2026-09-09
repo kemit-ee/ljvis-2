@@ -439,6 +439,7 @@
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
     "publishedNote": "Vorm on avaldatud",
+    "validationErrorNote": "Palun täitke kõik kohustuslikud väljad enne salvestamist.",
     "versions": {
       "title": "Versioonid",
       "version": "Versioon",
@@ -894,6 +895,7 @@
     "compound": {
       "generalPart": "Üldosa",
       "controlPlaceBasicInfo": "Kontrolli koht",
+      "addressOrRoadRequired": "Täitke aadress või valige maantee (kohustuslik).",
       "controlTimeBasicInfo": "Kontrolli aeg",
       "controlDate": "Kontrolli kuupäev",
       "controlTime": "Kontrolli aeg",
@@ -940,8 +942,8 @@
       "companyBusinessRegistryTooltip": "Otsing tehakse Eesti ettevõtte registrikoodi või ettevõtte nime alusel.",
       "companyRegCode": "Eesti ettevõtte registrikood",
       "companyName": "Ettevõtte nimi",
-      "companySearchButton": "Otsi ettevõtet äriregistrist",
-      "companyNameSearchButton": "Otsi nime järgi",
+      "companySearchButton": "Otsi",
+      "companyNameSearchButton": "Otsi",
       "companyCountryCode": "Riik",
       "companyCounty": "Maakond",
       "companyCity": "Linn / Vald",

@@ -33,7 +33,7 @@ AGENTS.md
 .actrc
 
 .ai
-.devin
+.devin/config.local.json
 
 # Task/test documentation (local only)
 TASK-*.md
@@ -63,3 +63,5 @@ scripts/.resql-audit.json
 # Playwright vaikimisi test-results (kui käivitatakse vale kaustast)
 /test-results/
 /tests/playwright/test-results/
+# Ruuter dsl-lint / dsl-test binaries, built in CI (see .github/workflows/ci.yml)
+.ruuter-tools/

@@ -9,7 +9,6 @@ declaration:
         type: string
     body:
       - field: form_key
-        type: number
       - field: driver1PersonalCodeEe
         type: string
       - field: driver1PersonalCodeForeign

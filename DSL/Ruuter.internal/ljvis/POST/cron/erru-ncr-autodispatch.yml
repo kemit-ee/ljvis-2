@@ -24,6 +24,8 @@ declaration:
     next:/return, kõik harud on koondatud arvutatud assign'idesse ja
     kirjutuskutsed käivituvad alati (no-op halva sisendiga).
   namespace: cron
+  allowlist:
+    body: []
 
 fetchCandidates:
   call: http.post

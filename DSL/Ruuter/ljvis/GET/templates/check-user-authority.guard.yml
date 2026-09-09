@@ -1,0 +1,12 @@
+# Katkestab H1 rekursiooni: `ljvis/.guard.yml` `authenticate` samm kutsub
+# `template: templates/check-user-authority` → 0.9.11+ jooksutaks see sammu
+# projektiguardi uuesti → lõputu rekursioon → Ruuteri stack overflow
+# (turnerrainer/Ruuter#79). `override_ancestors: true` + allow-all: mall
+# validib küpsise ise (`missing_cookie` → 401, `return_user_not_found` →
+# "false"), kutsujad toetuvad tema tagastusväärtusele, mitte guardile.
+declaration:
+  override_ancestors: true
+guard_allow_all:
+  return: "success"
+  status: 200
+  next: end

@@ -11,6 +11,7 @@ on:
     branches: [main, dev]
     paths:
       - 'DSL/**'
+      - 'DSL-tests/**'
       - 'docker/**'
       - 'constants.ini'
       - 'tests/**'
@@ -21,10 +22,12 @@ on:
     branches: [main, dev]
     paths:
       - 'DSL/**'
+      - 'DSL-tests/**'
       - 'docker/**'
       - 'constants.ini'
       - 'tests/**'
       - 'frontend/**'
+      - '.github/workflows/**'
       # - 'charts/**'  # re-enable when helm charts branch is merged
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -203,6 +206,75 @@ jobs:
             fi
           done
           exit $fail
+
+  # ── 1c. Ruuter dsl-lint / dsl-test ─────────────────────────────────────────
+  # Static validation against the ACTUAL Ruuter DSL parser, pinned to the same
+  # version as the runtime image (docker/ruuter/Dockerfile). Catches what the
+  # Python checks above and the Guard Audit boot cannot: unrecognised step
+  # keys, unresolved [#constant] references, template: targets that resolve to
+  # no DSL — plus --require-guard (HTTP route with zero applicable guards).
+  # dsl-test runs the DSL-tests/ scenario suite through the real router.
+  #
+  # The tool binaries are not shipped in the runtime image, so they are built
+  # from the pinned Ruuter tag on this runner (glibc/openssl match) and cached
+  # by tag — a cache hit skips the Rust build entirely.
+  dsl-lint:
+    name: DSL Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve pinned Ruuter version
+        id: ruuter
+        run: |
+          tag=$(grep -m1 '^FROM turnerrainer/ruuter:' docker/ruuter/Dockerfile \
+                | sed -E 's|^FROM turnerrainer/ruuter:([^@[:space:]]+).*|\1|')
+          [ -n "$tag" ] || { echo "::error::could not resolve Ruuter tag from docker/ruuter/Dockerfile"; exit 1; }
+          echo "ref=v$tag" >> "$GITHUB_OUTPUT"
+          echo "dsl-lint / dsl-test pinned to Ruuter v$tag"
+
+      # Cache the two built binaries directly — keyed on the Ruuter tag, so a
+      # tool build only happens when the pinned Ruuter version changes.
+      # BUMP the -vN suffix if the local patch below changes.
+      - name: Restore cached dsl-lint / dsl-test
+        id: toolcache
+        uses: actions/cache@v4
+        with:
+          path: .ruuter-tools
+          key: ruuter-dsl-tools-${{ runner.os }}-${{ steps.ruuter.outputs.ref }}-v1
+
+      - name: Build dsl-lint / dsl-test from pinned Ruuter
+        if: steps.toolcache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch "${{ steps.ruuter.outputs.ref }}" \
+            https://github.com/turnerrainer/Ruuter.git "$RUNNER_TEMP/ruuter"
+          cd "$RUNNER_TEMP/ruuter"
+          # turnerrainer/Ruuter#80 — dsl-lint's KNOWN_STEP_KEYS is missing
+          # `ws_tag` (the runtime parser accepts it). Patch until a Ruuter
+          # release carries the fix, then this becomes a no-op.
+          grep -q '"ws_tag"' src/bin/dsl_lint.rs \
+            || sed -i 's/^    "ws_send",$/    "ws_send",\n    "ws_tag",/' src/bin/dsl_lint.rs
+          cargo build --release --bin dsl-lint --bin dsl-test
+          mkdir -p "$GITHUB_WORKSPACE/.ruuter-tools"
+          cp target/release/dsl-lint target/release/dsl-test "$GITHUB_WORKSPACE/.ruuter-tools/"
+
+      # --dsl points at the tree whose sub-dirs are project names (ljvis/),
+      # matching the container's `config_path: /app/DSL` + `/app/DSL/ljvis`
+      # mount — so routes resolve as /ljvis/... and --require-guard loads the
+      # real guard tree.
+      - name: dsl-lint — public gateway (guards required)
+        run: |
+          .ruuter-tools/dsl-lint --dsl DSL/Ruuter --constants constants.ini --require-guard
+
+      - name: dsl-lint — internal router
+        run: |
+          .ruuter-tools/dsl-lint --dsl DSL/Ruuter.internal --constants constants.ini
+
+      - name: dsl-test — DSL-tests/ scenario suite
+        run: |
+          .ruuter-tools/dsl-test --dsl DSL/Ruuter --tests DSL-tests --constants constants.ini
 
   # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
   # Runs after E2E so the security checks are the final CI validation stage.
@@ -444,6 +516,7 @@ jobs:
     needs:
       - validate-dsl
       - guard-audit
+      - dsl-lint
       - security-scan
       - e2e
       - frontend-lint
@@ -456,6 +529,7 @@ jobs:
           echo "Job results:"
           echo "  validate-dsl:        ${{ needs.validate-dsl.result }}"
           echo "  guard-audit:         ${{ needs.guard-audit.result }}"
+          echo "  dsl-lint:            ${{ needs.dsl-lint.result }}"
           echo "  security-scan:       ${{ needs.security-scan.result }}"
           echo "  e2e:                 ${{ needs.e2e.result }}"
           echo "  frontend-lint:       ${{ needs.frontend-lint.result }}"
@@ -467,6 +541,7 @@ jobs:
           for result in \
             "${{ needs.validate-dsl.result }}" \
             "${{ needs.guard-audit.result }}" \
+            "${{ needs.dsl-lint.result }}" \
             "${{ needs.security-scan.result }}" \
             "${{ needs.e2e.result }}" \
             "${{ needs.frontend-lint.result }}" \

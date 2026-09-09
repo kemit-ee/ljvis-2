@@ -1,0 +1,60 @@
+# TARA-sessiooni kontroll (ametnik VÕI kodanik) `templates/audit/` alampuule (Ruuter 0.9.11+ H1).
+#
+# H1: `template:` samm jooksutab sihi guarde. Ilma selle guardita jookseks
+# nendel mallidel projektiülene `ljvis/.guard.yml` (mis kutsub ise
+# `template: templates/check-user-authority`) — kuna
+# `check-user-authority.guard.yml` katkestab selle rekursiooni, ei ole
+# rekursioon siin oht. Küll aga peavad need mallid (`calculate-*-changed-fields`
+# loeb vormi/kasutaja/klassifikaatori snapshoti ID järgi, `files/*` failiops)
+# jääma vähemalt TARA-sessiooni taha ka otsese HTTP-ligipääsu korral
+# (`/api/templates/audit/...`), täpselt nagu enne 0.9.11 (projektiguard).
+# Kutsujad on nii ametniku- kui kodaniku-handlerid, kes edastavad küpsise.
+#
+# `override_ancestors: true` — asendab projektiguardi (mitte ei lisandu).
+# Kontroll = SAMA mis `ljvis/.guard.yml`, aga INLINE (ilma `template:`-ta).
+
+declaration:
+  override_ancestors: true
+
+check_cookie:
+  switch:
+    - condition: ${incoming.headers == null || incoming.headers.cookie == null}
+      next: deny_unauthenticated
+  next: get_cookie_info
+
+get_cookie_info:
+  call: http.get
+  args:
+    url: "[#LJVIS_TIM]/jwt/userinfo"
+    headers:
+      cookie: ${incoming.headers.cookie}
+  result: tim_res
+  next: check_tim_response
+
+check_tim_response:
+  switch:
+    - condition: ${200 <= tim_res.response.status && tim_res.response.status < 300}
+      next: extract_personal_code
+  next: deny_unauthenticated
+
+extract_personal_code:
+  assign:
+    personal_code: ${tim_res.response.body.userinfo?.claims?.personalCode ?? tim_res.response.body.userinfo?.subject ?? ''}
+  next: check_personal_code
+
+check_personal_code:
+  switch:
+    - condition: ${personal_code != null && personal_code != ''}
+      next: allow
+  next: deny_unauthenticated
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny_unauthenticated:
+  status: 401
+  return: "unauthorized"
+  next: end
+

@@ -50,6 +50,8 @@ checkIdPresent:
 validateRequest:
   template: "templates/erru/ctud/validate-ctud-request"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     ctudTo: ${ctud_to}
     originatingAuthority: ${originating_authority}

@@ -11,7 +11,6 @@ declaration:
       - field: search
         type: string
       - field: result_count
-        type: number
       - field: scope
         type: string
       - field: organisation_id
