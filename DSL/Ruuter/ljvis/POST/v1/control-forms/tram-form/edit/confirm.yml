@@ -102,7 +102,6 @@ declaration:
 extractRequestData:
   assign:
     key: "${incoming.body.id}"
-    form_number: "${incoming.body.formNumber}"
     status: "confirmed"
     control_date: "${incoming.body.controlDate}"
     control_time: "${incoming.body.controlTime}"
@@ -227,8 +226,7 @@ confirmForm:
       type: json
     body:
       key: ${key}
-      formNumber: ${form_number}
-      status: ${status}
+      status: confirmed
       controlDate: ${control_date}
       controlTime: ${control_time}
       controlCountryCode: ${control_country_code}
