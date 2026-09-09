@@ -1,0 +1,17 @@
+# GET /ljvis/auth/session — the frontend's initial auth probe.
+# The auth subtree guard is allow-all (override_ancestors), and session.yml
+# rejects a request with no cookie before it makes any TIM/ResQL call, so this
+# path is fully exercisable in-process with no mocks.
+#
+# The happy path (valid session -> officer/citizen claims) needs TIM + ResQL
+# mocks — add a `mode: mock-http` file here when that coverage is wanted.
+mode: inprocess
+
+tests:
+  - name: no cookie -> 401 UNAUTHENTICATED
+    request: { method: GET, path: /ljvis/auth/session }
+    expect:
+      status: 401
+      body_matches:
+        response:
+          error: UNAUTHENTICATED
