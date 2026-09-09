@@ -1,0 +1,11 @@
+# Kodaniku-sessiooni validaator, mida kutsuvad `v1/citizen/**` handlerid.
+# 0.9.11+ H1: ilma selleta jookseks projektiülene ametniku-guard → kodaniku
+# isikukood pole `users.user_account`-is → 403 → kutsuja saaks guardi 403
+# selle asemel et malli enda "false"/claims tagastus. `override_ancestors`
+# + allow-all: mall kontrollib küpsist ise (`return_unauthorized` → "false").
+declaration:
+  override_ancestors: true
+guard_allow_all:
+  return: "success"
+  status: 200
+  next: end

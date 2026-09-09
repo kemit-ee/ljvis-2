@@ -169,6 +169,8 @@ extractRequestData:
 validateForm:
   template: "templates/form/foreign-violation/validate-foreign-violation-form"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     reportingCountryCode: ${reporting_country_code}
     reportingAuthority: ${reporting_authority}
@@ -307,6 +309,8 @@ checkFormNotLocked:
 calculateChangedFields:
   template: "templates/form/foreign-violation/calculate-foreign-violation-changed-fields"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     form_id: ${id}
     reporting_country_code: ${reporting_country_code}

@@ -105,6 +105,8 @@ buildDescription:
 logAuditEvent:
   template: "templates/audit/log-audit-event"
   requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
   body:
     event_type: "user.set_groups"
     event_category: "user_management"
