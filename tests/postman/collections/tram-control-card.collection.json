@@ -17,7 +17,16 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/auth/dev/dev-login"
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -48,7 +57,16 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/auth/dev/dev-login"
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -83,7 +101,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -116,7 +145,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -154,7 +194,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -189,7 +240,23 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/get?q={{tcc_key}}"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/get?q={{tcc_key}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{tcc_key}}"
+            }
+          ]
         }
       },
       "event": [
@@ -220,7 +287,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/publish"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "publish"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -254,7 +332,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/confirm"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "confirm"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -289,7 +378,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/confirm"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "confirm"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -323,7 +423,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/publish"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "publish"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -359,7 +470,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/publish"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "publish"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -393,7 +515,23 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/get-snapshots?id={{tcc_key}}"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/get-snapshots?id={{tcc_key}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "get-snapshots"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{tcc_key}}"
+            }
+          ]
         }
       },
       "event": [
@@ -425,7 +563,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -460,7 +609,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/confirm"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "confirm"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -493,7 +653,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -527,7 +698,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "save"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -562,7 +744,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/confirm"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "confirm"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -591,7 +784,15 @@
           }
         ],
         "url": {
-          "raw": "{{resql_ljvis_url}}/control-forms/tram-card/select_etoimik_candidates"
+          "raw": "{{resql_ljvis_url}}/control-forms/tram-card/select_etoimik_candidates",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "control-forms",
+            "tram-card",
+            "select_etoimik_candidates"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -622,7 +823,15 @@
           }
         ],
         "url": {
-          "raw": "{{resql_ljvis_url}}/control-forms/tram-card/apply_etoimik_decision"
+          "raw": "{{resql_ljvis_url}}/control-forms/tram-card/apply_etoimik_decision",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "control-forms",
+            "tram-card",
+            "apply_etoimik_decision"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -657,7 +866,23 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/get?q={{tcc_et_key}}"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/get?q={{tcc_et_key}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{tcc_et_key}}"
+            }
+          ]
         }
       },
       "event": [
@@ -686,7 +911,15 @@
           }
         ],
         "url": {
-          "raw": "{{resql_ljvis_url}}/control-forms/tram-card/select_etoimik_candidates"
+          "raw": "{{resql_ljvis_url}}/control-forms/tram-card/select_etoimik_candidates",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "control-forms",
+            "tram-card",
+            "select_etoimik_candidates"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -717,7 +950,15 @@
           }
         ],
         "url": {
-          "raw": "{{resql_ljvis_url}}/control-forms/tram-card/apply_etoimik_decision"
+          "raw": "{{resql_ljvis_url}}/control-forms/tram-card/apply_etoimik_decision",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "control-forms",
+            "tram-card",
+            "apply_etoimik_decision"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -751,7 +992,18 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/delete"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "edit",
+            "delete"
+          ]
         },
         "body": {
           "mode": "raw",
@@ -784,7 +1036,23 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/get?q={{tcc_key2}}"
+          "raw": "{{api_url}}/ljvis/v1/control-forms/tram-card/get?q={{tcc_key2}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "tram-card",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{tcc_key2}}"
+            }
+          ]
         }
       },
       "event": [
