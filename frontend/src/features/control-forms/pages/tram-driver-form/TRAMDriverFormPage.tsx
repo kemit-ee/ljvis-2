@@ -15,9 +15,10 @@ import {
   deleteTramForm,
   publishTramDriverForm,
 } from '../../api';
-import type { CompoundForm, DriveRestForm } from '../../types';
+import type { CompoundForm, DriveRestForm, Driver } from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
+import { EtoimikQueryCard } from '../../components/EtoimikQueryCard/EtoimikQueryCard';
 import { DriveRestFormViewCard } from '../../components/DriveRestForm/DriveRestFormViewCard';
 import {
   DriveRestFormEditCard,
@@ -73,7 +74,10 @@ export function TRAMDriverFormPage() {
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState('tab-compound');
-  const [driverTabOpen, setDriverTabOpen] = useState(false);
+  // P1: autojuhi alamvorm on TRAM kaardil alati nähtav (olemasoleval kaardil),
+  // ilma et peaks „Lisa autojuht" nuppu vajutama. Uue kaardi puhul tuleb üldosa
+  // esmalt salvestada (alamvorm vajab compoundFormKey'd).
+  const [driverTabOpen, setDriverTabOpen] = useState(!isNew && !snapshotId);
   const [compoundTabError, setCompoundTabError] = useState(false);
 
   const driver = useSubForm<DriveRestForm, DriveRestFormEditCardRef>({
@@ -117,11 +121,14 @@ export function TRAMDriverFormPage() {
           () => null,
         );
         driver.setForm(driverRes);
+        setDriverTabOpen(true);
         if (driverRes) {
-          setDriverTabOpen(true);
           if (driverRes.status === 'saved') {
             driver.setEditActive(hasPermission('tram_driver_form.write'));
           }
+        } else if (hasPermission('tram_driver_form.write')) {
+          // Alamvorm on veel salvestamata — ava kohe muutmisrežiimis.
+          driver.setEditActive(true);
         }
       })
       .catch(console.error)
@@ -266,6 +273,23 @@ export function TRAMDriverFormPage() {
   const canEdit = isAdmin && form?.status !== 'deleted';
   const canDelete = hasPermission('control_form.delete') && form?.status !== 'deleted';
 
+  // P1: e-toimiku kvalifikatsioonide päringu kaart (kirjutuskaitstud, midagi ei
+  // salvestata). Juhi tuvastusandmed on juba compound_form.drivers[]-il,
+  // menetluse viitenumber autojuhi alamvormil.
+  const compoundFormDrivers: Driver[] = Array.isArray(form?.drivers)
+    ? (form.drivers as Driver[])
+    : typeof form?.drivers === 'string'
+      ? (JSON.parse(form.drivers) as Driver[])
+      : [];
+  const etoimikReferenceOptions = driver.form?.proceedingReferenceNumber
+    ? [
+        {
+          label: `${t('forms.sp_driver_form')} ${driver.form.subFormNumber ?? ''} — ${driver.form.proceedingReferenceNumber}`,
+          value: driver.form.proceedingReferenceNumber,
+        },
+      ]
+    : [];
+
   const sharedProps = {
     isDesktop,
     orgOptions,
@@ -337,28 +361,15 @@ export function TRAMDriverFormPage() {
     </>
   );
 
-  // ── Create mode / no driver yet: single compound card, no tabs ────
-  if (isNew || (!driverTabOpen && !driver.form)) {
+  // ── Create mode: single compound card, no tabs (alamvorm vajab salvestatud
+  //    üldosa compoundFormKey'd; pärast salvestamist avaneb autojuhi vahekaart) ──
+  if (isNew) {
     return (
       <div>
         {alerts}
         <CompoundFormEditCard {...editCardProps} />
         <div className="page-actions mt-1">
           <div className="page-actions-buttons">
-            {!isNew && form && !driver.form && hasPermission('tram_driver_form.write') && (
-              <Button
-                type="button"
-                visualType="secondary"
-                iconLeft="add"
-                onClick={() => {
-                  setDriverTabOpen(true);
-                  driver.setEditActive(true);
-                  setActiveTab('tab-driver');
-                }}
-              >
-                {t('forms.tram_add_driver')}
-              </Button>
-            )}
             <Button type="button" onClick={() => formik.handleSubmit()}>
               {t('common.save')}
             </Button>
@@ -373,6 +384,14 @@ export function TRAMDriverFormPage() {
   return (
     <div style={{ maxWidth: containerWidth }}>
       {alerts}
+
+      {form && id && (
+        <EtoimikQueryCard
+          drivers={compoundFormDrivers}
+          referenceNumberOptions={etoimikReferenceOptions}
+          compoundFormKey={Number(id)}
+        />
+      )}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.tram_driver_form')} overflowMode="scroll">
