@@ -476,6 +476,12 @@ jobs:
         with:
           node-version: '22'
 
+      # Playwright bundles its own Chromium; Google's chrome-stable apt repo on
+      # the runner image is unused here and intermittently serves a stale
+      # Packages.gz ("Hash Sum mismatch"), failing every apt-get update. Drop it.
+      - name: Drop unused google-chrome apt repo
+        run: sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.sources
+
       - name: Install psql
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 

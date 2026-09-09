@@ -1,0 +1,268 @@
+declaration:
+
+  version: "1.0"
+  description: "Publish (avalikusta) a TRAM control card. Only allowed from 'confirmed'. Field values are taken from the current DB record — the client only sends id. Bumps /V and triggers a company risk-score recalculation."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id}"
+    created_by: "${u.personalcode || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: checkFormIsConfirmed
+
+checkFormIsConfirmed:
+  assign:
+    current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+  next: checkFormIsConfirmedSwitch
+
+checkFormIsConfirmedSwitch:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: returnAlreadyPublishedError
+    - condition: ${current_status !== 'confirmed'}
+      next: returnNotConfirmedError
+  next: extractCurrentFormData
+
+extractCurrentFormData:
+  assign:
+    cur: ${currentFormRes.response.body[0]}
+  next: extractCurrentFormFields
+
+extractCurrentFormFields:
+  assign:
+    control_date: "${cur.controlDate != null ? String(cur.controlDate) : ''}"
+    control_time: "${cur.controlTime != null ? String(cur.controlTime) : ''}"
+    control_country_code: "${cur.controlCountryCode != null ? String(cur.controlCountryCode) : ''}"
+    county: "${cur.county != null ? String(cur.county) : ''}"
+    city: "${cur.city != null ? String(cur.city) : ''}"
+    road: "${cur.road != null ? String(cur.road) : ''}"
+    road_other: "${cur.roadOther != null ? String(cur.roadOther) : ''}"
+    kilometer: "${cur.kilometer != null ? String(cur.kilometer) : ''}"
+    address: "${cur.address != null ? String(cur.address) : ''}"
+    road_type: "${cur.roadType != null ? String(cur.roadType) : ''}"
+    road_tax_status: "${cur.roadTaxStatus != null ? String(cur.roadTaxStatus) : ''}"
+    road_tax_notes: "${cur.roadTaxNotes != null ? String(cur.roadTaxNotes) : ''}"
+    vehicle_reg_nr: "${cur.vehicleRegNr != null ? String(cur.vehicleRegNr) : ''}"
+    vehicle_make: "${cur.vehicleMake != null ? String(cur.vehicleMake) : ''}"
+    vehicle_model: "${cur.vehicleModel != null ? String(cur.vehicleModel) : ''}"
+    vehicle_country_code: "${cur.vehicleCountryCode != null ? String(cur.vehicleCountryCode) : ''}"
+    vehicle_vin: "${cur.vehicleVin != null ? String(cur.vehicleVin) : ''}"
+    vehicle_first_registration: "${cur.vehicleFirstRegistration != null ? String(cur.vehicleFirstRegistration) : ''}"
+    vehicle_body_type: "${cur.vehicleBodyType != null ? String(cur.vehicleBodyType) : ''}"
+    vehicle_category_code: "${cur.vehicleCategoryCode != null ? String(cur.vehicleCategoryCode) : ''}"
+    vehicle_category_other: "${cur.vehicleCategoryOther != null ? String(cur.vehicleCategoryOther) : ''}"
+    vehicle_mileage: "${cur.vehicleMileage != null ? String(cur.vehicleMileage) : ''}"
+    trailers: "${cur.trailers != null ? String(cur.trailers) : '[]'}"
+    company_reg_code: "${cur.companyRegCode != null ? String(cur.companyRegCode) : ''}"
+    company_name: "${cur.companyName != null ? String(cur.companyName) : ''}"
+    company_country_code: "${cur.companyCountryCode != null ? String(cur.companyCountryCode) : ''}"
+    company_county: "${cur.companyCounty != null ? String(cur.companyCounty) : ''}"
+    company_city: "${cur.companyCity != null ? String(cur.companyCity) : ''}"
+    company_address: "${cur.companyAddress != null ? String(cur.companyAddress) : ''}"
+    company_postal_code: "${cur.companyPostalCode != null ? String(cur.companyPostalCode) : ''}"
+    company_owner_first_name: "${cur.companyOwnerFirstName != null ? String(cur.companyOwnerFirstName) : ''}"
+    company_owner_last_name: "${cur.companyOwnerLastName != null ? String(cur.companyOwnerLastName) : ''}"
+    company_activity_licence_copy_number: "${cur.companyActivityLicenceCopyNumber != null ? String(cur.companyActivityLicenceCopyNumber) : ''}"
+    inspector_first_name: "${cur.inspectorFirstName != null ? String(cur.inspectorFirstName) : ''}"
+    inspector_last_name: "${cur.inspectorLastName != null ? String(cur.inspectorLastName) : ''}"
+    inspector_organisation_id: "${cur.inspectorOrganisationId != null ? String(cur.inspectorOrganisationId) : ''}"
+    inspector_unit: "${cur.inspectorUnit != null ? String(cur.inspectorUnit) : ''}"
+    inspector_profession: "${cur.inspectorProfession != null ? String(cur.inspectorProfession) : ''}"
+    drivers: "${cur.drivers != null ? String(cur.drivers) : '[]'}"
+    driver_not_applicable: "${cur.driverNotApplicable != null ? String(cur.driverNotApplicable) : ''}"
+    transport_type: "${cur.transportType != null ? String(cur.transportType) : ''}"
+    transport_empty_run: "${cur.transportEmptyRun != null ? String(cur.transportEmptyRun) : ''}"
+    transport_nature: "${cur.transportNature != null ? String(cur.transportNature) : ''}"
+    transport_nature_exempt: "${cur.transportNatureExempt != null ? String(cur.transportNatureExempt) : ''}"
+    transport_classes: "${cur.transportClasses != null ? String(cur.transportClasses) : '[]'}"
+    cabotage_violations: "${cur.cabotageViolations != null ? String(cur.cabotageViolations) : '[]'}"
+    result_type: "${cur.resultType != null ? String(cur.resultType) : ''}"
+    additional_measure: "${cur.additionalMeasure != null ? String(cur.additionalMeasure) : ''}"
+    proceeding_type: "${cur.proceedingType != null ? String(cur.proceedingType) : ''}"
+    proceeding_reference_number: "${cur.proceedingReferenceNumber != null ? String(cur.proceedingReferenceNumber) : ''}"
+    document_checks: "${cur.documentChecks != null ? String(cur.documentChecks) : '[]'}"
+    other_documents: "${cur.otherDocuments != null ? String(cur.otherDocuments) : '[]'}"
+    sp_applicability: "${cur.spApplicability != null ? String(cur.spApplicability) : ''}"
+    tachograph_type_code: "${cur.tachographTypeCode != null ? String(cur.tachographTypeCode) : ''}"
+    tachograph_data_not_downloaded: "${cur.tachographDataNotDownloaded != null ? String(cur.tachographDataNotDownloaded) : ''}"
+    checked_days_count: "${cur.checkedDaysCount != null ? String(cur.checkedDaysCount) : ''}"
+    work_days_count: "${cur.workDaysCount != null ? String(cur.workDaysCount) : ''}"
+    other_activity_days_count: "${cur.otherActivityDaysCount != null ? String(cur.otherActivityDaysCount) : ''}"
+    violations_561_2006: "${cur.violations5612006 != null ? String(cur.violations5612006) : '[]'}"
+    violations_165_2014: "${cur.violations1652014 != null ? String(cur.violations1652014) : '[]'}"
+    violations_2002_15: "${cur.violations200215 != null ? String(cur.violations200215) : '[]'}"
+    violations_593_2008: "${cur.violations5932008 != null ? String(cur.violations5932008) : '[]'}"
+    violations_2020_1057: "${cur.violations20201057 != null ? String(cur.violations20201057) : '[]'}"
+    erru_points: "${cur.erruPoints != null ? String(cur.erruPoints) : '[]'}"
+    liini_number: "${cur.liiniNumber != null ? String(cur.liiniNumber) : ''}"
+    liini_nimetus: "${cur.liiniNimetus != null ? String(cur.liiniNimetus) : ''}"
+    files: "${cur.files != null ? String(cur.files) : '[]'}"
+    notes: "${cur.notes != null ? String(cur.notes) : ''}"
+  next: publishForm
+
+publishForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-card/update"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      status: published
+      controlDate: ${control_date}
+      controlTime: ${control_time}
+      controlCountryCode: ${control_country_code}
+      county: ${county}
+      city: ${city}
+      road: ${road}
+      roadOther: ${road_other}
+      kilometer: ${kilometer}
+      address: ${address}
+      roadType: ${road_type}
+      roadTaxStatus: ${road_tax_status}
+      roadTaxNotes: ${road_tax_notes}
+      vehicleRegNr: ${vehicle_reg_nr}
+      vehicleMake: ${vehicle_make}
+      vehicleModel: ${vehicle_model}
+      vehicleCountryCode: ${vehicle_country_code}
+      vehicleVin: ${vehicle_vin}
+      vehicleFirstRegistration: ${vehicle_first_registration}
+      vehicleBodyType: ${vehicle_body_type}
+      vehicleCategoryCode: ${vehicle_category_code}
+      vehicleCategoryOther: ${vehicle_category_other}
+      vehicleMileage: ${vehicle_mileage}
+      trailers: ${trailers}
+      companyRegCode: ${company_reg_code}
+      companyName: ${company_name}
+      companyCountryCode: ${company_country_code}
+      companyCounty: ${company_county}
+      companyCity: ${company_city}
+      companyAddress: ${company_address}
+      companyPostalCode: ${company_postal_code}
+      companyOwnerFirstName: ${company_owner_first_name}
+      companyOwnerLastName: ${company_owner_last_name}
+      companyActivityLicenceCopyNumber: ${company_activity_licence_copy_number}
+      inspectorFirstName: ${inspector_first_name}
+      inspectorLastName: ${inspector_last_name}
+      inspectorOrganisationId: ${inspector_organisation_id}
+      inspectorUnit: ${inspector_unit}
+      inspectorProfession: ${inspector_profession}
+      drivers: ${drivers}
+      driverNotApplicable: ${driver_not_applicable}
+      transportType: ${transport_type}
+      transportEmptyRun: ${transport_empty_run}
+      transportNature: ${transport_nature}
+      transportNatureExempt: ${transport_nature_exempt}
+      transportClasses: ${transport_classes}
+      cabotageViolations: ${cabotage_violations}
+      resultType: ${result_type}
+      additionalMeasure: ${additional_measure}
+      proceedingType: ${proceeding_type}
+      proceedingReferenceNumber: ${proceeding_reference_number}
+      documentChecks: ${document_checks}
+      otherDocuments: ${other_documents}
+      spApplicability: ${sp_applicability}
+      tachographTypeCode: ${tachograph_type_code}
+      tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      checkedDaysCount: ${checked_days_count}
+      workDaysCount: ${work_days_count}
+      otherActivityDaysCount: ${other_activity_days_count}
+      violations5612006: ${violations_561_2006}
+      violations1652014: ${violations_165_2014}
+      violations200215: ${violations_2002_15}
+      violations5932008: ${violations_593_2008}
+      violations20201057: ${violations_2020_1057}
+      erruPoints: ${erru_points}
+      liiniNumber: ${liini_number}
+      liiniNimetus: ${liini_nimetus}
+      files: ${files}
+      notes: ${notes}
+      created_by: ${created_by}
+  result: publishRes
+  next: checkSaved
+
+checkSaved:
+  switch:
+    - condition: ${publishRes.response == null || publishRes.response.status < 200 || publishRes.response.status >= 300 || publishRes.response.body == null || publishRes.response.body.length == null || publishRes.response.body.length === 0}
+      next: returnResqlSaveError
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.tram_control_card.publish"
+    event_category: "control_form_management"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: "TRAM kontrollkaart avalikustatud, number=${publishRes.response.body[0].formNumber}/${publishRes.response.body[0].version}"
+    log_content: "{\"tramControlCardKey\":${publishRes.response.body[0].id},\"formNumber\":\"${publishRes.response.body[0].formNumber}\",\"oldStatus\":\"confirmed\",\"newStatus\":\"published\"}"
+  result: audit_result
+  next: triggerRiskRecalculate
+
+triggerRiskRecalculate:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test('' + (company_reg_code || ''))}"
+      next: returnSuccess
+  next: callRiskRecalculate
+
+callRiskRecalculate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      calculation_trigger: "kontrollvorm"
+  result: recalc_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${publishRes.response.body}
+  next: end
+
+returnResqlSaveError:
+  status: 500
+  return: "${(publishRes.response != null && publishRes.response.body) || {type: 'RESQL_ERROR', code: 'save_failed', message: 'Vormi avalikustamine ebaõnnestus'}}"
+  next: end
+
+returnAlreadyPublishedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnNotConfirmedError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"not_confirmed"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error":"NOT_FOUND"}'
+  next: end
